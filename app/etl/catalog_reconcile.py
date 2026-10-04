@@ -112,10 +112,11 @@ class CatalogReconciler:
             current = latest.get(row[0])
             if current is None or str(row[6]) > str(current[5]):
                 latest[row[0]] = (row[1], row[2], row[3], row[4], row[5], row[6])
-        return {
-            pid: (value[0], value[1], value[4])  # (price, currency, category_name)
-            for pid, value in latest.items()
-        }  # type: ignore[return-value]
+        results: dict[int, tuple[float | None, str | None, int | None, str | None]] = {}
+        for pid, value in latest.items():
+            # (price, currency, category_name) packed into the wider tuple shape.
+            results[pid] = (value[0], value[1], None, value[4])
+        return results
 
     def _candidate_products(self, catalog: Sequence[CatalogProduct]) -> list[Any]:
         """Load the products worth comparing (active, seen recently)."""
@@ -148,7 +149,9 @@ class CatalogReconciler:
             key = candidate.normalized_name or ""
             by_block.setdefault(key[: self.block_length], []).append(candidate)
             for token in set(key.split()):
-                self._by_token.setdefault(token, []).append(candidate)
+                by_token.setdefault(token, []).append(candidate)
+        self._by_block = by_block
+        self._by_token = by_token
         self._index_ready = True
 
     def _narrow_candidates(
