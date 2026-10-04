@@ -1,0 +1,54 @@
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+coverage.xml
+.tox/
+
+# ---------- Databases / local data ----------
+*.sqlite3
+*.db
+data/
+var/
+logs/
+*.log
+!docs/**/*.log
+mysql_data/
+pg_data/
+
+# ---------- Node / Frontend ----------
+node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.vite-inspect/
+*.tsbuildinfo
+npm-debug.log*
+yarn-error.log*
+
+# ---------- Secrets / env ----------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# ---------- Tooling ----------
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.example.json
+.DS_Store
+Thumbs.db
+*.swp

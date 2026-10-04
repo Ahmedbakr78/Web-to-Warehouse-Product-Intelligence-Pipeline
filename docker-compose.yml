@@ -1,0 +1,167 @@
+services:
+  # ------------------------------------------------------------------
+  # PostgreSQL - primary analytical warehouse
+  # ------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: pip-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-pip}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pip}
+      POSTGRES_DB: ${POSTGRES_DB:-pipeline}
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+      TZ: UTC
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pip} -d ${POSTGRES_DB:-pipeline}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks: [pipnet]
+
+  # ------------------------------------------------------------------
+  # MySQL - required secondary target (cross-dialect verification)
+  # ------------------------------------------------------------------
+  mysql:
+    image: mysql:8.4
+    container_name: pip-mysql
+    restart: unless-stopped
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --max-connections=300
+      --innodb-buffer-pool-size=512M
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-pipeline}
+      MYSQL_USER: ${MYSQL_USER:-pip}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-pip}
+      TZ: UTC
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    networks: [pipnet]
+
+  # ------------------------------------------------------------------
+  # API - FastAPI application (OpenAPI at /docs)
+  # ------------------------------------------------------------------
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    container_name: pip-api
+    restart: unless-stopped
+    env_file: [.env]
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-pip}:${POSTGRES_PASSWORD:-pip}@postgres:5432/${POSTGRES_DB:-pipeline}
+      MYSQL_URL: mysql+pymysql://${MYSQL_USER:-pip}:${MYSQL_PASSWORD:-pip}@mysql:3306/${MYSQL_DATABASE:-pipeline}?charset=utf8mb4
+      CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    volumes:
+      - ./app:/srv/app/app:ro
+      - ./db:/srv/app/db:ro
+    depends_on:
+      postgres: {condition: service_healthy}
+      mysql: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx;httpx.get('http://127.0.0.1:8000/health').raise_for_status()"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    networks: [pipnet]
+
+  # ------------------------------------------------------------------
+  # Airflow - pipeline orchestration (LocalExecutor)
+  # ------------------------------------------------------------------
+  airflow:
+    image: apache/airflow:2.10.5-python3.12
+    container_name: pip-airflow
+    restart: unless-stopped
+    user: "${AIRFLOW_UID:-50000}:${AIRFLOW_GID:-0}"
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-pip}:${POSTGRES_PASSWORD:-pip}@postgres:5432/${POSTGRES_DB:-pipeline}
+      AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAG_DISCOVERY_SAFE_MODE: "false"
+      AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL: 30
+      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
+      AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.session
+      TZ: UTC
+      PIP_DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-pip}:${POSTGRES_PASSWORD:-pip}@postgres:5432/${POSTGRES_DB:-pipeline}
+    ports:
+      - "${AIRFLOW_PORT:-8080}:8080"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./app:/opt/airflow/app:ro
+      - ./db:/opt/airflow/db:ro
+      - airflow_logs:/opt/airflow/logs
+      - airflow_dags:/opt/airflow/dags_processed
+    command: >
+      bash -c "airflow db migrate &&
+               airflow users create --username admin --password ${AIRFLOW_ADMIN_PASSWORD:-admin} --firstname DEPI --lastname Admin --role Admin --email admin@pipeline.local || true;
+               exec airflow webserver"
+    depends_on:
+      postgres: {condition: service_healthy}
+    networks: [pipnet]
+
+  # ------------------------------------------------------------------
+  # Scheduler - Airflow standalone scheduler
+  # ------------------------------------------------------------------
+  airflow-scheduler:
+    image: apache/airflow:2.10.5-python3.12
+    container_name: pip-airflow-scheduler
+    restart: unless-stopped
+    user: "${AIRFLOW_UID:-50000}:${AIRFLOW_GID:-0}"
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-pip}:${POSTGRES_PASSWORD:-pip}@postgres:5432/${POSTGRES_DB:-pipeline}
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL: 30
+      PIP_DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-pip}:${POSTGRES_PASSWORD:-pip}@postgres:5432/${POSTGRES_DB:-pipeline}
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./app:/opt/airflow/app:ro
+      - airflow_logs:/opt/airflow/logs
+    command: airflow scheduler
+    depends_on:
+      airflow: {condition: service_started}
+    networks: [pipnet]
+
+  # ------------------------------------------------------------------
+  # Frontend - React + Vite dev server (production image uses nginx)
+  # ------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000/api/v1}
+    container_name: pip-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    depends_on:
+      api: {condition: service_started}
+    networks: [pipnet]
+
+volumes:
+  pg_data:
+  mysql_data:
+  airflow_logs:
+  airflow_dags:
+
+networks:
+  pipnet:
+    driver: bridge
