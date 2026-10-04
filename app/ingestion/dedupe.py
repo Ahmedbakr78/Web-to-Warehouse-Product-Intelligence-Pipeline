@@ -16,6 +16,7 @@ Matching strategy (cheapest first, so large catalogues stay fast):
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from functools import lru_cache
 from typing import Any, Iterable, Sequence
@@ -30,6 +31,7 @@ from app.ingestion.cleaning import (
     clean_brand,
     name_fingerprint,
     normalise_name_key,
+    normalise_unicode,
 )
 from app.models.dimensions import DimProduct
 
