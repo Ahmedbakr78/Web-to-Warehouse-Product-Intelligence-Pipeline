@@ -64,9 +64,12 @@ STOPWORDS = frozenset(
     {
         "a", "an", "the", "and", "or", "of", "for", "with", "in", "on", "by", "to",
         "new", "sale", "offer", "special", "free", "shipping", "edition", "pack",
-        "set", "kit", "size", "colour", "color", "brand", "new", "official", "genuine",
+        "set", "kit", "size", "colour", "color", "brand", "official", "genuine",
         "oem", "original", "hot", "best", "top", "quality", "premium", "plus", "pro",
-        "max", "ultra", "deluxe", "premium", "hd", "uk", "us", "eu", "intl",
+        "max", "ultra", "deluxe", "hd", "uk", "us", "eu", "intl",
+        # Format / edition qualifiers describe the same product in the retail sense.
+        "hardcover", "hardback", "paperback", "softcover", "unabridged", "abridged",
+        "anniversary", "collector", "remastered", "standard", "reissue", "reprint",
     }
 )
 

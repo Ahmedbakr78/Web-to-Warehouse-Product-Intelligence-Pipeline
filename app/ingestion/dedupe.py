@@ -232,14 +232,20 @@ def combined_similarity(
             "compact": round(compact, 4),
             "squash": round(squash_sim, 4),
         }
-        score = (
+        blend = (
             0.20 * parts["token_set"]
-            + 0.10 * parts["jaro_winkler"]
+            + 0.15 * parts["jaro_winkler"]
             + 0.10 * parts["trigram"]
             + 0.05 * parts["levenshtein"]
             + 0.20 * parts["compact"]
-            + 0.35 * parts["squash"]
+            + 0.30 * parts["squash"]
         )
+        # Character-level evidence on its own is strong enough evidence of an exact
+        # re-listing (only punctuation/tokenisation differs), so it is allowed to
+        # short-circuit the weighted blend - with a small safety discount.
+        character_evidence = max(squash_sim, compact) * 0.97
+        parts["blend"] = round(blend, 4)
+        score = max(blend, character_evidence)
 
     factor = digit_signature_factor(digit_signature(name_a or ""), digit_signature(name_b or ""))
     parts["digit_factor"] = factor
