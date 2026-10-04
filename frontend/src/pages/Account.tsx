@@ -5,7 +5,6 @@ import {
   EyeOff,
   KeyRound,
   LogOut,
-  Monitor,
   Moon,
   Palette,
   Save,

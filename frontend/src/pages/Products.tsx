@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Columns3, Download, Filter, Package, RotateCcw, Star } from 'lucide-react'
+import { Braces, Columns3, Download, Filter, Package, RotateCcw, Star } from 'lucide-react'
 
 import {
   Badge,
@@ -26,6 +26,8 @@ import { useDebounce } from '@/hooks/useDebounce'
 import { localStore } from '@/lib/session'
 import {
   downloadCsv,
+  downloadJson,
+  toCsv,
   formatAvailability,
   formatDateTime,
   formatNumber,
@@ -161,8 +163,8 @@ export default function Products() {
   }
 
   function exportCsv() {
-    const header: any[] = ['product_id', 'name', 'category', 'brand', 'price', 'currency', 'change_pct', 'rating', 'availability', 'source', 'last_seen']
-    const body: any[][] = rows.map((row: any) => [
+    const header = ['product_id', 'name', 'category', 'brand', 'price', 'currency', 'change_pct', 'rating', 'availability', 'source', 'last_seen']
+    const body = rows.map((row: any) => [
       row.product_id,
       row.canonical_name,
       row.category_name ?? '',
@@ -175,7 +177,11 @@ export default function Products() {
       row.source_code ?? '',
       row.last_seen_at ?? '',
     ])
-    downloadCsv('products.csv', [header, ...body].map((line) => line.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n'))
+    downloadCsv('products.csv', toCsv(header, body))
+  }
+
+  function exportJson() {
+    downloadJson('products.json', { exported_at: new Date().toISOString(), total, rows })
   }
 
   const visible = (key: ColumnKey) => columns.includes(key)
@@ -196,6 +202,9 @@ export default function Products() {
             </Button>
             <Button size="sm" variant="secondary" icon={<Download className="h-4 w-4" />} onClick={exportCsv}>
               CSV
+            </Button>
+            <Button size="sm" variant="ghost" icon={<Braces className="h-4 w-4" />} onClick={exportJson} aria-label="Export as JSON">
+              JSON
             </Button>
           </div>
         </div>

@@ -191,3 +191,28 @@ export function downloadCsv(filename: string, content: string) {
   document.body.removeChild(link)
   URL.revokeObjectURL(url)
 }
+
+export function downloadJson(filename: string, data: unknown) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
+
+/** Escape a single CSV cell (quotes, commas, newlines). */
+export function csvCell(value: unknown): string {
+  const text = value === null || value === undefined ? '' : String(value)
+  return `"${text.replace(/"/g, '""')}"`
+}
+
+/** Build an RFC-4180 compliant CSV from tabular rows. */
+export function toCsv(header: string[], rows: Array<Array<unknown>>): string {
+  const lines = [header.map(csvCell).join(',')]
+  for (const row of rows) lines.push(row.map(csvCell).join(','))
+  return lines.join('\n')
+}

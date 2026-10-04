@@ -11,10 +11,14 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   Bell,
   ChevronDown,
+  Command,
+  CornerDownLeft,
   Database,
+  Keyboard,
   LogOut,
   Menu,
   Moon,
+  Package,
   PanelLeftClose,
   PanelLeftOpen,
   RefreshCw,
@@ -31,7 +35,7 @@ import { useTheme } from '@/lib/theme'
 import { endpoints, tokenStore } from '@/lib/api'
 import { useQuery } from '@tanstack/react-query'
 import { Badge, Button, IconButton } from './ui'
-import { initials, formatRelative, titleCase } from '@/lib/format'
+import { initials, formatRelative, titleCase, formatPrice } from '@/lib/format'
 import { useAuth } from '@/hooks/useAuth'
 
 const SIDEBAR_WIDTH_EXPANDED = '16rem'
@@ -39,14 +43,12 @@ const SIDEBAR_WIDTH_COLLAPSED = '4.5rem'
 
 export default function AppShell() {
   const location = useLocation()
-  const navigate = useNavigate()
   const { can } = useAuth()
   const { isDark, toggle } = useTheme()
 
   const [mobileOpen, setMobileOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem('pip.sidebar') === 'collapsed')
-  const [searchOpen, setSearchOpen] = useState(false)
-  const [query, setQuery] = useState('')
+  const [paletteOpen, setPaletteOpen] = useState(false)
 
   const { data: health } = useQuery({
     queryKey: ['health'],
@@ -62,17 +64,17 @@ export default function AppShell() {
   // Close the mobile drawer on navigation (silent, instant).
   useEffect(() => setMobileOpen(false), [location.pathname])
 
-  // Global shortcut: "/" focuses search, "g" then a key navigates (power-user friendly).
+  // Global shortcuts: Ctrl/Cmd-K or "/" opens the palette, Escape closes overlays.
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement
       const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(target?.tagName) || target?.isContentEditable
-      if (event.key === '/' && !typing) {
+      if (((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') || (event.key === '/' && !typing)) {
         event.preventDefault()
-        setSearchOpen(true)
+        setPaletteOpen((value) => !value)
       }
       if (event.key === 'Escape') {
-        setSearchOpen(false)
+        setPaletteOpen(false)
         setMobileOpen(false)
       }
     }
@@ -85,14 +87,6 @@ export default function AppShell() {
     const match = ALL_NAV_ITEMS.find((item) => location.pathname.startsWith(item.to) && item.to !== '/')
     return match ? { title: match.label, subtitle: match.description } : { title: 'Product Intelligence', subtitle: '' }
   }, [location.pathname])
-
-  const suggestions = useMemo(() => {
-    if (query.trim().length < 2) return []
-    const needle = query.toLowerCase()
-    return ALL_NAV_ITEMS.filter(
-      (item) => item.label.toLowerCase().includes(needle) || item.description.toLowerCase().includes(needle),
-    ).slice(0, 6)
-  }, [query])
 
   const online = health?.status === 'ok'
 
@@ -236,14 +230,14 @@ export default function AppShell() {
           </div>
 
           <button
-            onClick={() => setSearchOpen(true)}
+            onClick={() => setPaletteOpen(true)}
             className="hidden items-center gap-2 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm text-subtle hover:border-line-strong md:flex"
           >
             <Search className="h-4 w-4" aria-hidden />
-            <span>Quick navigation</span>
-            <kbd className="ml-6 rounded border border-line bg-surface-3 px-1.5 py-0.5 font-mono text-[10px]">/</kbd>
+            <span>Search everything</span>
+            <kbd className="ml-6 rounded border border-line bg-surface-3 px-1.5 py-0.5 font-mono text-[10px]">⌘K</kbd>
           </button>
-          <IconButton label="Search" icon={<Search className="h-4 w-4" />} onClick={() => setSearchOpen(true)} className="md:hidden" />
+          <IconButton label="Search" icon={<Search className="h-4 w-4" />} onClick={() => setPaletteOpen(true)} className="md:hidden" />
 
           <IconButton
             label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -261,60 +255,196 @@ export default function AppShell() {
         </main>
       </div>
 
-      {/* ------------------------------------------------------------ command search */}
-      {searchOpen ? (
-        <div className="fixed inset-0 z-[60] flex items-start justify-center p-4 pt-[12vh]">
-          <div className="absolute inset-0 bg-[var(--overlay)]" onClick={() => setSearchOpen(false)} aria-hidden />
-          <div className="relative w-full max-w-lg overflow-hidden rounded-xl border border-line bg-surface shadow-pop">
-            <div className="flex items-center gap-2 border-b border-line px-3">
-              <Search className="h-4 w-4 text-subtle" aria-hidden />
-              <input
-                autoFocus
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Jump to a screen…"
-                aria-label="Search screens"
-                className="h-11 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-subtle"
-              />
-              <kbd className="rounded border border-line bg-surface-3 px-1.5 py-0.5 font-mono text-[10px] text-subtle">ESC</kbd>
-            </div>
-            <div className="max-h-72 overflow-auto p-2">
-              {query.trim().length < 2 ? (
-                <div className="px-2 py-6 text-center text-xs text-subtle">
-                  Type at least two characters to search the navigation.
-                </div>
-              ) : suggestions.length ? (
-                suggestions.map((item) => (
-                  <button
-                    key={item.to}
-                    onClick={() => {
-                      navigate(item.to)
-                      setSearchOpen(false)
-                      setQuery('')
-                    }}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left hover:bg-surface-3"
-                  >
-                    <item.icon className="h-4 w-4 text-brand-600 dark:text-brand-300" aria-hidden />
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-medium text-ink">{item.label}</span>
-                      <span className="block truncate text-xs text-subtle">{item.description}</span>
-                    </span>
-                  </button>
-                ))
-              ) : (
-                <div className="px-2 py-6 text-center text-xs text-subtle">No matching screen.</div>
-              )}
-            </div>
-          </div>
-        </div>
-      ) : null}
+      {/* ------------------------------------------------------------ command palette */}
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        onToggleTheme={toggle}
+        onToggleSidebar={() => setCollapsed((value) => !value)}
+      />
     </div>
   )
 }
 
 /* =====================================================================================
-   Notifications bell
+   Command palette: navigation + live product search + actions (Ctrl/Cmd-K or "/")
    ===================================================================================== */
+type PaletteResult =
+  | { kind: 'nav'; to: string; label: string; description: string; icon: React.ComponentType<{ className?: string }> }
+  | { kind: 'product'; id: number; label: string; description: string; price: string }
+  | { kind: 'action'; label: string; description: string; run: () => void }
+
+function CommandPalette({
+  open,
+  onClose,
+  onToggleTheme,
+  onToggleSidebar,
+}: {
+  open: boolean
+  onClose: () => void
+  onToggleTheme: () => void
+  onToggleSidebar: () => void
+}) {
+  const [query, setQuery] = useState('')
+  const [cursor, setCursor] = useState(0)
+  const [products, setProducts] = useState<Array<{ product_id: number; canonical_name: string; category_name: string | null; price_usd: number | null }>>([])
+  const navigate = useNavigate()
+  const { logout } = useAuth()
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (!open) {
+      setQuery('')
+      setCursor(0)
+      setProducts([])
+      return
+    }
+    inputRef.current?.focus()
+  }, [open])
+
+  // Live product search (debounced by the typing itself - cheap server-side LIMIT).
+  useEffect(() => {
+    const term = query.trim()
+    if (!open || term.length < 2) {
+      setProducts([])
+      return
+    }
+    const controller = new AbortController()
+    const timer = window.setTimeout(() => {
+      endpoints
+        .products({ q: term, page: 1, page_size: 6 })
+        .then((response: any) => setProducts(response?.items ?? []))
+        .catch(() => setProducts([]))
+    }, 220)
+    return () => {
+      controller.abort()
+      window.clearTimeout(timer)
+    }
+  }, [query, open])
+
+  const results = useMemo<PaletteResult[]>(() => {
+    const term = query.trim().toLowerCase()
+    const nav: PaletteResult[] = ALL_NAV_ITEMS.filter(
+      (item) => !term || item.label.toLowerCase().includes(term) || item.description.toLowerCase().includes(term),
+    ).map((item) => ({ kind: 'nav' as const, to: item.to, label: item.label, description: item.description, icon: item.icon }))
+
+    const productResults: PaletteResult[] = products.map((product) => ({
+      kind: 'product' as const,
+      id: product.product_id,
+      label: product.canonical_name,
+      description: product.category_name ?? 'Uncategorised',
+      price: formatPrice(product.price_usd, 'USD'),
+    }))
+
+    const actions: PaletteResult[] = (
+      [
+        {
+          kind: 'action' as const,
+          label: 'Toggle light / dark mode',
+          description: 'Theme switch',
+          run: onToggleTheme,
+        },
+        {
+          kind: 'action' as const,
+          label: 'Toggle sidebar',
+          description: 'Collapse or expand the navigation',
+          run: onToggleSidebar,
+        },
+        {
+          kind: 'action' as const,
+          label: 'Sign out',
+          description: 'End the current session',
+          run: logout,
+        },
+      ] satisfies PaletteResult[]
+    ).filter((action) => !term || action.label.toLowerCase().includes(term))
+
+    return [...productResults, ...nav, ...actions].slice(0, 12)
+  }, [query, products, onToggleTheme, onToggleSidebar, logout])
+
+  useEffect(() => setCursor(0), [results.length])
+
+  function choose(result: PaletteResult) {
+    onClose()
+    if (result.kind === 'nav') navigate(result.to)
+    if (result.kind === 'product') navigate(`/products/${result.id}`)
+    if (result.kind === 'action') result.run()
+  }
+
+  if (!open) return null
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-start justify-center p-4 pt-[10vh]" role="dialog" aria-modal="true" aria-label="Command palette">
+      <div className="absolute inset-0 bg-[var(--overlay)]" onClick={onClose} aria-hidden />
+      <div className="relative w-full max-w-xl overflow-hidden rounded-xl border border-line bg-surface shadow-pop">
+        <div className="flex items-center gap-2 border-b border-line px-3">
+          <Search className="h-4 w-4 text-subtle" aria-hidden />
+          <input
+            ref={inputRef}
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'ArrowDown') {
+                event.preventDefault()
+                setCursor((value) => Math.min(results.length - 1, value + 1))
+              }
+              if (event.key === 'ArrowUp') {
+                event.preventDefault()
+                setCursor((value) => Math.max(0, value - 1))
+              }
+              if (event.key === 'Enter' && results[cursor]) choose(results[cursor])
+              if (event.key === 'Escape') onClose()
+            }}
+            placeholder="Search products, screens and actions…"
+            aria-label="Command palette search"
+            className="h-12 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-subtle"
+          />
+          <Badge tone="neutral">esc</Badge>
+        </div>
+        <div className="max-h-[52vh] overflow-auto p-2">
+          {results.length ? (
+            results.map((result, index) => {
+              const isActive = index === cursor
+              const Icon =
+                result.kind === 'nav' ? result.icon : result.kind === 'product' ? Package : Command
+              return (
+                <button
+                  key={result.kind === 'product' ? `p${result.id}` : result.label}
+                  onClick={() => choose(result)}
+                  onMouseEnter={() => setCursor(index)}
+                  className={cn(
+                    'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left',
+                    isActive ? 'bg-brand-50 dark:bg-brand-500/15' : 'hover:bg-surface-3',
+                  )}
+                >
+                  <Icon className="h-4 w-4 shrink-0 text-brand-600 dark:text-brand-300" aria-hidden />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium text-ink">{result.label}</span>
+                    <span className="block truncate text-xs text-subtle">{result.description}</span>
+                  </span>
+                  {result.kind === 'product' ? <Badge tone="success">{result.price}</Badge> : null}
+                  {isActive ? <CornerDownLeft className="h-3.5 w-3.5 shrink-0 text-subtle" aria-hidden /> : null}
+                </button>
+              )
+            })
+          ) : (
+            <div className="px-2 py-8 text-center text-xs text-subtle">No matches. Try a different term.</div>
+          )}
+        </div>
+        <div className="flex items-center justify-between border-t border-line px-3 py-1.5 text-[10px] text-subtle">
+          <span className="flex items-center gap-1.5">
+            <Keyboard className="h-3 w-3" aria-hidden /> ↑↓ navigate · ↵ open · / trigger
+          </span>
+          <span>{results.length} results</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* =====================================================================================
+    Notifications bell
+    ===================================================================================== */
 function NotificationBell() {
   const [open, setOpen] = useState(false)
   const { data, refetch } = useQuery({

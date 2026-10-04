@@ -23,7 +23,6 @@ import {
   useToast,
   type Column,
 } from '@/components/ui'
-import { cn } from '@/lib/cn'
 import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { useDebounce } from '@/hooks/useDebounce'

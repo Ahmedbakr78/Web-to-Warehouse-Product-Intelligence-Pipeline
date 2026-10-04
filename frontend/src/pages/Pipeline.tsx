@@ -85,15 +85,14 @@ export default function Pipeline() {
 
   const runRows = runs.data?.items ?? []
   const totals = stages.data?.totals ?? {}
-  const recentRuns = runs.data?.items ?? []
 
   const statusCounts = useMemo(() => {
     const counts: Record<string, number> = {}
-    recentRuns.forEach((run: any) => {
+    ;(runs.data?.items ?? []).forEach((run: any) => {
       counts[run.status] = (counts[run.status] ?? 0) + 1
     })
     return counts
-  }, [recentRuns])
+  }, [runs.data])
 
   const sourceHealth = sourceStatus.data ?? []
   const enabledSources = (sourceRegistry.data ?? []).filter((source: any) => source.enabled)

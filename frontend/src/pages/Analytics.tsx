@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Activity, Boxes, Download, Layers, Package, Star, Tags, TrendingUp, Wallet } from 'lucide-react'
+import { Activity, Braces, Boxes, Download, Layers, Package, Star, Tags, TrendingUp, Wallet } from 'lucide-react'
 
 import { AreaTrend, BarSeries, DonutChart, LineTrend, RadarCompare, HeatmapStrip } from '@/components/charts'
 import {
@@ -21,7 +21,7 @@ import {
 import { cn } from '@/lib/cn'
 import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
-import { downloadCsv, formatCompact, formatDate, formatNumber, formatPrice } from '@/lib/format'
+import { downloadCsv, downloadJson, toCsv, formatCompact, formatDate, formatNumber, formatPrice } from '@/lib/format'
 
 const RANGES = [
   { id: '14', label: '14d' },
@@ -108,7 +108,17 @@ export default function Analytics() {
       row.category_name, row.observations, row.avg_price, row.min_price, row.max_price, row.avg_rating,
       row.new_products, row.price_changes,
     ])
-    downloadCsv('category-analysis.csv', [header, ...body].map((line) => line.join(',')).join('\n'))
+    downloadCsv('category-analysis.csv', toCsv(header, body))
+  }
+
+  function exportJson() {
+    downloadJson('category-analysis.json', {
+      exported_at: new Date().toISOString(),
+      window_days: windowDays,
+      categories: categories.data ?? [],
+      brands: brands.data ?? [],
+      availability: availability.data ?? [],
+    })
   }
 
   if (categories.isError) {
@@ -146,6 +156,9 @@ export default function Analytics() {
           <Button size="sm" variant="secondary" icon={<Download className="h-4 w-4" />} onClick={exportCategories}>
             Export
           </Button>
+          <Button size="sm" variant="ghost" icon={<Braces className="h-4 w-4" />} onClick={exportJson} aria-label="Export all analytics as JSON">
+            JSON
+          </Button>
         </div>
       </div>
 
@@ -178,7 +191,7 @@ export default function Analytics() {
           <LineTrend
             data={indexSeries.data}
             xKey="date"
-            series={indexSeries.names.map((name, position) => ({ key: name, label: name }))}
+            series={indexSeries.names.map((name) => ({ key: name, label: name }))}
             height={280}
             formatY="currency"
           />
