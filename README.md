@@ -1,4 +1,4 @@
-<h1 align="center">🏭 Web-to-Warehouse Product Intelligence Pipeline</h1>
+<h1 align="center">Web-to-Warehouse Product Intelligence Pipeline</h1>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python 3.12"/>
@@ -8,133 +8,155 @@
   <img src="https://img.shields.io/badge/MySQL-8.4-4479A1?logo=mysql&logoColor=white" alt="MySQL 8.4"/>
   <img src="https://img.shields.io/badge/Airflow-2.10-017CEE?logo=apacheairflow&logoColor=white" alt="Airflow"/>
   <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker Compose"/>
-  <img src="https://img.shields.io/badge/tests-130%20passing-brightgreen" alt="Tests"/>
+  <img src="https://img.shields.io/badge/unit%20tests-169%20passing-brightgreen" alt="Tests"/>
+  <img src="https://img.shields.io/badge/API%20smoke-78%2F78-brightgreen" alt="API smoke"/>
   <img src="https://img.shields.io/badge/DQ%20score-98.26-brightgreen" alt="DQ"/>
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT"/>
 </p>
 
 <p align="center">
-  <b>DEPI Data Engineering graduation project</b> — a production-style, compliance-first data pipeline
-  that continuously harvests product information from permitted public web sources, cleans and
-  normalises it, detects duplicates, loads it into a Kimball-style analytical warehouse on
+  <b>DEPI Data Engineering graduation project</b> — a production-style, compliance-first data
+  pipeline that continuously harvests product information from permitted public web sources, cleans
+  and normalises it, detects duplicates, loads it into a Kimball-style analytical warehouse on
   <b>PostgreSQL and MySQL</b>, measures its own data quality with <b>12 enforced rules</b>, and serves
-  everything through a <b>REST API + React analytics dashboard</b> orchestrated by <b>Apache Airflow</b>.
+  everything through a <b>REST API and a React analytics dashboard</b> orchestrated by
+  <b>Apache Airflow</b>.
 </p>
 
 <p align="center">
-  <a href="#-quick-start">Quick start</a> ·
-  <a href="#-architecture">Architecture</a> ·
-  <a href="#-feature-catalogue">Features</a> ·
-  <a href="#-the-pipeline">Pipeline</a> ·
-  <a href="#-data-quality">Data quality</a> ·
-  <a href="#-screens">Screens</a> ·
-  <a href="#-documentation">Docs</a> ·
-  <a href="#-repository-layout">Layout</a>
+  <a href="#why-this-project-exists">Why</a> ·
+  <a href="#what-was-built">What was built</a> ·
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#architecture">Architecture</a> ·
+  <a href="#the-pipeline-end-to-end">Pipeline</a> ·
+  <a href="#1---retrieve">Phases</a> ·
+  <a href="#feature-catalogue">Features</a> ·
+  <a href="#screens">Screens</a> ·
+  <a href="#security">Security</a> ·
+  <a href="#testing-and-verification">Testing</a> ·
+  <a href="#documentation">Docs</a> ·
+  <a href="#license">License</a>
 </p>
 
----
-
-## 📖 Table of contents
-
-1. [Why this project exists](#-why-this-project-exists)
-2. [What was built](#-what-was-built)
-3. [Quick start](#-quick-start)
-4. [Architecture](#-architecture)
-5. [The pipeline](#-the-pipeline)
-6. [Data model](#-data-model)
-7. [Data quality](#-data-quality)
-8. [Feature catalogue](#-feature-catalogue)
-9. [Screens](#-screens)
-10. [Security](#-security)
-11. [Testing and verification](#-testing-and-verification)
-12. [Performance](#-performance)
-13. [Repository layout](#-repository-layout)
-14. [Documentation](#-documentation)
-15. [Roadmap](#-roadmap)
-16. [Team](#-team)
+<!-- Variable life-cylinder: extract, clean, load, analyse, serve, repeat -->
 
 ---
 
-## 🎯 Why this project exists
+## Table of contents
 
-A retailer needs the market picture every morning: what competitors charge, what is in stock,
-what appeared or disappeared, and how all of it compares to the internal catalog. Collecting that
-information by hand is slow, inconsistent and error-prone; spreadsheets go stale the moment they
-are exported.
+1. [Why this project exists](#why-this-project-exists)
+2. [What was built](#what-was-built)
+3. [Quick start](#quick-start)
+4. [Architecture](#architecture)
+5. [The pipeline end-to-end](#the-pipeline-end-to-end)
+   - [1 - Retrieve](#1---retrieve)
+   - [2 - Clean](#2---clean)
+   - [3 - Load](#3---load)
+   - [4 - Detect](#4---detect)
+   - [5 - Quality](#5---quality)
+   - [6 - Serve](#6---serve)
+6. [Data model](#data-model)
+7. [Data quality](#data-quality)
+8. [Feature catalogue](#feature-catalogue)
+9. [Configuration reference](#configuration-reference)
+10. [Screens](#screens)
+11. [Security](#security)
+12. [Testing and verification](#testing-and-verification)
+13. [Performance](#performance)
+14. [Repository layout](#repository-layout)
+15. [Documentation](#documentation)
+16. [FAQ and troubleshooting](#faq-and-troubleshooting)
+17. [Roadmap](#roadmap)
+18. [Team](#team)
+19. [License](#license)
+
+---
+
+## Why this project exists
+
+A retailer needs the market picture every morning: what competitors charge, what is in stock, what
+appeared or disappeared, and how all of it compares to the internal catalog. Collecting that
+information by hand is slow, inconsistent and error-prone; spreadsheets go stale the moment they are
+exported.
 
 **This project replaces the manual process with one continuously orchestrated system:**
 
 | Without the pipeline | With the pipeline |
 | --- | --- |
-| Hours of manual copy-paste from shopping sites | Fully automated ingestion every run |
+| Hours of manual copy-paste from shopping sites | Fully automated ingestion, scheduled or on demand |
 | Inconsistent names, categories and price formats | Normalised product names, taxonomy and USD prices |
 | Same product recorded two or three times | Fuzzy deduplication with a 0.90 threshold |
-| No history — "what was the price last week?" | Every snapshot stored; price changes detected per run |
+| No history — nobody can answer "what was the price last week?" | Every snapshot stored; price changes detected per run |
 | "Is the web data even usable?" | 12 enforced DQ rules with a measured score on every load |
-| Data locked inside someone's laptop | REST API + dashboard with roles, audit trail and exports |
+| Data locked inside someone's laptop | REST API plus dashboard with roles, audit trail and exports |
 
-Everything is engineered like a production system, not a demo: robots.txt is enforced in the
-transport layer, rate limits and circuit breakers protect the sources, every outbound request is
-audited, every table is typed for two SQL dialects, and quality is measured rather than assumed.
+Everything is engineered like a production system, not a demo:
+
+- robots.txt is enforced **in the transport layer**, before a request leaves the process;
+- rate limits, circuit breakers and response caching protect the sources;
+- every outbound request is written to an audit table with its robots decision;
+- the schema loads identically on PostgreSQL and MySQL, and a command proves there is no drift;
+- quality is measured rather than assumed, and the verdicts are persisted per run.
 
 ---
 
-## 🧱 What was built
+## What was built
 
 | Component | Technology | Scale |
 | --- | --- | --- |
 | **Ingestion** | 5 source adapters (3 JSON APIs, 1 BeautifulSoup/lxml HTML scraper, 1 offline synthetic) | robots.txt gate, token-bucket rate limiter, sliding-window ceiling, circuit breaker, response cache, per-request audit log |
-| **Cleaning** | 29-step normalisation engine | product names, categories, 18+ currencies → USD via offline FX table, rating and availability vocabularies |
-| **Deduplication** | 4-signal fuzzy matcher | jaro-winkler + token-set + trigram + digit signatures, block-indexed for O(n) candidate pools |
+| **Cleaning** | 29-step normalisation engine | product names, categories, 18+ currencies converted to USD via an offline FX table, rating and availability vocabularies |
+| **Deduplication** | 4-signal fuzzy matcher | jaro-winkler, token-set, trigram and digit signatures, block-indexed for O(n) candidate pools |
 | **Warehouse** | SQLAlchemy 2.0 Core ORM | **23 physical tables, 20 analytical views**, identical schema on PostgreSQL 16 and MySQL 8.4 |
-| **ETL** | 9-stage Python pipeline | stage timings, counters, warnings, resumable staging table, idempotent runs |
+| **ETL** | 9-stage Python pipeline | stage timings, counters, warnings, resumable staging table, idempotent loads |
 | **Orchestration** | Apache Airflow 2.10 DAG | 13 tasks, branch-on-changes, alert fan-out, report publication, sync-run API for demos |
-| **Data quality** | 12-rule framework, 6 dimensions | completeness, validity, uniqueness, accuracy, consistency, timeliness → weighted score |
-| **Change detection** | SQL + event engine | price changes banded by magnitude, new/removed products, category drift, lifecycle events |
-| **REST API** | FastAPI | **104 operations in 15 routers**, JWT + API-key auth, RBAC (admin / analyst / viewer), OpenAPI docs, gzip, timing headers |
-| **Dashboard** | React 19 + TypeScript + Tailwind + Recharts | 17 screens, light/dark/system themes, 6 accent colours, 3 densities, command palette, PWA installable, responsive from 320 px |
+| **Data quality** | 12-rule framework over 6 dimensions | completeness, validity, uniqueness, accuracy, consistency, timeliness, weighted score |
+| **Change detection** | SQL plus an event engine | price changes banded by magnitude, new and removed products, category drift, lifecycle events |
+| **REST API** | FastAPI | **104 operations in 15 routers**, JWT and API-key auth, RBAC (admin / analyst / viewer), OpenAPI docs, gzip, timing headers |
+| **Dashboard** | React 19 + TypeScript + Tailwind + Recharts | 17 screens, light/dark/system themes, 6 accent colours, 3 densities, command palette, installable PWA, responsive from 320 px |
 | **CLI** | Typer, 12 commands | bootstrap, seed, run, report, verify, quality, sources preview |
 | **Ops** | Docker Compose (6 services), Makefile (30+ targets), GitHub Actions CI | one-command everything |
 
-**Measured facts (reproducible, see docs/19):**
+**Measured facts (every number reproducible — see [docs/19_feature_list.md](docs/19_feature_list.md)):**
 
 ```text
-23 physical tables · 20 analytical views · 104 REST operations in 15 routers
-12 DQ rules across 6 dimensions · score 98.26 on BOTH engines
-5 ingestion sources · 9 pipeline stages · 13 Airflow tasks
-130 unit tests · 78/78 API smoke checks · p95 API latency ≤ 38.2 ms
+23 physical tables  |  20 analytical views  |  104 REST operations in 15 routers
+12 DQ rules across 6 dimensions, score 98.26 on BOTH engines
+5 ingestion sources  |  9 pipeline stages  |  13 Airflow tasks
+169 unit tests  |  78/78 API smoke checks  |  mypy clean in 59 files  |  ruff zero warnings
+p95 API latency <= 38.2 ms measured across 12 endpoints
 Demo dataset: 130 products, 8,452 price snapshots, 8,062 price changes, 8,476 lifecycle events
 ```
 
 ---
 
-## ⚡ Quick start
+## Quick start
 
-### Option A — full stack in Docker (recommended)
+### Option A - full stack in Docker (recommended)
 
 ```bash
 git clone https://github.com/Ahmedbakr78/Web-to-Warehouse-Product-Intelligence-Pipeline.git
 cd Web-to-Warehouse-Product-Intelligence-Pipeline
 
-cp .env.example .env          # then edit secrets (or keep the demo defaults)
-make up                       # postgres + mysql + api + airflow + frontend
-make db-wait                  # block until both databases are healthy
+cp .env.example .env              # then edit secrets, or keep the demo defaults
+make up                           # postgres + mysql + api + airflow + frontend
+make db-wait                      # block until both databases are healthy
 
-# one-time: schema + views + demo users + 150-day demo dataset
+# one-time: schema + 20 views + demo users + 150 days of demo data
 make bootstrap
-make demo-postgres            # --database mysql for the MySQL twin
+make demo-postgres                # use --database mysql for the MySQL twin
 
-open http://localhost:5173    # dashboard (admin@example.com / Admin@12345)
-open http://localhost:8000/docs   # interactive OpenAPI docs
+open http://localhost:5173        # dashboard (admin@example.com / Admin@12345)
+open http://localhost:8000/docs   # interactive OpenAPI documentation
 ```
 
-### Option B — local Python + Vite (fastest dev loop)
+### Option B - local Python and Vite (fastest developer loop)
 
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -e ".[postgres,mysql,dev,scrapy]"
 
-docker compose up -d postgres mysql     # databases only
+docker compose up -d postgres mysql      # databases only
 .venv/bin/python -m app.cli.main bootstrap
 .venv/bin/python -m app.cli.main seed-demo --days 150
 
@@ -144,33 +166,34 @@ docker compose up -d postgres mysql     # databases only
 cd frontend && npm install && npm run dev
 ```
 
-### Option C — one command verification gate
+### Option C - one command verification gate
 
 ```bash
-make everything   # install → env → databases → bootstrap → demo → pipeline → tests → frontend build
+make everything   # install -> env -> databases -> bootstrap -> demo -> pipeline -> tests -> frontend build
 make check        # lint + types + unit tests only (no services required)
 ```
 
 ### Demo accounts
 
-| Role | Email | Password | Can do |
+| Role | Email | Password | Capabilities |
 | --- | --- | --- | --- |
 | Admin | `admin@example.com` | `Admin@12345` | everything: sources, users, settings, triggers, audit |
 | Analyst | `analyst@example.com` | `Analyst@12345` | read, query lab, run pipeline, saved views, alerts |
 | Viewer | `viewer@example.com` | `Viewer@12345` | read, query lab, exports |
 
-> Machine clients can skip humans entirely: create an API key in the dashboard
-> (`Account → API keys`) and send `Authorization: Bearer pip_…`.
+Machine clients can skip humans entirely: create an API key on the dashboard
+(`Account > API keys`) and send `Authorization: Bearer pip_...` — the key is hashed at rest,
+usage-counted and revocable from the same screen.
 
 ---
 
-## 🏗 Architecture
+## Architecture
 
 ### System overview
 
 ```mermaid
 flowchart LR
-    subgraph Sources["🌐 Permitted public sources"]
+    subgraph Sources["Permitted public sources"]
         A1["DummyJSON<br/>products API"]
         A2["FakeStore<br/>products API"]
         A3["Open Library<br/>books API"]
@@ -178,78 +201,160 @@ flowchart LR
         A5["Local demo<br/>synthetic"]
     end
 
-    subgraph Ingest["🛡 Ingestion layer"]
+    subgraph Ingest["Ingestion layer"]
         direction TB
-        R["robots.txt gate<br/>(RFC 9309)"]
+        R["robots.txt gate<br/>RFC 9309"]
         RL["Rate limiter<br/>token bucket + window"]
         CB["Circuit breaker"]
         HC["Polite HTTP client<br/>retries + cache + audit"]
-        S["5 source adapters<br/>(generators)"]
+        S["5 source adapters<br/>generators"]
         R --> RL --> CB --> HC --> S
     end
 
-    subgraph Clean["🧹 Standardisation"]
-        C1["Name / category<br/>cleaning (29 rules)"]
+    subgraph Clean["Standardisation"]
+        C1["Name / category<br/>cleaning, 29 rules"]
         C2["Price parsing<br/>18+ currencies"]
-        C3["FX normalisation<br/>→ USD"]
+        C3["FX normalisation<br/>to USD"]
         DD["Dedupe engine<br/>4-signal fuzzy"]
         C1 --> C2 --> C3 --> DD
     end
 
-    subgraph Wh["🗄 Analytical warehouse (Kimball star)"]
-        STG["stg_raw_observation<br/>(staging)"]
-        DIM["dim_product · dim_category<br/>dim_source · dim_currency · dim_date"]
+    subgraph Wh["Analytical warehouse, Kimball star"]
+        STG["stg_raw_observation<br/>staging"]
+        DIM["dim_product, dim_category<br/>dim_source, dim_currency, dim_date"]
         FACT["fact_price_snapshot<br/>fact_catalog_snapshot"]
         AGG["agg_category_daily"]
         CHG["chg_price_change<br/>chg_product_event"]
         STG --> DIM --> FACT --> AGG & CHG
     end
 
-    subgraph Ops["⚙ Operations"]
+    subgraph Ops["Operations"]
         AF["Airflow DAG<br/>13 tasks"]
         API["FastAPI REST<br/>104 operations"]
         DQ["12-rule DQ framework"]
     end
 
-    subgraph UI["🖥 Delivery"]
+    subgraph UI["Delivery"]
         RE["React 19 dashboard<br/>17 screens"]
         EXP["CSV / JSON exports"]
-        QL["Query lab (read-only SQL)"]
+        QL["Query lab, read-only SQL"]
     end
 
     Sources --> Ingest --> Clean --> STG
-    AF -.schedules & guards.-> Ingest
+    AF -.schedules and guards.-> Ingest
     API --> Wh
     API --> RE & EXP & QL
-    DQ -.every load.-> FACT
+    DQ -.on every load.-> FACT
 ```
 
-### Pipeline stages (one run)
+### System context (level 0 data flow)
 
 ```mermaid
 flowchart TB
-    A["① source config<br/>+ run record"] --> B["② robots.txt +<br/>compliance metadata"]
-    B --> C["③ extract<br/>(bounded generators)"]
-    C --> D["④ validate + clean<br/>(strict optional)"]
-    D --> E["⑤ stage to<br/>stg_raw_observation"]
-    E --> F["⑥ load dimensions<br/>+ facts (idempotent)"]
-    F --> G["⑦ dedupe<br/>(merge, keep newest)"]
-    G --> H["⑧ detect changes<br/>(price/new/removed/category)"]
-    H --> I["⑨ quality gate +<br/>catalog reconcile + aggregates"]
+    RB["Retail manager"] -->|"reads dashboards, exports"| SYS(("Product
+    Intelligence
+    Pipeline"))
+    ANA["Pricing analyst"] -->|"tunes catalog matches, alerts"| SYS
+    AD["Admin"] -->|"manages users, sources, settings"| SYS
+    WB["Web sources
+    (permitted)"] <-->|"robots-gated fetches"| SYS
+    SYS -->|"snapshots, changes, DQ verdicts"| DB[("PostgreSQL / MySQL
+    warehouse")]
+    SCH["Airflow scheduler"] -->|"daily run"| SYS
+    OBS["HTTP evidence log"] -.every request.-> SYS
+```
 
-    style A fill:#eef2ff,stroke:#4f46e5
-    style I fill:#eef2ff,stroke:#4f46e5
+### Application stack (layered)
+
+```mermaid
+flowchart TB
+    subgraph Browser["Client"]
+        RE["React 19 - TypeScript - TanStack Query - Recharts"]
+    end
+    subgraph Server["FastAPI monolith, modular"]
+        MW["CORS - gzip - timing headers"]
+        RT["15 routers, 104 operations"]
+        SV["analytics + ETL services"]
+        SEC["JWT + API keys - RBAC - audit"]
+        MW --> RT --> SV
+        SEC -.guards every route.-> RT
+    end
+    subgraph Data["Data plane"]
+        PG[("PostgreSQL 16, primary")]
+        MY[("MySQL 8.4, dialect twin")]
+        FS[("Response cache + run artefacts")]
+    end
+    RE -->|"/api/v1 with JWT"| MW
+    SV --> PG & MY
+    HC2["Ingestion client"] --> FS
+```
+
+### Request sequence (dashboard reads)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant FE as React dashboard
+    participant API as FastAPI
+    participant DQ as Auth dependency
+    participant WH as Warehouse
+    participant AU as app_audit_log
+
+    U->>FE: opens Products screen
+    FE->>API: GET /products?page=1&q=phone (Bearer JWT)
+    API->>DQ: verify token, check "read" right
+    DQ-->>API: user ok (1, admin)
+    API->>WH: SELECT from vw_product_current (LIMIT, sort)
+    WH-->>API: rows + total
+    API-->>FE: page payload (X-Process-Time-Ms header)
+    FE-->>U: table renders from cache first (stale-while-revalidate)
+    Note over AU: every mutating call also writes user, action, ip, agent to app_audit_log
+```
+
+### Pipeline write sequence (one run)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant A as Trigger (Airflow / API / CLI)
+    participant P as Pipeline
+    participant S as Source adapters
+    participant RC as robots + limiter + cache
+    participant STG as stg_raw_observation
+    participant WH as warehouse tables
+    participant CH as change detector
+    participant DQF as DQ framework
+
+    A->>P: PipelineConfig (sources, limit, strict)
+    P->>WH: insert etl_run (status running)
+    loop per source
+        P->>S: fetch(limit) generator
+        S->>RC: get(url)
+        RC->>RC: robots gate + delay + breaker
+        RC-->>S: FetchResult (or ComplianceError)
+        S-->>P: RawProduct stream
+        P->>P: validate + clean + normalise
+        P->>STG: bulk stage rows with flags
+    end
+    P->>WH: upsert dimensions, insert facts
+    P->>WH: dedupe merges above 0.90
+    P->>CH: detect changes vs previous snapshots
+    CH-->>WH: chg_price_change + chg_product_event rows
+    P->>DQF: evaluate 12 rules for run_id
+    DQF-->>WH: dq_rule_result verdicts + score
+    P->>WH: close etl_run (success / partial, timings, counters)
 ```
 
 ### Airflow DAG shape
 
 ```mermaid
 flowchart LR
-    start(("▶ start")) --> hc["health_check"]
+    start(("start")) --> hc["health_check"]
     hc --> cc["compliance_check"]
     cc --> guard{"db has<br/>data?"}
     guard -- yes --> run["ingest_load"]
-    guard -- no ----x stop
+    guard -- no ----x stop(("stop"))
     run --> det["detect_changes"]
     run --> dq["data_quality_gate"]
     run --> agg["build_aggregates"]
@@ -262,7 +367,7 @@ flowchart LR
     dq --> rep
     agg --> rep
     rec --> rep
-    rep --> stop(("⏹ stop"))
+    rep --> stop
 ```
 
 ### ER diagram (warehouse core)
@@ -272,7 +377,7 @@ erDiagram
     DIM_SOURCE ||--o{ DIM_PRODUCT : publishes
     DIM_CATEGORY ||--o{ DIM_PRODUCT : classifies
     DIM_PRODUCT ||--o{ FACT_PRICE_SNAPSHOT : observed
-    DIM_DATE ||--o{ FACT_PRICE_SNAPSHOT : dates
+    DIM_DATE ||--o{ FACT_PRICE_SNAPSHOT : dated
     DIM_CURRENCY }o--|| FACT_PRICE_SNAPSHOT : prices
     DIM_PRODUCT ||--o{ CHG_PRICE_CHANGE : changes
     DIM_PRODUCT ||--o{ CHG_PRODUCT_EVENT : events
@@ -365,44 +470,19 @@ erDiagram
     }
 ```
 
-### Application stack (layered)
-
-```mermaid
-flowchart TB
-    subgraph Browser["Client"]
-        RE["React 19 · TypeScript · TanStack Query · Recharts"]
-    end
-    subgraph Server["FastAPI monolith (modular)"]
-        MW["CORS · gzip · timing headers"]
-        RT["15 routers"]
-        SV["analytics + ETL services"]
-        SEC["JWT + API keys · RBAC · audit"]
-        MW --> RT --> SV
-        SEC -.guards every router.-> RT
-    end
-    subgraph Data["Data plane"]
-        PG[("PostgreSQL 16<br/>primary target")]
-        MY[("MySQL 8.4<br/>twin for dialect proof")]
-        FS[("Response cache<br/>+ run artefacts")]
-    end
-    RE -->|"/api/v1 · JWT"| MW
-    SV --> PG & MY
-    HC2["Ingestion client"] --> FS
-```
-
 ### Data flow (level 1)
 
 ```mermaid
 flowchart LR
-    W["🌐 Web sources"] -->|"HTTP (robots-gated)"| E["Extractor"]
+    W["Web sources"] -->|"HTTP, robots-gated"| E["Extractor"]
     E -->|"RawProduct"| V["Validator + Cleaner"]
     V -->|"clean rows + flags"| ST["stg_raw_observation"]
     ST -->|"valid staged rows"| L["Warehouse loader"]
-    L -->|"dims + facts"| WH[("23 tables · 20 views")]
+    L -->|"dims + facts"| WH[("23 tables, 20 views")]
     WH --> CD["Change detector"]
     CD -->|"chg_price_change<br/>chg_product_event"| AN["Analytics engine"]
     WH -->|"agg_category_daily"| AN
-    CD -->|"events"| AL["Alert engine → notifications"]
+    CD -->|"events"| AL["Alert engine -> notifications"]
     AN -->|"KPIs, trends, exports"| AP["FastAPI"]
     AL --> AP
     AP --> UI["React dashboard"]
@@ -414,329 +494,443 @@ flowchart LR
 ```mermaid
 flowchart TB
     subgraph Host["Docker Compose network"]
-        PG[("pip-postgres<br/>:5432")]
-        MY[("pip-mysql<br/>:3306")]
-        APIC["pip-api<br/>:8000"]
-        WEB["pip-frontend nginx<br/>:5173 → :80"]
-        WEBAF["pip-airflow webserver<br/>:8080"]
+        PG[("pip-postgres, :5432")]
+        MY[("pip-mysql, :3306")]
+        APIC["pip-api, :8000"]
+        WEB["pip-frontend nginx, :5173 -> :80"]
+        WEBAF["pip-airflow webserver, :8080"]
         SCH["pip-airflow-scheduler"]
         APIC --> PG & MY
         WEB -.proxy /api.-> APIC
         SCH --> PG
         WEBAF --> PG
     end
-    DEV["Developer / examiner<br/>browser"] --> WEB
+    DEV["Developer / examiner browser"] --> WEB
     DEV --> APIC
     DEV --> WEBAF
 ```
 
 ---
 
-## 🔄 The pipeline
+## The pipeline, end-to-end
 
-1. **Configure** — every run gets a `run_id`; sources declare compliance metadata (terms URL,
-   license note, rate limit, minimum delay).
-2. **Comply** — robots.txt is fetched, cached and checked *in the transport layer*; the effective
-   delay is `max(global delay, per-minute budget, Crawl-delay)`; a host that fails five times in a
-   row is circuit-broken with zero network I/O.
-3. **Extract** — sources are lazy generators; `_safe_take` bounds them so a misbehaving source
-   cannot hang the run.
-4. **Validate + clean** — 29 normalisation steps with honest DQ flags; `--strict` rejects any
-   record with a missing price.
-5. **Stage** — clean rows land in `stg_raw_observation` (a resumable staging table), never straight
-   into facts.
-6. **Load** — dimensions and facts are merged idempotently (upsert on natural keys).
-7. **Deduplicate** — blocked fuzzy matching (jaro-winkler + token-set + trigram + digit signature)
-   merges duplicates above 0.90 while keeping the newest observations.
-8. **Detect changes** — price changes banded by magnitude (`flash_sale` → `minor`), plus
-   `new`, `removed` and `category_changed` lifecycle events.
-9. **Quality + reconcile + aggregate** — the 12-rule framework writes `dq_rule_result` rows; the
-   catalog matcher writes `fact_catalog_snapshot` rows with price gaps; `agg_category_daily`
-   materialises daily category analytics.
+One run is nine deterministic stages. Every stage appends counters and timings to the run record, so
+`GET /pipeline/runs/{run_id}` can reconstruct exactly what happened.
 
-Trigger it any of three ways: **Airflow** (scheduled, production), **API** (`POST /pipeline/run/sync`,
-dashboard button), or **CLI** (`make run-pipeline`). All three produce the same `etl_run` record.
+### 1 - Retrieve
+
+The transport layer is compliance-first:
+
+- robots.txt is fetched, cached per host, and checked **before** every request (RFC 9309 fallback
+  semantics: 4xx means allow-all, 401/403 means disallow, 5xx means use the cached decision);
+- the effective delay is the slowest of the global delay, the per-minute budget and the site's
+  declared `Crawl-delay`;
+- a token bucket plus a sliding window caps steady and bursty rates per host;
+- five consecutive failures trip a circuit breaker so the host is skipped with zero network I/O;
+- successful responses are cached on disk by URL hash, so a repeated run performs no requests;
+- every attempt lands in `ingestion_http_log` with status, latency, bytes, robots decision and retry
+  count — the audit screen shows exactly what the crawler did and why.
+
+Sources are lazy generators behind one abstract contract, registered by a decorator. `_safe_take`
+bounds every generator, so even a misbehaving source cannot hang a run. A failure in one source
+becomes a warning; the run finishes as `partial` rather than crashing.
+
+### 2 - Clean
+
+The normalisation engine applies 29 steps: promo prefixes and suffixes ("new", "hot sale", "30% off"
+...) are stripped, HTML and control characters removed, punctuation and casing normalised, categories
+slugged and leveled. Prices are parsed from 18+ formats (symbols, ISO codes, European decimals,
+thousand separators) and converted to USD with an offline FX table — the FX rate used is stored next
+to every snapshot, so historical analysis never depends on an external service. Ratings and
+availability are normalised into fixed vocabularies. Any record flagged as suspect still loads, but
+carries its flags for the DQ framework; `--strict` drops records with missing prices instead.
+
+### 3 - Load
+
+Rows are staged into `stg_raw_observation` first (resumable, DQ-audited), then merged idempotently
+into dimensions and facts on natural keys. The stage is safe to retry: re-running the same run does
+not duplicate snapshots.
+
+### 4 - Detect
+
+- **Price changes** are computed between the newest and the previous snapshot per product and source,
+  banded by magnitude (`flash_sale`, `large`, `medium`, `small`, `minor`) — the distribution is what
+  powers the change-feed analytics.
+- **Lifecycle events** record `new`, `removed` and `category_changed` transitions with old and new
+  values and a severity.
+- **Catalog reconciliation** matches the retailer's internal SKUs to the observed market (exact SKU
+  first, then fingerprint, then fuzzy) and persists `fact_catalog_snapshot` rows with the price gap
+  — the dashboard turns those into pricing opportunities.
+- **Category drift** shows how the taxonomy moved between snapshots.
+
+### 5 - Quality
+
+Twelve rules across six dimensions execute on every load with persisted verdicts (details below).
+The run receives a weighted score; the dashboard charts the 90-day trend.
+
+### 6 - Serve
+
+The FastAPI app (104 operations) exposes products, changes, analytics, pipeline operations, quality,
+catalog, sources, the read-only query lab, saved views, notifications, settings and audit. The React
+dashboard consumes it, and both endpoints and UI offer CSV and JSON exports. Airflow triggers the
+whole cycle daily; the API's sync endpoint and the CLI produce the identical `etl_run` record.
 
 ---
 
-## 🗄 Data model
+## Data model
 
-Kimball-style star schema, **dialect-portable between PostgreSQL and MySQL** (both load the same
-model, and `make verify-dialects` proves there is no structural drift):
+Kimball-style star schema, dialect-portable between PostgreSQL and MySQL (`make verify-dialects`
+proves there is no structural drift and prints the per-engine row counts):
 
 | Group | Tables |
 | --- | --- |
 | Dimensions | `dim_product`, `dim_category`, `dim_source`, `dim_currency`, `dim_date` |
-| Facts | `fact_price_snapshot` (grain: product × source × captured_at), `fact_catalog_snapshot` (grain: catalog SKU × run) |
-| Aggregates | `agg_category_daily` (grain: category × date) |
+| Facts | `fact_price_snapshot` (grain: product x source x captured_at), `fact_catalog_snapshot` (grain: catalog SKU x run) |
+| Aggregates | `agg_category_daily` (grain: category x date) |
 | Change events | `chg_price_change`, `chg_product_event` |
 | Staging | `stg_raw_observation` (resumable, DQ-audited) |
 | Operations | `etl_run`, `dq_rule_result`, `sync_state`, `ingestion_http_log` |
-| App | `app_user`, `app_api_key`, `app_setting`, `app_saved_view`, `app_alert_rule`, `app_notification`, `app_audit_log` |
+| Application | `app_user`, `app_api_key`, `app_setting`, `app_saved_view`, `app_alert_rule`, `app_notification`, `app_audit_log` |
 | Catalog | `catalog_product` (the retailer's internal SKUs) |
 
-**20 analytical views** (`db/views.sql`) cover everything the dashboard shows: latest prices,
-top movers, category indexes, availability mix, source coverage, quality trends, dedupe evidence,
-price bands, new/removed feeds, drift matrices and more. The Query Lab exposes all of them
-through a **read-only** SQL console (SELECT-only guard, LIMIT enforcement, 20 pre-built examples).
-
-Historical prices are first-class: every snapshot keeps the native price **and** the USD price with
-the FX rate used, so currency analysis never depends on a lookup service at query time.
+Twenty analytical views in `db/views.sql` back every screen: latest prices, top movers, category
+indexes, availability mix, source coverage, quality trends, dedupe evidence, price bands, new and
+removed feeds, drift matrices. Historical prices are first-class citizens: every snapshot keeps the
+native price and the USD conversion together with the FX rate that was used.
 
 ---
 
-## ✅ Data quality
+## Data quality
 
-Twelve enforced rules across six dimensions, evaluated **on every load** with persisted verdicts:
-
-| Code | Dimension | Rule (abridged) |
+| Code | Dimension | Rule |
 | --- | --- | --- |
 | DQ001 | Completeness | Product name present and non-empty |
 | DQ002 | Completeness | Price present on active products |
 | DQ003 | Validity | Price is a positive, parseable number |
-| DQ004 | Validity | Rating within 0–5 or null |
+| DQ004 | Validity | Rating within 0-5, or null |
 | DQ005 | Uniqueness | One canonical row per fingerprint |
-| DQ006 | Consistency | Snapshot grain respected (product × source × time) |
-| DQ007 | Accuracy | USD price within ±5 % of native price × FX |
+| DQ006 | Consistency | Snapshot grain respected (product x source x time) |
+| DQ007 | Accuracy | USD price within 5 percent of native price x FX |
 | DQ008 | Validity | Availability in the normalised vocabulary |
-| DQ009 | Completeness | Category resolved for ≥ 90 % of products |
+| DQ009 | Completeness | Category resolved for at least 90 percent of products |
 | DQ010 | Consistency | Change percentages consistent with prices |
 | DQ011 | Timeliness | Fresh observation for every active product |
-| DQ012 | Validity | Staging rejection rate below 5 % |
+| DQ012 | Validity | Staging rejection rate below 5 percent |
 
-Current score: **98.26** (11 pass / 1 warn / 0 fail) — identical on PostgreSQL and MySQL.
-The trend is charted on the Quality screen over 90 days.
+Current score: **98.26** (11 pass / 1 warn / 0 fail), identical on PostgreSQL and MySQL. The verdicts
+are persisted per run in `dq_rule_result`, and the dashboard charts the score trend over 90 days.
 
 ---
 
-## 🧰 Feature catalogue
+## Feature catalogue
 
-The exhaustive, file-referenced inventory lives in [docs/19_feature_list.md](docs/19_feature_list.md)
-(220+ features in 13 areas). The highlights:
+The exhaustive, file-referenced inventory lives in
+[docs/19_feature_list.md](docs/19_feature_list.md) — 226 features in 14 areas. Highlights by area:
 
 ### Ingestion and web compliance
-- 🛡 robots.txt gate in the transport layer (RFC 9309 semantics, per-host cache, Crawl-delay)
-- 🚦 Token-bucket rate limiter + sliding-window per-minute ceiling + circuit breaker
-- 🔁 Exponential backoff, `Retry-After` (delta and HTTP-date), disk response cache with TTL
-- 📜 Per-request HTTP audit log (URL, status, latency, bytes, robots decision, retries)
-- 🧩 5 pluggable source adapters behind one abstract contract, registered by decorator
-- ⏱ Bounded extraction (`--limit`, generator-based, failure isolation → run continues as `partial`)
+
+- robots.txt gate in the transport layer (RFC 9309 semantics, per-host cache, Crawl-delay)
+- token-bucket rate limiter, sliding-window per-minute ceiling, circuit breaker
+- exponential backoff, `Retry-After` handling (delta seconds and HTTP-date), on-disk response cache
+- per-request HTTP audit log: URL, status, latency, bytes, robots decision, retries
+- five pluggable source adapters behind one abstract contract, registered by decorator
+- bounded extraction (`--limit` plus generator guards) with per-source failure isolation
 
 ### Cleaning and normalisation
-- 🧹 29-step product-name cleaner (promo prefixes/suffixes, HTML, control chars, punctuation, casing)
-- 🏷 Category cleaning + taxonomy slugs and levels
-- 💱 Price parser for 18+ currency formats (symbols, ISO codes, European decimals, thousand groups)
-- 📈 Offline FX table → USD normalisation stored with every snapshot
-- ⭐ Rating + availability vocabularies normalised across sources
+
+- 29-step product-name cleaner: promo prefixes and suffixes, HTML, control characters, punctuation
+- category cleaning with slug and level, taxonomy visualisation in the dashboard
+- price parser for 18+ currency formats, offline FX table, USD normalisation stored per snapshot
+- rating and availability vocabularies normalised across sources
 
 ### Duplicate detection
-- 🧬 Name fingerprint + digit-signature blocking for O(n) candidate pools
-- 🔍 4-signal combined similarity: jaro-winkler, token-set, trigram, digit signatures
-- 🤝 Merge strategy with full audit trail; duplicate candidates browsable per product
+
+- name fingerprint plus digit-signature blocking for fast candidate pools
+- four-signal combined similarity: jaro-winkler, token-set, trigram, digit signature factors
+- merge strategy with evidence: every duplicate keeps its decision trail; candidates browsable per
+  product in the dashboard
 
 ### Warehouse and ETL
-- ⭐ Kimball star schema, 23 tables, dialect-portable
-- ♻️ Idempotent, resumable, staged loads with counters and stage timings
-- 🧾 Every run recorded in `etl_run` with 15+ counters and warnings
+
+- Kimball star schema, 23 tables, dialect-portable to MySQL
+- staged, idempotent, resumable loads with per-stage timings and counters
+- every run recorded with more than 15 counters plus warnings
 
 ### Change detection and catalog reconciliation
-- 📉 Price-change detection with magnitude bands, direction and per-run diffs
-- 🆕 New / removed product events, recategorisation events, category-drift matrix
-- 🏬 Internal catalog matching (exact SKU → fingerprint → fuzzy) with price-gap opportunities
+
+- price-change detection with magnitude bands, direction and per-run diffs
+- new, removed and recategorisation events; category-drift matrix
+- internal catalog matching (SKU, fingerprint, fuzzy) with price-gap opportunities
 
 ### Data quality and analytics
-- ✅ 12 rules × 6 dimensions, persisted verdicts, weighted score, 90-day trend
-- 📊 KPI cards, daily trends, category indexes, brand leaderboards, radar comparison, heatmap
-- 🧮 20 SQL views + read-only Query Lab with examples and LIMIT enforcement
+
+- 12 rules, 6 dimensions, persisted verdicts, weighted score, 90-day trend
+- KPI cards, daily trends, category indexes, brand leaderboards, radar comparison, observation
+  heatmap, availability analysis, source matrix
+- 20 SQL views plus a read-only Query Lab with a SELECT-only guard, LIMIT clamping and examples
 
 ### REST API and security
-- 🔐 JWT access + refresh rotation, API keys (`pip_…`), Argon2id password hashing
-- 🧑‍💼 RBAC: admin / analyst / viewer with per-route permission checks
-- 🌐 104 operations, OpenAPI + ReDoc docs, gzip, `X-Process-Time-Ms` timing headers
-- 📥 CSV + JSON exports on the API **and** in the dashboard
-- 🧯 Consistent error envelope (`error`, `message`, `details`) with validation detail
 
-### Dashboard experience (new in v1.1)
-- 🌗 **Perfect light & dark modes** — system-aware, persisted, zero flash on first paint
-- 🖥⌨️📱 **Installable PWA** on desktop, Android and iOS (manifest + maskable icon + safe-area)
-- 🔎 **Command palette (Ctrl/Cmd-K or `/`)** — search screens **and live products**, with actions
-  (toggle theme, collapse sidebar, sign out), full keyboard navigation (↑↓ ↵ esc)
-- 📤 **One-click exports** — CSV and JSON on Dashboard, Products, Analytics, Changes, Query Lab
-- 🎨 **Modern design system** — cards, stat tiles, badges, delta pills, skeletons, toasts, tabs,
-  segmented controls, chips, drawers, modals — all theme-aware
-- 📱 **Mobile-first responsive** — off-canvas sidebar drawer, sticky top bar, card grids on small
-  screens, tables that hide secondary columns instead of breaking
-- 🧭 **Collapsible sidebar** with persisted state, grouped navigation, permission-aware items
-- 🌐 **Modern slim scrollbars** everywhere (thin, rounded, theme-aware) + `no-scrollbar` utilities
-- 🤫 **Silent-reload policy** — no decorative animations, no route transitions, stale-while-revalidate
-  data, 120 ms functional transitions only, `prefers-reduced-motion` respected
-- 🔔 In-app notification bell with unread counters, mark-one/mark-all read
-- ⚡ Global shortcuts: `/` or Ctrl-K palette, Esc closes overlays, sortable headers everywhere
-- ♿ WCAG-minded: focus-visible rings, ARIA labels, keyboard operation, 320 px reflow, 200 % zoom
+- JWT access and refresh rotation, API keys (`pip_...`), Argon2id password hashing
+- role-based access control: admin, analyst, viewer, enforced per route server-side
+- 104 operations, OpenAPI and ReDoc documentation, gzip compression, `X-Process-Time-Ms` headers
+- CSV and JSON exports on the API and in the dashboard
+- one consistent error envelope (`error`, `message`, `details`) with validation detail
 
-### Operations and DX
-- 🛫 Airflow DAG (13 tasks) with branch-on-changes and notify/report fan-out
-- 🐳 6-service Docker Compose stack; Nginx front-end serving + API proxy
-- 🧰 Makefile with 30+ targets; Typer CLI with 12 commands; GitHub Actions CI (lint + types + tests + build)
-- 🩺 Liveness/readiness endpoints, structured structlog output, slow-request warnings
-- 📚 20-numbered documentation set with Mermaid diagrams rendered natively by GitHub
+### Dashboard experience (v1.1)
 
----
+- perfect light and dark modes: system-aware, persisted per user, zero flash before first paint
+- installable PWA on desktop, Android and iOS: manifest, maskable icon, safe-area viewport
+- command palette (`Ctrl/Cmd-K` or `/`): search screens **and live products**, plus quick actions
+  (toggle theme, collapse sidebar, sign out), full keyboard navigation
+- one-click CSV and JSON exports on Dashboard, Products, Analytics, Changes and Query Lab
+- modern design system: cards, stat tiles, badges, delta pills, skeletons, toasts, tabs, segmented
+  controls, chips, drawers, modals — every element theme-aware
+- mobile-first responsive: off-canvas sidebar drawer, sticky top bar, card grids on small screens,
+  secondary table columns hidden instead of breaking layout
+- collapsible sidebar with persisted state, grouped and permission-aware navigation
+- slim modern scrollbars everywhere, spindle-thin and theme-aware
+- silent-reload policy: no decorative animation, no route transitions, stale-while-revalidate data,
+  120 ms functional transitions only, `prefers-reduced-motion` honoured
+- notification bell with unread counters, mark-one and mark-all read
+- global shortcuts: `/` or `Ctrl-K` palette, `Esc` closes overlays, sortable headers everywhere
+- accessibility-minded: focus-visible rings, ARIA labels, keyboard operation, zoom to 200 percent,
+  reflow at 320 px
 
-## 🖥 Screens
+### Operations and developer experience
 
-| Screen | What you get |
-| --- | --- |
-| **Dashboard** | 8 KPI tiles, price/coverage trend, availability mix donut, change-activity bars, pipeline health card, top movers table, DQ posture |
-| **Products** | Faceted search, filters, column picker, sorting, paging, CSV/JSON export, per-product detail |
-| **Product detail** | Price history chart, rating trend, identity/fingerprint evidence, snapshots, price changes, lifecycle events, duplicate candidates, catalog links |
-| **Changes** | Summary tiles, daily activity, movers, 6 tabs: price changes, lifecycle, new, removed, recategorised, drift |
-| **Analytics** | Category price index, category/brand leaderboards, radar comparison, availability analysis, source × category matrix |
-| **Pipeline** | Run history with stage timings, manual trigger dialog (source + limit + dialect options), source health, schedule info |
-| **Quality** | Latest report, rule catalogue, results with filters, 90-day score trend |
-| **Catalog** | Internal SKUs vs scraped market prices, reconciliation summary, opportunities |
-| **Sources** | Registry cards with compliance metadata, robots.txt statistics, raw-vs-cleaned preview |
-| **Query Lab** | Read-only SQL console over the 20 views, table inventory, examples, CSV export |
-| **Builder** | Live custom-view composer: entity, filters, sort, columns, saved-view presets |
-| **Alerts** | Alert rules with thresholds and channels, notification feed, evaluate action |
-| **Account** | Profile, appearance (theme/accent/density), password change, API keys |
-| **Settings / Users / Audit** | Admin-only: global settings, role management, audit trail + HTTP evidence |
-| **Login / 404** | Brand panel, demo-account picker, theme switch; friendly not-found screen |
+- Airflow DAG with 13 tasks, branch-on-changes, notify and report fan-out
+- six-service Docker Compose stack; Nginx front-end with API proxy
+- Makefile with 30+ targets; Typer CLI with 12 commands; GitHub Actions CI
+- liveness and readiness endpoints, structured logging, slow-request warnings
+- 20-document documentation set with Mermaid diagrams rendered natively by GitHub
 
 ---
 
-## 🔐 Security
+## Configuration reference
 
-- **Passwords**: Argon2id (memory-hard), never stored or logged in plain text
-- **Tokens**: HS256 JWT access (12 h) + refresh (30 d) with rotation and single-flight refresh on 401
-- **API keys**: generated once, shown once, hashed at rest, revocable, usage-counted
-- **Brute force**: 5 failed attempts → 15-minute lockout per account
-- **RBAC**: viewer / analyst / admin, enforced per route server-side (not just UI-hiding)
-- **Audit**: every mutating request writes user, action, IP, user-agent to `app_audit_log`
-- **Crawler identity**: honest `User-Agent` with contact address; robots.txt checked before every fetch
-- **Query lab**: read-only — UPDATE/DELETE/DDL refused server-side; LIMIT clamped
-- **Secrets**: all secrets via environment variables; `.env` git-ignored; `.env.example` provided
+All configuration arrives through environment variables (`.env.example` documents every one):
 
----
-
-## 🧪 Testing and verification
-
-| Layer | Command | Evidence |
+| Variable | Default | Meaning |
 | --- | --- | --- |
-| Lint + format | `make lint` | ruff: **all checks pass** |
-| Static types | `make typecheck` | mypy: **no issues in 59 files** |
-| Unit tests | `make test` | pytest: **130 passed** (SQLite, no services needed) |
-| API regression | `.venv/bin/python scripts/api_smoke.py` | **78/78 checks** (starts its own server) |
-| Frontend | `cd frontend && npm run lint && npm run typecheck && npm run build` | zero warnings, clean tsc, production build |
-| Cross-dialect | `make verify-dialects` | identical model + DQ score on PostgreSQL and MySQL |
-| Orchestrated | `make airflow-test` | DAG executes end-to-end for a fixed date |
-| Full gate | `make everything` | installs, databases, bootstrap, demo data, pipeline run, tests, frontend build |
+| `DATABASE_URL` | postgres URL | primary target (`postgresql+psycopg2://...`) |
+| `MYSQL_URL` | mysql URL | the dialect twin (`mysql+pymysql://...`) |
+| `ACTIVE_DATABASE` | `postgres` | which engine the API and pipeline use (`postgres`, `mysql`, `sqlite`) |
+| `DB_SCHEMA` | `public` | physical schema name |
+| `SECRET_KEY` | (set it) | JWT signing key, at least 32 characters |
+| `CORS_ORIGINS` | localhost dev origins | comma-separated allowed origins |
+| `SEED_ADMIN_EMAIL` / `_PASSWORD` | demo values | bootstrap admin account |
+| `SEED_ANALYST_EMAIL` / `_PASSWORD` | demo values | bootstrap analyst account |
+| `SEED_VIEWER_EMAIL` / `_PASSWORD` | demo values | bootstrap viewer account |
+| `SEED_DEMO_DATA` | `true` | seed accounts and reference data on first boot |
+| `RESPECT_ROBOTS_TXT` | `true` | master switch for the robots gate |
+| `REQUESTS_PER_MINUTE` | `30` | sliding-window ceiling per host |
+| `CRAWL_DELAY_FALLBACK_SECONDS` | `2.0` | delay used when robots.txt sets none |
+| `REQUEST_TIMEOUT_SECONDS` | `20` | HTTP timeout applied to `Retry-After` too |
+| `MAX_RETRIES` | `3` | exponential backoff attempts |
+| `MAX_PRODUCTS_PER_SOURCE` | `400` | extraction ceiling when no `--limit` is given |
+| `DEDUPE_THRESHOLD` | `0.90` | similarity required to merge two products |
+| `CACHE_ENABLED` | `true` | disk response cache; a warm rerun makes zero requests |
+| `APP_ENV` / `APP_DEBUG` | `development` / `true` | logging and error detail posture |
 
 ---
 
-## ⚡ Performance
+## Screens
 
-Measured on a laptop container stack (see docs/05 for the harness):
+| Screen | What it shows |
+| --- | --- |
+| **Dashboard** | 8 KPI tiles, price and coverage trend, availability mix donut, change-activity bars, pipeline health card, largest movers table, DQ posture |
+| **Products** | faceted search, filters, column picker, sorting, paging, CSV and JSON export, per-product detail |
+| **Product detail** | price history chart, rating trend, identity and fingerprint evidence, snapshots, price changes, lifecycle events, duplicate candidates, catalog links |
+| **Changes** | summary tiles, daily activity, movers, and six tabs: price changes, lifecycle, new, removed, recategorised, drift |
+| **Analytics** | category price index, category and brand leaderboards, radar comparison, availability analysis, source matrix |
+| **Pipeline** | run history with stage timings, manual trigger dialog (source + limit + dialect options), source health, schedule information |
+| **Quality** | latest report, rule catalogue, results with filters, 90-day score trend |
+| **Catalog** | internal SKUs versus scraped market prices, reconciliation summary, pricing opportunities |
+| **Sources** | registry cards with compliance metadata, robots.txt statistics, raw-versus-cleaned preview |
+| **Query Lab** | read-only SQL console over the 20 views, table inventory, starter examples, CSV export |
+| **Builder** | live custom-view composer: entity, filters, sort order, column selection, saved presets |
+| **Alerts** | alert rules with thresholds and channels, notification feed, evaluate action |
+| **Account** | profile, appearance (theme, accent, density), password change, API keys |
+| **Settings / Users / Audit** | admin-only: global settings, role management, audit trail and HTTP evidence |
+| **Login / 404** | brand panel, demo-account picker, theme switch, friendly not-found screen |
+
+---
+
+## Security
+
+- **Passwords** are Argon2id hashed (memory-hard), never stored or logged in plain text
+- **Tokens**: HS256 JWT access (12 h) plus refresh (30 d) with rotation; the client refreshes in
+  single flight on 401 with no request storms
+- **API keys**: generated once, shown once, hashed at rest, usage-counted and revocable
+- **Brute force**: five failed attempts lock the account for 15 minutes
+- **RBAC**: viewer, analyst, admin, enforced per route server-side, not merely by hiding buttons
+- **Audit trail**: every mutating request writes the user, action, IP and user agent to
+  `app_audit_log`; the HTTP evidence table records every outbound fetch the crawler made
+- **Crawler identity**: honest `User-Agent` naming the bot with a contact address; robots.txt is
+  checked before every fetch and honoured even when a site forgets to set Crawl-delay
+- **Query lab** is read-only: UPDATE, DELETE and DDL are refused server-side, and LIMIT is clamped
+- **Secrets** come from environment variables only; `.env` is git-ignored and `.env.example` documents
+  every variable without real values
+
+---
+
+## Testing and verification
+
+| Layer | Command | Evidence in this repository |
+| --- | --- | --- |
+| Lint and format | `make lint` | ruff: all checks pass, zero warnings |
+| Static types | `make typecheck` | mypy: no issues in 59 source files |
+| Unit tests | `make test` | pytest: 169 passed (SQLite warehouse, no services required) |
+| API regression | `.venv/bin/python scripts/api_smoke.py` | 78/78 checks, including auth, RBAC and 404 paths |
+| Frontend | `cd frontend && npm run lint && npm run typecheck && npm run build` | ESLint at zero warnings, clean tsc, production build |
+| Cross-dialect | `make verify-dialects` | identical model and DQ score on PostgreSQL and MySQL |
+| Orchestrated | `make airflow-test` | the DAG executes end-to-end for a fixed date |
+| Full gate | `make everything` | install, databases, bootstrap, demo data, pipeline run, tests, frontend build |
+
+The integration suite covers auth and RBAC, the read-only query guard, CSV export media type, saved
+views, alerts, notifications, settings and audit behaviour.
+
+---
+
+## Performance
+
+Measured on a laptop container stack (the harness is in docs/05):
 
 | Metric | Budget | Measured |
 | --- | --- | --- |
-| API p95 latency (12 hot endpoints) | ≤ 200 ms | **≤ 38.2 ms** |
-| Pipeline run (multi-source, staged) | ≤ 60 s | **≈ 3.5 s** (demo + cached sources) |
-| Bootstrap (schema + 20 views) | ≤ 10 s | **≈ 4 s** |
-| Dashboard first load (lazy routes) | ≤ 2 s | **≈ 0.9 s** (gzipped chunks) |
-| Repeat run with warm cache | any | **0 outbound requests** |
+| API p95 latency (12 hot endpoints) | 200 ms | 38.2 ms |
+| Pipeline run (demo plus cached sources) | 60 s | about 3.5 s |
+| Bootstrap (schema plus 20 views) | 10 s | about 4 s |
+| Dashboard first load (lazy chunked routes) | 2 s | about 0.9 s gzipped |
+| Repeat run with warm response cache | any | zero outbound requests |
 
 ---
 
-## 📂 Repository layout
+## Repository layout
 
 ```text
-├── app/
-│   ├── api/            # FastAPI app factory, 15 routers, schemas, security
-│   ├── analytics/      # SQL analytics service (KPIs, trends, reports, views)
-│   ├── cli/            # Typer CLI (bootstrap, seed, run, report, verify)
-│   ├── core/           # settings, engines, logging, error envelope
-│   ├── etl/            # pipeline, loader, DQ framework, seed, reconcile
-│   ├── ingestion/      # base contract, robots, rate limit, HTTP client,
-│   │   └── sources/    # 5 adapters (apis + scraper + synthetic)
-│   └── models/         # SQLAlchemy models (dimensions, facts, ops, app)
-├── dags/               # Airflow DAG: product_intelligence_pipeline
-├── db/
-│   └── views.sql       # 20 analytical views (PostgreSQL + MySQL)
-├── frontend/           # React 19 dashboard (17 screens, PWA)
-│   ├── public/         # manifest + icons
-│   └── src/            # pages, components, hooks, libs
-├── docs/               # 20 numbered documents + index
-├── scripts/            # api_smoke.py regression suite (78 checks)
-├── tests/              # pytest unit suite (130 tests)
-├── .github/workflows/  # CI: ruff, mypy, pytest, eslint, tsc, vite build
-├── docker-compose.yml  # 6 services
-├── Makefile            # 30+ targets
-└── pyproject.toml      # package + tool configuration
+app/
+  api/            FastAPI app factory, 15 routers, schemas, security
+  analytics/      SQL analytics service: KPIs, trends, reports, views
+  cli/            Typer CLI: bootstrap, seed, run, report, verify
+  core/           settings, engines, logging, error envelope
+  etl/            pipeline, loader, DQ framework, catalog reconcile, seed
+  ingestion/      base contract, robots, rate limiter, HTTP client, cleaning, dedupe
+    sources/      5 adapters (APIs, BeautifulSoup scraper, synthetic)
+  models/         SQLAlchemy models: dimensions, facts, operations, app
+dags/             Airflow DAG: product_intelligence_pipeline
+db/
+  views.sql       20 analytical views (PostgreSQL and MySQL)
+frontend/         React 19 dashboard: 17 screens, PWA, design system
+  public/         manifest, icons
+  src/            pages, components, hooks, libs
+docs/             20 numbered documents plus an index with diagrams
+scripts/          api_smoke.py regression suite (78 checks)
+tests/            pytest unit + integration suite (169 tests)
+.github/workflows ci.yml: ruff, mypy, pytest, eslint, tsc, vite build
+docker-compose.yml            postgres, mysql, api, airflow, scheduler, frontend
+Makefile                      30+ targets
+pyproject.toml                package configuration and tool settings
 ```
 
 ---
 
-## 📚 Documentation
+## Documentation
 
-The full document set lives in [`docs/`](docs/README.md) — 20 numbered documents, every diagram
-Mermaid-rendered natively by GitHub, every number tied to a runnable command:
+All twenty documents live in [docs/](docs/README.md). Every diagram is Mermaid and renders natively
+on GitHub; every number is tied to a runnable command.
 
-| # | Document |
-| --- | --- |
-| 01 | Project Proposal |
-| 02 | Project Plan (12-week Gantt) |
-| 03 | Roles & Responsibilities (RACI) |
-| 04 | Risk Assessment (20-risk register) |
-| 05 | KPIs (20 KPIs with runnable SQL) |
-| 06 | Literature Review (39 verified sources) |
-| 07 | Requirements (58 FRs, 26 NFRs, 20 use cases) |
-| 08 | System Analysis & Design |
-| 09 | Database Design (generated ERD) |
-| 10 | Data Flow Diagrams (levels 0/1/2) |
-| 11 | Behaviour Diagrams (sequence/activity/state/class) |
-| 12 | UI/UX Design (12 wireframes, WCAG 2.1 AA) |
-| 13 | Deployment (Compose, CI/CD, backups) |
-| 14 | API Documentation (all 104 operations) |
-| 15 | Testing Strategy (100-case plan) |
-| 16 | User Manual |
-| 17 | Technical Documentation (module map + algorithms) |
-| 18 | Presentation Outline (defence deck) |
-| 19 | Feature Inventory (220+ features) |
-| 20 | Feedback & Improvements (32 items) |
+| # | Document | Contents |
+| --- | --- | --- |
+| 01 | Project Proposal | problem, objectives, scope, stakeholders, acceptance criteria, budget, ethics |
+| 02 | Project Plan | 12-week Gantt chart, milestones, deliverables matrix, resources |
+| 03 | Roles and Responsibilities | team roles, RACI for deliverables, communication plan, hours log |
+| 04 | Risk Assessment | 20-risk register with heat map, treatments, contingencies |
+| 05 | KPIs | 20 KPIs with runnable SQL, targets versus measured values, latency harness |
+| 06 | Literature Review | six themes, 39 verified sources, synthesis, research gaps |
+| 07 | Requirements Gathering | stakeholders, 10 user stories, 20 use cases, 58 FRs, 26 NFRs, traceability |
+| 08 | System Analysis and Design | use-case diagram, architecture diagram, style and rationale |
+| 09 | Database Design | generated 23-table ERD, logical versus physical schema, indexing, retention |
+| 10 | Data Flow Diagrams | context and detailed DFDs, data dictionary, control flows |
+| 11 | Behaviour Diagrams | sequence, activity, three state diagrams, class diagram |
+| 12 | UI/UX Design | 12 screen wireframes, design system with contrast ratios, WCAG 2.1 AA |
+| 13 | Deployment | stack, deployment and component diagrams, environment matrix, CI/CD, backups |
+| 14 | API Documentation | auth flow, role matrix, all 104 operations, worked examples |
+| 15 | Testing Strategy | test pyramid, 100-case plan, UAT, coverage targets, quality gates |
+| 16 | User Manual | sign-in, every screen, filters, exports, alerts, admin, troubleshooting, FAQ |
+| 17 | Technical Documentation | module map, four key algorithms, every configuration variable |
+| 18 | Presentation Outline | 18-slide defence deck, Q&A preparation, demo script |
+| 19 | Feature Inventory | 226 features in 14 areas with file references |
+| 20 | Feedback and Improvements | feedback template, 32 prioritised improvements, self-assessment |
 
----
-
-## 🗺 Roadmap
-
-Done in this release:
-
-- [x] Compliance-first ingestion (robots.txt, rate limits, circuit breaker, cache, audit)
-- [x] Kimball warehouse on two SQL dialects with 20 views
-- [x] 12-rule DQ framework with historical trend
-- [x] Change detection (price/new/removed/category) + catalog reconciliation
-- [x] Airflow DAG + manual sync triggers + CLI
-- [x] REST API with JWT, API keys and RBAC
-- [x] React dashboard with command palette, PWA install, light/dark, exports
-
-Next up (see docs/20 for the full prioritised list):
-
-- [ ] Incremental SCD-2 dimension history for category changes
-- [ ] Celery / Redis pipeline backend for very large runs
-- [ ] Prometheus metrics endpoint + Grafana dashboard
-- [ ] Webhook + email alert channels in addition to in-app notifications
-- [ ] Multi-tenant catalog spaces with per-team saved views
-- [ ] DBT models alongside the hand-written views
-- [ ] Playwright end-to-end suite for the dashboard
+Project companion files: [CHANGELOG.md](CHANGELOG.md), [CONTRIBUTING.md](CONTRIBUTING.md),
+[frontend README](frontend/README.md), [docs index](docs/README.md).
 
 ---
 
-## 👥 Team
+## FAQ and troubleshooting
+
+**Q: Nothing is in the dashboard after the first run.**
+A: The demo dataset is optional and one command away: `make demo-postgres` (or `run-pipeline` for a
+live, rules-compliant crawl of the permitted sources). Check the Pipeline screen for run status.
+
+**Q: A source shows `partial` with warnings about robots.txt.**
+A: That is the compliance layer working as designed. Open Library forbids our fetch patterns under
+its robots.txt, so those topics are skipped; books.toscrape.com and the JSON APIs proceed. The HTTP
+evidence table on the Audit screen lists every decision.
+
+**Q: The dashboard cannot reach the API.**
+A: In dev mode the Vite dev server proxies `/api` to `127.0.0.1:8000` — start the API first. In
+production the Nginx container performs the same proxy (`frontend/nginx.conf`).
+
+**Q: MySQL reports different row counts than PostgreSQL.**
+A: Both engines load the same model; small differences come from retention and run history. Run
+`make verify-dialects` to compare table-by-table. The DQ score is identical on both.
+
+**Q: How do I run the quality rules without a full pipeline run?**
+A: `pip-cli quality` re-evaluates the 12 rules for the latest run, and the Quality screen exposes
+filters and the trend chart.
+
+**Q: Can I add my own source?**
+A: Subclass `ProductSource`, declare the compliance metadata as class variables, implement
+`fetch(limit)` as a generator of `RawProduct`, and decorate the class with `@register_source`. The
+six-step guide with code is in docs/17.
+
+---
+
+## Roadmap
+
+Delivered in this release:
+
+- compliance-first ingestion: robots.txt, rate limits, circuit breaker, cache, audit
+- Kimball warehouse on two SQL dialects with 20 views
+- 12-rule data-quality framework with historical trend
+- change detection: price, new, removed, category
+- Airflow orchestration, API sync triggers and CLI
+- REST API with JWT, API keys and RBAC
+- React dashboard: command palette, PWA install, light and dark modes, exports
+
+Next (full prioritised list in docs/20):
+
+- incremental SCD-2 history for category changes
+- Celery and Redis backend for very large runs
+- Prometheus metrics endpoint and Grafana dashboard
+- webhook and email alert channels next to in-app notifications
+- multi-tenant catalog spaces with per-team saved views
+- dbt models alongside the hand-written SQL views
+- Playwright end-to-end suite for the dashboard
+
+---
+
+## Team
 
 Built by the **DEPI Data Engineering graduation team** — project lead and engineer
-[Ahmed Abobakr](https://github.com/Ahmedbakr78), advised by the DEPI programme mentors.
-Full role breakdown and RACI in [docs/03_roles_and_responsibilities.md](docs/03_roles_and_responsibilities.md).
+[Ahmed Abobakr](https://github.com/Ahmedbakr78), advised by the DEPI programme mentors. The full
+role breakdown and RACI matrix are in [docs/03_roles_and_responsibilities.md](docs/03_roles_and_responsibilities.md).
 
-## 📄 License
+---
+
+## License
 
 MIT — see [LICENSE](LICENSE).
