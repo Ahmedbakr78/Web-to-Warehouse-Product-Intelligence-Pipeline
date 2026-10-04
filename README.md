@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/MySQL-8.4-4479A1?logo=mysql&logoColor=white" alt="MySQL 8.4"/>
   <img src="https://img.shields.io/badge/Airflow-2.10-017CEE?logo=apacheairflow&logoColor=white" alt="Airflow"/>
   <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker Compose"/>
-  <img src="https://img.shields.io/badge/unit%20tests-169%20passing-brightgreen" alt="Tests"/>
+  <img src="https://img.shields.io/badge/unit%20tests-236%20passing-brightgreen" alt="Tests"/>
   <img src="https://img.shields.io/badge/API%20smoke-78%2F78-brightgreen" alt="API smoke"/>
   <img src="https://img.shields.io/badge/DQ%20score-98.26-brightgreen" alt="DQ"/>
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT"/>
@@ -123,7 +123,7 @@ Everything is engineered like a production system, not a demo:
 23 physical tables  |  20 analytical views  |  104 REST operations in 15 routers
 12 DQ rules across 6 dimensions, score 98.26 on BOTH engines
 5 ingestion sources  |  9 pipeline stages  |  13 Airflow tasks
-169 unit tests  |  78/78 API smoke checks  |  mypy clean in 59 files  |  ruff zero warnings
+236 unit tests  |  78/78 API smoke checks  |  mypy clean in 59 files  |  ruff zero warnings
 p95 API latency <= 38.2 ms measured across 12 endpoints
 Demo dataset: 130 products, 8,452 price snapshots, 8,062 price changes, 8,476 lifecycle events
 ```
@@ -781,7 +781,7 @@ All configuration arrives through environment variables (`.env.example` document
 | --- | --- | --- |
 | Lint and format | `make lint` | ruff: all checks pass, zero warnings |
 | Static types | `make typecheck` | mypy: no issues in 59 source files |
-| Unit tests | `make test` | pytest: 169 passed (SQLite warehouse, no services required) |
+| Unit tests | `make test` | pytest: 236 passed (SQLite warehouse, no services required) |
 | API regression | `.venv/bin/python scripts/api_smoke.py` | 78/78 checks, including auth, RBAC and 404 paths |
 | Frontend | `cd frontend && npm run lint && npm run typecheck && npm run build` | ESLint at zero warnings, clean tsc, production build |
 | Cross-dialect | `make verify-dialects` | identical model and DQ score on PostgreSQL and MySQL |
@@ -827,7 +827,7 @@ frontend/         React 19 dashboard: 17 screens, PWA, design system
   src/            pages, components, hooks, libs
 docs/             20 numbered documents plus an index with diagrams
 scripts/          api_smoke.py regression suite (78 checks)
-tests/            pytest unit + integration suite (169 tests)
+tests/            pytest unit + integration suite (236 tests)
 .github/workflows ci.yml: ruff, mypy, pytest, eslint, tsc, vite build
 docker-compose.yml            postgres, mysql, api, airflow, scheduler, frontend
 Makefile                      30+ targets
