@@ -150,7 +150,7 @@ def probe_sources(**context: Any) -> dict[str, Any]:
 def pipeline_command(stage: str, **extra: str) -> str:
     """Build a CLI invocation for one ETL stage."""
     parts = [
-        'python -m app.cli.main run-pipeline',
+        "python -m app.cli.main run-pipeline",
         f'--sources "{" ,".join(DEFAULT_SOURCES)}"'.replace(" ", ""),
         f"--limit {REQUESTS_PER_SOURCE}",
         "--trigger airflow",
@@ -235,17 +235,21 @@ def detect_changes(**context: Any) -> dict[str, Any]:
     database = (context.get("params") or {}).get("database") or "postgres"
     with session_scope(database) as session:
         run_id = _latest_run_id(session)
-        row = session.execute(
-            sa.text(
-                """
+        row = (
+            session.execute(
+                sa.text(
+                    """
                 SELECT (SELECT COUNT(*) FROM chg_price_change WHERE run_id = :run_id) AS price_changes,
                        (SELECT COUNT(*) FROM chg_product_event WHERE run_id = :run_id AND event_type = 'new') AS new_products,
                        (SELECT COUNT(*) FROM chg_product_event WHERE run_id = :run_id AND event_type = 'removed') AS removed,
                        (SELECT COUNT(*) FROM chg_product_event WHERE run_id = :run_id AND event_type = 'category_changed') AS category_changes
                 """
-            ),
-            {"run_id": run_id},
-        ).mappings().one()
+                ),
+                {"run_id": run_id},
+            )
+            .mappings()
+            .one()
+        )
     payload = dict(row)
     print(f"changes: {payload}")
     return payload
@@ -261,21 +265,27 @@ def publish_notifications(**context: Any) -> int:
     database = (context.get("params") or {}).get("database") or "postgres"
     created = 0
     with session_scope(database) as session:
-        rules = session.execute(
-            sa.select(AppAlertRule).where(AppAlertRule.is_active.is_(True))
-        ).scalars().all()
+        rules = (
+            session.execute(sa.select(AppAlertRule).where(AppAlertRule.is_active.is_(True))).scalars().all()
+        )
         for rule in rules:
             if rule.metric == "price_change_pct":
-                count = session.execute(
-                    sa.text(
-                        """
+                count = (
+                    session.execute(
+                        sa.text(
+                            """
                         SELECT COUNT(*) FROM chg_price_change
                         WHERE direction = 'decrease' AND ABS(change_pct) >= :threshold
                           AND detected_at >= :since
                         """
-                    ),
-                    {"threshold": abs(rule.threshold), "since": dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=1)},
-                ).scalar() or 0
+                        ),
+                        {
+                            "threshold": abs(rule.threshold),
+                            "since": dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=1),
+                        },
+                    ).scalar()
+                    or 0
+                )
             else:
                 continue
             if count:
@@ -302,9 +312,11 @@ def publish_report(**context: Any) -> str:
     import subprocess
 
     output = subprocess.run(
-        [sys.executable, "-m", "app.cli.main", "report",
-         "--days", "30", "--json"],
-        cwd=PROJECT_ROOT, capture_output=True, text=True, timeout=300,
+        [sys.executable, "-m", "app.cli.main", "report", "--days", "30", "--json"],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+        timeout=300,
     )
     print(output.stdout[:4000])
     artifact_dir = os.path.join(PROJECT_ROOT, "var", "artifacts")
