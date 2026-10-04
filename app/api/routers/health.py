@@ -128,4 +128,5 @@ def ping_endpoint() -> dict[str, str]:
 @router.get("/debug/db", include_in_schema=False)
 def debug_db(session: DbOptional) -> dict[str, Any]:
     session.execute(text("SELECT 1"))
-    return {"ok": True, "dialect": session.bind.dialect.name}
+    bound = session.bind
+    return {"ok": True, "dialect": bound.dialect.name if bound is not None else None}

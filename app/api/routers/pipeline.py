@@ -288,7 +288,7 @@ def clear_history(
             message="Refused: requires an admin role and confirm=true", detail={"required": "admin + confirm"}
         )
     deleted = {
-        "etl_run": session.execute(sa.text("DELETE FROM dq_rule_result")).rowcount,
+        "etl_run": session.execute(sa.text("DELETE FROM dq_rule_result")).rowcount,  # type: ignore[attr-defined]
         "dq_rule_result": 0,
     }
     session.execute(sa.text("DELETE FROM fact_catalog_snapshot"))

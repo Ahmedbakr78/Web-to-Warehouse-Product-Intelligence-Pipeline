@@ -70,7 +70,7 @@ def mark_all_read(session: DbSession, user: CurrentUser) -> Message:
             sa.update(AppNotification)
             .where(AppNotification.user_id == user.user_id, AppNotification.is_read.is_(False))
             .values(is_read=True)
-        ).rowcount
+        ).rowcount  # type: ignore[attr-defined]
         or 0
     )
     return Message(message=f"{count} notifications marked as read", detail={"updated": count})

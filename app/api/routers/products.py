@@ -272,7 +272,7 @@ def product_duplicates(
         .scalars()
         .all()
     )
-    scored = []
+    scored: list[dict[str, Any]] = []
     for candidate in candidates:
         score, parts = combined_similarity(
             product.canonical_name,

@@ -69,17 +69,17 @@ STRONG_PREFIXES = (
 )
 WEAK_PREFIXES = r"new|sale|offer|special|hot|best|top|limited|discount|premium|deal"
 
-_PROMO_PREFIX_RE = re.compile(r"^(?:%s)[\s\-]*\s+" % "|".join(STRONG_PREFIXES), re.IGNORECASE)
+_PROMO_PREFIX_RE = re.compile(rf"^(?:{'|'.join(STRONG_PREFIXES)})[\s\-]*\s+", re.IGNORECASE)
 # Case-SENSITIVE on purpose: only an ALL-CAPS token (NEW/SALE/...) is noise.
 _WEAK_PREFIX_ALLCAPS_RE = re.compile(
-    r"^(?:%s)\s+" % "|".join(word.upper() for word in WEAK_PREFIXES.split("|"))
+    rf"^(?:{'|'.join(word.upper() for word in WEAK_PREFIXES.split('|'))})\s+"
 )
-_WEAK_PREFIX_PUNCT_RE = re.compile(r"^(?:%s)[\s\-]*[!.,:;]{1,3}\s+" % "|".join(WEAK_PREFIXES.split("|")), re.IGNORECASE)
+_WEAK_PREFIX_PUNCT_RE = re.compile(rf"^(?:{'|'.join(WEAK_PREFIXES.split('|'))})[\s\-]*[!.,:;]{{1,3}}\s+", re.IGNORECASE)
 _PROMO_SUFFIXES = (
     r"\(new\)", r"\[new\]", r"- new arrival", r"- free shipping", r"\(free shipping\)",
     r"- limited stock", r"\*\*", r"-?\s*hot sale", r"\d+% off",
 )
-_PROMO_SUFFIX_RE = re.compile(r"(?:%s)\s*$" % "|".join(_PROMO_SUFFIXES), re.IGNORECASE)
+_PROMO_SUFFIX_RE = re.compile(rf"(?:{'|'.join(_PROMO_SUFFIXES)})\s*$", re.IGNORECASE)
 
 _WHITESPACE_RE = re.compile(r"\s+")
 _MULTI_PUNCT_RE = re.compile(r"[!\"#$%&()\[\]{}+/\\:;?.,`^~|<>]+")
