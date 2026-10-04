@@ -13,6 +13,7 @@ from app.api.deps import DbOptional
 from app.api.schemas import HealthResponse
 from app.core.config import settings
 from app.core.db import ping
+from app.core.features import feature_catalogue, feature_names
 from app.core.logging import get_logger
 from app.ingestion.base import list_sources
 from app.models import table_count
@@ -83,21 +84,14 @@ def meta() -> dict[str, Any]:
             "crawl_delay_fallback_seconds": settings.crawl_delay_fallback_seconds,
             "cache_enabled": settings.cache_enabled,
         },
-        "features": [
-            "compliant ingestion (robots.txt + rate limiting + cache)",
-            "product name / category cleaning",
-            "currency + price normalisation with offline FX table",
-            "fuzzy duplicate detection (jaro-winkler, token-set, trigram)",
-            "historical price snapshots",
-            "price change / new / removed / category change detection",
-            "internal catalog reconciliation with price-gap analysis",
-            "12-rule data-quality framework across 6 dimensions",
-            "20 analytical SQL views",
-            "Airflow orchestration DAG",
-            "REST API with JWT auth, RBAC and API keys",
-            "React analytics dashboard (light + dark)",
-        ],
+        "features": feature_names(),
+        "feature_groups": feature_catalogue()["total_groups"],
     }
+
+
+@router.get("/meta/features", summary="Structured feature catalogue (groups, icons, features)")
+def meta_features() -> dict[str, Any]:
+    return feature_catalogue()
 
 
 @router.get("/meta/tables", summary="Physical tables managed by the ORM")

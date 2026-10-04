@@ -16,13 +16,14 @@ from app.api.schemas import (
     Message,
     Page,
     UserCreate,
+    UserDeleteRequest,
     UserRead,
     UserStats,
     UserUpdate,
 )
-from app.api.security import ROLE_RIGHTS, at_least, generate_api_key, hash_password
-from app.core.errors import ConflictError, ProductNotFoundError
-from app.models.app_users import AppApiKey, AppAuditLog, AppUser
+from app.api.security import ROLE_RIGHTS, at_least, generate_api_key, hash_password, verify_password
+from app.core.errors import AuthenticationError, ConflictError, ProductNotFoundError
+from app.models.app_users import AppApiKey, AppAuditLog, AppNotification, AppSavedView, AppUser
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -63,6 +64,113 @@ def list_users(
 @router.get("/me", response_model=UserRead, summary="My profile")
 def me(user: CurrentUser) -> UserRead:
     return _to_read(user)
+
+
+@router.get("/me/export", summary="Export my account data as JSON (portability)")
+def export_me(session: DbSession, user: CurrentUser) -> dict[str, Any]:
+    from app.models.app_users import AppAlertRule
+
+    since = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=90)
+    keys = session.execute(sa.select(AppApiKey).where(AppApiKey.user_id == user.user_id)).scalars().all()
+    views = session.execute(sa.select(AppSavedView).where(AppSavedView.user_id == user.user_id)).scalars().all()
+    alerts = session.execute(sa.select(AppAlertRule).where(AppAlertRule.user_id == user.user_id)).scalars().all()
+    notifications = (
+        session.execute(
+            sa.select(AppNotification)
+            .where(AppNotification.user_id == user.user_id)
+            .order_by(AppNotification.created_at.desc())
+            .limit(100)
+        )
+        .scalars()
+        .all()
+    )
+    activity = (
+        session.execute(
+            sa.text(
+                """
+            SELECT action, entity_type, entity_id, status, created_at
+            FROM app_audit_log
+            WHERE user_id = :user_id AND created_at >= :since
+            ORDER BY created_at DESC LIMIT 200
+            """
+            ),
+            {"user_id": user.user_id, "since": since},
+        )
+        .mappings()
+        .all()
+    )
+    return {
+        "exported_at": dt.datetime.now(dt.timezone.utc),
+        "profile": _to_read(user).model_dump(mode="json"),
+        "api_keys": [
+            {
+                "name": key.name,
+                "prefix": key.prefix,
+                "scopes": key.scopes,
+                "is_active": key.is_active,
+                "created_at": key.created_at,
+                "last_used_at": key.last_used_at,
+                "expires_at": key.expires_at,
+            }
+            for key in keys
+        ],
+        "saved_views": [
+            {
+                "name": view.name,
+                "entity": view.entity,
+                "is_favorite": view.is_favorite,
+                "created_at": view.created_at,
+            }
+            for view in views
+        ],
+        "alert_rules": [
+            {
+                "name": alert.name,
+                "metric": alert.metric,
+                "operator": alert.operator,
+                "threshold": alert.threshold,
+                "channel": alert.channel,
+                "is_active": alert.is_active,
+                "created_at": alert.created_at,
+            }
+            for alert in alerts
+        ],
+        "notifications": [
+            {
+                "level": note.level,
+                "title": note.title,
+                "body": note.body,
+                "entity_type": note.entity_type,
+                "is_read": note.is_read,
+                "created_at": note.created_at,
+            }
+            for note in notifications
+        ],
+        "recent_activity": [dict(row) for row in activity],
+    }
+
+
+@router.delete("/me", response_model=Message, summary="Delete my account (password confirmation)")
+def delete_me(payload: UserDeleteRequest, request: Request, session: DbSession, user: CurrentUser) -> Message:
+    if not verify_password(payload.password, user.hashed_password):
+        raise AuthenticationError("password is incorrect")
+    email = user.email
+    meta = request_meta(request)
+    session.add(
+        AppAuditLog(
+            user_id=None,
+            user_email=email,
+            action="user.self_delete",
+            entity_type="app_user",
+            entity_id=str(user.user_id),
+            ip_address=meta["ip_address"],
+            user_agent=meta["user_agent"],
+            details={"email": email},
+        )
+    )
+    session.flush()
+    session.delete(user)
+    return Message(message=f"Account '{email}' deleted. All personal data removed.")
 
 
 @router.patch("/me", response_model=UserRead, summary="Update my profile & preferences")

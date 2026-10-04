@@ -153,24 +153,48 @@ def check_source_compliance(**context: Any) -> bool:
 
         sources = (context.get("params") or {}).get("sources") or DEFAULT_SOURCES
         cache = get_robots_cache()
-        allowed = []
+        usable: list[str] = []
         for source in list_sources():
             if source["code"] not in sources:
                 continue
+            if not source_enabled(source["code"]):
+                print(f"skip {source['code']}: disabled or not terms-allowed")
+                continue
             decision = cache.can_fetch(source["base_url"])
-            allowed.append((source["code"], decision.allowed, decision.rule))
             print(f"robots check {source['code']}: allowed={decision.allowed} ({decision.rule})")
-        usable = [code for code, ok, _rule in allowed if ok and settings_enabled(code)]
+            if decision.allowed:
+                usable.append(source["code"])
         if not usable:
             raise RuntimeError("robots.txt forbids every configured source - aborting")
         print(f"usable sources: {usable}")
         return True
 
-    return bool(call_pipeline(local, "/sources"))
-
-
-def settings_enabled(code: str) -> bool:  # pragma: no cover - replaced below
+    payload = call_pipeline(local, "/sources")
+    # REST fallback: the registry response carries the enabled/terms flags per source.
+    entries = payload if isinstance(payload, list) else []
+    if isinstance(payload, dict):  # tolerate a wrapped response
+        entries = payload.get("sources") or payload.get("items") or []
+    codes = (context.get("params") or {}).get("sources") or DEFAULT_SOURCES
+    usable = [
+        entry.get("code")
+        for entry in entries
+        if entry.get("code") in codes and entry.get("enabled") and entry.get("terms_allowed")
+    ]
+    if not usable:
+        raise RuntimeError("no usable (enabled + terms-allowed) source configured - aborting")
+    print(f"usable sources (via API): {usable}")
     return True
+
+
+def source_enabled(code: str) -> bool:
+    """A source participates only when the registry marks it enabled AND terms-allowed."""
+    from app.ingestion.base import get_source_class
+
+    try:
+        source_cls = get_source_class(code)
+    except Exception:
+        return False
+    return bool(source_cls.enabled and source_cls.terms_allowed)
 
 
 def probe_sources(**context: Any) -> dict[str, Any]:
@@ -237,11 +261,14 @@ def run_full_pipeline(**context: Any) -> dict[str, Any]:
         return result.as_dict()
 
     params = context.get("params") or {}
+    task = context.get("task")
     payload = {
         "sources": params.get("sources") or DEFAULT_SOURCES,
         "database": params.get("database") or "postgres",
         "limit_per_source": int(params.get("limit") or REQUESTS_PER_SOURCE),
         "trigger": "airflow",
+        "dag_id": DAG_ID,
+        "task_id": task.get("task_id") if isinstance(task, dict) else None,
     }
     result = call_pipeline(local, "/pipeline/run/sync", method="POST", json=payload)
     print(f"airflow run {result.get('run_id')} status={result.get('status')}")
@@ -280,15 +307,34 @@ def _latest_run_id(session: Any) -> str:
 
 def build_aggregates(**context: Any) -> dict[str, Any]:
     """Rebuild the pre-aggregated category/day rollup for the latest run."""
-    # The rollup is refreshed by the pipeline itself; re-running it here is a no-op
-    # safety net that reports the current state.
-    return call_pipeline(lambda: {"status": "refreshed"}, "/pipeline/stages")
+
+    def local() -> dict[str, Any]:
+        from app.core.db import session_scope
+        from app.etl.loader import WarehouseLoader
+
+        with session_scope("postgres") as session:
+            run_id = _latest_run_id(session)
+            written = WarehouseLoader(session, run_id).refresh_category_daily()
+        print(f"category-daily aggregates refreshed: {written} rows for run {run_id}")
+        return {"status": "refreshed", "rows": written, "run_id": run_id}
+
+    return call_pipeline(local, "/pipeline/stages")
 
 
 def reconcile_catalog(**context: Any) -> dict[str, Any]:
-    """Report the catalog reconciliation produced by the run."""
-    summary = call_pipeline(lambda: {"status": "reported"}, "/catalog/summary")
-    print(f"catalog reconciliation: {summary.get('totals')}")
+    """Match the internal catalog against the freshly loaded warehouse."""
+
+    def local() -> dict[str, Any]:
+        from app.core.db import session_scope
+        from app.etl.catalog_reconcile import CatalogReconciler, reconciliation_summary
+
+        with session_scope("postgres") as session:
+            results = CatalogReconciler(session, _latest_run_id(session)).run(persist=True)
+        return reconciliation_summary(results)
+
+    summary = call_pipeline(local, "/catalog/summary")
+    if isinstance(summary, dict):
+        print(f"catalog reconciliation: {summary.get('totals') or summary}")
     return summary
 
 
@@ -345,26 +391,27 @@ def _notify_local() -> dict[str, Any]:
         for rule in rules:
             if rule.metric != "price_change_pct":
                 continue
-            matches = (
+            count = (
                 session.execute(
                     sa.text(
                         """
-                        SELECT COUNT(*) FROM chg_price_change
-                        WHERE direction = 'decrease' AND ABS(change_pct) >= :threshold AND detected_at >= :since
-                        """
+                    SELECT COUNT(*) FROM chg_price_change
+                    WHERE direction = 'decrease' AND ABS(change_pct) >= :threshold
+                      AND detected_at >= :since
+                    """
                     ),
                     {"threshold": abs(rule.threshold), "since": since},
                 ).scalar()
                 or 0
             )
-            if not matches:
+            if not count:
                 continue
             session.add(
                 AppNotification(
                     user_id=rule.user_id,
                     alert_id=rule.alert_id,
-                    level="warning" if matches < 10 else "critical",
-                    title=f"{rule.name}: {matches} matching events in the last 24h",
+                    level="warning" if count < 10 else "critical",
+                    title=f"{rule.name}: {count} matching events in the last 24h",
                     body=f"Threshold {rule.operator} {rule.threshold}%",
                     entity_type="price_change",
                     action_url="/changes/price",
@@ -377,64 +424,65 @@ def _notify_local() -> dict[str, Any]:
     return {"notifications_created": created}
 
 
-def _notify_local() -> dict[str, Any]:
-    import sqlalchemy as sa
-
-    from app.core.db import session_scope
-    from app.models.app_users import AppAlertRule, AppNotification
-
-    created = 0
-    with session_scope("postgres") as session:
-        rules = (
-            session.execute(sa.select(AppAlertRule).where(AppAlertRule.is_active.is_(True))).scalars().all()
-        )
-        for rule in rules:
-            if rule.metric == "price_change_pct":
-                count = (
-                    session.execute(
-                        sa.text(
-                            """
-                        SELECT COUNT(*) FROM chg_price_change
-                        WHERE direction = 'decrease' AND ABS(change_pct) >= :threshold
-                          AND detected_at >= :since
-                        """
-                        ),
-                        {
-                            "threshold": abs(rule.threshold),
-                            "since": dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=1),
-                        },
-                    ).scalar()
-                    or 0
-                )
-            else:
-                continue
-            if count:
-                session.add(
-                    AppNotification(
-                        user_id=rule.user_id,
-                        alert_id=rule.alert_id,
-                        level="warning" if count < 10 else "critical",
-                        title=f"{rule.name}: {count} matching events in the last 24h",
-                        body=f"Threshold {rule.operator} {rule.threshold}%",
-                        entity_type="price_change",
-                        action_url="/changes/price",
-                    )
-                )
-                rule.last_triggered_at = dt.datetime.now(dt.timezone.utc)
-                rule.trigger_count = (rule.trigger_count or 0) + 1
-                created += 1
-    print(f"notifications published: {created}")
-    return {"notifications_created": created}
-
-
 def publish_report(**context: Any) -> dict[str, Any]:
-    """Publish the analytics report so it is visible in the Airflow UI."""
-    kpi = call_pipeline(lambda: {}, "/analytics/kpi")
-    changes = call_pipeline(lambda: {}, "/changes/summary", params={"days": 30})
-    quality = call_pipeline(lambda: {}, "/quality/latest")
-    report = {"kpi": kpi, "changes": changes, "quality": quality}
-    print(f"report: {list(report)}")
+    """Publish the analytics report and persist a JSON artifact for the Airflow UI."""
+
+    def kpi_local() -> dict[str, Any]:
+        from app.analytics import service as analytics
+        from app.core.db import session_scope
+
+        with session_scope("postgres") as session:
+            return analytics.kpi_summary(session, days=30)
+
+    def changes_local() -> dict[str, Any]:
+        from app.analytics import service as analytics
+        from app.core.db import session_scope
+
+        with session_scope("postgres") as session:
+            return analytics.change_event_summary(session, days=30)
+
+    def quality_local() -> dict[str, Any]:
+        from app.core.db import session_scope
+        from app.etl.dq import latest_report
+
+        with session_scope("postgres") as session:
+            return latest_report(session)
+
+    report = {
+        "kpi": call_pipeline(kpi_local, "/analytics/kpi"),
+        "changes": call_pipeline(changes_local, "/changes/summary", params={"days": 30}),
+        "quality": call_pipeline(quality_local, "/quality/latest"),
+        "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+    }
+    artifact = _write_report_artifact(report, context)
+    if artifact:
+        report["artifact"] = artifact
+    print(f"report sections: {list(report)} artifact={artifact}")
     return report
+
+
+def _write_report_artifact(report: dict[str, Any], context: dict[str, Any]) -> str | None:
+    """Persist the report JSON next to the other runtime artifacts (never fatal)."""
+    import json
+
+    stamp = (context.get("ts_nodash") or dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%S")).replace(
+        "+", ""
+    )
+    # Inside Airflow the project root is /opt/airflow; on a developer host fall
+    # back to the repository checkout that contains this DAG.
+    roots = [PROJECT_ROOT, os.path.dirname(os.path.dirname(os.path.abspath(__file__)))]
+    for root in roots:
+        try:
+            reports_dir = os.path.join(root, "var", "reports")
+            os.makedirs(reports_dir, exist_ok=True)
+            path = os.path.join(reports_dir, f"{DAG_ID}-{stamp}.json")
+            with open(path, "w", encoding="utf-8") as handle:
+                json.dump(report, handle, indent=2, default=str)
+            return path
+        except OSError:  # read-only mount or missing permissions: try the next root
+            continue
+    print("could not persist the report artifact under any project root")
+    return None
 
 
 def branch_on_changes(**context: Any) -> str:
@@ -505,8 +553,13 @@ if AIRFLOW_AVAILABLE:  # pragma: no cover - only inside Airflow
         )
         notify = PythonOperator(task_id="notify_users", python_callable=publish_notifications)
         skip_notify = EmptyOperator(task_id="skip_notifications")
-        report = PythonOperator(task_id="publish_report", python_callable=publish_report)
-        stop = EmptyOperator(task_id="end")
+        report = PythonOperator(
+            task_id="publish_report",
+            python_callable=publish_report,
+            # A branch may skip a sibling; the report must still be published.
+            trigger_rule=TriggerRule.ALL_DONE,
+        )
+        stop = EmptyOperator(task_id="end", trigger_rule=TriggerRule.ALL_DONE)
 
         # ---------------- wiring -------------------------------------------------------
         start >> health_check >> compliance_check >> probe >> execute

@@ -122,7 +122,13 @@ def trigger(
             status="accepted",
             ip_address=meta["ip_address"],
             user_agent=meta["user_agent"],
-            details={"sources": payload.sources, "database": payload.database, "trigger": payload.trigger},
+            details={
+                "sources": payload.sources,
+                "database": payload.database,
+                "trigger": payload.trigger,
+                "dag_id": payload.dag_id,
+                "task_id": payload.task_id,
+            },
         )
     )
     session.add(
@@ -197,6 +203,8 @@ def trigger_sync(
             skip_dq=payload.skip_dq,
             skip_catalog=payload.skip_catalog,
             trigger=payload.trigger or "api",
+            dag_id=payload.dag_id,
+            task_id=payload.task_id,
             created_by=user.email,
         )
     ).run()

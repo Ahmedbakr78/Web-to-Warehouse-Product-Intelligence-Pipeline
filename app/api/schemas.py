@@ -149,6 +149,12 @@ class UserUpdate(BaseModel):
     preferences: dict[str, Any] | None = None
 
 
+class UserDeleteRequest(BaseModel):
+    """Password confirmation required to delete your own account."""
+
+    password: str = Field(min_length=1, max_length=256)
+
+
 class UserCreate(BaseModel):
     email: EmailStr
     full_name: str = Field(min_length=2, max_length=128)
@@ -344,6 +350,8 @@ class PipelineTriggerRequest(BaseModel):
     skip_dq: bool = False
     skip_catalog: bool = False
     trigger: str = "api"
+    dag_id: str | None = Field(default=None, description="Set by the Airflow DAG so lineage is stored")
+    task_id: str | None = Field(default=None, description="Airflow task that requested the run")
 
 
 class DqRuleRead(ORMModel):

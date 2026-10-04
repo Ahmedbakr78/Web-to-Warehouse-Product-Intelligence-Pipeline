@@ -187,22 +187,4 @@ def category_drift(
 def summary(
     session: DbSession, _user: ReadUser, days: Annotated[int, Query(ge=1, le=3650)] = 30
 ) -> dict[str, Any]:
-    row = (
-        session.execute(
-            sa.text(
-                """
-            SELECT COUNT(*) AS total_events,
-                   SUM(CASE WHEN event_type = 'new' THEN 1 ELSE 0 END) AS new_products,
-                   SUM(CASE WHEN event_type = 'removed' THEN 1 ELSE 0 END) AS removed_products,
-                   SUM(CASE WHEN event_type = 'category_changed' THEN 1 ELSE 0 END) AS category_changes,
-                   SUM(CASE WHEN event_type = 'recurring' THEN 1 ELSE 0 END) AS recurring
-            FROM chg_product_event WHERE detected_at >= :since
-            """
-            ),
-            {"since": dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=days)},
-        )
-        .mappings()
-        .one()
-    )
-    timeline = analytics.price_change_timeline(session, days=days)
-    return {**dict(row), "timeline": timeline}
+    return analytics.change_event_summary(session, days=days)

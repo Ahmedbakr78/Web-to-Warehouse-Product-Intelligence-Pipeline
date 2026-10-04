@@ -9,9 +9,53 @@ import sqlalchemy as sa
 from fastapi import APIRouter, Query
 
 from app.analytics import service as analytics
-from app.api.deps import AdminUser, DbSession, PaginationDep, ReadUser
+from app.api.deps import AdminUser, CurrentUser, DbSession, PaginationDep, ReadUser
 
 router = APIRouter(tags=["audit"])
+
+
+@router.get("/audit/me", summary="My recent audited activity")
+def my_activity(
+    session: DbSession,
+    user: CurrentUser,
+    pagination: PaginationDep,
+    days: Annotated[int, Query(ge=1, le=3650)] = 30,
+) -> dict[str, Any]:
+    since = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=days)
+    params: dict[str, Any] = {"user_id": user.user_id, "since": since}
+    total = (
+        session.execute(
+            sa.text(
+                "SELECT COUNT(*) FROM app_audit_log WHERE user_id = :user_id AND created_at >= :since"
+            ),
+            params,
+        ).scalar()
+        or 0
+    )
+    rows = (
+        session.execute(
+            sa.text(
+                """
+            SELECT audit_id, action, entity_type, entity_id, status, ip_address,
+                   duration_ms, created_at
+            FROM app_audit_log
+            WHERE user_id = :user_id AND created_at >= :since
+            ORDER BY created_at DESC
+            LIMIT :limit OFFSET :offset
+            """
+            ),
+            {**params, "limit": pagination.page_size, "offset": pagination.offset},
+        )
+        .mappings()
+        .all()
+    )
+    return {
+        "items": [dict(row) for row in rows],
+        "total": total,
+        "page": pagination.page,
+        "page_size": pagination.page_size,
+        "window_days": days,
+    }
 
 
 @router.get("/audit", summary="Application audit log (admin)")

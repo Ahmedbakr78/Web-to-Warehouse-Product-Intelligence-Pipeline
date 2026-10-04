@@ -156,6 +156,26 @@ def kpi_summary(session: Session, days: int = 30) -> dict[str, Any]:
     }
 
 
+def change_event_summary(session: Session, days: int = 30) -> dict[str, Any]:
+    """Lifecycle event counters plus a price-change timeline for the KPI cards."""
+    row = _one(
+        session,
+        sa.text(
+            """
+            SELECT COUNT(*) AS total_events,
+                   SUM(CASE WHEN event_type = 'new' THEN 1 ELSE 0 END) AS new_products,
+                   SUM(CASE WHEN event_type = 'removed' THEN 1 ELSE 0 END) AS removed_products,
+                   SUM(CASE WHEN event_type = 'category_changed' THEN 1 ELSE 0 END) AS category_changes,
+                   SUM(CASE WHEN event_type = 'recurring' THEN 1 ELSE 0 END) AS recurring
+            FROM chg_product_event WHERE detected_at >= :since
+            """
+        ),
+        {"since": dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=days)},
+    )
+    timeline = price_change_timeline(session, days=days)
+    return {**row, "timeline": timeline}
+
+
 def daily_trend(session: Session, days: int = 90) -> list[dict[str, Any]]:
     return _rows(
         session,
