@@ -314,7 +314,9 @@ GROUP BY q.run_id, r.status, r.target_database, r.started_at, r.dq_score;
 CREATE VIEW vw_pipeline_health AS
 SELECT r.run_id,
        r.status,
-       r.trigger,
+       -- ``trigger`` is a reserved word in MySQL 8.4, so it is aliased here and the
+       -- API re-exposes it as ``trigger`` for API consumers.
+       r.trigger AS run_trigger,
        r.target_database,
        r.dag_id,
        r.task_id,

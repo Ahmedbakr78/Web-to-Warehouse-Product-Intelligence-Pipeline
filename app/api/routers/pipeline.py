@@ -33,7 +33,7 @@ def runs(session: DbSession, pagination: PaginationDep, _user: ReadUser, status:
     rows = session.execute(
         sa.text(
             f"""
-            SELECT run_id, status, trigger, target_database, started_at, finished_at, duration_ms,
+            SELECT run_id, status, run_trigger, target_database, started_at, finished_at, duration_ms,
                    records_extracted, records_valid, records_rejected, records_inserted,
                    records_updated, duplicates_merged, new_products, price_changes, removed_products,
                    catalog_matched, dq_score, yield_pct, dag_id, task_id, error_message
@@ -44,7 +44,8 @@ def runs(session: DbSession, pagination: PaginationDep, _user: ReadUser, status:
         ),
         {**params, "limit": pagination.page_size, "offset": pagination.offset},
     ).mappings().all()
-    return Page.build([dict(row) for row in rows], total, pagination.page, pagination.page_size)
+    items = [dict(row) | {"trigger": row["run_trigger"]} for row in rows]
+    return Page.build(items, total, pagination.page, pagination.page_size)
 
 
 @router.get("/runs/latest", summary="Most recent run (full detail)")

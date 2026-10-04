@@ -440,11 +440,13 @@ def product_detail(session: Session, product_id: int) -> dict[str, Any]:
 
 
 def pipeline_runs(session: Session, limit: int = 25) -> list[dict[str, Any]]:
-    return _rows(
+    """Run history. ``run_trigger`` is renamed to ``trigger`` in Python because the
+    literal word is reserved in MySQL 8.4 and cannot be used as a SQL alias."""
+    rows = _rows(
         session,
         sa.text(
             """
-            SELECT run_id, status, trigger, target_database, started_at, finished_at, duration_ms,
+            SELECT run_id, status, run_trigger, target_database, started_at, finished_at, duration_ms,
                    records_extracted, records_valid, records_rejected, records_inserted,
                    records_updated, duplicates_merged, new_products, price_changes,
                    removed_products, catalog_matched, dq_score, yield_pct, error_message
@@ -455,6 +457,7 @@ def pipeline_runs(session: Session, limit: int = 25) -> list[dict[str, Any]]:
         ),
         {"limit": limit},
     )
+    return [dict(row) | {"trigger": row["run_trigger"]} for row in rows or []]
 
 
 def run_detail(session: Session, run_id: str) -> dict[str, Any]:
