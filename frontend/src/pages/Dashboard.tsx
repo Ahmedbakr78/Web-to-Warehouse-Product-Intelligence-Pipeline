@@ -152,22 +152,22 @@ export default function Dashboard() {
         <StatTile
           label="Average price"
           value={formatPrice(latest.avg_price ?? null, 'USD')}
-          hint={`min ${formatPrice(latest.min_price ?? null)} \u00b7 max ${formatPrice(latest.max_price ?? null)}`}
+          hint={`min ${formatPrice(latest.min_price ?? null)} · max ${formatPrice(latest.max_price ?? null)}`}
           icon={<TrendingUp className="h-4 w-4" />}
           tone="info"
         />
         <StatTile
           label="Price changes"
           value={formatCompact(changes.total_changes ?? 0)}
-          hint={`${formatCompact(changes.decreases ?? 0)} down \u00b7 ${formatCompact(changes.increases ?? 0)} up`}
+          hint={`${formatCompact(changes.decreases ?? 0)} down · ${formatCompact(changes.increases ?? 0)} up`}
           icon={<Activity className="h-4 w-4" />}
           tone="warning"
           delta={<DeltaPill value={changes.avg_abs_change_pct ?? null} />}
         />
         <StatTile
           label="Data quality score"
-          value={qualityScore !== null ? `${qualityScore}` : '\u2014'}
-          hint={`${quality.data?.pass ?? 0} pass \u00b7 ${quality.data?.warn ?? 0} warn \u00b7 ${quality.data?.fail ?? 0} fail`}
+          value={qualityScore !== null ? `${qualityScore}` : '—'}
+          hint={`${quality.data?.pass ?? 0} pass · ${quality.data?.warn ?? 0} warn · ${quality.data?.fail ?? 0} fail`}
           icon={<ShieldCheck className="h-4 w-4" />}
           tone={qualityScore === null ? 'neutral' : qualityScore >= 90 ? 'success' : qualityScore >= 75 ? 'warning' : 'danger'}
         />
@@ -307,7 +307,7 @@ export default function Dashboard() {
                   ['Merged duplicates', formatNumber(latestRun.data.duplicates_merged ?? 0)],
                   ['Price changes', formatNumber(latestRun.data.price_changes ?? 0)],
                   ['Duration', formatDuration(latestRun.data.duration_ms)],
-                  ['DQ score', String(latestRun.data.dq_score ?? '\u2014')],
+                  ['DQ score', String(latestRun.data.dq_score ?? '—')],
                 ].map(([label, value]) => (
                   <div key={label as string} className="rounded-lg border border-line bg-surface-2 px-2.5 py-2">
                     <dt className="text-[10px] uppercase tracking-wide text-subtle">{label}</dt>
@@ -373,7 +373,7 @@ export default function Dashboard() {
               header: 'Band',
               align: 'center',
               hideBelow: 'lg',
-              render: (row: any) => <Badge tone={statusTone(row.direction)}>{row.magnitude_band ?? '\u2014'}</Badge>,
+              render: (row: any) => <Badge tone={statusTone(row.direction)}>{row.magnitude_band ?? '—'}</Badge>,
             },
             { key: 'date', header: 'Detected', align: 'right', hideBelow: 'md', render: (row: any) => formatDate(row.full_date) },
           ]}
@@ -430,7 +430,7 @@ export default function Dashboard() {
                     />
                     <span className="font-mono text-[10px] text-subtle">{rule.code}</span>
                     <span className="truncate text-muted">{rule.name}</span>
-                    <span className="ml-auto shrink-0 tabular-nums text-subtle">{rule.observed_value ?? '\u2014'}</span>
+                    <span className="ml-auto shrink-0 tabular-nums text-subtle">{rule.observed_value ?? '—'}</span>
                   </li>
                 ))}
               </ul>

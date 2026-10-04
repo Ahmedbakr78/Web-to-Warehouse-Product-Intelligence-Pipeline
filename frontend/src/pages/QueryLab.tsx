@@ -213,7 +213,7 @@ export default function QueryLab() {
           {examples.isError ? (
             <ErrorState message={(examples.error as Error)?.message} onRetry={() => examples.refetch()} />
           ) : examples.isLoading && !examples.data ? (
-            <LoadingState label={'Loading starter queries\u2026'} rows={2} />
+            <LoadingState label={'Loading starter queries…'} rows={2} />
           ) : examples.data?.length ? (
             <ul className="space-y-1.5">
               {examples.data.map((example: any) => (
@@ -242,7 +242,7 @@ export default function QueryLab() {
           {views.isError ? (
             <ErrorState message={(views.error as Error)?.message} onRetry={() => views.refetch()} />
           ) : views.isLoading && !views.data ? (
-            <LoadingState label={'Loading views\u2026'} rows={2} />
+            <LoadingState label={'Loading views…'} rows={2} />
           ) : views.data?.length ? (
             <div className="flex max-h-48 flex-wrap gap-1.5 overflow-auto">
               {views.data.map((view: any) => (
@@ -270,7 +270,7 @@ export default function QueryLab() {
           {tables.isError ? (
             <ErrorState message={(tables.error as Error)?.message} onRetry={() => tables.refetch()} />
           ) : tables.isLoading && !tables.data ? (
-            <LoadingState label={'Loading schema\u2026'} rows={3} />
+            <LoadingState label={'Loading schema…'} rows={3} />
           ) : groups.length ? (
             <div className="space-y-3">
               {groups.map(([group, names]) => (
@@ -341,7 +341,7 @@ export default function QueryLab() {
           </div>
         ) : run.isPending ? (
           <div className="p-4">
-            <LoadingState label={'Running the statement\u2026'} rows={6} />
+            <LoadingState label={'Running the statement…'} rows={6} />
           </div>
         ) : !result ? (
           <EmptyState

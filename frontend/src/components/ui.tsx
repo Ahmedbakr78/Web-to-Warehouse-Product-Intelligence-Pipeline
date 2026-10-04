@@ -165,11 +165,11 @@ export function Badge({
 /** Coloured price movement pill (red = price up, green = price down). */
 export function DeltaPill({ value, digits = 1, suffix = '%' }: { value: number | null | undefined; digits?: number; suffix?: string }) {
   if (value === null || value === undefined || Number.isNaN(Number(value))) {
-    return <span className="text-subtle">\u2014</span>
+    return <span className="text-subtle">—</span>
   }
   const numeric = Number(value)
   const tone: Tone = Math.abs(numeric) < 0.01 ? 'neutral' : numeric < 0 ? 'success' : 'danger'
-  const arrow = numeric > 0 ? '\u2191' : numeric < 0 ? '\u2193' : '\u2192'
+  const arrow = numeric > 0 ? '↑' : numeric < 0 ? '↓' : '→'
   return (
     <span className={cn('badge tabular-nums', TONE_CLASS[tone])}>
       {arrow} {Math.abs(numeric).toFixed(digits)}
@@ -245,7 +245,7 @@ export function Select({ className, children, ...props }: SelectHTMLAttributes<H
 export function SearchInput({
   value,
   onChange,
-  placeholder = 'Search\u2026',
+  placeholder = 'Search…',
   className,
 }: {
   value: string
@@ -694,7 +694,7 @@ export function Drawer({
 /* =====================================================================================
    States: loading / error / empty
    ===================================================================================== */
-export function LoadingState({ label = 'Loading\u2026', rows = 4 }: { label?: string; rows?: number }) {
+export function LoadingState({ label = 'Loading…', rows = 4 }: { label?: string; rows?: number }) {
   return (
     <div className="space-y-3" role="status" aria-live="polite">
       <div className="flex items-center gap-2 text-sm text-muted">

@@ -99,14 +99,14 @@ function SourceCard({ row, onPreview }: { row: any; onPreview: (code: string) =>
         {registry.robots_respected === false ? <Badge tone="danger">robots ignored</Badge> : null}
         {registry.supports_paging ? <Badge tone="neutral">paged</Badge> : null}
         <Badge tone="neutral">
-          {formatNumber(row.rate_limit_per_minute ?? 0)} req/min {'\u00b7'} {row.min_delay_seconds ?? 0}s delay
+          {formatNumber(row.rate_limit_per_minute ?? 0)} req/min {'·'} {row.min_delay_seconds ?? 0}s delay
         </Badge>
       </div>
 
       <div>
         <div className="mb-1 flex items-center justify-between text-xs">
           <span className="text-muted">Success rate</span>
-          <span className="font-semibold tabular-nums">{rate === null ? '\u2014' : `${rate.toFixed(1)}%`}</span>
+          <span className="font-semibold tabular-nums">{rate === null ? '—' : `${rate.toFixed(1)}%`}</span>
         </div>
         <ProgressBar value={rate ?? 0} tone={successTone(rate)} />
         <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-subtle">
@@ -122,7 +122,7 @@ function SourceCard({ row, onPreview }: { row: any; onPreview: (code: string) =>
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
           <span className="min-w-0">
             {failures} consecutive failure{failures === 1 ? '' : 's'}
-            {row.sync_message ? ` \u2014 ${truncate(String(row.sync_message), 120)}` : ''}
+            {row.sync_message ? ` — ${truncate(String(row.sync_message), 120)}` : ''}
           </span>
         </p>
       ) : null}
@@ -170,7 +170,7 @@ function SourcePreviewModal({ code, onClose }: { code: string | null; onClose: (
       header: 'Product',
       render: (row) => (
         <span className="block max-w-[18rem]">
-          <span className="block truncate font-medium">{row.canonical_name || row.raw_name || '\u2014'}</span>
+          <span className="block truncate font-medium">{row.canonical_name || row.raw_name || '—'}</span>
           {row.raw_name && row.raw_name !== row.canonical_name ? (
             <span className="block truncate text-[11px] text-subtle" title={row.raw_name}>
               raw: {row.raw_name}
@@ -179,7 +179,7 @@ function SourcePreviewModal({ code, onClose }: { code: string | null; onClose: (
         </span>
       ),
     },
-    { key: 'category', header: 'Category', hideBelow: 'sm', render: (row) => <span className="text-xs text-muted">{row.category ?? '\u2014'}</span> },
+    { key: 'category', header: 'Category', hideBelow: 'sm', render: (row) => <span className="text-xs text-muted">{row.category ?? '—'}</span> },
     {
       key: 'price',
       header: 'Price',
@@ -198,7 +198,7 @@ function SourcePreviewModal({ code, onClose }: { code: string | null; onClose: (
       header: 'Rating',
       align: 'center',
       hideBelow: 'lg',
-      render: (row) => <span className="tabular-nums">{row.rating === null || row.rating === undefined ? '\u2014' : Number(row.rating).toFixed(1)}</span>,
+      render: (row) => <span className="tabular-nums">{row.rating === null || row.rating === undefined ? '—' : Number(row.rating).toFixed(1)}</span>,
     },
     { key: 'availability', header: 'Stock', hideBelow: 'md', render: (row) => <Badge tone={statusTone(row.availability)}>{titleCase(row.availability)}</Badge> },
     {
@@ -206,7 +206,7 @@ function SourcePreviewModal({ code, onClose }: { code: string | null; onClose: (
       header: 'Quality flags',
       render: (row) => {
         const flags: string[] = Array.isArray(row.quality_flags) ? row.quality_flags : []
-        if (!flags.length) return <span className="text-subtle">{'\u2014'}</span>
+        if (!flags.length) return <span className="text-subtle">{'—'}</span>
         return (
           <span className="flex flex-wrap gap-1">
             {flags.map((flag) => (
@@ -242,7 +242,7 @@ function SourcePreviewModal({ code, onClose }: { code: string | null; onClose: (
             open
           </a>
         ) : (
-          <span className="text-subtle">{'\u2014'}</span>
+          <span className="text-subtle">{'—'}</span>
         ),
     },
   ]
@@ -251,7 +251,7 @@ function SourcePreviewModal({ code, onClose }: { code: string | null; onClose: (
     <Modal
       open={Boolean(code)}
       onClose={onClose}
-      title={code ? `Raw records \u2014 ${code}` : 'Raw records'}
+      title={code ? `Raw records — ${code}` : 'Raw records'}
       description="Live fetch of a few records straight from the source, after the cleaning stage. Nothing is written to the warehouse."
       size="xl"
     >
@@ -262,7 +262,7 @@ function SourcePreviewModal({ code, onClose }: { code: string | null; onClose: (
           onRetry={() => preview.refetch()}
         />
       ) : preview.isLoading || !data ? (
-        <LoadingState label={`Fetching records from ${code ?? 'the source'}\u2026`} rows={4} />
+        <LoadingState label={`Fetching records from ${code ?? 'the source'}…`} rows={4} />
       ) : (
         <div className="space-y-3">
           <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -360,7 +360,7 @@ export default function Sources() {
             <span className="truncate text-subtle">{titleCase(row.sync_status ?? 'unknown')}</span>
             <span className="tabular-nums">
               {row.success_rate_pct === null || row.success_rate_pct === undefined
-                ? '\u2014'
+                ? '—'
                 : `${Number(row.success_rate_pct).toFixed(0)}%`}
             </span>
           </span>
@@ -437,7 +437,7 @@ export default function Sources() {
     return <ErrorState message={(status.error as Error)?.message} onRetry={() => status.refetch()} />
   }
   if (status.isLoading && !status.data) {
-    return <LoadingState label={'Loading ingestion sources\u2026'} rows={6} />
+    return <LoadingState label={'Loading ingestion sources…'} rows={6} />
   }
 
   const stats = robots.data?.stats ?? {}
@@ -474,13 +474,13 @@ export default function Sources() {
                 label: 'User agent',
                 value: (
                   <span className="truncate font-mono text-xs" title={robots.data?.user_agent}>
-                    {robots.data?.user_agent ?? '\u2014'}
+                    {robots.data?.user_agent ?? '—'}
                   </span>
                 ),
               },
               {
                 label: 'robots.txt cache TTL',
-                value: robots.data?.ttl_seconds ? formatDuration(Number(robots.data.ttl_seconds) * 1000) : '\u2014',
+                value: robots.data?.ttl_seconds ? formatDuration(Number(robots.data.ttl_seconds) * 1000) : '—',
               },
               {
                 label: 'Sources allowed by terms',
@@ -508,7 +508,7 @@ export default function Sources() {
               <ProgressBar value={decided ? (allowed / decided) * 100 : 0} tone={blocked && !allowed ? 'danger' : 'success'} />
               <p className="mt-1.5 text-[11px] text-subtle">
                 {decided
-                  ? `${formatNumber(allowed)} allowed \u00b7 ${formatNumber(blocked)} refused by robots.txt and never sent upstream`
+                  ? `${formatNumber(allowed)} allowed · ${formatNumber(blocked)} refused by robots.txt and never sent upstream`
                   : 'No robots.txt decision has been taken yet.'}
               </p>
             </div>
@@ -533,7 +533,7 @@ export default function Sources() {
         />
         <StatTile
           label="Average success rate"
-          value={totals.success === null ? '\u2014' : `${totals.success.toFixed(1)}%`}
+          value={totals.success === null ? '—' : `${totals.success.toFixed(1)}%`}
           hint={`mean duration ${formatDuration(totals.avgDuration * 1000)}`}
           icon={<ShieldCheck className="h-4 w-4" />}
           tone={successTone(totals.success)}

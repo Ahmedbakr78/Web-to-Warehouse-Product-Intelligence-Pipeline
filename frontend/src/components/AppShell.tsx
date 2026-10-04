@@ -170,7 +170,7 @@ export default function AppShell() {
               <div className="min-w-0 text-[11px] leading-tight">
                 <p className="font-medium text-ink">{online ? 'Connected' : 'Degraded'}</p>
                 <p className="truncate text-subtle">
-                  {health?.database?.database ?? 'db'} \u00b7 {health?.database?.dialect ?? '\u2014'}
+                  {health?.database?.database ?? 'db'} · {health?.database?.dialect ?? '—'}
                 </p>
               </div>
             ) : null}
@@ -272,7 +272,7 @@ export default function AppShell() {
                 autoFocus
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Jump to a screen\u2026"
+                placeholder="Jump to a screen…"
                 aria-label="Search screens"
                 className="h-11 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-subtle"
               />
@@ -465,7 +465,7 @@ function UserMenu() {
             </button>
           </div>
           <div className="border-t border-line px-3 py-2 text-[10px] text-subtle">
-            Signed in {formatRelative(user.last_login_at ?? user.created_at)} \u00b7 v1.0.0
+            Signed in {formatRelative(user.last_login_at ?? user.created_at)} · v1.0.0
           </div>
         </div>
       ) : null}

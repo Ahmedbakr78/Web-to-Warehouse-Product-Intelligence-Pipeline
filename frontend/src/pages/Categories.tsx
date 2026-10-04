@@ -115,7 +115,7 @@ export default function Categories() {
         .sort((a: any, b: any) => Number(b.avg_price) - Number(a.avg_price))
         .slice(0, 10)
         .map((row: any) => ({
-          label: truncate(String(row.category_name ?? '\u2014'), 20),
+          label: truncate(String(row.category_name ?? '—'), 20),
           full_name: row.category_name,
           avg_price: Number(row.avg_price ?? 0),
         })),
@@ -136,7 +136,7 @@ export default function Categories() {
           className="block max-w-[16rem] text-left"
           title="Show the products of this category"
         >
-          <span className="block truncate font-medium text-ink">{row.category_name ?? '\u2014'}</span>
+          <span className="block truncate font-medium text-ink">{row.category_name ?? '—'}</span>
           <span className="block text-[11px] text-subtle">{formatNumber(row.observations ?? 0)} observations</span>
         </button>
       ),
@@ -179,7 +179,7 @@ export default function Categories() {
       sortValue: (row) => row.avg_rating,
       render: (row) =>
         row.avg_rating === null || row.avg_rating === undefined ? (
-          <span className="text-subtle">{'\u2014'}</span>
+          <span className="text-subtle">{'—'}</span>
         ) : (
           <span className="tabular-nums">{Number(row.avg_rating).toFixed(2)}</span>
         ),
@@ -226,7 +226,7 @@ export default function Categories() {
         <SearchInput
           value={search}
           onChange={setSearch}
-          placeholder={'Filter the taxonomy by name or path\u2026'}
+          placeholder={'Filter the taxonomy by name or path…'}
           className="min-w-[14rem] max-w-md flex-1"
         />
         <Button size="sm" variant="secondary" icon={<Download className="h-4 w-4" />} onClick={exportCsv}>
@@ -271,7 +271,7 @@ export default function Categories() {
           <div className="border-b border-line p-4 sm:p-5">
             <CardHeader
               title="Category taxonomy"
-              subtitle={`${formatNumber(visibleTree.length)} node${visibleTree.length === 1 ? '' : 's'} \u00b7 select one to filter the product catalogue`}
+              subtitle={`${formatNumber(visibleTree.length)} node${visibleTree.length === 1 ? '' : 's'} · select one to filter the product catalogue`}
               icon={<Layers className="h-4 w-4" />}
             />
           </div>
@@ -282,7 +282,7 @@ export default function Categories() {
             </div>
           ) : tree.isLoading && !tree.data ? (
             <div className="p-4">
-              <LoadingState label={'Loading taxonomy\u2026'} rows={5} />
+              <LoadingState label={'Loading taxonomy…'} rows={5} />
             </div>
           ) : !tree.data?.length ? (
             <EmptyState title="No categories yet" message="Run the pipeline to build the category dimension." />
@@ -325,7 +325,7 @@ export default function Categories() {
                     </Badge>
                   </span>
                   <span className="hidden truncate text-xs text-subtle md:block" title={row.path}>
-                    {row.path ?? '\u2014'}
+                    {row.path ?? '—'}
                   </span>
                   <span className="hidden text-right text-xs tabular-nums text-muted md:block">
                     {formatNumber(row.product_count ?? 0)}
@@ -348,7 +348,7 @@ export default function Categories() {
           {breakdown.isError ? (
             <ErrorState message={(breakdown.error as Error)?.message} onRetry={() => breakdown.refetch()} />
           ) : breakdown.isLoading && !breakdown.data ? (
-            <LoadingState label={'Loading category aggregation\u2026'} rows={4} />
+            <LoadingState label={'Loading category aggregation…'} rows={4} />
           ) : topByPrice.length ? (
             <BarSeries
               data={topByPrice}

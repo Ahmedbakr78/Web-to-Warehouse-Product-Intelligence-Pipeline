@@ -30,7 +30,7 @@ export default function LoginPage() {
   const { data: demo } = useQuery({ queryKey: ['demo-accounts'], queryFn: endpoints.demoAccounts, retry: 0 })
 
   useEffect(() => {
-    document.title = 'Sign in \u00b7 Product Intelligence Pipeline'
+    document.title = 'Sign in · Product Intelligence Pipeline'
   }, [])
 
   if (ready && authenticated) {
@@ -72,7 +72,7 @@ export default function LoginPage() {
             </div>
             <div>
               <p className="text-base font-semibold leading-tight">Product Intelligence Pipeline</p>
-              <p className="text-xs text-subtle">Web-to-Warehouse \u00b7 DEPI Data Engineering</p>
+              <p className="text-xs text-subtle">Web-to-Warehouse · DEPI Data Engineering</p>
             </div>
           </div>
 
@@ -201,22 +201,22 @@ export default function LoginPage() {
 
             <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-subtle">
               <span>{meta?.name ?? 'Product Intelligence Pipeline'}</span>
-              <span>\u00b7 v{meta?.version ?? '1.0.0'}</span>
-              <span>\u00b7 {meta?.database ?? 'warehouse'}</span>
-              {meta?.compliance?.respect_robots_txt ? <span>\u00b7 robots.txt respected</span> : null}
+              <span>· v{meta?.version ?? '1.0.0'}</span>
+              <span>· {meta?.database ?? 'warehouse'}</span>
+              {meta?.compliance?.respect_robots_txt ? <span>· robots.txt respected</span> : null}
             </div>
 
             {meta?.limits ? (
               <p className="mt-3 text-[10px] leading-relaxed text-subtle">
-                Limits: max {meta.limits.max_page_size} rows per page \u00b7{' '}
-                {String(meta.limits.pipeline_limit_per_source ?? '\u2014')} records per source \u00b7 dedupe threshold{' '}
-                {meta.limits.dedupe_threshold ?? '\u2014'}
+                Limits: max {meta.limits.max_page_size} rows per page ·{' '}
+                {String(meta.limits.pipeline_limit_per_source ?? '—')} records per source · dedupe threshold{' '}
+                {meta.limits.dedupe_threshold ?? '—'}
               </p>
             ) : null}
 
             {submitting ? (
               <p className="mt-4 flex items-center gap-2 text-xs text-muted">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> Verifying credentials\u2026
+                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> Verifying credentials…
               </p>
             ) : null}
           </div>

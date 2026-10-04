@@ -88,7 +88,7 @@ export default function NotFound() {
 
       <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-subtle">
         <span>
-          {meta?.name ?? 'Product Intelligence Pipeline'} {'\u00b7'} v{meta?.version ?? '1.0.0'} {'\u00b7'}{' '}
+          {meta?.name ?? 'Product Intelligence Pipeline'} {'·'} v{meta?.version ?? '1.0.0'} {'·'}{' '}
           {meta?.environment ?? 'local'}
         </span>
         <span>

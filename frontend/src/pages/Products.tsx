@@ -185,7 +185,7 @@ export default function Products() {
       {/* ------------------------------------------------------------- toolbar */}
       <Card padded={false} className="p-3">
         <div className="flex flex-wrap items-center gap-2">
-          <SearchInput value={search} onChange={setSearch} placeholder="Search name, brand or category\u2026" className="min-w-[16rem] flex-1" />
+          <SearchInput value={search} onChange={setSearch} placeholder="Search name, brand or category…" className="min-w-[16rem] flex-1" />
           <ChipGroup options={STOCK_FILTERS} value={stock} onChange={setStock} />
           <div className="ml-auto flex items-center gap-2">
             <Button size="sm" variant={showFilters ? 'primary' : 'secondary'} icon={<Filter className="h-4 w-4" />} onClick={() => setShowFilters((value) => !value)}>
@@ -367,7 +367,7 @@ export default function Products() {
                             {Number(row.rating).toFixed(1)}
                           </span>
                         ) : (
-                          <span className="text-subtle">\u2014</span>
+                          <span className="text-subtle">—</span>
                         ),
                     },
                   ]
@@ -391,7 +391,7 @@ export default function Products() {
                       key: 'source',
                       header: 'Source',
                       hideBelow: 'lg' as const,
-                      render: (row: any) => <Badge tone="neutral">{row.source_code ?? '\u2014'}</Badge>,
+                      render: (row: any) => <Badge tone="neutral">{row.source_code ?? '—'}</Badge>,
                     },
                   ]
                 : []),
@@ -441,7 +441,7 @@ export default function Products() {
                             open
                           </a>
                         ) : (
-                          <span className="text-subtle">\u2014</span>
+                          <span className="text-subtle">—</span>
                         ),
                     },
                   ]
@@ -478,7 +478,7 @@ export default function Products() {
 
       <div className={cn('flex items-center justify-between text-[11px] text-subtle')}>
         <span>
-          {formatNumber(total)} products \u00b7 dedupe threshold 0.90 \u00b7 fuzzy matching with jaro-winkler, token-set
+          {formatNumber(total)} products · dedupe threshold 0.90 · fuzzy matching with jaro-winkler, token-set
           and trigram similarity
         </span>
         <span>Active products only: {activeOnly ? 'yes' : 'no'}</span>

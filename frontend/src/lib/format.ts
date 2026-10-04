@@ -2,26 +2,26 @@
 
 const currencySymbols: Record<string, string> = {
   USD: '$',
-  EUR: '\u20ac',
-  GBP: '\u00a3',
-  JPY: '\u00a5',
-  CNY: '\u00a5',
-  INR: '\u20b9',
+  EUR: '€',
+  GBP: '£',
+  JPY: '¥',
+  CNY: '¥',
+  INR: '₹',
   AUD: 'A$',
   CAD: 'C$',
-  TRY: '\u20ba',
-  RUB: '\u20bd',
+  TRY: '₺',
+  RUB: '₽',
   BRL: 'R$',
-  PLN: 'z\u0142',
+  PLN: 'zł',
   SEK: 'kr',
   CHF: 'CHF',
-  EGP: 'E\u00a3',
+  EGP: 'E£',
   AED: 'AED',
   SAR: 'SAR',
 }
 
 export function formatPrice(value: number | string | null | undefined, currency = 'USD'): string {
-  if (value === null || value === undefined || value === '') return '\u2014'
+  if (value === null || value === undefined || value === '') return '—'
   const numeric = typeof value === 'string' ? Number(value) : value
   if (Number.isNaN(numeric)) return String(value)
   const symbol = currencySymbols[currency?.toUpperCase()] ?? `${currency?.toUpperCase() ?? ''} `
@@ -32,16 +32,16 @@ export function formatPrice(value: number | string | null | undefined, currency 
 }
 
 export function formatNumber(value: number | string | null | undefined, digits = 0): string {
-  if (value === null || value === undefined || value === '') return '\u2014'
+  if (value === null || value === undefined || value === '') return '—'
   const numeric = typeof value === 'string' ? Number(value) : value
   if (Number.isNaN(numeric)) return String(value)
   return numeric.toLocaleString(undefined, { minimumFractionDigits: digits, maximumFractionDigits: digits })
 }
 
 export function formatCompact(value: number | null | undefined): string {
-  if (value === null || value === undefined) return '\u2014'
+  if (value === null || value === undefined) return '—'
   const numeric = Number(value)
-  if (Number.isNaN(numeric)) return '\u2014'
+  if (Number.isNaN(numeric)) return '—'
   const abs = Math.abs(numeric)
   if (abs >= 1_000_000_000) return `${(numeric / 1_000_000_000).toFixed(1)}B`
   if (abs >= 1_000_000) return `${(numeric / 1_000_000).toFixed(1)}M`
@@ -50,7 +50,7 @@ export function formatCompact(value: number | null | undefined): string {
 }
 
 export function formatPercent(value: number | string | null | undefined, digits = 2, withSign = true): string {
-  if (value === null || value === undefined || value === '') return '\u2014'
+  if (value === null || value === undefined || value === '') return '—'
   const numeric = typeof value === 'string' ? Number(value) : value
   if (Number.isNaN(numeric)) return String(value)
   const sign = withSign && numeric > 0 ? '+' : ''
@@ -58,16 +58,16 @@ export function formatPercent(value: number | string | null | undefined, digits 
 }
 
 export function formatDate(value: string | Date | null | undefined): string {
-  if (!value) return '\u2014'
+  if (!value) return '—'
   const date = typeof value === 'string' ? new Date(value) : value
-  if (Number.isNaN(date.getTime())) return '\u2014'
+  if (Number.isNaN(date.getTime())) return '—'
   return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: '2-digit' })
 }
 
 export function formatDateTime(value: string | Date | null | undefined): string {
-  if (!value) return '\u2014'
+  if (!value) return '—'
   const date = typeof value === 'string' ? new Date(value) : value
-  if (Number.isNaN(date.getTime())) return '\u2014'
+  if (Number.isNaN(date.getTime())) return '—'
   return date.toLocaleString(undefined, {
     year: 'numeric',
     month: 'short',
@@ -78,9 +78,9 @@ export function formatDateTime(value: string | Date | null | undefined): string 
 }
 
 export function formatRelative(value: string | Date | null | undefined): string {
-  if (!value) return '\u2014'
+  if (!value) return '—'
   const date = typeof value === 'string' ? new Date(value) : value
-  if (Number.isNaN(date.getTime())) return '\u2014'
+  if (Number.isNaN(date.getTime())) return '—'
   const diffMs = Date.now() - date.getTime()
   const seconds = Math.round(diffMs / 1000)
   const future = diffMs < 0
@@ -96,7 +96,7 @@ export function formatRelative(value: string | Date | null | undefined): string 
 }
 
 export function formatDuration(ms: number | null | undefined): string {
-  if (ms === null || ms === undefined) return '\u2014'
+  if (ms === null || ms === undefined) return '—'
   if (ms < 1000) return `${Math.round(ms)} ms`
   const seconds = ms / 1000
   if (seconds < 60) return `${seconds.toFixed(seconds < 10 ? 1 : 0)} s`
@@ -174,8 +174,8 @@ export function initials(name: string | null | undefined): string {
 }
 
 export function truncate(value: string | null | undefined, length = 60): string {
-  if (!value) return '\u2014'
-  return value.length > length ? `${value.slice(0, length - 1)}\u2026` : value
+  if (!value) return '—'
+  return value.length > length ? `${value.slice(0, length - 1)}…` : value
 }
 
 export function downloadCsv(filename: string, content: string) {
