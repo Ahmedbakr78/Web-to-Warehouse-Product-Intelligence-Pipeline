@@ -415,7 +415,7 @@ class DedupeEngine:
                     candidate.product_id, "fuzzy", score, fingerprint, block, parts, candidate.product_id
                 )
 
-        if best and best.score >= self.threshold:
+        if best and best.score >= self.threshold and best.product_id is not None:
             self.stats.fuzzy += 1
             self._fingerprint_cache.setdefault(fingerprint, best.product_id)
             return best
@@ -483,7 +483,7 @@ class DedupeEngine:
     ) -> list[MatchResult]:
         """Resolve many candidates, reusing the fingerprint cache for speed."""
         return [
-            self.find_match(item.get(key), brand=item.get("brand"), category=item.get("category"))
+            self.find_match(str(item.get(key)), brand=item.get("brand"), category=item.get("category"))
             for item in candidates
         ]
 

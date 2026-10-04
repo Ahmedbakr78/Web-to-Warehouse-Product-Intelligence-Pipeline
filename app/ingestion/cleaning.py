@@ -51,41 +51,35 @@ _SMART_CHARS = {
 }
 _CHAR_MAP = {ord(k): v for k, v in _SMART_CHARS.items()}
 
-#: Marketing noise stripped from the front/back of product titles.
-PROMO_PREFIXES = (
-    r"sale[:\-]?",
-    r"hot sale[:\-]?",
-    r"clearance[:\-]?",
-    r"special offer[:\-]?",
-    r"new[:\-]?",
-    r"brand new[:\-]?",
-    r"limited[:\-]?",
-    r"discount[:\-]?",
-    r"offer[:\-]?",
-    r"best price[:\-]?",
-    r"free shipping[:\-]?",
-    r"bestseller[:\-]?",
-    r"top rated[:\-]?",
-    r"recommended[:\-]?",
-    r"featured[:\-]?",
-    r"hot deal[:\-]?",
-    r"promo(?:tional)?[:\-]?",
-    r"cheap[:\-]?",
-    r"wholesale[:\-]?",
+#: Marketing noise stripped from the front of product titles.
+#:
+#: The set is split in two on purpose. ``STRONG_PREFIXES`` contain an explicit
+#: marketing phrase (usually followed by a colon or dash) and are always removed.
+#: ``WEAK_PREFIXES`` are ordinary English words that also appear inside real brand
+#: names ("New Balance 574", "Top Gear"), so they are only removed when the source
+#: shouted them - uppercase, or immediately followed by punctuation such as
+#: "SALE!!!". Getting this wrong would silently corrupt product names, so the
+#: conservative branch is the default.
+STRONG_PREFIXES = (
+    r"sale[:\-]", r"hot sale[:\-]", r"clearance[:\-]", r"special offer[:\-]",
+    r"brand new[:\-]", r"new arrival", r"limited offer[:\-]", r"discount[:\-]",
+    r"offer[:\-]", r"best price[:\-]", r"free shipping[:\-]", r"bestseller[:\-]",
+    r"top rated[:\-]", r"recommended[:\-]", r"featured[:\-]", r"hot deal[:\-]",
+    r"promo(?:tional)?[:\-]", r"cheap[:\-]", r"wholesale[:\-]", r"clearance",
 )
+WEAK_PREFIXES = r"new|sale|offer|special|hot|best|top|limited|discount|premium|deal"
+
+_PROMO_PREFIX_RE = re.compile(r"^(?:%s)[\s\-]*\s+" % "|".join(STRONG_PREFIXES), re.IGNORECASE)
+# Case-SENSITIVE on purpose: only an ALL-CAPS token (NEW/SALE/...) is noise.
+_WEAK_PREFIX_ALLCAPS_RE = re.compile(
+    r"^(?:%s)\s+" % "|".join(word.upper() for word in WEAK_PREFIXES.split("|"))
+)
+_WEAK_PREFIX_PUNCT_RE = re.compile(r"^(?:%s)[\s\-]*[!.,:;]{1,3}\s+" % "|".join(WEAK_PREFIXES.split("|")), re.IGNORECASE)
 _PROMO_SUFFIXES = (
-    r"\(new\)",
-    r"\[new\]",
-    r"- new arrival",
-    r"- free shipping",
-    r"\(free shipping\)",
-    r"- limited stock",
-    r"\*\*",
-    r"-?\s*hot sale",
-    r"\d+% off",
+    r"\(new\)", r"\[new\]", r"- new arrival", r"- free shipping", r"\(free shipping\)",
+    r"- limited stock", r"\*\*", r"-?\s*hot sale", r"\d+% off",
 )
-_PROMO_RE = re.compile(rf"^(?:{'|'.join(PROMO_PREFIXES)})\s+", re.IGNORECASE)
-_PROMO_SUFFIX_RE = re.compile(rf"(?:{'|'.join(_PROMO_SUFFIXES)})\s*$", re.IGNORECASE)
+_PROMO_SUFFIX_RE = re.compile(r"(?:%s)\s*$" % "|".join(_PROMO_SUFFIXES), re.IGNORECASE)
 
 _WHITESPACE_RE = re.compile(r"\s+")
 _MULTI_PUNCT_RE = re.compile(r"[!\"#$%&()\[\]{}+/\\:;?.,`^~|<>]+")
@@ -523,7 +517,9 @@ def clean_product_name(name: str | None, *, max_length: int = 400) -> str:
     text = strip_html(normalise_unicode(name))
     if not text:
         return ""
-    text = _PROMO_RE.sub("", text)
+    text = _PROMO_PREFIX_RE.sub("", text)
+    text = _WEAK_PREFIX_ALLCAPS_RE.sub("", text) if text.split(" ")[0].isupper() else text
+    text = _WEAK_PREFIX_PUNCT_RE.sub("", text)
     text = _PROMO_SUFFIX_RE.sub("", text)
     text = _BRACKETED_RE.sub(" ", text)
     text = re.sub(r"[\u2022\u00b7|]+", " - ", text)
@@ -578,7 +574,9 @@ def normalise_name_key(name: str | None) -> str:
     if not name:
         return ""
     text = normalise_unicode(name).lower()
-    text = _PROMO_RE.sub("", text)
+    text = _PROMO_PREFIX_RE.sub("", text)
+    text = _WEAK_PREFIX_ALLCAPS_RE.sub("", text) if text.split(" ")[0].isupper() else text
+    text = _WEAK_PREFIX_PUNCT_RE.sub("", text)
     text = re.sub(r"[^a-z0-9\s]", " ", text)
     tokens = [t for t in _WORD_RE.findall(text) if t not in STOPWORDS]
     if not tokens:  # keep at least one token for names made entirely of stopwords
@@ -906,7 +904,7 @@ def parse_price(
     # Priority reflects how explicit the evidence is: an ISO code or a currency symbol
     # glued to the number beats a bare number.
     best: PriceInfo | None = None
-    best_rank = -1
+    best_rank: tuple[float, int] = (-1.0, 0)
     for priority, (name, pattern) in enumerate(_PRICE_PATTERNS):
         for match in pattern.finditer(stripped):
             amount = parse_number(match.group("amt"))
@@ -956,7 +954,7 @@ def convert_to_usd(amount: float | None, currency: str | None) -> tuple[float | 
 def format_price(amount: float | None, currency: str | None = "USD") -> str:
     """Human-friendly price rendering used by the dashboard and CLI reports."""
     if amount is None:
-        return "-"
+        return "\u2014"
     code = (currency or "USD").upper()
     symbol = CURRENCY_SYMBOL_OUT.get(code, f"{code} ")
     try:

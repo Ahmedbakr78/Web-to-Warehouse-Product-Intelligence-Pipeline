@@ -42,7 +42,8 @@ def _one(session: Session, statement: Any, params: dict[str, Any] | None = None)
 def table_counts(session: Session) -> dict[str, int]:
     """Row counts for the main tables (used by the health endpoint and the CLI)."""
     out: dict[str, int] = {}
-    quote = session.bind.dialect.identifier_preparer.quote if session.bind else '"{}"'
+    preparer = session.bind.dialect.identifier_preparer if session.bind else None
+    quote = preparer.quote if preparer else '"{}"'
     for table in (
         "dim_product",
         "dim_category",
@@ -638,6 +639,8 @@ def query_explain(session: Session, view_name: str) -> list[dict[str, Any]]:
 
 def list_views(session: Session) -> list[dict[str, Any]]:
     """Enumerate the analytical views available in the current database."""
+    if session.bind is None:
+        return []
     inspector = sa.inspect(session.bind)
     try:
         views = inspector.get_view_names()
