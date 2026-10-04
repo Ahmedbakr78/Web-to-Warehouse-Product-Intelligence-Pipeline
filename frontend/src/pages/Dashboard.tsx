@@ -5,6 +5,7 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   Boxes,
+  Braces,
   Clock,
   Download,
   Gauge,
@@ -38,6 +39,8 @@ import { useApiQuery } from '@/hooks/useApi'
 import { useAuth } from '@/hooks/useAuth'
 import {
   downloadCsv,
+  downloadJson,
+  toCsv,
   formatCompact,
   formatDate,
   formatDuration,
@@ -118,7 +121,18 @@ export default function Dashboard() {
       row.source_code ?? '',
       row.full_date ?? '',
     ])
-    downloadCsv('top-movers.csv', [header, ...body].map((line) => line.join(',')).join('\n'))
+    downloadCsv('top-movers.csv', toCsv(header, body))
+  }
+
+  function exportJson() {
+    downloadJson('dashboard-snapshot.json', {
+      exported_at: new Date().toISOString(),
+      window_days: windowDays,
+      kpi: kpi.data,
+      top_movers: movers.data ?? [],
+      change_summary: changeSummary.data,
+      quality: quality.data,
+    })
   }
 
   return (
@@ -129,6 +143,9 @@ export default function Dashboard() {
         <div className="flex items-center gap-2">
           <Button size="sm" variant="secondary" icon={<Download className="h-4 w-4" />} onClick={exportCsv}>
             Export movers
+          </Button>
+          <Button size="sm" variant="ghost" icon={<Braces className="h-4 w-4" />} onClick={exportJson} aria-label="Export snapshot as JSON">
+            Snapshot
           </Button>
           <Button
             size="sm"
