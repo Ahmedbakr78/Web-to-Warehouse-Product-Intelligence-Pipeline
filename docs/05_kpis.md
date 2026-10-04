@@ -429,14 +429,14 @@ curl -s localhost:8000/api/v1/audit/compliance -H "Authorization: Bearer $TOKEN"
    cannot be regenerated from the snapshot alone. Independently reproducible behaviour from the
    shipped code:
 
-   ```bash
-   .venv/bin/python - <<'PY'
-   from app.ingestion.dedupe import combined_similarity
-   for a, b in [("Samsung Galaxy S23 128GB", "Samsung Galaxy S23 128 GB"),
-                ("Canon EOS R6", "Canon EOS R5"),
-                ("Sony WH-1000XM5", "Sony WH-1000XM4")]:
-       score, parts = combined_similarity(a, b)
-       print(f"{score:.4f} {'DUPLICATE' if score >= 0.90 else 'distinct  '} {a} | {b}")
+```bash
+.venv/bin/python - <<'PY'
+from app.ingestion.dedupe import combined_similarity
+for a, b in [("Samsung Galaxy S23 128GB", "Samsung Galaxy S23 128 GB"),
+             ("Canon EOS R6", "Canon EOS R5"),
+             ("Sony WH-1000XM5", "Sony WH-1000XM4")]:
+    score, parts = combined_similarity(a, b)
+    print(f"{score:.4f} {'DUPLICATE' if score >= 0.90 else 'distinct  '} {a} | {b}")
 PY
 ```
 
