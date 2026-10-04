@@ -147,7 +147,7 @@ class LocalFixtureSource(ProductSource):
     name: ClassVar[str] = "Local Demo Catalogue (offline)"
     kind: ClassVar[str] = "synthetic"
     base_url: ClassVar[str] = "local://demo-catalogue"
-    terms_url: ClassVar[str] = None
+    terms_url: ClassVar[str | None] = None
     license_note: ClassVar[str] = "Generated locally - no third-party rights involved."
     default_currency: ClassVar[str] = "USD"
     rate_limit_per_minute: ClassVar[int] = 10_000
@@ -208,12 +208,12 @@ class LocalFixtureSource(ProductSource):
             yield RawProduct(
                 source_code=self.code,
                 source_product_id=product_id,
-                name=payload["title"] or "",
+                name=str(payload["title"] or ""),
                 category=category,
                 price_text=(price_text if payload["price"] is not None else None),
                 currency_hint=currency,
                 rating_text=(f"{payload['rating']} out of 5" if payload["rating"] is not None else None),
-                availability_text=payload["availability"],
+                availability_text=str(payload["availability"]),
                 in_stock_flag=availability in {"in_stock", "limited_stock"},
                 url=f"https://demo.local/products/{product_id}",
                 image_url=f"https://demo.local/img/{product_id}.jpg",
