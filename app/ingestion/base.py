@@ -282,10 +282,9 @@ def transform_product(raw: RawProduct, *, strict: bool = False) -> NormalizedPro
         if strict:
             record.is_valid = False
             record.reject_reason = "missing_price"
-    if not validate_url(raw.url):
-        if strict:
-            record.is_valid = False
-            record.reject_reason = record.reject_reason or "invalid_url"
+    if not validate_url(raw.url) and strict:
+        record.is_valid = False
+        record.reject_reason = record.reject_reason or "invalid_url"
     return record
 
 

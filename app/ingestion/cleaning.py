@@ -84,8 +84,8 @@ _PROMO_SUFFIXES = (
     r"-?\s*hot sale",
     r"\d+% off",
 )
-_PROMO_RE = re.compile(r"^(?:%s)\s+" % "|".join(PROMO_PREFIXES), re.IGNORECASE)
-_PROMO_SUFFIX_RE = re.compile(r"(?:%s)\s*$" % "|".join(_PROMO_SUFFIXES), re.IGNORECASE)
+_PROMO_RE = re.compile(rf"^(?:{'|'.join(PROMO_PREFIXES)})\s+", re.IGNORECASE)
+_PROMO_SUFFIX_RE = re.compile(rf"(?:{'|'.join(_PROMO_SUFFIXES)})\s*$", re.IGNORECASE)
 
 _WHITESPACE_RE = re.compile(r"\s+")
 _MULTI_PUNCT_RE = re.compile(r"[!\"#$%&()\[\]{}+/\\:;?.,`^~|<>]+")
