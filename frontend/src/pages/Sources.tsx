@@ -206,7 +206,7 @@ function SourcePreviewModal({ code, onClose }: { code: string | null; onClose: (
       header: 'Quality flags',
       render: (row) => {
         const flags: string[] = Array.isArray(row.quality_flags) ? row.quality_flags : []
-        if (!flags.length) return <span className="text-subtle">\u2014</span>
+        if (!flags.length) return <span className="text-subtle">{'\u2014'}</span>
         return (
           <span className="flex flex-wrap gap-1">
             {flags.map((flag) => (
@@ -242,7 +242,7 @@ function SourcePreviewModal({ code, onClose }: { code: string | null; onClose: (
             open
           </a>
         ) : (
-          <span className="text-subtle">\u2014</span>
+          <span className="text-subtle">{'\u2014'}</span>
         ),
     },
   ]
@@ -265,15 +265,26 @@ function SourcePreviewModal({ code, onClose }: { code: string | null; onClose: (
         <LoadingState label={`Fetching records from ${code ?? 'the source'}\u2026`} rows={4} />
       ) : (
         <div className="space-y-3">
-          <KeyValue
-            columns={4}
-            items={[
-              { label: 'Requested', value: formatNumber(data.requested ?? 0) },
-              { label: 'Returned', value: formatNumber(data.returned ?? 0) },
-              { label: 'HTTP calls', value: formatNumber(data.http_calls ?? 0) },
-              { label: 'Errors', value: <span className={cn(data.errors ? 'text-danger' : undefined)}>{formatNumber(data.errors ?? 0)}</span> },
-            ]}
-          />
+          <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              ['Requested', formatNumber(data.requested ?? 0)],
+              ['Returned', formatNumber(data.returned ?? 0)],
+              ['HTTP calls', formatNumber(data.http_calls ?? 0)],
+              ['Errors', null],
+            ].map(([label, value]) => (
+              <div key={label as string} className="min-w-0">
+                <dt className="stat-label">{label}</dt>
+                <dd
+                  className={cn(
+                    'mt-0.5 truncate text-sm font-medium text-ink',
+                    label === 'Errors' && Number(data.errors ?? 0) > 0 && 'text-danger',
+                  )}
+                >
+                  {value ?? formatNumber(data.errors ?? 0)}
+                </dd>
+              </div>
+            ))}
+          </dl>
           {records.length ? (
             <DataTable
               rows={records}
@@ -426,7 +437,7 @@ export default function Sources() {
     return <ErrorState message={(status.error as Error)?.message} onRetry={() => status.refetch()} />
   }
   if (status.isLoading && !status.data) {
-    return <LoadingState label="Loading ingestion sources\u2026" rows={6} />
+    return <LoadingState label={'Loading ingestion sources\u2026'} rows={6} />
   }
 
   const stats = robots.data?.stats ?? {}
@@ -496,14 +507,9 @@ export default function Sources() {
               </div>
               <ProgressBar value={decided ? (allowed / decided) * 100 : 0} tone={blocked && !allowed ? 'danger' : 'success'} />
               <p className="mt-1.5 text-[11px] text-subtle">
-                {totals.blocked ? (
-                  <>
-                    <AlertTriangle className="mr-1 inline h-3 w-3 text-warning" aria-hidden />
-                    {formatNumber(totals.blocked)} request{totals.blocked === 1 ? '' : 's'} were refused by robots.txt and never sent.
-                  </>
-                ) : (
-                  'No request has been blocked by robots.txt so far.'
-                )}
+                {decided
+                  ? `${formatNumber(allowed)} allowed \u00b7 ${formatNumber(blocked)} refused by robots.txt and never sent upstream`
+                  : 'No robots.txt decision has been taken yet.'}
               </p>
             </div>
           </div>
@@ -557,8 +563,12 @@ export default function Sources() {
         ) : !merged.length ? (
           <Card>
             <EmptyState
-              title="No ingestion source is registered"
-              message="The source registry is empty, so no run can collect products."
+              title={totals.registered ? 'No source has reported yet' : 'No ingestion source is registered'}
+              message={
+                totals.registered
+                  ? 'The registry is populated but the warehouse has no source dimension rows. Run the pipeline to collect products.'
+                  : 'The source registry is empty, so no run can collect products.'
+              }
               icon={<Boxes className="h-8 w-8" />}
             />
           </Card>

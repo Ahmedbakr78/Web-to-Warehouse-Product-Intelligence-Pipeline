@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Compass, Database, House } from 'lucide-react'
 
-import { Badge, Button, Card } from '@/components/ui'
+import { Badge, Card } from '@/components/ui'
 import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { NAV_GROUPS } from '@/lib/nav'
@@ -50,15 +50,13 @@ export default function NotFound() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Link to="/">
-              <Button variant="primary" icon={<House className="h-4 w-4" />}>
-                Back to the dashboard
-              </Button>
+            <Link to="/" className="btn btn-primary">
+              <House className="h-4 w-4" aria-hidden />
+              Back to the dashboard
             </Link>
-            <Link to="/products">
-              <Button variant="secondary" icon={<Database className="h-4 w-4" />}>
-                Browse products
-              </Button>
+            <Link to="/products" className="btn btn-secondary">
+              <Database className="h-4 w-4" aria-hidden />
+              Browse products
             </Link>
           </div>
         </div>

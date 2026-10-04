@@ -17,6 +17,7 @@ import {
   SearchInput,
   Select,
   Toggle,
+  type Tone,
 } from '@/components/ui'
 import { cn } from '@/lib/cn'
 import { endpoints } from '@/lib/api'
@@ -160,8 +161,8 @@ export default function Products() {
   }
 
   function exportCsv() {
-    const header = ['product_id', 'name', 'category', 'brand', 'price', 'currency', 'change_pct', 'rating', 'availability', 'source', 'last_seen']
-    const body = rows.map((row: any) => [
+    const header: any[] = ['product_id', 'name', 'category', 'brand', 'price', 'currency', 'change_pct', 'rating', 'availability', 'source', 'last_seen']
+    const body: any[][] = rows.map((row: any) => [
       row.product_id,
       row.canonical_name,
       row.category_name ?? '',
@@ -379,7 +380,7 @@ export default function Products() {
                       sortValue: (row: any) => row.availability,
                       render: (row: any) => {
                         const availabilityInfo = formatAvailability(row.availability)
-                        return <Badge tone={availabilityInfo.tone === 'info' ? 'info' : availabilityInfo.tone}>{availabilityInfo.label}</Badge>
+                        return <Badge tone={availabilityInfo.tone as Tone}>{availabilityInfo.label}</Badge>
                       },
                     },
                   ]

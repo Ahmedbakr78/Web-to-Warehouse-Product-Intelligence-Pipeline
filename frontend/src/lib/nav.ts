@@ -4,8 +4,6 @@ import {
   BarChart3,
   Boxes,
   Building2,
-  Database,
-  FlaskConical,
   Gauge,
   LayoutDashboard,
   ListFilter,

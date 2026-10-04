@@ -30,7 +30,7 @@ import {
 } from '@/components/ui'
 import { endpoints } from '@/lib/api'
 import { queryKeys, useApiQuery } from '@/hooks/useApi'
-import { formatNumber, formatRelative, titleCase } from '@/lib/format'
+import { formatDateTime, formatNumber, formatRelative, titleCase } from '@/lib/format'
 
 type AlertRule = {
   alert_id: number
@@ -74,9 +74,9 @@ const METRICS = [
 
 const OPERATORS = [
   { id: 'lt', label: 'less than  (<)' },
-  { id: 'lte', label: 'at most  (\u2264)' },
+  { id: 'lte', label: 'at most  (≤)' },
   { id: 'gt', label: 'greater than  (>)' },
-  { id: 'gte', label: 'at least  (\u2265)' },
+  { id: 'gte', label: 'at least  (≥)' },
   { id: 'eq', label: 'exactly  (=)' },
 ]
 
@@ -131,6 +131,7 @@ export default function Alerts() {
   const [editing, setEditing] = useState<AlertRule | null>(null)
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [formErrors, setFormErrors] = useState<FormErrors>({})
+  const [pendingDelete, setPendingDelete] = useState<AlertRule | null>(null)
 
   const rules = useApiQuery<AlertRule[]>(queryKeys.alerts(), endpoints.alerts)
   const evaluation = useApiQuery<Evaluation>(EVALUATE_KEY, endpoints.evaluateAlerts, { staleTime: 60_000 })
@@ -282,7 +283,7 @@ export default function Alerts() {
         <div className="min-w-0">
           <p className="max-w-[16rem] truncate font-medium text-ink">{row.name}</p>
           <p className="text-xs text-subtle">
-            {titleCase(row.metric)} \u00b7 {formatNumber(row.trigger_count)} trigger{row.trigger_count === 1 ? '' : 's'}
+            {titleCase(row.metric)} · {formatNumber(row.trigger_count)} trigger{row.trigger_count === 1 ? '' : 's'}
           </p>
         </div>
       ),
@@ -317,7 +318,7 @@ export default function Alerts() {
       align: 'right',
       sortValue: (row) => matchesByRule.get(row.alert_id) ?? null,
       render: (row) => {
-        if (!row.is_active) return <span className="text-subtle">\u2014</span>
+        if (!row.is_active) return <span className="text-subtle">—</span>
         const matches = matchesByRule.get(row.alert_id)
         if (matches === undefined) return <span className="text-xs text-subtle">pending</span>
         return (
@@ -334,7 +335,7 @@ export default function Alerts() {
       hideBelow: 'sm',
       sortValue: (row) => (row.last_triggered_at ? new Date(row.last_triggered_at).getTime() : 0),
       render: (row) => (
-        <span className="text-xs text-muted" title={row.last_triggered_at ?? undefined}>
+        <span className="text-xs text-muted" title={formatDateTime(row.last_triggered_at)}>
           {formatRelative(row.last_triggered_at)}
         </span>
       ),
@@ -344,7 +345,7 @@ export default function Alerts() {
       header: 'Active',
       align: 'center',
       render: (row) => (
-        <div className="flex justify-center" onClick={(event) => event.stopPropagation()}>
+        <div className="flex justify-center">
           <Toggle
             checked={Boolean(row.is_active)}
             disabled={toggleRule.isPending}
@@ -364,8 +365,7 @@ export default function Alerts() {
           <IconButton
             label={`Delete ${row.name}`}
             icon={<Trash2 className="h-4 w-4 text-danger" />}
-            disabled={deleteRule.isPending}
-            onClick={() => deleteRule.mutate(row.alert_id)}
+            onClick={() => setPendingDelete(row)}
           />
         </div>
       ),
@@ -392,7 +392,7 @@ export default function Alerts() {
         <StatTile
           label="Matching now"
           value={formatNumber(matchingCount)}
-          hint={evaluation.isFetching ? 'evaluating against the warehouse\u2026' : `${formatNumber(evaluation.data?.evaluated ?? 0)} rules evaluated`}
+          hint={evaluation.isFetching ? 'evaluating against the warehouse…' : `${formatNumber(evaluation.data?.evaluated ?? 0)} rules evaluated`}
           icon={<RefreshCw className="h-4 w-4" />}
           tone={matchingCount > 0 ? 'warning' : 'neutral'}
         />
@@ -449,7 +449,7 @@ export default function Alerts() {
         rules.isError ? (
           <ErrorState message={(rules.error as Error)?.message} onRetry={() => rules.refetch()} />
         ) : rules.isLoading && !rules.data ? (
-          <LoadingState label="Loading alert rules\u2026" rows={6} />
+          <LoadingState label="Loading alert rules…" rows={6} />
         ) : (
           <Card padded={false}>
             <div className="p-4 sm:p-5">
@@ -471,7 +471,7 @@ export default function Alerts() {
               columns={columns}
               rowKey={(row) => String(row.alert_id)}
               loading={rules.isFetching || evaluation.isFetching}
-              emptyMessage="No alert rules yet \u2014 create one to watch a metric"
+              emptyMessage="No alert rules yet — create one to watch a metric"
             />
           </Card>
         )
@@ -490,7 +490,7 @@ export default function Alerts() {
               action={<Toggle checked={unreadOnly} onChange={setUnreadOnly} label="Unread only" />}
             />
             {feed.isLoading && !feed.data ? (
-              <LoadingState label="Loading notifications\u2026" rows={4} />
+              <LoadingState label="Loading notifications…" rows={4} />
             ) : notifications.length === 0 ? (
               <EmptyState
                 title={unreadOnly ? 'Nothing unread' : 'No notifications yet'}
@@ -532,6 +532,35 @@ export default function Alerts() {
           </Card>
         )
       ) : null}
+
+      <Modal
+        open={Boolean(pendingDelete)}
+        onClose={() => setPendingDelete(null)}
+        title="Delete alert rule"
+        size="sm"
+        footer={
+          <>
+            <Button size="sm" variant="ghost" onClick={() => setPendingDelete(null)}>
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              variant="danger"
+              loading={deleteRule.isPending}
+              onClick={() => {
+                if (pendingDelete) deleteRule.mutate(pendingDelete.alert_id)
+                setPendingDelete(null)
+              }}
+            >
+              Delete rule
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm text-muted">
+          <span className="font-medium text-ink">{pendingDelete?.name}</span> will stop raising notifications. This cannot be undone.
+        </p>
+      </Modal>
 
       {/* --------------------------------------------------------------- create / edit */}
       <Modal
@@ -600,7 +629,7 @@ export default function Alerts() {
           </Field>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Field label="Category" hint="Optional \u2014 limits the rule to one category">
+            <Field label="Category" hint="Optional — limits the rule to one category">
               <TextInput
                 value={form.category}
                 placeholder="e.g. Laptops"

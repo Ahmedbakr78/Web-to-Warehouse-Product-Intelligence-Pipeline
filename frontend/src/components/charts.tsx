@@ -336,9 +336,10 @@ export function DonutChart({
 
 export function RadarCompare({
   data,
-  axes,
   series,
   height = 260,
+  // Accepted for caller symmetry: the radar labels itself from the "axis" field of each row.
+  axes: _axes,
 }: {
   data: Record<string, any>[]
   axes: string[]
@@ -373,7 +374,7 @@ export function HeatmapStrip({
   height = 60,
   colorFor,
 }: {
-  data: { label: string; value: number }[]
+  data: ({ label: string } & Record<string, any>)[]
   valueKey: string
   height?: number
   colorFor?: (value: number) => string

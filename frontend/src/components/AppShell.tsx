@@ -40,7 +40,7 @@ const SIDEBAR_WIDTH_COLLAPSED = '4.5rem'
 export default function AppShell() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { user, logout, can } = useAuth()
+  const { can } = useAuth()
   const { isDark, toggle } = useTheme()
 
   const [mobileOpen, setMobileOpen] = useState(false)

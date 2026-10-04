@@ -162,7 +162,7 @@ export default function Settings() {
       render: (row) => formatNumber(row.observations ?? 0),
     },
     { key: 'avg_price', header: 'Avg price', align: 'right', hideBelow: 'lg', render: (row) => formatPrice(row.avg_price_usd ?? null) },
-    { key: 'avg_rating', header: 'Avg rating', align: 'center', hideBelow: 'xl', render: (row) => (row.avg_rating === null ? <span className="text-subtle">\u2014</span> : Number(row.avg_rating).toFixed(2)) },
+    { key: 'avg_rating', header: 'Avg rating', align: 'center', hideBelow: 'xl', render: (row) => (row.avg_rating === null ? <span className="text-subtle">—</span> : Number(row.avg_rating).toFixed(2)) },
     {
       key: 'success',
       header: 'Success rate',
@@ -173,12 +173,12 @@ export default function Settings() {
         return (
           <div className="flex items-center gap-2">
             <ProgressBar value={rate ?? 0} tone={rate === null ? 'brand' : rate >= 95 ? 'success' : rate >= 80 ? 'warning' : 'danger'} className="w-16" />
-            <span className="tabular-nums text-xs text-muted">{rate === null ? '\u2014' : `${rate.toFixed(1)}%`}</span>
+            <span className="tabular-nums text-xs text-muted">{rate === null ? '—' : `${rate.toFixed(1)}%`}</span>
           </div>
         )
       },
     },
-    { key: 'duration', header: 'Avg latency', align: 'right', hideBelow: 'xl', render: (row) => (row.avg_duration_seconds === null ? <span className="text-subtle">\u2014</span> : formatDuration(Number(row.avg_duration_seconds) * 1000)) },
+    { key: 'duration', header: 'Avg latency', align: 'right', hideBelow: 'xl', render: (row) => (row.avg_duration_seconds === null ? <span className="text-subtle">—</span> : formatDuration(Number(row.avg_duration_seconds) * 1000)) },
     {
       key: 'last_seen',
       header: 'Last observation',
@@ -229,7 +229,7 @@ export default function Settings() {
         settings.isError ? (
           <ErrorState message={(settings.error as Error)?.message} onRetry={() => settings.refetch()} />
         ) : settings.isLoading && !settings.data ? (
-          <LoadingState label="Loading settings\u2026" rows={6} />
+          <LoadingState label="Loading settings…" rows={6} />
         ) : groups.length === 0 ? (
           <Card>
             <EmptyState title="No settings published" message="The settings table is empty for your role." icon={<SlidersHorizontal className="h-7 w-7" />} />
@@ -264,7 +264,7 @@ export default function Settings() {
                           <TextInput
                             type={row.value_type === 'number' ? 'number' : 'text'}
                             step="any"
-                            disabled={!canEdit}
+                            readOnly={!canEdit}
                             aria-label={row.key}
                             className={row.value_type === 'json' ? 'font-mono text-xs' : 'sm:w-56'}
                             value={valueOf(row)}
@@ -316,7 +316,7 @@ export default function Settings() {
         schedule.isError ? (
           <ErrorState message={(schedule.error as Error)?.message} onRetry={() => schedule.refetch()} />
         ) : schedule.isLoading && !schedule.data ? (
-          <LoadingState label="Loading schedule\u2026" rows={4} />
+          <LoadingState label="Loading schedule…" rows={4} />
         ) : (
           <div className="grid grid-cols-1 gap-3 xl:grid-cols-3">
             <Card className="xl:col-span-2">
@@ -336,7 +336,7 @@ export default function Settings() {
                     <p className="stat-label">Cron expression</p>
                     <p className="mt-1 font-mono text-sm text-ink">{schedule.data.cron}</p>
                     <p className="mt-1 text-xs text-subtle">
-                      Stored as the <code className="font-mono">pipeline.schedule_cron</code> setting \u2014 edit it in the General tab.
+                      Stored as the <code className="font-mono">pipeline.schedule_cron</code> setting — edit it in the General tab.
                     </p>
                   </div>
                   <KeyValue
@@ -349,7 +349,7 @@ export default function Settings() {
                         value: schedule.data.last_run_at ? (
                           <span title={formatDateTime(schedule.data.last_run_at)}>{formatRelative(schedule.data.last_run_at)}</span>
                         ) : (
-                          '\u2014'
+                          '—'
                         ),
                       },
                       {
@@ -357,7 +357,7 @@ export default function Settings() {
                         value: schedule.data.next_expected ? (
                           <span title={formatDateTime(schedule.data.next_expected)}>{formatRelative(schedule.data.next_expected)}</span>
                         ) : (
-                          '\u2014'
+                          '—'
                         ),
                       },
                     ]}
@@ -390,7 +390,7 @@ export default function Settings() {
         qualityRules.isError ? (
           <ErrorState message={(qualityRules.error as Error)?.message} onRetry={() => qualityRules.refetch()} />
         ) : qualityRules.isLoading && !qualityRules.data ? (
-          <LoadingState label="Loading rule catalogue\u2026" rows={6} />
+          <LoadingState label="Loading rule catalogue…" rows={6} />
         ) : (
           <Card padded={false}>
             <div className="p-4 sm:p-5">
@@ -421,7 +421,7 @@ export default function Settings() {
         sources.isError ? (
           <ErrorState message={(sources.error as Error)?.message} onRetry={() => sources.refetch()} />
         ) : sources.isLoading && !sources.data ? (
-          <LoadingState label="Loading source coverage\u2026" rows={6} />
+          <LoadingState label="Loading source coverage…" rows={6} />
         ) : (
           <Card padded={false}>
             <div className="p-4 sm:p-5">

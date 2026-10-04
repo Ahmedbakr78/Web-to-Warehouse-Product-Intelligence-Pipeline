@@ -24,7 +24,7 @@ import {
   Users as UsersIcon,
 } from 'lucide-react'
 
-import { DonutChart } from '@/components/charts'
+import { CHART_SERIES, DonutChart } from '@/components/charts'
 import {
   Badge,
   Button,
@@ -93,9 +93,9 @@ type FormErrors = Partial<Record<keyof FormState, string>>
 const EMPTY_FORM: FormState = { email: '', fullName: '', password: '', role: 'viewer', jobTitle: '', department: '' }
 
 const ROLES = [
-  { id: 'viewer', label: 'Viewer \u2014 read-only dashboards' },
-  { id: 'analyst', label: 'Analyst \u2014 read, query and export' },
-  { id: 'admin', label: 'Admin \u2014 full control' },
+  { id: 'viewer', label: 'Viewer — read-only dashboards' },
+  { id: 'analyst', label: 'Analyst — read, query and export' },
+  { id: 'admin', label: 'Admin — full control' },
 ]
 
 function roleTone(role: string): Tone {
@@ -180,9 +180,10 @@ export default function Users() {
   })
 
   const activateUser = useMutation({
-    mutationFn: (id: number) => endpoints.updateUser(id, { is_active: true }),
-    onSuccess: () => {
-      toast.success('User activated')
+    mutationFn: (id: number) => endpoints.updateUser(id, { is_active: true }) as Promise<UserRow>,
+    onSuccess: (result) => {
+      if (result?.is_active) toast.success('User activated')
+      else toast.warning('Account still deactivated', 'The API accepted the request but did not change the account state.')
       invalidate()
     },
     onError: (error: Error) => toast.error('Could not activate the user', error.message),
@@ -271,7 +272,7 @@ export default function Users() {
       hideBelow: 'lg',
       render: (row) => (
         <div className="min-w-0">
-          <p className="max-w-[12rem] truncate text-xs text-ink">{row.job_title ?? '\u2014'}</p>
+          <p className="max-w-[12rem] truncate text-xs text-ink">{row.job_title ?? '—'}</p>
           <p className="max-w-[12rem] truncate text-[11px] text-subtle">{row.department ?? ''}</p>
         </div>
       ),
@@ -365,7 +366,7 @@ export default function Users() {
                   <div key={item.name} className="flex items-center gap-2">
                     <span
                       className="h-2.5 w-2.5 rounded-full"
-                      style={{ backgroundColor: `var(--chart-${(index % 6) + 1})` }}
+                      style={{ backgroundColor: CHART_SERIES[index % CHART_SERIES.length] }}
                       aria-hidden
                     />
                     <span className="text-muted">{item.name}</span>
@@ -375,7 +376,7 @@ export default function Users() {
               </div>
             </>
           ) : stats.isLoading && !stats.data ? (
-            <LoadingState label="Loading role mix\u2026" rows={2} />
+            <LoadingState label="Loading role mix…" rows={2} />
           ) : (
             <EmptyState title="No users yet" />
           )}
@@ -395,7 +396,7 @@ export default function Users() {
           {stats.isError ? (
             <ErrorState message={(stats.error as Error)?.message} onRetry={() => stats.refetch()} />
           ) : stats.isLoading && !stats.data ? (
-            <LoadingState label="Loading usage statistics\u2026" rows={3} />
+            <LoadingState label="Loading usage statistics…" rows={3} />
           ) : stats.data?.top_users?.length ? (
             <ul className="divide-y divide-line">
               {stats.data.top_users.map((row) => (
@@ -550,7 +551,7 @@ export default function Users() {
       </Modal>
 
       {/* --------------------------------------------------------------- API keys drawer */}
-      <Drawer open={Boolean(keysFor)} onClose={() => setKeysFor(null)} title={keysFor ? `API keys \u00b7 ${keysFor.email}` : 'API keys'}>
+      <Drawer open={Boolean(keysFor)} onClose={() => setKeysFor(null)} title={keysFor ? `API keys · ${keysFor.email}` : 'API keys'}>
         {keysFor ? (
           <div className="space-y-4">
             <KeyValue
@@ -569,7 +570,7 @@ export default function Users() {
             {keys.isError ? (
               <ErrorState message={(keys.error as Error)?.message} onRetry={() => keys.refetch()} />
             ) : keys.isLoading ? (
-              <LoadingState label="Loading keys\u2026" rows={3} />
+              <LoadingState label="Loading keys…" rows={3} />
             ) : keys.data?.length ? (
               <ul className="space-y-2">
                 {keys.data.map((key) => (
@@ -577,7 +578,7 @@ export default function Users() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-ink">{key.name}</p>
-                        <p className="font-mono text-[11px] text-subtle">{key.prefix}\u2026\u2026\u2026</p>
+                        <p className="font-mono text-[11px] text-subtle">{key.prefix}………</p>
                       </div>
                       <Badge tone={key.is_active ? 'success' : 'neutral'}>{key.is_active ? 'Active' : 'Revoked'}</Badge>
                     </div>
@@ -662,7 +663,7 @@ export default function Users() {
         open={Boolean(issued)}
         onClose={() => setIssued(null)}
         title="API key created"
-        description="Copy the key now \u2014 the full value is never shown again."
+        description="Copy the key now — the full value is never shown again."
         footer={
           <Button size="sm" variant="primary" onClick={() => setIssued(null)}>
             I have stored it

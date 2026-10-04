@@ -179,7 +179,7 @@ export default function Categories() {
       sortValue: (row) => row.avg_rating,
       render: (row) =>
         row.avg_rating === null || row.avg_rating === undefined ? (
-          <span className="text-subtle">\u2014</span>
+          <span className="text-subtle">{'\u2014'}</span>
         ) : (
           <span className="tabular-nums">{Number(row.avg_rating).toFixed(2)}</span>
         ),
@@ -226,7 +226,7 @@ export default function Categories() {
         <SearchInput
           value={search}
           onChange={setSearch}
-          placeholder="Filter the taxonomy by name or path\u2026"
+          placeholder={'Filter the taxonomy by name or path\u2026'}
           className="min-w-[14rem] max-w-md flex-1"
         />
         <Button size="sm" variant="secondary" icon={<Download className="h-4 w-4" />} onClick={exportCsv}>
@@ -282,7 +282,7 @@ export default function Categories() {
             </div>
           ) : tree.isLoading && !tree.data ? (
             <div className="p-4">
-              <LoadingState label="Loading taxonomy\u2026" rows={5} />
+              <LoadingState label={'Loading taxonomy\u2026'} rows={5} />
             </div>
           ) : !tree.data?.length ? (
             <EmptyState title="No categories yet" message="Run the pipeline to build the category dimension." />
@@ -348,7 +348,7 @@ export default function Categories() {
           {breakdown.isError ? (
             <ErrorState message={(breakdown.error as Error)?.message} onRetry={() => breakdown.refetch()} />
           ) : breakdown.isLoading && !breakdown.data ? (
-            <LoadingState label="Loading category aggregation\u2026" rows={4} />
+            <LoadingState label={'Loading category aggregation\u2026'} rows={4} />
           ) : topByPrice.length ? (
             <BarSeries
               data={topByPrice}
