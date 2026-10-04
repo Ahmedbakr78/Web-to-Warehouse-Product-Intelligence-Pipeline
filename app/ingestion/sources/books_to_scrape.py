@@ -17,6 +17,7 @@ from __future__ import annotations
 import re
 from collections.abc import Iterator
 from typing import Any, ClassVar
+from urllib.parse import urljoin
 
 from app.core.config import settings
 from app.core.logging import get_logger
@@ -25,7 +26,8 @@ from app.ingestion.base import ProductSource, RawProduct, register_source
 log = get_logger(__name__)
 
 PRICE_RE = re.compile(r"£([0-9]+(?:\.[0-9]+)?)")
-AVAILABILITY_RE = re.compile(r"(\d+)\s+in stock", re.IGNORECASE)
+AVAILABILITY_RE = re.compile(r"(\d+)\s+available", re.IGNORECASE)
+STAR_WORDS = {"One": 1, "Two": 2, "Three": 3, "Four": 4, "Five": 5}
 
 
 @register_source
@@ -54,38 +56,54 @@ class BooksToScrapeSource(ProductSource):
         limit = limit or settings.max_products_per_source
         emitted = 0
         page = 1
+        consecutive_empty_pages = 0
 
-        while emitted < limit:
+        while emitted < limit and consecutive_empty_pages < 2:
             listing_url = f"{self.base_url}catalogue/page-{page}.html"
             self._count_request()
-            soup = self.client.get_soup(listing_url)
+            try:
+                soup = self.client.get_soup(listing_url)
+            except Exception as exc:
+                self.errors.append(f"listing {listing_url}: {exc}")
+                break
             articles = soup.select("article.product_pod")
             if not articles:
                 break
 
+            page_successes = 0
             for article in articles:
                 if emitted >= limit:
                     break
-                relative = article.select_one("h3 a")
-                title_element = article.select_one("h3 a") or article.select_one("h3")
+                link = article.select_one("h3 a")
                 price_element = article.select_one("p.price_color")
-                if relative is None or price_element is None:
+                if link is None or price_element is None:
                     continue
-                detail_url = f"{self.base_url}{relative.get('href', '')}"
-                raw = self._fetch_detail(detail_url, fallback_title=(title_element.get_text(strip=True) if title_element else ""))
+                # Product links are relative to the /catalogue/ directory.
+                detail_url = urljoin(listing_url, link.get("href", ""))
+                raw = self._fetch_detail(
+                    detail_url,
+                    fallback_title=link.get("title") or link.get_text(strip=True),
+                )
                 if raw is not None:
                     yield raw
                     emitted += 1
+                    page_successes += 1
 
-            next_link = soup.select_one("li.next a")
-            if next_link is None:
+            consecutive_empty_pages = 0 if page_successes else consecutive_empty_pages + 1
+            if soup.select_one("li.next a") is None:
                 break
             page += 1
 
     def _fetch_detail(self, url: str, *, fallback_title: str) -> RawProduct | None:
+        from bs4 import BeautifulSoup
+
         try:
             self._count_request()
-            soup = self.client.get_soup(url)
+            response = self.client.get(url)
+            if not response.ok:
+                self.errors.append(f"detail http {response.status_code} {url}")
+                return None
+            soup = BeautifulSoup(response.text, "lxml")
         except Exception as exc:
             self.errors.append(f"detail fetch failed {url}: {exc}")
             return None
@@ -114,8 +132,10 @@ class BooksToScrapeSource(ProductSource):
         stars = 0
         if rating_element:
             classes = " ".join(rating_element.get("class") or [])
-            match = re.search(r"star-rating (\d)", classes)
-            stars = int(match.group(1)) if match else 0
+            match = re.search(r"star-rating (\w+)", classes)
+            if match:
+                token = match.group(1)
+                stars = int(token) if token.isdigit() else STAR_WORDS.get(token, 0)
 
         upc = soup.select_one("td:nth-of-type(1)")
         table_data = {}
