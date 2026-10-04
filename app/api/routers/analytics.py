@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Annotated, Any
 
 import sqlalchemy as sa
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Response
 
 from app.analytics import service as analytics
 from app.api.deps import DbSession, ReadUser
