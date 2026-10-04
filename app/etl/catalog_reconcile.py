@@ -90,33 +90,29 @@ class CatalogReconciler:
             stmt = stmt.where(CatalogProduct.status == "active")
         return list(self.session.execute(stmt.limit(5000)).scalars())
 
-    def _latest_prices(self) -> dict[int, tuple[float | None, str | None, int | None, str | None]]:
-        """product_id -> (price, currency, rating, category_name) from the newest snapshot."""
+    def _latest_prices(self) -> dict[int, tuple[Any, ...]]:
+        """Newest price per product from any source.
+
+        Returns ``product_id -> (price, currency, category_name, captured_at)`` so the
+        caller can compare the scraped price against the internal catalog.
+        """
         rows = self.session.execute(
             sa.text(
                 """
-                SELECT s.product_id, s.price, s.currency, p.canonical_name, p.brand,
-                       c.name AS category_name, s.captured_at
+                SELECT s.product_id, s.price, s.currency, c.name AS category_name, s.captured_at
                 FROM fact_price_snapshot s
-                JOIN dim_product p ON p.product_id = s.product_id
-                LEFT JOIN dim_category c ON c.category_id = p.category_id
-                WHERE s.captured_at = (
-                    SELECT MAX(s2.captured_at) FROM fact_price_snapshot s2
-                    WHERE s2.product_id = s.product_id AND s2.source_code = s.source_code
+                LEFT JOIN dim_category c ON c.category_id = (
+                    SELECT p.category_id FROM dim_product p WHERE p.product_id = s.product_id
                 )
                 """
             )
         ).all()
-        latest: dict[int, tuple[Any, ...]] = {}
+        latest: dict[int, Any] = {}
         for row in rows:
             current = latest.get(row[0])
-            if current is None or str(row[6]) > str(current[5]):
-                latest[row[0]] = (row[1], row[2], row[3], row[4], row[5], row[6])
-        results: dict[int, tuple[float | None, str | None, int | None, str | None]] = {}
-        for pid, value in latest.items():
-            # (price, currency, category_name) packed into the wider tuple shape.
-            results[pid] = (value[0], value[1], None, value[4])
-        return results
+            if current is None or str(row[4]) > str(current[3]):
+                latest[row[0]] = (row[1], row[2], row[3], row[4])
+        return latest
 
     def _candidate_products(self, catalog: Sequence[CatalogProduct]) -> list[Any]:
         """Load the products worth comparing (active, seen recently)."""
@@ -242,8 +238,8 @@ class CatalogReconciler:
                 candidates=len(candidates),
             )
 
-        raw_scraped, scraped_currency, category_name = latest_prices.get(
-            chosen.product_id, (None, None, None)
+        raw_scraped, scraped_currency, category_name, _captured_at = latest_prices.get(
+            chosen.product_id, (None, None, None, None)
         )
         # PostgreSQL returns Decimal for Numeric columns - normalise to float here.
         scraped_price = float(raw_scraped) if raw_scraped is not None else None

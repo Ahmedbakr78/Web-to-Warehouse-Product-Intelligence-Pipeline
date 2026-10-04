@@ -3,7 +3,7 @@
 ## Purpose
 
 This document is the complete feature inventory of the Web-to-Warehouse Product Intelligence
-Pipeline: 218 features grouped into thirteen areas, each with a one-line description and a reference
+Pipeline: 226 features grouped into fourteen areas, each with a one-line description and a reference
 to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an
 endpoint, a CLI command or a documented design decision. Nothing here is aspirational.
 
@@ -363,3 +363,20 @@ stages · 13 Airflow tasks · 12 CLI commands · 30+ Makefile targets · 6 Docke
 The numbering is continuous from F-001 to F-218; the counts above reflect features that are
 independently demonstrable (a function, an endpoint, a table, a command or a documented design
 decision) rather than individual lines of code.
+
+---
+
+## 14. Dashboard v1.1 additions (8)
+
+| ID | Feature | Description | Where |
+| --- | --- | --- | --- |
+| F-219 | Command palette | Ctrl/Cmd-K or "/" opens a searchable palette: screens **and live product results** with prices, plus quick actions (theme toggle, sidebar toggle, sign out); ↑↓/↵/esc keyboard navigation | `frontend/src/components/AppShell.tsx` `CommandPalette` |
+| F-220 | JSON exports | One-click JSON download of the dashboard snapshot, product list, analytics bundle and change feed (alongside the existing CSV exports) | `frontend/src/lib/format.ts` `downloadJson` + Dashboard/Products/Analytics/Changes |
+| F-221 | RFC-4180 CSV builder | Shared CSV serialiser with proper quoting used by every export button | `frontend/src/lib/format.ts` `toCsv`/`csvCell` |
+| F-222 | Installable PWA | Web app manifest, maskable SVG icon, iOS `apple-touch-icon`, safe-area viewport; installable on desktop/Android/iOS | `frontend/public/manifest.webmanifest`, `frontend/index.html` |
+| F-223 | Zero-warning quality gates | ESLint runs with `--max-warnings 0`; strict TypeScript compile is part of every build; mirrored in CI | `frontend/package.json`, `.github/workflows/ci.yml` |
+| F-224 | GitHub Actions CI | Two jobs (backend: ruff + mypy + pytest; frontend: eslint + tsc + vite build) with artefact upload | `.github/workflows/ci.yml` |
+| F-225 | Iconography pass | Every screen action, empty state and navigation item carries a Lucide icon; aria-labels on all icon-only controls | `frontend/src/**` |
+| F-226 | Modern slim scrollbars | Thin rounded theme-aware scrollbars app-wide via `scrollbar-width`/`::-webkit-scrollbar` tokens | `frontend/src/styles/index.css` |
+
+**Revised total: 226 features.**

@@ -692,13 +692,14 @@ def seed_history(
     _bulk_insert(session, ChgProductEvent, event_rows)
 
     # ---- category counters ------------------------------------------------------
+    # No table alias in the UPDATE: SQLite rejects `UPDATE t alias` syntax.
     session.execute(
         sa.text(
             """
-            UPDATE dim_category c
+            UPDATE dim_category
             SET product_count = (
-                SELECT COUNT(*) FROM dim_product p
-                WHERE p.category_id = c.category_id
+                SELECT COUNT(*) FROM dim_product
+                WHERE dim_product.category_id = dim_category.category_id
             )
             """
         )
