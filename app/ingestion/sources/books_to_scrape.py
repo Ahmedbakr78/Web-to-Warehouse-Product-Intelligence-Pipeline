@@ -159,11 +159,11 @@ class BooksToScrapeSource(ProductSource):
             availability_text=stock_text,
             in_stock_flag=stock_count > 0,
             url=url,
-            image_url=image.get("src") if image else None,
+            image_url=str(image.get("src")) if image and image.get("src") is not None else None,
             description=table_data.get("description")
             or (
-                soup.select_one("#product_description + p").get_text(" ", strip=True)
-                if soup.select_one("#product_description + p")
+                description_tag.get_text(" ", strip=True)
+                if (description_tag := soup.select_one("#product_description + p"))
                 else None
             ),
             payload={
