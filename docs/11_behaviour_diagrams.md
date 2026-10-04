@@ -55,7 +55,7 @@ sequenceDiagram
             HTTP->>DB: audit row robots_allowed false
             PIPE->>PIPE: record warning, source failed
         else allowed
-            opt response already cached
+            alt response already cached
                 HTTP->>CACHE: read cached payload
                 CACHE-->>HTTP: FetchResult from_cache true
             else cache miss
