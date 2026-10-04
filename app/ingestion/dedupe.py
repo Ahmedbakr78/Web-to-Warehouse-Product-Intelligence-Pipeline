@@ -146,11 +146,13 @@ def token_set_ratio(a: str, b: str) -> float:
     right_diff = " ".join(sorted(tb - ta))
     left_join = " ".join(sorted(ta))
     right_join = " ".join(sorted(tb))
-    candidates = (
-        levenshtein_ratio(left_join, right_join),
-        levenshtein_ratio(left_join, " ".join(sorted(intersection)) + " " + left_diff),
-        levenshtein_ratio(" ".join(sorted(intersection)) + " " + right_diff, right_join),
-    )
+    candidates = [levenshtein_ratio(left_join, right_join)]
+    # The partial-comparison variants are only meaningful when the two token sets
+    # actually overlap; otherwise a leading space would inflate the ratio.
+    if intersection:
+        shared = " ".join(sorted(intersection))
+        candidates.append(levenshtein_ratio(left_join, f"{shared} {left_diff}".strip()))
+        candidates.append(levenshtein_ratio(f"{shared} {right_diff}".strip(), right_join))
     return max(candidates)
 
 

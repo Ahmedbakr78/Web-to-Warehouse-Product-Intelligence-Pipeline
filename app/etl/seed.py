@@ -413,7 +413,7 @@ def seed_history(
     product_cache: dict[str, int] = {}
 
     # ---- products ---------------------------------------------------------------
-    dim_rows: list[dict[str, Any]] = []
+    dim_rows: list[DimProduct] = []
     for product in products:
         slug = category_slug(product.category)
         category_id = category_cache.get(slug)
@@ -505,7 +505,7 @@ def seed_history(
                 previous_price = None
                 continue
             run_date = today - dt.timedelta(days=days - 1 - offset)
-            price = series[offset]
+            price: float | None = series[offset]
             price_usd, fx = convert_to_usd(price, product.currency)
             rating = round(rng.uniform(2.8, 4.9), 1)
             flags: list[str] = []
