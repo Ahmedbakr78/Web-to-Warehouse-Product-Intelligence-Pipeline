@@ -61,11 +61,26 @@ _CHAR_MAP = {ord(k): v for k, v in _SMART_CHARS.items()}
 #: "SALE!!!". Getting this wrong would silently corrupt product names, so the
 #: conservative branch is the default.
 STRONG_PREFIXES = (
-    r"sale[:\-]", r"hot sale[:\-]", r"clearance[:\-]", r"special offer[:\-]",
-    r"brand new[:\-]", r"new arrival", r"limited offer[:\-]", r"discount[:\-]",
-    r"offer[:\-]", r"best price[:\-]", r"free shipping[:\-]", r"bestseller[:\-]",
-    r"top rated[:\-]", r"recommended[:\-]", r"featured[:\-]", r"hot deal[:\-]",
-    r"promo(?:tional)?[:\-]", r"cheap[:\-]", r"wholesale[:\-]", r"clearance",
+    r"sale[:\-]",
+    r"hot sale[:\-]",
+    r"clearance[:\-]",
+    r"special offer[:\-]",
+    r"brand new[:\-]",
+    r"new arrival",
+    r"limited offer[:\-]",
+    r"discount[:\-]",
+    r"offer[:\-]",
+    r"best price[:\-]",
+    r"free shipping[:\-]",
+    r"bestseller[:\-]",
+    r"top rated[:\-]",
+    r"recommended[:\-]",
+    r"featured[:\-]",
+    r"hot deal[:\-]",
+    r"promo(?:tional)?[:\-]",
+    r"cheap[:\-]",
+    r"wholesale[:\-]",
+    r"clearance",
 )
 WEAK_PREFIXES = r"new|sale|offer|special|hot|best|top|limited|discount|premium|deal"
 
@@ -74,10 +89,19 @@ _PROMO_PREFIX_RE = re.compile(rf"^(?:{'|'.join(STRONG_PREFIXES)})[\s\-]*\s+", re
 _WEAK_PREFIX_ALLCAPS_RE = re.compile(
     rf"^(?:{'|'.join(word.upper() for word in WEAK_PREFIXES.split('|'))})\s+"
 )
-_WEAK_PREFIX_PUNCT_RE = re.compile(rf"^(?:{'|'.join(WEAK_PREFIXES.split('|'))})[\s\-]*[!.,:;]{{1,3}}\s+", re.IGNORECASE)
+_WEAK_PREFIX_PUNCT_RE = re.compile(
+    rf"^(?:{'|'.join(WEAK_PREFIXES.split('|'))})[\s\-]*[!.,:;]{{1,3}}\s+", re.IGNORECASE
+)
 _PROMO_SUFFIXES = (
-    r"\(new\)", r"\[new\]", r"- new arrival", r"- free shipping", r"\(free shipping\)",
-    r"- limited stock", r"\*\*", r"-?\s*hot sale", r"\d+% off",
+    r"\(new\)",
+    r"\[new\]",
+    r"- new arrival",
+    r"- free shipping",
+    r"\(free shipping\)",
+    r"- limited stock",
+    r"\*\*",
+    r"-?\s*hot sale",
+    r"\d+% off",
 )
 _PROMO_SUFFIX_RE = re.compile(rf"(?:{'|'.join(_PROMO_SUFFIXES)})\s*$", re.IGNORECASE)
 

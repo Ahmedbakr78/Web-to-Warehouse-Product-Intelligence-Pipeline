@@ -7,7 +7,6 @@ running; set ``PIP_TEST_DATABASE_URL`` to exercise PostgreSQL or MySQL instead.
 from __future__ import annotations
 
 import os
-import tempfile
 from pathlib import Path
 
 # The database URL must be set before app.core.config is imported anywhere.
