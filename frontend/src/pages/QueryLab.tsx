@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
+import { useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { Database, Download, Play, ScanSearch, Table2, Terminal } from 'lucide-react'
 
@@ -10,12 +10,10 @@ import {
   DataTable,
   EmptyState,
   ErrorState,
-  KeyValue,
   LoadingState,
   Select,
   type Column,
 } from '@/components/ui'
-import { cn } from '@/lib/cn'
 import { ApiError, endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { downloadCsv, formatDuration, formatNumber, truncate } from '@/lib/format'
@@ -77,26 +75,8 @@ export default function QueryLab() {
 
   const run = useMutation({ mutationFn: () => endpoints.executeQuery(sql, limit) })
 
-  // Ctrl/Cmd+Enter runs the query from anywhere on the screen, except when the user
-  // is typing inside another field.
-  useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if (!(event.metaKey || event.ctrlKey) || event.key !== 'Enter') return
-      const target = event.target as HTMLElement | null
-      const typingElsewhere =
-        target &&
-        target !== editorRef.current &&
-        ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)
-      if (typingElsewhere) return
-      event.preventDefault()
-      run.mutate()
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  })
-
   const result = run.data
-  const columns: string[] = result?.columns ?? []
+  const columns = useMemo<string[]>(() => (result?.columns ?? []).slice(), [result])
 
   const rows = useMemo<ResultRow[]>(() => {
     const raw: unknown[][] = result?.rows ?? []
@@ -107,12 +87,24 @@ export default function QueryLab() {
       })
       return record
     })
-  }, [result, columns.join('|')])
+  }, [result, columns])
 
   const sortedRows = useMemo(() => {
     if (!sortBy) return rows
     return rows.slice().sort((a, b) => compare(a[sortBy], b[sortBy], sortDir))
   }, [rows, sortBy, sortDir])
+
+  function execute() {
+    run.mutate()
+  }
+
+  // The shortcut lives on the editor card so it works from the textarea, the limit
+  // selector and the run button without hijacking keys elsewhere on the page.
+  function onEditorKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (!(event.metaKey || event.ctrlKey) || event.key !== 'Enter') return
+    event.preventDefault()
+    execute()
+  }
 
   function onSort(key: string) {
     if (sortBy === key) {
@@ -129,25 +121,26 @@ export default function QueryLab() {
     run.reset()
   }
 
-  function insertName(name: string) {
-    setSql((current) => (current.trim() ? `${current.replace(/;?\s*$/, '')}\n-- ${name}\n` : name))
+  function reference(name: string) {
+    const trimmed = sql.trim()
+    setSql(trimmed ? `${trimmed.replace(/;?\s*$/, '')}\n-- reference: ${name}\n` : `-- reference: ${name}\n`)
     editorRef.current?.focus()
   }
 
   function exportCsv() {
     if (!columns.length) return
-    const header = columns
     const body = sortedRows.map((row) => columns.map((column) => row[column]))
     downloadCsv(
       'query-result.csv',
-      [header, ...body].map((line) => line.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(',')).join('\n'),
+      [columns, ...body]
+        .map((line) => line.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','))
+        .join('\n'),
     )
   }
 
   const tableColumns: Column<ResultRow>[] = columns.map((column) => ({
     key: column,
     header: column,
-    align: 'left',
     sortValue: (row) => {
       const value = row[column]
       if (typeof value === 'number') return value
@@ -157,17 +150,17 @@ export default function QueryLab() {
     render: (row) => renderCell(row[column]),
   }))
 
-  const groups = Object.entries(tables.data?.groups ?? {}) as [string, string[]][]
+  const groups: [string, string[]][] = Object.entries(tables.data?.groups ?? {})
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 items-start gap-3 xl:grid-cols-[minmax(0,24rem)_minmax(0,1fr)]">
-        {/* ----------------------------------------------------------- editor */}
-        <div className="space-y-3">
-          <Card>
+    <div className="grid grid-cols-1 items-start gap-3 xl:grid-cols-[minmax(0,24rem)_minmax(0,1fr)]">
+      {/* ------------------------------------------------------------- editor */}
+      <div className="space-y-3">
+        <Card>
+          <div onKeyDown={onEditorKeyDown}>
             <CardHeader
               title="SQL editor"
-              subtitle="Read-only: SELECT, WITH and EXPLAIN are accepted, everything else is rejected."
+              subtitle="Read-only: SELECT, WITH and EXPLAIN are accepted, anything else is rejected."
               icon={<Terminal className="h-4 w-4" />}
               action={
                 <kbd className="rounded border border-line bg-surface-3 px-1.5 py-0.5 font-mono text-[10px] text-subtle">
@@ -182,12 +175,6 @@ export default function QueryLab() {
                 setSql(event.target.value)
                 setSortBy(undefined)
               }}
-              onKeyDown={(event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
-                if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
-                  event.preventDefault()
-                  run.mutate()
-                }
-              }}
               rows={10}
               spellCheck={false}
               autoCapitalize="off"
@@ -201,7 +188,7 @@ export default function QueryLab() {
                 size="sm"
                 loading={run.isPending}
                 icon={<Play className="h-4 w-4" />}
-                onClick={() => run.mutate()}
+                onClick={execute}
               >
                 Run query
               </Button>
@@ -217,176 +204,169 @@ export default function QueryLab() {
                   </option>
                 ))}
               </Select>
-              {result ? (
-                <span className="ml-auto text-[11px] text-subtle">
-                  {formatDuration(result.duration_ms ?? 0)} in the warehouse
-                </span>
-              ) : null}
             </div>
-          </Card>
+          </div>
+        </Card>
 
-          <Card>
-            <CardHeader
-              title="Starter queries"
-              subtitle="Click to load one into the editor"
-              icon={<ScanSearch className="h-4 w-4" />}
-            />
-            {examples.isError ? (
-              <ErrorState message={(examples.error as Error)?.message} onRetry={() => examples.refetch()} />
-            ) : examples.isLoading && !examples.data ? (
-              <LoadingState label="Loading examples\u2026" rows={2} />
-            ) : examples.data?.length ? (
-              <ul className="space-y-1.5">
-                {examples.data.map((example: any) => (
-                  <li key={example.title}>
-                    <button
-                      onClick={() => loadExample(example)}
-                      className="w-full rounded-lg border border-line px-3 py-2 text-left hover:border-line-strong hover:bg-surface-2"
-                    >
-                      <span className="block text-xs font-medium text-ink">{example.title}</span>
-                      <span className="mt-0.5 block truncate font-mono text-[10px] text-subtle">{example.title && example.sql}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <EmptyState title="No starter query available" />
-            )}
-          </Card>
-
-          <Card>
-            <CardHeader title="Available views" subtitle="Click to append a reference comment" icon={<Table2 className="h-4 w-4" />} />
-            {views.isError ? (
-              <ErrorState message={(views.error as Error)?.message} onRetry={() => views.refetch()} />
-            ) : views.isLoading && !views.data ? (
-              <LoadingState label="Loading views\u2026" rows={2} />
-            ) : views.data?.length ? (
-              <div className="flex max-h-52 flex-wrap gap-1.5 overflow-auto">
-                {views.data.map((view: any) => (
+        <Card>
+          <CardHeader title="Starter queries" subtitle="Click to load one into the editor" icon={<ScanSearch className="h-4 w-4" />} />
+          {examples.isError ? (
+            <ErrorState message={(examples.error as Error)?.message} onRetry={() => examples.refetch()} />
+          ) : examples.isLoading && !examples.data ? (
+            <LoadingState label="Loading starter queries\u2026" rows={2} />
+          ) : examples.data?.length ? (
+            <ul className="space-y-1.5">
+              {examples.data.map((example: any) => (
+                <li key={example.title}>
                   <button
-                    key={view.name}
-                    onClick={() => insertName(String(view.name))}
-                    title={`Reference ${view.name}`}
-                    className="rounded-full border border-line bg-surface px-2.5 py-1 font-mono text-[11px] text-muted hover:border-line-strong hover:text-ink"
+                    onClick={() => loadExample(example)}
+                    className="w-full rounded-lg border border-line px-3 py-2 text-left hover:border-line-strong hover:bg-surface-2"
                   >
-                    {view.name}
+                    <span className="block text-xs font-medium text-ink">{example.title}</span>
+                    <span className="mt-0.5 block truncate font-mono text-[10px] text-subtle">{example.sql}</span>
                   </button>
-                ))}
-              </div>
-            ) : (
-              <EmptyState title="No analytical view found" message="The warehouse has no view to query yet." />
-            )}
-          </Card>
-        </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <EmptyState title="No starter query available" />
+          )}
+        </Card>
 
-        {/* ----------------------------------------------------------- results */}
-        <div className="space-y-3">
-          <Card padded={false}>
-            <div className="p-4 sm:p-5">
-              <CardHeader
-                title="Result set"
-                subtitle={result ? `${columns.length} column${columns.length === 1 ? '' : 's'} returned` : 'Run a statement to see rows'}
-                icon={<Database className="h-4 w-4" />}
-                action={
-                  result ? (
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" variant="secondary" icon={<Download className="h-4 w-4" />} onClick={exportCsv}>
-                        CSV
-                      </Button>
-                    </div>
-                  ) : null
-                }
-              />
-              {result ? (
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge tone="info">{formatNumber(result.row_count ?? 0)} rows</Badge>
-                  <Badge tone="neutral">{formatDuration(result.duration_ms ?? 0)}</Badge>
-                  {result.truncated ? <Badge tone="warning">truncated at {formatNumber(limit)} rows</Badge> : <Badge tone="success">complete</Badge>}
-                </div>
-              ) : null}
+        <Card>
+          <CardHeader
+            title="Analytical views"
+            subtitle="Click a view to leave a reference comment in the editor"
+            icon={<Table2 className="h-4 w-4" />}
+          />
+          {views.isError ? (
+            <ErrorState message={(views.error as Error)?.message} onRetry={() => views.refetch()} />
+          ) : views.isLoading && !views.data ? (
+            <LoadingState label="Loading views\u2026" rows={2} />
+          ) : views.data?.length ? (
+            <div className="flex max-h-48 flex-wrap gap-1.5 overflow-auto">
+              {views.data.map((view: any) => (
+                <button
+                  key={view.name}
+                  onClick={() => reference(String(view.name))}
+                  className="rounded-full border border-line bg-surface px-2.5 py-1 font-mono text-[11px] text-muted hover:border-line-strong hover:text-ink"
+                >
+                  {view.name}
+                </button>
+              ))}
             </div>
+          ) : (
+            <EmptyState title="No analytical view found" message="The warehouse exposes no view yet." />
+          )}
+        </Card>
 
-            {run.isError ? (
-              <div className="space-y-2 p-4">
-                <QueryError error={run.error} />
-                <div className="flex flex-wrap gap-2">
-                  <Button size="sm" variant="secondary" onClick={() => run.mutate()}>
-                    Run again
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => run.reset()}>
-                    Dismiss
-                  </Button>
-                </div>
-              </div>
-            ) : run.isPending ? (
-              <div className="p-4">
-                <LoadingState label="Running the statement\u2026" rows={6} />
-              </div>
-            ) : !result ? (
-              <EmptyState
-                title="Nothing executed yet"
-                message="Write a statement or load one of the starter queries, then press Ctrl+Enter."
-                icon={<Play className="h-7 w-7" />}
-              />
-            ) : !rows.length ? (
-              <EmptyState
-                title="The statement returned no row"
-                message="The SQL was valid but matched nothing. Check the WHERE clause or widen the date window."
-              />
-            ) : (
-              <DataTable
-                rows={sortedRows}
-                rowKey={(_, index) => String(index)}
-                onSort={onSort}
-                sort={sortBy ? { by: sortBy, dir: sortDir } : undefined}
-                maxHeight="32rem"
-                dense
-                emptyMessage="The statement returned no row"
-                columns={tableColumns}
-              />
-            )}
-          </Card>
-
-          {/* -------------------------------------------------- schema browser */}
-          <Card>
-            <CardHeader
-              title="Schema browser"
-              subtitle={`${formatNumber(tables.data?.tables?.length ?? 0)} physical tables in ${groups.length} logical groups`}
-              icon={<Database className="h-4 w-4" />}
-            />
-            {tables.isError ? (
-              <ErrorState message={(tables.error as Error)?.message} onRetry={() => tables.refetch()} />
-            ) : tables.isLoading && !tables.data ? (
-              <LoadingState label="Loading schema\u2026" rows={3} />
-            ) : groups.length ? (
-              <div className="space-y-3">
-                {groups.map(([group, names]) => (
-                  <div key={group}>
-                    <p className="stat-label mb-1.5">{group}</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {names.map((name) => (
-                        <button
-                          key={name}
-                          onClick={() => insertName(name)}
-                          title={`Reference ${name}`}
-                          className="rounded-md border border-line bg-surface px-2 py-1 font-mono text-[11px] text-muted hover:border-line-strong hover:text-ink"
-                        >
-                          {name}
-                        </button>
-                      ))}
-                    </div>
+        {/* -------------------------------------------------- schema browser */}
+        <Card>
+          <CardHeader
+            title="Schema browser"
+            subtitle={`${formatNumber(tables.data?.tables?.length ?? 0)} tables in ${groups.length} logical groups`}
+            icon={<Database className="h-4 w-4" />}
+          />
+          {tables.isError ? (
+            <ErrorState message={(tables.error as Error)?.message} onRetry={() => tables.refetch()} />
+          ) : tables.isLoading && !tables.data ? (
+            <LoadingState label="Loading schema\u2026" rows={3} />
+          ) : groups.length ? (
+            <div className="space-y-3">
+              {groups.map(([group, names]) => (
+                <div key={group}>
+                  <p className="stat-label mb-1.5">{group}</p>
+                  <div className="flex flex-wrap gap-1">
+                    {names.map((name) => (
+                      <button
+                        key={name}
+                        onClick={() => reference(name)}
+                        className="rounded-md border border-line bg-surface px-2 py-1 font-mono text-[11px] text-muted hover:border-line-strong hover:text-ink"
+                      >
+                        {name}
+                      </button>
+                    ))}
                   </div>
-                ))}
-                <p className="border-t border-line pt-2 text-[11px] text-subtle">
-                  Statements run against a read-only connection: no DDL, no DML and no multiple statements per query.
-                </p>
-              </div>
-            ) : (
-              <EmptyState title="No schema published" message="The API did not return any table group." />
-            )}
-          </Card>
-        </div>
+                </div>
+              ))}
+              <p className="border-t border-line pt-2 text-[11px] leading-relaxed text-subtle">
+                The console runs on a read-only connection: no DDL, no DML and one statement per query.
+              </p>
+            </div>
+          ) : (
+            <EmptyState title="No schema published" message="The API returned no table group." />
+          )}
+        </Card>
       </div>
+
+      {/* ------------------------------------------------------------ results */}
+      <Card padded={false}>
+        <div className="p-4 sm:p-5">
+          <CardHeader
+            title="Result set"
+            subtitle={result ? `${columns.length} column${columns.length === 1 ? '' : 's'} returned` : 'Run a statement to see rows'}
+            icon={<Database className="h-4 w-4" />}
+            action={
+              result ? (
+                <Button size="sm" variant="secondary" icon={<Download className="h-4 w-4" />} onClick={exportCsv}>
+                  CSV
+                </Button>
+              ) : null
+            }
+          />
+          {result ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge tone="info">{formatNumber(result.row_count ?? 0)} rows</Badge>
+              <Badge tone="neutral">{formatDuration(result.duration_ms ?? 0)}</Badge>
+              {result.truncated ? (
+                <Badge tone="warning">truncated at {formatNumber(limit)} rows</Badge>
+              ) : (
+                <Badge tone="success">complete</Badge>
+              )}
+            </div>
+          ) : null}
+        </div>
+
+        {run.isError ? (
+          <div className="space-y-2 p-4">
+            <QueryError error={run.error} />
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="secondary" onClick={execute}>
+                Run again
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => run.reset()}>
+                Dismiss
+              </Button>
+            </div>
+          </div>
+        ) : run.isPending ? (
+          <div className="p-4">
+            <LoadingState label="Running the statement\u2026" rows={6} />
+          </div>
+        ) : !result ? (
+          <EmptyState
+            title="Nothing executed yet"
+            message="Write a statement or load one of the starter queries, then press Ctrl+Enter."
+            icon={<Play className="h-7 w-7" />}
+          />
+        ) : !rows.length ? (
+          <EmptyState
+            title="The statement returned no row"
+            message="The SQL was accepted but matched nothing. Check the WHERE clause or widen the date window."
+          />
+        ) : (
+          <DataTable
+            rows={sortedRows}
+            rowKey={(_, index) => String(index)}
+            onSort={onSort}
+            sort={sortBy ? { by: sortBy, dir: sortDir } : undefined}
+            maxHeight="34rem"
+            dense
+            emptyMessage="The statement returned no row"
+            columns={tableColumns}
+          />
+        )}
+      </Card>
     </div>
   )
 }
@@ -395,22 +375,27 @@ export default function QueryLab() {
 function QueryError({ error }: { error: Error | null }) {
   if (error instanceof ApiError) {
     const details = error.details as { errors?: { message?: string }[] } | undefined
-    const reasons = (details?.errors ?? []).map((item) => item.message).filter(Boolean).join(' ')
-    const isRejected = error.status === 422
+    const reasons = (details?.errors ?? [])
+      .map((item) => item.message)
+      .filter(Boolean)
+      .join(' ')
+    if (error.status === 422) {
+      return (
+        <div role="alert" className="rounded-lg border border-danger/40 bg-danger-soft p-3">
+          <p className="text-sm font-semibold text-danger">Statement rejected by the read-only guard</p>
+          <p className="mt-1 text-xs text-ink">{reasons || error.message}</p>
+          <p className="mt-1 text-[11px] text-muted">
+            A single SELECT, WITH or EXPLAIN statement is accepted; writes, DDL and semicolon-separated batches are refused.
+          </p>
+        </div>
+      )
+    }
     return (
       <div role="alert" className="rounded-lg border border-danger/40 bg-danger-soft p-3">
-        <p className="text-sm font-semibold text-danger">
-          {isRejected ? 'Statement rejected by the read-only guard' : `The query failed (HTTP ${error.status})`}
-        </p>
-        <p className="mt-1 text-xs text-ink">
-          {reasons || error.message}
-        </p>
+        <p className="text-sm font-semibold text-danger">The query failed (HTTP {error.status})</p>
+        <p className="mt-1 text-xs text-ink">{error.message}</p>
         <p className="mt-1 text-[11px] text-muted">
-          {isRejected
-            ? 'Only a single SELECT, WITH or EXPLAIN statement is accepted; writes, DDL and semicolon-separated batches are refused.'
-            : error.code !== 'http_error'
-              ? `Error code: ${error.code}`
-              : 'Check the table and column names against the schema browser below.'}
+          Error code <span className="font-mono">{error.code}</span> - check the table and column names against the schema browser.
         </p>
       </div>
     )
