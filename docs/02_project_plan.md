@@ -216,7 +216,18 @@ phase, `—` = not involved.
 | W11 | 40 | 10 | 80 % | Verification + docs |
 | W12 | 28 | 22 | 56 % | Rehearsal and defence |
 
-### 5.3 Tools and environments consumed
+### 5.3 Reconciliation of the two effort views
+
+| View | Total | Meaning |
+| --- | --- | --- |
+| `docs/01` §7.1 (work packages) | 442 h | Build, analysis and documentation effort |
+| `docs/02` §5.1 (phases, all roles) | 506 h | Build effort plus review, supervision and defence preparation |
+| §5.2 weekly model (12 weeks) | 480 h planned | Capacity reserved for the lead, including code review responses, environment failures and rework |
+
+The three views are consistent: the weekly model reserves more capacity than the recorded build
+effort, which is the intended buffer (2–10 hours per week depending on the phase).
+
+### 5.4 Tools and environments consumed
 
 | Resource | Purpose | Provisioning | Cost |
 | --- | --- | --- | --- |

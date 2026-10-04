@@ -408,11 +408,11 @@ Every functional requirement maps to the implementing module and to a verificati
 | FR-003 | `app/ingestion/sources/books_to_scrape.py` | `pip-cli sources preview books_to_scrape` |
 | FR-004 | `app/ingestion/sources/local_fixture.py` | `make run-pipeline` with the network off |
 | FR-005 | `app/core/config.py` `max_products_per_source`, `pipeline._safe_take()` | Run with `--limit 2` |
-| FR-006 | `cleaning.clean_product_name()` | Table in doc 17 §4.1 |
+| FR-006 | `cleaning.clean_product_name()` | Golden-string cases TC-001 – TC-004 in `docs/15` §3; algorithm in `docs/17` §4 |
 | FR-007 | `cleaning.normalise_category()` | `GET /api/v1/products/categories` |
 | FR-008 | `cleaning.parse_price()`, `convert_to_usd()` | `SELECT currency, COUNT(*) FROM fact_price_snapshot GROUP BY 1` |
 | FR-009 | `dedupe.combined_similarity()`, `DedupeEngine` | Pair evaluation harness (doc 05 §7.1) |
-| FR-010 | `dedupe.DedupeEngine._blocking_candidates()` | `dedupe.stats.blocked_comparisons` in the run detail |
+| FR-010 | `dedupe.DedupeEngine._blocking_candidates()` | Candidate count in the `resolve` stage timing printed by `pip-cli run-pipeline` |
 | FR-011 | `app/core/db.py`, `app/models/`, `bootstrap.apply_views()` | `make verify-dialects` |
 | FR-012 | `robots.RobotsCache.can_fetch()`, `http_client.get()` | `GET /api/v1/sources/robots` |
 | FR-013 | `ratelimit.RateLimiter`, `HostState.effective_delay` | `get_shared_limiter().stats()` |
