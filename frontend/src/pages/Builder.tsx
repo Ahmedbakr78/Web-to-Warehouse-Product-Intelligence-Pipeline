@@ -21,6 +21,7 @@ import {
   TextInput,
   Toggle,
   useToast,
+  type Column,
 } from '@/components/ui'
 import { cn } from '@/lib/cn'
 import { endpoints } from '@/lib/api'
@@ -577,9 +578,9 @@ function cleanParams(params: Record<string, unknown>): Record<string, string> {
   return output
 }
 
-function buildColumns(entity: Entity, visible: string[]) {
+function buildColumns(entity: Entity, visible: string[]): Column<any>[] {
   const has = (key: string) => visible.includes(key)
-  const all: Record<string, Record<string, unknown>> = {
+  const all: Record<Entity, Record<string, Column<any>>> = {
     products: {
       name: {
         key: 'name',

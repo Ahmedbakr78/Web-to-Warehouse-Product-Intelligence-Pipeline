@@ -111,14 +111,16 @@ export function formatBytes(bytes: number | null | undefined): string {
   return `${(bytes / 1024 ** index).toFixed(index === 0 ? 0 : 1)} ${units[index]}`
 }
 
-export function formatAvailability(value: string | null | undefined): { label: string; tone: 'success' | 'warning' | 'danger' | 'neutral' } {
+export type AvailabilityTone = 'success' | 'warning' | 'danger' | 'info' | 'neutral'
+
+export function formatAvailability(value: string | null | undefined): { label: string; tone: AvailabilityTone } {
   switch ((value ?? '').toLowerCase()) {
     case 'in_stock':
       return { label: 'In stock', tone: 'success' }
     case 'limited_stock':
       return { label: 'Low stock', tone: 'warning' }
     case 'preorder':
-      return { label: 'Pre-order', tone: 'info' as never }
+      return { label: 'Pre-order', tone: 'info' }
     case 'out_of_stock':
       return { label: 'Out of stock', tone: 'danger' }
     default:
