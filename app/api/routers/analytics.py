@@ -142,7 +142,7 @@ def source_matrix(session: DbSession, _user: ReadUser) -> list[dict[str, Any]]:
 @router.get("/export/products.csv", summary="Export the current product list as CSV")
 def export_products(
     session: DbSession, _user: ReadUser, limit: Annotated[int, Query(ge=1, le=50_000)] = 5_000
-) -> str:
+):
     import csv
     import io
 
@@ -167,4 +167,9 @@ def export_products(
         writer.writerow(columns)
         for row in rows:
             writer.writerow([row[column] for column in columns])
-    return buffer.getvalue()
+    buffer.seek(0)
+    return Response(
+        content=buffer.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="products.csv"'},
+    )
