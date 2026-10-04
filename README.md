@@ -595,7 +595,15 @@ proves there is no structural drift and prints the per-engine row counts):
 
 Twenty analytical views in `db/views.sql` back every screen: latest prices, top movers, category
 indexes, availability mix, source coverage, quality trends, dedupe evidence, price bands, new and
-removed feeds, drift matrices. Historical prices are first-class citizens: every snapshot keeps the
+removed feeds, drift matrices. The four analyses named in the brief also exist as standalone,
+parameterised SQL under [`db/analysis/`](db/analysis/README.md) so they can be reviewed and re-run
+outside the application:
+
+```bash
+make analysis                                    # every script, readable tables
+make analysis ANALYSIS=01_price_changes.sql      # just the price-movement analysis
+make analysis-mysql                              # same SQL against MySQL
+``` Historical prices are first-class citizens: every snapshot keeps the
 native price and the USD conversion together with the FX rate that was used.
 
 ---
@@ -822,11 +830,12 @@ app/
 dags/             Airflow DAG: product_intelligence_pipeline
 db/
   views.sql       20 analytical views (PostgreSQL and MySQL)
+  analysis/       8 standalone SQL analyses + README (price, new, removed, drift, ...)
 frontend/         React 19 dashboard: 17 screens, PWA, design system
   public/         manifest, icons
   src/            pages, components, hooks, libs
 docs/             20 numbered documents plus an index with diagrams
-scripts/          api_smoke.py regression suite (78 checks)
+scripts/          api_smoke.py regression suite (78 checks), run_analysis.py, make_infographic.py
 tests/            pytest unit + integration suite (236 tests)
 .github/workflows ci.yml: ruff, mypy, pytest, eslint, tsc, vite build
 docker-compose.yml            postgres, mysql, api, airflow, scheduler, frontend
