@@ -1,0 +1,15 @@
+flowchart LR
+    SRC["External entity 1<br/>Permitted web sources<br/>APIs and sandbox website"]
+    OPS["External entity 2<br/>Operators<br/>Data platform lead and scheduler"]
+    ANA["External entity 3<br/>Analysts and managers<br/>Dashboard and API consumers"]
+    CMP["External entity 4<br/>Compliance officer<br/>Auditor"]
+
+    P0(["Process 0<br/>Web-to-Warehouse Product Intelligence Pipeline"])
+
+    SRC -->|"raw product payloads<br/>HTML and JSON"| P0
+    OPS -->|"run configuration<br/>sources, limits, schedule, credentials"| P0
+    P0 -->|"refreshed product and price history<br/>analytical answers, alerts, compliance report"| ANA
+    P0 -->|"audit evidence<br/>request log, robots decisions, DQ verdicts"| CMP
+    ANA -->|"feedback<br/>filters, saved views, alert rules"| P0
+    P0 -->|"warnings and run status"| OPS
+

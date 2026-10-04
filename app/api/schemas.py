@@ -127,6 +127,7 @@ class UserRead(ORMModel):
     login_count: int = 0
     last_login_at: dt.datetime | None = None
     created_at: dt.datetime | None = None
+    preferences: dict[str, Any] | None = None
     permissions: list[str] = Field(default_factory=list)
 
 

@@ -1,0 +1,52 @@
+flowchart TB
+    SRC["External<br/>Permitted sources"]
+    OP["External<br/>Operators and scheduler"]
+    USR["External<br/>Analysts, managers,<br/>administrators"]
+
+    subgraph L1["Level 1 processes"]
+        P1["1. Collect<br/>robots gate, rate limit,<br/>cache, retry, audit"]
+        P2["2. Stage<br/>raw landing zone"]
+        P3["3. Prepare<br/>clean, normalise, price"]
+        P4["4. Resolve<br/>block and match duplicates"]
+        P5["5. Load and analyse<br/>snapshots, changes, aggregates,<br/>catalog reconciliation"]
+        P6["6. Measure and serve<br/>DQ rules, analytics, REST API,<br/>dashboard"]
+    end
+
+    D1[("D1 stg_raw_observation<br/>raw payloads")]
+    D2[("D2 dim_product<br/>canonical products")]
+    D3[("D3 fact_price_snapshot<br/>price history")]
+    D4[("D4 chg_price_change<br/>chg_product_event")]
+    D5[("D5 fact_catalog_snapshot<br/>catalog comparison")]
+    D6[("D6 agg_category_daily<br/>category rollup")]
+    D7[("D7 etl_run, dq_rule_result,<br/>ingestion_http_log, sync_state")]
+    D8[("D8 app_user, app_saved_view,<br/>app_alert_rule, app_notification,<br/>app_audit_log, app_setting")]
+
+    SRC -->|"HTML / JSON / synthetic"| P1
+    OP -->|"run configuration"| P1
+    P1 -->|"raw records"| P2
+    P2 -->|"staged rows"| D1
+    D1 -->|"raw payloads"| P3
+    P3 -->|"normalised records"| P4
+    D2 -->|"existing products"| P4
+    P4 -->|"canonical product"| P5
+    D2 -->|"product dimension"| P5
+    P5 -->|"snapshots"| D3
+    P5 -->|"change events"| D4
+    P5 -->|"category rollup"| D6
+    P5 -->|"reconciliation rows"| D5
+    D5 -->|"catalog products"| P5
+    P5 -->|"counts and timings"| D7
+    P1 -->|"request audit"| D7
+    P5 -->|"warehouse content"| P6
+    D3 --> P6
+    D4 --> P6
+    D5 --> P6
+    D6 --> P6
+    D7 --> P6
+    D8 <-->|"identity, preferences, alerts"| P6
+    P6 -->|"answers, charts, exports"| USR
+    USR -->|"triggers, filters, alert rules"| P6
+    P6 -->|"notifications"| D8
+    P6 -->|"run status and DQ score"| OP
+    D7 -->|"source statistics and cursors"| P1
+

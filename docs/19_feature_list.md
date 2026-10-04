@@ -3,7 +3,7 @@
 ## Purpose
 
 This document is the complete feature inventory of the Web-to-Warehouse Product Intelligence
-Pipeline: 226 features grouped into fourteen areas, each with a one-line description and a reference
+Pipeline: 234 features grouped into fifteen areas, each with a one-line description and a reference
 to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an
 endpoint, a CLI command or a documented design decision. Nothing here is aspirational.
 
@@ -380,3 +380,20 @@ decision) rather than individual lines of code.
 | F-226 | Modern slim scrollbars | Thin rounded theme-aware scrollbars app-wide via `scrollbar-width`/`::-webkit-scrollbar` tokens | `frontend/src/styles/index.css` |
 
 **Revised total: 226 features.**
+
+---
+
+## 15. Platform v1.2 additions (8)
+
+| ID | Feature | Description | Where |
+| --- | --- | --- | --- |
+| F-227 | Avatar colour picker | Twelve-swatch picker on the profile header; the choice is stored per user and drives the sidebar, account menu and profiles via `avatar_color` | `frontend/src/pages/Account.tsx`, `app/api/schemas.py` `UserUpdate.avatar_color` |
+| F-228 | Start-page preference | "Start page after sign-in" select over every permitted screen; stored locally and in server `preferences`, honoured by the login redirect and session restore | `frontend/src/pages/Account.tsx`, `frontend/src/pages/Login.tsx` |
+| F-229 | Motion preference | Account-level "reduce motion" override applied before first paint (`data-motion` on `<html>`), complementing the operating-system setting | `frontend/src/lib/theme.ts`, `frontend/src/styles/index.css`, `frontend/index.html` |
+| F-230 | Builder column reordering | Arrow buttons move any visible column earlier or later; order persists with the saved view | `frontend/src/pages/Builder.tsx` `moveColumn` |
+| F-231 | Builder copy-as-API-request | Copies the composed query as a ready-to-run REST URL with the correct endpoint path and query-string for each entity | `frontend/src/pages/Builder.tsx` `copyApiRequest` |
+| F-232 | Builder preview export | CSV and JSON export of the live preview using the visible columns and plain-text mapping per entity | `frontend/src/pages/Builder.tsx` `exportPreview` |
+| F-233 | Project infographic generator | Reusable script producing the DEPI 16:9 roadmap slide (SVG master, HTML preview, PNG when cairosvg is installed) straight from the documented facts | `scripts/make_infographic.py`, `docs/assets/infographic.svg` |
+| F-234 | Diagram extractor | Extracts every Mermaid block from the documentation set into `docs/diagrams/out/*.mmd` with an index table; optional `mmdc` rendering | `scripts/render_diagrams.sh`, `docs/diagrams/out/index.md` |
+
+**Revised total: 234 features.**

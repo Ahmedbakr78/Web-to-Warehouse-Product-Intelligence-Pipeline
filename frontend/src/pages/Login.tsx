@@ -7,6 +7,7 @@ import { endpoints } from '@/lib/api'
 import { useQuery } from '@tanstack/react-query'
 import { Button, IconButton } from '@/components/ui'
 import { useTheme } from '@/lib/theme'
+import { localStore } from '@/lib/session'
 
 const FEATURES = [
   { icon: Database, title: '20 analytical views', copy: 'Kimball star schema over PostgreSQL and MySQL' },
@@ -34,7 +35,8 @@ export default function LoginPage() {
   }, [])
 
   if (ready && authenticated) {
-    const target = (location.state as { from?: string } | null)?.from ?? '/'
+    const remembered = localStore.get<string>('account.startPage', '/')
+    const target = (location.state as { from?: string } | null)?.from ?? remembered
     return <Navigate to={target} replace />
   }
 
@@ -44,7 +46,7 @@ export default function LoginPage() {
     setSubmitting(true)
     try {
       await login(email.trim(), password)
-      navigate('/', { replace: true })
+      navigate(localStore.get<string>('account.startPage', '/'), { replace: true })
     } catch (exception) {
       const message = exception instanceof Error ? exception.message : 'Sign in failed'
       setError(message)

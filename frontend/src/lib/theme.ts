@@ -8,6 +8,7 @@ export type Density = 'compact' | 'comfortable' | 'spacious'
 const THEME_KEY = 'pip.theme'
 const DENSITY_KEY = 'pip.density'
 const ACCENT_KEY = 'pip.accent'
+const MOTION_KEY = 'pip.motion'
 
 const ACCENTS: Record<string, { name: string; base: string; soft: string }> = {
   indigo: { name: 'Indigo', base: '#4f46e5', soft: 'rgb(99 102 241 / 0.12)' },
@@ -39,6 +40,13 @@ export function applyAccent(accent: string): void {
   root.setProperty('--brand-500', entry.base)
   root.setProperty('--brand-600', entry.base)
   root.setProperty('--brand-500-soft', entry.soft)
+}
+
+/** Motion preference: "auto" honours the OS, "reduced" forces instant transitions. */
+export type MotionMode = 'auto' | 'reduced'
+
+export function applyMotion(mode: MotionMode): void {
+  document.documentElement.dataset.motion = mode
 }
 
 /* ------------------------------------------------------------------ hooks */
@@ -93,10 +101,23 @@ export function useAccent() {
   return { accent, setAccent, accents: ACCENTS }
 }
 
+export function useMotion() {
+  const [motion, setMotionState] = useState<MotionMode>(
+    () => (localStorage.getItem(MOTION_KEY) as MotionMode) || 'auto',
+  )
+  const setMotion = useCallback((next: MotionMode) => {
+    localStorage.setItem(MOTION_KEY, next)
+    applyMotion(next)
+    setMotionState(next)
+  }, [])
+  return { motion, setMotion }
+}
+
 export function initAppearance() {
   applyTheme((localStorage.getItem(THEME_KEY) as ThemeMode) || 'system')
   applyDensity((localStorage.getItem(DENSITY_KEY) as Density) || 'comfortable')
   applyAccent(localStorage.getItem(ACCENT_KEY) || 'indigo')
+  applyMotion((localStorage.getItem(MOTION_KEY) as MotionMode) || 'auto')
 }
 
-export { ACCENTS }
+export { ACCENTS, MOTION_KEY }

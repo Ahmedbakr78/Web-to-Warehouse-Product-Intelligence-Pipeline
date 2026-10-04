@@ -1,0 +1,21 @@
+flowchart TB
+    subgraph Browser["Client"]
+        RE["React 19 - TypeScript - TanStack Query - Recharts"]
+    end
+    subgraph Server["FastAPI monolith, modular"]
+        MW["CORS - gzip - timing headers"]
+        RT["15 routers, 104 operations"]
+        SV["analytics + ETL services"]
+        SEC["JWT + API keys - RBAC - audit"]
+        MW --> RT --> SV
+        SEC -.guards every route.-> RT
+    end
+    subgraph Data["Data plane"]
+        PG[("PostgreSQL 16, primary")]
+        MY[("MySQL 8.4, dialect twin")]
+        FS[("Response cache + run artefacts")]
+    end
+    RE -->|"/api/v1 with JWT"| MW
+    SV --> PG & MY
+    HC2["Ingestion client"] --> FS
+

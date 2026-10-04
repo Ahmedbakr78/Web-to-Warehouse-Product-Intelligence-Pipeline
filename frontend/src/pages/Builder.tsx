@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bookmark, Filter, Play, RotateCcw, Save, Sparkles, Wand2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, Bookmark, Braces, Copy, Download, Filter, Play, RotateCcw, Save, Sparkles, Wand2 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import {
@@ -26,7 +26,7 @@ import {
 import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { useDebounce } from '@/hooks/useDebounce'
-import { formatAvailability, formatNumber, formatPrice, formatRelative, titleCase } from '@/lib/format'
+import { downloadCsv, downloadJson, toCsv, formatAvailability, formatNumber, formatPrice, formatRelative, titleCase } from '@/lib/format'
 
 type Entity = 'products' | 'price-changes' | 'runs' | 'quality' | 'catalog'
 
@@ -234,6 +234,47 @@ export default function Builder() {
     }))
   }
 
+  /** Move a visible column up or down in the render order. */
+  function moveColumn(key: string, direction: -1 | 1) {
+    setState((current) => {
+      const visible = current.columns.filter((item) => columns.some((column) => column.key === item))
+      const hidden = columns.map((column) => column.key).filter((item) => !visible.includes(item))
+      const index = visible.indexOf(key)
+      const target = index + direction
+      if (index === -1 || target < 0 || target >= visible.length) return current
+      const next = [...visible]
+      const [moved] = next.splice(index, 1)
+      next.splice(target, 0, moved)
+      return { ...current, columns: [...next, ...hidden] }
+    })
+  }
+
+  /** Share the composed query as a ready-to-run REST call. */
+  function copyApiRequest() {
+    const paths: Record<Entity, string> = {
+      products: '/products',
+      'price-changes': '/changes/price',
+      runs: '/pipeline/runs',
+      quality: '/quality/results',
+      catalog: '/catalog/reconciliation',
+    }
+    const params = new URLSearchParams(cleanParams(productParams))
+    const url = `${window.location.origin}${import.meta.env.VITE_API_BASE_URL ?? '/api/v1'}${paths[state.entity]}?${params.toString()}`
+    navigator.clipboard?.writeText(url).then(
+      () => toast.success('API request copied', 'Send it with `Authorization: Bearer <token>`.'),
+      () => toast.error('Clipboard unavailable', url),
+    )
+  }
+
+  /** Current rows, flattening each visible column back to its plain-text value. */
+  function exportPreview(format: 'csv' | 'json') {
+    const visibleColumns = columns.filter((column) => state.columns.includes(column.key))
+    const header = visibleColumns.map((column) => column.label)
+    const body = rows.map((row: any) => visibleColumns.map((column) => plainCell(state.entity, column.key, row)))
+    if (format === 'csv') downloadCsv(`builder-${state.entity}.csv`, toCsv(header, body))
+    else downloadJson(`builder-${state.entity}.json`, { entity: state.entity, filters: serialiseFilters(state), rows })
+  }
+
   function applySavedView(view: any) {
     const filters = view.filters ?? {}
     setState({
@@ -400,15 +441,41 @@ export default function Builder() {
 
         <Card>
           <CardHeader title="Columns" subtitle={`${state.columns.length} visible`} icon={<Sparkles className="h-4 w-4" />} />
-          <div className="max-h-80 space-y-1.5 overflow-auto pr-1">
-            {columns.map((column) => (
-              <Toggle
-                key={column.key}
-                checked={state.columns.includes(column.key)}
-                onChange={() => toggleColumn(column.key)}
-                label={column.label}
-              />
-            ))}
+          <div className="max-h-80 space-y-1 overflow-auto pr-1">
+            {columns.map((column) => {
+              const visibleIndex = state.columns.indexOf(column.key)
+              const canMoveUp = visibleIndex > 0
+              const canMoveDown = column.key !== state.columns[state.columns.length - 1]
+              return (
+                <div key={column.key} className="flex items-center gap-1 rounded-lg px-1 py-0.5 hover:bg-surface-2">
+                  <div className="min-w-0 flex-1">
+                    <Toggle
+                      checked={state.columns.includes(column.key)}
+                      onChange={() => toggleColumn(column.key)}
+                      label={column.label}
+                    />
+                  </div>
+                  <div className="flex shrink-0 gap-0.5">
+                    <button
+                      onClick={() => moveColumn(column.key, -1)}
+                      disabled={!state.columns.includes(column.key) || !canMoveUp}
+                      aria-label={`Move ${column.label} earlier`}
+                      className="rounded-md p-1 text-subtle hover:bg-surface-3 hover:text-ink disabled:opacity-30 disabled:hover:bg-transparent"
+                    >
+                      <ArrowUp className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => moveColumn(column.key, 1)}
+                      disabled={!state.columns.includes(column.key) || !canMoveDown}
+                      aria-label={`Move ${column.label} later`}
+                      className="rounded-md p-1 text-subtle hover:bg-surface-3 hover:text-ink disabled:opacity-30 disabled:hover:bg-transparent"
+                    >
+                      <ArrowDown className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
           </div>
           <div className="mt-3 flex gap-2 border-t border-line pt-3">
             <Button size="sm" variant="ghost" onClick={() => patch({ columns: columns.map((column) => column.key) })}>
@@ -464,9 +531,20 @@ export default function Builder() {
             subtitle={`Live query against the ${titleCase(state.entity)} endpoint`}
             icon={<Play className="h-4 w-4" />}
           />
-          <Button size="sm" variant="ghost" onClick={() => navigate(`/products?${new URLSearchParams(cleanParams(productParams)).toString()}`)}>
-            Open as a page
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" variant="ghost" icon={<Copy className="h-4 w-4" />} onClick={copyApiRequest}>
+              Copy API request
+            </Button>
+            <Button size="sm" variant="secondary" icon={<Download className="h-4 w-4" />} onClick={() => exportPreview('csv')} disabled={!rows.length}>
+              CSV
+            </Button>
+            <Button size="sm" variant="ghost" icon={<Braces className="h-4 w-4" />} onClick={() => exportPreview('json')} disabled={!rows.length}>
+              JSON
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => navigate(`/products?${new URLSearchParams(cleanParams(productParams)).toString()}`)}>
+              Open as a page
+            </Button>
+          </div>
         </div>
         {preview.isError ? (
           <div className="p-4">
@@ -528,6 +606,69 @@ export default function Builder() {
 }
 
 /* ------------------------------------------------------------------ helpers */
+/** Plain-text value for one builder column, mirroring how the table renders it. */
+function plainCell(entity: Entity, key: string, row: any): string {
+  const string = (value: unknown) => (value === undefined || value === null ? '' : String(value))
+  switch (entity) {
+    case 'products':
+      switch (key) {
+        case 'name': return string(row.canonical_name)
+        case 'category': return string(row.category_name)
+        case 'brand': return string(row.brand)
+        case 'price': return string(row.price_usd ?? row.price)
+        case 'change': return string(row.price_change_pct)
+        case 'rating': return string(row.rating ?? '')
+        case 'availability': return string(row.availability)
+        case 'source': return string(row.source_code)
+        case 'last_seen': return string(row.last_seen_at)
+        default: return ''
+      }
+    case 'price-changes':
+      switch (key) {
+        case 'product': return string(row.canonical_name)
+        case 'from': return string(row.previous_price)
+        case 'to': return string(row.new_price)
+        case 'change': return string(row.change_pct)
+        case 'direction': return string(row.direction)
+        case 'band': return string(row.magnitude_band)
+        case 'date': return string(row.detected_at ?? row.full_date)
+        default: return ''
+      }
+    case 'runs':
+      switch (key) {
+        case 'run_id': return string(row.run_id)
+        case 'status': return string(row.status)
+        case 'trigger': return string(row.trigger)
+        case 'duration': return string(row.duration_ms)
+        case 'extracted': return string(row.records_extracted)
+        case 'loaded': return string(row.records_valid)
+        case 'dq': return string(row.dq_score)
+        default: return ''
+      }
+    case 'quality':
+      switch (key) {
+        case 'code': return string(row.rule_code)
+        case 'name': return string(row.rule_name)
+        case 'dimension': return string(row.dimension)
+        case 'severity': return string(row.severity)
+        case 'status': return string(row.status)
+        case 'checked': return string(row.records_checked)
+        default: return ''
+      }
+    case 'catalog':
+      switch (key) {
+        case 'sku': return string(row.catalog_sku)
+        case 'name': return string(row.catalog_name)
+        case 'scraped': return string(row.scraped_name)
+        case 'catalog_price': return string(row.catalog_price)
+        case 'market_price': return string(row.scraped_price_usd)
+        case 'gap': return string(row.price_gap_pct)
+        case 'status': return string(row.match_status)
+        default: return ''
+      }
+  }
+}
+
 function countActiveFilters(state: BuilderState): number {
   return [
     state.search,

@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import time
 
-import pytest
-
 from app.ingestion.ratelimit import CircuitBreaker, RateLimiter, RatePolicy
 from app.ingestion.robots import RobotsCache, RobotsDecision
 
@@ -21,7 +19,9 @@ def test_limiter_allows_the_first_request_immediately():
 
 
 def test_limiter_enforces_the_minimum_gap():
-    limiter = RateLimiter(requests_per_second=100, requests_per_minute=60_000, min_delay_seconds=0.05, burst=1)
+    limiter = RateLimiter(
+        requests_per_second=100, requests_per_minute=60_000, min_delay_seconds=0.05, burst=1
+    )
     limiter.acquire("host")
     started = time.perf_counter()
     limiter.acquire("host")
@@ -47,10 +47,12 @@ def test_limiter_penalise_throttles_host():
 
 
 def test_limiter_is_per_host():
-    limiter = RateLimiter(requests_per_second=100, requests_per_minute=60_000, min_delay_seconds=0.05, burst=1)
+    limiter = RateLimiter(
+        requests_per_second=100, requests_per_minute=60_000, min_delay_seconds=0.05, burst=1
+    )
     limiter.acquire("a")
     started = time.perf_counter()
-    limiter.acquire("b")          # a different host must not wait
+    limiter.acquire("b")  # a different host must not wait
     assert time.perf_counter() - started < 0.03
 
 
@@ -67,9 +69,13 @@ def test_limiter_stats_and_reset():
 
 def test_custom_policy_overrides_defaults():
     limiter = RateLimiter(requests_per_second=100, requests_per_minute=60_000, min_delay_seconds=0, burst=1)
-    limiter.acquire("host", RatePolicy(requests_per_second=1, requests_per_minute=10, min_delay_seconds=0.05, burst=1))
+    limiter.acquire(
+        "host", RatePolicy(requests_per_second=1, requests_per_minute=10, min_delay_seconds=0.05, burst=1)
+    )
     started = time.perf_counter()
-    limiter.acquire("host", RatePolicy(requests_per_second=1, requests_per_minute=10, min_delay_seconds=0.05, burst=1))
+    limiter.acquire(
+        "host", RatePolicy(requests_per_second=1, requests_per_minute=10, min_delay_seconds=0.05, burst=1)
+    )
     assert time.perf_counter() - started >= 0.04
 
 

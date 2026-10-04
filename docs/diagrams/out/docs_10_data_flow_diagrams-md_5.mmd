@@ -1,0 +1,50 @@
+flowchart TB
+    DS[("D3 fact_price_snapshot")]
+    DC[("D4 change feeds")]
+    DK[("D5 catalog comparison")]
+    DA[("D6 aggregate")]
+    DP[("D2 dimensions")]
+    DR[("D7 operations<br/>etl_run, dq_rule_result,<br/>ingestion_http_log")]
+
+    subgraph P6A["6a Measure quality"]
+        Q1["12 rules in SAVEPOINTs"]
+        Q2["Severity-weighted score"]
+        Q3["Blocking decision<br/>critical failures only"]
+    end
+
+    V["20 analytical views<br/>vw_*"]
+    AN["Analytics service<br/>21 query functions"]
+
+    subgraph P6B["6c Serve"]
+        AU["Authenticate<br/>JWT or API key"]
+        RB["Authorise<br/>role to rights"]
+        VAL["Validate<br/>Pydantic models"]
+        EP["104 REST operations<br/>15 routers"]
+        CSV["CSV export"]
+    end
+
+    UI["Dashboard<br/>React and Vite"]
+    USR["Analysts, managers,<br/>administrators"]
+
+    DS --> Q1
+    DC --> Q1
+    DA --> Q1
+    DP --> Q1
+    Q1 --> Q2 --> Q3
+    Q3 -->|"verdict"| DR
+
+    DS --> V
+    DC --> V
+    DK --> V
+    DA --> V
+    DP --> V
+    V --> AN
+    AN --> EP
+    EP --> CSV
+
+    USR -->|"credentials"| AU
+    AU --> RB --> VAL --> EP
+    EP -->|"JSON"| UI
+    UI -->|"fetch, filter, sort"| USR
+    EP -->|"answers"| USR
+

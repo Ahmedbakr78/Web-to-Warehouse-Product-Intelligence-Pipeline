@@ -625,7 +625,7 @@ are persisted per run in `dq_rule_result`, and the dashboard charts the score tr
 ## Feature catalogue
 
 The exhaustive, file-referenced inventory lives in
-[docs/19_feature_list.md](docs/19_feature_list.md) — 226 features in 14 areas. Highlights by area:
+[docs/19_feature_list.md](docs/19_feature_list.md) — 234 features in 15 areas. Highlights by area:
 
 ### Ingestion and web compliance
 
@@ -861,7 +861,7 @@ on GitHub; every number is tied to a runnable command.
 | 16 | User Manual | sign-in, every screen, filters, exports, alerts, admin, troubleshooting, FAQ |
 | 17 | Technical Documentation | module map, four key algorithms, every configuration variable |
 | 18 | Presentation Outline | 18-slide defence deck, Q&A preparation, demo script |
-| 19 | Feature Inventory | 226 features in 14 areas with file references |
+| 19 | Feature Inventory | 234 features in 15 areas with file references |
 | 20 | Feedback and Improvements | feedback template, 32 prioritised improvements, self-assessment |
 
 Project companion files: [CHANGELOG.md](CHANGELOG.md), [CONTRIBUTING.md](CONTRIBUTING.md),

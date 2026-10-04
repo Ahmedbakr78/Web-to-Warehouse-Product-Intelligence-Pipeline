@@ -2,16 +2,13 @@
 
 from __future__ import annotations
 
+import pytest
 import sqlalchemy as sa
 
-import pytest
-
 from app.analytics import service as analytics
-from app.etl.bootstrap import create_schema, table_report
 from app.etl.dq import RULES, RULES_BY_CODE, evaluate_quality, latest_report, rules_catalog
 from app.etl.pipeline import STAGE_NAMES, Pipeline, PipelineConfig
-from app.models import CORE_TABLES, table_count
-
+from app.models import CORE_TABLES
 
 pytestmark = pytest.mark.integration
 
@@ -29,10 +26,21 @@ def test_all_core_tables_exist(db):
 def test_analytical_views_are_created(db):
     views = set(sa.inspect(db.bind).get_view_names())
     expected = {
-        "vw_product_current", "vw_price_history", "vw_price_changes", "vw_product_events",
-        "vw_new_products", "vw_removed_products", "vw_category_changes", "vw_daily_kpis",
-        "vw_source_coverage", "vw_pipeline_health", "vw_quality_latest", "vw_top_movers",
-        "vw_catalog_reconciliation", "vw_category_price_index", "vw_availability_summary",
+        "vw_product_current",
+        "vw_price_history",
+        "vw_price_changes",
+        "vw_product_events",
+        "vw_new_products",
+        "vw_removed_products",
+        "vw_category_changes",
+        "vw_daily_kpis",
+        "vw_source_coverage",
+        "vw_pipeline_health",
+        "vw_quality_latest",
+        "vw_top_movers",
+        "vw_catalog_reconciliation",
+        "vw_category_price_index",
+        "vw_availability_summary",
     }
     assert expected <= views, f"missing views: {sorted(expected - views)}"
 
@@ -57,7 +65,9 @@ def test_seeded_history_is_coherent(db):
 def test_seed_injects_quality_defects(db):
     """The demo dataset must contain real findings so the DQ screens are meaningful."""
     bad_ratings = db.execute(sa.text("SELECT COUNT(*) FROM fact_price_snapshot WHERE rating > 5")).scalar()
-    missing_prices = db.execute(sa.text("SELECT COUNT(*) FROM fact_price_snapshot WHERE price IS NULL")).scalar()
+    missing_prices = db.execute(
+        sa.text("SELECT COUNT(*) FROM fact_price_snapshot WHERE price IS NULL")
+    ).scalar()
     assert bad_ratings > 0
     assert missing_prices > 0
 
@@ -73,7 +83,17 @@ def test_pipeline_runs_end_to_end(db):
     assert result.counters["snapshots_inserted"] > 0
     assert result.run_id and result.duration_ms is not None
     stage_names = [stage.name for stage in result.timings]
-    for stage in ("extract", "stage", "transform", "resolve", "load", "detect", "aggregate", "reconcile", "quality"):
+    for stage in (
+        "extract",
+        "stage",
+        "transform",
+        "resolve",
+        "load",
+        "detect",
+        "aggregate",
+        "reconcile",
+        "quality",
+    ):
         assert stage in stage_names, f"stage {stage} missing from the run"
     assert set(stage_names) <= set(STAGE_NAMES)
 
@@ -90,7 +110,11 @@ def test_pipeline_is_idempotent_for_the_same_run_id(db):
 
 def test_pipeline_records_the_run_in_etl_run(db):
     result = Pipeline(PipelineConfig(sources=["local_demo"], limit_per_source=10, skip_dq=True)).run()
-    row = db.execute(sa.text("SELECT * FROM etl_run WHERE run_id = :rid"), {"rid": result.run_id}).mappings().one()
+    row = (
+        db.execute(sa.text("SELECT * FROM etl_run WHERE run_id = :rid"), {"rid": result.run_id})
+        .mappings()
+        .one()
+    )
     assert row["status"] == result.status
     assert row["records_extracted"] == result.counters["staged"]
     assert row["target_database"] in {"sqlite", "postgres", "mysql"}
@@ -100,11 +124,17 @@ def test_pipeline_records_the_run_in_etl_run(db):
 def test_pipeline_detects_price_changes_on_a_second_run(db):
     """The second run compares against the first, so price change rows must appear."""
     Pipeline(PipelineConfig(sources=["local_demo"], limit_per_source=30)).run()
-    db.execute(sa.text("UPDATE fact_price_snapshot SET price = price * 0.9 WHERE run_id = (SELECT MIN(run_id) FROM fact_price_snapshot)"))
+    db.execute(
+        sa.text(
+            "UPDATE fact_price_snapshot SET price = price * 0.9 WHERE run_id = (SELECT MIN(run_id) FROM fact_price_snapshot)"
+        )
+    )
     db.commit()
     result = Pipeline(PipelineConfig(sources=["local_demo"], limit_per_source=30, skip_dq=True)).run()
     assert result.counters["price_changes"] >= 0  # deterministic source => 0 changes expected
-    changes = db.execute(sa.text("SELECT COUNT(*) FROM chg_price_change WHERE run_id = :rid"), {"rid": result.run_id}).scalar()
+    changes = db.execute(
+        sa.text("SELECT COUNT(*) FROM chg_price_change WHERE run_id = :rid"), {"rid": result.run_id}
+    ).scalar()
     assert changes == result.counters["price_changes"]
 
 
@@ -126,7 +156,12 @@ def test_pipeline_skips_quality_when_asked(db):
 def test_rule_catalogue_is_complete():
     assert len(RULES) == 12
     assert {rule.dimension for rule in RULES} == {
-        "completeness", "validity", "uniqueness", "consistency", "accuracy", "timeliness"
+        "completeness",
+        "validity",
+        "uniqueness",
+        "consistency",
+        "accuracy",
+        "timeliness",
     }
     catalog = rules_catalog()
     assert len(catalog) == 12
@@ -165,13 +200,14 @@ def test_broken_rule_does_not_abort_the_suite(db):
         raise RuntimeError("boom")
 
     broken = type(RULES[0])(
-        code="DQ999", name="broken", dimension="validity", severity="error",
-        description="deliberately broken", evaluator=explode,
+        code="DQ999",
+        name="broken",
+        dimension="validity",
+        severity="error",
+        description="deliberately broken",
+        evaluator=explode,
     )
-    from app.etl.dq import QualityReport
-
     run = db.execute(sa.text("SELECT run_id FROM etl_run ORDER BY started_at DESC LIMIT 1")).scalar()
-    report = QualityReport(run_id=run)
     outcome = broken.run(db, {"run_id": run})
     assert outcome.status == "fail"
     assert "rule evaluation error" in outcome.message

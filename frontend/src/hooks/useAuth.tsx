@@ -11,7 +11,6 @@ type User = {
   role: 'admin' | 'analyst' | 'viewer'
   job_title?: string | null
   department?: string | null
-  avatar_color?: string | null
   timezone: string
   locale: string
   theme: 'system' | 'light' | 'dark'
@@ -28,6 +27,8 @@ type User = {
   login_count: number
   last_login_at?: string | null
   created_at?: string | null
+  avatar_color?: string | null
+  preferences?: Record<string, unknown> | null
   permissions: string[]
 }
 

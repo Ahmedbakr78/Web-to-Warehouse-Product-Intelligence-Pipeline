@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     app_timezone: str = "UTC"
     app_log_level: str = "INFO"
     app_log_format: Literal["text", "json"] = "text"
-    app_version: str = "1.0.0"
+    app_version: str = "1.2.0"
 
     # ---------------------------------------------------------------- database
     database_url: str = f"sqlite:///{DEFAULT_SQLITE_PATH}"

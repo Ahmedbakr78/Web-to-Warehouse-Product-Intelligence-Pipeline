@@ -1,0 +1,32 @@
+flowchart TB
+    subgraph CRIT["Critical - severity 15 to 25"]
+        C1["R1 Source becomes non-compliant"]
+        C2["R4 Warehouse model diverges between dialects"]
+    end
+    subgraph HIGH["High - severity 10 to 14"]
+        H1["R2 Deduplication false merges"]
+        H2["R3 Blocking optimisation regresses"]
+        H3["R7 Scrape layout change breaks the parser"]
+        H4["R9 Deliverable slip before the defence"]
+    end
+    subgraph MED["Medium - severity 5 to 9"]
+        M1["R5 robots.txt unreachable at runtime"]
+        M2["R6 Upstream API outage or rate limit"]
+        M3["R8 Demo dataset too small for meaningful analysis"]
+        M4["R10 Secret leakage in the repository"]
+        M5["R11 Timezone drift between PostgreSQL and MySQL"]
+    end
+    subgraph LOW["Low - severity 1 to 4"]
+        L1["R12 Second reviewer unavailable"]
+        L2["R13 Airflow installation problems"]
+        L3["R14 Frontend build tooling unavailable offline"]
+    end
+    CRIT --> M1
+    CRIT --> M2
+    HIGH --> M3
+    HIGH --> M4
+    HIGH --> M5
+    MED --> L1
+    MED --> L2
+    MED --> L3
+

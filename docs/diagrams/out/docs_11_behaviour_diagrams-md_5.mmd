@@ -1,0 +1,27 @@
+stateDiagram-v2
+    [*] --> Candidate: record staged
+    Candidate --> Active: first sighting<br/>event new
+    Candidate --> Rejected: name too short<br/>reject_reason recorded
+    Rejected --> [*]: retained in the staging zone only
+
+    Active --> Active: recurring observation<br/>price and rating refreshed
+    Active --> Suspended: unseen for the staleness window<br/>event removed
+    Active --> Active: recategorised<br/>event category_changed
+
+    Suspended --> Active: seen again<br/>event recurring
+    Suspended --> Retired: still unseen after the review window
+    Retired --> Active: returned to the source
+
+    note right of Active
+        is_active = true
+        observation_count increments
+        first_seen_at fixed
+        last_seen_at updated
+    end note
+
+    note right of Suspended
+        is_active = false
+        is still queryable with is_active filter
+        last_seen_at frozen
+    end note
+

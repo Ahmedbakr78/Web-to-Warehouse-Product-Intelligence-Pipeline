@@ -154,6 +154,16 @@
     }
   }
 
+  /* Manual override from Account -> Appearance: forces the same instant-motion policy
+     regardless of the operating system preference. */
+  html[data-motion='reduced'] *,
+  html[data-motion='reduced'] *::before,
+  html[data-motion='reduced'] *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
   :focus-visible {
     outline: 2px solid var(--brand-500);
     outline-offset: 2px;

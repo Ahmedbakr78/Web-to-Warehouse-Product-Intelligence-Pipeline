@@ -25,7 +25,7 @@ the command cited beside it.
 | 16 | [User Manual](16_user_manual.md) | Sign-in, every screen, filters, exports, saved views, alerts, admin, troubleshooting, FAQ |
 | 17 | [Technical Documentation](17_technical_documentation.md) | Module map, four key algorithms, every configuration variable, six-step source extension, performance and security |
 | 18 | [Presentation Outline](18_presentation_outline.md) | 18-slide defence deck, Q&A preparation, three-minute demo script, rehearsal and fallback plans |
-| 19 | [Feature Inventory](19_feature_list.md) | 226 features in 14 areas, each with a description and a file reference |
+| 19 | [Feature Inventory](19_feature_list.md) | 234 features in 15 areas, each with a description and a file reference |
 | 20 | [Feedback and Improvements](20_literature_feedback_and_improvements.md) | Lecturer feedback template, 32 prioritised improvements, self-assessment and rubric |
 
 ## Measured facts referenced throughout

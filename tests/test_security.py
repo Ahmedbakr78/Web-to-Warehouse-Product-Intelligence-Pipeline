@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import datetime as dt
-
 import pytest
 
 from app.api.security import (
@@ -13,9 +11,9 @@ from app.api.security import (
     create_refresh_token,
     decode_token,
     generate_api_key,
+    has_right,
     hash_api_key,
     hash_password,
-    has_right,
     needs_rehash,
     password_strength,
     require_right,

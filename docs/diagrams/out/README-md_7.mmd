@@ -1,0 +1,96 @@
+erDiagram
+    DIM_SOURCE ||--o{ DIM_PRODUCT : publishes
+    DIM_CATEGORY ||--o{ DIM_PRODUCT : classifies
+    DIM_PRODUCT ||--o{ FACT_PRICE_SNAPSHOT : observed
+    DIM_DATE ||--o{ FACT_PRICE_SNAPSHOT : dated
+    DIM_CURRENCY }o--|| FACT_PRICE_SNAPSHOT : prices
+    DIM_PRODUCT ||--o{ CHG_PRICE_CHANGE : changes
+    DIM_PRODUCT ||--o{ CHG_PRODUCT_EVENT : events
+    DIM_PRODUCT ||--o{ FACT_CATALOG_SNAPSHOT : matched
+    CATALOG_PRODUCT ||--o{ FACT_CATALOG_SNAPSHOT : compared
+    DIM_PRODUCT ||--o{ STG_RAW_OBSERVATION : staged
+
+    DIM_PRODUCT {
+        int product_id PK
+        string source_code FK
+        int category_id FK
+        string canonical_name
+        string normalized_name
+        string fingerprint
+        string match_strategy
+        float match_score
+        bool is_active
+        int observation_count
+    }
+    FACT_PRICE_SNAPSHOT {
+        int snapshot_id PK
+        int product_id FK
+        string run_id FK
+        int date_id FK
+        decimal price
+        string currency FK
+        decimal price_usd
+        decimal fx_rate_to_usd
+        float rating
+        string availability
+        datetime captured_at
+    }
+    CHG_PRICE_CHANGE {
+        int change_id PK
+        int product_id FK
+        decimal previous_price
+        decimal new_price
+        float change_pct
+        string direction
+        string magnitude_band
+    }
+    CHG_PRODUCT_EVENT {
+        int event_id PK
+        int product_id FK
+        string event_type
+        string old_value
+        string new_value
+        string severity
+    }
+    CATALOG_PRODUCT {
+        int catalog_id PK
+        string catalog_sku
+        string name
+        decimal list_price
+        string status
+    }
+    FACT_CATALOG_SNAPSHOT {
+        int match_id PK
+        string catalog_sku FK
+        int product_id FK
+        string match_status
+        string match_strategy
+        float similarity_score
+        decimal price_gap_pct
+    }
+    DIM_CATEGORY {
+        int category_id PK
+        string name
+        string slug
+        int level
+    }
+    DIM_SOURCE {
+        int source_id PK
+        string code
+        string kind
+        string terms_url
+        string license_note
+    }
+    DIM_CURRENCY {
+        string code PK
+        string symbol
+        decimal fx_rate_to_usd
+    }
+    DIM_DATE {
+        int date_id PK
+        date full_date
+        int year
+        int month
+        int dow
+    }
+

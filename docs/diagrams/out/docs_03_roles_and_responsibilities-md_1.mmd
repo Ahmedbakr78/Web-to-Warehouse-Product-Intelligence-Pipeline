@@ -1,0 +1,15 @@
+flowchart TB
+    SUP["Supervisor / Assessor"]
+    LEAD["Data Engineering Lead (developer)"]
+    RA["Peer reviewer A - data modelling"]
+    RB["Peer reviewer B - application and QA"]
+    BIZ["Business sponsor - merchandising"]
+
+    SUP -->|"approves proposal, design freeze, submission"| LEAD
+    RA -->|"reviews schema, views, DQ rules"| LEAD
+    RB -->|"reviews auth, RBAC, tests, performance"| LEAD
+    BIZ -->|"UAT feedback on analyst screens"| LEAD
+    LEAD -->|"weekly written progress note"| SUP
+    LEAD -->|"fortnightly demo"| SUP
+    RA --> RB
+

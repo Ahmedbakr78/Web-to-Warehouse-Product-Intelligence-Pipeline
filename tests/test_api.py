@@ -12,7 +12,8 @@ pytestmark = pytest.mark.integration
 
 
 @pytest.fixture(scope="module")
-def client():
+def client(database):
+    """A TestClient bound to a bootstrapped + seeded database."""
     with TestClient(app) as test_client:
         yield test_client
 
@@ -73,7 +74,9 @@ def test_unknown_route_returns_json_404(client):
 # Authentication
 # --------------------------------------------------------------------------------------
 def test_login_with_seeded_account(client):
-    response = client.post("/api/v1/auth/login", json={"email": "admin@example.com", "password": "Admin@12345"})
+    response = client.post(
+        "/api/v1/auth/login", json={"email": "admin@example.com", "password": "Admin@12345"}
+    )
     assert response.status_code == 200
     payload = response.json()
     assert payload["access_token"] and payload["refresh_token"]
@@ -82,7 +85,9 @@ def test_login_with_seeded_account(client):
 
 
 def test_login_rejects_bad_credentials(client):
-    response = client.post("/api/v1/auth/login", json={"email": "admin@example.com", "password": "wrong-password"})
+    response = client.post(
+        "/api/v1/auth/login", json={"email": "admin@example.com", "password": "wrong-password"}
+    )
     assert response.status_code == 401
     assert response.json()["error"] == "authentication_failed"
 
@@ -104,7 +109,9 @@ def test_me_returns_the_profile(client, admin_token):
 
 
 def test_refresh_rotates_tokens(client):
-    login = client.post("/api/v1/auth/login", json={"email": "viewer@example.com", "password": "Viewer@12345"}).json()
+    login = client.post(
+        "/api/v1/auth/login", json={"email": "viewer@example.com", "password": "Viewer@12345"}
+    ).json()
     refreshed = client.post("/api/v1/auth/refresh", json={"refresh_token": login["refresh_token"]})
     assert refreshed.status_code == 200
     # JWTs are deterministic per second, so assert usability instead of inequality.
@@ -126,7 +133,9 @@ def test_product_list_is_paginated(client, admin_token):
 
 def test_product_filters_narrow_the_result_set(client, admin_token):
     all_products = client.get("/api/v1/products?page_size=1", headers=auth(admin_token)).json()["total"]
-    filtered = client.get("/api/v1/products?page_size=1&in_stock=true", headers=auth(admin_token)).json()["total"]
+    filtered = client.get("/api/v1/products?page_size=1&in_stock=true", headers=auth(admin_token)).json()[
+        "total"
+    ]
     assert 0 < filtered <= all_products
 
 
@@ -232,13 +241,19 @@ def test_sources_registry(client, admin_token):
 # Query lab (read-only guard)
 # --------------------------------------------------------------------------------------
 def test_query_executes_a_select(client, admin_token):
-    response = client.post("/api/v1/queries/execute", headers=auth(admin_token), json={"sql": "SELECT 1 AS ok"})
+    response = client.post(
+        "/api/v1/queries/execute", headers=auth(admin_token), json={"sql": "SELECT 1 AS ok"}
+    )
     assert response.status_code == 200
     assert response.json()["rows"] == [[1]]
 
 
 def test_query_rejects_writes(client, admin_token):
-    for statement in ("DELETE FROM dim_product", "UPDATE dim_product SET price = 1", "DROP TABLE dim_product"):
+    for statement in (
+        "DELETE FROM dim_product",
+        "UPDATE dim_product SET price = 1",
+        "DROP TABLE dim_product",
+    ):
         response = client.post("/api/v1/queries/execute", headers=auth(admin_token), json={"sql": statement})
         assert response.status_code == 422, statement
 
@@ -256,7 +271,12 @@ def test_viewer_may_query_but_not_write(client, viewer_token):
     """`query` is granted to every role; writes are not."""
     response = client.post("/api/v1/queries/execute", headers=auth(viewer_token), json={"sql": "SELECT 1"})
     assert response.status_code == 200
-    assert client.post("/api/v1/queries/execute", headers=auth(viewer_token), json={"sql": "DELETE FROM dim_product"}).status_code == 422
+    assert (
+        client.post(
+            "/api/v1/queries/execute", headers=auth(viewer_token), json={"sql": "DELETE FROM dim_product"}
+        ).status_code
+        == 422
+    )
 
 
 # --------------------------------------------------------------------------------------
@@ -276,7 +296,12 @@ def test_viewer_cannot_reach_admin_endpoints(client, viewer_token):
         assert response.status_code == 403, path
     # Public settings are readable by anyone, but writing them is admin-only.
     assert client.get("/api/v1/settings", headers=auth(viewer_token)).status_code == 200
-    assert client.put("/api/v1/settings/ui.default_theme", headers=auth(viewer_token), json={"value": "dark"}).status_code == 403
+    assert (
+        client.put(
+            "/api/v1/settings/ui.default_theme", headers=auth(viewer_token), json={"value": "dark"}
+        ).status_code
+        == 403
+    )
 
 
 def test_saved_view_lifecycle(client, admin_token):
@@ -288,7 +313,9 @@ def test_saved_view_lifecycle(client, admin_token):
     )
     assert created.status_code == 201
     view_id = created.json()["view_id"]
-    assert client.post(f"/api/v1/saved-views/{view_id}/favorite", headers=headers).json()["is_favorite"] is True
+    assert (
+        client.post(f"/api/v1/saved-views/{view_id}/favorite", headers=headers).json()["is_favorite"] is True
+    )
     assert client.delete(f"/api/v1/saved-views/{view_id}", headers=headers).status_code == 200
 
 
@@ -316,15 +343,24 @@ def test_change_password_validation(client, admin_token):
 def test_api_key_creation_and_revocation(client, admin_token):
     headers = auth(admin_token)
     profile = client.get("/api/v1/users/me", headers=headers).json()
-    created = client.post(f"/api/v1/users/{profile['user_id']}/api-keys", headers=headers, json={"name": "pytest-key"})
+    created = client.post(
+        f"/api/v1/users/{profile['user_id']}/api-keys", headers=headers, json={"name": "pytest-key"}
+    )
     assert created.status_code == 201
     payload = created.json()
     assert payload["api_key"].startswith("pip_")
-    assert client.delete(f"/api/v1/users/{profile['user_id']}/api-keys/{payload['key_id']}", headers=headers).status_code == 200
+    assert (
+        client.delete(
+            f"/api/v1/users/{profile['user_id']}/api-keys/{payload['key_id']}", headers=headers
+        ).status_code
+        == 200
+    )
 
 
 def test_pipeline_trigger_requires_permission(client, viewer_token):
-    response = client.post("/api/v1/pipeline/run/sync", headers=auth(viewer_token), json={"limit_per_source": 1})
+    response = client.post(
+        "/api/v1/pipeline/run/sync", headers=auth(viewer_token), json={"limit_per_source": 1}
+    )
     assert response.status_code == 403
 
 

@@ -1,0 +1,69 @@
+flowchart TB
+    RAW[("D1 staging zone<br/>raw payloads")]
+
+    subgraph P3["3 Prepare"]
+        C1["Unicode fold and<br/>promo-noise removal"]
+        C2["Category synonym<br/>mapping and hierarchy"]
+        C3["Price and currency parse<br/>then USD conversion"]
+        C4["Rating rescale to 0-5<br/>availability mapping"]
+        C5["Quality flags<br/>and reject reasons"]
+        F1["Fingerprint<br/>SHA-1 of name and brand"]
+        K1["Blocking key<br/>first 4 characters"]
+    end
+
+    subgraph P4["4 Resolve"]
+        B1["Exact fingerprint<br/>match"]
+        B2["Normalised-name<br/>equality"]
+        B3["Blocking candidate<br/>retrieval max 25"]
+        B4["Blended similarity<br/>token-set, Jaro-Winkler,<br/>trigram, Levenshtein"]
+        B5["Digit-signature<br/>guard and brand term"]
+        B6["Decision<br/>threshold 0.90"]
+    end
+
+    subgraph P5["5 Load and analyse"]
+        L1["Upsert dimension<br/>dim_product, dim_category"]
+        L2["Append snapshot<br/>fact_price_snapshot"]
+        L3["Emit price change<br/>chg_price_change"]
+        L4["Emit lifecycle event<br/>chg_product_event"]
+        L5["Detect removals<br/>7-day staleness"]
+        L6["Refresh category<br/>aggregate"]
+        L7["Reconcile catalog<br/>and compute price gaps"]
+    end
+
+    DP[("D2 dim_product")]
+    DS[("D3 fact_price_snapshot")]
+    DC[("D4 change feeds")]
+    DA[("D6 aggregate")]
+    DK[("D5 catalog comparison")]
+    ERR[("staging rejection<br/>is_valid, reject_reason")]
+
+    RAW --> C1 --> C2 --> C3 --> C4 --> C5
+    C5 --> F1
+    C5 --> K1
+    F1 --> B1
+    K1 --> B3
+    B1 --> B6
+    B2 --> B6
+    B3 --> B4 --> B5 --> B6
+    DP --> B2
+    DP --> B3
+    B6 --> L1
+    C5 --> L1
+    DP --> L1
+    L1 --> L2
+    DP -->|"previous snapshot"| L2
+    L2 --> DS
+    L2 --> L3
+    L2 --> L4
+    L3 --> DC
+    L4 --> DC
+    L1 --> L5
+    L5 --> DC
+    L2 --> L6
+    DA --> L6
+    L6 --> DA
+    L1 --> L7
+    DS --> L7
+    L7 --> DK
+    C5 -->|"invalid record"| ERR
+

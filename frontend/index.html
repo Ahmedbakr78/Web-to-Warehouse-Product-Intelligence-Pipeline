@@ -25,6 +25,8 @@
           document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
           var density = localStorage.getItem('pip.density')
           if (density) document.documentElement.dataset.density = density
+          var motion = localStorage.getItem('pip.motion')
+          document.documentElement.dataset.motion = motion === 'reduced' ? 'reduced' : 'auto'
         } catch (e) {}
       })()
     </script>

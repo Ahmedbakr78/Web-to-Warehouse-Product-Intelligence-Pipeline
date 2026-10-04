@@ -1,0 +1,34 @@
+flowchart TB
+    WEB["Upstream host<br/>robots.txt and pages"]
+    SCH["Scheduler / operator"]
+
+    subgraph P1A["1a Extract"]
+        A1["Get robots.txt<br/>robots.py cache"]
+        A2["Decide allow or deny<br/>RFC 9309 fallback"]
+        A3["Acquire token<br/>ratelimit.py"]
+        A4["Fetch with retry<br/>http_client.py"]
+        A5["Serve from disk cache<br/>TTL 1800 s"]
+        A6["Parse HTML or JSON<br/>source adapter"]
+    end
+
+    AUD[("ingestion_http_log<br/>audit")]
+    SYNC[("sync_state<br/>cursors and health")]
+    DIMS[("dim_source<br/>reliability stats")]
+    RAW[("D1 staging zone")]
+
+    WEB -->|"robots.txt"| A1
+    A1 --> A2
+    A2 -->|"allow"| A3
+    A3 --> A4
+    A4 -->|"cache hit"| A5
+    A5 --> A6
+    A4 -->|"network response"| A6
+    A2 -->|"deny: ComplianceError"| AUD
+    A4 -->|"status, latency, bytes, retries"| AUD
+    A4 -->|"429 or 5xx"| A3
+    A6 --> SCH
+    A6 --> RAW
+    SCH --> SYNC
+    SCH --> DIMS
+    AUD --> SCH
+

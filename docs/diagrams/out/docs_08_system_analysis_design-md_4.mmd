@@ -1,0 +1,30 @@
+flowchart TB
+    subgraph CLIENTS["Clients"]
+        BR["Browser - React dashboard"]
+        CL["curl / Python / JS clients"]
+    end
+    subgraph SERVE["Serving tier"]
+        API["FastAPI on port 8000"]
+        NGINX["Static assets - nginx in the frontend image"]
+    end
+    subgraph SCHED["Scheduling tier"]
+        AF["Airflow 2.10.5 webserver port 8080"]
+        AFS["Airflow scheduler LocalExecutor"]
+    end
+    subgraph DATA["Data tier"]
+        PG[("PostgreSQL 16 port 5432")]
+        MY[("MySQL 8.4 port 3306")]
+    end
+    subgraph EXT["External"]
+        UP["Upstream APIs and sandbox site"]
+    end
+    BR --> NGINX
+    NGINX --> API
+    CL --> API
+    API --> PG
+    API -.-> MY
+    AF --> AFS
+    AFS --> PG
+    API --> UP
+    AFS --> UP
+

@@ -4,6 +4,35 @@ All notable changes to the Web-to-Warehouse Product Intelligence Pipeline are do
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions adhere to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-10-04
+
+### Added
+
+- Account controls: avatar colour picker (twelve swatches, applied app-wide), "start page after
+  sign-in" preference with login redirect and session-restore support, and an account-level
+  "reduce motion" override applied before the first paint.
+- Builder upgrades: visible-column reordering (move earlier/later buttons), "copy as API request"
+  (ready-to-run REST URL for the composed query), and CSV/JSON export of the live preview.
+- DEPI project infographic generator: `make infographic` produces the 16:9 roadmap slide as an
+  SVG master plus an HTML preview and a PNG raster when cairosvg is available
+  (`docs/assets/infographic.*`).
+- Diagram extractor: `scripts/render_diagrams.sh` pulls all 51 Mermaid diagrams out of the
+  documentation into `docs/diagrams/out/*.mmd` with an index table, ready for `mmdc` rendering.
+- Feature inventory section 15: eight new entries (F-227 to F-234), revised total 234.
+
+### Changed
+
+- `UserRead` now exposes the server-side `preferences` JSON so account choices survive new devices.
+
+### Verified
+
+```text
+ruff: all checks pass            mypy: no issues in 59 source files
+pytest: 236 passed               API smoke: 78/78 checks
+frontend: eslint clean, tsc clean, production build ok
+infographic: SVG valid (2560x1440) + PNG rendered (2560x1440)
+```
+
 ## [1.1.0] - 2026-10-04
 
 ### Added

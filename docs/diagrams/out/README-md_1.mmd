@@ -1,0 +1,54 @@
+flowchart LR
+    subgraph Sources["Permitted public sources"]
+        A1["DummyJSON<br/>products API"]
+        A2["FakeStore<br/>products API"]
+        A3["Open Library<br/>books API"]
+        A4["books.toscrape.com<br/>HTML sandbox"]
+        A5["Local demo<br/>synthetic"]
+    end
+
+    subgraph Ingest["Ingestion layer"]
+        direction TB
+        R["robots.txt gate<br/>RFC 9309"]
+        RL["Rate limiter<br/>token bucket + window"]
+        CB["Circuit breaker"]
+        HC["Polite HTTP client<br/>retries + cache + audit"]
+        S["5 source adapters<br/>generators"]
+        R --> RL --> CB --> HC --> S
+    end
+
+    subgraph Clean["Standardisation"]
+        C1["Name / category<br/>cleaning, 29 rules"]
+        C2["Price parsing<br/>18+ currencies"]
+        C3["FX normalisation<br/>to USD"]
+        DD["Dedupe engine<br/>4-signal fuzzy"]
+        C1 --> C2 --> C3 --> DD
+    end
+
+    subgraph Wh["Analytical warehouse, Kimball star"]
+        STG["stg_raw_observation<br/>staging"]
+        DIM["dim_product, dim_category<br/>dim_source, dim_currency, dim_date"]
+        FACT["fact_price_snapshot<br/>fact_catalog_snapshot"]
+        AGG["agg_category_daily"]
+        CHG["chg_price_change<br/>chg_product_event"]
+        STG --> DIM --> FACT --> AGG & CHG
+    end
+
+    subgraph Ops["Operations"]
+        AF["Airflow DAG<br/>13 tasks"]
+        API["FastAPI REST<br/>104 operations"]
+        DQ["12-rule DQ framework"]
+    end
+
+    subgraph UI["Delivery"]
+        RE["React 19 dashboard<br/>17 screens"]
+        EXP["CSV / JSON exports"]
+        QL["Query lab, read-only SQL"]
+    end
+
+    Sources --> Ingest --> Clean --> STG
+    AF -.schedules and guards.-> Ingest
+    API --> Wh
+    API --> RE & EXP & QL
+    DQ -.on every load.-> FACT
+

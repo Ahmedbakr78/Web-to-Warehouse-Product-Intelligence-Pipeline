@@ -31,12 +31,19 @@ import {
   Toggle,
   useToast,
 } from '@/components/ui'
-import { ACCENTS, useAccent, useDensity, useTheme } from '@/lib/theme'
+import { ACCENTS, useAccent, useDensity, useMotion, useTheme } from '@/lib/theme'
 import { cn } from '@/lib/cn'
 import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { useAuth } from '@/hooks/useAuth'
+import { ALL_NAV_ITEMS } from '@/lib/nav'
+import { localStore } from '@/lib/session'
 import { formatDateTime, formatRelative, initials, titleCase } from '@/lib/format'
+
+const AVATAR_COLORS = [
+  '#4f46e5', '#2563eb', '#0891b2', '#059669', '#d97706', '#dc2626',
+  '#7c3aed', '#db2777', '#334155', '#65a30d', '#b45309', '#be123c',
+]
 
 export default function Account() {
   const [tab, setTab] = useState('profile')
@@ -44,8 +51,11 @@ export default function Account() {
   const { mode, setMode, isDark } = useTheme()
   const { density, setDensity } = useDensity()
   const { accent, setAccent } = useAccent()
+  const { motion, setMotion } = useMotion()
   const toast = useToast()
   const queryClient = useQueryClient()
+  const [startPage, setStartPage] = useState(() => localStore.get('account.startPage', '/'))
+  const [avatarColor, setAvatarColor] = useState(user?.avatar_color ?? ACCENTS.indigo.base)
 
   const [fullName, setFullName] = useState(user?.full_name ?? '')
   const [jobTitle, setJobTitle] = useState(user?.job_title ?? '')
@@ -78,6 +88,7 @@ export default function Account() {
     setAlertPct(user.price_change_alert_pct)
     setEmailAlerts(user.email_alerts_enabled)
     setWeeklyDigest(user.weekly_digest_enabled)
+    setAvatarColor(user.avatar_color ?? AVATAR_COLORS[0])
   }, [user])
 
   const apiKeys = useApiQuery(['api-keys', user?.user_id], () => endpoints.apiKeys(user!.user_id), {
@@ -100,8 +111,15 @@ export default function Account() {
         price_change_alert_pct: alertPct,
         email_alerts_enabled: emailAlerts,
         weekly_digest_enabled: weeklyDigest,
+        avatar_color: avatarColor,
+        preferences: {
+          ...user?.preferences,
+          start_page: startPage,
+          motion,
+        } as Record<string, unknown>,
       }),
     onSuccess: async () => {
+      localStore.set('account.startPage', startPage)
       await refresh()
       void queryClient.invalidateQueries()
       toast.success('Profile updated')
@@ -157,7 +175,7 @@ export default function Account() {
         <div className="flex flex-wrap items-center gap-4">
           <span
             className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-xl font-bold text-white"
-            style={{ backgroundColor: user.avatar_color ?? '#6366f1' }}
+            style={{ backgroundColor: avatarColor }}
           >
             {initials(user.full_name)}
           </span>
@@ -169,6 +187,23 @@ export default function Account() {
               {user.is_verified ? <Badge tone="success">verified</Badge> : null}
               {user.two_factor_enabled ? <Badge tone="success" dot>2FA</Badge> : <Badge tone="warning">2FA off</Badge>}
               <Badge tone="neutral">{user.permissions.length} permissions</Badge>
+            </div>
+            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+              <span className="stat-label mr-1">Avatar</span>
+              {AVATAR_COLORS.map((color) => (
+                <button
+                  key={color}
+                  onClick={() => {
+                    setAvatarColor(color)
+                    toast.info('Pick “Save changes” to apply the avatar everywhere')
+                  }}
+                  aria-label={`Avatar colour ${color}`}
+                  title={color}
+                  className={cn('h-5 w-5 rounded-full border-2', avatarColor === color ? 'border-ink' : 'border-transparent')}
+                  style={{ backgroundColor: color }}
+                />
+              ))}
+              <span className={cn('font-mono text-[10px] text-subtle')}>{avatarColor}</span>
             </div>
           </div>
           <Button variant="secondary" icon={<LogOut className="h-4 w-4" />} onClick={logout}>
@@ -262,6 +297,17 @@ export default function Account() {
                   {['USD', 'EUR', 'GBP', 'EGP', 'AED', 'SAR'].map((code) => (
                     <option key={code} value={code}>
                       {code}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <p className="stat-label mb-1.5">Start page after sign-in</p>
+                <Select value={startPage} onChange={(event) => setStartPage(event.target.value)}>
+                  <option value="/">Dashboard</option>
+                  {ALL_NAV_ITEMS.filter((item) => item.to !== '/').map((item) => (
+                    <option key={item.to} value={item.to}>
+                      {item.label}
                     </option>
                   ))}
                 </Select>
@@ -365,6 +411,20 @@ export default function Account() {
                     />
                   ))}
                 </div>
+              </div>
+              <div>
+                <p className="stat-label mb-1.5">Motion</p>
+                <Segmented
+                  options={[
+                    { id: 'auto', label: 'System' },
+                    { id: 'reduced', label: 'Reduce motion' },
+                  ]}
+                  value={motion}
+                  onChange={(value) => setMotion(value as 'auto' | 'reduced')}
+                />
+                <p className="mt-1.5 text-[11px] text-subtle">
+                  Reduced keeps every transition instant, regardless of the operating system setting.
+                </p>
               </div>
               <div className="rounded-lg bg-surface-2 p-3 text-[11px] leading-relaxed text-muted">
                 Appearance is stored locally in <code className="rounded bg-surface-3 px-1">localStorage</code> and applied

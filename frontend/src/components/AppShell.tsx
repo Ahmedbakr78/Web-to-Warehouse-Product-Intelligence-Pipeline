@@ -595,7 +595,7 @@ function UserMenu() {
             </button>
           </div>
           <div className="border-t border-line px-3 py-2 text-[10px] text-subtle">
-            Signed in {formatRelative(user.last_login_at ?? user.created_at)} · v1.0.0
+            Signed in {formatRelative(user.last_login_at ?? user.created_at)} · v1.2.0
           </div>
         </div>
       ) : null}

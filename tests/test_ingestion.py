@@ -22,7 +22,13 @@ from app.ingestion.sources.local_fixture import LocalFixtureSource
 def test_registry_contains_every_bundled_source():
     load_builtin_sources()
     codes = {source["code"] for source in list_sources()}
-    assert {"local_demo", "dummyjson_products", "fakestore_products", "openlibrary_books", "books_to_scrape"} <= codes
+    assert {
+        "local_demo",
+        "dummyjson_products",
+        "fakestore_products",
+        "openlibrary_books",
+        "books_to_scrape",
+    } <= codes
 
 
 def test_every_source_declares_compliance_metadata():
@@ -70,7 +76,9 @@ def test_local_source_injects_quality_defects():
     records = list(LocalFixtureSource().fetch(limit=200))
     assert any(record.name == "" for record in records), "a missing name defect is expected"
     assert any(record.price_text is None for record in records), "a missing price defect is expected"
-    assert any((record.rating_text or "").startswith("9.") for record in records), "an out-of-range rating is expected"
+    assert any((record.rating_text or "").startswith("9.") for record in records), (
+        "an out-of-range rating is expected"
+    )
 
 
 def test_local_source_generates_mixed_currencies():
@@ -148,5 +156,5 @@ def test_transform_content_hash_changes_with_content():
 
 def test_transform_falls_back_to_source_id_when_name_is_blank():
     record = transform_product(_raw(name=""))
-    assert record.canonical_name == ""   # invalid record keeps the raw (empty) name for audit
+    assert record.canonical_name == ""  # invalid record keeps the raw (empty) name for audit
     assert record.source_product_id == "T-1"

@@ -1,0 +1,13 @@
+flowchart TB
+    RB["Retail manager"] -->|"reads dashboards, exports"| SYS(("Product
+    Intelligence
+    Pipeline"))
+    ANA["Pricing analyst"] -->|"tunes catalog matches, alerts"| SYS
+    AD["Admin"] -->|"manages users, sources, settings"| SYS
+    WB["Web sources
+    (permitted)"] <-->|"robots-gated fetches"| SYS
+    SYS -->|"snapshots, changes, DQ verdicts"| DB[("PostgreSQL / MySQL
+    warehouse")]
+    SCH["Airflow scheduler"] -->|"daily run"| SYS
+    OBS["HTTP evidence log"] -.every request.-> SYS
+

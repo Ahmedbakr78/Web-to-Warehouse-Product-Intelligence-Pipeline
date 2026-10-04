@@ -1,0 +1,55 @@
+flowchart TB
+    subgraph EDGE["Edge"]
+        B["Browser<br/>React SPA served by nginx :80"]
+        CLI["Operator shell<br/>curl / Python / CLI"]
+    end
+
+    subgraph HOST["Single application host"]
+        direction TB
+        subgraph SERVE["Serving tier"]
+            NG["nginx<br/>static bundle + /api proxy"]
+            API1["uvicorn worker 1<br/>FastAPI :8000"]
+            API2["uvicorn worker 2<br/>FastAPI :8000"]
+        end
+        subgraph SCHED["Scheduling tier"]
+            AFB["airflow webserver :8080"]
+            AFS["airflow scheduler"]
+            AFX["task processes LocalExecutor"]
+        end
+        subgraph JOBS["Batch tier"]
+            JOB["python -m app.cli.main<br/>run-pipeline / bootstrap / seed"]
+        end
+        FS[("Filesystem var/<br/>http-cache, logs, artifacts")]
+    end
+
+    subgraph DATA["Data tier"]
+        PG[("PostgreSQL 16<br/>:5432")]
+        MY[("MySQL 8.4<br/>:3306")]
+        VOL[("Docker volumes<br/>pg_data, mysql_data,<br/>airflow_logs")]
+    end
+
+    EXT["External sources<br/>DummyJSON, FakeStore,<br/>Open Library, books.toscrape.com"]
+
+    B --> NG
+    NG --> API1
+    NG --> API2
+    CLI --> API1
+    AFB --> AFS
+    AFS --> AFX
+    AFX --> JOB
+    API1 --> PG
+    API2 --> PG
+    API1 -.-> MY
+    API2 -.-> MY
+    AFB --> PG
+    AFX --> PG
+    JOB --> PG
+    JOB -.-> MY
+    PG --> VOL
+    MY --> VOL
+    API1 <--> FS
+    API2 <--> FS
+    JOB <--> FS
+    AFX --> EXT
+    JOB --> EXT
+

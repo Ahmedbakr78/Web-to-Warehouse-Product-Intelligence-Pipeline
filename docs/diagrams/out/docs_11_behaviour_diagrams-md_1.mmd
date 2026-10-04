@@ -1,0 +1,87 @@
+sequenceDiagram
+    autonumber
+    participant CLI as CLI or Airflow or API
+    participant PIPE as Pipeline
+    participant SRC as ProductSource
+    participant HTTP as CompliantHttpClient
+    participant RB as RobotsCache
+    participant LIM as RateLimiter
+    participant CACHE as Disk cache
+    participant LD as WarehouseLoader
+    participant DD as DedupeEngine
+    participant DB as Warehouse
+    participant RC as CatalogReconciler
+    participant DQ as Quality engine
+
+    CLI->>PIPE: PipelineConfig sources, limit, strict
+    PIPE->>DB: INSERT etl_run status running
+    loop for each enabled source
+        PIPE->>LD: preload_dimensions
+        PIPE->>DB: sync_dim_source for foreign key integrity
+        PIPE->>SRC: fetch limit
+        SRC->>HTTP: get url
+        HTTP->>RB: can_fetch url, user_agent
+        RB-->>HTTP: RobotsDecision allowed, crawl_delay
+        alt disallowed by robots.txt
+            HTTP-->>SRC: ComplianceError
+            HTTP->>DB: audit row robots_allowed false
+            PIPE->>PIPE: record warning, source failed
+        else allowed
+            alt response already cached
+                HTTP->>CACHE: read cached payload
+                CACHE-->>HTTP: FetchResult from_cache true
+            else cache miss
+                HTTP->>LIM: acquire host
+                LIM-->>HTTP: permit after pacing delay
+                HTTP->>HTTP: GET with retry and backoff
+                HTTP->>CACHE: store successful response
+            end
+            HTTP->>DB: INSERT ingestion_http_log
+            HTTP-->>SRC: FetchResult text
+            SRC-->>PIPE: RawProduct record
+            PIPE->>LD: stage raw batch
+            LD->>DB: INSERT stg_raw_observation
+        end
+        loop for each raw record
+            PIPE->>PIPE: transform_product
+            Note over PIPE: clean name, normalise category,<br/>parse price, convert to USD,<br/>attach quality flags
+            PIPE->>DD: find_match name, brand, category
+            alt fingerprint known
+                DD-->>PIPE: MatchResult strategy exact score 1.0
+            else normalised name equal
+                DD->>DB: SELECT by normalized_name
+                DD-->>PIPE: MatchResult strategy blocked_exact
+            else fuzzy search
+                DD->>DB: SELECT blocking candidates limit 25
+                DB-->>DD: candidate rows
+                DD->>DD: combined_similarity with digit guard
+                DD-->>PIPE: MatchResult strategy fuzzy or new
+            end
+            PIPE->>LD: upsert_product record, match
+            LD->>DB: UPSERT dim_product and dim_category
+            PIPE->>LD: insert_snapshot product, record, previous
+            LD->>DB: SELECT latest snapshot for product and source
+            LD->>DB: INSERT fact_price_snapshot
+            alt price changed
+                LD->>DB: INSERT chg_price_change
+            end
+            LD->>DB: INSERT chg_product_event new or recurring
+        end
+        PIPE->>LD: detect_removed staleness 7 days
+        LD->>DB: INSERT removed events and set is_active false
+        PIPE->>LD: update_sync_state source
+    end
+    PIPE->>LD: refresh_category_daily
+    LD->>DB: UPSERT agg_category_daily
+    PIPE->>RC: run persist
+    RC->>DB: SELECT catalog, candidates, latest prices
+    RC->>DB: INSERT fact_catalog_snapshot
+    RC-->>PIPE: reconciliation summary
+    PIPE->>DQ: evaluate_quality run_id
+    loop for each of 12 rules
+        DQ->>DB: SAVEPOINT, evaluate, INSERT dq_rule_result, COMMIT
+    end
+    DQ-->>PIPE: score, pass, warn, fail, blocking
+    PIPE->>DB: UPDATE etl_run counters, status, duration
+    PIPE-->>CLI: PipelineResult
+
