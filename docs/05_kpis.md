@@ -437,8 +437,8 @@ curl -s localhost:8000/api/v1/audit/compliance -H "Authorization: Bearer $TOKEN"
                 ("Sony WH-1000XM5", "Sony WH-1000XM4")]:
        score, parts = combined_similarity(a, b)
        print(f"{score:.4f} {'DUPLICATE' if score >= 0.90 else 'distinct  '} {a} | {b}")
-   PY
-   ```
+PY
+```
 
    Measured: `0.9700` (duplicate), `0.8121` (distinct), `0.8034` (distinct) — the digit-signature
    guard is what keeps the two camera bodies apart.
