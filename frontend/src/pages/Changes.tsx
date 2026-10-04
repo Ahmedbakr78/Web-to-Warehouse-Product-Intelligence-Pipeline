@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Activity, ArrowDownRight, ArrowUpRight, Layers, Package, Tag, Trash2 } from 'lucide-react'
+import { Activity, ArrowDownRight, ArrowUpRight, Braces, Layers, Package, Tag, Trash2 } from 'lucide-react'
 
 import { BarSeries, LineTrend } from '@/components/charts'
 import {
@@ -23,7 +23,7 @@ import {
 import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { useDebounce } from '@/hooks/useDebounce'
-import { formatCompact, formatDate, formatNumber, formatPrice, formatRelative, statusTone, titleCase } from '@/lib/format'
+import { downloadJson, formatCompact, formatDate, formatNumber, formatPrice, formatRelative, statusTone, titleCase } from '@/lib/format'
 
 const RANGES = [
   { id: '7', label: '7d' },
@@ -113,6 +113,25 @@ export default function Changes() {
           </Select>
           <Button size="sm" variant={significantOnly ? 'primary' : 'secondary'} onClick={() => { setSignificantOnly((value) => !value); setPage(1) }}>
             Significant only
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            icon={<Braces className="h-4 w-4" />}
+            aria-label="Export current feed as JSON"
+            onClick={() =>
+              downloadJson('change-feed.json', {
+                exported_at: new Date().toISOString(),
+                window_days: windowDays,
+                summary: summary.data,
+                price_changes: (priceChanges.data as any)?.items ?? [],
+                new_products: newProducts.data ?? [],
+                removed_products: removed.data ?? [],
+                category_changes: categoryChanges.data ?? [],
+              })
+            }
+          >
+            JSON
           </Button>
         </div>
       </div>
