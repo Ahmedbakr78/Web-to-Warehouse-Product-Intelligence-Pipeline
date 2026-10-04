@@ -12,7 +12,7 @@ import datetime as dt
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, JSONType, MediumStr, ShortStr, TimestampMixin, UrlStr, utcnow
+from app.models.base import UTCDateTime, Base, JSONType, MediumStr, ShortStr, TimestampMixin, UrlStr, utcnow
 
 
 class DimSource(Base, TimestampMixin):
@@ -31,9 +31,9 @@ class DimSource(Base, TimestampMixin):
     min_delay_seconds: Mapped[float] = mapped_column(sa.Float, nullable=False, default=2.0)
     enabled: Mapped[bool] = mapped_column(sa.Boolean, nullable=False, default=True)
     terms_allowed: Mapped[bool] = mapped_column(sa.Boolean, nullable=False, default=True)
-    robots_checked_at: Mapped[dt.datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    robots_checked_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
     last_run_id: Mapped[str | None] = mapped_column(ShortStr)
-    last_run_at: Mapped[dt.datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    last_run_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
     total_records: Mapped[int] = mapped_column(sa.BigInteger, nullable=False, default=0)
     total_runs: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
     success_rate_pct: Mapped[float] = mapped_column(sa.Float, nullable=False, default=0.0)
@@ -97,10 +97,10 @@ class DimProduct(Base, TimestampMixin):
     version: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=1)
     observation_count: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
     first_seen_at: Mapped[dt.datetime] = mapped_column(
-        sa.DateTime(timezone=True), default=utcnow, nullable=False
+        UTCDateTime(), default=utcnow, nullable=False
     )
     last_seen_at: Mapped[dt.datetime] = mapped_column(
-        sa.DateTime(timezone=True), default=utcnow, nullable=False
+        UTCDateTime(), default=utcnow, nullable=False
     )
     extra: Mapped[dict | None] = mapped_column(JSONType, default=dict)
 

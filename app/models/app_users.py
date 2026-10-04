@@ -7,7 +7,7 @@ import datetime as dt
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, JSONType, MediumStr, ShortStr, TimestampMixin, utcnow
+from app.models.base import UTCDateTime, Base, JSONType, MediumStr, ShortStr, TimestampMixin, utcnow
 
 
 class AppUser(Base, TimestampMixin):
@@ -36,12 +36,12 @@ class AppUser(Base, TimestampMixin):
     email_alerts_enabled: Mapped[bool] = mapped_column(sa.Boolean, default=False)
     weekly_digest_enabled: Mapped[bool] = mapped_column(sa.Boolean, default=False)
     login_count: Mapped[int] = mapped_column(sa.Integer, default=0)
-    last_login_at: Mapped[dt.datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    last_login_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
     last_login_ip: Mapped[str | None] = mapped_column(ShortStr)
-    password_changed_at: Mapped[dt.datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    password_changed_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
     two_factor_enabled: Mapped[bool] = mapped_column(sa.Boolean, default=False)
     failed_login_count: Mapped[int] = mapped_column(sa.Integer, default=0)
-    locked_until: Mapped[dt.datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    locked_until: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
     preferences: Mapped[dict | None] = mapped_column(JSONType, default=dict)
 
     __table_args__ = (
@@ -62,8 +62,8 @@ class AppApiKey(Base, TimestampMixin):
     hashed_key: Mapped[str] = mapped_column(sa.String(255), nullable=False)
     scopes: Mapped[list | None] = mapped_column(JSONType, default=list)
     is_active: Mapped[bool] = mapped_column(sa.Boolean, default=True)
-    expires_at: Mapped[dt.datetime | None] = mapped_column(sa.DateTime(timezone=True))
-    last_used_at: Mapped[dt.datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    expires_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
+    last_used_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
     usage_count: Mapped[int] = mapped_column(sa.Integer, default=0)
     rate_limit_per_minute: Mapped[int] = mapped_column(sa.Integer, default=120)
 
@@ -111,7 +111,7 @@ class AppAlertRule(Base, TimestampMixin):
     source_code: Mapped[str | None] = mapped_column(ShortStr)
     is_active: Mapped[bool] = mapped_column(sa.Boolean, default=True)
     channel: Mapped[str] = mapped_column(ShortStr, default="in_app")  # in_app | email | webhook
-    last_triggered_at: Mapped[dt.datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    last_triggered_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
     trigger_count: Mapped[int] = mapped_column(sa.Integer, default=0)
 
     __table_args__ = (
@@ -135,7 +135,7 @@ class AppNotification(Base):
     action_url: Mapped[str | None] = mapped_column(sa.String(512))
     is_read: Mapped[bool] = mapped_column(sa.Boolean, default=False)
     created_at: Mapped[dt.datetime] = mapped_column(
-        sa.DateTime(timezone=True), default=utcnow, nullable=False, index=True
+        UTCDateTime(), default=utcnow, nullable=False, index=True
     )
 
     __table_args__ = (
@@ -160,7 +160,7 @@ class AppAuditLog(Base):
     duration_ms: Mapped[int | None] = mapped_column(sa.Integer)
     details: Mapped[dict | None] = mapped_column(JSONType, default=dict)
     created_at: Mapped[dt.datetime] = mapped_column(
-        sa.DateTime(timezone=True), default=utcnow, nullable=False, index=True
+        UTCDateTime(), default=utcnow, nullable=False, index=True
     )
 
     __table_args__ = (
@@ -181,7 +181,7 @@ class AppSetting(Base):
     is_public: Mapped[bool] = mapped_column(sa.Boolean, default=False)
     updated_by: Mapped[str | None] = mapped_column(MediumStr)
     updated_at: Mapped[dt.datetime] = mapped_column(
-        sa.DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False
+        UTCDateTime(), default=utcnow, onupdate=utcnow, nullable=False
     )
 
 

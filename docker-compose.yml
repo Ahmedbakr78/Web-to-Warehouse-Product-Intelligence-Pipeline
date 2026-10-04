@@ -110,7 +110,7 @@ services:
       - airflow_dags:/opt/airflow/dags_processed
     command: >
       bash -c "airflow db migrate &&
-               airflow users create --username admin --password ${AIRFLOW_ADMIN_PASSWORD:-admin} --firstname DEPI --lastname Admin --role Admin --email admin@pipeline.local || true;
+               airflow users create --username admin --password ${AIRFLOW_ADMIN_PASSWORD:-admin} --firstname DEPI --lastname Admin --role Admin --email admin@example.com || true;
                exec airflow webserver"
     depends_on:
       postgres: {condition: service_healthy}

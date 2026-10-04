@@ -63,10 +63,25 @@ class CatalogMatchResult:
 class CatalogReconciler:
     """Matches the internal catalog against the freshly loaded warehouse."""
 
-    def __init__(self, session: Session, run_id: str, *, threshold: float = 0.86) -> None:
+    def __init__(
+        self,
+        session: Session,
+        run_id: str,
+        *,
+        threshold: float = 0.86,
+        block_length: int = 4,
+        min_pool: int = 12,
+        max_pool: int = 400,
+    ) -> None:
         self.session = session
         self.run_id = run_id
         self.threshold = threshold
+        self.block_length = block_length
+        self.min_pool = min_pool
+        self.max_pool = max_pool
+        self._by_block: dict[str, list[Any]] = {}
+        self._by_token: dict[str, list[Any]] = {}
+        self._index_ready = False
 
     # ------------------------------------------------------------------ helpers
     def _catalog_rows(self, only_active: bool = True) -> list[CatalogProduct]:
@@ -111,12 +126,54 @@ class CatalogReconciler:
                                     p.fingerprint, p.match_strategy, p.match_score
                     FROM dim_product p
                     LEFT JOIN dim_category c ON c.category_id = p.category_id
-                    WHERE p.is_active = 1 AND (p.last_seen_at >= :cutoff OR p.last_seen_at IS NULL)
+                    WHERE p.is_active AND (p.last_seen_at >= :cutoff OR p.last_seen_at IS NULL)
                     """
                 ),
                 {"cutoff": cutoff},
             )
         )
+
+    # ------------------------------------------------------------------ blocking
+    def _build_indexes(self, candidates: Sequence[Any]) -> None:
+        """Pre-compute blocking indexes so each catalog row only sees a handful of
+        candidate products instead of the whole catalogue (O(n*m) -> ~O(n))."""
+        if self._index_ready:
+            return
+        self._by_block: dict[str, list[Any]] = {}
+        self._by_token: dict[str, list[Any]] = {}
+        for candidate in candidates:
+            key = candidate.normalized_name or ""
+            self._by_block.setdefault(key[: self.block_length], []).append(candidate)
+            for token in set(key.split()):
+                self._by_token.setdefault(token, []).append(candidate)
+        self._index_ready = True
+
+    def _narrow_candidates(
+        self, catalog_row: CatalogProduct, catalog_key: str, candidates: Sequence[Any]
+    ) -> list[Any]:
+        self._build_indexes(candidates)
+        pool: list[Any] = []
+        seen: set[int] = set()
+
+        for candidate in self._by_block.get(catalog_key[: self.block_length], []):
+            if candidate.product_id not in seen:
+                seen.add(candidate.product_id)
+                pool.append(candidate)
+
+        if len(pool) < self.min_pool:
+            # Fall back to a rare-token pre-filter (two shared tokens is a strong signal).
+            shared: dict[int, Any] = {}
+            for token in set(catalog_key.split()):
+                for candidate in self._by_token.get(token, []):
+                    shared[candidate.product_id] = candidate
+            for candidate in shared.values():
+                if candidate.product_id not in seen:
+                    seen.add(candidate.product_id)
+                    pool.append(candidate)
+
+        if not pool:
+            pool = list(candidates)[: self.min_pool * 3]
+        return pool[: self.max_pool]
 
     # ------------------------------------------------------------------ matching
     def match_one(
@@ -149,10 +206,11 @@ class CatalogReconciler:
                 chosen = exact[0]
                 strategy, similarity = "normalized_name", 1.0
 
-        # ---- stage 3: fuzzy
+        # ---- stage 3: fuzzy (restricted to plausible candidates via blocking)
         if chosen is None and catalog_key:
+            pool = self._narrow_candidates(catalog_row, catalog_key, candidates)
             best_score, best_candidate = 0.0, None
-            for candidate in candidates:
+            for candidate in pool:
                 if not candidate.normalized_name:
                     continue
                 score, _parts = combined_similarity(
@@ -178,7 +236,9 @@ class CatalogReconciler:
                 candidates=len(candidates),
             )
 
-        scraped_price, scraped_currency, category_name = latest_prices.get(chosen.product_id, (None, None, None))
+        raw_scraped, scraped_currency, category_name = latest_prices.get(chosen.product_id, (None, None, None))
+        # PostgreSQL returns Decimal for Numeric columns - normalise to float here.
+        scraped_price = float(raw_scraped) if raw_scraped is not None else None
         catalog_price = float(catalog_row.list_price) if catalog_row.list_price is not None else None
         gap_abs = None
         gap_pct = None

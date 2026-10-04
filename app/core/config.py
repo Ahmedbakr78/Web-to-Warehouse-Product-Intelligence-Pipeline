@@ -67,11 +67,11 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 720
     refresh_token_expire_days: int = 30
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
-    seed_admin_email: str = "admin@pipeline.local"
+    seed_admin_email: str = "admin@example.com"
     seed_admin_password: str = "Admin@12345"
-    seed_analyst_email: str = "analyst@pipeline.local"
+    seed_analyst_email: str = "analyst@example.com"
     seed_analyst_password: str = "Analyst@12345"
-    seed_viewer_email: str = "viewer@pipeline.local"
+    seed_viewer_email: str = "viewer@example.com"
     seed_viewer_password: str = "Viewer@12345"
     seed_demo_data: bool = True
 

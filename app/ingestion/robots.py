@@ -89,6 +89,9 @@ class RobotsCache:
 
     def _get_parser(self, base_url: str) -> tuple[urllib.robotparser.RobotFileParser | None, tuple[str, ...]]:
         parsed = urlparse(base_url)
+        if parsed.scheme not in ("http", "https"):
+            # Local / synthetic sources never hit the network, so robots.txt is N/A.
+            return None, ()
         origin = f"{parsed.scheme}://{parsed.netloc}"
         now = time.monotonic()
         with self._lock:
@@ -108,8 +111,8 @@ class RobotsCache:
         parser, sitemaps = self._get_parser(url)
 
         if parser is None:
-            # robots.txt unreachable: fall back to the source allow-list decision.
-            allowed = not settings.respect_robots_txt or True
+            # robots.txt unreachable (or a local source): fall back to the allow-list.
+            allowed = True
             decision = RobotsDecision(
                 allowed=allowed,
                 rule="robots-unavailable:fallback-allow (source allow-listed)",

@@ -236,8 +236,8 @@ class Pipeline:
                 result.sources_processed.append(code)
                 self._register_source_dim(session, source, source_stats, time.perf_counter() - source_started, success=True)
             except Exception as exc:
-                message = f"{type(exc).__name__}: {exc}"
-                log.warning("source %s failed: %s", code, message)
+                message = f"{type(exc).__name__}: {str(exc).splitlines()[0][:220]}"
+                log.warning("source %s failed: %s", code, message, exc_info=settings.app_debug)
                 result.sources_failed.append(code)
                 result.warnings.append(f"{code}: {message}")
                 self._register_source_dim(session, None, LoadStats(), time.perf_counter() - source_started, success=False, code=code, message=message)
@@ -288,7 +288,7 @@ class Pipeline:
         run_row.dq_score = (quality or {}).get("score")
         run_row.warnings = result.warnings[:20]
         blocking = (quality or {}).get("blocking") or []
-        run_row.status = "success" if not blocking and not result.sources_failed else ("partial" if not blocking else "failed")
+        run_row.status = "failed" if blocking else ("partial" if result.sources_failed else "success")
         if result.sources_failed and run_row.status == "success":
             run_row.status = "partial"
         run_row.error_message = "; ".join(result.warnings)[:4000] if result.warnings else None
@@ -310,10 +310,14 @@ class Pipeline:
     def _process_source(self, session: Session, run_id: str, source: ProductSource, dedupe: DedupeEngine) -> LoadStats:
         result = self.result
         assert result is not None
-        stats = LoadStats()
         limit = self.config.limit_per_source or settings.max_products_per_source
         loader = WarehouseLoader(session, run_id)
+        stats = loader.stats
         loader.preload_dimensions()
+
+        # The dimension row must exist before any fact references it (FK integrity).
+        dim_source = sync_dim_source(session, source)
+        session.flush()
 
         # ---- extract + stage
         with self._timer("extract") as meta:
@@ -322,74 +326,73 @@ class Pipeline:
             meta["detail"] = f"{source.code} -> {len(raw_records)} records in {source.http_calls} http calls"
 
         with self._timer("stage") as meta:
-            staged_rows = loader.stage(raw_records)
-            meta["rows"] = staged_rows
+            meta["rows"] = loader.stage(raw_records)
 
         # ---- transform
         normalized: list[NormalizedProduct] = []
         rejected: list[tuple[Any, str]] = []
         with self._timer("transform") as meta:
-            by_hash: dict[tuple[str, str], NormalizedProduct] = {}
+            by_key: dict[tuple[str, str], NormalizedProduct] = {}
             for raw in raw_records:
                 record = transform_product(raw, strict=self.config.strict)
                 if record.is_valid:
                     key = (record.source_code, record.source_product_id)
-                    if key in by_hash:      # intra-source duplicate rows
+                    if key in by_key:      # intra-source duplicate rows
                         rejected.append((None, "duplicate_source_row"))
-                        stats.rejected += 1
                         continue
-                    by_hash[key] = record
+                    by_key[key] = record
                     normalized.append(record)
                 else:
                     rejected.append((None, record.reject_reason or "validation_failed"))
             meta["rows"] = len(normalized)
             meta["detail"] = f"{len(normalized)} valid / {len(rejected)} rejected"
 
-        # ---- resolve (dedupe) + load + detect
-        seen_products: set[int] = set()
-        seen_records: list[NormalizedProduct] = []
+        # ---- resolve (deduplicate) + upsert the canonical product
+        resolved: list[tuple[NormalizedProduct, Any, Any]] = []
         with self._timer("resolve") as meta:
             for record in normalized:
                 match = dedupe.find_match(
                     record.canonical_name, brand=record.brand, category=record.category
                 )
+                product, created = loader.upsert_product(record, match)
+                if created or match.is_duplicate:
+                    dedupe.register(product)
                 if match.is_duplicate and match.strategy == "fuzzy":
-                    stats.duplicates_merged += 1
-                seen_records.append(record)
+                    loader.stats.duplicates_merged += 1
+                resolved.append((record, match, product))
+            loader.flush()
             meta["rows"] = len(normalized)
             meta["detail"] = (
-                f"{dedupe.stats.exact} exact / {dedupe.stats.fuzzy} fuzzy matches, "
-                f"{dedupe.stats.blocked_comparisons} comparisons"
+                f"{dedupe.stats.exact} exact / {dedupe.stats.fuzzy} fuzzy matches over "
+                f"{dedupe.stats.blocked_comparisons} candidate comparisons"
             )
 
+        # ---- load snapshots + detect changes
+        seen_products: set[int] = set()
         with self._timer("load") as meta:
-            for record in seen_records:
-                match = dedupe.find_match(record.canonical_name, brand=record.brand, category=record.category)
-                product, _created = loader.upsert_product(record, match)
-                if match.is_duplicate:
-                    dedupe.register(product)
-                seen_products.add(product.product_id)
-            loader.flush()
-            meta["rows"] = stats.snapshots_inserted
-
-        with self._timer("detect") as meta:
-            for record in seen_records:
-                match = dedupe.find_match(record.canonical_name, brand=record.brand, category=record.category)
-                product = loader._product_cache.get(match.product_id) if match.is_duplicate else None
-                if product is None:
-                    product = session.execute(
-                        sa.select(DimProduct).where(
-                            DimProduct.fingerprint == record.fingerprint,
-                            DimProduct.is_active.is_(True),
-                        ).order_by(DimProduct.product_id.desc())
-                    ).scalars().first()
-                if product is None:
+            latest = loader.preload_latest(
+                {product.product_id for _r, _m, product in resolved}, source.code
+            )
+            skipped_duplicates = 0
+            for record, _match, product in resolved:
+                # Two upstream rows can legitimately resolve to the same canonical
+                # product (that *is* duplicate detection working). The fact table grain
+                # is one row per product per run, so only the first one is stored.
+                if product.product_id in seen_products:
+                    skipped_duplicates += 1
+                    loader.stats.duplicates_merged += 1
                     continue
-                previous = loader.previous_snapshot(product.product_id, record.source_code)
+                seen_products.add(product.product_id)
+                previous = latest.get(product.product_id)
                 loader.insert_snapshot(product, record, previous=previous)
             loader.flush()
+            meta["rows"] = loader.stats.snapshots_inserted
+            meta["detail"] = f"{skipped_duplicates} intra-run duplicates collapsed"
+
+        with self._timer("detect") as meta:
             if not self.config.skip_removed:
                 loader.detect_removed(source.code, seen_products, staleness_days=self.config.stale_after_days)
+            loader.flush()
             meta["rows"] = stats.price_changes + stats.new_products + stats.removed_products
             meta["detail"] = (
                 f"{stats.new_products} new, {stats.price_changes} price changes, "
@@ -407,13 +410,15 @@ class Pipeline:
         if source.errors:
             result.warnings.extend(source.errors[:5])
 
+        loader.stats.staged = len(raw_records)
+        loader.stats.rejected = len(rejected)
         loader.update_sync_state(
             source.code,
-            extracted=stats.staged,
+            extracted=loader.stats.staged,
             success=True,
-            message=f"{stats.staged} extracted",
+            message=f"{loader.stats.staged} extracted, {loader.stats.snapshots_inserted} loaded",
         )
-        return stats
+        return loader.stats
 
     def _register_source_dim(
         self,
@@ -435,7 +440,7 @@ class Pipeline:
             row.last_run_at = dt.datetime.now(dt.timezone.utc)
             row.total_runs = (row.total_runs or 0) + 1
             return
-        row = sync_dim_source(session, source)
+        row = session.get(DimSource, source.code) or sync_dim_source(session, source)
         row.total_records = (row.total_records or 0) + stats.staged
         row.total_runs = (row.total_runs or 0) + 1
         row.last_run_at = dt.datetime.now(dt.timezone.utc)

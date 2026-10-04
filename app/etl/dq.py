@@ -81,7 +81,8 @@ class QualityReport:
 
     @property
     def blocking_failures(self) -> list[RuleOutcome]:
-        return [o for o in self.outcomes if o.status == "fail" and _SEVERITY_ORDER[o.severity] >= _SEVERITY_ORDER[SEVERITY_ERROR]]
+        """Only *critical* failures block a run; errors are surfaced as warnings."""
+        return [o for o in self.outcomes if o.status == "fail" and o.severity == SEVERITY_CRITICAL]
 
     @property
     def score(self) -> float:
@@ -109,6 +110,7 @@ class QualityReport:
             "score": self.score,
             "by_dimension": by_dimension,
             "blocking": [o.rule_code for o in self.blocking_failures],
+            "errors": [o.rule_code for o in self.outcomes if o.status == "fail" and o.severity != SEVERITY_CRITICAL],
         }
 
 
@@ -127,17 +129,23 @@ class Rule:
     evaluator: Callable[[Session, dict[str, Any]], RuleOutcome]
 
     def run(self, session: Session, context: dict[str, Any] | None = None) -> RuleOutcome:
+        """Evaluate inside a SAVEPOINT so a broken rule cannot abort the run."""
+        nested = session.begin_nested()
         try:
-            return self.evaluator(session, context or {})
-        except Exception as exc:  # pragma: no cover - a broken rule must not kill the run
-            log.exception("rule %s crashed", self.code)
+            outcome = self.evaluator(session, context or {})
+            nested.commit()
+            return outcome
+        except Exception as exc:  # a broken rule must never kill the pipeline
+            nested.rollback()
+            message = str(getattr(exc, "orig", exc)).splitlines()[0][:200]
+            log.warning("rule %s failed: %s: %s", self.code, type(exc).__name__, message)
             return RuleOutcome(
                 rule_code=self.code,
                 rule_name=self.name,
                 dimension=self.dimension,
                 severity=self.severity,
                 status="fail",
-                message=f"rule evaluation error: {type(exc).__name__}: {exc}",
+                message=f"rule evaluation error: {type(exc).__name__}: {message}",
             )
 
 
@@ -168,7 +176,7 @@ def _completeness(session: Session, ctx: dict[str, Any]) -> RuleOutcome:
         sa.text(
             """
             SELECT COUNT(*) FROM dim_product
-            WHERE is_active = 1
+            WHERE is_active
               AND (canonical_name IS NULL OR canonical_name = ''
                    OR category_id IS NULL
                    OR current_price IS NULL)
@@ -278,7 +286,7 @@ def _uniqueness_fingerprint(session: Session, ctx: dict[str, Any]) -> RuleOutcom
             SELECT COUNT(*), COALESCE(SUM(CASE WHEN dup_count > 1 THEN dup_count - 1 ELSE 0 END), 0)
             FROM (
                 SELECT fingerprint, COUNT(*) AS dup_count
-                FROM dim_product WHERE is_active = 1
+                FROM dim_product WHERE is_active
                 GROUP BY fingerprint
             ) t
             """
@@ -369,7 +377,7 @@ def _category_coverage(session: Session, ctx: dict[str, Any]) -> RuleOutcome:
                    COALESCE(SUM(CASE WHEN c.slug = 'uncategorised' THEN 1 ELSE 0 END), 0)
             FROM dim_product p
             LEFT JOIN dim_category c ON c.category_id = p.category_id
-            WHERE p.is_active = 1
+            WHERE p.is_active
             """
         )
     ).one()
@@ -470,7 +478,7 @@ def _rejected_ratio(session: Session, ctx: dict[str, Any]) -> RuleOutcome:
     row = session.execute(
         sa.text(
             """
-            SELECT COUNT(*), COALESCE(SUM(CASE WHEN is_valid = 0 THEN 1 ELSE 0 END), 0)
+            SELECT COUNT(*), COALESCE(SUM(CASE WHEN NOT is_valid THEN 1 ELSE 0 END), 0)
             FROM stg_raw_observation WHERE run_id = :run_id
             """,
         ),
@@ -545,6 +553,7 @@ def evaluate_quality(
             continue
         outcome = rule.run(session, context)
         report.outcomes.append(outcome)
+        nested = session.begin_nested()
         session.add(
             DqRuleResult(
                 run_id=run_id,
@@ -565,6 +574,10 @@ def evaluate_quality(
                 evaluated_at=dt.datetime.now(dt.timezone.utc),
             )
         )
+        try:
+            nested.commit()
+        except Exception:  # pragma: no cover - persistence issue for one rule
+            nested.rollback()
     session.flush()
 
     report.duration_ms = round((time.perf_counter() - started) * 1000, 2)

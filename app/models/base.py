@@ -7,13 +7,16 @@ from typing import Any
 
 import sqlalchemy as sa
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry
+from sqlalchemy.types import TypeDecorator
 
 # --------------------------------------------------------------------------------------
 # Portability helpers
 # --------------------------------------------------------------------------------------
-# MySQL has no native JSON guarantee on old versions and TEXT columns behave more
-# predictably for our payloads, while PostgreSQL keeps its rich JSONB type.
-JSONType = sa.JSON().with_variant(sa.Text(length=65_535), "mysql")
+# Portable JSON column: PostgreSQL uses its native JSON type, MySQL 8 uses its native
+# JSON type and SQLite serialises to TEXT. ``none_as_null=True`` maps Python ``None``
+# to a real SQL NULL (instead of a JSON ``null`` document) so ``IS NULL`` checks and
+# data-quality rules behave identically on every dialect.
+JSONType = sa.JSON(none_as_null=True)
 # Short VARCHARs everywhere: MySQL cannot index unbounded TEXT columns.
 ShortStr = sa.String(128)
 MediumStr = sa.String(512)
@@ -49,18 +52,49 @@ class Base(DeclarativeBase):
         return f"<{type(self).__name__} {pk}>"
 
 
+def utcnow() -> dt.datetime:
+    """Timezone-aware ``now`` used across the codebase."""
+    return dt.datetime.now(dt.timezone.utc)
+
+
+class UTCDateTime(TypeDecorator):
+    """Timezone-aware UTC timestamp that behaves identically on every dialect.
+
+    MySQL and SQLite ``DATETIME`` columns cannot store a timezone, so a naive value
+    would otherwise leak into the application and break every comparison with an
+    aware ``datetime``.  This decorator normalises the boundary:
+
+    * **bind** - any aware datetime is converted to UTC and stored naive (UTC)
+    * **result** - naive values coming back from the database are re-tagged as UTC
+
+    The result is one code path that works on PostgreSQL, MySQL and SQLite.
+    """
+
+    impl = sa.DateTime(timezone=True)
+    cache_ok = True
+
+    def process_bind_param(self, value: Any, dialect: Any) -> dt.datetime | None:
+        if value is None:
+            return None
+        if isinstance(value, dt.datetime):
+            if value.tzinfo is None:
+                return value
+            return value.astimezone(dt.timezone.utc).replace(tzinfo=None)
+        return value
+
+    def process_result_value(self, value: dt.datetime | None, dialect: Any) -> dt.datetime | None:
+        if value is None:
+            return None
+        if value.tzinfo is None:
+            return value.replace(tzinfo=dt.timezone.utc)
+        return value.astimezone(dt.timezone.utc)
+
+
 class TimestampMixin:
     """``created_at`` / ``updated_at`` columns maintained by the ORM."""
 
-    created_at: Mapped[dt.datetime] = mapped_column(
-        sa.DateTime(timezone=True), default=dt.datetime.now(dt.timezone.utc), nullable=False
-    )
-    updated_at: Mapped[dt.datetime] = mapped_column(
-        sa.DateTime(timezone=True),
-        default=dt.datetime.now(dt.timezone.utc),
-        onupdate=dt.datetime.now(dt.timezone.utc),
-        nullable=False,
-    )
+    created_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), default=utcnow, nullable=False)
+    updated_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), default=utcnow, onupdate=utcnow, nullable=False)
 
 
 class NumericMixin:
@@ -73,11 +107,6 @@ class NumericMixin:
     @staticmethod
     def ratio() -> Any:
         return sa.Numeric(9, 6)
-
-
-def utcnow() -> dt.datetime:
-    """Timezone-aware ``now`` used across the codebase."""
-    return dt.datetime.now(dt.timezone.utc)
 
 
 def as_aware(value: dt.datetime | None) -> dt.datetime | None:
@@ -96,6 +125,7 @@ def table_args_indexes(*indexes: tuple[sa.Index, ...]) -> tuple[Any, ...]:
 
 __all__ = [
     "Base",
+    "UTCDateTime",
     "TimestampMixin",
     "NumericMixin",
     "JSONType",

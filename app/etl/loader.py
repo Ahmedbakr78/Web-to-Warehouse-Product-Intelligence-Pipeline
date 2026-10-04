@@ -273,6 +273,29 @@ class WarehouseLoader:
         return product, created
 
     # ------------------------------------------------------------------ snapshots
+    def preload_latest(
+        self, product_ids: set[int], source_code: str
+    ) -> dict[int, FactPriceSnapshot]:
+        """Latest snapshot per product for one source, in a single query.
+
+        Avoids the N+1 pattern that would otherwise occur when inserting one snapshot
+        per product, and keeps change detection correct inside a single run.
+        """
+        if not product_ids:
+            return {}
+        rows = self.session.execute(
+            sa.select(FactPriceSnapshot)
+            .where(
+                FactPriceSnapshot.source_code == source_code,
+                FactPriceSnapshot.product_id.in_(product_ids),
+            )
+            .order_by(FactPriceSnapshot.product_id, FactPriceSnapshot.captured_at.desc())
+        ).scalars().all()
+        latest: dict[int, FactPriceSnapshot] = {}
+        for row in rows:
+            latest.setdefault(row.product_id, row)
+        return latest
+
     def previous_snapshot(self, product_id: int, source_code: str) -> FactPriceSnapshot | None:
         """Most recent snapshot for this product from this source."""
         stmt = (
@@ -349,7 +372,12 @@ class WarehouseLoader:
             )
             self.stats.price_changes += 1
 
-        # ---- product lifecycle events
+        # ---- product lifecycle events + current/previous price on the dimension
+        if record.price is not None:
+            product.current_price = record.price
+        if previous is not None and previous.price is not None:
+            product.previous_price = previous.price
+
         if previous is None:
             self.session.add(
                 ChgProductEvent(
@@ -379,9 +407,6 @@ class WarehouseLoader:
                     detected_at=self.captured_at,
                 )
             )
-            if record.price is not None and previous.price is not None and previous.price != record.price:
-                product.previous_price = previous.price
-            product.current_price = record.price if record.price is not None else product.current_price
         return snapshot
 
     # ------------------------------------------------------------------ removals

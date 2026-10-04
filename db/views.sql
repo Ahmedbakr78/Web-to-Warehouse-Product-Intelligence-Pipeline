@@ -235,12 +235,15 @@ SELECT s.date_id,
        p.category_id,
        c.name AS category_name,
        COUNT(*) AS observation_count,
-       ROUND(AVG(s.price_usd), 4) AS avg_price_usd,
-       ROUND(MIN(s.price_usd), 4) AS min_price_usd,
-       ROUND(MAX(s.price_usd), 4) AS max_price_usd,
-       ROUND(AVG(s.rating), 4) AS avg_rating,
+       ROUND(CAST(AVG(s.price_usd) AS DECIMAL(24,6)), 4) AS avg_price_usd,
+       ROUND(CAST(MIN(s.price_usd) AS DECIMAL(24,6)), 4) AS min_price_usd,
+       ROUND(CAST(MAX(s.price_usd) AS DECIMAL(24,6)), 4) AS max_price_usd,
+       ROUND(CAST(AVG(s.rating) AS DECIMAL(24,6)), 4) AS avg_rating,
        -- Portable population variance (SQLite has no STDDEV, MySQL/PG differ in name).
-       ROUND(SQRT(MAX(AVG(s.price_usd) * AVG(s.price_usd) - AVG(s.price_usd * s.price_usd), 0)), 4) AS price_stddev,
+       ROUND(CAST(SQRT(CASE WHEN (AVG(s.price_usd) * AVG(s.price_usd) - AVG(s.price_usd * s.price_usd)) < 0
+                                   THEN 0
+                                   ELSE (AVG(s.price_usd) * AVG(s.price_usd) - AVG(s.price_usd * s.price_usd))
+                              END) AS DECIMAL(24,6)), 4) AS price_stddev,
        COUNT(DISTINCT p.product_id) AS distinct_products
 FROM fact_price_snapshot s
 JOIN dim_product p ON p.product_id = s.product_id
@@ -255,11 +258,11 @@ CREATE VIEW vw_brand_summary AS
 SELECT p.brand,
        c.name AS category_name,
        COUNT(DISTINCT p.product_id) AS product_count,
-       ROUND(AVG(s.price_usd), 4) AS avg_price_usd,
-       ROUND(MIN(s.price_usd), 4) AS min_price_usd,
-       ROUND(MAX(s.price_usd), 4) AS max_price_usd,
-       ROUND(AVG(s.rating), 4) AS avg_rating,
-       SUM(CASE WHEN s.in_stock = 1 THEN 1 ELSE 0 END) AS in_stock_observations,
+       ROUND(CAST(AVG(s.price_usd) AS DECIMAL(24,6)), 4) AS avg_price_usd,
+       ROUND(CAST(MIN(s.price_usd) AS DECIMAL(24,6)), 4) AS min_price_usd,
+       ROUND(CAST(MAX(s.price_usd) AS DECIMAL(24,6)), 4) AS max_price_usd,
+       ROUND(CAST(AVG(s.rating) AS DECIMAL(24,6)), 4) AS avg_rating,
+       SUM(CASE WHEN s.in_stock THEN 1 ELSE 0 END) AS in_stock_observations,
        MAX(s.captured_at) AS last_seen_at
 FROM dim_product p
 JOIN fact_price_snapshot s ON s.product_id = p.product_id
@@ -278,8 +281,8 @@ SELECT src.source_code,
        src.rate_limit_per_minute,
        COUNT(DISTINCT s.product_id) AS products_seen,
        COUNT(s.snapshot_id)          AS observations,
-       ROUND(AVG(s.price_usd), 4)    AS avg_price_usd,
-       ROUND(AVG(s.rating), 4)       AS avg_rating,
+       ROUND(CAST(AVG(s.price_usd) AS DECIMAL(24,6)), 4)    AS avg_price_usd,
+       ROUND(CAST(AVG(s.rating) AS DECIMAL(24,6)), 4)       AS avg_rating,
        MAX(s.captured_at)            AS last_observation_at,
        src.success_rate_pct,
        src.avg_duration_seconds
@@ -313,6 +316,9 @@ SELECT r.run_id,
        r.status,
        r.trigger,
        r.target_database,
+       r.dag_id,
+       r.task_id,
+       r.run_key,
        r.started_at,
        r.finished_at,
        r.duration_ms,
@@ -329,7 +335,7 @@ SELECT r.run_id,
        r.dq_score,
        CASE
            WHEN r.records_extracted > 0
-           THEN ROUND((r.records_valid / r.records_extracted) * 100, 2)
+           THEN ROUND(CAST((r.records_valid / r.records_extracted) * 100 AS DECIMAL(24,6)), 2)
            ELSE 0
        END AS yield_pct,
        r.error_message
@@ -392,8 +398,8 @@ CREATE VIEW vw_availability_summary AS
 SELECT p.category_id,
        c.name AS category_name,
        COUNT(*) AS observations,
-       SUM(CASE WHEN s.in_stock = 1 THEN 1 ELSE 0 END) AS in_stock_count,
-       ROUND(100.0 * SUM(CASE WHEN s.in_stock = 1 THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0), 2) AS in_stock_pct,
+       SUM(CASE WHEN s.in_stock THEN 1 ELSE 0 END) AS in_stock_count,
+       ROUND(CAST(100.0 * SUM(CASE WHEN s.in_stock THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0) AS DECIMAL(24,6)), 2) AS in_stock_pct,
        SUM(CASE WHEN s.availability = 'out_of_stock' THEN 1 ELSE 0 END) AS out_of_stock_count
 FROM fact_price_snapshot s
 JOIN dim_product p ON p.product_id = s.product_id
@@ -408,9 +414,9 @@ SELECT s.date_id,
        d.full_date,
        COUNT(DISTINCT s.product_id) AS products_observed,
        COUNT(s.snapshot_id)         AS observations,
-       ROUND(AVG(s.price_usd), 4)   AS avg_price_usd,
-       ROUND(AVG(s.rating), 4)      AS avg_rating,
-       ROUND(100.0 * SUM(CASE WHEN s.in_stock = 1 THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0), 2) AS in_stock_pct
+       ROUND(CAST(AVG(s.price_usd) AS DECIMAL(24,6)), 4)   AS avg_price_usd,
+       ROUND(CAST(AVG(s.rating) AS DECIMAL(24,6)), 4)      AS avg_rating,
+       ROUND(CAST(100.0 * SUM(CASE WHEN s.in_stock THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0) AS DECIMAL(24,6)), 2) AS in_stock_pct
 FROM fact_price_snapshot s
 LEFT JOIN dim_date d ON d.date_id = s.date_id
 GROUP BY s.date_id, d.full_date;
@@ -470,7 +476,7 @@ SELECT c.category_id,
        c.path,
        c.parent_id,
        c.product_count,
-       (SELECT COUNT(*) FROM dim_product p2 WHERE p2.category_id = c.category_id AND p2.is_active = 1) AS active_products,
-       (SELECT ROUND(AVG(s.price_usd), 2) FROM fact_price_snapshot s WHERE s.product_id IN
-            (SELECT p3.product_id FROM dim_product p3 WHERE p3.category_id = c.category_id AND p3.is_active = 1)) AS avg_price_usd
+       (SELECT COUNT(*) FROM dim_product p2 WHERE p2.category_id = c.category_id AND p2.is_active) AS active_products,
+       (SELECT ROUND(CAST(AVG(s.price_usd) AS DECIMAL(24,6)), 2) FROM fact_price_snapshot s WHERE s.product_id IN
+            (SELECT p3.product_id FROM dim_product p3 WHERE p3.category_id = c.category_id AND p3.is_active)) AS avg_price_usd
 FROM dim_category c;

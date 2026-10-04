@@ -13,7 +13,7 @@ from typing import Any
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
-from app.core.config import settings
+from app.core.config import DB_DIR, settings
 from app.core.db import get_engine, session_scope
 from app.core.logging import get_logger
 from app.ingestion.cleaning import CURRENCY_NAMES, STATIC_FX_RATES
@@ -32,6 +32,11 @@ def create_schema(database: str | None = None, *, drop: bool = False) -> dict[st
     started = time.perf_counter()
     if drop:
         log.warning("dropping all tables on %s", engine.url.render_as_string(hide_password=True))
+        # Analytical views depend on the tables, so they must go first.
+        try:
+            drop_views(database)
+        except Exception as exc:  # pragma: no cover - best effort cleanup
+            log.debug("view cleanup before drop failed: %s", exc)
         Base.metadata.drop_all(engine)
     if engine.dialect.name == "postgresql":
         with engine.begin() as conn:
@@ -49,6 +54,11 @@ def create_schema(database: str | None = None, *, drop: bool = False) -> dict[st
     }
 
 
+def quote_identifier(engine: Any, name: str) -> str:
+    """Dialect-correct quoting (double quotes on PostgreSQL/SQLite, backticks on MySQL)."""
+    return engine.dialect.identifier_preparer.quote(name)
+
+
 def table_report(database: str | None = None) -> list[dict[str, Any]]:
     """Row counts per table (used by ``verify`` and the health endpoint)."""
     engine = get_engine(database)
@@ -56,8 +66,9 @@ def table_report(database: str | None = None) -> list[dict[str, Any]]:
     report: list[dict[str, Any]] = []
     with engine.connect() as conn:
         for table in sorted(inspector.get_table_names()):
+            quoted = quote_identifier(engine, table)
             try:
-                count = conn.execute(sa.text(f'SELECT COUNT(*) FROM "{table}"')).scalar() or 0
+                count = conn.execute(sa.text(f"SELECT COUNT(*) FROM {quoted}")).scalar() or 0
             except Exception:  # pragma: no cover - view/permission issues
                 count = None
             report.append({"table": table, "rows": count})
@@ -189,7 +200,7 @@ def bootstrap(database: str | None = None, *, drop: bool = False) -> dict[str, A
 # --------------------------------------------------------------------------------------
 # Views
 # --------------------------------------------------------------------------------------
-VIEWS_DIR = settings.DB_DIR
+VIEWS_DIR = DB_DIR
 
 
 def _load_sql_statements(path: Any) -> list[str]:
@@ -210,26 +221,53 @@ def _load_sql_statements(path: Any) -> list[str]:
 
 
 def apply_views(database: str | None = None) -> list[str]:
-    """Create the analytical views (portable SQL only)."""
+    """Create the analytical views (portable SQL only).
+
+    Every statement runs in its own connection/transaction.  That isolates failures
+    (one bad view never aborts the batch) and works identically on PostgreSQL, MySQL -
+    where DDL triggers an implicit commit and therefore invalidates SAVEPOINTs - and
+    SQLite.
+    """
     engine = get_engine(database)
     path = VIEWS_DIR / "views.sql"
     if not path.exists():
         log.warning("views.sql not found at %s", path)
         return []
+
+    quote = "`" if engine.dialect.name == "mysql" else '"'
+    cascade = " CASCADE" if engine.dialect.name == "postgresql" else ""
+    statements = [
+        statement
+        for statement in _load_sql_statements(path)
+        if statement.lower().startswith(("create", "replace"))
+    ]
+    names = [_view_name(statement) for statement in statements]
     applied: list[str] = []
-    with engine.begin() as conn:
-        for statement in _load_sql_statements(path):
-            if not statement.lower().startswith(("create", "replace")):
-                continue
-            name = _view_name(statement)
-            drop = f'DROP VIEW IF EXISTS "{name}"' if engine.dialect.name == "postgresql" else f"DROP VIEW IF EXISTS `{name}`"
+    failed: list[str] = []
+
+    # Drop first (reverse order + CASCADE) so dependent views never block the refresh.
+    with engine.connect() as conn:
+        for name in reversed(names):
             try:
-                conn.execute(sa.text(drop))
+                conn.execute(sa.text(f"DROP VIEW IF EXISTS {quote}{name}{quote}{cascade}"))
+            except Exception:
+                pass
+        conn.commit()
+
+    for statement, name in zip(statements, names, strict=False):
+        try:
+            with engine.connect() as conn:
                 conn.execute(sa.text(statement))
-                applied.append(name)
-            except Exception as exc:  # pragma: no cover - dialect specific failures
-                log.warning("view %s failed: %s", name, exc)
-    log.info("applied %d views on %s", len(applied), engine.dialect.name)
+                conn.commit()
+            applied.append(name)
+        except Exception as exc:
+            message = str(getattr(exc, "orig", exc)).splitlines()[0][:200]
+            log.warning("view %s failed on %s: %s", name, engine.dialect.name, message)
+            failed.append(name)
+
+    log.info("applied %d/%d views on %s", len(applied), len(statements), engine.dialect.name)
+    if failed:
+        log.warning("views not applied on %s: %s", engine.dialect.name, ", ".join(failed))
     return applied
 
 
@@ -245,20 +283,29 @@ def _view_name(statement: str) -> str:
 
 
 def drop_views(database: str | None = None) -> int:
-    """Remove every view created by :func:`apply_views`."""
+    """Drop every analytical view that currently exists in the target database."""
     engine = get_engine(database)
-    applied = apply_views(database)
-    with engine.begin() as conn:
-        quote = '"' if engine.dialect.name != "mysql" else "`"
-        for name in applied:
+    try:
+        views = sa.inspect(engine).get_view_names()
+    except Exception:  # pragma: no cover - dialect without view introspection
+        views = []
+    quote = "`" if engine.dialect.name == "mysql" else '"'
+    cascade = " CASCADE" if engine.dialect.name == "postgresql" else ""
+    dropped = 0
+    with engine.connect() as conn:
+        for name in views:
             try:
-                conn.execute(sa.text(f"DROP VIEW IF EXISTS {quote}{name}{quote}"))
-            except Exception:  # pragma: no cover
-                pass
-    return len(applied)
+                conn.execute(sa.text(f"DROP VIEW IF EXISTS {quote}{name}{quote}{cascade}"))
+                dropped += 1
+            except Exception as exc:  # pragma: no cover
+                log.debug("could not drop view %s: %s", name, exc)
+        conn.commit()
+    log.info("dropped %d views on %s", dropped, engine.dialect.name)
+    return dropped
 
 
 __all__ = [
+    "quote_identifier",
     "create_schema",
     "table_report",
     "seed_dim_date",

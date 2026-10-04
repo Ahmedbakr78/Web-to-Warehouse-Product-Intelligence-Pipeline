@@ -7,7 +7,7 @@ import datetime as dt
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, JSONType, ShortStr, UrlStr, utcnow
+from app.models.base import UTCDateTime, Base, JSONType, ShortStr, UrlStr, utcnow
 
 
 class FactPriceSnapshot(Base):
@@ -25,9 +25,9 @@ class FactPriceSnapshot(Base):
     source_code: Mapped[str] = mapped_column(ShortStr, sa.ForeignKey("dim_source.source_code"), nullable=False)
     run_id: Mapped[str] = mapped_column(ShortStr, sa.ForeignKey("etl_run.run_id"), nullable=False)
     date_id: Mapped[int] = mapped_column(sa.Integer, sa.ForeignKey("dim_date.date_id"), nullable=False)
-    captured_at: Mapped[dt.datetime] = mapped_column(sa.DateTime(timezone=True), nullable=False)
+    captured_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), nullable=False)
     ingested_at: Mapped[dt.datetime] = mapped_column(
-        sa.DateTime(timezone=True), default=utcnow, nullable=False
+        UTCDateTime(), default=utcnow, nullable=False
     )
     price: Mapped[float | None] = mapped_column(sa.Numeric(18, 4))
     list_price: Mapped[float | None] = mapped_column(sa.Numeric(18, 4))
@@ -44,7 +44,7 @@ class FactPriceSnapshot(Base):
     is_first_sighting: Mapped[bool] = mapped_column(sa.Boolean, default=False)
     product_url: Mapped[str | None] = mapped_column(UrlStr)
     raw_price_text: Mapped[str | None] = mapped_column(ShortStr)
-    quality_flags: Mapped[list | None] = mapped_column(JSONType, default=list)
+    quality_flags: Mapped[list | None] = mapped_column(JSONType, default=None)
 
     __table_args__ = (
         sa.UniqueConstraint("product_id", "run_id", name="uq_fact_price_product_run"),
@@ -80,7 +80,7 @@ class FactCatalogSnapshot(Base):
     brand_match: Mapped[bool | None] = mapped_column(sa.Boolean)
     is_price_mismatch: Mapped[bool] = mapped_column(sa.Boolean, default=False)
     matched_at: Mapped[dt.datetime] = mapped_column(
-        sa.DateTime(timezone=True), default=utcnow, nullable=False
+        UTCDateTime(), default=utcnow, nullable=False
     )
     details: Mapped[dict | None] = mapped_column(JSONType, default=dict)
 
@@ -113,7 +113,7 @@ class ChgPriceChange(Base):
     previous_price_usd: Mapped[float | None] = mapped_column(sa.Numeric(18, 4))
     new_price_usd: Mapped[float | None] = mapped_column(sa.Numeric(18, 4))
     detected_at: Mapped[dt.datetime] = mapped_column(
-        sa.DateTime(timezone=True), default=utcnow, nullable=False
+        UTCDateTime(), default=utcnow, nullable=False
     )
 
     __table_args__ = (
@@ -142,7 +142,7 @@ class ChgProductEvent(Base):
     new_category_id: Mapped[int | None] = mapped_column(sa.Integer)
     days_missing: Mapped[int | None] = mapped_column(sa.Integer)
     detected_at: Mapped[dt.datetime] = mapped_column(
-        sa.DateTime(timezone=True), default=utcnow, nullable=False
+        UTCDateTime(), default=utcnow, nullable=False
     )
     details: Mapped[dict | None] = mapped_column(JSONType, default=dict)
 
@@ -173,7 +173,7 @@ class AggCategoryDaily(Base):
     price_change_count: Mapped[int] = mapped_column(sa.Integer, default=0)
     avg_price_change_pct: Mapped[float | None] = mapped_column(sa.Float)
     computed_at: Mapped[dt.datetime] = mapped_column(
-        sa.DateTime(timezone=True), default=utcnow, nullable=False
+        UTCDateTime(), default=utcnow, nullable=False
     )
 
     __table_args__ = (

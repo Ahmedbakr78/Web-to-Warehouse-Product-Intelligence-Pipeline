@@ -7,7 +7,7 @@ import datetime as dt
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, JSONType, MediumStr, ShortStr, UrlStr, utcnow
+from app.models.base import UTCDateTime, Base, JSONType, MediumStr, ShortStr, UrlStr, utcnow
 
 
 class EtlRun(Base):
@@ -24,9 +24,9 @@ class EtlRun(Base):
     status: Mapped[str] = mapped_column(ShortStr, nullable=False, default="pending")
     trigger: Mapped[str] = mapped_column(ShortStr, nullable=False, default="manual")
     started_at: Mapped[dt.datetime] = mapped_column(
-        sa.DateTime(timezone=True), default=utcnow, nullable=False
+        UTCDateTime(), default=utcnow, nullable=False
     )
-    finished_at: Mapped[dt.datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    finished_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
     duration_ms: Mapped[int | None] = mapped_column(sa.Integer)
     records_extracted: Mapped[int] = mapped_column(sa.Integer, default=0)
     records_valid: Mapped[int] = mapped_column(sa.Integer, default=0)
@@ -46,7 +46,7 @@ class EtlRun(Base):
     params: Mapped[dict | None] = mapped_column(JSONType, default=dict)
     created_by: Mapped[str | None] = mapped_column(ShortStr)
     created_at: Mapped[dt.datetime] = mapped_column(
-        sa.DateTime(timezone=True), default=utcnow, nullable=False
+        UTCDateTime(), default=utcnow, nullable=False
     )
 
     __table_args__ = (
@@ -78,7 +78,7 @@ class DqRuleResult(Base):
     message: Mapped[str | None] = mapped_column(sa.Text)
     evidence: Mapped[dict | None] = mapped_column(JSONType, default=dict)
     evaluated_at: Mapped[dt.datetime] = mapped_column(
-        sa.DateTime(timezone=True), default=utcnow, nullable=False
+        UTCDateTime(), default=utcnow, nullable=False
     )
 
     __table_args__ = (
@@ -108,7 +108,7 @@ class IngestionHttpLog(Base):
     retry_count: Mapped[int] = mapped_column(sa.Integer, default=0)
     error: Mapped[str | None] = mapped_column(sa.Text)
     requested_at: Mapped[dt.datetime] = mapped_column(
-        sa.DateTime(timezone=True), default=utcnow, nullable=False, index=True
+        UTCDateTime(), default=utcnow, nullable=False, index=True
     )
 
     __table_args__ = (
@@ -139,10 +139,10 @@ class StgRawObservation(Base):
     is_valid: Mapped[bool] = mapped_column(sa.Boolean, default=True)
     reject_reason: Mapped[str | None] = mapped_column(MediumStr)
     fetched_at: Mapped[dt.datetime] = mapped_column(
-        sa.DateTime(timezone=True), default=utcnow, nullable=False
+        UTCDateTime(), default=utcnow, nullable=False
     )
     landed_at: Mapped[dt.datetime] = mapped_column(
-        sa.DateTime(timezone=True), default=utcnow, nullable=False
+        UTCDateTime(), default=utcnow, nullable=False
     )
 
     __table_args__ = (
@@ -158,8 +158,8 @@ class SyncState(Base):
 
     source_code: Mapped[str] = mapped_column(ShortStr, primary_key=True)
     last_run_id: Mapped[str | None] = mapped_column(ShortStr)
-    last_success_at: Mapped[dt.datetime | None] = mapped_column(sa.DateTime(timezone=True))
-    last_attempt_at: Mapped[dt.datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    last_success_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
+    last_attempt_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
     cursor_value: Mapped[str | None] = mapped_column(MediumStr)
     cursor_json: Mapped[dict | None] = mapped_column(JSONType, default=dict)
     total_extracted: Mapped[int] = mapped_column(sa.BigInteger, default=0)
