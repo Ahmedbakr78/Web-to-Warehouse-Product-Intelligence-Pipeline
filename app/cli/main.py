@@ -338,7 +338,6 @@ def run_pipeline(
 
     for warning in result.warnings[:8]:
         console.print(f"[warn]![/] {warning}")
-    colour = "ok" if result.status == "success" else ("warn" if result.status == "partial" else "err")
     _status_line(f"status: {result.status}", ok=result.status == "success")
     if result.status == "failed":
         raise typer.Exit(code=1)

@@ -163,7 +163,8 @@ def export_products(
     buffer = io.StringIO()
     writer = csv.writer(buffer)
     if rows:
-        writer.writerow(rows[0].keys())
+        columns = list(rows[0].keys())
+        writer.writerow(columns)
         for row in rows:
-            writer.writerow([row[column] for column in row.keys()])
+            writer.writerow([row[column] for column in columns])
     return buffer.getvalue()
