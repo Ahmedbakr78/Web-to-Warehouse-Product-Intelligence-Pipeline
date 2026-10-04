@@ -177,7 +177,7 @@ class LocalFixtureSource(ProductSource):
             base_price = round(base_price - (base_price % 0.01) + rng.choice([0.0, 0.49, 0.99]), 2)
             currency = rng.choice(CURRENCIES)
             symbol = {"USD": "$", "EUR": "\u20ac", "GBP": "\u00a3"}.get(currency, "")
-            price = f"{symbol}{base_price:,.2f}"
+            price_text = f"{symbol}{base_price:,.2f}"
             rating = round(rng.uniform(2.5, 5.0), 1)
             availability = AVAILABILITY_CYCLE[rng.randrange(len(AVAILABILITY_CYCLE))]
             product_id = f"DEMO-{index + 1:04d}"
@@ -210,7 +210,7 @@ class LocalFixtureSource(ProductSource):
                 source_product_id=product_id,
                 name=payload["title"] or "",
                 category=category,
-                price_text=(f"{symbol}{base_price:,.2f}" if payload["price"] is not None else None),
+                price_text=(price_text if payload["price"] is not None else None),
                 currency_hint=currency,
                 rating_text=(f"{payload['rating']} out of 5" if payload["rating"] is not None else None),
                 availability_text=payload["availability"],

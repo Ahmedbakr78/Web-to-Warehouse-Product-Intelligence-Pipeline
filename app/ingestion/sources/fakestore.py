@@ -36,13 +36,9 @@ class FakeStoreProductsSource(ProductSource):
     def fetch(self, limit: int | None = None) -> Iterator[RawProduct]:
         limit = limit or settings.max_products_per_source
         self._count_request()
-        items = self.client.get_json(self.base_url)
-        emitted = 0
-        for item in items or []:
-            if emitted >= limit:
-                break
+        items = self.client.get_json(self.base_url) or []
+        for item in items[:limit]:
             yield self._to_raw(item)
-            emitted += 1
 
     def _to_raw(self, item: dict[str, Any]) -> RawProduct:
         rating = item.get("rating")

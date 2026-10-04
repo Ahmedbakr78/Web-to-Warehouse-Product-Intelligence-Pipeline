@@ -117,7 +117,7 @@ def jaro_winkler(a: str, b: str, *, prefix_scale: float = 0.1, max_prefix: int =
     if base < 0.7:
         return base
     prefix = 0
-    for x, y in zip(a[:max_prefix], b[:max_prefix]):
+    for x, y in zip(a[:max_prefix], b[:max_prefix], strict=False):
         if x != y:
             break
         prefix += 1
@@ -194,7 +194,7 @@ def digit_signature_factor(sig_a: tuple[str, ...], sig_b: tuple[str, ...]) -> fl
         return 1.0
     if sig_a == sig_b:
         return 1.0
-    differences = sum(1 for x, y in zip(sig_a, sig_b) if x != y) + abs(len(sig_a) - len(sig_b))
+    differences = sum(1 for x, y in zip(sig_a, sig_b, strict=False) if x != y) + abs(len(sig_a) - len(sig_b))
     if differences <= 1:
         return 0.85
     return 0.60
