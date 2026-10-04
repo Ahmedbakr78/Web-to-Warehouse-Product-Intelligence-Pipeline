@@ -85,7 +85,10 @@ services:
   # Airflow - pipeline orchestration (LocalExecutor)
   # ------------------------------------------------------------------
   airflow:
-    image: apache/airflow:2.10.5-python3.12
+    build:
+      context: .
+      dockerfile: docker/airflow.Dockerfile
+    image: pip/airflow:2.10.5
     container_name: pip-airflow
     restart: unless-stopped
     user: "${AIRFLOW_UID:-50000}:${AIRFLOW_GID:-0}"
@@ -100,6 +103,8 @@ services:
       AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.session
       TZ: UTC
       PIP_DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-pip}:${POSTGRES_PASSWORD:-pip}@postgres:5432/${POSTGRES_DB:-pipeline}
+      PIPELINE_API_URL: ${PIPELINE_API_URL:-http://api:8000/api/v1}
+      PIPELINE_SERVICE_KEY: ${PIPELINE_SERVICE_KEY:-}
     ports:
       - "${AIRFLOW_PORT:-8080}:8080"
     volumes:
@@ -111,6 +116,7 @@ services:
     command: >
       bash -c "airflow db migrate &&
                airflow users create --username admin --password ${AIRFLOW_ADMIN_PASSWORD:-admin} --firstname DEPI --lastname Admin --role Admin --email admin@example.com || true;
+               airflow pools set product_pipeline ${AIRFLOW_POOL_SLOTS:-8} 'Concurrent pipeline executions' || true;
                exec airflow webserver"
     depends_on:
       postgres: {condition: service_healthy}
@@ -120,7 +126,10 @@ services:
   # Scheduler - Airflow standalone scheduler
   # ------------------------------------------------------------------
   airflow-scheduler:
-    image: apache/airflow:2.10.5-python3.12
+    build:
+      context: .
+      dockerfile: docker/airflow.Dockerfile
+    image: pip/airflow:2.10.5
     container_name: pip-airflow-scheduler
     restart: unless-stopped
     user: "${AIRFLOW_UID:-50000}:${AIRFLOW_GID:-0}"
@@ -130,6 +139,8 @@ services:
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL: 30
       PIP_DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-pip}:${POSTGRES_PASSWORD:-pip}@postgres:5432/${POSTGRES_DB:-pipeline}
+      PIPELINE_API_URL: ${PIPELINE_API_URL:-http://api:8000/api/v1}
+      PIPELINE_SERVICE_KEY: ${PIPELINE_SERVICE_KEY:-}
     volumes:
       - ./dags:/opt/airflow/dags
       - ./app:/opt/airflow/app:ro
@@ -137,6 +148,7 @@ services:
     command: airflow scheduler
     depends_on:
       airflow: {condition: service_started}
+      api: {condition: service_started}
     networks: [pipnet]
 
   # ------------------------------------------------------------------

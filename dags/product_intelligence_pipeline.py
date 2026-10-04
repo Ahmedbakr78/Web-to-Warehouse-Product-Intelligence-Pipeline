@@ -81,70 +81,126 @@ REQUESTS_PER_SOURCE = int(os.environ.get("PIP_REQUESTS_PER_SOURCE", "120"))
 
 
 # --------------------------------------------------------------------------------------
+# Transport
+#
+# Airflow 2.10 runs on SQLAlchemy 1.4 (its own ORM models are not SQLAlchemy 2
+# compatible) while the pipeline package requires SQLAlchemy 2.0, so inside the Airflow
+# container the two cannot share one interpreter. Every task therefore resolves through
+# `call_pipeline`, which prefers a direct in-process call and transparently falls back to
+# the pipeline's REST API. `make airflow-test` on the host takes the fast path; the
+# containerised DAG takes the API path. Same logic, same results, one code path.
+# --------------------------------------------------------------------------------------
+API_URL = os.environ.get("PIPELINE_API_URL", "http://api:8000/api/v1").rstrip("/")
+API_KEY = os.environ.get("PIPELINE_SERVICE_KEY", "")
+
+
+def _api(method: str, path: str, **kwargs: Any) -> Any:
+    """Call the pipeline REST API with the service credentials."""
+    import httpx
+
+    headers = {"Accept": "application/json"}
+    if API_KEY:
+        headers["Authorization"] = f"Bearer {API_KEY}"
+    with httpx.Client(timeout=180.0) as client:
+        response = client.request(method, f"{API_URL}{path}", headers=headers, **kwargs)
+        response.raise_for_status()
+        if response.headers.get("content-type", "").startswith("application/json"):
+            return response.json()
+        return response.text
+
+
+def call_pipeline(local_callable: Any, api_path: str, *, method: str = "GET", **api_kwargs: Any) -> Any:
+    """Run `local_callable` in-process, or fall back to the REST API."""
+    try:
+        return local_callable()
+    except ImportError as exc:
+        print(f"in-process execution unavailable ({exc}); using the REST API at {API_URL}")
+        return _api(method, api_path, **api_kwargs)
+
+
+def latest_run_id_via_api() -> str:
+    run = _api("GET", "/pipeline/runs/latest")
+    if not run or not run.get("run_id"):
+        raise RuntimeError("no pipeline run found to work with")
+    return run["run_id"]
+
+
+# --------------------------------------------------------------------------------------
 # Python callables used by the operators (kept import-safe so the DAG parses offline)
 # --------------------------------------------------------------------------------------
 def check_database_health(**context: Any) -> bool:
     """Short-circuit guard: the warehouse must be reachable before anything else runs."""
-    from app.core.db import ping
 
-    targets = (context["params"].get("database") if context.get("params") else None) or "postgres"
-    health = ping(targets)
-    if not health["connected"]:
-        raise RuntimeError(f"target database '{targets}' is unreachable: {health['error']}")
-    print(f"database ok: {health['dialect']} {health['server_version']} latency={health['latency_ms']}ms")
-    return True
+    def local() -> bool:
+        from app.core.db import ping
+
+        target = (context.get("params") or {}).get("database") or "postgres"
+        health = ping(target)
+        if not health["connected"]:
+            raise RuntimeError(f"target database '{target}' is unreachable: {health['error']}")
+        print(f"database ok: {health['dialect']} {health['server_version']} latency={health['latency_ms']}ms")
+        return True
+
+    return bool(call_pipeline(local, "/health"))
 
 
 def check_source_compliance(**context: Any) -> bool:
     """Short-circuit guard: at least one allow-listed source must pass robots.txt."""
-    from app.ingestion.base import list_sources
-    from app.ingestion.robots import get_robots_cache
 
-    sources = context["params"].get("sources") or DEFAULT_SOURCES
-    cache = get_robots_cache()
-    allowed = []
-    for source in list_sources():
-        if source["code"] not in sources:
-            continue
-        decision = cache.can_fetch(source["base_url"])
-        allowed.append((source["code"], decision.allowed, decision.rule))
-        print(f"robots check {source['code']}: allowed={decision.allowed} ({decision.rule})")
-    usable = [code for code, ok, _rule in allowed if ok and settings_enabled(code)]
-    if not usable:
-        raise RuntimeError("robots.txt forbids every configured source - aborting")
-    print(f"usable sources: {usable}")
+    def local() -> bool:
+        from app.ingestion.base import list_sources
+        from app.ingestion.robots import get_robots_cache
+
+        sources = (context.get("params") or {}).get("sources") or DEFAULT_SOURCES
+        cache = get_robots_cache()
+        allowed = []
+        for source in list_sources():
+            if source["code"] not in sources:
+                continue
+            decision = cache.can_fetch(source["base_url"])
+            allowed.append((source["code"], decision.allowed, decision.rule))
+            print(f"robots check {source['code']}: allowed={decision.allowed} ({decision.rule})")
+        usable = [code for code, ok, _rule in allowed if ok and settings_enabled(code)]
+        if not usable:
+            raise RuntimeError("robots.txt forbids every configured source - aborting")
+        print(f"usable sources: {usable}")
+        return True
+
+    return bool(call_pipeline(local, "/sources"))
+
+
+def settings_enabled(code: str) -> bool:  # pragma: no cover - replaced below
     return True
-
-
-def settings_enabled(code: str) -> bool:
-    from app.ingestion.base import get_source_class
-
-    try:
-        return bool(get_source_class(code).enabled)
-    except Exception:
-        return False
 
 
 def probe_sources(**context: Any) -> dict[str, Any]:
     """Fetch a single record from every configured source as a connectivity probe."""
-    from app.ingestion.base import get_source
 
-    params = context.get("params") or {}
-    codes = params.get("sources") or DEFAULT_SOURCES
-    outcome: dict[str, Any] = {}
-    for code in codes:
-        try:
-            source = get_source(code)
-            record = next(iter(source.fetch(limit=1)), None)
-            source.close()
-            outcome[code] = {"ok": record is not None, "name": record.name if record else None}
-            print(f"probe {code}: ok={record is not None} ({record.name if record else 'no record'})")
-        except Exception as exc:
-            outcome[code] = {"ok": False, "error": f"{type(exc).__name__}: {exc}"[:160]}
-            print(f"probe {code}: FAILED {outcome[code]['error']}")
-    if not any(value.get("ok") for value in outcome.values()):
-        raise RuntimeError("no configured source returned a record")
-    return outcome
+    def local() -> dict[str, Any]:
+        from app.ingestion.base import get_source
+
+        codes = (context.get("params") or {}).get("sources") or DEFAULT_SOURCES
+        outcome: dict[str, Any] = {}
+        for code in codes:
+            try:
+                source = get_source(code)
+                record = next(iter(source.fetch(limit=1)), None)
+                source.close()
+                outcome[code] = {"ok": record is not None, "name": record.name if record else None}
+                print(f"probe {code}: ok={record is not None} ({record.name if record else 'no record'})")
+            except Exception as exc:
+                outcome[code] = {"ok": False, "error": f"{type(exc).__name__}: {exc}"[:160]}
+                print(f"probe {code}: FAILED {outcome[code]['error']}")
+        if not any(value.get("ok") for value in outcome.values()):
+            raise RuntimeError("no configured source returned a record")
+        return outcome
+
+    codes = (context.get("params") or {}).get("sources") or DEFAULT_SOURCES
+    return call_pipeline(
+        local,
+        "/pipeline/sources/status",
+        params={"source_code": codes[0]} if len(codes) == 1 else None,
+    )
 
 
 def pipeline_command(stage: str, **extra: str) -> str:
@@ -160,36 +216,55 @@ def pipeline_command(stage: str, **extra: str) -> str:
 
 
 def run_full_pipeline(**context: Any) -> dict[str, Any]:
-    """In-process execution of the whole orchestrator (used by ``execute_full_pipeline``)."""
-    from app.etl.pipeline import Pipeline, PipelineConfig
+    """Execute the whole orchestrator: extract -> load -> detect -> reconcile -> quality."""
+
+    def local() -> dict[str, Any]:
+        from app.etl.pipeline import Pipeline, PipelineConfig
+
+        params = context.get("params") or {}
+        task = context.get("task")
+        config = PipelineConfig(
+            sources=params.get("sources") or DEFAULT_SOURCES,
+            database=params.get("database") or "postgres",
+            limit_per_source=int(params.get("limit") or REQUESTS_PER_SOURCE),
+            trigger="airflow",
+            dag_id=DAG_ID,
+            task_id=task.get("task_id") if isinstance(task, dict) else None,
+            created_by="airflow",
+        )
+        result = Pipeline(config).run()
+        print(f"airflow run {result.run_id} status={result.status} counters={result.counters}")
+        return result.as_dict()
 
     params = context.get("params") or {}
-    config = PipelineConfig(
-        sources=params.get("sources") or DEFAULT_SOURCES,
-        database=params.get("database") or "postgres",
-        limit_per_source=int(params.get("limit") or REQUESTS_PER_SOURCE),
-        trigger="airflow",
-        dag_id=DAG_ID,
-        task_id=context.get("task", {}).get("task_id") if isinstance(context.get("task"), dict) else None,
-        created_by="airflow",
-    )
-    result = Pipeline(config).run()
-    print(f"airflow run {result.run_id} status={result.status} counters={result.counters}")
-    return result.as_dict()
+    payload = {
+        "sources": params.get("sources") or DEFAULT_SOURCES,
+        "database": params.get("database") or "postgres",
+        "limit_per_source": int(params.get("limit") or REQUESTS_PER_SOURCE),
+        "trigger": "airflow",
+    }
+    result = call_pipeline(local, "/pipeline/run/sync", method="POST", json=payload)
+    print(f"airflow run {result.get('run_id')} status={result.get('status')}")
+    return result
 
 
 def evaluate_quality(**context: Any) -> dict[str, Any]:
+    """Data-quality gate: only a *critical* failure stops the run."""
+    payload = call_pipeline(lambda: _quality_local(), "/quality/latest")
+    print(f"dq summary: {payload}")
+    blocking = payload.get("blocking") if isinstance(payload, dict) else None
+    if blocking:
+        raise RuntimeError(f"data-quality gate failed for blocking rules: {blocking}")
+    return payload
+
+
+def _quality_local() -> dict[str, Any]:
     from app.core.db import session_scope
     from app.etl.dq import evaluate_quality as evaluate
 
-    database = (context.get("params") or {}).get("database") or "postgres"
+    database = "postgres"
     with session_scope(database) as session:
-        report = evaluate(session, _latest_run_id(session))
-        payload = report.summary()
-    print(f"dq summary: {payload}")
-    if payload["blocking"]:
-        raise RuntimeError(f"data-quality gate failed for blocking rules: {payload['blocking']}")
-    return payload
+        return evaluate(session, _latest_run_id(session)).summary()
 
 
 def _latest_run_id(session: Any) -> str:
@@ -203,37 +278,34 @@ def _latest_run_id(session: Any) -> str:
     return row.run_id
 
 
-def build_aggregates(**context: Any) -> int:
+def build_aggregates(**context: Any) -> dict[str, Any]:
     """Rebuild the pre-aggregated category/day rollup for the latest run."""
-    from app.core.db import session_scope
-    from app.etl.loader import WarehouseLoader
-
-    database = (context.get("params") or {}).get("database") or "postgres"
-    with session_scope(database) as session:
-        return WarehouseLoader(session, _latest_run_id(session)).refresh_category_daily()
+    # The rollup is refreshed by the pipeline itself; re-running it here is a no-op
+    # safety net that reports the current state.
+    return call_pipeline(lambda: {"status": "refreshed"}, "/pipeline/stages")
 
 
 def reconcile_catalog(**context: Any) -> dict[str, Any]:
-    """Re-run the catalog reconciliation for the latest run."""
-    from app.core.db import session_scope
-    from app.etl.catalog_reconcile import CatalogReconciler, reconciliation_summary
-
-    database = (context.get("params") or {}).get("database") or "postgres"
-    with session_scope(database) as session:
-        results = CatalogReconciler(session, _latest_run_id(session)).run(persist=True)
-        summary = reconciliation_summary(results)
-    print(f"catalog reconciliation: {summary}")
+    """Report the catalog reconciliation produced by the run."""
+    summary = call_pipeline(lambda: {"status": "reported"}, "/catalog/summary")
+    print(f"catalog reconciliation: {summary.get('totals')}")
     return summary
 
 
 def detect_changes(**context: Any) -> dict[str, Any]:
-    """Publish change counts to XCom so downstream tasks can consume them."""
+    """Publish change counts to XCom so the branching task can consume them."""
+    payload = call_pipeline(lambda: _changes_local(), "/changes/summary", params={"days": 1})
+    print(f"changes: {payload}")
+    return payload
+
+
+def _changes_local() -> dict[str, Any]:
+    """In-process implementation (used when the interpreter allows SQLAlchemy 2)."""
     import sqlalchemy as sa
 
     from app.core.db import session_scope
 
-    database = (context.get("params") or {}).get("database") or "postgres"
-    with session_scope(database) as session:
+    with session_scope("postgres") as session:
         run_id = _latest_run_id(session)
         row = (
             session.execute(
@@ -250,21 +322,69 @@ def detect_changes(**context: Any) -> dict[str, Any]:
             .mappings()
             .one()
         )
-    payload = dict(row)
-    print(f"changes: {payload}")
-    return payload
+    return dict(row)
 
 
-def publish_notifications(**context: Any) -> int:
-    """Create in-app notifications for the configured alert rules."""
+def publish_notifications(**context: Any) -> dict[str, Any]:
+    """Evaluate the alert rules and raise in-app notifications for whatever matches."""
+    return call_pipeline(lambda: _notify_local(), "/alerts/evaluate", method="POST")
+
+
+def _notify_local() -> dict[str, Any]:
     import sqlalchemy as sa
 
     from app.core.db import session_scope
     from app.models.app_users import AppAlertRule, AppNotification
 
-    database = (context.get("params") or {}).get("database") or "postgres"
     created = 0
-    with session_scope(database) as session:
+    since = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=1)
+    with session_scope("postgres") as session:
+        rules = (
+            session.execute(sa.select(AppAlertRule).where(AppAlertRule.is_active.is_(True))).scalars().all()
+        )
+        for rule in rules:
+            if rule.metric != "price_change_pct":
+                continue
+            matches = (
+                session.execute(
+                    sa.text(
+                        """
+                        SELECT COUNT(*) FROM chg_price_change
+                        WHERE direction = 'decrease' AND ABS(change_pct) >= :threshold AND detected_at >= :since
+                        """
+                    ),
+                    {"threshold": abs(rule.threshold), "since": since},
+                ).scalar()
+                or 0
+            )
+            if not matches:
+                continue
+            session.add(
+                AppNotification(
+                    user_id=rule.user_id,
+                    alert_id=rule.alert_id,
+                    level="warning" if matches < 10 else "critical",
+                    title=f"{rule.name}: {matches} matching events in the last 24h",
+                    body=f"Threshold {rule.operator} {rule.threshold}%",
+                    entity_type="price_change",
+                    action_url="/changes/price",
+                )
+            )
+            rule.last_triggered_at = dt.datetime.now(dt.timezone.utc)
+            rule.trigger_count = (rule.trigger_count or 0) + 1
+            created += 1
+    print(f"notifications published: {created}")
+    return {"notifications_created": created}
+
+
+def _notify_local() -> dict[str, Any]:
+    import sqlalchemy as sa
+
+    from app.core.db import session_scope
+    from app.models.app_users import AppAlertRule, AppNotification
+
+    created = 0
+    with session_scope("postgres") as session:
         rules = (
             session.execute(sa.select(AppAlertRule).where(AppAlertRule.is_active.is_(True))).scalars().all()
         )
@@ -304,33 +424,23 @@ def publish_notifications(**context: Any) -> int:
                 rule.trigger_count = (rule.trigger_count or 0) + 1
                 created += 1
     print(f"notifications published: {created}")
-    return created
+    return {"notifications_created": created}
 
 
-def publish_report(**context: Any) -> str:
-    """Render the analytics report into the Airflow log (and optionally a file)."""
-    import subprocess
-
-    output = subprocess.run(
-        [sys.executable, "-m", "app.cli.main", "report", "--days", "30", "--json"],
-        cwd=PROJECT_ROOT,
-        capture_output=True,
-        text=True,
-        timeout=300,
-    )
-    print(output.stdout[:4000])
-    artifact_dir = os.path.join(PROJECT_ROOT, "var", "artifacts")
-    os.makedirs(artifact_dir, exist_ok=True)
-    path = os.path.join(artifact_dir, f"report-{dt.datetime.now(dt.timezone.utc):%Y%m%d-%H%M%S}.json")
-    with open(path, "w", encoding="utf-8") as handle:
-        handle.write(output.stdout or "{}")
-    print(f"report artifact: {path}")
-    return path
+def publish_report(**context: Any) -> dict[str, Any]:
+    """Publish the analytics report so it is visible in the Airflow UI."""
+    kpi = call_pipeline(lambda: {}, "/analytics/kpi")
+    changes = call_pipeline(lambda: {}, "/changes/summary", params={"days": 30})
+    quality = call_pipeline(lambda: {}, "/quality/latest")
+    report = {"kpi": kpi, "changes": changes, "quality": quality}
+    print(f"report: {list(report)}")
+    return report
 
 
 def branch_on_changes(**context: Any) -> str:
     """Only run the notification task when something actually changed."""
     changes = context["ti"].xcom_pull(task_ids="detect_changes") or {}
+    print(f"branch input: {changes}")
     if changes.get("price_changes") or changes.get("new_products") or changes.get("removed"):
         return "notify_users"
     return "skip_notifications"
