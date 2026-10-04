@@ -106,9 +106,7 @@ def setup_file_logging(filename: str = "pipeline.log", level: str = "DEBUG") -> 
         path, maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8"
     )
     file_handler.setLevel(level.upper())
-    file_handler.setFormatter(
-        logging.Formatter("%(asctime)s | %(levelname)-8s | %(name)-38s | %(message)s")
-    )
+    file_handler.setFormatter(logging.Formatter("%(asctime)s | %(levelname)-8s | %(name)-38s | %(message)s"))
     logging.getLogger().addHandler(file_handler)
 
 

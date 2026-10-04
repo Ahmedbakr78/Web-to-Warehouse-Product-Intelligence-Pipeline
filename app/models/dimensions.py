@@ -12,7 +12,7 @@ import datetime as dt
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import UTCDateTime, Base, JSONType, MediumStr, ShortStr, TimestampMixin, UrlStr, utcnow
+from app.models.base import Base, JSONType, MediumStr, ShortStr, TimestampMixin, UrlStr, UTCDateTime, utcnow
 
 
 class DimSource(Base, TimestampMixin):
@@ -96,12 +96,8 @@ class DimProduct(Base, TimestampMixin):
     is_active: Mapped[bool] = mapped_column(sa.Boolean, nullable=False, default=True)
     version: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=1)
     observation_count: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
-    first_seen_at: Mapped[dt.datetime] = mapped_column(
-        UTCDateTime(), default=utcnow, nullable=False
-    )
-    last_seen_at: Mapped[dt.datetime] = mapped_column(
-        UTCDateTime(), default=utcnow, nullable=False
-    )
+    first_seen_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), default=utcnow, nullable=False)
+    last_seen_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), default=utcnow, nullable=False)
     extra: Mapped[dict | None] = mapped_column(JSONType, default=dict)
 
     __table_args__ = (
@@ -132,9 +128,7 @@ class DimDate(Base):
     is_month_end: Mapped[bool] = mapped_column(sa.Boolean, default=False)
     iso_week: Mapped[int | None] = mapped_column(sa.SmallInteger)
 
-    __table_args__ = (
-        sa.Index("ix_dim_date_year_month", "year", "month"),
-    )
+    __table_args__ = (sa.Index("ix_dim_date_year_month", "year", "month"),)
 
 
 class DimCurrency(Base, TimestampMixin):

@@ -7,7 +7,6 @@ from typing import Annotated, Any
 
 import sqlalchemy as sa
 from fastapi import APIRouter, BackgroundTasks, Query, Request
-from sqlalchemy.orm import Session
 
 from app.analytics import service as analytics
 from app.api.deps import DbSession, OptionalUser, PaginationDep, PipelineUser, ReadUser, request_meta
@@ -23,16 +22,19 @@ router = APIRouter(prefix="/pipeline", tags=["pipeline"])
 
 
 @router.get("/runs", response_model=Page[PipelineRunRead], summary="List pipeline runs")
-def runs(session: DbSession, pagination: PaginationDep, _user: ReadUser, status: str | None = None) -> Page[PipelineRunRead]:
+def runs(
+    session: DbSession, pagination: PaginationDep, _user: ReadUser, status: str | None = None
+) -> Page[PipelineRunRead]:
     where = "WHERE 1 = 1"
     params: dict[str, Any] = {}
     if status:
         where += " AND status = :status"
         params["status"] = status
     total = session.execute(sa.text(f"SELECT COUNT(*) FROM etl_run {where}"), params).scalar() or 0
-    rows = session.execute(
-        sa.text(
-            f"""
+    rows = (
+        session.execute(
+            sa.text(
+                f"""
             SELECT run_id, status, run_trigger, target_database, started_at, finished_at, duration_ms,
                    records_extracted, records_valid, records_rejected, records_inserted,
                    records_updated, duplicates_merged, new_products, price_changes, removed_products,
@@ -41,9 +43,12 @@ def runs(session: DbSession, pagination: PaginationDep, _user: ReadUser, status:
             ORDER BY started_at DESC
             LIMIT :limit OFFSET :offset
             """
-        ),
-        {**params, "limit": pagination.page_size, "offset": pagination.offset},
-    ).mappings().all()
+            ),
+            {**params, "limit": pagination.page_size, "offset": pagination.offset},
+        )
+        .mappings()
+        .all()
+    )
     items = [dict(row) | {"trigger": row["run_trigger"]} for row in rows]
     return Page.build(items, total, pagination.page, pagination.page_size)
 
@@ -66,9 +71,13 @@ def run_detail(run_id: str, session: DbSession, _user: ReadUser) -> dict[str, An
 
 @router.get("/runs/{run_id}/dq", summary="DQ rule results for one run")
 def run_dq(run_id: str, session: DbSession, _user: ReadUser) -> list[dict[str, Any]]:
-    rows = session.execute(
-        sa.select(DqRuleResult).where(DqRuleResult.run_id == run_id).order_by(DqRuleResult.rule_code)
-    ).scalars().all()
+    rows = (
+        session.execute(
+            sa.select(DqRuleResult).where(DqRuleResult.run_id == run_id).order_by(DqRuleResult.rule_code)
+        )
+        .scalars()
+        .all()
+    )
     return [
         {
             "rule_code": row.rule_code,
@@ -101,7 +110,7 @@ def trigger(
     session: DbSession,
     user: PipelineUser,
 ) -> dict[str, Any]:
-    from app.etl.pipeline import Pipeline, PipelineConfig
+    from app.etl.pipeline import PipelineConfig
 
     meta = request_meta(request)
     session.add(
@@ -199,9 +208,10 @@ def sources_status(session: DbSession, _user: OptionalUser) -> list[dict[str, An
     from app.ingestion.base import list_sources
 
     registered = {source["code"]: source for source in list_sources()}
-    rows = session.execute(
-        sa.text(
-            """
+    rows = (
+        session.execute(
+            sa.text(
+                """
             SELECT s.source_code, s.name, s.kind, s.enabled, s.rate_limit_per_minute, s.min_delay_seconds,
                    s.terms_allowed, s.robots_checked_at, s.last_run_at, s.last_run_id, s.total_records,
                    s.total_runs, s.success_rate_pct, s.avg_duration_seconds, s.base_url, s.terms_url,
@@ -213,8 +223,11 @@ def sources_status(session: DbSession, _user: OptionalUser) -> list[dict[str, An
             LEFT JOIN sync_state y ON y.source_code = s.source_code
             ORDER BY s.source_code
             """
+            )
         )
-    ).mappings().all()
+        .mappings()
+        .all()
+    )
 
     payload: list[dict[str, Any]] = []
     known = {row["source_code"] for row in rows}
@@ -226,8 +239,16 @@ def sources_status(session: DbSession, _user: OptionalUser) -> list[dict[str, An
         payload.append(item)
     for code, source in registered.items():
         if code not in known:
-            payload.append({"source_code": code, "name": source["name"], "registered": True,
-                            "enabled": source["enabled"], "kind": source["kind"], "products_seen": 0})
+            payload.append(
+                {
+                    "source_code": code,
+                    "name": source["name"],
+                    "registered": True,
+                    "enabled": source["enabled"],
+                    "kind": source["kind"],
+                    "products_seen": 0,
+                }
+            )
     return payload
 
 
@@ -235,16 +256,20 @@ def sources_status(session: DbSession, _user: OptionalUser) -> list[dict[str, An
 def stages(session: DbSession, _user: ReadUser) -> dict[str, Any]:
     from app.etl.pipeline import STAGE_NAMES
 
-    rows = session.execute(
-        sa.text(
-            """
+    rows = (
+        session.execute(
+            sa.text(
+                """
             SELECT status, COUNT(*) AS runs, ROUND(CAST(AVG(duration_ms) AS DECIMAL(24,2)), 0) AS avg_duration_ms,
                    MAX(duration_ms) AS max_duration_ms,
                    SUM(records_extracted) AS records_extracted, SUM(records_valid) AS records_valid
             FROM etl_run GROUP BY status
             """
+            )
         )
-    ).mappings().all()
+        .mappings()
+        .all()
+    )
     return {
         "stages": list(STAGE_NAMES),
         "by_status": [dict(row) for row in rows],
@@ -253,11 +278,15 @@ def stages(session: DbSession, _user: ReadUser) -> dict[str, Any]:
 
 
 @router.post("/clear-history", response_model=Message, summary="Delete run history (admin)")
-def clear_history(session: DbSession, user: PipelineUser, confirm: Annotated[bool, Query()] = False) -> Message:
+def clear_history(
+    session: DbSession, user: PipelineUser, confirm: Annotated[bool, Query()] = False
+) -> Message:
     from app.api.security import at_least
 
     if not at_least(user.role, "admin") or not confirm:
-        return Message(message="Refused: requires an admin role and confirm=true", detail={"required": "admin + confirm"})
+        return Message(
+            message="Refused: requires an admin role and confirm=true", detail={"required": "admin + confirm"}
+        )
     deleted = {
         "etl_run": session.execute(sa.text("DELETE FROM dq_rule_result")).rowcount,
         "dq_rule_result": 0,
@@ -274,9 +303,7 @@ def schedule(session: DbSession, _user: ReadUser) -> dict[str, Any]:
     from app.models.app_users import AppSetting
 
     row = session.get(AppSetting, "pipeline.schedule_cron")
-    last = session.execute(
-        sa.select(EtlRun).order_by(EtlRun.started_at.desc()).limit(1)
-    ).scalars().first()
+    last = session.execute(sa.select(EtlRun).order_by(EtlRun.started_at.desc()).limit(1)).scalars().first()
     return {
         "cron": row.value if row else "0 3 * * *",
         "dag_id": "product_intelligence_pipeline",

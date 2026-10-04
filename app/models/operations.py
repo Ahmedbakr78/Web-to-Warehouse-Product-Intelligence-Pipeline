@@ -7,7 +7,7 @@ import datetime as dt
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import UTCDateTime, Base, JSONType, MediumStr, ShortStr, UrlStr, utcnow
+from app.models.base import Base, JSONType, MediumStr, ShortStr, UrlStr, UTCDateTime, utcnow
 
 
 class EtlRun(Base):
@@ -23,9 +23,7 @@ class EtlRun(Base):
     task_id: Mapped[str | None] = mapped_column(ShortStr)
     status: Mapped[str] = mapped_column(ShortStr, nullable=False, default="pending")
     trigger: Mapped[str] = mapped_column(ShortStr, nullable=False, default="manual")
-    started_at: Mapped[dt.datetime] = mapped_column(
-        UTCDateTime(), default=utcnow, nullable=False
-    )
+    started_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), default=utcnow, nullable=False)
     finished_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
     duration_ms: Mapped[int | None] = mapped_column(sa.Integer)
     records_extracted: Mapped[int] = mapped_column(sa.Integer, default=0)
@@ -45,9 +43,7 @@ class EtlRun(Base):
     warnings: Mapped[list | None] = mapped_column(JSONType, default=list)
     params: Mapped[dict | None] = mapped_column(JSONType, default=dict)
     created_by: Mapped[str | None] = mapped_column(ShortStr)
-    created_at: Mapped[dt.datetime] = mapped_column(
-        UTCDateTime(), default=utcnow, nullable=False
-    )
+    created_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), default=utcnow, nullable=False)
 
     __table_args__ = (
         sa.Index("ix_etl_run_status_started", "status", "started_at"),
@@ -77,9 +73,7 @@ class DqRuleResult(Base):
     pass_rate_pct: Mapped[float | None] = mapped_column(sa.Float)
     message: Mapped[str | None] = mapped_column(sa.Text)
     evidence: Mapped[dict | None] = mapped_column(JSONType, default=dict)
-    evaluated_at: Mapped[dt.datetime] = mapped_column(
-        UTCDateTime(), default=utcnow, nullable=False
-    )
+    evaluated_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), default=utcnow, nullable=False)
 
     __table_args__ = (
         sa.Index("ix_dq_rule_result_run", "run_id"),
@@ -111,9 +105,7 @@ class IngestionHttpLog(Base):
         UTCDateTime(), default=utcnow, nullable=False, index=True
     )
 
-    __table_args__ = (
-        sa.Index("ix_ingestion_http_log_run_host", "run_id", "host"),
-    )
+    __table_args__ = (sa.Index("ix_ingestion_http_log_run_host", "run_id", "host"),)
 
 
 class StgRawObservation(Base):
@@ -138,12 +130,8 @@ class StgRawObservation(Base):
     http_status: Mapped[int | None] = mapped_column(sa.Integer)
     is_valid: Mapped[bool] = mapped_column(sa.Boolean, default=True)
     reject_reason: Mapped[str | None] = mapped_column(MediumStr)
-    fetched_at: Mapped[dt.datetime] = mapped_column(
-        UTCDateTime(), default=utcnow, nullable=False
-    )
-    landed_at: Mapped[dt.datetime] = mapped_column(
-        UTCDateTime(), default=utcnow, nullable=False
-    )
+    fetched_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), default=utcnow, nullable=False)
+    landed_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), default=utcnow, nullable=False)
 
     __table_args__ = (
         sa.Index("ix_stg_raw_observation_run_valid", "run_id", "is_valid"),
@@ -167,9 +155,7 @@ class SyncState(Base):
     status: Mapped[str] = mapped_column(ShortStr, default="idle")
     message: Mapped[str | None] = mapped_column(sa.Text)
 
-    __table_args__ = (
-        sa.Index("ix_sync_state_status", "status"),
-    )
+    __table_args__ = (sa.Index("ix_sync_state_status", "status"),)
 
 
 __all__ = [

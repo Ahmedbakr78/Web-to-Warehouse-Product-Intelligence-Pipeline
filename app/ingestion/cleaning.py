@@ -29,25 +29,60 @@ log = get_logger(__name__)
 # Unicode / text normalisation
 # --------------------------------------------------------------------------------------
 _SMART_CHARS = {
-    "\u2018": "'", "\u2019": "'", "\u201a": "'", "\u201b": "'",
-    "\u201c": '"', "\u201d": '"', "\u201e": '"', "\u201f": '"',
-    "\u2013": "-", "\u2014": "-", "\u2015": "-", "\u2212": "-",
-    "\u2026": "...", "\u00a0": " ", "\u200b": "", "\u200c": "", "\u200d": "",
-    "\ufeff": "", "\u00ad": "",
+    "\u2018": "'",
+    "\u2019": "'",
+    "\u201a": "'",
+    "\u201b": "'",
+    "\u201c": '"',
+    "\u201d": '"',
+    "\u201e": '"',
+    "\u201f": '"',
+    "\u2013": "-",
+    "\u2014": "-",
+    "\u2015": "-",
+    "\u2212": "-",
+    "\u2026": "...",
+    "\u00a0": " ",
+    "\u200b": "",
+    "\u200c": "",
+    "\u200d": "",
+    "\ufeff": "",
+    "\u00ad": "",
 }
 _CHAR_MAP = {ord(k): v for k, v in _SMART_CHARS.items()}
 
 #: Marketing noise stripped from the front/back of product titles.
 PROMO_PREFIXES = (
-    r"sale[:\-]?", r"hot sale[:\-]?", r"clearance[:\-]?", r"special offer[:\-]?",
-    r"new[:\-]?", r"brand new[:\-]?", r"limited[:\-]?", r"discount[:\-]?",
-    r"offer[:\-]?", r"best price[:\-]?", r"free shipping[:\-]?", r"bestseller[:\-]?",
-    r"top rated[:\-]?", r"recommended[:\-]?", r"featured[:\-]?", r"hot deal[:\-]?",
-    r"promo(?:tional)?[:\-]?", r"cheap[:\-]?", r"wholesale[:\-]?",
+    r"sale[:\-]?",
+    r"hot sale[:\-]?",
+    r"clearance[:\-]?",
+    r"special offer[:\-]?",
+    r"new[:\-]?",
+    r"brand new[:\-]?",
+    r"limited[:\-]?",
+    r"discount[:\-]?",
+    r"offer[:\-]?",
+    r"best price[:\-]?",
+    r"free shipping[:\-]?",
+    r"bestseller[:\-]?",
+    r"top rated[:\-]?",
+    r"recommended[:\-]?",
+    r"featured[:\-]?",
+    r"hot deal[:\-]?",
+    r"promo(?:tional)?[:\-]?",
+    r"cheap[:\-]?",
+    r"wholesale[:\-]?",
 )
 _PROMO_SUFFIXES = (
-    r"\(new\)", r"\[new\]", r"- new arrival", r"- free shipping", r"\(free shipping\)",
-    r"- limited stock", r"\*\*", r"-?\s*hot sale", r"\d+% off",
+    r"\(new\)",
+    r"\[new\]",
+    r"- new arrival",
+    r"- free shipping",
+    r"\(free shipping\)",
+    r"- limited stock",
+    r"\*\*",
+    r"-?\s*hot sale",
+    r"\d+% off",
 )
 _PROMO_RE = re.compile(r"^(?:%s)\s+" % "|".join(PROMO_PREFIXES), re.IGNORECASE)
 _PROMO_SUFFIX_RE = re.compile(r"(?:%s)\s*$" % "|".join(_PROMO_SUFFIXES), re.IGNORECASE)
@@ -62,14 +97,64 @@ _WORD_RE = re.compile(r"[a-z0-9]+")
 #: Words ignored when comparing product names (brand/model noise).
 STOPWORDS = frozenset(
     {
-        "a", "an", "the", "and", "or", "of", "for", "with", "in", "on", "by", "to",
-        "new", "sale", "offer", "special", "free", "shipping", "edition", "pack",
-        "set", "kit", "size", "colour", "color", "brand", "official", "genuine",
-        "oem", "original", "hot", "best", "top", "quality", "premium", "plus", "pro",
-        "max", "ultra", "deluxe", "hd", "uk", "us", "eu", "intl",
+        "a",
+        "an",
+        "the",
+        "and",
+        "or",
+        "of",
+        "for",
+        "with",
+        "in",
+        "on",
+        "by",
+        "to",
+        "new",
+        "sale",
+        "offer",
+        "special",
+        "free",
+        "shipping",
+        "edition",
+        "pack",
+        "set",
+        "kit",
+        "size",
+        "colour",
+        "color",
+        "brand",
+        "official",
+        "genuine",
+        "oem",
+        "original",
+        "hot",
+        "best",
+        "top",
+        "quality",
+        "premium",
+        "plus",
+        "pro",
+        "max",
+        "ultra",
+        "deluxe",
+        "hd",
+        "uk",
+        "us",
+        "eu",
+        "intl",
         # Format / edition qualifiers describe the same product in the retail sense.
-        "hardcover", "hardback", "paperback", "softcover", "unabridged", "abridged",
-        "anniversary", "collector", "remastered", "standard", "reissue", "reprint",
+        "hardcover",
+        "hardback",
+        "paperback",
+        "softcover",
+        "unabridged",
+        "abridged",
+        "anniversary",
+        "collector",
+        "remastered",
+        "standard",
+        "reissue",
+        "reprint",
     }
 )
 
@@ -77,49 +162,130 @@ STOPWORDS = frozenset(
 # Currency handling
 # --------------------------------------------------------------------------------------
 CURRENCY_SYMBOLS: dict[str, str] = {
-    "$": "USD", "us$": "USD", "usd": "USD", "u.s.$": "USD",
-    "€": "EUR", "eur": "EUR",
-    "£": "GBP", "gbp": "GBP", "£s": "GBP",
-    "¥": "JPY", "￥": "JPY", "jpy": "JPY", "cny": "CNY", "rmb": "CNY", "元": "CNY",
-    "₹": "INR", "inr": "INR", "rs": "INR", "rs.": "INR",
-    "₩": "KRW", "krw": "KRW",
-    "₺": "TRY", "try": "TRY", "tl": "TRY",
-    "₽": "RUB", "rub": "RUB",
-    "₪": "ILS", "₫": "VND", "₱": "PHP", "php": "PHP",
-    "zł": "PLN", "pln": "PLN",
-    "kr": "SEK", "sek": "SEK",
-    "chf": "CHF", "r$": "BRL", "brl": "BRL",
-    "a$": "AUD", "aud": "AUD", "c$": "CAD", "cad": "CAD",
-    "د.إ": "AED", "aed": "AED", "sar": "SAR", "﷼": "SAR",
-    "egp": "EGP", "ج.م": "EGP", "₦": "NGN",
+    "$": "USD",
+    "us$": "USD",
+    "usd": "USD",
+    "u.s.$": "USD",
+    "€": "EUR",
+    "eur": "EUR",
+    "£": "GBP",
+    "gbp": "GBP",
+    "£s": "GBP",
+    "¥": "JPY",
+    "￥": "JPY",
+    "jpy": "JPY",
+    "cny": "CNY",
+    "rmb": "CNY",
+    "元": "CNY",
+    "₹": "INR",
+    "inr": "INR",
+    "rs": "INR",
+    "rs.": "INR",
+    "₩": "KRW",
+    "krw": "KRW",
+    "₺": "TRY",
+    "try": "TRY",
+    "tl": "TRY",
+    "₽": "RUB",
+    "rub": "RUB",
+    "₪": "ILS",
+    "₫": "VND",
+    "₱": "PHP",
+    "php": "PHP",
+    "zł": "PLN",
+    "pln": "PLN",
+    "kr": "SEK",
+    "sek": "SEK",
+    "chf": "CHF",
+    "r$": "BRL",
+    "brl": "BRL",
+    "a$": "AUD",
+    "aud": "AUD",
+    "c$": "CAD",
+    "cad": "CAD",
+    "د.إ": "AED",
+    "aed": "AED",
+    "sar": "SAR",
+    "﷼": "SAR",
+    "egp": "EGP",
+    "ج.م": "EGP",
+    "₦": "NGN",
 }
 
 #: Offline reference FX rates (1 unit of currency = X USD). Documented as static so the
 #: pipeline never depends on a paid FX API; ``normalize_currency_amount`` is the single
 #: place to swap in a live provider.
 STATIC_FX_RATES: dict[str, float] = {
-    "USD": 1.0, "EUR": 1.0865, "GBP": 1.2712, "JPY": 0.00640, "CNY": 0.1400,
-    "INR": 0.01200, "AUD": 0.6580, "CAD": 0.7320, "CHF": 1.1280, "SEK": 0.0950,
-    "PLN": 0.2500, "TRY": 0.0290, "RUB": 0.0110, "BRL": 0.1820, "ZAR": 0.0545,
-    "MXN": 0.0580, "SGD": 0.7450, "HKD": 0.1280, "KRW": 0.00073, "AED": 0.2723,
-    "SAR": 0.2666, "EGP": 0.0208, "ILS": 0.2710, "PHP": 0.0175, "NGN": 0.00067,
+    "USD": 1.0,
+    "EUR": 1.0865,
+    "GBP": 1.2712,
+    "JPY": 0.00640,
+    "CNY": 0.1400,
+    "INR": 0.01200,
+    "AUD": 0.6580,
+    "CAD": 0.7320,
+    "CHF": 1.1280,
+    "SEK": 0.0950,
+    "PLN": 0.2500,
+    "TRY": 0.0290,
+    "RUB": 0.0110,
+    "BRL": 0.1820,
+    "ZAR": 0.0545,
+    "MXN": 0.0580,
+    "SGD": 0.7450,
+    "HKD": 0.1280,
+    "KRW": 0.00073,
+    "AED": 0.2723,
+    "SAR": 0.2666,
+    "EGP": 0.0208,
+    "ILS": 0.2710,
+    "PHP": 0.0175,
+    "NGN": 0.00067,
 }
 
 CURRENCY_NAMES: dict[str, str] = {
-    "USD": "US Dollar", "EUR": "Euro", "GBP": "British Pound", "JPY": "Japanese Yen",
-    "CNY": "Chinese Yuan", "INR": "Indian Rupee", "AUD": "Australian Dollar",
-    "CAD": "Canadian Dollar", "CHF": "Swiss Franc", "SEK": "Swedish Krona",
-    "PLN": "Polish Zloty", "TRY": "Turkish Lira", "RUB": "Russian Ruble",
-    "BRL": "Brazilian Real", "ZAR": "South African Rand", "MXN": "Mexican Peso",
-    "SGD": "Singapore Dollar", "HKD": "Hong Kong Dollar", "KRW": "South Korean Won",
-    "AED": "UAE Dirham", "SAR": "Saudi Riyal", "EGP": "Egyptian Pound",
-    "ILS": "Israeli Shekel", "PHP": "Philippine Peso", "NGN": "Nigerian Naira",
+    "USD": "US Dollar",
+    "EUR": "Euro",
+    "GBP": "British Pound",
+    "JPY": "Japanese Yen",
+    "CNY": "Chinese Yuan",
+    "INR": "Indian Rupee",
+    "AUD": "Australian Dollar",
+    "CAD": "Canadian Dollar",
+    "CHF": "Swiss Franc",
+    "SEK": "Swedish Krona",
+    "PLN": "Polish Zloty",
+    "TRY": "Turkish Lira",
+    "RUB": "Russian Ruble",
+    "BRL": "Brazilian Real",
+    "ZAR": "South African Rand",
+    "MXN": "Mexican Peso",
+    "SGD": "Singapore Dollar",
+    "HKD": "Hong Kong Dollar",
+    "KRW": "South Korean Won",
+    "AED": "UAE Dirham",
+    "SAR": "Saudi Riyal",
+    "EGP": "Egyptian Pound",
+    "ILS": "Israeli Shekel",
+    "PHP": "Philippine Peso",
+    "NGN": "Nigerian Naira",
 }
 
 CURRENCY_SYMBOL_OUT = {
-    "USD": "$", "EUR": "\u20ac", "GBP": "\u00a3", "JPY": "\u00a5", "CNY": "\u00a5",
-    "INR": "\u20b9", "AUD": "A$", "CAD": "C$", "TRY": "\u20ba", "RUB": "\u20bd",
-    "BRL": "R$", "PLN": "z\u0142", "SEK": "kr", "CHF": "CHF",
+    "USD": "$",
+    "EUR": "\u20ac",
+    "GBP": "\u00a3",
+    "JPY": "\u00a5",
+    "CNY": "\u00a5",
+    "INR": "\u20b9",
+    "AUD": "A$",
+    "CAD": "C$",
+    "TRY": "\u20ba",
+    "RUB": "\u20bd",
+    "BRL": "R$",
+    "PLN": "z\u0142",
+    "SEK": "kr",
+    "CHF": "CHF",
 }
 
 # --------------------------------------------------------------------------------------
@@ -128,70 +294,164 @@ CURRENCY_SYMBOL_OUT = {
 #: Lower-case synonym -> canonical category (industry agnostic but retail oriented).
 CATEGORY_SYNONYMS: dict[str, str] = {
     # electronics
-    "electronics": "Electronics", "electronic": "Electronics", "tech": "Electronics",
-    "technology": "Electronics", "gadgets": "Electronics", "consumer electronics": "Electronics",
-    "computers": "Electronics > Computers", "computer": "Electronics > Computers",
-    "laptops": "Electronics > Computers", "laptop": "Electronics > Computers",
-    "notebooks": "Electronics > Computers", "desktops": "Electronics > Computers",
-    "mobile phones": "Electronics > Mobile Phones", "smartphones": "Electronics > Mobile Phones",
-    "smart phone": "Electronics > Mobile Phones", "cell phones": "Electronics > Mobile Phones",
-    "tablets": "Electronics > Tablets", "tablet": "Electronics > Tablets",
-    "headphones": "Electronics > Audio", "audio": "Electronics > Audio",
-    "speakers": "Electronics > Audio", "cameras": "Electronics > Photography",
-    "photography": "Electronics > Photography", "tv": "Electronics > Televisions",
-    "television": "Electronics > Televisions", "tvs": "Electronics > Televisions",
-    "gaming": "Electronics > Gaming", "video games": "Electronics > Gaming",
-    "console": "Electronics > Gaming", "consoles": "Electronics > Gaming",
-    "wearables": "Electronics > Wearables", "smartwatch": "Electronics > Wearables",
-    "accessories": "Electronics > Accessories", "computer accessories": "Electronics > Accessories",
+    "electronics": "Electronics",
+    "electronic": "Electronics",
+    "tech": "Electronics",
+    "technology": "Electronics",
+    "gadgets": "Electronics",
+    "consumer electronics": "Electronics",
+    "computers": "Electronics > Computers",
+    "computer": "Electronics > Computers",
+    "laptops": "Electronics > Computers",
+    "laptop": "Electronics > Computers",
+    "notebooks": "Electronics > Computers",
+    "desktops": "Electronics > Computers",
+    "mobile phones": "Electronics > Mobile Phones",
+    "smartphones": "Electronics > Mobile Phones",
+    "smart phone": "Electronics > Mobile Phones",
+    "cell phones": "Electronics > Mobile Phones",
+    "tablets": "Electronics > Tablets",
+    "tablet": "Electronics > Tablets",
+    "headphones": "Electronics > Audio",
+    "audio": "Electronics > Audio",
+    "speakers": "Electronics > Audio",
+    "cameras": "Electronics > Photography",
+    "photography": "Electronics > Photography",
+    "tv": "Electronics > Televisions",
+    "television": "Electronics > Televisions",
+    "tvs": "Electronics > Televisions",
+    "gaming": "Electronics > Gaming",
+    "video games": "Electronics > Gaming",
+    "console": "Electronics > Gaming",
+    "consoles": "Electronics > Gaming",
+    "wearables": "Electronics > Wearables",
+    "smartwatch": "Electronics > Wearables",
+    "accessories": "Electronics > Accessories",
+    "computer accessories": "Electronics > Accessories",
     # books & media
-    "books": "Books", "book": "Books", "literature": "Books", "novels": "Books",
-    "fiction": "Books > Fiction", "non-fiction": "Books > Non-Fiction",
-    "nonfiction": "Books > Non-Fiction", "childrens books": "Books > Children's",
-    "textbooks": "Books > Textbooks", "academic": "Books > Academic",
-    "music": "Media > Music", "dvds": "Media > DVD & Blu-ray", "dvd": "Media > DVD & Blu-ray",
-    "blu-ray": "Media > DVD & Blu-ray", "movies": "Media > Movies",
+    "books": "Books",
+    "book": "Books",
+    "literature": "Books",
+    "novels": "Books",
+    "fiction": "Books > Fiction",
+    "non-fiction": "Books > Non-Fiction",
+    "nonfiction": "Books > Non-Fiction",
+    "childrens books": "Books > Children's",
+    "textbooks": "Books > Textbooks",
+    "academic": "Books > Academic",
+    "music": "Media > Music",
+    "dvds": "Media > DVD & Blu-ray",
+    "dvd": "Media > DVD & Blu-ray",
+    "blu-ray": "Media > DVD & Blu-ray",
+    "movies": "Media > Movies",
     # fashion
-    "fashion": "Apparel", "clothing": "Apparel", "clothes": "Apparel", "apparel": "Apparel",
-    "mens clothing": "Apparel > Men", "mens": "Apparel > Men", "womens clothing": "Apparel > Women",
-    "womens": "Apparel > Women", "kids clothing": "Apparel > Kids", "shoes": "Apparel > Footwear",
-    "footwear": "Apparel > Footwear", "jewellery": "Accessories > Jewellery",
-    "jewelry": "Accessories > Jewellery", "watches": "Accessories > Watches",
-    "bags": "Accessories > Bags", "handbags": "Accessories > Bags",
+    "fashion": "Apparel",
+    "clothing": "Apparel",
+    "clothes": "Apparel",
+    "apparel": "Apparel",
+    "mens clothing": "Apparel > Men",
+    "mens": "Apparel > Men",
+    "womens clothing": "Apparel > Women",
+    "womens": "Apparel > Women",
+    "kids clothing": "Apparel > Kids",
+    "shoes": "Apparel > Footwear",
+    "footwear": "Apparel > Footwear",
+    "jewellery": "Accessories > Jewellery",
+    "jewelry": "Accessories > Jewellery",
+    "watches": "Accessories > Watches",
+    "bags": "Accessories > Bags",
+    "handbags": "Accessories > Bags",
     # home & living
-    "home": "Home & Living", "home & living": "Home & Living", "household": "Home & Living",
-    "kitchen": "Home & Living > Kitchen", "kitchenware": "Home & Living > Kitchen",
-    "furniture": "Home & Living > Furniture", "decor": "Home & Living > Home Decor",
-    "home decor": "Home & Living > Home Decor", "bedding": "Home & Living > Bedding",
-    "bath": "Home & Living > Bath", "garden": "Home & Living > Garden",
-    "toys": "Toys & Games", "toys & games": "Toys & Games", "games": "Toys & Games",
-    "baby": "Baby & Kids", "baby & kids": "Baby & Kids", "kids": "Baby & Kids",
+    "home": "Home & Living",
+    "home & living": "Home & Living",
+    "household": "Home & Living",
+    "kitchen": "Home & Living > Kitchen",
+    "kitchenware": "Home & Living > Kitchen",
+    "furniture": "Home & Living > Furniture",
+    "decor": "Home & Living > Home Decor",
+    "home decor": "Home & Living > Home Decor",
+    "bedding": "Home & Living > Bedding",
+    "bath": "Home & Living > Bath",
+    "garden": "Home & Living > Garden",
+    "toys": "Toys & Games",
+    "toys & games": "Toys & Games",
+    "games": "Toys & Games",
+    "baby": "Baby & Kids",
+    "baby & kids": "Baby & Kids",
+    "kids": "Baby & Kids",
     # grocery & health
-    "grocery": "Grocery", "groceries": "Grocery", "food": "Grocery > Food",
-    "beverages": "Grocery > Beverages", "drinks": "Grocery > Beverages",
-    "snacks": "Grocery > Snacks", "beauty": "Beauty & Personal Care",
-    "personal care": "Beauty & Personal Care", "health": "Health", "health & care": "Health",
-    "sports": "Sports & Outdoors", "sports & outdoors": "Sports & Outdoors",
-    "fitness": "Sports & Outdoors > Fitness", "outdoor": "Sports & Outdoors",
-    "camping": "Sports & Outdoors > Camping", "automotive": "Automotive",
-    "car": "Automotive", "office": "Office & Stationery", "stationery": "Office & Stationery",
-    "pet supplies": "Pets", "pets": "Pets", "toys & games > puzzles": "Toys & Games > Puzzles",
-    "books > textbooks": "Books > Textbooks", "uncategorised": "Uncategorised",
-    "uncategorized": "Uncategorised", "unknown": "Uncategorised", "misc": "Uncategorised",
-    "other": "Uncategorised", "default": "Uncategorised",
+    "grocery": "Grocery",
+    "groceries": "Grocery",
+    "food": "Grocery > Food",
+    "beverages": "Grocery > Beverages",
+    "drinks": "Grocery > Beverages",
+    "snacks": "Grocery > Snacks",
+    "beauty": "Beauty & Personal Care",
+    "personal care": "Beauty & Personal Care",
+    "health": "Health",
+    "health & care": "Health",
+    "sports": "Sports & Outdoors",
+    "sports & outdoors": "Sports & Outdoors",
+    "fitness": "Sports & Outdoors > Fitness",
+    "outdoor": "Sports & Outdoors",
+    "camping": "Sports & Outdoors > Camping",
+    "automotive": "Automotive",
+    "car": "Automotive",
+    "office": "Office & Stationery",
+    "stationery": "Office & Stationery",
+    "pet supplies": "Pets",
+    "pets": "Pets",
+    "toys & games > puzzles": "Toys & Games > Puzzles",
+    "books > textbooks": "Books > Textbooks",
+    "uncategorised": "Uncategorised",
+    "uncategorized": "Uncategorised",
+    "unknown": "Uncategorised",
+    "misc": "Uncategorised",
+    "other": "Uncategorised",
+    "default": "Uncategorised",
 }
 
 _UNAVAILABLE_TOKENS = (
-    "free", "n/a", "na", "none", "null", "unavailable", "-", "--", "call for price",
-    "poa", "tbd", "?", "",
+    "free",
+    "n/a",
+    "na",
+    "none",
+    "null",
+    "unavailable",
+    "-",
+    "--",
+    "call for price",
+    "poa",
+    "tbd",
+    "?",
+    "",
 )
 _IN_STOCK_TOKENS = (
-    "in stock", "instock", "available", "yes", "true", "add to cart", "add to basket",
-    "order now", "buy now", "ships", "in_stock", "instock!", "stocked", "on stock",
+    "in stock",
+    "instock",
+    "available",
+    "yes",
+    "true",
+    "add to cart",
+    "add to basket",
+    "order now",
+    "buy now",
+    "ships",
+    "in_stock",
+    "instock!",
+    "stocked",
+    "on stock",
 )
 _OUT_OF_STOCK_TOKENS = (
-    "out of stock", "outofstock", "unavailable", "sold out", "no stock", "backordered",
-    "discontinued", "currently unavailable", "temporarily out of stock",
+    "out of stock",
+    "outofstock",
+    "unavailable",
+    "sold out",
+    "no stock",
+    "backordered",
+    "discontinued",
+    "currently unavailable",
+    "temporarily out of stock",
 )
 _PREORDER_TOKENS = ("preorder", "pre-order", "pre order", "backorder", "coming soon", "notify me")
 _LIMITED_TOKENS = ("low stock", "only", "limited", "few left", "last chance", "hurry")
@@ -219,7 +479,7 @@ class PriceInfo:
 class RatingInfo:
     """Result of parsing a rating string."""
 
-    value: float | None          # normalised to a 0-5 scale
+    value: float | None  # normalised to a 0-5 scale
     raw_value: float | None
     scale: float
     count: int | None
@@ -281,7 +541,25 @@ def clean_product_name(name: str | None, *, max_length: int = 400) -> str:
 def _smart_title(text: str) -> str:
     """Title-case while keeping small words lowercase and preserving known acronyms."""
     minor = {"and", "or", "of", "the", "for", "with", "in", "on", "to", "a", "an", "at", "by", "vs"}
-    preserve = {"usb", "hd", "4k", "8k", "3d", "2d", "wifi", "usb-c", "usb-c", "tv", "led", "lcd", "oled", "oled", "nfc", "gps", "dlna", "ac", "dc"}
+    preserve = {
+        "usb",
+        "hd",
+        "4k",
+        "8k",
+        "3d",
+        "2d",
+        "wifi",
+        "usb-c",
+        "tv",
+        "led",
+        "lcd",
+        "oled",
+        "nfc",
+        "gps",
+        "dlna",
+        "ac",
+        "dc",
+    }
     words = text.split(" ")
     out: list[str] = []
     for index, word in enumerate(words):
@@ -312,7 +590,7 @@ def name_fingerprint(name: str | None, brand: str | None = None) -> str:
     """Stable hash used for exact-match blocking."""
     key = normalise_name_key(name)
     brand_key = normalise_name_key(brand) if brand else ""
-    return hashlib.sha1(f"{brand_key}|{key}".encode("utf-8")).hexdigest()[:32]
+    return hashlib.sha1(f"{brand_key}|{key}".encode()).hexdigest()[:32]
 
 
 def blocking_key(name: str | None, length: int | None = None) -> str:
@@ -394,10 +672,30 @@ def category_levels(category: str | None) -> int:
 # --------------------------------------------------------------------------------------
 _NUM = r"\d{1,3}(?:[.,\s\u00a0]\d{3})*(?:[.,]\d{1,2})?|\d+(?:[.,]\d{1,2})?"
 _PRICE_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
-    ("symbol_prefix", re.compile(rf"(?P<cur>[$€£¥₹₩₺₽₪₫₱₦]|US\$|R\$|A\$|C\$|zł|C)\s*(?P<amt>{_NUM})", re.IGNORECASE)),
-    ("symbol_suffix", re.compile(rf"(?P<amt>{_NUM})\s*(?P<cur>[$€£¥₹₩₺₽₪₫₱₦]|kr|zł|USD|EUR|GBP|JPY|INR|AUD|CAD|CHF|SEK|PLN|TRY|BRL|RUB)?")),
-    ("code_prefix", re.compile(rf"(?P<cur>USD|EUR|GBP|JPY|CNY|INR|AUD|CAD|CHF|SEK|PLN|TRY|BRL|RUB|ZAR|MXN|SGD|HKD|KRW|AED|SAR|EGP|ILS|PHP|NGN)\s*[:\s]?\s*(?P<amt>{_NUM})", re.IGNORECASE)),
-    ("code_suffix", re.compile(rf"(?P<amt>{_NUM})\s*(?P<cur>USD|EUR|GBP|JPY|CNY|INR|AUD|CAD|CHF|SEK|PLN|TRY|BRL|RUB|ZAR|MXN|SGD|HKD|KRW|AED|SAR|EGP|ILS|PHP|NGN)\b", re.IGNORECASE)),
+    (
+        "symbol_prefix",
+        re.compile(rf"(?P<cur>[$€£¥₹₩₺₽₪₫₱₦]|US\$|R\$|A\$|C\$|zł|C)\s*(?P<amt>{_NUM})", re.IGNORECASE),
+    ),
+    (
+        "symbol_suffix",
+        re.compile(
+            rf"(?P<amt>{_NUM})\s*(?P<cur>[$€£¥₹₩₺₽₪₫₱₦]|kr|zł|USD|EUR|GBP|JPY|INR|AUD|CAD|CHF|SEK|PLN|TRY|BRL|RUB)?"
+        ),
+    ),
+    (
+        "code_prefix",
+        re.compile(
+            rf"(?P<cur>USD|EUR|GBP|JPY|CNY|INR|AUD|CAD|CHF|SEK|PLN|TRY|BRL|RUB|ZAR|MXN|SGD|HKD|KRW|AED|SAR|EGP|ILS|PHP|NGN)\s*[:\s]?\s*(?P<amt>{_NUM})",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "code_suffix",
+        re.compile(
+            rf"(?P<amt>{_NUM})\s*(?P<cur>USD|EUR|GBP|JPY|CNY|INR|AUD|CAD|CHF|SEK|PLN|TRY|BRL|RUB|ZAR|MXN|SGD|HKD|KRW|AED|SAR|EGP|ILS|PHP|NGN)\b",
+            re.IGNORECASE,
+        ),
+    ),
     ("bare", re.compile(rf"(?<![0-9])(?P<amt>{_NUM})(?![0-9])")),
 )
 
@@ -437,7 +735,11 @@ def parse_number(text: str | None) -> float | None:
         # "1,499" -> thousands, "45,90" -> decimal. A single separator followed by
         # exactly three digits is the classic thousands grouping.
         decimals = value.split(",")[-1]
-        value = value.replace(",", "") if (len(decimals) == 3 and value.count(",") == 1) else value.replace(",", ".")
+        value = (
+            value.replace(",", "")
+            if (len(decimals) == 3 and value.count(",") == 1)
+            else value.replace(",", ".")
+        )
     elif has_dot:
         # A dot with exactly three trailing digits is ambiguous; we keep it as a
         # decimal point (US/en-GB default) unless several dots are used as grouping.
@@ -450,7 +752,9 @@ def parse_number(text: str | None) -> float | None:
         return None
 
 
-def normalise_currency(value: str | None, *, default: str | None = None, hint: str | None = None) -> str | None:
+def normalise_currency(
+    value: str | None, *, default: str | None = None, hint: str | None = None
+) -> str | None:
     """Resolve a currency code from a code, symbol or ambiguous ``$``.
 
     When ``value`` is a longer string (e.g. ``"Was $49.99 Now $39.99"``) the most
@@ -491,13 +795,37 @@ def detect_currency_locale(text: str | None, url: str | None = None, html: str |
     if url:
         host = re.sub(r"^www\.", "", url.lower())
         mapping = {
-            ".co.uk": "GBP", ".uk/": "GBP", "amazon.co.uk": "GBP", "ebay.co.uk": "GBP",
-            ".de": "EUR", ".fr": "EUR", ".it": "EUR", ".es": "EUR", ".nl": "EUR",
-            ".eu": "EUR", ".ca": "CAD", ".com.au": "AUD", ".co.nz": "AUD",
-            ".co.jp": "JPY", ".jp": "JPY", ".in": "INR", ".cn": "CNY",
-            ".com.br": "BRL", ".com.mx": "MXN", ".ae": "AED", ".sa": "SAR",
-            ".eg": "EGP", ".se": "SEK", ".ch": "CHF", ".pl": "PLN", ".za": "ZAR",
-            ".sg": "SGD", ".hk": "HKD", ".kr": "KRW", ".tr": "TRY", ".il": "ILS",
+            ".co.uk": "GBP",
+            ".uk/": "GBP",
+            "amazon.co.uk": "GBP",
+            "ebay.co.uk": "GBP",
+            ".de": "EUR",
+            ".fr": "EUR",
+            ".it": "EUR",
+            ".es": "EUR",
+            ".nl": "EUR",
+            ".eu": "EUR",
+            ".ca": "CAD",
+            ".com.au": "AUD",
+            ".co.nz": "AUD",
+            ".co.jp": "JPY",
+            ".jp": "JPY",
+            ".in": "INR",
+            ".cn": "CNY",
+            ".com.br": "BRL",
+            ".com.mx": "MXN",
+            ".ae": "AED",
+            ".sa": "SAR",
+            ".eg": "EGP",
+            ".se": "SEK",
+            ".ch": "CHF",
+            ".pl": "PLN",
+            ".za": "ZAR",
+            ".sg": "SGD",
+            ".hk": "HKD",
+            ".kr": "KRW",
+            ".tr": "TRY",
+            ".il": "ILS",
         }
         for needle, code in mapping.items():
             if needle in host:
@@ -508,7 +836,7 @@ def detect_currency_locale(text: str | None, url: str | None = None, html: str |
         if len(token) <= 2:
             continue
         counts[code] = haystack.count(token)
-    for currency_hint in ("itemprop=\"priceCurrency\" content=\"", "priceCurrency", "currency\":\""):
+    for currency_hint in ('itemprop="priceCurrency" content="', "priceCurrency", 'currency":"'):
         if currency_hint in haystack:
             match = re.search(r"(?:content=\"|\":\")([A-Z]{3})", haystack)
             if match and match.group(1) in STATIC_FX_RATES:
@@ -589,8 +917,10 @@ def parse_price(
             )
             # A pattern whose optional currency group did not participate is only
             # weak evidence (e.g. a bare "12" matched by the symbol-suffix rule).
-            confidence = _PATTERN_CONFIDENCE[name] if match.groupdict().get("cur") else min(
-                _PATTERN_CONFIDENCE[name], _PATTERN_CONFIDENCE["bare"]
+            confidence = (
+                _PATTERN_CONFIDENCE[name]
+                if match.groupdict().get("cur")
+                else min(_PATTERN_CONFIDENCE[name], _PATTERN_CONFIDENCE["bare"])
             )
             candidate = PriceInfo(amount, currency, raw, confidence, matched_pattern=name)
             rank = (confidence, -priority)
@@ -600,8 +930,14 @@ def parse_price(
         return PriceInfo(None, normalise_currency(None, default=locale_hint or default_currency), raw, 0.0)
     if best.currency is None:
         best = PriceInfo(
-            best.amount, locale_hint or default_currency, best.raw, best.confidence * 0.9,
-            best.is_range, best.range_low, best.range_high, best.matched_pattern,
+            best.amount,
+            locale_hint or default_currency,
+            best.raw,
+            best.confidence * 0.9,
+            best.is_range,
+            best.range_low,
+            best.range_high,
+            best.matched_pattern,
         )
     return best
 

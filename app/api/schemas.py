@@ -31,7 +31,7 @@ class Page(BaseModel, Generic[T]):
     has_prev: bool = False
 
     @classmethod
-    def build(cls, items: list[Any], total: int, page: int, page_size: int) -> "Page[Any]":
+    def build(cls, items: list[Any], total: int, page: int, page_size: int) -> Page[Any]:
         pages = max(1, (total + page_size - 1) // page_size)
         return cls(
             items=items,
@@ -81,7 +81,7 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     expires_in: int
     role: str
-    user: "UserRead"
+    user: UserRead
 
 
 class RefreshRequest(BaseModel):
@@ -511,8 +511,19 @@ class QueryRequest(BaseModel):
         if not stripped.startswith(allowed):
             raise ValueError("only SELECT / WITH / EXPLAIN statements are allowed")
         forbidden = (
-            "insert ", "update ", "delete ", "drop ", "alter ", "create ", "truncate ",
-            "grant ", "revoke ", "commit ", "rollback ", "; --", "/*",
+            "insert ",
+            "update ",
+            "delete ",
+            "drop ",
+            "alter ",
+            "create ",
+            "truncate ",
+            "grant ",
+            "revoke ",
+            "commit ",
+            "rollback ",
+            "; --",
+            "/*",
         )
         if any(token in stripped for token in forbidden):
             raise ValueError("statement contains a write or multiple statement")
@@ -530,11 +541,41 @@ class QueryResponse(BaseModel):
 TokenResponse.model_rebuild()
 
 __all__ = [name for name in dir() if name[0].isupper()] + [
-    "ORMModel", "Page", "Message", "ErrorResponse", "HealthResponse", "LoginRequest", "TokenResponse",
-    "RefreshRequest", "PasswordChangeRequest", "UserRead", "UserUpdate", "UserCreate", "UserStats",
-    "ApiKeyRead", "ApiKeyCreate", "ApiKeyCreated", "ProductSummary", "ProductDetail", "PricePoint",
-    "ChangeEvent", "PriceChangeRead", "SourceRead", "PipelineRunRead", "PipelineTriggerRequest",
-    "DqRuleRead", "CatalogMatchRead", "SavedViewRead", "SavedViewCreate", "AlertRuleRead",
-    "AlertRuleCreate", "NotificationRead", "SettingRead", "SettingUpdate", "AuditLogRead",
-    "HttpLogRead", "QueryRequest", "QueryResponse",
+    "ORMModel",
+    "Page",
+    "Message",
+    "ErrorResponse",
+    "HealthResponse",
+    "LoginRequest",
+    "TokenResponse",
+    "RefreshRequest",
+    "PasswordChangeRequest",
+    "UserRead",
+    "UserUpdate",
+    "UserCreate",
+    "UserStats",
+    "ApiKeyRead",
+    "ApiKeyCreate",
+    "ApiKeyCreated",
+    "ProductSummary",
+    "ProductDetail",
+    "PricePoint",
+    "ChangeEvent",
+    "PriceChangeRead",
+    "SourceRead",
+    "PipelineRunRead",
+    "PipelineTriggerRequest",
+    "DqRuleRead",
+    "CatalogMatchRead",
+    "SavedViewRead",
+    "SavedViewCreate",
+    "AlertRuleRead",
+    "AlertRuleCreate",
+    "NotificationRead",
+    "SettingRead",
+    "SettingUpdate",
+    "AuditLogRead",
+    "HttpLogRead",
+    "QueryRequest",
+    "QueryResponse",
 ]

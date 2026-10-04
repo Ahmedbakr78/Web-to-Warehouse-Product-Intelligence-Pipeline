@@ -216,7 +216,9 @@ class CompliantHttpClient:
 
         decision = self.robots.can_fetch(full_url, self.user_agent)
         if check_robots and self.respect_robots and not decision.allowed:
-            self._record(full_url, "GET", None, 0.0, 0, False, decision.rule, False, 0, "blocked by robots.txt")
+            self._record(
+                full_url, "GET", None, 0.0, 0, False, decision.rule, False, 0, "blocked by robots.txt"
+            )
             raise ComplianceError(
                 f"robots.txt forbids fetching {full_url}",
                 details={"url": full_url, "rule": decision.rule, "user_agent": self.user_agent},
@@ -227,7 +229,17 @@ class CompliantHttpClient:
         if not force_refresh:
             cached = self._read_cache(full_url)
             if cached is not None:
-                self._record(full_url, "GET", cached.status_code, 0.0, len(cached.text), decision.allowed, "cache", True, 0)
+                self._record(
+                    full_url,
+                    "GET",
+                    cached.status_code,
+                    0.0,
+                    len(cached.text),
+                    decision.allowed,
+                    "cache",
+                    True,
+                    0,
+                )
                 return cached
 
         if self.breaker.is_open(host):
@@ -254,7 +266,18 @@ class CompliantHttpClient:
                     retry_after = _parse_retry_after(response.headers.get("Retry-After"))
                     self.limiter.penalise(host, retry_after or settings.retry_backoff_seconds * (attempt + 1))
                     last_error = f"HTTP {response.status_code}"
-                    self._record(full_url, "GET", response.status_code, elapsed, len(result.text), decision.allowed, decision.rule, False, attempt, last_error)
+                    self._record(
+                        full_url,
+                        "GET",
+                        response.status_code,
+                        elapsed,
+                        len(result.text),
+                        decision.allowed,
+                        decision.rule,
+                        False,
+                        attempt,
+                        last_error,
+                    )
                     if attempt < settings.max_retries and response.status_code in RETRYABLE_STATUS:
                         time.sleep(settings.retry_backoff_seconds * (2**attempt))
                         continue
@@ -265,13 +288,34 @@ class CompliantHttpClient:
 
                 self.breaker.record_success(host)
                 self._write_cache(result)
-                self._record(full_url, "GET", response.status_code, elapsed, len(result.text), decision.allowed, decision.rule, False, attempt)
+                self._record(
+                    full_url,
+                    "GET",
+                    response.status_code,
+                    elapsed,
+                    len(result.text),
+                    decision.allowed,
+                    decision.rule,
+                    False,
+                    attempt,
+                )
                 return result
 
             except RETRYABLE_EXCEPTIONS as exc:
                 elapsed = (time.perf_counter() - started) * 1000
                 last_error = f"{type(exc).__name__}: {exc}"
-                self._record(full_url, "GET", None, elapsed, 0, decision.allowed, decision.rule, False, attempt, last_error)
+                self._record(
+                    full_url,
+                    "GET",
+                    None,
+                    elapsed,
+                    0,
+                    decision.allowed,
+                    decision.rule,
+                    False,
+                    attempt,
+                    last_error,
+                )
                 if attempt < settings.max_retries:
                     time.sleep(settings.retry_backoff_seconds * (2**attempt))
                     continue

@@ -61,9 +61,8 @@ def build_engine(url: str | None = None, **overrides: Any) -> Engine:
         )
         options.update(overrides)
         engine = create_engine(target_url, **options)
-        with contextlib.suppress(Exception):
-            with engine.connect() as conn:
-                conn.execute(text(f"SET statement_timeout = {int(settings.db_statement_timeout_ms)}"))
+        with contextlib.suppress(Exception), engine.connect() as conn:
+            conn.execute(text(f"SET statement_timeout = {int(settings.db_statement_timeout_ms)}"))
         return engine
 
     if dialect == "mysql":

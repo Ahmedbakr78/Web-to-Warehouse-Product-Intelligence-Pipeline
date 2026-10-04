@@ -6,9 +6,8 @@ from typing import Any
 
 import sqlalchemy as sa
 from fastapi import APIRouter
-from sqlalchemy.orm import Session
 
-from app.api.deps import AdminUser, CurrentUser, DbSession, OptionalUser
+from app.api.deps import AdminUser, DbSession, OptionalUser
 from app.api.schemas import Message, SettingRead, SettingUpdate
 from app.core.errors import ProductNotFoundError
 from app.models.app_users import AppSetting

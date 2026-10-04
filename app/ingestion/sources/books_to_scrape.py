@@ -40,8 +40,7 @@ class BooksToScrapeSource(ProductSource):
     base_url: ClassVar[str] = "https://books.toscrape.com/"
     terms_url: ClassVar[str] = "https://books.toscrape.com/"
     license_note: ClassVar[str] = (
-        "Sandbox site published by Zyte for scraping practice. Non-commercial, "
-        "robots.txt friendly."
+        "Sandbox site published by Zyte for scraping practice. Non-commercial, robots.txt friendly."
     )
     default_currency: ClassVar[str] = "GBP"
     rate_limit_per_minute: ClassVar[int] = 30
@@ -115,8 +114,10 @@ class BooksToScrapeSource(ProductSource):
 
         # schema.org breadcrumbs give the category hierarchy for free.
         categories = [li.get_text(strip=True) for li in soup.select("ul.breadcrumb li")]
-        category = " > ".join(categories[1:-1]) if len(categories) > 2 else (
-            categories[1] if len(categories) > 1 else None
+        category = (
+            " > ".join(categories[1:-1])
+            if len(categories) > 2
+            else (categories[1] if len(categories) > 1 else None)
         )
 
         price_element = soup.select_one("p.price_color")
@@ -159,8 +160,19 @@ class BooksToScrapeSource(ProductSource):
             in_stock_flag=stock_count > 0,
             url=url,
             image_url=image.get("src") if image else None,
-            description=table_data.get("description") or (soup.select_one("#product_description + p").get_text(" ", strip=True) if soup.select_one("#product_description + p") else None),
-            payload={"table": table_data, "upc": table_data.get("upc"), "stars": stars, "stock": stock_count, "upc_row": upc.get_text(strip=True) if upc else None},
+            description=table_data.get("description")
+            or (
+                soup.select_one("#product_description + p").get_text(" ", strip=True)
+                if soup.select_one("#product_description + p")
+                else None
+            ),
+            payload={
+                "table": table_data,
+                "upc": table_data.get("upc"),
+                "stars": stars,
+                "stock": stock_count,
+                "upc_row": upc.get_text(strip=True) if upc else None,
+            },
         )
 
     def health_check(self) -> dict[str, Any]:

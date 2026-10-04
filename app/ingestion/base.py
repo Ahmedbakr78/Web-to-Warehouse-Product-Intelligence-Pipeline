@@ -124,7 +124,7 @@ class ProductSource(abc.ABC):
 
     code: ClassVar[str] = ""
     name: ClassVar[str] = ""
-    kind: ClassVar[str] = "api"                 # api | scrape
+    kind: ClassVar[str] = "api"  # api | scrape
     base_url: ClassVar[str] = ""
     terms_url: ClassVar[str | None] = None
     license_note: ClassVar[str | None] = None
@@ -319,7 +319,9 @@ def get_source_class(code: str) -> type[ProductSource]:
         ) from exc
 
 
-def get_source(code: str, run_id: str | None = None, client: CompliantHttpClient | None = None) -> ProductSource:
+def get_source(
+    code: str, run_id: str | None = None, client: CompliantHttpClient | None = None
+) -> ProductSource:
     return get_source_class(code)(run_id=run_id, client=client)
 
 
@@ -343,11 +345,11 @@ def load_builtin_sources() -> None:
         return
     _loaded = True
     from app.ingestion.sources import (  # noqa: F401  (import for side effects)
+        books_to_scrape,
         dummyjson,
         fakestore,
         local_fixture,
         openlibrary,
-        books_to_scrape,
     )
 
 

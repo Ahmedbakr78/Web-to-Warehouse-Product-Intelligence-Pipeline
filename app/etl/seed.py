@@ -11,8 +11,9 @@ from __future__ import annotations
 import datetime as dt
 import hashlib
 import random
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, Iterable
+from typing import Any
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
@@ -24,7 +25,6 @@ from app.ingestion.cleaning import (
     category_slug,
     clean_brand,
     convert_to_usd,
-    is_valid_rating,
     name_fingerprint,
     normalise_category,
     normalise_name_key,
@@ -45,12 +45,33 @@ def seed_users(session: Session) -> int:
     from app.models.app_users import AppSetting, AppUser
 
     accounts = [
-        (settings.seed_admin_email, settings.seed_admin_password, "Ahmed Abobakr", "admin",
-         "Data Engineering Lead", "Data Platform", "#6366f1"),
-        (settings.seed_analyst_email, settings.seed_analyst_password, "Sara Mahmoud", "analyst",
-         "Pricing Analyst", "Merchandising", "#0ea5e9"),
-        (settings.seed_viewer_email, settings.seed_viewer_password, "Karim Nabil", "viewer",
-         "Category Manager", "Buying", "#10b981"),
+        (
+            settings.seed_admin_email,
+            settings.seed_admin_password,
+            "Ahmed Abobakr",
+            "admin",
+            "Data Engineering Lead",
+            "Data Platform",
+            "#6366f1",
+        ),
+        (
+            settings.seed_analyst_email,
+            settings.seed_analyst_password,
+            "Sara Mahmoud",
+            "analyst",
+            "Pricing Analyst",
+            "Merchandising",
+            "#0ea5e9",
+        ),
+        (
+            settings.seed_viewer_email,
+            settings.seed_viewer_password,
+            "Karim Nabil",
+            "viewer",
+            "Category Manager",
+            "Buying",
+            "#10b981",
+        ),
     ]
     created = 0
     for email, password, full_name, role, job_title, department, color in accounts:
@@ -79,12 +100,28 @@ def seed_users(session: Session) -> int:
         created += 1
 
     defaults = {
-        ("pipeline.schedule_cron", "0 3 * * *", "string", "pipeline", "Cron expression for the daily Airflow DAG"),
-        ("pipeline.default_sources", "local_demo,dummyjson_products,fakestore_products,books_to_scrape", "string",
-         "pipeline", "Sources enabled for scheduled runs"),
+        (
+            "pipeline.schedule_cron",
+            "0 3 * * *",
+            "string",
+            "pipeline",
+            "Cron expression for the daily Airflow DAG",
+        ),
+        (
+            "pipeline.default_sources",
+            "local_demo,dummyjson_products,fakestore_products,books_to_scrape",
+            "string",
+            "pipeline",
+            "Sources enabled for scheduled runs",
+        ),
         ("dq.min_quality_score", "80", "number", "quality", "Fail the run below this weighted DQ score"),
-        ("ingest.rate_limit_per_minute", str(settings.requests_per_minute), "number", "ingestion",
-         "Global request ceiling per host"),
+        (
+            "ingest.rate_limit_per_minute",
+            str(settings.requests_per_minute),
+            "number",
+            "ingestion",
+            "Global request ceiling per host",
+        ),
         ("ui.default_theme", "system", "string", "ui", "Default colour theme for new accounts"),
         ("retention.snapshot_days", "730", "number", "retention", "Days of price history to keep"),
     }
@@ -110,22 +147,58 @@ def seed_saved_views_and_alerts(session: Session) -> int:
     """Saved views + alert rules attached to the seeded accounts."""
     from app.models.app_users import AppAlertRule, AppSavedView, AppUser
 
-    admin = session.execute(sa.select(AppUser).where(AppUser.email == settings.seed_admin_email)).scalars().first()
-    analyst = session.execute(sa.select(AppUser).where(AppUser.email == settings.seed_analyst_email)).scalars().first()
+    admin = (
+        session.execute(sa.select(AppUser).where(AppUser.email == settings.seed_admin_email))
+        .scalars()
+        .first()
+    )
+    analyst = (
+        session.execute(sa.select(AppUser).where(AppUser.email == settings.seed_analyst_email))
+        .scalars()
+        .first()
+    )
     if admin is None or analyst is None:
         return 0
     if session.execute(sa.select(AppSavedView).limit(1)).scalars().first() is not None:
         return 0
 
     views = [
-        (admin.user_id, "Big price drops", "products",
-         {"min_change_pct": -5, "in_stock": True}, "price_change_pct", "asc", ["name", "price", "change"]),
-        (admin.user_id, "Out of stock", "products", {"availability": "out_of_stock"}, "last_seen_at", "desc",
-         ["name", "category", "availability"]),
-        (analyst.user_id, "Electronics movers", "products", {"category": "Electronics", "window": "7d"},
-         "change_pct", "asc", ["name", "brand", "price", "change"]),
-        (analyst.user_id, "New arrivals", "changes", {"event_type": "new", "window": "7d"}, "detected_at", "desc",
-         ["name", "category", "price"]),
+        (
+            admin.user_id,
+            "Big price drops",
+            "products",
+            {"min_change_pct": -5, "in_stock": True},
+            "price_change_pct",
+            "asc",
+            ["name", "price", "change"],
+        ),
+        (
+            admin.user_id,
+            "Out of stock",
+            "products",
+            {"availability": "out_of_stock"},
+            "last_seen_at",
+            "desc",
+            ["name", "category", "availability"],
+        ),
+        (
+            analyst.user_id,
+            "Electronics movers",
+            "products",
+            {"category": "Electronics", "window": "7d"},
+            "change_pct",
+            "asc",
+            ["name", "brand", "price", "change"],
+        ),
+        (
+            analyst.user_id,
+            "New arrivals",
+            "changes",
+            {"event_type": "new", "window": "7d"},
+            "detected_at",
+            "desc",
+            ["name", "category", "price"],
+        ),
     ]
     for user_id, name, entity, filters, sort_by, sort_dir, columns in views:
         session.add(
@@ -224,10 +297,14 @@ def seed_catalog(session: Session, products: Iterable[SeedProduct], *, match_rat
                 CatalogProduct(
                     sku=f"INT-{index + 1:05d}",
                     name=f"{product.brand or 'House Brand'} Private Label Item {index + 1}",
-                    normalized_name=normalise_name_key(f"{product.brand or ''} private label item {index + 1}"),
+                    normalized_name=normalise_name_key(
+                        f"{product.brand or ''} private label item {index + 1}"
+                    ),
                     brand=clean_brand(product.brand) or "House Brand",
                     category=product.category,
-                    supplier=rng.choice(["Acme Imports", "Globex Supply", "Initech Wholesale", "Umbrella Ltd"]),
+                    supplier=rng.choice(
+                        ["Acme Imports", "Globex Supply", "Initech Wholesale", "Umbrella Ltd"]
+                    ),
                     cost_price=round(product.base_price * 0.62, 2),
                     list_price=round(product.base_price * rng.uniform(1.02, 1.35), 2),
                     currency="USD",
@@ -281,11 +358,11 @@ def _price_series(product: SeedProduct, days: int, seed: int) -> list[float]:
     series: list[float] = []
     for day in range(days):
         roll = rng.random()
-        if roll < 0.06:                      # flash sale
+        if roll < 0.06:  # flash sale
             shock = rng.uniform(-0.18, -0.08)
-        elif roll < 0.16:                    # promotion window
+        elif roll < 0.16:  # promotion window
             shock = promo_bias
-        elif roll < 0.20:                    # promotion ends
+        elif roll < 0.20:  # promotion ends
             shock = -promo_bias * 0.8
         else:
             shock = rng.gauss(0, volatility)
@@ -305,7 +382,9 @@ def _lifecycle(index: int, days: int) -> tuple[int, int | None]:
     return first, last
 
 
-def seed_history(session: Session, days: int = 120, *, source_code: str = "local_demo", batch: int = 500) -> dict[str, int]:
+def seed_history(
+    session: Session, days: int = 120, *, source_code: str = "local_demo", batch: int = 500
+) -> dict[str, int]:
     """Backfill ``days`` of snapshots, price changes and lifecycle events."""
     from app.etl.bootstrap import date_id, ensure_date_range
     from app.models.dimensions import DimCategory, DimProduct, DimSource
@@ -324,14 +403,12 @@ def seed_history(session: Session, days: int = 120, *, source_code: str = "local
     source = session.get(DimSource, source_code)
     if source is None:
         from app.etl.bootstrap import sync_dim_source
-
         from app.ingestion.base import get_source_class
 
         source = sync_dim_source(session, get_source_class(source_code)())
 
     category_cache: dict[str, int] = {
-        row.slug: row.category_id
-        for row in session.execute(sa.select(DimCategory)).scalars()
+        row.slug: row.category_id for row in session.execute(sa.select(DimCategory)).scalars()
     }
     product_cache: dict[str, int] = {}
 
@@ -341,8 +418,12 @@ def seed_history(session: Session, days: int = 120, *, source_code: str = "local
         slug = category_slug(product.category)
         category_id = category_cache.get(slug)
         if category_id is None:
-            category = DimCategory(name=product.category.split(" > ")[-1], slug=slug, path=product.category,
-                                   level=product.category.count(">") + 1)
+            category = DimCategory(
+                name=product.category.split(" > ")[-1],
+                slug=slug,
+                path=product.category,
+                level=product.category.count(">") + 1,
+            )
             session.add(category)
             session.flush()
             category_cache[slug] = category.category_id
@@ -430,10 +511,10 @@ def seed_history(session: Session, days: int = 120, *, source_code: str = "local
             flags: list[str] = []
             # Deterministic quality defects so the DQ framework has real findings.
             if (index * 37 + offset * 11) % 211 == 5:
-                rating = 9.9                       # out-of-range rating
+                rating = 9.9  # out-of-range rating
                 flags.append("out_of_range_rating")
             if (index * 53 + offset * 7) % 431 == 11:
-                price = None                       # unparseable price upstream
+                price = None  # unparseable price upstream
                 price_usd, fx = convert_to_usd(product.base_price, product.currency)
                 flags.append("missing_price")
             if (index * 29 + offset * 13) % 617 == 3:
@@ -444,7 +525,9 @@ def seed_history(session: Session, days: int = 120, *, source_code: str = "local
                 weights=[40, 22, 14, 8, 11, 5],
             )[0]
             captured_at = dt.datetime.combine(run_date, dt.time(3, 8), tzinfo=dt.timezone.utc)
-            change_abs = None if (previous_price is None or price is None) else round(price - previous_price, 2)
+            change_abs = (
+                None if (previous_price is None or price is None) else round(price - previous_price, 2)
+            )
             change_pct = percent_change(previous_price, price) if price is not None else None
 
             snapshot_rows.append(
@@ -486,10 +569,17 @@ def seed_history(session: Session, days: int = 120, *, source_code: str = "local
                         "change_pct": change_pct,
                         "direction": "increase" if (change_abs or 0) > 0 else "decrease",
                         "currency": product.currency,
-                        "magnitude_band": "minor" if abs(change_pct) < 1 else (
-                            "small" if abs(change_pct) < 5 else (
-                                "moderate" if abs(change_pct) < 15 else (
-                                    "large" if abs(change_pct) < 30 else "major"))),
+                        "magnitude_band": "minor"
+                        if abs(change_pct) < 1
+                        else (
+                            "small"
+                            if abs(change_pct) < 5
+                            else (
+                                "moderate"
+                                if abs(change_pct) < 15
+                                else ("large" if abs(change_pct) < 30 else "major")
+                            )
+                        ),
                         "is_significant": abs(change_pct) >= 2.0,
                         "previous_price_usd": convert_to_usd(previous_price, product.currency)[0],
                         "new_price_usd": price_usd,
@@ -593,7 +683,9 @@ def seed_history(session: Session, days: int = 120, *, source_code: str = "local
             _bulk_insert(session, FactPriceSnapshot, snapshot_rows)
             _bulk_insert(session, ChgPriceChange, change_rows)
             _bulk_insert(session, ChgProductEvent, event_rows)
-            snapshot_rows.clear(); change_rows.clear(); event_rows.clear()
+            snapshot_rows.clear()
+            change_rows.clear()
+            event_rows.clear()
 
     _bulk_insert(session, FactPriceSnapshot, snapshot_rows)
     _bulk_insert(session, ChgPriceChange, change_rows)
@@ -622,8 +714,13 @@ def seed_history(session: Session, days: int = 120, *, source_code: str = "local
     session.flush()
     log.info(
         "seeded history: %d products, %d snapshots, %d price changes, %d events (%d new / %d removed / %d recategorised)",
-        stats["products"], stats["snapshots"], stats["price_changes"], stats["events"],
-        total_new, total_removed, total_recategorised,
+        stats["products"],
+        stats["snapshots"],
+        stats["price_changes"],
+        stats["events"],
+        total_new,
+        total_removed,
+        total_recategorised,
     )
     return stats
 
@@ -648,7 +745,9 @@ def _count(session: Session, model: Any) -> int:
     return session.execute(sa.select(sa.func.count()).select_from(model)).scalar() or 0
 
 
-def run_full_seed(database: str | None = None, *, days: int = 120, with_history: bool = True) -> dict[str, Any]:
+def run_full_seed(
+    database: str | None = None, *, days: int = 120, with_history: bool = True
+) -> dict[str, Any]:
     """Seed users, catalog and history into one target database."""
     with session_scope(database) as session:
         users = seed_users(session)
@@ -662,4 +761,11 @@ def run_full_seed(database: str | None = None, *, days: int = 120, with_history:
     return {"users": users, "catalog": catalog, "saved": extras, "history": history}
 
 
-__all__ = ["build_seed_products", "seed_users", "seed_catalog", "seed_history", "run_full_seed", "seed_saved_views_and_alerts"]
+__all__ = [
+    "build_seed_products",
+    "seed_users",
+    "seed_catalog",
+    "seed_history",
+    "run_full_seed",
+    "seed_saved_views_and_alerts",
+]

@@ -6,7 +6,6 @@ from typing import Annotated, Any
 
 import sqlalchemy as sa
 from fastapi import APIRouter, Query
-from sqlalchemy.orm import Session
 
 from app.api.deps import CurrentUser, DbSession, PaginationDep
 from app.api.schemas import AlertRuleCreate, AlertRuleRead, Message, NotificationRead, Page
@@ -16,23 +15,35 @@ router = APIRouter(tags=["notifications"])
 
 
 @router.get("/notifications", response_model=Page[NotificationRead], summary="My notifications")
-def notifications(session: DbSession, user: CurrentUser, pagination: PaginationDep,
-                  unread_only: Annotated[bool, Query()] = False) -> Page[NotificationRead]:
+def notifications(
+    session: DbSession,
+    user: CurrentUser,
+    pagination: PaginationDep,
+    unread_only: Annotated[bool, Query()] = False,
+) -> Page[NotificationRead]:
     from app.models.app_users import AppNotification
 
     conditions = [AppNotification.user_id == user.user_id]
     if unread_only:
         conditions.append(AppNotification.is_read.is_(False))
-    total = session.execute(
-        sa.select(sa.func.count()).select_from(AppNotification).where(*conditions)
-    ).scalar() or 0
-    rows = session.execute(
-        sa.select(AppNotification)
-        .where(*conditions)
-        .order_by(AppNotification.created_at.desc())
-        .limit(pagination.page_size).offset(pagination.offset)
-    ).scalars().all()
-    return Page.build([NotificationRead.model_validate(row) for row in rows], total, pagination.page, pagination.page_size)
+    total = (
+        session.execute(sa.select(sa.func.count()).select_from(AppNotification).where(*conditions)).scalar()
+        or 0
+    )
+    rows = (
+        session.execute(
+            sa.select(AppNotification)
+            .where(*conditions)
+            .order_by(AppNotification.created_at.desc())
+            .limit(pagination.page_size)
+            .offset(pagination.offset)
+        )
+        .scalars()
+        .all()
+    )
+    return Page.build(
+        [NotificationRead.model_validate(row) for row in rows], total, pagination.page, pagination.page_size
+    )
 
 
 @router.post("/notifications/{notification_id}/read", response_model=Message, summary="Mark as read")
@@ -54,10 +65,14 @@ def mark_read(notification_id: int, session: DbSession, user: CurrentUser) -> Me
 def mark_all_read(session: DbSession, user: CurrentUser) -> Message:
     from app.models.app_users import AppNotification
 
-    count = session.execute(
-        sa.update(AppNotification).where(AppNotification.user_id == user.user_id, AppNotification.is_read.is_(False))
-        .values(is_read=True)
-    ).rowcount or 0
+    count = (
+        session.execute(
+            sa.update(AppNotification)
+            .where(AppNotification.user_id == user.user_id, AppNotification.is_read.is_(False))
+            .values(is_read=True)
+        ).rowcount
+        or 0
+    )
     return Message(message=f"{count} notifications marked as read", detail={"updated": count})
 
 
@@ -65,9 +80,15 @@ def mark_all_read(session: DbSession, user: CurrentUser) -> Message:
 def alerts(session: DbSession, user: CurrentUser) -> list[AlertRuleRead]:
     from app.models.app_users import AppAlertRule
 
-    rows = session.execute(
-        sa.select(AppAlertRule).where(AppAlertRule.user_id == user.user_id).order_by(AppAlertRule.alert_id)
-    ).scalars().all()
+    rows = (
+        session.execute(
+            sa.select(AppAlertRule)
+            .where(AppAlertRule.user_id == user.user_id)
+            .order_by(AppAlertRule.alert_id)
+        )
+        .scalars()
+        .all()
+    )
     return [AlertRuleRead.model_validate(row) for row in rows]
 
 
@@ -92,7 +113,9 @@ def create_alert(payload: AlertRuleCreate, session: DbSession, user: CurrentUser
 
 
 @router.patch("/alerts/{alert_id}", response_model=AlertRuleRead, summary="Update an alert rule")
-def update_alert(alert_id: int, session: DbSession, user: CurrentUser, payload: AlertRuleCreate) -> AlertRuleRead:
+def update_alert(
+    alert_id: int, session: DbSession, user: CurrentUser, payload: AlertRuleCreate
+) -> AlertRuleRead:
     from app.models.app_users import AppAlertRule
 
     rule = session.get(AppAlertRule, alert_id)
@@ -119,33 +142,68 @@ def evaluate_alerts(session: DbSession, user: CurrentUser) -> dict[str, Any]:
     """Real evaluation query: how many rows would fire each rule right now."""
     from app.models.app_users import AppAlertRule
 
-    rules = session.execute(
-        sa.select(AppAlertRule).where(AppAlertRule.user_id == user.user_id, AppAlertRule.is_active.is_(True))
-    ).scalars().all()
+    rules = (
+        session.execute(
+            sa.select(AppAlertRule).where(
+                AppAlertRule.user_id == user.user_id, AppAlertRule.is_active.is_(True)
+            )
+        )
+        .scalars()
+        .all()
+    )
     results: list[dict[str, Any]] = []
     for rule in rules:
         if rule.metric == "price_change_pct":
             clause = "WHERE is_significant AND ABS(change_pct) >= :threshold"
             params = {"threshold": abs(rule.threshold)}
-            rows = session.execute(sa.text(f"SELECT COUNT(*) FROM vw_price_changes {clause}"), params).scalar() or 0
+            rows = (
+                session.execute(sa.text(f"SELECT COUNT(*) FROM vw_price_changes {clause}"), params).scalar()
+                or 0
+            )
         elif rule.metric == "rating":
-            rows = session.execute(
-                sa.text("SELECT COUNT(*) FROM vw_product_current WHERE rating IS NOT NULL AND rating < :threshold"),
-                {"threshold": rule.threshold},
-            ).scalar() or 0
+            rows = (
+                session.execute(
+                    sa.text(
+                        "SELECT COUNT(*) FROM vw_product_current WHERE rating IS NOT NULL AND rating < :threshold"
+                    ),
+                    {"threshold": rule.threshold},
+                ).scalar()
+                or 0
+            )
         elif rule.metric == "new_product":
-            rows = session.execute(
-                sa.text("SELECT COUNT(*) FROM vw_new_products WHERE first_seen_at >= :since"),
-                {"since": __import__("datetime").datetime.now(__import__("datetime").timezone.utc) - __import__("datetime").timedelta(days=7)},
-            ).scalar() or 0
+            rows = (
+                session.execute(
+                    sa.text("SELECT COUNT(*) FROM vw_new_products WHERE first_seen_at >= :since"),
+                    {
+                        "since": __import__("datetime").datetime.now(__import__("datetime").timezone.utc)
+                        - __import__("datetime").timedelta(days=7)
+                    },
+                ).scalar()
+                or 0
+            )
         elif rule.metric == "dq_failure":
-            rows = session.execute(
-                sa.text("SELECT COUNT(*) FROM dq_rule_result WHERE status = 'fail' AND run_id = (SELECT MAX(run_id) FROM etl_run)")
-            ).scalar() or 0
+            rows = (
+                session.execute(
+                    sa.text(
+                        "SELECT COUNT(*) FROM dq_rule_result WHERE status = 'fail' AND run_id = (SELECT MAX(run_id) FROM etl_run)"
+                    )
+                ).scalar()
+                or 0
+            )
         else:
-            rows = session.execute(
-                sa.text("SELECT COUNT(*) FROM vw_product_current WHERE availability = 'out_of_stock'")
-            ).scalar() or 0
-        results.append({"alert_id": rule.alert_id, "name": rule.name, "metric": rule.metric,
-                        "threshold": rule.threshold, "matches_now": int(rows)})
+            rows = (
+                session.execute(
+                    sa.text("SELECT COUNT(*) FROM vw_product_current WHERE availability = 'out_of_stock'")
+                ).scalar()
+                or 0
+            )
+        results.append(
+            {
+                "alert_id": rule.alert_id,
+                "name": rule.name,
+                "metric": rule.metric,
+                "threshold": rule.threshold,
+                "matches_now": int(rows),
+            }
+        )
     return {"evaluated": len(results), "rules": results}

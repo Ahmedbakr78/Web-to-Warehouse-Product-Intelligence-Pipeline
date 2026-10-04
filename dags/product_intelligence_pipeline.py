@@ -150,7 +150,7 @@ def probe_sources(**context: Any) -> dict[str, Any]:
 def pipeline_command(stage: str, **extra: str) -> str:
     """Build a CLI invocation for one ETL stage."""
     parts = [
-        f'python -m app.cli.main run-pipeline',
+        'python -m app.cli.main run-pipeline',
         f'--sources "{" ,".join(DEFAULT_SOURCES)}"'.replace(" ", ""),
         f"--limit {REQUESTS_PER_SOURCE}",
         "--trigger airflow",

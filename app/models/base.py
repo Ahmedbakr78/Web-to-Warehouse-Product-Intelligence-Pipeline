@@ -94,7 +94,9 @@ class TimestampMixin:
     """``created_at`` / ``updated_at`` columns maintained by the ORM."""
 
     created_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), default=utcnow, nullable=False)
-    updated_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), default=utcnow, onupdate=utcnow, nullable=False)
+    updated_at: Mapped[dt.datetime] = mapped_column(
+        UTCDateTime(), default=utcnow, onupdate=utcnow, nullable=False
+    )
 
 
 class NumericMixin:

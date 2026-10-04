@@ -1,6 +1,6 @@
 """Command line interface - one entry point for every operation.
 
-    python -m app.cli.main --help
+python -m app.cli.main --help
 """
 
 from app.cli.main import main

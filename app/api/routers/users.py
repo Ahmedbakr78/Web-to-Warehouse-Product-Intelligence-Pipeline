@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import datetime as dt
-from typing import Annotated, Any
+from typing import Any
 
 import sqlalchemy as sa
-from fastapi import APIRouter, Query, Request
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Request
 
-from app.api.deps import AdminUser, CurrentUser, DbSession, PaginationDep, ReadUser, request_meta
+from app.api.deps import AdminUser, CurrentUser, DbSession, PaginationDep, request_meta
 from app.api.schemas import (
     ApiKeyCreate,
     ApiKeyCreated,
@@ -35,8 +34,13 @@ def _to_read(user: AppUser) -> UserRead:
 
 
 @router.get("", response_model=Page[UserRead], summary="List users (admin)")
-def list_users(session: DbSession, pagination: PaginationDep, _admin: AdminUser,
-               role: str | None = None, q: str | None = None) -> Page[UserRead]:
+def list_users(
+    session: DbSession,
+    pagination: PaginationDep,
+    _admin: AdminUser,
+    role: str | None = None,
+    q: str | None = None,
+) -> Page[UserRead]:
     from app.models.app_users import AppUser as User
 
     conditions = []
@@ -48,9 +52,11 @@ def list_users(session: DbSession, pagination: PaginationDep, _admin: AdminUser,
     if conditions:
         stmt = stmt.where(*conditions)
     total = session.execute(sa.select(sa.func.count()).select_from(User)).scalar() or 0
-    users = session.execute(
-        stmt.order_by(User.user_id).limit(pagination.page_size).offset(pagination.offset)
-    ).scalars().all()
+    users = (
+        session.execute(stmt.order_by(User.user_id).limit(pagination.page_size).offset(pagination.offset))
+        .scalars()
+        .all()
+    )
     return Page.build([_to_read(user) for user in users], total, pagination.page, pagination.page_size)
 
 
@@ -77,26 +83,45 @@ def set_password(payload: UserUpdate, session: DbSession, user: CurrentUser) -> 
 def stats(session: DbSession, _admin: AdminUser) -> dict[str, Any]:
     now = dt.datetime.now(dt.timezone.utc)
     total = session.execute(sa.select(sa.func.count()).select_from(AppUser)).scalar() or 0
-    active = session.execute(
-        sa.select(sa.func.count()).select_from(AppUser).where(AppUser.is_active.is_(True))
-    ).scalar() or 0
-    logins_24h = session.execute(
-        sa.select(sa.func.count()).select_from(AppUser).where(AppUser.last_login_at >= now - dt.timedelta(hours=24))
-    ).scalar() or 0
-    logins_7d = session.execute(
-        sa.select(sa.func.count()).select_from(AppUser).where(AppUser.last_login_at >= now - dt.timedelta(days=7))
-    ).scalar() or 0
-    locked = session.execute(
-        sa.select(sa.func.count()).select_from(AppUser).where(AppUser.locked_until.isnot(None))
-    ).scalar() or 0
-    keys = session.execute(sa.select(sa.func.count()).select_from(AppApiKey).where(AppApiKey.is_active.is_(True))).scalar() or 0
+    active = (
+        session.execute(
+            sa.select(sa.func.count()).select_from(AppUser).where(AppUser.is_active.is_(True))
+        ).scalar()
+        or 0
+    )
+    logins_24h = (
+        session.execute(
+            sa.select(sa.func.count())
+            .select_from(AppUser)
+            .where(AppUser.last_login_at >= now - dt.timedelta(hours=24))
+        ).scalar()
+        or 0
+    )
+    logins_7d = (
+        session.execute(
+            sa.select(sa.func.count())
+            .select_from(AppUser)
+            .where(AppUser.last_login_at >= now - dt.timedelta(days=7))
+        ).scalar()
+        or 0
+    )
+    locked = (
+        session.execute(
+            sa.select(sa.func.count()).select_from(AppUser).where(AppUser.locked_until.isnot(None))
+        ).scalar()
+        or 0
+    )
+    keys = (
+        session.execute(
+            sa.select(sa.func.count()).select_from(AppApiKey).where(AppApiKey.is_active.is_(True))
+        ).scalar()
+        or 0
+    )
     by_role = {
         row[0]: row[1]
         for row in session.execute(sa.text("SELECT role, COUNT(*) FROM app_user GROUP BY role"))
     }
-    top = session.execute(
-        sa.select(AppUser).order_by(AppUser.login_count.desc()).limit(5)
-    ).scalars().all()
+    top = session.execute(sa.select(AppUser).order_by(AppUser.login_count.desc()).limit(5)).scalars().all()
     return {
         "total_users": total,
         "active_users": active,
@@ -106,8 +131,13 @@ def stats(session: DbSession, _admin: AdminUser) -> dict[str, Any]:
         "api_keys": keys,
         "by_role": by_role,
         "top_users": [
-            {"user_id": user.user_id, "email": user.email, "login_count": user.login_count,
-             "last_login_at": user.last_login_at, "role": user.role}
+            {
+                "user_id": user.user_id,
+                "email": user.email,
+                "login_count": user.login_count,
+                "last_login_at": user.last_login_at,
+                "role": user.role,
+            }
             for user in top
         ],
     }
@@ -139,10 +169,16 @@ def create_user(payload: UserCreate, request: Request, session: DbSession, admin
     session.flush()
     meta = request_meta(request)
     session.add(
-        AppAuditLog(user_id=admin.user_id, user_email=admin.email, action="user.create",
-                    entity_type="app_user", entity_id=str(user.user_id),
-                    ip_address=meta["ip_address"], user_agent=meta["user_agent"],
-                    details={"email": email, "role": payload.role})
+        AppAuditLog(
+            user_id=admin.user_id,
+            user_email=admin.email,
+            action="user.create",
+            entity_type="app_user",
+            entity_id=str(user.user_id),
+            ip_address=meta["ip_address"],
+            user_agent=meta["user_agent"],
+            details={"email": email, "role": payload.role},
+        )
     )
     return _to_read(user)
 
@@ -176,13 +212,19 @@ def list_keys(user_id: int, session: DbSession, user: CurrentUser) -> list[ApiKe
         from app.core.errors import PermissionDeniedError
 
         raise PermissionDeniedError("you can only list your own API keys")
-    rows = session.execute(
-        sa.select(AppApiKey).where(AppApiKey.user_id == user_id).order_by(AppApiKey.key_id.desc())
-    ).scalars().all()
+    rows = (
+        session.execute(
+            sa.select(AppApiKey).where(AppApiKey.user_id == user_id).order_by(AppApiKey.key_id.desc())
+        )
+        .scalars()
+        .all()
+    )
     return [ApiKeyRead.model_validate(row) for row in rows]
 
 
-@router.post("/{user_id}/api-keys", response_model=ApiKeyCreated, status_code=201, summary="Create an API key")
+@router.post(
+    "/{user_id}/api-keys", response_model=ApiKeyCreated, status_code=201, summary="Create an API key"
+)
 def create_key(user_id: int, payload: ApiKeyCreate, session: DbSession, user: CurrentUser) -> ApiKeyCreated:
     if user_id != user.user_id and not at_least(user.role, "admin"):
         from app.core.errors import PermissionDeniedError

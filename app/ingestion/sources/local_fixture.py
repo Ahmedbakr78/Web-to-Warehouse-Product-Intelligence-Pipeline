@@ -14,7 +14,6 @@ and the dashboard - demonstrable on any machine, with or without internet access
 
 from __future__ import annotations
 
-import datetime as dt
 import math
 import random
 from collections.abc import Iterator
@@ -47,24 +46,93 @@ BRANDS: dict[str, list[str]] = {
 #: plausible pairing ("Samsung Wireless ANC Headphones"), which keeps the demo catalogue
 #: realistic even though it is generated.
 MODELS: dict[str, list[str]] = {
-    "Electronics": ["4K Smart TV 55 inch", "Wireless Earbuds Pro", "2.1 Soundbar", "Bluetooth Speaker 30W", "Power Bank 20000mAh", "USB-C Hub 8-in-1"],
-    "Electronics > Mobile Phones": ["Smartphone 256GB", "Smartphone 128GB", "Budget Phone 5G", "Flagship Phone Pro"],
-    "Electronics > Computers": ["Laptop 15 inch i7 16GB", "Notebook 14 inch 8GB", "Ultrabook 13 inch", "Desktop Tower RTX"],
-    "Electronics > Audio": ["Wireless ANC Headphones", "True Wireless Earbuds", "Studio Monitor Speaker", "Bluetooth Speaker 40W"],
-    "Electronics > Televisions": ["OLED TV 55 inch", "QLED TV 65 inch", "Mini LED TV 75 inch", "Crystal UHD 4K 50 inch"],
+    "Electronics": [
+        "4K Smart TV 55 inch",
+        "Wireless Earbuds Pro",
+        "2.1 Soundbar",
+        "Bluetooth Speaker 30W",
+        "Power Bank 20000mAh",
+        "USB-C Hub 8-in-1",
+    ],
+    "Electronics > Mobile Phones": [
+        "Smartphone 256GB",
+        "Smartphone 128GB",
+        "Budget Phone 5G",
+        "Flagship Phone Pro",
+    ],
+    "Electronics > Computers": [
+        "Laptop 15 inch i7 16GB",
+        "Notebook 14 inch 8GB",
+        "Ultrabook 13 inch",
+        "Desktop Tower RTX",
+    ],
+    "Electronics > Audio": [
+        "Wireless ANC Headphones",
+        "True Wireless Earbuds",
+        "Studio Monitor Speaker",
+        "Bluetooth Speaker 40W",
+    ],
+    "Electronics > Televisions": [
+        "OLED TV 55 inch",
+        "QLED TV 65 inch",
+        "Mini LED TV 75 inch",
+        "Crystal UHD 4K 50 inch",
+    ],
     "Electronics > Wearables": ["Smartwatch GPS", "Fitness Tracker Band", "Smartwatch AMOLED"],
-    "Books": ["Clean Architecture", "Designing Data-Intensive Applications", "The Pragmatic Programmer", "Site Reliability Engineering", "Refactoring"],
-    "Books > Textbooks": ["Database Systems 7th Edition", "Operating System Concepts", "Introduction to Algorithms", "Fundamentals of Data Engineering"],
+    "Books": [
+        "Clean Architecture",
+        "Designing Data-Intensive Applications",
+        "The Pragmatic Programmer",
+        "Site Reliability Engineering",
+        "Refactoring",
+    ],
+    "Books > Textbooks": [
+        "Database Systems 7th Edition",
+        "Operating System Concepts",
+        "Introduction to Algorithms",
+        "Fundamentals of Data Engineering",
+    ],
     "Books > Fiction": ["The Midnight Library", "Project Hail Mary", "Atomic Habits", "Dune", "The Hobbit"],
     "Apparel": ["Classic Cotton T-Shirt", "Slim Fit Jeans", "Lightweight Hoodie", "Running Shorts"],
     "Apparel > Men": ["Oxford Shirt", "Chino Trousers", "Winter Jacket", "Leather Belt"],
     "Apparel > Women": ["Wrap Dress", "High-Rise Jeans", "Tailored Blazer", "Knit Cardigan"],
-    "Home & Living > Kitchen": ["Air Fryer 5.5L", "Espresso Machine", "Stand Mixer 5L", "Knife Block Set", "Cast Iron Skillet"],
-    "Home & Living > Furniture": ["Ergonomic Office Chair", "Bookshelf 5 Tier", "Dining Table 6 Seat", "Memory Foam Mattress"],
-    "Toys & Games": ["Building Block Set 1000pcs", "Remote Control Car", "Strategy Board Game", "Family Puzzle 500 Pieces"],
-    "Sports & Outdoors": ["Yoga Mat 6mm", "Adjustable Dumbbell Set 24kg", "Trekking Backpack 45L", "Running Shoes Men"],
-    "Beauty & Personal Care": ["Vitamin C Serum 30ml", "Anti-Ageing Face Cream", "Shampoo 400ml", "Sunscreen SPF50"],
-    "Grocery": ["Arabica Coffee Beans 1kg", "Organic Olive Oil 750ml", "Pasta Bronze Cut 500g", "Green Tea 100 bags"],
+    "Home & Living > Kitchen": [
+        "Air Fryer 5.5L",
+        "Espresso Machine",
+        "Stand Mixer 5L",
+        "Knife Block Set",
+        "Cast Iron Skillet",
+    ],
+    "Home & Living > Furniture": [
+        "Ergonomic Office Chair",
+        "Bookshelf 5 Tier",
+        "Dining Table 6 Seat",
+        "Memory Foam Mattress",
+    ],
+    "Toys & Games": [
+        "Building Block Set 1000pcs",
+        "Remote Control Car",
+        "Strategy Board Game",
+        "Family Puzzle 500 Pieces",
+    ],
+    "Sports & Outdoors": [
+        "Yoga Mat 6mm",
+        "Adjustable Dumbbell Set 24kg",
+        "Trekking Backpack 45L",
+        "Running Shoes Men",
+    ],
+    "Beauty & Personal Care": [
+        "Vitamin C Serum 30ml",
+        "Anti-Ageing Face Cream",
+        "Shampoo 400ml",
+        "Sunscreen SPF50",
+    ],
+    "Grocery": [
+        "Arabica Coffee Beans 1kg",
+        "Organic Olive Oil 750ml",
+        "Pasta Bronze Cut 500g",
+        "Green Tea 100 bags",
+    ],
 }
 
 CURRENCIES = ["USD", "USD", "USD", "EUR", "GBP"]
@@ -129,11 +197,11 @@ class LocalFixtureSource(ProductSource):
             # ---- intentional defects for the DQ framework -------------------------------
             defect = index % 25
             if defect == 3:
-                payload["price"] = None            # 4% missing price
+                payload["price"] = None  # 4% missing price
             elif defect == 7:
-                payload["rating"] = 9.7             # out-of-range rating
+                payload["rating"] = 9.7  # out-of-range rating
             elif defect == 11:
-                payload["title"] = ""               # missing name
+                payload["title"] = ""  # missing name
             elif defect == 14:
                 payload["availability"] = "???"
 

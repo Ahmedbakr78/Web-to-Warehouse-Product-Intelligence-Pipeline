@@ -7,7 +7,7 @@ import datetime as dt
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import UTCDateTime, Base, JSONType, ShortStr, UrlStr, utcnow
+from app.models.base import Base, JSONType, ShortStr, UrlStr, UTCDateTime, utcnow
 
 
 class FactPriceSnapshot(Base):
@@ -21,14 +21,16 @@ class FactPriceSnapshot(Base):
     __tablename__ = "fact_price_snapshot"
 
     snapshot_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, autoincrement=True)
-    product_id: Mapped[int] = mapped_column(sa.Integer, sa.ForeignKey("dim_product.product_id"), nullable=False)
-    source_code: Mapped[str] = mapped_column(ShortStr, sa.ForeignKey("dim_source.source_code"), nullable=False)
+    product_id: Mapped[int] = mapped_column(
+        sa.Integer, sa.ForeignKey("dim_product.product_id"), nullable=False
+    )
+    source_code: Mapped[str] = mapped_column(
+        ShortStr, sa.ForeignKey("dim_source.source_code"), nullable=False
+    )
     run_id: Mapped[str] = mapped_column(ShortStr, sa.ForeignKey("etl_run.run_id"), nullable=False)
     date_id: Mapped[int] = mapped_column(sa.Integer, sa.ForeignKey("dim_date.date_id"), nullable=False)
     captured_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), nullable=False)
-    ingested_at: Mapped[dt.datetime] = mapped_column(
-        UTCDateTime(), default=utcnow, nullable=False
-    )
+    ingested_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), default=utcnow, nullable=False)
     price: Mapped[float | None] = mapped_column(sa.Numeric(18, 4))
     list_price: Mapped[float | None] = mapped_column(sa.Numeric(18, 4))
     currency: Mapped[str] = mapped_column(ShortStr, nullable=False, default="USD")
@@ -79,9 +81,7 @@ class FactCatalogSnapshot(Base):
     category_match: Mapped[bool | None] = mapped_column(sa.Boolean)
     brand_match: Mapped[bool | None] = mapped_column(sa.Boolean)
     is_price_mismatch: Mapped[bool] = mapped_column(sa.Boolean, default=False)
-    matched_at: Mapped[dt.datetime] = mapped_column(
-        UTCDateTime(), default=utcnow, nullable=False
-    )
+    matched_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), default=utcnow, nullable=False)
     details: Mapped[dict | None] = mapped_column(JSONType, default=dict)
 
     __table_args__ = (
@@ -98,8 +98,12 @@ class ChgPriceChange(Base):
     __tablename__ = "chg_price_change"
 
     change_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, autoincrement=True)
-    product_id: Mapped[int] = mapped_column(sa.Integer, sa.ForeignKey("dim_product.product_id"), nullable=False)
-    source_code: Mapped[str] = mapped_column(ShortStr, sa.ForeignKey("dim_source.source_code"), nullable=False)
+    product_id: Mapped[int] = mapped_column(
+        sa.Integer, sa.ForeignKey("dim_product.product_id"), nullable=False
+    )
+    source_code: Mapped[str] = mapped_column(
+        ShortStr, sa.ForeignKey("dim_source.source_code"), nullable=False
+    )
     run_id: Mapped[str] = mapped_column(ShortStr, sa.ForeignKey("etl_run.run_id"), nullable=False)
     date_id: Mapped[int] = mapped_column(sa.Integer, sa.ForeignKey("dim_date.date_id"), nullable=False)
     previous_price: Mapped[float | None] = mapped_column(sa.Numeric(18, 4))
@@ -112,9 +116,7 @@ class ChgPriceChange(Base):
     is_significant: Mapped[bool] = mapped_column(sa.Boolean, default=False)
     previous_price_usd: Mapped[float | None] = mapped_column(sa.Numeric(18, 4))
     new_price_usd: Mapped[float | None] = mapped_column(sa.Numeric(18, 4))
-    detected_at: Mapped[dt.datetime] = mapped_column(
-        UTCDateTime(), default=utcnow, nullable=False
-    )
+    detected_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), default=utcnow, nullable=False)
 
     __table_args__ = (
         sa.UniqueConstraint("product_id", "run_id", name="uq_chg_price_product_run"),
@@ -130,20 +132,24 @@ class ChgProductEvent(Base):
     __tablename__ = "chg_product_event"
 
     event_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, autoincrement=True)
-    product_id: Mapped[int] = mapped_column(sa.Integer, sa.ForeignKey("dim_product.product_id"), nullable=False)
-    source_code: Mapped[str] = mapped_column(ShortStr, sa.ForeignKey("dim_source.source_code"), nullable=False)
+    product_id: Mapped[int] = mapped_column(
+        sa.Integer, sa.ForeignKey("dim_product.product_id"), nullable=False
+    )
+    source_code: Mapped[str] = mapped_column(
+        ShortStr, sa.ForeignKey("dim_source.source_code"), nullable=False
+    )
     run_id: Mapped[str] = mapped_column(ShortStr, sa.ForeignKey("etl_run.run_id"), nullable=False)
     date_id: Mapped[int] = mapped_column(sa.Integer, sa.ForeignKey("dim_date.date_id"), nullable=False)
-    event_type: Mapped[str] = mapped_column(ShortStr, nullable=False)  # new|removed|recurring|reactivated|category_changed|availability_changed
+    event_type: Mapped[str] = mapped_column(
+        ShortStr, nullable=False
+    )  # new|removed|recurring|reactivated|category_changed|availability_changed
     severity: Mapped[str] = mapped_column(ShortStr, default="info")
     old_value: Mapped[str | None] = mapped_column(sa.Text)
     new_value: Mapped[str | None] = mapped_column(sa.Text)
     old_category_id: Mapped[int | None] = mapped_column(sa.Integer)
     new_category_id: Mapped[int | None] = mapped_column(sa.Integer)
     days_missing: Mapped[int | None] = mapped_column(sa.Integer)
-    detected_at: Mapped[dt.datetime] = mapped_column(
-        UTCDateTime(), default=utcnow, nullable=False
-    )
+    detected_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), default=utcnow, nullable=False)
     details: Mapped[dict | None] = mapped_column(JSONType, default=dict)
 
     __table_args__ = (
@@ -160,7 +166,9 @@ class AggCategoryDaily(Base):
 
     agg_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, autoincrement=True)
     date_id: Mapped[int] = mapped_column(sa.Integer, sa.ForeignKey("dim_date.date_id"), nullable=False)
-    category_id: Mapped[int] = mapped_column(sa.Integer, sa.ForeignKey("dim_category.category_id"), nullable=False)
+    category_id: Mapped[int] = mapped_column(
+        sa.Integer, sa.ForeignKey("dim_category.category_id"), nullable=False
+    )
     source_code: Mapped[str | None] = mapped_column(ShortStr)
     product_count: Mapped[int] = mapped_column(sa.Integer, default=0)
     new_product_count: Mapped[int] = mapped_column(sa.Integer, default=0)
@@ -172,9 +180,7 @@ class AggCategoryDaily(Base):
     avg_rating: Mapped[float | None] = mapped_column(sa.Float)
     price_change_count: Mapped[int] = mapped_column(sa.Integer, default=0)
     avg_price_change_pct: Mapped[float | None] = mapped_column(sa.Float)
-    computed_at: Mapped[dt.datetime] = mapped_column(
-        UTCDateTime(), default=utcnow, nullable=False
-    )
+    computed_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), default=utcnow, nullable=False)
 
     __table_args__ = (
         sa.UniqueConstraint("date_id", "category_id", "source_code", name="uq_agg_cat_date_cat_source"),

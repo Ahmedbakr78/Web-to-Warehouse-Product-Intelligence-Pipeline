@@ -13,17 +13,19 @@ Design goals
 from __future__ import annotations
 
 import datetime as dt
-from dataclasses import dataclass, field
-from typing import Any, Iterable, Sequence
+from collections.abc import Iterable, Sequence
+from dataclasses import dataclass
+from typing import Any
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.logging import get_logger
+from app.etl.bootstrap import date_id
 from app.ingestion.base import NormalizedProduct
-from app.ingestion.cleaning import category_levels, percent_change
-from app.models.dimensions import DimCategory, DimDate, DimProduct, DimSource
+from app.ingestion.cleaning import percent_change
+from app.models.dimensions import DimCategory, DimProduct, DimSource
 from app.models.facts import (
     AggCategoryDaily,
     ChgPriceChange,
@@ -32,7 +34,6 @@ from app.models.facts import (
     FactPriceSnapshot,
 )
 from app.models.operations import StgRawObservation, SyncState
-from app.etl.bootstrap import date_id
 
 log = get_logger(__name__)
 
@@ -119,9 +120,11 @@ class WarehouseLoader:
             part_slug = f"{slugify(part)}" if depth == 1 else f"{slugify(parts[0])}-{slugify(part)}"
             cached = self._category_cache.get(part_slug)
             if cached is None:
-                row = self.session.execute(
-                    sa.select(DimCategory).where(DimCategory.slug == part_slug)
-                ).scalars().first()
+                row = (
+                    self.session.execute(sa.select(DimCategory).where(DimCategory.slug == part_slug))
+                    .scalars()
+                    .first()
+                )
                 if row is None:
                     row = DimCategory(
                         name=part,
@@ -187,7 +190,9 @@ class WarehouseLoader:
         self.stats.staged = count
         return count
 
-    def mark_rejected(self, staged: Sequence[StgRawObservation], rejected: Sequence[tuple[StgRawObservation, str]]) -> None:
+    def mark_rejected(
+        self, staged: Sequence[StgRawObservation], rejected: Sequence[tuple[StgRawObservation, str]]
+    ) -> None:
         for row, reason in rejected:
             row.is_valid = False
             row.reject_reason = reason
@@ -206,7 +211,9 @@ class WarehouseLoader:
         product: DimProduct | None = None
 
         if match is not None and match.is_duplicate:
-            product = self._product_cache.get(match.product_id) or self.session.get(DimProduct, match.product_id)
+            product = self._product_cache.get(match.product_id) or self.session.get(
+                DimProduct, match.product_id
+            )
             if product is not None:
                 product.match_strategy = match.strategy
                 product.match_score = match.score
@@ -273,9 +280,7 @@ class WarehouseLoader:
         return product, created
 
     # ------------------------------------------------------------------ snapshots
-    def preload_latest(
-        self, product_ids: set[int], source_code: str
-    ) -> dict[int, FactPriceSnapshot]:
+    def preload_latest(self, product_ids: set[int], source_code: str) -> dict[int, FactPriceSnapshot]:
         """Latest snapshot per product for one source, in a single query.
 
         Avoids the N+1 pattern that would otherwise occur when inserting one snapshot
@@ -283,14 +288,18 @@ class WarehouseLoader:
         """
         if not product_ids:
             return {}
-        rows = self.session.execute(
-            sa.select(FactPriceSnapshot)
-            .where(
-                FactPriceSnapshot.source_code == source_code,
-                FactPriceSnapshot.product_id.in_(product_ids),
+        rows = (
+            self.session.execute(
+                sa.select(FactPriceSnapshot)
+                .where(
+                    FactPriceSnapshot.source_code == source_code,
+                    FactPriceSnapshot.product_id.in_(product_ids),
+                )
+                .order_by(FactPriceSnapshot.product_id, FactPriceSnapshot.captured_at.desc())
             )
-            .order_by(FactPriceSnapshot.product_id, FactPriceSnapshot.captured_at.desc())
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         latest: dict[int, FactPriceSnapshot] = {}
         for row in rows:
             latest.setdefault(row.product_id, row)
@@ -419,12 +428,16 @@ class WarehouseLoader:
     ) -> int:
         """Flag products that vanished from a source for more than ``staleness_days``."""
         cutoff = self.captured_at - dt.timedelta(days=staleness_days)
-        stale = self.session.execute(
-            sa.select(DimProduct).where(
-                DimProduct.source_code == source_code,
-                DimProduct.is_active.is_(True),
+        stale = (
+            self.session.execute(
+                sa.select(DimProduct).where(
+                    DimProduct.source_code == source_code,
+                    DimProduct.is_active.is_(True),
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
 
         removed = 0
         for product in stale:
@@ -480,13 +493,17 @@ class WarehouseLoader:
 
         written = 0
         for row in rows:
-            existing = self.session.execute(
-                sa.select(AggCategoryDaily).where(
-                    AggCategoryDaily.date_id == row[0],
-                    AggCategoryDaily.category_id == row[1],
-                    AggCategoryDaily.source_code.is_(None),
+            existing = (
+                self.session.execute(
+                    sa.select(AggCategoryDaily).where(
+                        AggCategoryDaily.date_id == row[0],
+                        AggCategoryDaily.category_id == row[1],
+                        AggCategoryDaily.source_code.is_(None),
+                    )
                 )
-            ).scalars().first()
+                .scalars()
+                .first()
+            )
             values = {
                 "date_id": row[0],
                 "category_id": row[1],
@@ -521,7 +538,9 @@ class WarehouseLoader:
         return len(rows)
 
     # ------------------------------------------------------------------ misc
-    def update_source_stats(self, source: DimSource, extracted: int, duration_seconds: float, *, success: bool) -> None:
+    def update_source_stats(
+        self, source: DimSource, extracted: int, duration_seconds: float, *, success: bool
+    ) -> None:
         source.total_runs = (source.total_runs or 0) + 1
         source.total_records = (source.total_records or 0) + extracted
         source.last_run_at = self.captured_at
@@ -532,7 +551,9 @@ class WarehouseLoader:
         previous_rate = source.success_rate_pct or 0.0
         source.success_rate_pct = round((previous_rate * (runs - 1) + (100.0 if success else 0.0)) / runs, 2)
 
-    def update_sync_state(self, source_code: str, *, extracted: int, success: bool, message: str | None = None) -> None:
+    def update_sync_state(
+        self, source_code: str, *, extracted: int, success: bool, message: str | None = None
+    ) -> None:
         state = self.session.get(SyncState, source_code)
         if state is None:
             state = SyncState(source_code=source_code)

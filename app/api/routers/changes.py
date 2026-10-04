@@ -7,7 +7,6 @@ from typing import Annotated, Any
 
 import sqlalchemy as sa
 from fastapi import APIRouter, Query
-from sqlalchemy.orm import Session
 
 from app.analytics import service as analytics
 from app.api.deps import DbSession, PaginationDep, ReadUser
@@ -62,10 +61,13 @@ def price_changes(
     }.get((pagination.sort_by or "").lower(), "ABS(pc.change_pct)")
     direction_sql = "ASC" if str(pagination.sort_dir).lower() == "asc" else "DESC"
 
-    total = session.execute(sa.text(f"SELECT COUNT(*) FROM vw_price_changes pc {clause}"), params).scalar() or 0
-    rows = session.execute(
-        sa.text(
-            f"""
+    total = (
+        session.execute(sa.text(f"SELECT COUNT(*) FROM vw_price_changes pc {clause}"), params).scalar() or 0
+    )
+    rows = (
+        session.execute(
+            sa.text(
+                f"""
             SELECT pc.change_id, pc.product_id, pc.canonical_name, pc.brand, pc.category_name,
                    pc.source_code, pc.previous_price, pc.new_price, pc.previous_price_usd,
                    pc.new_price_usd, pc.change_abs, pc.change_pct, pc.direction,
@@ -74,9 +76,12 @@ def price_changes(
             ORDER BY {sort} {direction_sql}
             LIMIT :limit OFFSET :offset
             """
-        ),
-        {**params, "limit": pagination.page_size, "offset": pagination.offset},
-    ).mappings().all()
+            ),
+            {**params, "limit": pagination.page_size, "offset": pagination.offset},
+        )
+        .mappings()
+        .all()
+    )
     return Page.build([dict(row) for row in rows], total, pagination.page, pagination.page_size)
 
 
@@ -96,7 +101,9 @@ def events(
     pagination: PaginationDep,
     _user: ReadUser,
     days: Annotated[int, Query(ge=1, le=3650)] = 180,
-    event_type: Annotated[str | None, Query(pattern="^(new|removed|recurring|reactivated|category_changed)$")] = None,
+    event_type: Annotated[
+        str | None, Query(pattern="^(new|removed|recurring|reactivated|category_changed)$")
+    ] = None,
     category: str | None = None,
 ) -> Page[dict[str, Any]]:
     where = ["e.full_date >= :since"]
@@ -108,13 +115,19 @@ def events(
         where.append("p.category_id IN (SELECT category_id FROM dim_category WHERE name = :category)")
         params["category"] = category
     clause = "WHERE " + " AND ".join(where)
-    total = session.execute(
-        sa.text(f"SELECT COUNT(*) FROM vw_product_events e JOIN dim_product p ON p.product_id = e.product_id {clause}"),
-        params,
-    ).scalar() or 0
-    rows = session.execute(
-        sa.text(
-            f"""
+    total = (
+        session.execute(
+            sa.text(
+                f"SELECT COUNT(*) FROM vw_product_events e JOIN dim_product p ON p.product_id = e.product_id {clause}"
+            ),
+            params,
+        ).scalar()
+        or 0
+    )
+    rows = (
+        session.execute(
+            sa.text(
+                f"""
             SELECT e.event_id, e.product_id, e.canonical_name, e.brand, e.source_code,
                    e.event_type, e.severity, e.old_value, e.new_value, e.days_missing,
                    e.detected_at, e.full_date, e.is_active
@@ -124,9 +137,12 @@ def events(
             ORDER BY e.detected_at DESC
             LIMIT :limit OFFSET :offset
             """
-        ),
-        {**params, "limit": pagination.page_size, "offset": pagination.offset},
-    ).mappings().all()
+            ),
+            {**params, "limit": pagination.page_size, "offset": pagination.offset},
+        )
+        .mappings()
+        .all()
+    )
     return Page.build([dict(row) for row in rows], total, pagination.page, pagination.page_size)
 
 
@@ -161,15 +177,20 @@ def category_changes(
 
 
 @router.get("/category-drift", summary="SQL report: assortment movement per category")
-def category_drift(session: DbSession, _user: ReadUser, days: Annotated[int, Query(ge=1, le=3650)] = 90) -> list[dict[str, Any]]:
+def category_drift(
+    session: DbSession, _user: ReadUser, days: Annotated[int, Query(ge=1, le=3650)] = 90
+) -> list[dict[str, Any]]:
     return analytics.category_drift_report(session, days=days)
 
 
 @router.get("/summary", summary="Change summary for the KPI cards")
-def summary(session: DbSession, _user: ReadUser, days: Annotated[int, Query(ge=1, le=3650)] = 30) -> dict[str, Any]:
-    row = session.execute(
-        sa.text(
-            """
+def summary(
+    session: DbSession, _user: ReadUser, days: Annotated[int, Query(ge=1, le=3650)] = 30
+) -> dict[str, Any]:
+    row = (
+        session.execute(
+            sa.text(
+                """
             SELECT COUNT(*) AS total_events,
                    SUM(CASE WHEN event_type = 'new' THEN 1 ELSE 0 END) AS new_products,
                    SUM(CASE WHEN event_type = 'removed' THEN 1 ELSE 0 END) AS removed_products,
@@ -177,8 +198,11 @@ def summary(session: DbSession, _user: ReadUser, days: Annotated[int, Query(ge=1
                    SUM(CASE WHEN event_type = 'recurring' THEN 1 ELSE 0 END) AS recurring
             FROM chg_product_event WHERE detected_at >= :since
             """
-        ),
-        {"since": dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=days)},
-    ).mappings().one()
+            ),
+            {"since": dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=days)},
+        )
+        .mappings()
+        .one()
+    )
     timeline = analytics.price_change_timeline(session, days=days)
     return {**dict(row), "timeline": timeline}

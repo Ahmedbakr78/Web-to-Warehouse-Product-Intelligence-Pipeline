@@ -119,7 +119,9 @@ def bootstrap_cmd(
 
     console.rule(f"[bold]Bootstrapping {describe_target(database)}")
     result = bootstrap_db(database, drop=drop)
-    _status_line(f"{result['table_count']} tables, {len(result['views_applied'])} views on {result['dialect']}")
+    _status_line(
+        f"{result['table_count']} tables, {len(result['views_applied'])} views on {result['dialect']}"
+    )
     if not no_demo:
         seeded = run_full_seed(database, days=days)
         _kv_table(
@@ -146,8 +148,8 @@ def seed_demo(
     catalog_only: bool = typer.Option(False, "--catalog-only"),
 ) -> None:
     """Seed users, the internal catalog and historical snapshots."""
-    from app.etl.seed import run_full_seed, seed_catalog, seed_users, build_seed_products
     from app.core.db import session_scope
+    from app.etl.seed import build_seed_products, seed_catalog, seed_users
 
     with session_scope(database) as session:
         users = seed_users(session)
@@ -176,18 +178,13 @@ def verify(
 ) -> None:
     """Compare row counts and data-quality posture across database targets."""
     from app.core.db import ping, session_scope
-    from app.etl.dq import latest_report
-    from app.etl.bootstrap import table_report
-
-    from app.core.db import ping, session_scope
     from app.etl.bootstrap import table_report
     from app.etl.dq import latest_report
 
     targets = [item.strip().lower() for item in databases.split(",") if item.strip()]
     #: Structural tables must match exactly; fact tables depend on how many runs each
     #: target has executed, so they are reported but never treated as a failure.
-    structural = ("dim_category", "dim_source", "dim_currency", "catalog_product",
-                  "app_user", "dim_date")
+    structural = ("dim_category", "dim_source", "dim_currency", "catalog_product", "app_user", "dim_date")
     reports: dict[str, Any] = {}
     for target in targets:
         health = ping(target)
@@ -249,13 +246,11 @@ def verify(
             if len(set(values.values())) > 1:
                 drift.append(f"{name}: {values}")
         if drift:
-            console.print(f"[err]structural drift detected[/]")
+            console.print("[err]structural drift detected[/]")
             for item in drift:
                 console.print(f"    - {item}")
         else:
-            _status_line(
-                "Structural tables are identical on every target - the warehouse model is portable"
-            )
+            _status_line("Structural tables are identical on every target - the warehouse model is portable")
         scores = {payload["dq_score"] for payload in reachable.values()}
         if len(scores) == 1:
             _status_line(f"Identical data-quality score across targets ({scores.pop()})")
@@ -301,9 +296,18 @@ def run_pipeline(
     table.add_column("value", justify="right")
     counters = result.counters or {}
     for key in (
-        "staged", "rejected", "products_created", "products_updated", "duplicates_merged",
-        "snapshots_inserted", "price_changes", "new_products", "removed_products",
-        "category_changes", "categories_created", "http_log_rows",
+        "staged",
+        "rejected",
+        "products_created",
+        "products_updated",
+        "duplicates_merged",
+        "snapshots_inserted",
+        "price_changes",
+        "new_products",
+        "removed_products",
+        "category_changes",
+        "categories_created",
+        "http_log_rows",
     ):
         if key in counters:
             table.add_row(key.replace("_", " "), str(counters[key]))
@@ -362,26 +366,37 @@ def report(
         compliance = analytics.compliance_report(session, days=30)
 
     if json_output:
-        _print_json({"kpi": kpi, "top_movers": movers, "changes": changes,
-                     "category_drift": drift, "quality": quality, "compliance": compliance})
+        _print_json(
+            {
+                "kpi": kpi,
+                "top_movers": movers,
+                "changes": changes,
+                "category_drift": drift,
+                "quality": quality,
+                "compliance": compliance,
+            }
+        )
         return
 
     console.rule(f"[bold]Analytics report - last {days} days ({describe_target(database)})")
-    _kv_table("Summary", {
-        "products observed": kpi["latest"].get("products"),
-        "sources": kpi["latest"].get("sources"),
-        "average price (USD)": kpi["latest"].get("avg_price"),
-        "average rating": kpi["latest"].get("avg_rating"),
-        "price changes": kpi["changes"].get("total_changes"),
-        "significant changes": kpi["changes"].get("significant"),
-        "new products": kpi["events"].get("new"),
-        "removed products": kpi["events"].get("removed"),
-        "category changes": kpi["events"].get("category_changed"),
-        "dq score": quality.get("score"),
-        "dq pass / warn / fail": f"{quality.get('pass')} / {quality.get('warn')} / {quality.get('fail')}",
-        "http requests (30d)": compliance.get("requests"),
-        "robots.txt blocks": compliance.get("blocked_requests"),
-    })
+    _kv_table(
+        "Summary",
+        {
+            "products observed": kpi["latest"].get("products"),
+            "sources": kpi["latest"].get("sources"),
+            "average price (USD)": kpi["latest"].get("avg_price"),
+            "average rating": kpi["latest"].get("avg_rating"),
+            "price changes": kpi["changes"].get("total_changes"),
+            "significant changes": kpi["changes"].get("significant"),
+            "new products": kpi["events"].get("new"),
+            "removed products": kpi["events"].get("removed"),
+            "category changes": kpi["events"].get("category_changed"),
+            "dq score": quality.get("score"),
+            "dq pass / warn / fail": f"{quality.get('pass')} / {quality.get('warn')} / {quality.get('fail')}",
+            "http requests (30d)": compliance.get("requests"),
+            "robots.txt blocks": compliance.get("blocked_requests"),
+        },
+    )
 
     if movers:
         table = Table(title=f"Top {len(movers)} price movers", header_style="bold cyan")
@@ -409,9 +424,13 @@ def report(
         table.add_column("recategorised", justify="right")
         table.add_column("net", justify="right")
         for row in drift:
-            table.add_row(str(row.get("category_name")), str(row.get("products_added")),
-                          str(row.get("products_removed")), str(row.get("products_recategorised")),
-                          str(row.get("net_change")))
+            table.add_row(
+                str(row.get("category_name")),
+                str(row.get("products_added")),
+                str(row.get("products_removed")),
+                str(row.get("products_recategorised")),
+                str(row.get("net_change")),
+            )
         console.print(table)
 
     if quality.get("rules"):
@@ -424,9 +443,14 @@ def report(
         table.add_column("message", overflow="ellipsis", max_width=52)
         for rule in quality["rules"]:
             colour = {"pass": "green", "warn": "yellow", "fail": "red"}.get(rule["status"], "white")
-            table.add_row(rule["code"], rule["dimension"], rule["severity"],
-                          f"[{colour}]{rule['status']}[/]", str(rule.get("observed_value")),
-                          (rule.get("message") or "")[:52])
+            table.add_row(
+                rule["code"],
+                rule["dimension"],
+                rule["severity"],
+                f"[{colour}]{rule['status']}[/]",
+                str(rule.get("observed_value")),
+                (rule.get("message") or "")[:52],
+            )
         console.print(table)
 
 
@@ -436,16 +460,20 @@ def quality_cmd(
     run_id: str = typer.Option(None, "--run-id", help="Re-evaluate one specific run"),
 ) -> None:
     """Re-run the data-quality framework and print the report."""
+    import sqlalchemy as sa
+
     from app.core.db import session_scope
     from app.etl.dq import evaluate_quality, latest_report
     from app.models.operations import EtlRun
 
-    import sqlalchemy as sa
-
     with session_scope(database) as session:
         target_run = run_id
         if target_run is None:
-            row = session.execute(sa.select(EtlRun).order_by(EtlRun.started_at.desc()).limit(1)).scalars().first()
+            row = (
+                session.execute(sa.select(EtlRun).order_by(EtlRun.started_at.desc()).limit(1))
+                .scalars()
+                .first()
+            )
             target_run = row.run_id if row else None
         if target_run is None:
             console.print("[warn]No runs found - run the pipeline first.[/]")
@@ -454,18 +482,23 @@ def quality_cmd(
         payload = report_result.summary()
         stored = latest_report(session, target_run)
 
-    _kv_table("Quality report", {
-        "run": payload["run_id"],
-        "rules": payload["total"],
-        "pass": payload["pass"],
-        "warn": payload["warn"],
-        "fail": payload["fail"],
-        "score": payload["score"],
-        "blocking": ", ".join(payload["blocking"]) or "none",
-    })
+    _kv_table(
+        "Quality report",
+        {
+            "run": payload["run_id"],
+            "rules": payload["total"],
+            "pass": payload["pass"],
+            "warn": payload["warn"],
+            "fail": payload["fail"],
+            "score": payload["score"],
+            "blocking": ", ".join(payload["blocking"]) or "none",
+        },
+    )
     for rule in stored.get("rules", []):
         colour = {"pass": "green", "warn": "yellow", "fail": "red"}.get(rule["status"], "white")
-        console.print(f"  [{colour}]{rule['status']:>4}[/] {rule['code']}  {rule['name']}  ({rule.get('observed_value')})")
+        console.print(
+            f"  [{colour}]{rule['status']:>4}[/] {rule['code']}  {rule['name']}  ({rule.get('observed_value')})"
+        )
 
 
 # --------------------------------------------------------------------------------------
@@ -487,14 +520,20 @@ def sources_list() -> None:
     table.add_column("robots.txt")
     for source in list_sources():
         table.add_row(
-            source["code"], source["name"], source["kind"], f"{source['rate_limit_per_minute']}/min",
-            f"{source['min_delay_seconds']}s", "yes" if source["supports_paging"] else "no",
+            source["code"],
+            source["name"],
+            source["kind"],
+            f"{source['rate_limit_per_minute']}/min",
+            f"{source['min_delay_seconds']}s",
+            "yes" if source["supports_paging"] else "no",
             "allowed" if source["terms_allowed"] else "blocked",
             "respected" if source["robots_respected"] else "ignored",
         )
     console.print(table)
-    console.print("[dim]Only sources that allow automated access are queried. "
-                  "robots.txt is enforced by the HTTP client before every request.[/]")
+    console.print(
+        "[dim]Only sources that allow automated access are queried. "
+        "robots.txt is enforced by the HTTP client before every request.[/]"
+    )
 
 
 @sources_app.command("preview")
@@ -521,9 +560,14 @@ def sources_preview(
                 break
             record = transform_product(raw)
             table.add_row(
-                record.source_product_id, record.canonical_name[:38], record.category[:24],
-                str(record.price), str(record.price_usd), str(record.rating),
-                record.availability, ",".join(record.quality_flags) or "-",
+                record.source_product_id,
+                record.canonical_name[:38],
+                record.category[:24],
+                str(record.price),
+                str(record.price_usd),
+                str(record.rating),
+                record.availability,
+                ",".join(record.quality_flags) or "-",
             )
     finally:
         source.close()
@@ -562,9 +606,15 @@ def users_list(database: str = DB_OPTION) -> None:
     with session_scope(database) as session:
         rows = session.execute(sa.select(AppUser).order_by(AppUser.user_id)).scalars().all()
         for user in rows:
-            table.add_row(str(user.user_id), user.email, user.full_name, user.role,
-                          "yes" if user.is_active else "no", str(user.login_count),
-                          str(user.last_login_at or "-"))
+            table.add_row(
+                str(user.user_id),
+                user.email,
+                user.full_name,
+                user.role,
+                "yes" if user.is_active else "no",
+                str(user.login_count),
+                str(user.last_login_at or "-"),
+            )
     console.print(table)
 
 
@@ -589,8 +639,12 @@ def users_create(
             raise typer.Exit(code=1)
         session.add(
             AppUser(
-                email=email.lower(), full_name=full_name, hashed_password=hash_password(password),
-                role=role, is_active=True, is_verified=True,
+                email=email.lower(),
+                full_name=full_name,
+                hashed_password=hash_password(password),
+                role=role,
+                is_active=True,
+                is_verified=True,
                 password_changed_at=dt.datetime.now(dt.timezone.utc),
             )
         )
@@ -607,7 +661,9 @@ def users_token(
 
     token = create_access_token(email, role="admin", email=email, expires_minutes=minutes)
     _kv_table("Access token", {"email": email, "expires_in_minutes": minutes, "token": token})
-    console.print(f"\n[dim]curl -H 'Authorization: Bearer <token>' http://localhost:8000/api/v1/analytics/kpi[/]")
+    console.print(
+        "\n[dim]curl -H 'Authorization: Bearer <token>' http://localhost:8000/api/v1/analytics/kpi[/]"
+    )
 
 
 # --------------------------------------------------------------------------------------
@@ -631,7 +687,13 @@ def serve(
     console.print(f"[info]API:[/] http://{target_host}:{target_port}/docs")
     console.print(f"[info]Health:[/] http://{target_host}:{target_port}/api/v1/health")
     if reload:
-        uvicorn.run("app.api.main:app", host=target_host, port=target_port, reload=True, log_level=settings.app_log_level.lower())
+        uvicorn.run(
+            "app.api.main:app",
+            host=target_host,
+            port=target_port,
+            reload=True,
+            log_level=settings.app_log_level.lower(),
+        )
     else:
         uvicorn.run("app.api.main:app", host=target_host, port=target_port, workers=workers)
 
@@ -650,9 +712,19 @@ def status(database: str = DB_OPTION) -> None:
         raise typer.Exit(code=1)
     counts = {row["table"]: row["rows"] for row in table_report(database)}
     interesting = [
-        "dim_product", "dim_category", "dim_source", "fact_price_snapshot", "chg_price_change",
-        "chg_product_event", "agg_category_daily", "catalog_product", "etl_run", "dq_rule_result",
-        "stg_raw_observation", "ingestion_http_log", "app_user",
+        "dim_product",
+        "dim_category",
+        "dim_source",
+        "fact_price_snapshot",
+        "chg_price_change",
+        "chg_product_event",
+        "agg_category_daily",
+        "catalog_product",
+        "etl_run",
+        "dq_rule_result",
+        "stg_raw_observation",
+        "ingestion_http_log",
+        "app_user",
     ]
     table = Table(title="Row counts", header_style="bold cyan")
     table.add_column("table")
@@ -674,9 +746,15 @@ def status(database: str = DB_OPTION) -> None:
         runs_table.add_column("dq", justify="right")
         for run in runs:
             colour = {"success": "green", "partial": "yellow", "failed": "red"}.get(run["status"], "white")
-            runs_table.add_row(run["run_id"][:12], f"[{colour}]{run['status']}[/]", str(run["started_at"])[:16],
-                               str(run["records_extracted"]), str(run["records_valid"]),
-                               str(run["price_changes"]), str(run["dq_score"]))
+            runs_table.add_row(
+                run["run_id"][:12],
+                f"[{colour}]{run['status']}[/]",
+                str(run["started_at"])[:16],
+                str(run["records_extracted"]),
+                str(run["records_valid"]),
+                str(run["price_changes"]),
+                str(run["dq_score"]),
+            )
         console.print(runs_table)
 
 
@@ -686,7 +764,7 @@ def check_schema(database: str = DB_OPTION) -> None:
     import sqlalchemy as sa
 
     from app.core.db import get_engine
-    from app.models import Base, CORE_TABLES
+    from app.models import CORE_TABLES
 
     engine = get_engine(database)
     inspector = sa.inspect(engine)
@@ -694,13 +772,16 @@ def check_schema(database: str = DB_OPTION) -> None:
     expected = set(CORE_TABLES)
     missing = sorted(expected - existing)
     extra = sorted(existing - expected)
-    _kv_table("Schema check", {
-        "expected tables": len(expected),
-        "present": len(existing & expected),
-        "missing": ", ".join(missing) or "none",
-        "extra (views etc.)": ", ".join(extra) or "none",
-        "dialect": engine.dialect.name,
-    })
+    _kv_table(
+        "Schema check",
+        {
+            "expected tables": len(expected),
+            "present": len(existing & expected),
+            "missing": ", ".join(missing) or "none",
+            "extra (views etc.)": ", ".join(extra) or "none",
+            "dialect": engine.dialect.name,
+        },
+    )
     if missing:
         _status_line("Schema is incomplete - run 'make bootstrap'", ok=False)
         raise typer.Exit(code=1)
@@ -710,16 +791,19 @@ def check_schema(database: str = DB_OPTION) -> None:
 @app.command("version")
 def version_cmd() -> None:
     """Show version information."""
-    _kv_table("Version", {
-        "application": settings.app_name,
-        "version": settings.app_version,
-        "environment": settings.app_env,
-        "active database": settings.active_database,
-        "dialect": settings.dialect_name,
-        "robots.txt": settings.respect_robots_txt,
-        "user agent": settings.ingest_user_agent,
-        "python": sys.version.split()[0],
-    })
+    _kv_table(
+        "Version",
+        {
+            "application": settings.app_name,
+            "version": settings.app_version,
+            "environment": settings.app_env,
+            "active database": settings.active_database,
+            "dialect": settings.dialect_name,
+            "robots.txt": settings.respect_robots_txt,
+            "user agent": settings.ingest_user_agent,
+            "python": sys.version.split()[0],
+        },
+    )
 
 
 @app.callback()

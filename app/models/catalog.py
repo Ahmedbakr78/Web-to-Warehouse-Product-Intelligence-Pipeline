@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import datetime as dt
-
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 

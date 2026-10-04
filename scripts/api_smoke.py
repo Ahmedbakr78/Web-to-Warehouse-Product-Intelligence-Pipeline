@@ -12,7 +12,6 @@ prints a pass/fail table.  Run it with::
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import signal
 import subprocess
@@ -24,7 +23,12 @@ import httpx
 
 ROOT = Path(__file__).resolve().parents[1]
 GREEN, RED, YELLOW, CYAN, DIM, NC = (
-    "\033[0;32m", "\033[0;31m", "\033[0;33m", "\033[0;36m", "\033[2m", "\033[0m"
+    "\033[0;32m",
+    "\033[0;31m",
+    "\033[0;33m",
+    "\033[0;36m",
+    "\033[2m",
+    "\033[0m",
 )
 
 # (method, path, expected_status, needs_auth, note)
@@ -139,18 +143,25 @@ def run_checks(base_url: str, token: str, role_tokens: dict[str, str] | None = N
             request_headers = {"Authorization": f"Bearer {role_tokens.get(role, '')}"}
         payload = None
         if method == "POST" and path.endswith("/auth/login"):
-            payload = {"email": os.getenv("SMOKE_EMAIL", "admin@example.com"),
-                       "password": os.getenv("SMOKE_PASSWORD", "Admin@12345")}
+            payload = {
+                "email": os.getenv("SMOKE_EMAIL", "admin@example.com"),
+                "password": os.getenv("SMOKE_PASSWORD", "Admin@12345"),
+            }
         elif method == "POST" and path.endswith("/queries/execute"):
-            payload = ({"sql": "SELECT 1 AS ok"}
-                       if expected == 200
-                       else {"sql": "DELETE FROM dim_product"})
+            payload = {"sql": "SELECT 1 AS ok"} if expected == 200 else {"sql": "DELETE FROM dim_product"}
         elif method == "POST" and path.endswith("/saved-views"):
-            payload = {"name": f"smoke-test-view-{int(time.time())}", "entity": "products",
-                       "filters": {"in_stock": True}}
+            payload = {
+                "name": f"smoke-test-view-{int(time.time())}",
+                "entity": "products",
+                "filters": {"in_stock": True},
+            }
         elif method == "POST" and path.endswith("/alerts"):
-            payload = {"name": f"smoke-alert-{int(time.time())}", "metric": "price_change_pct",
-                       "operator": "lt", "threshold": -15}
+            payload = {
+                "name": f"smoke-alert-{int(time.time())}",
+                "metric": "price_change_pct",
+                "operator": "lt",
+                "threshold": -15,
+            }
         elif method == "PATCH" and path.endswith("/users/me"):
             payload = {"theme": "system", "rows_per_page": 25}
         elif method == "POST":
@@ -177,7 +188,9 @@ def run_checks(base_url: str, token: str, role_tokens: dict[str, str] | None = N
             failed += 1
             detail = response.text[:120].replace("\n", " ")
             failures.append(f"{method} {path} -> {response.status_code} (expected {expected})")
-            print(f"{RED}  FAIL{NC} {method:6} {path[:52]:54} {RED}{response.status_code}{NC} {DIM}{detail}{NC}")
+            print(
+                f"{RED}  FAIL{NC} {method:6} {path[:52]:54} {RED}{response.status_code}{NC} {DIM}{detail}{NC}"
+            )
 
     print()
     print(f"{CYAN}{'=' * 78}{NC}")
@@ -205,12 +218,22 @@ def main() -> int:
         base_url = f"http://{args.host}:{args.port}"
         env = dict(os.environ)
         python = str(ROOT / ".venv" / "bin" / "python")
-        command = [python if Path(python).exists() else sys.executable, "-m", "uvicorn",
-                   "app.api.main:app", "--host", args.host, "--port", str(args.port),
-                   "--log-level", "warning"]
+        command = [
+            python if Path(python).exists() else sys.executable,
+            "-m",
+            "uvicorn",
+            "app.api.main:app",
+            "--host",
+            args.host,
+            "--port",
+            str(args.port),
+            "--log-level",
+            "warning",
+        ]
         print(f"{CYAN}starting API on {base_url}{NC}")
-        process = subprocess.Popen(command, cwd=str(ROOT), env=env,
-                                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        process = subprocess.Popen(
+            command, cwd=str(ROOT), env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
         if not wait_for(f"{base_url}/api/v1/health"):
             print(f"{RED}API did not become healthy in time{NC}")
             if process:
@@ -221,8 +244,10 @@ def main() -> int:
     try:
         login = httpx.post(
             f"{base_url}/api/v1/auth/login",
-            json={"email": os.getenv("SMOKE_EMAIL", "admin@example.com"),
-                  "password": os.getenv("SMOKE_PASSWORD", "Admin@12345")},
+            json={
+                "email": os.getenv("SMOKE_EMAIL", "admin@example.com"),
+                "password": os.getenv("SMOKE_PASSWORD", "Admin@12345"),
+            },
             timeout=30.0,
         )
         token = login.json().get("access_token", "") if login.status_code == 200 else ""
@@ -234,9 +259,11 @@ def main() -> int:
     print(f"{CYAN}running {len(CHECKS)} checks against {base_url}{NC}\n")
     try:
         role_tokens: dict[str, str] = {}
-        viewer = httpx.post(f"{base_url}/api/v1/auth/login",
-                            json={"email": "viewer@example.com", "password": "Viewer@12345"},
-                            timeout=30.0)
+        viewer = httpx.post(
+            f"{base_url}/api/v1/auth/login",
+            json={"email": "viewer@example.com", "password": "Viewer@12345"},
+            timeout=30.0,
+        )
         if viewer.status_code == 200:
             role_tokens["viewer"] = viewer.json().get("access_token", "")
         _passed, failed, _skipped = run_checks(base_url, token, role_tokens)

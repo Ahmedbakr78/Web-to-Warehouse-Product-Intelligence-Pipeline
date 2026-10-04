@@ -85,7 +85,9 @@ class OpenLibraryBooksSource(ProductSource):
         rating = item.get("ratings_average")
         return RawProduct(
             source_code=self.code,
-            source_product_id=str(item.get("key") or item.get("isbn", [""])[0] if item.get("isbn") else title),
+            source_product_id=str(
+                item.get("key") or item.get("isbn", [""])[0] if item.get("isbn") else title
+            ),
             name=f"{title} - {author}" if author else str(title),
             category=str(category).title(),
             price_text=str(price) if price not in (None, "") else None,
@@ -94,7 +96,9 @@ class OpenLibraryBooksSource(ProductSource):
             rating_count_text=str(item.get("ratings_count")) if item.get("ratings_count") else None,
             availability_text="in_stock",  # a physical book on sale
             in_stock_flag=True,
-            url=f"https://openlibrary.org{item.get('key')}" if str(item.get("key", "")).startswith("/") else None,
+            url=f"https://openlibrary.org{item.get('key')}"
+            if str(item.get("key", "")).startswith("/")
+            else None,
             brand=author,
             description=(
                 f"{item.get('first_publish_year', '')} edition, "

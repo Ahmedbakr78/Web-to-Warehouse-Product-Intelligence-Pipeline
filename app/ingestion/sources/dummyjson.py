@@ -66,9 +66,7 @@ class DummyJsonProductsSource(ProductSource):
             category=(item.get("category") or "").replace("-", " ").title(),
             price_text=str(item.get("price")) if item.get("price") is not None else None,
             currency_hint=self.default_currency,
-            list_price_text=(
-                str(item.get("discountPrice")) if item.get("discountPrice") else None
-            ),
+            list_price_text=(str(item.get("discountPrice")) if item.get("discountPrice") else None),
             rating_text=str(item.get("rating")) if item.get("rating") is not None else None,
             rating_count_text=str(item.get("stock")) if item.get("stock") is not None else None,
             availability_text="in_stock" if item.get("stock", 0) else "out_of_stock",
@@ -79,4 +77,3 @@ class DummyJsonProductsSource(ProductSource):
             description=item.get("description"),
             payload=item,
         )
-

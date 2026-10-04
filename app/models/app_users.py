@@ -7,7 +7,7 @@ import datetime as dt
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import UTCDateTime, Base, JSONType, MediumStr, ShortStr, TimestampMixin, utcnow
+from app.models.base import Base, JSONType, MediumStr, ShortStr, TimestampMixin, UTCDateTime, utcnow
 
 
 class AppUser(Base, TimestampMixin):
@@ -67,9 +67,7 @@ class AppApiKey(Base, TimestampMixin):
     usage_count: Mapped[int] = mapped_column(sa.Integer, default=0)
     rate_limit_per_minute: Mapped[int] = mapped_column(sa.Integer, default=120)
 
-    __table_args__ = (
-        sa.Index("ix_app_api_key_user", "user_id"),
-    )
+    __table_args__ = (sa.Index("ix_app_api_key_user", "user_id"),)
 
 
 class AppSavedView(Base, TimestampMixin):
@@ -78,7 +76,9 @@ class AppSavedView(Base, TimestampMixin):
     __tablename__ = "app_saved_view"
 
     view_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[int | None] = mapped_column(sa.Integer, sa.ForeignKey("app_user.user_id", ondelete="CASCADE"))
+    user_id: Mapped[int | None] = mapped_column(
+        sa.Integer, sa.ForeignKey("app_user.user_id", ondelete="CASCADE")
+    )
     name: Mapped[str] = mapped_column(MediumStr, nullable=False)
     entity: Mapped[str] = mapped_column(ShortStr, nullable=False)
     description: Mapped[str | None] = mapped_column(MediumStr)
@@ -91,9 +91,7 @@ class AppSavedView(Base, TimestampMixin):
     is_default: Mapped[bool] = mapped_column(sa.Boolean, default=False)
     use_count: Mapped[int] = mapped_column(sa.Integer, default=0)
 
-    __table_args__ = (
-        sa.Index("ix_app_saved_view_entity", "entity"),
-    )
+    __table_args__ = (sa.Index("ix_app_saved_view_entity", "entity"),)
 
 
 class AppAlertRule(Base, TimestampMixin):
@@ -104,7 +102,9 @@ class AppAlertRule(Base, TimestampMixin):
     alert_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(sa.Integer, sa.ForeignKey("app_user.user_id", ondelete="CASCADE"))
     name: Mapped[str] = mapped_column(MediumStr, nullable=False)
-    metric: Mapped[str] = mapped_column(ShortStr, nullable=False)  # price_change_pct | rating | new_product | dq_failure
+    metric: Mapped[str] = mapped_column(
+        ShortStr, nullable=False
+    )  # price_change_pct | rating | new_product | dq_failure
     operator: Mapped[str] = mapped_column(ShortStr, nullable=False, default="lt")  # lt|gt|gte|lte|eq
     threshold: Mapped[float] = mapped_column(sa.Float, nullable=False, default=10.0)
     category: Mapped[str | None] = mapped_column(MediumStr)
@@ -114,9 +114,7 @@ class AppAlertRule(Base, TimestampMixin):
     last_triggered_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
     trigger_count: Mapped[int] = mapped_column(sa.Integer, default=0)
 
-    __table_args__ = (
-        sa.Index("ix_app_alert_user_active", "user_id", "is_active"),
-    )
+    __table_args__ = (sa.Index("ix_app_alert_user_active", "user_id", "is_active"),)
 
 
 class AppNotification(Base):
@@ -125,8 +123,12 @@ class AppNotification(Base):
     __tablename__ = "app_notification"
 
     notification_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[int | None] = mapped_column(sa.Integer, sa.ForeignKey("app_user.user_id", ondelete="CASCADE"), index=True)
-    alert_id: Mapped[int | None] = mapped_column(sa.Integer, sa.ForeignKey("app_alert_rule.alert_id", ondelete="CASCADE"))
+    user_id: Mapped[int | None] = mapped_column(
+        sa.Integer, sa.ForeignKey("app_user.user_id", ondelete="CASCADE"), index=True
+    )
+    alert_id: Mapped[int | None] = mapped_column(
+        sa.Integer, sa.ForeignKey("app_alert_rule.alert_id", ondelete="CASCADE")
+    )
     level: Mapped[str] = mapped_column(ShortStr, default="info")  # info | success | warning | critical
     title: Mapped[str] = mapped_column(MediumStr, nullable=False)
     body: Mapped[str | None] = mapped_column(sa.Text)
@@ -134,13 +136,9 @@ class AppNotification(Base):
     entity_id: Mapped[str | None] = mapped_column(ShortStr)
     action_url: Mapped[str | None] = mapped_column(sa.String(512))
     is_read: Mapped[bool] = mapped_column(sa.Boolean, default=False)
-    created_at: Mapped[dt.datetime] = mapped_column(
-        UTCDateTime(), default=utcnow, nullable=False, index=True
-    )
+    created_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), default=utcnow, nullable=False, index=True)
 
-    __table_args__ = (
-        sa.Index("ix_app_notification_user_read", "user_id", "is_read"),
-    )
+    __table_args__ = (sa.Index("ix_app_notification_user_read", "user_id", "is_read"),)
 
 
 class AppAuditLog(Base):
@@ -149,7 +147,9 @@ class AppAuditLog(Base):
     __tablename__ = "app_audit_log"
 
     audit_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[int | None] = mapped_column(sa.Integer, sa.ForeignKey("app_user.user_id", ondelete="SET NULL"), index=True)
+    user_id: Mapped[int | None] = mapped_column(
+        sa.Integer, sa.ForeignKey("app_user.user_id", ondelete="SET NULL"), index=True
+    )
     user_email: Mapped[str | None] = mapped_column(MediumStr)
     action: Mapped[str] = mapped_column(ShortStr, nullable=False)
     entity_type: Mapped[str | None] = mapped_column(ShortStr)
@@ -159,13 +159,9 @@ class AppAuditLog(Base):
     user_agent: Mapped[str | None] = mapped_column(ShortStr)
     duration_ms: Mapped[int | None] = mapped_column(sa.Integer)
     details: Mapped[dict | None] = mapped_column(JSONType, default=dict)
-    created_at: Mapped[dt.datetime] = mapped_column(
-        UTCDateTime(), default=utcnow, nullable=False, index=True
-    )
+    created_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), default=utcnow, nullable=False, index=True)
 
-    __table_args__ = (
-        sa.Index("ix_app_audit_action_time", "action", "created_at"),
-    )
+    __table_args__ = (sa.Index("ix_app_audit_action_time", "action", "created_at"),)
 
 
 class AppSetting(Base):

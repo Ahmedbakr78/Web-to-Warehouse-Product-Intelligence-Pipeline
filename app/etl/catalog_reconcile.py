@@ -15,8 +15,9 @@ market?).
 from __future__ import annotations
 
 import datetime as dt
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Any, Sequence
+from typing import Any
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
@@ -26,7 +27,6 @@ from app.ingestion.cleaning import normalise_name_key, percent_change
 from app.ingestion.dedupe import combined_similarity
 from app.models.catalog import CatalogProduct
 from app.models.facts import FactCatalogSnapshot
-from app.models.operations import EtlRun
 
 log = get_logger(__name__)
 
@@ -39,7 +39,7 @@ class CatalogMatchResult:
 
     catalog_sku: str
     product_id: int | None
-    match_status: str          # matched | unmatched | ambiguous
+    match_status: str  # matched | unmatched | ambiguous
     strategy: str | None = None
     similarity: float | None = None
     scraped_name: str | None = None
@@ -236,7 +236,9 @@ class CatalogReconciler:
                 candidates=len(candidates),
             )
 
-        raw_scraped, scraped_currency, category_name = latest_prices.get(chosen.product_id, (None, None, None))
+        raw_scraped, scraped_currency, category_name = latest_prices.get(
+            chosen.product_id, (None, None, None)
+        )
         # PostgreSQL returns Decimal for Numeric columns - normalise to float here.
         scraped_price = float(raw_scraped) if raw_scraped is not None else None
         catalog_price = float(catalog_row.list_price) if catalog_row.list_price is not None else None
@@ -318,7 +320,10 @@ class CatalogReconciler:
         mismatches = sum(1 for r in results if r.is_price_mismatch)
         log.info(
             "catalog reconciliation run=%s matched=%d/%d price_mismatches=%d",
-            self.run_id, matched, len(results), mismatches,
+            self.run_id,
+            matched,
+            len(results),
+            mismatches,
         )
         return results
 
@@ -327,8 +332,13 @@ def reconciliation_summary(results: Sequence[CatalogMatchResult]) -> dict[str, A
     """Aggregate counters used by the run record and the dashboard."""
     if not results:
         return {
-            "total": 0, "matched": 0, "unmatched": 0, "match_rate_pct": 0.0,
-            "price_mismatches": 0, "avg_similarity": None, "by_strategy": {},
+            "total": 0,
+            "matched": 0,
+            "unmatched": 0,
+            "match_rate_pct": 0.0,
+            "price_mismatches": 0,
+            "avg_similarity": None,
+            "by_strategy": {},
         }
     matched = sum(1 for r in results if r.match_status == "matched")
     similarities = [r.similarity for r in results if r.similarity is not None]

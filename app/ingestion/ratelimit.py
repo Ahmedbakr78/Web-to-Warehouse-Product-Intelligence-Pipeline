@@ -108,8 +108,10 @@ class RateLimiter:
                     if len(state.window) >= state.policy.requests_per_minute:
                         window_delay = max(0.0, state.window[0] + 60.0 - now) + 0.01
                     gap_delay = max(0.0, state.effective_delay - (now - state.last_request))
-                    token_delay = 0.0 if state.tokens >= 1.0 else (1.0 - state.tokens) / max(
-                        state.policy.requests_per_second, 0.001
+                    token_delay = (
+                        0.0
+                        if state.tokens >= 1.0
+                        else (1.0 - state.tokens) / max(state.policy.requests_per_second, 0.001)
                     )
                     sleep_for = max(window_delay, gap_delay, token_delay)
 

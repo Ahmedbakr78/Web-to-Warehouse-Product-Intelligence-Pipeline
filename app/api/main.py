@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import time
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import Any, AsyncIterator
+from typing import Any
 
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -58,13 +59,28 @@ TAGS_METADATA: list[dict[str, Any]] = [
     {"name": "system", "description": "Health, readiness, metadata and feature catalogue."},
     {"name": "authentication", "description": "Login, token rotation, profile session and password change."},
     {"name": "users", "description": "Account management, roles, API keys and usage statistics."},
-    {"name": "products", "description": "Deduplicated product catalogue, facets, price history and duplicates."},
-    {"name": "changes", "description": "Price changes, new/removed products, lifecycle events and category drift."},
+    {
+        "name": "products",
+        "description": "Deduplicated product catalogue, facets, price history and duplicates.",
+    },
+    {
+        "name": "changes",
+        "description": "Price changes, new/removed products, lifecycle events and category drift.",
+    },
     {"name": "analytics", "description": "Dashboard KPIs, trends, leaderboards, exports and SQL reports."},
-    {"name": "pipeline", "description": "Run history, manual triggers, stage timings, source and scheduler status."},
-    {"name": "data-quality", "description": "Rule catalogue, latest report, historical results and score trend."},
+    {
+        "name": "pipeline",
+        "description": "Run history, manual triggers, stage timings, source and scheduler status.",
+    },
+    {
+        "name": "data-quality",
+        "description": "Rule catalogue, latest report, historical results and score trend.",
+    },
     {"name": "catalog", "description": "Internal catalog SKUs, reconciliation and pricing opportunities."},
-    {"name": "sources", "description": "Registered ingestion sources, robots.txt statistics and raw previews."},
+    {
+        "name": "sources",
+        "description": "Registered ingestion sources, robots.txt statistics and raw previews.",
+    },
     {"name": "query-lab", "description": "Read-only SQL console, views and starter queries."},
     {"name": "saved-views", "description": "Per-user filter presets for list screens."},
     {"name": "notifications", "description": "In-app notifications and user alert rules."},
@@ -81,7 +97,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     if health["connected"]:
         log.info(
             "api ready: database=%s dialect=%s tables=%s",
-            health["database"], health["dialect"], health["tables"],
+            health["database"],
+            health["dialect"],
+            health["tables"],
         )
         if settings.seed_demo_data:
             _ensure_reference_data()
@@ -146,7 +164,12 @@ def create_app() -> FastAPI:
     async def pipeline_error_handler(request: Request, exc: PipelineError) -> JSONResponse:
         return JSONResponse(
             status_code=exc.status_code,
-            content={"error": exc.code, "message": exc.message, "details": exc.details, "path": request.url.path},
+            content={
+                "error": exc.code,
+                "message": exc.message,
+                "details": exc.details,
+                "path": request.url.path,
+            },
         )
 
     @app.exception_handler(RequestValidationError)
@@ -156,11 +179,16 @@ def create_app() -> FastAPI:
             content={
                 "error": "validation_error",
                 "message": "Request validation failed",
-                "details": {"errors": [
-                    {"field": ".".join(str(part) for part in error.get("loc", [])[1:]),
-                     "message": error.get("msg"), "type": error.get("type")}
-                    for error in exc.errors()
-                ][:20]},
+                "details": {
+                    "errors": [
+                        {
+                            "field": ".".join(str(part) for part in error.get("loc", [])[1:]),
+                            "message": error.get("msg"),
+                            "type": error.get("type"),
+                        }
+                        for error in exc.errors()
+                    ][:20]
+                },
             },
         )
 

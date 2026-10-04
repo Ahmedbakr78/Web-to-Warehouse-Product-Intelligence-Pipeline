@@ -2,6 +2,15 @@
 
 from __future__ import annotations
 
+from app.models.app_users import (
+    AppAlertRule,
+    AppApiKey,
+    AppAuditLog,
+    AppNotification,
+    AppSavedView,
+    AppSetting,
+    AppUser,
+)
 from app.models.base import Base
 from app.models.catalog import CatalogProduct
 from app.models.dimensions import DimCategory, DimCurrency, DimDate, DimProduct, DimSource
@@ -18,15 +27,6 @@ from app.models.operations import (
     IngestionHttpLog,
     StgRawObservation,
     SyncState,
-)
-from app.models.app_users import (
-    AppAlertRule,
-    AppApiKey,
-    AppAuditLog,
-    AppNotification,
-    AppSavedView,
-    AppSetting,
-    AppUser,
 )
 
 # --------------------------------------------------------------------------------------

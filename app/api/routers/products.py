@@ -7,14 +7,13 @@ from typing import Annotated, Any
 
 import sqlalchemy as sa
 from fastapi import APIRouter, Query
-from sqlalchemy.orm import Session
 
 from app.analytics import service as analytics
 from app.api.deps import DbSession, PaginationDep, ReadUser
 from app.api.schemas import Page, ProductDetail, ProductSummary
 from app.core.errors import ProductNotFoundError
 from app.ingestion.cleaning import normalise_name_key
-from app.models.dimensions import DimCategory, DimProduct
+from app.models.dimensions import DimProduct
 
 router = APIRouter(prefix="/products", tags=["products"])
 
@@ -49,9 +48,13 @@ def list_products(
     min_price: Annotated[float | None, Query(ge=0)] = None,
     max_price: Annotated[float | None, Query(ge=0)] = None,
     min_rating: Annotated[float | None, Query(ge=0, le=5)] = None,
-    min_change_pct: Annotated[float | None, Query(description="Only products whose price moved at least this much %")] = None,
+    min_change_pct: Annotated[
+        float | None, Query(description="Only products whose price moved at least this much %")
+    ] = None,
     max_change_pct: Annotated[float | None, Query()] = None,
-    new_since_days: Annotated[int | None, Query(ge=0, le=3650, description="First seen within N days")] = None,
+    new_since_days: Annotated[
+        int | None, Query(ge=0, le=3650, description="First seen within N days")
+    ] = None,
     observed_within_days: Annotated[int | None, Query(ge=0, le=3650)] = None,
 ) -> Page[ProductSummary]:
     where: list[str] = []
@@ -59,10 +62,14 @@ def list_products(
 
     if q:
         needle = f"%{q.strip()}%"
-        where.append("(v.canonical_name LIKE :q OR v.brand LIKE :q OR v.category_name LIKE :q OR v.product_url LIKE :q)")
+        where.append(
+            "(v.canonical_name LIKE :q OR v.brand LIKE :q OR v.category_name LIKE :q OR v.product_url LIKE :q)"
+        )
         params["q"] = needle
     if category:
-        where.append("(v.category_path = :category OR v.category_name = :category OR v.category_path LIKE :category_like)")
+        where.append(
+            "(v.category_path = :category OR v.category_name = :category OR v.category_path LIKE :category_like)"
+        )
         params["category"] = category
         params["category_like"] = f"{category}%"
     if brand:
@@ -107,9 +114,10 @@ def list_products(
     direction = "ASC" if str(pagination.sort_dir).lower() == "asc" else "DESC"
 
     total = session.execute(sa.text(f"SELECT COUNT(*) {BASE_FROM} {clause}"), params).scalar() or 0
-    rows = session.execute(
-        sa.text(
-            f"""
+    rows = (
+        session.execute(
+            sa.text(
+                f"""
             SELECT v.product_id, v.canonical_name, v.brand, v.category_name, v.category_path,
                    v.availability, v.price, v.price_usd, v.currency, v.rating, v.in_stock,
                    v.price_change_pct, v.price_change_abs, v.is_active, v.last_seen_at,
@@ -120,50 +128,70 @@ def list_products(
             ORDER BY ({sort} IS NULL) ASC, {sort} {direction}
             LIMIT :limit OFFSET :offset
             """
-        ),
-        {**params, "limit": pagination.page_size, "offset": pagination.offset},
-    ).mappings().all()
+            ),
+            {**params, "limit": pagination.page_size, "offset": pagination.offset},
+        )
+        .mappings()
+        .all()
+    )
     return Page.build([dict(row) for row in rows], total, pagination.page, pagination.page_size)
 
 
 @router.get("/facets", summary="Facet counts for the products screen")
 def facets(session: DbSession, _user: ReadUser) -> dict[str, Any]:
-    categories = session.execute(
-        sa.text(
-            """
+    categories = (
+        session.execute(
+            sa.text(
+                """
             SELECT category_name, COUNT(*) AS count FROM vw_product_current
             WHERE category_name IS NOT NULL
             GROUP BY category_name ORDER BY count DESC LIMIT 40
             """
+            )
         )
-    ).mappings().all()
-    brands = session.execute(
-        sa.text(
-            """
+        .mappings()
+        .all()
+    )
+    brands = (
+        session.execute(
+            sa.text(
+                """
             SELECT brand, COUNT(*) AS count FROM vw_product_current
             WHERE brand IS NOT NULL GROUP BY brand ORDER BY count DESC LIMIT 40
             """
+            )
         )
-    ).mappings().all()
-    sources = session.execute(
-        sa.text(
-            """
+        .mappings()
+        .all()
+    )
+    sources = (
+        session.execute(
+            sa.text(
+                """
             SELECT source_code, COUNT(*) AS count FROM vw_product_current
             WHERE source_code IS NOT NULL GROUP BY source_code ORDER BY count DESC
             """
+            )
         )
-    ).mappings().all()
-    availability = session.execute(
-        sa.text(
-            """
+        .mappings()
+        .all()
+    )
+    availability = (
+        session.execute(
+            sa.text(
+                """
             SELECT availability, COUNT(*) AS count FROM vw_product_current
             WHERE availability IS NOT NULL GROUP BY availability ORDER BY count DESC
             """
+            )
         )
-    ).mappings().all()
-    price_band = session.execute(
-        sa.text(
-            """
+        .mappings()
+        .all()
+    )
+    price_band = (
+        session.execute(
+            sa.text(
+                """
             SELECT CASE
                      WHEN price_usd < 25 THEN 'a_0_25'
                      WHEN price_usd < 100 THEN 'b_25_100'
@@ -173,8 +201,11 @@ def facets(session: DbSession, _user: ReadUser) -> dict[str, Any]:
                    COUNT(*) AS count
             FROM vw_product_current WHERE price_usd IS NOT NULL GROUP BY band ORDER BY band
             """
+            )
         )
-    ).mappings().all()
+        .mappings()
+        .all()
+    )
     return {
         "categories": [dict(row) for row in categories],
         "brands": [dict(row) for row in brands],
@@ -190,7 +221,9 @@ def categories(session: DbSession, _user: ReadUser) -> list[dict[str, Any]]:
 
 
 @router.get("/{product_id}", response_model=ProductDetail, summary="Product detail")
-def product_detail(product_id: int, session: DbSession, _user: ReadUser, history_limit: int = 400) -> ProductDetail:
+def product_detail(
+    product_id: int, session: DbSession, _user: ReadUser, history_limit: int = 400
+) -> ProductDetail:
     payload = analytics.product_detail(session, product_id)
     if not payload:
         raise ProductNotFoundError(f"product {product_id} not found", details={"product_id": product_id})
@@ -220,7 +253,9 @@ def product_history(product_id: int, session: DbSession, _user: ReadUser, limit:
 
 
 @router.get("/{product_id}/duplicates", summary="Similar products (duplicate candidates)")
-def product_duplicates(product_id: int, session: DbSession, _user: ReadUser, limit: int = 10) -> dict[str, Any]:
+def product_duplicates(
+    product_id: int, session: DbSession, _user: ReadUser, limit: int = 10
+) -> dict[str, Any]:
     from app.ingestion.dedupe import combined_similarity
 
     product = session.get(DimProduct, product_id)
@@ -228,78 +263,112 @@ def product_duplicates(product_id: int, session: DbSession, _user: ReadUser, lim
         raise ProductNotFoundError(f"product {product_id} not found")
 
     block = (product.normalized_name or "")[:4]
-    candidates = session.execute(
-        sa.select(DimProduct)
-        .where(DimProduct.product_id != product_id, DimProduct.normalized_name.like(f"{block}%"))
-        .limit(60)
-    ).scalars().all()
+    candidates = (
+        session.execute(
+            sa.select(DimProduct)
+            .where(DimProduct.product_id != product_id, DimProduct.normalized_name.like(f"{block}%"))
+            .limit(60)
+        )
+        .scalars()
+        .all()
+    )
     scored = []
     for candidate in candidates:
         score, parts = combined_similarity(
-            product.canonical_name, candidate.canonical_name,
-            brand_a=product.brand, brand_b=candidate.brand,
+            product.canonical_name,
+            candidate.canonical_name,
+            brand_a=product.brand,
+            brand_b=candidate.brand,
         )
-        scored.append({"product_id": candidate.product_id, "name": candidate.canonical_name,
-                       "score": score, "parts": parts})
+        scored.append(
+            {
+                "product_id": candidate.product_id,
+                "name": candidate.canonical_name,
+                "score": score,
+                "parts": parts,
+            }
+        )
     scored.sort(key=lambda item: item["score"], reverse=True)
     return {"product_id": product_id, "name": product.canonical_name, "candidates": scored[:limit]}
 
 
 @router.get("/{product_id}/catalog", summary="Catalog links for a product")
 def product_catalog(product_id: int, session: DbSession, _user: ReadUser) -> list[dict[str, Any]]:
-    rows = session.execute(
-        sa.text(
-            """
+    rows = (
+        session.execute(
+            sa.text(
+                """
             SELECT match_id, run_id, catalog_sku, catalog_name, catalog_brand, catalog_price,
                    price_gap_abs, price_gap_pct, match_status, match_strategy, similarity_score
             FROM vw_catalog_reconciliation WHERE product_id = :pid ORDER BY matched_at DESC
             """
-        ),
-        {"pid": product_id},
-    ).mappings().all()
+            ),
+            {"pid": product_id},
+        )
+        .mappings()
+        .all()
+    )
     return [dict(row) for row in rows]
 
 
 @router.get("/search/suggest", summary="Type-ahead suggestions")
-def suggest(session: DbSession, _user: ReadUser, q: Annotated[str, Query(min_length=2)], limit: int = 10) -> list[dict[str, Any]]:
+def suggest(
+    session: DbSession, _user: ReadUser, q: Annotated[str, Query(min_length=2)], limit: int = 10
+) -> list[dict[str, Any]]:
     key = normalise_name_key(q)
-    rows = session.execute(
-        sa.text(
-            """
+    rows = (
+        session.execute(
+            sa.text(
+                """
             SELECT product_id, canonical_name, brand, category_name, price_usd, currency, image_url
             FROM vw_product_current
             WHERE canonical_name LIKE :like OR normalized_name LIKE :like
             ORDER BY canonical_name LIMIT :limit
             """
-        ),
-        {"like": f"%{key or q}%", "limit": min(limit, 25)},
-    ).mappings().all()
+            ),
+            {"like": f"%{key or q}%", "limit": min(limit, 25)},
+        )
+        .mappings()
+        .all()
+    )
     return [dict(row) for row in rows]
 
 
 @router.get("/compare/ids", summary="Side-by-side comparison")
-def compare(session: DbSession, _user: ReadUser, ids: Annotated[str, Query(description="Comma separated product ids")]) -> list[dict[str, Any]]:
+def compare(
+    session: DbSession, _user: ReadUser, ids: Annotated[str, Query(description="Comma separated product ids")]
+) -> list[dict[str, Any]]:
     wanted = [int(part) for part in ids.split(",") if part.strip().isdigit()][:6]
     if not wanted:
         return []
     placeholders = ",".join(f":id{index}" for index in range(len(wanted)))
     params = {f"id{index}": value for index, value in enumerate(wanted)}
-    rows = session.execute(
-        sa.text(
-            f"""
+    rows = (
+        session.execute(
+            sa.text(
+                f"""
             SELECT product_id, canonical_name, brand, category_name, price_usd, currency, rating,
                    availability, in_stock, price_change_pct, observation_count, last_seen_at, image_url
             FROM vw_product_current WHERE product_id IN ({placeholders})
             """
-        ),
-        params,
-    ).mappings().all()
+            ),
+            params,
+        )
+        .mappings()
+        .all()
+    )
     return [dict(row) for row in rows]
 
 
 @router.get("/count/active", include_in_schema=False)
 def active_count(session: DbSession) -> dict[str, int]:
     return {
-        "active": session.execute(sa.select(sa.func.count()).select_from(DimProduct).where(DimProduct.is_active.is_(True))).scalar() or 0,
-        "inactive": session.execute(sa.select(sa.func.count()).select_from(DimProduct).where(DimProduct.is_active.is_(False))).scalar() or 0,
+        "active": session.execute(
+            sa.select(sa.func.count()).select_from(DimProduct).where(DimProduct.is_active.is_(True))
+        ).scalar()
+        or 0,
+        "inactive": session.execute(
+            sa.select(sa.func.count()).select_from(DimProduct).where(DimProduct.is_active.is_(False))
+        ).scalar()
+        or 0,
     }

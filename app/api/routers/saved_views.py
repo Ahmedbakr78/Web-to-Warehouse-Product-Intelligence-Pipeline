@@ -2,11 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 import sqlalchemy as sa
-from fastapi import APIRouter, Response
-from sqlalchemy.orm import Session
+from fastapi import APIRouter
 
 from app.api.deps import CurrentUser, DbSession
 from app.api.schemas import Message, SavedViewCreate, SavedViewRead
@@ -22,9 +19,15 @@ def list_views(session: DbSession, user: CurrentUser, entity: str | None = None)
     conditions = [sa.or_(AppSavedView.user_id == user.user_id, AppSavedView.is_shared.is_(True))]
     if entity:
         conditions.append(AppSavedView.entity == entity)
-    views = session.execute(
-        sa.select(AppSavedView).where(*conditions).order_by(AppSavedView.is_favorite.desc(), AppSavedView.name)
-    ).scalars().all()
+    views = (
+        session.execute(
+            sa.select(AppSavedView)
+            .where(*conditions)
+            .order_by(AppSavedView.is_favorite.desc(), AppSavedView.name)
+        )
+        .scalars()
+        .all()
+    )
     return [SavedViewRead.model_validate(view) for view in views]
 
 
@@ -32,9 +35,15 @@ def list_views(session: DbSession, user: CurrentUser, entity: str | None = None)
 def create_view(payload: SavedViewCreate, session: DbSession, user: CurrentUser) -> SavedViewRead:
     from app.models.app_users import AppSavedView
 
-    duplicate = session.execute(
-        sa.select(AppSavedView).where(AppSavedView.user_id == user.user_id, AppSavedView.name == payload.name)
-    ).scalars().first()
+    duplicate = (
+        session.execute(
+            sa.select(AppSavedView).where(
+                AppSavedView.user_id == user.user_id, AppSavedView.name == payload.name
+            )
+        )
+        .scalars()
+        .first()
+    )
     if duplicate is not None:
         raise ConflictError(f"a view named '{payload.name}' already exists")
     view = AppSavedView(

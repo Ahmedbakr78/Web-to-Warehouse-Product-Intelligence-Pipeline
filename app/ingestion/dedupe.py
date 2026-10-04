@@ -17,11 +17,12 @@ Matching strategy (cheapest first, so large catalogues stay fast):
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from functools import lru_cache
-from typing import Any, Iterable, Sequence
+from typing import Any
 
-from sqlalchemy import or_, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
@@ -277,7 +278,7 @@ class MatchResult:
     """Outcome of a duplicate search for one candidate product."""
 
     product_id: int | None
-    strategy: str                     # exact | fingerprint | blocked_exact | fuzzy | new
+    strategy: str  # exact | fingerprint | blocked_exact | fuzzy | new
     score: float
     fingerprint: str
     blocking_key: str
@@ -330,9 +331,7 @@ class DedupeEngine:
     # ------------------------------------------------------------------ queries
     def _load_fingerprints(self) -> dict[str, int]:
         if not self._fingerprint_cache:
-            rows = self.session.execute(
-                select(DimProduct.product_id, DimProduct.fingerprint)
-            ).all()
+            rows = self.session.execute(select(DimProduct.product_id, DimProduct.fingerprint)).all()
             self._fingerprint_cache = {row[1]: row[0] for row in rows if row[1]}
         return self._fingerprint_cache
 
@@ -349,7 +348,9 @@ class DedupeEngine:
         rows: list[DimProduct] = []
         seen: set[int] = set()
         for column in (DimProduct.normalized_name, DimProduct.canonical_name):
-            for row in self.session.execute(select(DimProduct).where(column.like(prefix)).limit(limit)).scalars():
+            for row in self.session.execute(
+                select(DimProduct).where(column.like(prefix)).limit(limit)
+            ).scalars():
                 if row.product_id not in seen:
                     seen.add(row.product_id)
                     rows.append(row)
@@ -378,7 +379,9 @@ class DedupeEngine:
         known = self._load_fingerprints()
         if fingerprint in known:
             self.stats.exact += 1
-            return MatchResult(known[fingerprint], "exact", 1.0, fingerprint, block, {"exact_key": 1.0}, known[fingerprint])
+            return MatchResult(
+                known[fingerprint], "exact", 1.0, fingerprint, block, {"exact_key": 1.0}, known[fingerprint]
+            )
 
         key = normalise_name_key(name)
         stmt = select(DimProduct).where(DimProduct.normalized_name == key)
@@ -386,8 +389,13 @@ class DedupeEngine:
         if exact_row and exclude_product_id != exact_row.product_id:
             self.stats.exact += 1
             return MatchResult(
-                exact_row.product_id, "blocked_exact", 1.0, fingerprint, block,
-                {"exact_key": 1.0}, exact_row.product_id,
+                exact_row.product_id,
+                "blocked_exact",
+                1.0,
+                fingerprint,
+                block,
+                {"exact_key": 1.0},
+                exact_row.product_id,
             )
 
         best: MatchResult | None = None
@@ -412,7 +420,9 @@ class DedupeEngine:
             self._fingerprint_cache.setdefault(fingerprint, best.product_id)
             return best
 
-        return MatchResult(None, "new", best.score if best else 0.0, fingerprint, block, best.parts if best else {})
+        return MatchResult(
+            None, "new", best.score if best else 0.0, fingerprint, block, best.parts if best else {}
+        )
 
     def _category_name(self, category_id: int | None) -> str | None:
         if not category_id:
@@ -444,9 +454,11 @@ class DedupeEngine:
         extra = dict(survivor.extra or {})
         extra["merged_from"] = merged_sources[-20:]
         survivor.extra = extra
-        survivor.observation_count = (survivor.observation_count or 0) + (
-            absorbed.observation_count or 0
-        ) + (1 if keep_observations else 0)
+        survivor.observation_count = (
+            (survivor.observation_count or 0)
+            + (absorbed.observation_count or 0)
+            + (1 if keep_observations else 0)
+        )
         survivor.is_active = True
 
         absorbed.is_active = False
@@ -457,7 +469,9 @@ class DedupeEngine:
         self.stats.merged += 1
         log.debug(
             "merged duplicate absorbed=%s survivor=%s (%s)",
-            absorbed.product_id, survivor.product_id, absorbed.canonical_name,
+            absorbed.product_id,
+            survivor.product_id,
+            absorbed.canonical_name,
         )
         return survivor
 
@@ -468,7 +482,10 @@ class DedupeEngine:
         key: str = "name",
     ) -> list[MatchResult]:
         """Resolve many candidates, reusing the fingerprint cache for speed."""
-        return [self.find_match(item.get(key), brand=item.get("brand"), category=item.get("category")) for item in candidates]
+        return [
+            self.find_match(item.get(key), brand=item.get("brand"), category=item.get("category"))
+            for item in candidates
+        ]
 
     def register(self, product: DimProduct) -> None:
         """Remember a freshly created product so later items match it in-memory."""
@@ -476,7 +493,9 @@ class DedupeEngine:
 
     def duplicates_in_iterable(self, names: Iterable[str]) -> list[tuple[str, str, float]]:
         """Offline duplicate discovery within one batch (used by the demo seeder)."""
-        entries = [(name, normalise_name_key(name), blocking_key(name, self.blocking_length)) for name in names]
+        entries = [
+            (name, normalise_name_key(name), blocking_key(name, self.blocking_length)) for name in names
+        ]
         found: list[tuple[str, str, float]] = []
         seen: dict[str, tuple[str, str]] = {}
         for original, key, block in entries:

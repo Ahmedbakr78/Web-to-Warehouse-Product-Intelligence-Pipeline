@@ -6,7 +6,7 @@ from typing import Any
 
 from fastapi import APIRouter
 
-from app.api.deps import DbSession, ReadUser
+from app.api.deps import ReadUser
 from app.core.errors import SourceNotFoundError
 from app.ingestion.base import get_source, get_source_class, list_sources
 from app.ingestion.robots import get_robots_cache

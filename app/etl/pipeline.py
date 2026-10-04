@@ -17,7 +17,7 @@ import uuid
 from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any, Sequence
+from typing import Any
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
@@ -38,8 +38,15 @@ from app.models.operations import EtlRun, IngestionHttpLog
 log = get_logger(__name__)
 
 STAGE_NAMES = (
-    "extract", "stage", "transform", "resolve", "load",
-    "detect", "reconcile", "quality", "aggregate",
+    "extract",
+    "stage",
+    "transform",
+    "resolve",
+    "load",
+    "detect",
+    "reconcile",
+    "quality",
+    "aggregate",
 )
 
 
@@ -147,7 +154,9 @@ class Pipeline:
         finally:
             elapsed = round((time.perf_counter() - started) * 1000, 2)
             assert self.result is not None
-            self.result.timings.append(StageTiming(name, elapsed, int(meta.get("rows", 0)), meta.get("detail", "")))
+            self.result.timings.append(
+                StageTiming(name, elapsed, int(meta.get("rows", 0)), meta.get("detail", ""))
+            )
 
     def _run_row(self, session: Session) -> EtlRun:
         run_id = self.result.run_id  # type: ignore[union-attr]
@@ -234,13 +243,23 @@ class Pipeline:
                 source_stats = self._process_source(session, run_id, source, dedupe)
                 stats.merge(source_stats)
                 result.sources_processed.append(code)
-                self._register_source_dim(session, source, source_stats, time.perf_counter() - source_started, success=True)
+                self._register_source_dim(
+                    session, source, source_stats, time.perf_counter() - source_started, success=True
+                )
             except Exception as exc:
                 message = f"{type(exc).__name__}: {str(exc).splitlines()[0][:220]}"
                 log.warning("source %s failed: %s", code, message, exc_info=settings.app_debug)
                 result.sources_failed.append(code)
                 result.warnings.append(f"{code}: {message}")
-                self._register_source_dim(session, None, LoadStats(), time.perf_counter() - source_started, success=False, code=code, message=message)
+                self._register_source_dim(
+                    session,
+                    None,
+                    LoadStats(),
+                    time.perf_counter() - source_started,
+                    success=False,
+                    code=code,
+                    message=message,
+                )
                 if self.config.strict or settings.pipeline_fail_fast:
                     raise
 
@@ -267,7 +286,9 @@ class Pipeline:
                 report: QualityReport = evaluate_quality(session, run_id)
                 quality = report.summary()
                 meta["rows"] = len(report.outcomes)
-                meta["detail"] = f"score {report.score} ({report.passed} pass / {report.warned} warn / {report.failed} fail)"
+                meta["detail"] = (
+                    f"score {report.score} ({report.passed} pass / {report.warned} warn / {report.failed} fail)"
+                )
 
         # ---- finalise
         finished = dt.datetime.now(dt.timezone.utc)
@@ -302,12 +323,18 @@ class Pipeline:
         session.flush()
         log.info(
             "pipeline finished run=%s status=%s snapshots=%d products=%d changes=%d quality=%s",
-            run_id, result.status, stats.snapshots_inserted, stats.products_created,
-            stats.price_changes, (quality or {}).get("score"),
+            run_id,
+            result.status,
+            stats.snapshots_inserted,
+            stats.products_created,
+            stats.price_changes,
+            (quality or {}).get("score"),
         )
 
     # ------------------------------------------------------------------ per source
-    def _process_source(self, session: Session, run_id: str, source: ProductSource, dedupe: DedupeEngine) -> LoadStats:
+    def _process_source(
+        self, session: Session, run_id: str, source: ProductSource, dedupe: DedupeEngine
+    ) -> LoadStats:
         result = self.result
         assert result is not None
         limit = self.config.limit_per_source or settings.max_products_per_source
@@ -337,7 +364,7 @@ class Pipeline:
                 record = transform_product(raw, strict=self.config.strict)
                 if record.is_valid:
                     key = (record.source_code, record.source_product_id)
-                    if key in by_key:      # intra-source duplicate rows
+                    if key in by_key:  # intra-source duplicate rows
                         rejected.append((None, "duplicate_source_row"))
                         continue
                     by_key[key] = record
@@ -351,9 +378,7 @@ class Pipeline:
         resolved: list[tuple[NormalizedProduct, Any, Any]] = []
         with self._timer("resolve") as meta:
             for record in normalized:
-                match = dedupe.find_match(
-                    record.canonical_name, brand=record.brand, category=record.category
-                )
+                match = dedupe.find_match(record.canonical_name, brand=record.brand, category=record.category)
                 product, created = loader.upsert_product(record, match)
                 if created or match.is_duplicate:
                     dedupe.register(product)
@@ -370,9 +395,7 @@ class Pipeline:
         # ---- load snapshots + detect changes
         seen_products: set[int] = set()
         with self._timer("load") as meta:
-            latest = loader.preload_latest(
-                {product.product_id for _r, _m, product in resolved}, source.code
-            )
+            latest = loader.preload_latest({product.product_id for _r, _m, product in resolved}, source.code)
             skipped_duplicates = 0
             for record, _match, product in resolved:
                 # Two upstream rows can legitimately resolve to the same canonical
@@ -445,9 +468,7 @@ class Pipeline:
         row.total_runs = (row.total_runs or 0) + 1
         row.last_run_at = dt.datetime.now(dt.timezone.utc)
         runs = max(row.total_runs, 1)
-        row.avg_duration_seconds = round(
-            ((row.avg_duration_seconds or 0) * (runs - 1) + duration) / runs, 3
-        )
+        row.avg_duration_seconds = round(((row.avg_duration_seconds or 0) * (runs - 1) + duration) / runs, 3)
         row.success_rate_pct = round(
             ((row.success_rate_pct or 0) * (runs - 1) + (100.0 if success else 0.0)) / runs, 2
         )

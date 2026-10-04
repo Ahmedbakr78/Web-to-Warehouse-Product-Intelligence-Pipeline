@@ -80,9 +80,7 @@ class RobotsCache:
         parser.set_url(robots_url)
         parser.parse(body.splitlines())
         sitemaps = tuple(
-            line.split(":", 1)[1].strip()
-            for line in body.splitlines()
-            if line.lower().startswith("sitemap:")
+            line.split(":", 1)[1].strip() for line in body.splitlines() if line.lower().startswith("sitemap:")
         )
         self.stats["fetched"] += 1
         return parser, sitemaps

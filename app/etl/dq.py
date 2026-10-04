@@ -9,14 +9,15 @@ from __future__ import annotations
 
 import dataclasses
 import datetime as dt
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
-from app.models.operations import DqRuleResult, EtlRun
+from app.models.operations import DqRuleResult
 
 log = get_logger(__name__)
 
@@ -43,7 +44,7 @@ class RuleOutcome:
     rule_name: str
     dimension: str
     severity: str
-    status: str                      # pass | warn | fail
+    status: str  # pass | warn | fail
     observed_value: float | None = None
     expected_value: float | None = None
     threshold: float | None = None
@@ -110,7 +111,9 @@ class QualityReport:
             "score": self.score,
             "by_dimension": by_dimension,
             "blocking": [o.rule_code for o in self.blocking_failures],
-            "errors": [o.rule_code for o in self.outcomes if o.status == "fail" and o.severity != SEVERITY_CRITICAL],
+            "errors": [
+                o.rule_code for o in self.outcomes if o.status == "fail" and o.severity != SEVERITY_CRITICAL
+            ],
         }
 
 
@@ -169,20 +172,21 @@ def _status(observed: float | None, threshold: float, higher_is_better: bool = T
 def _completeness(session: Session, ctx: dict[str, Any]) -> RuleOutcome:
     """Every stored product must have a name, a price and a category."""
     run_id = ctx.get("run_id")
-    total = session.execute(
-        sa.select(sa.func.count()).select_from(sa.text("dim_product"))
-    ).scalar() or 0
-    incomplete = session.execute(
-        sa.text(
-            """
+    total = session.execute(sa.select(sa.func.count()).select_from(sa.text("dim_product"))).scalar() or 0
+    incomplete = (
+        session.execute(
+            sa.text(
+                """
             SELECT COUNT(*) FROM dim_product
             WHERE is_active
               AND (canonical_name IS NULL OR canonical_name = ''
                    OR category_id IS NULL
                    OR current_price IS NULL)
             """
-        )
-    ).scalar() or 0
+            )
+        ).scalar()
+        or 0
+    )
     rate = 100.0 if total == 0 else (1 - incomplete / total) * 100
     return RuleOutcome(
         rule_code="DQ001",
@@ -454,10 +458,13 @@ def _availability_coverage(session: Session, ctx: dict[str, Any]) -> RuleOutcome
 def _run_completed(session: Session, ctx: dict[str, Any]) -> RuleOutcome:
     """The run must have inserted at least one snapshot."""
     run_id = ctx.get("run_id")
-    count = session.execute(
-        sa.text("SELECT COUNT(*) FROM fact_price_snapshot WHERE run_id = :run_id"),
-        {"run_id": run_id},
-    ).scalar() or 0
+    count = (
+        session.execute(
+            sa.text("SELECT COUNT(*) FROM fact_price_snapshot WHERE run_id = :run_id"),
+            {"run_id": run_id},
+        ).scalar()
+        or 0
+    )
     return RuleOutcome(
         rule_code="DQ011",
         rule_name="Run produced observations",
@@ -502,31 +509,102 @@ def _rejected_ratio(session: Session, ctx: dict[str, Any]) -> RuleOutcome:
 
 
 RULES: tuple[Rule, ...] = (
-    Rule("DQ001", "Required fields populated", DIMENSION_COMPLETENESS, SEVERITY_ERROR,
-         "Name, price and category must be present for every active product.",
-         _completeness),
-    Rule("DQ002", "Prices within valid range", DIMENSION_VALIDITY, SEVERITY_ERROR,
-         "A parsed price must be >= 0 and <= 1,000,000.", _valid_price),
-    Rule("DQ003", "Ratings within 0-5 scale", DIMENSION_VALIDITY, SEVERITY_ERROR,
-         "Ratings are rescaled to 0-5 and must land inside that range.", _valid_rating),
-    Rule("DQ004", "Currency codes known", DIMENSION_CONSISTENCY, SEVERITY_ERROR,
-         "Every snapshot currency must exist in dim_currency.", _currency_known),
-    Rule("DQ005", "Product fingerprints unique", DIMENSION_UNIQUENESS, SEVERITY_WARN,
-         "Fingerprint collisions mean the deduplicator missed a duplicate.", _uniqueness_fingerprint),
-    Rule("DQ006", "One snapshot per product per run", DIMENSION_UNIQUENESS, SEVERITY_CRITICAL,
-         "The fact table grain is one row per product per run.", _unique_snapshot_grain),
-    Rule("DQ007", "Data freshness", DIMENSION_TIMELINESS, SEVERITY_WARN,
-         "At least one snapshot must exist and be younger than 48 hours.", _freshness),
-    Rule("DQ008", "Category coverage", DIMENSION_COMPLETENESS, SEVERITY_WARN,
-         "At least 90% of products must map to a real category.", _category_coverage),
-    Rule("DQ009", "Price movement plausibility", DIMENSION_ACCURACY, SEVERITY_WARN,
-         "Single-step price movement above 50% is suspicious.", _price_volatility),
-    Rule("DQ010", "Availability captured", DIMENSION_COMPLETENESS, SEVERITY_INFO,
-         "Availability should be known for at least 85% of snapshots.", _availability_coverage),
-    Rule("DQ011", "Run produced observations", DIMENSION_COMPLETENESS, SEVERITY_CRITICAL,
-         "A successful run must persist at least one price snapshot.", _run_completed),
-    Rule("DQ012", "Rejection rate in staging zone", DIMENSION_VALIDITY, SEVERITY_WARN,
-         "Fewer than 10% of staged records may be rejected.", _rejected_ratio),
+    Rule(
+        "DQ001",
+        "Required fields populated",
+        DIMENSION_COMPLETENESS,
+        SEVERITY_ERROR,
+        "Name, price and category must be present for every active product.",
+        _completeness,
+    ),
+    Rule(
+        "DQ002",
+        "Prices within valid range",
+        DIMENSION_VALIDITY,
+        SEVERITY_ERROR,
+        "A parsed price must be >= 0 and <= 1,000,000.",
+        _valid_price,
+    ),
+    Rule(
+        "DQ003",
+        "Ratings within 0-5 scale",
+        DIMENSION_VALIDITY,
+        SEVERITY_ERROR,
+        "Ratings are rescaled to 0-5 and must land inside that range.",
+        _valid_rating,
+    ),
+    Rule(
+        "DQ004",
+        "Currency codes known",
+        DIMENSION_CONSISTENCY,
+        SEVERITY_ERROR,
+        "Every snapshot currency must exist in dim_currency.",
+        _currency_known,
+    ),
+    Rule(
+        "DQ005",
+        "Product fingerprints unique",
+        DIMENSION_UNIQUENESS,
+        SEVERITY_WARN,
+        "Fingerprint collisions mean the deduplicator missed a duplicate.",
+        _uniqueness_fingerprint,
+    ),
+    Rule(
+        "DQ006",
+        "One snapshot per product per run",
+        DIMENSION_UNIQUENESS,
+        SEVERITY_CRITICAL,
+        "The fact table grain is one row per product per run.",
+        _unique_snapshot_grain,
+    ),
+    Rule(
+        "DQ007",
+        "Data freshness",
+        DIMENSION_TIMELINESS,
+        SEVERITY_WARN,
+        "At least one snapshot must exist and be younger than 48 hours.",
+        _freshness,
+    ),
+    Rule(
+        "DQ008",
+        "Category coverage",
+        DIMENSION_COMPLETENESS,
+        SEVERITY_WARN,
+        "At least 90% of products must map to a real category.",
+        _category_coverage,
+    ),
+    Rule(
+        "DQ009",
+        "Price movement plausibility",
+        DIMENSION_ACCURACY,
+        SEVERITY_WARN,
+        "Single-step price movement above 50% is suspicious.",
+        _price_volatility,
+    ),
+    Rule(
+        "DQ010",
+        "Availability captured",
+        DIMENSION_COMPLETENESS,
+        SEVERITY_INFO,
+        "Availability should be known for at least 85% of snapshots.",
+        _availability_coverage,
+    ),
+    Rule(
+        "DQ011",
+        "Run produced observations",
+        DIMENSION_COMPLETENESS,
+        SEVERITY_CRITICAL,
+        "A successful run must persist at least one price snapshot.",
+        _run_completed,
+    ),
+    Rule(
+        "DQ012",
+        "Rejection rate in staging zone",
+        DIMENSION_VALIDITY,
+        SEVERITY_WARN,
+        "Fewer than 10% of staged records may be rejected.",
+        _rejected_ratio,
+    ),
 )
 
 RULES_BY_CODE: dict[str, Rule] = {rule.code: rule for rule in RULES}
@@ -583,7 +661,11 @@ def evaluate_quality(
     report.duration_ms = round((time.perf_counter() - started) * 1000, 2)
     log.info(
         "quality run=%s pass=%d warn=%d fail=%d score=%s",
-        run_id, report.passed, report.warned, report.failed, report.score,
+        run_id,
+        report.passed,
+        report.warned,
+        report.failed,
+        report.score,
     )
     return report
 

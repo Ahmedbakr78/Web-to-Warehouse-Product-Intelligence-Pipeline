@@ -8,13 +8,12 @@ the ``vw_*`` views defined in ``db/views.sql``.
 from __future__ import annotations
 
 import datetime as dt
-from typing import Any, Sequence
+from typing import Any
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
-from app.models import Base
 
 log = get_logger(__name__)
 
@@ -25,7 +24,9 @@ def _rows(session: Session, statement: Any, params: dict[str, Any] | None = None
     return [dict(zip(keys, row, strict=False)) for row in result.fetchall()]
 
 
-def _scalar(session: Session, statement: Any, params: dict[str, Any] | None = None, default: Any = None) -> Any:
+def _scalar(
+    session: Session, statement: Any, params: dict[str, Any] | None = None, default: Any = None
+) -> Any:
     try:
         return session.execute(statement, params or {}).scalar()
     except Exception as exc:  # pragma: no cover - missing view/table
@@ -43,10 +44,22 @@ def table_counts(session: Session) -> dict[str, int]:
     out: dict[str, int] = {}
     quote = session.bind.dialect.identifier_preparer.quote if session.bind else '"{}"'
     for table in (
-        "dim_product", "dim_category", "dim_source", "dim_currency", "dim_date",
-        "fact_price_snapshot", "fact_catalog_snapshot", "chg_price_change",
-        "chg_product_event", "agg_category_daily", "catalog_product", "etl_run",
-        "dq_rule_result", "stg_raw_observation", "ingestion_http_log", "app_user",
+        "dim_product",
+        "dim_category",
+        "dim_source",
+        "dim_currency",
+        "dim_date",
+        "fact_price_snapshot",
+        "fact_catalog_snapshot",
+        "chg_price_change",
+        "chg_product_event",
+        "agg_category_daily",
+        "catalog_product",
+        "etl_run",
+        "dq_rule_result",
+        "stg_raw_observation",
+        "ingestion_http_log",
+        "app_user",
     ):
         try:
             out[table] = session.execute(sa.text(f"SELECT COUNT(*) FROM {quote(table)}")).scalar() or 0
@@ -252,7 +265,7 @@ def source_health(session: Session) -> list[dict[str, Any]]:
             FROM vw_source_coverage
             ORDER BY observations DESC
             """
-        )
+        ),
     )
 
 
@@ -266,7 +279,7 @@ def availability_summary(session: Session) -> list[dict[str, Any]]:
             ORDER BY observations DESC
             LIMIT 20
             """
-        )
+        ),
     )
 
 
@@ -280,7 +293,7 @@ def category_tree(session: Session) -> list[dict[str, Any]]:
             FROM vw_category_tree
             ORDER BY level, path
             """
-        )
+        ),
     )
 
 
@@ -335,7 +348,9 @@ def category_changes(session: Session, days: int = 90, limit: int = 50) -> list[
     )
 
 
-def catalog_reconciliation(session: Session, run_id: str | None = None, limit: int = 100) -> list[dict[str, Any]]:
+def catalog_reconciliation(
+    session: Session, run_id: str | None = None, limit: int = 100
+) -> list[dict[str, Any]]:
     params: dict[str, Any] = {"limit": limit}
     clause = ""
     if run_id:

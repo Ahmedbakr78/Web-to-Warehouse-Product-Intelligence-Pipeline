@@ -11,10 +11,6 @@ from fastapi import Depends, Header, Query, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
-from app.core.config import settings
-from app.core.db import get_session_factory
-from app.core.errors import AuthenticationError, PermissionDeniedError
-from app.core.logging import get_logger
 from app.api.security import (
     ROLE_RIGHTS,
     decode_token,
@@ -22,6 +18,10 @@ from app.api.security import (
     hash_api_key,
     verify_api_key,
 )
+from app.core.config import settings
+from app.core.db import get_session_factory
+from app.core.errors import AuthenticationError, PermissionDeniedError
+from app.core.logging import get_logger
 from app.models.app_users import AppApiKey, AppUser
 
 log = get_logger(__name__)
@@ -98,15 +98,21 @@ PaginationDep = Annotated[Pagination, Depends(Pagination)]
 # --------------------------------------------------------------------------------------
 def _resolve_token(session: Session, credentials: HTTPAuthorizationCredentials | None) -> AppUser:
     if credentials is None or not credentials.credentials:
-        raise AuthenticationError("authentication required", details={"hint": "send an 'Authorization: Bearer <token>' header"})
+        raise AuthenticationError(
+            "authentication required", details={"hint": "send an 'Authorization: Bearer <token>' header"}
+        )
     token = credentials.credentials
 
     # API key authentication (machine clients)
     if token.startswith("pip_"):
         digest = hash_api_key(token)
-        row = session.execute(
-            sa.select(AppApiKey).where(AppApiKey.hashed_key == digest, AppApiKey.is_active.is_(True))
-        ).scalars().first()
+        row = (
+            session.execute(
+                sa.select(AppApiKey).where(AppApiKey.hashed_key == digest, AppApiKey.is_active.is_(True))
+            )
+            .scalars()
+            .first()
+        )
         if row is None:
             raise AuthenticationError("invalid API key")
         if row.expires_at and row.expires_at < dt.datetime.now(dt.timezone.utc):
@@ -156,7 +162,11 @@ def require_rights(*rights: str):
         if missing:
             raise PermissionDeniedError(
                 f"role '{user.role}' lacks the required permission(s): {', '.join(missing)}",
-                details={"role": user.role, "missing": missing, "granted": sorted(ROLE_RIGHTS.get(user.role, set()))},
+                details={
+                    "role": user.role,
+                    "missing": missing,
+                    "granted": sorted(ROLE_RIGHTS.get(user.role, set())),
+                },
             )
         return user
 

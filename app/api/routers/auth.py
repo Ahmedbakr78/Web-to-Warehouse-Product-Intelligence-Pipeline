@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import datetime as dt
-from typing import Annotated, Any
+from typing import Any
 
 import sqlalchemy as sa
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Request
 from sqlalchemy.orm import Session
 
 from app.api.deps import CurrentUser, DbSession, client_ip
@@ -58,7 +58,14 @@ def _tokens(user: AppUser) -> TokenResponse:
     )
 
 
-def _audit(session: Session, user: AppUser | None, action: str, request: Request, status: str = "success", **details: Any) -> None:
+def _audit(
+    session: Session,
+    user: AppUser | None,
+    action: str,
+    request: Request,
+    status: str = "success",
+    **details: Any,
+) -> None:
     session.add(
         AppAuditLog(
             user_id=user.user_id if user else None,
@@ -182,7 +189,15 @@ def demo_accounts() -> dict[str, Any]:
     return {
         "accounts": [
             {"email": settings.seed_admin_email, "password": settings.seed_admin_password, "role": "admin"},
-            {"email": settings.seed_analyst_email, "password": settings.seed_analyst_password, "role": "analyst"},
-            {"email": settings.seed_viewer_email, "password": settings.seed_viewer_password, "role": "viewer"},
+            {
+                "email": settings.seed_analyst_email,
+                "password": settings.seed_analyst_password,
+                "role": "analyst",
+            },
+            {
+                "email": settings.seed_viewer_email,
+                "password": settings.seed_viewer_password,
+                "role": "viewer",
+            },
         ]
     }

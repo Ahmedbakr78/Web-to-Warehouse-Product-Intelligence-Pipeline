@@ -22,8 +22,16 @@ _hasher = PasswordHasher(time_cost=2, memory_cost=64 * 1024, parallelism=2)
 
 ROLE_RIGHTS: dict[str, set[str]] = {
     "admin": {
-        "read", "write", "run_pipeline", "manage_sources", "manage_users", "manage_settings",
-        "view_audit", "manage_keys", "query", "export",
+        "read",
+        "write",
+        "run_pipeline",
+        "manage_sources",
+        "manage_users",
+        "manage_settings",
+        "view_audit",
+        "manage_keys",
+        "query",
+        "export",
     },
     "analyst": {"read", "write", "run_pipeline", "query", "export", "manage_alerts", "manage_views"},
     "viewer": {"read", "query", "export"},
@@ -141,7 +149,7 @@ def generate_api_key() -> tuple[str, str, str]:
 
 def hash_api_key(plain: str) -> str:
     """SHA-256 with a server pepper; keys are high-entropy so this is safe."""
-    return hashlib.sha256(f"{settings.secret_key}:{plain}".encode("utf-8")).hexdigest()
+    return hashlib.sha256(f"{settings.secret_key}:{plain}".encode()).hexdigest()
 
 
 def verify_api_key(plain: str, hashed: str) -> bool:

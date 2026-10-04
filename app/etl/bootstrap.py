@@ -90,8 +90,18 @@ def _isoweek(value: dt.date) -> int:
 
 
 MONTH_NAMES = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
 ]
 DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
@@ -117,7 +127,8 @@ def seed_dim_date(session: Session, start: dt.date, end: dt.date) -> int:
                     week_of_year=current.isocalendar()[1],
                     is_weekend=current.weekday() >= 5,
                     is_month_start=current.day == 1,
-                    is_month_end=current == (current.replace(day=28) + dt.timedelta(days=4)).replace(day=1) - dt.timedelta(days=1),
+                    is_month_end=current
+                    == (current.replace(day=28) + dt.timedelta(days=4)).replace(day=1) - dt.timedelta(days=1),
                     iso_week=_isoweek(current),
                 )
             )
@@ -129,7 +140,9 @@ def seed_dim_date(session: Session, start: dt.date, end: dt.date) -> int:
 
 def ensure_date_range(session: Session, days_back: int = 400, days_forward: int = 2) -> int:
     today = dt.date.today()
-    return seed_dim_date(session, today - dt.timedelta(days=days_back), today + dt.timedelta(days=days_forward))
+    return seed_dim_date(
+        session, today - dt.timedelta(days=days_back), today + dt.timedelta(days=days_forward)
+    )
 
 
 def seed_dim_currency(session: Session) -> int:
@@ -156,9 +169,20 @@ def seed_dim_currency(session: Session) -> int:
 
 
 CURRENCY_SYMBOL_OUT = {
-    "USD": "$", "EUR": "\u20ac", "GBP": "\u00a3", "JPY": "\u00a5", "CNY": "\u00a5",
-    "INR": "\u20b9", "AUD": "A$", "CAD": "C$", "TRY": "\u20ba", "RUB": "\u20bd",
-    "BRL": "R$", "PLN": "z\u0142", "SEK": "kr", "CHF": "CHF",
+    "USD": "$",
+    "EUR": "\u20ac",
+    "GBP": "\u00a3",
+    "JPY": "\u00a5",
+    "CNY": "\u00a5",
+    "INR": "\u20b9",
+    "AUD": "A$",
+    "CAD": "C$",
+    "TRY": "\u20ba",
+    "RUB": "\u20bd",
+    "BRL": "R$",
+    "PLN": "z\u0142",
+    "SEK": "kr",
+    "CHF": "CHF",
 }
 
 
