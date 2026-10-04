@@ -173,6 +173,8 @@ SELECT p.product_id,
        p.first_seen_at,
        e.date_id,
        d.full_date AS first_seen_date,
+       d.full_date,
+       e.detected_at,
        s.price_usd AS first_seen_price_usd
 FROM chg_product_event e
 JOIN dim_product p ON p.product_id = e.product_id
@@ -218,7 +220,8 @@ SELECT e.event_id,
        e.new_category_id,
        nc.name AS new_category,
        e.detected_at,
-       d.full_date AS change_date
+       d.full_date AS change_date,
+       d.full_date
 FROM chg_product_event e
 JOIN dim_product p ON p.product_id = e.product_id
 LEFT JOIN dim_category oc ON oc.category_id = e.old_category_id

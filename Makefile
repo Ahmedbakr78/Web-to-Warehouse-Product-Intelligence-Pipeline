@@ -153,6 +153,15 @@ frontend-build: ## Type-check and build the production bundle
 frontend-preview: ## Preview the production bundle locally
 	cd frontend && npm run preview
 
+# ---------------------------------------------------------------- analysis
+.PHONY: analysis
+analysis: ## Run the SQL analysis scripts in db/analysis (ANALYSIS=<prefix> runs one)
+	$(PYBIN) scripts/run_analysis.py $(ANALYSIS)
+
+.PHONY: analysis-mysql
+analysis-mysql: ## Same analysis scripts against MySQL
+	$(PYBIN) scripts/run_analysis.py --database mysql $(ANALYSIS)
+
 # ---------------------------------------------------------------- quality
 .PHONY: test
 test: ## Run the test suite
