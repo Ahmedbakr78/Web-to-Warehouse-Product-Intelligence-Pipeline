@@ -1,6 +1,6 @@
 /** Reusable TanStack Query hooks with app-wide defaults (silent background refresh). */
 
-import { useQuery, useQueryClient, type UseQueryOptions } from '@tanstack/react-query'
+import { useQuery, useQueryClient, type QueryKey, type UseQueryOptions } from '@tanstack/react-query'
 import { endpoints } from '@/lib/api'
 
 /** Product pages should feel instant: stale data is shown while revalidating. */
@@ -10,13 +10,13 @@ export const DEFAULT_OPTIONS = {
   refetchOnWindowFocus: false,
   refetchOnReconnect: true,
   retry: 1,
-  placeholderData: (previous: unknown) => previous,
+  placeholderData: (previous: unknown): any => previous,
 } as const
 
 export function useApiQuery<T>(
-  key: unknown[],
+  key: QueryKey,
   fetcher: () => Promise<T>,
-  options?: Partial<UseQueryOptions<T, Error, T, unknown[]>>,
+  options?: Partial<UseQueryOptions<T, Error, T, QueryKey>>,
 ) {
   return useQuery<T, Error>({ queryKey: key, queryFn: fetcher, ...DEFAULT_OPTIONS, ...options })
 }
