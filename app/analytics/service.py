@@ -43,7 +43,7 @@ def table_counts(session: Session) -> dict[str, int]:
     """Row counts for the main tables (used by the health endpoint and the CLI)."""
     out: dict[str, int] = {}
     preparer = session.bind.dialect.identifier_preparer if session.bind else None
-    quote = preparer.quote if preparer else '"{}"'
+    quote_fn = preparer.quote if preparer is not None else (lambda name: f'"{name}"')
     for table in (
         "dim_product",
         "dim_category",
@@ -63,7 +63,7 @@ def table_counts(session: Session) -> dict[str, int]:
         "app_user",
     ):
         try:
-            out[table] = session.execute(sa.text(f"SELECT COUNT(*) FROM {quote(table)}")).scalar() or 0
+            out[table] = session.execute(sa.text(f"SELECT COUNT(*) FROM {quote_fn(table)}")).scalar() or 0
         except Exception:
             out[table] = 0
     return out

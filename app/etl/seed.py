@@ -449,7 +449,7 @@ def seed_history(
         session.add(row)
         dim_rows.append(row)
     session.flush()
-    product_cache = {row.source_product_id: row.product_id for row in dim_rows}
+    product_cache = {row.source_product_id: row.product_id for row in dim_rows if row.source_product_id}  # type: ignore[misc]
 
     # ---- runs (one per day) -----------------------------------------------------
     run_ids: list[str] = []
