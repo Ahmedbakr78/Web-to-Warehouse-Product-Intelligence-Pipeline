@@ -343,7 +343,7 @@ class Pipeline:
         loader.preload_dimensions()
 
         # The dimension row must exist before any fact references it (FK integrity).
-        dim_source = sync_dim_source(session, source)
+        sync_dim_source(session, source)
         session.flush()
 
         # ---- extract + stage
@@ -477,12 +477,10 @@ class Pipeline:
 
 def _safe_take(iterator: Iterable[Any], limit: int) -> Iterator[Any]:
     """Bound a source generator so a misbehaving source cannot hang the run."""
-    count = 0
-    for item in iterator:
+    for count, item in enumerate(iterator):
         if count >= limit:
-            break
+            return
         yield item
-        count += 1
 
 
 def run_pipeline(config: PipelineConfig | None = None) -> PipelineResult:

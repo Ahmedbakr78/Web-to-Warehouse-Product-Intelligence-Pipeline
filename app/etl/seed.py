@@ -356,7 +356,7 @@ def _price_series(product: SeedProduct, days: int, seed: int) -> list[float]:
     promo_bias = rng.choice([-0.12, -0.08, -0.05, 0.04, 0.06, 0.0])
     volatility = rng.choice([0.004, 0.008, 0.015, 0.025])
     series: list[float] = []
-    for day in range(days):
+    for _day in range(days):
         roll = rng.random()
         if roll < 0.06:  # flash sale
             shock = rng.uniform(-0.18, -0.08)

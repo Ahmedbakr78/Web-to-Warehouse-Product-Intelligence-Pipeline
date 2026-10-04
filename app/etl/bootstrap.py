@@ -6,6 +6,7 @@ every target without changing a single line of application code.
 
 from __future__ import annotations
 
+import contextlib
 import datetime as dt
 import time
 from typing import Any
@@ -272,10 +273,8 @@ def apply_views(database: str | None = None) -> list[str]:
     # Drop first (reverse order + CASCADE) so dependent views never block the refresh.
     with engine.connect() as conn:
         for name in reversed(names):
-            try:
+            with contextlib.suppress(Exception):
                 conn.execute(sa.text(f"DROP VIEW IF EXISTS {quote}{name}{quote}{cascade}"))
-            except Exception:
-                pass
         conn.commit()
 
     for statement, name in zip(statements, names, strict=False):
