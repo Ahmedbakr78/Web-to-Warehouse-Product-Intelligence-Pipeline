@@ -139,10 +139,15 @@ def source_matrix(session: DbSession, _user: ReadUser) -> list[dict[str, Any]]:
     return [dict(row) for row in rows]
 
 
-@router.get("/export/products.csv", summary="Export the current product list as CSV")
+@router.get(
+    "/export/products.csv",
+    summary="Export the current product list as CSV",
+    response_class=Response,
+    responses={200: {"content": {"text/csv": {}}}},
+)
 def export_products(
     session: DbSession, _user: ReadUser, limit: Annotated[int, Query(ge=1, le=50_000)] = 5_000
-):
+) -> Response:
     import csv
     import io
 
