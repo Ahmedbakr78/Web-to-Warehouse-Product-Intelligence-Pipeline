@@ -338,11 +338,9 @@ export function RadarCompare({
   data,
   series,
   height = 260,
-  // Accepted for caller symmetry: the radar labels itself from the "axis" field of each row.
-  axes: _axes,
 }: {
   data: Record<string, any>[]
-  axes: string[]
+  /** Axis labels are read from each row's ``axis`` field. */
   series: { key: string; label: string; color?: string }[]
   height?: number
 }) {
