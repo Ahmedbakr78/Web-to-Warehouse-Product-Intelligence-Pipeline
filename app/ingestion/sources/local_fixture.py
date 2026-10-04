@@ -43,24 +43,27 @@ BRANDS: dict[str, list[str]] = {
     "Grocery": ["Whole Foods", "Tesco", "Nestle"],
 }
 
+#: Models are intentionally brand-neutral so that any brand in the category list forms a
+#: plausible pairing ("Samsung Wireless ANC Headphones"), which keeps the demo catalogue
+#: realistic even though it is generated.
 MODELS: dict[str, list[str]] = {
-    "Electronics": ["4K Smart TV", "Wireless Earbuds", "Soundbar", "Bluetooth Speaker", "Power Bank 20000mAh", "USB-C Hub 8-in-1"],
-    "Electronics > Mobile Phones": ["Galaxy S24 256GB", "iPhone 15 128GB", "Redmi Note 13 Pro", "Moto G54", "OnePlus 12R"],
-    "Electronics > Computers": ["Pavilion 15 Laptop i7", "ThinkPad E14 Gen 5", "IdeaPad Slim 3", "VivoBook 15", "MacBook Air M3"],
-    "Electronics > Audio": ["WH-1000XM5 Headphones", "WF-1000XM5 Earbuds", "SoundLink Revolve+", "Charge 5 Speaker", "Momentum 4"],
-    "Electronics > Televisions": ["OLED C3 55 inch", "QNED 75 65 inch", "Bravia XR A1 65 inch", "Crystal UHD 4K 50 inch"],
-    "Electronics > Wearables": ["Watch Series 9", "Fenix 7", "Charge 5 Band", "Galaxy Watch 6"],
+    "Electronics": ["4K Smart TV 55 inch", "Wireless Earbuds Pro", "2.1 Soundbar", "Bluetooth Speaker 30W", "Power Bank 20000mAh", "USB-C Hub 8-in-1"],
+    "Electronics > Mobile Phones": ["Smartphone 256GB", "Smartphone 128GB", "Budget Phone 5G", "Flagship Phone Pro"],
+    "Electronics > Computers": ["Laptop 15 inch i7 16GB", "Notebook 14 inch 8GB", "Ultrabook 13 inch", "Desktop Tower RTX"],
+    "Electronics > Audio": ["Wireless ANC Headphones", "True Wireless Earbuds", "Studio Monitor Speaker", "Bluetooth Speaker 40W"],
+    "Electronics > Televisions": ["OLED TV 55 inch", "QLED TV 65 inch", "Mini LED TV 75 inch", "Crystal UHD 4K 50 inch"],
+    "Electronics > Wearables": ["Smartwatch GPS", "Fitness Tracker Band", "Smartwatch AMOLED"],
     "Books": ["Clean Architecture", "Designing Data-Intensive Applications", "The Pragmatic Programmer", "Site Reliability Engineering", "Refactoring"],
     "Books > Textbooks": ["Database Systems 7th Edition", "Operating System Concepts", "Introduction to Algorithms", "Fundamentals of Data Engineering"],
     "Books > Fiction": ["The Midnight Library", "Project Hail Mary", "Atomic Habits", "Dune", "The Hobbit"],
     "Apparel": ["Classic Cotton T-Shirt", "Slim Fit Jeans", "Lightweight Hoodie", "Running Shorts"],
     "Apparel > Men": ["Oxford Shirt", "Chino Trousers", "Winter Jacket", "Leather Belt"],
-    "Apparel > Women": ["Wrap Dress", "High-Rise Jeans", "Blazer", "Knit Cardigan"],
-    "Home & Living > Kitchen": ["Air Fryer 5.5L", "Espresso Machine", "Stand Mixer", "Knife Block Set", "Cast Iron Skillet"],
-    "Home & Living > Furniture": ["Ergonomic Office Chair", "Bookshelf 5 Tier", "Dining Table", "Memory Foam Mattress"],
-    "Toys & Games": ["Star Wars Building Set", "Remote Control Car", "Board Game Strategy", "Puzzle 1000 Pieces"],
-    "Sports & Outdoors": ["Yoga Mat 6mm", "Adjustable Dumbbell Set", "Trekking Backpack 45L", "Running Shoes Men"],
-    "Beauty & Personal Care": ["Vitamin C Serum", "Anti-Face Cream", "Shampoo 400ml", "Sunscreen SPF50"],
+    "Apparel > Women": ["Wrap Dress", "High-Rise Jeans", "Tailored Blazer", "Knit Cardigan"],
+    "Home & Living > Kitchen": ["Air Fryer 5.5L", "Espresso Machine", "Stand Mixer 5L", "Knife Block Set", "Cast Iron Skillet"],
+    "Home & Living > Furniture": ["Ergonomic Office Chair", "Bookshelf 5 Tier", "Dining Table 6 Seat", "Memory Foam Mattress"],
+    "Toys & Games": ["Building Block Set 1000pcs", "Remote Control Car", "Strategy Board Game", "Family Puzzle 500 Pieces"],
+    "Sports & Outdoors": ["Yoga Mat 6mm", "Adjustable Dumbbell Set 24kg", "Trekking Backpack 45L", "Running Shoes Men"],
+    "Beauty & Personal Care": ["Vitamin C Serum 30ml", "Anti-Ageing Face Cream", "Shampoo 400ml", "Sunscreen SPF50"],
     "Grocery": ["Arabica Coffee Beans 1kg", "Organic Olive Oil 750ml", "Pasta Bronze Cut 500g", "Green Tea 100 bags"],
 }
 
