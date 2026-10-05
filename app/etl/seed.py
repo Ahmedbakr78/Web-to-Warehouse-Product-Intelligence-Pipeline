@@ -20,8 +20,8 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.db import session_scope
-from app.etl.loader import SIGNIFICANT_CHANGE_PCT
 from app.core.logging import get_logger
+from app.etl.loader import SIGNIFICANT_CHANGE_PCT
 from app.ingestion.cleaning import (
     category_slug,
     clean_brand,
