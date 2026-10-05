@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="What the project is and how to run it">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Overview — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="What the project is and how to run it">
+<title>Overview — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" class="active" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="23-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, all 113 operations, examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, 100-case plan, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="234 features with file references">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Overview</h1>
+      <p>What the project is and how to run it</p>
+    </div>
+    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#measured-facts-referenced-throughout">Measured facts referenced throughout</a></li><li class="lvl-2"><a href="#quick-commands">Quick commands</a></li><li class="lvl-2"><a href="#rendering-the-diagrams">Rendering the diagrams</a></li></ol></details>
+    <article class="doc-body">
+<p>Web-to-Warehouse Product Intelligence Pipeline — DEPI graduation project (Data Engineering track). Twenty documents covering proposal, planning, requirements, design, implementation evidence and evaluation. Every diagram is Mermaid (rendered natively by GitHub); every number is reproducible with the command cited beside it.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>#</th>
+<th>Document</th>
+<th>What it covers</th>
+</tr></thead><tbody>
+<tr>
+<th>01</th>
+<td><a href="01_project_proposal.md">Project Proposal</a></td>
+<td>Problem, objectives, scope, stakeholders, acceptance criteria, effort and budget, ethical and legal position, assumptions</td>
+</tr>
+<tr>
+<th>02</th>
+<td><a href="02_project_plan.md">Project Plan</a></td>
+<td>12-week Gantt chart, milestones, deliverables matrix, resource allocation, sprint plan</td>
+</tr>
+<tr>
+<th>03</th>
+<td><a href="03_roles_and_responsibilities.md">Task Assignment and Roles</a></td>
+<td>Team roles, RACI for deliverables and decisions, communication plan, hours-log template</td>
+</tr>
+<tr>
+<th>04</th>
+<td><a href="04_risk_assessment.md">Risk Assessment</a></td>
+<td>20-risk register with heat map, treatments, contingencies and the issues that materialised</td>
+</tr>
+<tr>
+<th>05</th>
+<td><a href="05_kpis.md">KPIs</a></td>
+<td>20 KPIs with runnable SQL, targets versus measured values, API latency harness</td>
+</tr>
+<tr>
+<th>06</th>
+<td><a href="06_literature_review.md">Literature Review</a></td>
+<td>Six themes, 39 sources with verification status, synthesis and research gaps</td>
+</tr>
+<tr>
+<th>07</th>
+<td><a href="07_requirements_gathering.md">Requirements Gathering</a></td>
+<td>Stakeholders, 10 user stories with Given/When/Then, 20 use cases, 58 FRs, 26 NFRs, traceability</td>
+</tr>
+<tr>
+<th>08</th>
+<td><a href="08_system_analysis_design.md">System Analysis and Design</a></td>
+<td>Use-case diagram, architecture diagram, style and rationale</td>
+</tr>
+<tr>
+<th>09</th>
+<td><a href="09_database_design.md">Database Design</a></td>
+<td>Generated 23-table ERD, logical versus physical schema, normalisation, indexing, retention, dialect types</td>
+</tr>
+<tr>
+<th>10</th>
+<td><a href="10_data_flow_diagrams.md">Data Flow Diagrams</a></td>
+<td>Level 0/1/2 DFDs, data dictionary, control flows</td>
+</tr>
+<tr>
+<th>11</th>
+<td><a href="11_behaviour_diagrams.md">Behaviour Diagrams</a></td>
+<td>Sequence, activity, three state diagrams, class diagram</td>
+</tr>
+<tr>
+<th>12</th>
+<td><a href="12_ui_ux_design.md">UI/UX Design</a></td>
+<td>12 screen wireframes, design system with contrast ratios, WCAG 2.1 AA, breakpoints, motion policy</td>
+</tr>
+<tr>
+<th>13</th>
+<td><a href="13_deployment.md">Deployment</a></td>
+<td>Stack, deployment and component diagrams, environment matrix, Compose services, ports, secrets, backup, scaling, CI/CD</td>
+</tr>
+<tr>
+<th>14</th>
+<td><a href="14_api_documentation.md">API Documentation</a></td>
+<td>Auth flow, role matrix, all 113 operations, worked examples in curl/Python/JS, errors, versioning</td>
+</tr>
+<tr>
+<th>15</th>
+<td><a href="15_testing_strategy.md">Testing Strategy</a></td>
+<td>Test pyramid, 100-case plan, UAT scenarios, coverage targets, quality gates, defect management</td>
+</tr>
+<tr>
+<th>16</th>
+<td><a href="16_user_manual.md">User Manual</a></td>
+<td>Sign-in, every screen, filters, exports, saved views, alerts, admin, troubleshooting, FAQ</td>
+</tr>
+<tr>
+<th>17</th>
+<td><a href="17_technical_documentation.md">Technical Documentation</a></td>
+<td>Module map, four key algorithms, every configuration variable, six-step source extension, performance and security</td>
+</tr>
+<tr>
+<th>18</th>
+<td><a href="18_presentation_outline.md">Presentation Outline</a></td>
+<td>18-slide defence deck, Q&amp;A preparation, three-minute demo script, rehearsal and fallback plans</td>
+</tr>
+<tr>
+<th>19</th>
+<td><a href="19_feature_list.md">Feature Inventory</a></td>
+<td>234 features in 15 areas, each with a description and a file reference</td>
+</tr>
+<tr>
+<th>20</th>
+<td><a href="20_literature_feedback_and_improvements.md">Feedback and Improvements</a></td>
+<td>Lecturer feedback template, 32 prioritised improvements, self-assessment and rubric</td>
+</tr>
+</tbody></table></div>
+<h2 id="measured-facts-referenced-throughout">Measured facts referenced throughout</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Fact</th>
+<th>Value</th>
+</tr></thead><tbody>
+<tr>
+<td>Physical tables / analytical views</td>
+<td>23 / 20 (on PostgreSQL 16.15 and MySQL 8.4.11)</td>
+</tr>
+<tr>
+<th>REST operations</th>
+<td>113 documented in 16 routers</td>
+</tr>
+<tr>
+<td>Data-quality rules / dimensions</td>
+<td>12 / 6, score 98.26 on both engines</td>
+</tr>
+<tr>
+<th>Ingestion sources</th>
+<td>5 (3 APIs, 1 HTML scraper, 1 offline synthetic)</td>
+</tr>
+<tr>
+<th>Demo dataset</th>
+<td>60 products, 8,182 price snapshots, 8,047 price changes, 8,199 lifecycle events over 150 days</td>
+</tr>
+<tr>
+<th>Measured live run</th>
+<td>57 snapshots, 48 price changes, 6 new products, 39/57 catalog SKUs matched (68.42 %), DQ 98.26, ≈ 3.5 s</td>
+</tr>
+<tr>
+<td>Reconciliation optimisation</td>
+<td>2,975 ms → 104 ms (29×) with identical results</td>
+</tr>
+<tr>
+<th>API latency</th>
+<td>p95 ≤ 38.2 ms across 12 read endpoints</td>
+</tr>
+<tr>
+<th>API regression suite</th>
+<td>78/78 checks pass</td>
+</tr>
+<tr>
+<th>Demo accounts</th>
+<td><code>admin@example.com</code> / <code>Admin@12345</code>, <code>analyst@example.com</code> / <code>Analyst@12345</code>, <code>viewer@example.com</code> / <code>Viewer@12345</code></td>
+</tr>
+</tbody></table></div>
+<h2 id="quick-commands">Quick commands</h2>
+<pre class="code" data-lang="bash"><code>make install &amp;&amp; make env          # environment
+make up-db &amp;&amp; make db-wait        # PostgreSQL 16 + MySQL 8.4
+make bootstrap                    # 23 tables + 20 views + reference data
+make demo-postgres                # demo dataset
+make run-pipeline                 # one full pipeline run
+make verify-dialects              # cross-dialect verification
+make serve                        # API on http://localhost:8000/docs
+.venv/bin/python scripts/api_smoke.py     # 78-check regression suite
+make help                         # all 30+ targets</code></pre>
+<h2 id="rendering-the-diagrams">Rendering the diagrams</h2>
+<p>GitHub renders Mermaid natively, so no build step is required. To export SVGs:</p>
+<pre class="code" data-lang="bash"><code>make docs-render      # writes docs/diagrams/out/*.svg
+make docs-serve       # serves docs/ on http://localhost:8001</code></pre>
+    </article>
+    <div class="doc-foot">
+      <span></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="01_project_proposal.html">Project Proposal →</a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

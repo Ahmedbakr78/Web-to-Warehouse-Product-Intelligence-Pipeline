@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Twenty-risk register, heat map, treatments">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Risk Assessment — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Twenty-risk register, heat map, treatments">
+<title>Risk Assessment — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" class="active" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="23-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, all 113 operations, examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, 100-case plan, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="234 features with file references">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Risk Assessment</h1>
+      <p>Twenty-risk register, heat map, treatments</p>
+    </div>
+    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#table-of-contents">Table of contents</a></li><li class="lvl-2"><a href="#1-scoring-model">1. Scoring model</a></li><li class="lvl-2"><a href="#2-risk-heat-map">2. Risk heat map</a></li><li class="lvl-2"><a href="#3-risk-register">3. Risk register</a></li><li class="lvl-3"><a href="#31-register-summary">3.1 Register summary</a></li><li class="lvl-2"><a href="#4-risk-treatment-flow">4. Risk treatment flow</a></li><li class="lvl-2"><a href="#5-contingency-plans">5. Contingency plans</a></li><li class="lvl-2"><a href="#6-issues-that-materialised-during-the-project">6. Issues that materialised during the project</a></li><li class="lvl-2"><a href="#7-monitoring-and-review">7. Monitoring and review</a></li><li class="lvl-3"><a href="#71-risk-acceptance-statement">7.1 Risk acceptance statement</a></li></ol></details>
+    <article class="doc-body">
+<h2 id="purpose">Purpose</h2>
+<p>This document is the project's risk register. It identifies the technical, data, compliance, schedule, organisational and academic risks of building the Web-to-Warehouse Product Intelligence Pipeline, scores them, assigns an owner, records the mitigation that is <strong>actually implemented in the code base</strong>, and provides a contingency plan for the risks that materialised.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Field</th>
+<th>Value</th>
+</tr></thead><tbody>
+<tr>
+<th>Method</th>
+<td>Qualitative probability × impact scoring (1–5), severity = P × I</td>
+</tr>
+<tr>
+<th>Scoring bands</th>
+<td>1–4 Low · 5–9 Medium · 10–14 High · 15–25 Critical</td>
+</tr>
+<tr>
+<th>Review cadence</th>
+<td>Fortnightly, in the sprint review</td>
+</tr>
+<tr>
+<th>Owner roles</th>
+<td>Lead (technical/data), Reviewer B (security), Supervisor (academic/schedule)</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="table-of-contents">Table of contents</h2>
+<ul>
+<li class="depth-0"><a href="#1-scoring-model">Scoring model</a></li>
+<li class="depth-0"><a href="#2-risk-heat-map">Risk heat map</a></li>
+<li class="depth-0"><a href="#3-risk-register">Risk register</a></li>
+<li class="depth-0"><a href="#4-risk-treatment-flow">Risk treatment flow</a></li>
+<li class="depth-0"><a href="#5-contingency-plans">Contingency plans</a></li>
+<li class="depth-0"><a href="#6-issues-that-materialised-during-the-project">Issues that materialised during the project</a></li>
+<li class="depth-0"><a href="#7-monitoring-and-review">Monitoring and review</a></li>
+</ul>
+<hr>
+<h2 id="1-scoring-model">1. Scoring model</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Probability (P)</th>
+<th>Definition</th>
+</tr></thead><tbody>
+<tr>
+<th>1</th>
+<td>Rare — less than 10 % over the project</td>
+</tr>
+<tr>
+<th>2</th>
+<td>Unlikely — 10–30 %</td>
+</tr>
+<tr>
+<th>3</th>
+<td>Possible — 30–50 %</td>
+</tr>
+<tr>
+<th>4</th>
+<td>Likely — 50–75 %</td>
+</tr>
+<tr>
+<th>5</th>
+<td>Almost certain — more than 75 %</td>
+</tr>
+</tbody></table></div>
+<div class='table-scroll'><table><thead><tr>
+<th>Impact (I)</th>
+<th>Definition</th>
+<th>Effect on the grade/deliverable</th>
+</tr></thead><tbody>
+<tr>
+<th>1</th>
+<td>Negligible</td>
+<td>Absorbed inside a sprint, no visible effect</td>
+</tr>
+<tr>
+<th>2</th>
+<td>Minor</td>
+<td>≤ 1 day rework, one document updated</td>
+</tr>
+<tr>
+<th>3</th>
+<td>Moderate</td>
+<td>≤ 3 days rework, one work package delayed</td>
+</tr>
+<tr>
+<th>4</th>
+<td>Major</td>
+<td>A work package slips, a deliverable is delivered late</td>
+</tr>
+<tr>
+<th>5</th>
+<td>Severe</td>
+<td>A required deliverable is missing or the system does not run</td>
+</tr>
+</tbody></table></div>
+<p><strong>Severity = P × I.</strong> Response times: Critical → immediate, High → within 3 days, Medium → within the sprint, Low → monitor.</p>
+<hr>
+<h2 id="2-risk-heat-map">2. Risk heat map</h2>
+<pre class="mermaid">flowchart TB
+    subgraph CRIT[&quot;Critical - severity 15 to 25&quot;]
+        C1[&quot;R1 Source becomes non-compliant&quot;]
+        C2[&quot;R4 Warehouse model diverges between dialects&quot;]
+    end
+    subgraph HIGH[&quot;High - severity 10 to 14&quot;]
+        H1[&quot;R2 Deduplication false merges&quot;]
+        H2[&quot;R3 Blocking optimisation regresses&quot;]
+        H3[&quot;R7 Scrape layout change breaks the parser&quot;]
+        H4[&quot;R9 Deliverable slip before the defence&quot;]
+    end
+    subgraph MED[&quot;Medium - severity 5 to 9&quot;]
+        M1[&quot;R5 robots.txt unreachable at runtime&quot;]
+        M2[&quot;R6 Upstream API outage or rate limit&quot;]
+        M3[&quot;R8 Demo dataset too small for meaningful analysis&quot;]
+        M4[&quot;R10 Secret leakage in the repository&quot;]
+        M5[&quot;R11 Timezone drift between PostgreSQL and MySQL&quot;]
+    end
+    subgraph LOW[&quot;Low - severity 1 to 4&quot;]
+        L1[&quot;R12 Second reviewer unavailable&quot;]
+        L2[&quot;R13 Airflow installation problems&quot;]
+        L3[&quot;R14 Frontend build tooling unavailable offline&quot;]
+    end
+    CRIT --&gt; M1
+    CRIT --&gt; M2
+    HIGH --&gt; M3
+    HIGH --&gt; M4
+    HIGH --&gt; M5
+    MED --&gt; L1
+    MED --&gt; L2
+    MED --&gt; L3</pre>
+<hr>
+<h2 id="3-risk-register">3. Risk register</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>Risk</th>
+<th>Category</th>
+<th>P</th>
+<th>I</th>
+<th>Severity</th>
+<th>Owner</th>
+<th>Mitigation implemented in the code / plan</th>
+<th>Residual</th>
+</tr></thead><tbody>
+<tr>
+<th>R1</th>
+<td>A source changes its terms of service or <code>robots.txt</code>, making collection unlawful</td>
+<td>Compliance</td>
+<td>4</td>
+<td>5</td>
+<td><strong>20 Critical</strong></td>
+<td>Lead</td>
+<td>Per-source <code>terms_allowed</code> class attribute; <code>sync_dim_source()</code> disables a source whose terms are not allowed; <code>RESPECT_TERMS_WHITELIST=true</code>; DAG guard <code>check_source_compliance</code> aborts when no source passes; <code>dim_source.terms_allowed</code> and <code>license_note</code> record the decision</td>
+<td>Low — the pipeline degrades instead of violating terms</td>
+</tr>
+<tr>
+<th>R2</th>
+<td>Fuzzy dedup merges two genuinely different products (false merge)</td>
+<td>Data</td>
+<td>4</td>
+<td>4</td>
+<td><strong>16 Critical</strong></td>
+<td>Lead</td>
+<td>Digit-signature guard (<code>digit_signature_factor</code>) penalises differing model numbers; brand term in the blended score; category bonus; threshold raised to 0.90; <code>dim_product.match_strategy</code> and <code>match_score</code> stored for audit; <code>GET /api/v1/products/{id}/duplicates</code> exposes the score breakdown</td>
+<td>Medium — the guard is a heuristic, not a proof</td>
+</tr>
+<tr>
+<th>R3</th>
+<td>The blocking optimisation changes match results (optimisation regression)</td>
+<td>Technical</td>
+<td>3</td>
+<td>4</td>
+<td><strong>12 High</strong></td>
+<td>Reviewer A</td>
+<td>Blocking added in <code>_blocking_candidates()</code> and <code>_build_indexes()</code>; results verified identical to the unblocked scan; only a brand-subset refinement can narrow the pool, never remove it (<code>min_pool</code> fallback)</td>
+<td>Low</td>
+</tr>
+<tr>
+<th>R4</th>
+<td>The warehouse model behaves differently on PostgreSQL and MySQL (no single dialect reality)</td>
+<td>Technical</td>
+<td>3</td>
+<td>5</td>
+<td><strong>15 Critical</strong></td>
+<td>Lead</td>
+<td>Dialect-portable column types (<code>UTCDateTime</code>, <code>JSONType</code>, <code>Numeric(18,4)</code>); no <code>ON CONFLICT</code> / <code>ON DUPLICATE KEY</code> anywhere — upserts are read-then-write in <code>WarehouseLoader</code>; <code>bootstrap()</code> applies each view statement in its own transaction; <code>make verify-dialects</code> compares structural row counts and DQ score</td>
+<td>Low — verified: identical structural counts and DQ 98.26 on both</td>
+</tr>
+<tr>
+<th>R5</th>
+<td><code>robots.txt</code> cannot be fetched at runtime (network, 5xx, timeout)</td>
+<td>Technical</td>
+<td>3</td>
+<td>4</td>
+<td><strong>12 High</strong></td>
+<td>Lead</td>
+<td><code>RobotsCache</code> caches decisions per host for <code>CACHE_TTL_SECONDS</code>; RFC 9309 fallback: 4xx → allow, 401/403 → treat as disallow; local/synthetic sources bypass the network entirely; failure is logged in <code>ingestion_http_log</code> with <code>robots_allowed=false</code></td>
+<td>Low</td>
+</tr>
+<tr>
+<th>R6</th>
+<td>Upstream API outage, throttling or schema change</td>
+<td>Operational</td>
+<td>4</td>
+<td>3</td>
+<td><strong>12 High</strong></td>
+<td>Lead</td>
+<td>Per-source failure isolation in <code>_process_source()</code> — one failing source becomes a warning and the run continues as <code>partial</code>; token bucket + sliding window + <code>Crawl-delay</code> + <code>Retry-After</code>; circuit breaker opens a host after 5 failures; disk cache means a repeat run costs no traffic</td>
+<td>Low</td>
+</tr>
+<tr>
+<th>R7</th>
+<td>The HTML scraper breaks when books.toscrape.com changes its markup</td>
+<td>Technical</td>
+<td>3</td>
+<td>4</td>
+<td><strong>12 High</strong></td>
+<td>Lead</td>
+<td>Scraper uses semantic CSS selectors (<code>article.product_pod</code>, <code>p.price_color</code>, <code>p.star-rating</code>, <code>ul.breadcrumb</code>); per-page and per-product error capture in <code>self.errors</code>; <code>consecutive_empty_pages</code> stops the loop after two empty pages; the failure appears in the run warnings and the DQ score</td>
+<td>Medium</td>
+</tr>
+<tr>
+<th>R8</th>
+<td>The demo dataset is too small for meaningful analysis, or is unrealistic</td>
+<td>Data</td>
+<td>3</td>
+<td>3</td>
+<td><strong>9 Medium</strong></td>
+<td>Reviewer A</td>
+<td><code>seed_history()</code> generates a random-walk price series with promo windows and clearance shocks; 60 products × 150 days = 8,182 snapshots; 30 % of SKUs are internal-only so the catalog reconciliation shows genuine unmatched rows</td>
+<td>Low</td>
+</tr>
+<tr>
+<th>R9</th>
+<td>Deliverable slippage before the defence deadline</td>
+<td>Schedule</td>
+<td>3</td>
+<td>4</td>
+<td><strong>12 High</strong></td>
+<td>Supervisor</td>
+<td>Six 2-week sprints with a definition of done; the last week is reserved as documentation slack; the offline <code>local_demo</code> source removes external dependency from demonstrations</td>
+<td>Medium</td>
+</tr>
+<tr>
+<th>R10</th>
+<td>Secrets leak into the Git repository</td>
+<td>Security</td>
+<td>2</td>
+<td>5</td>
+<td><strong>10 High</strong></td>
+<td>Reviewer B</td>
+<td><code>.env</code> is git-ignored; only <code>.env.example</code> is committed; <code>describe_target()</code> redacts credentials in every log line; API keys are stored as SHA-256 hashes with a server pepper and shown once; <code>UserRead</code> never serialises <code>hashed_password</code></td>
+<td>Low</td>
+</tr>
+<tr>
+<th>R11</th>
+<td>Timezone drift between PostgreSQL (timestamptz) and MySQL (naive DATETIME)</td>
+<td>Data</td>
+<td>3</td>
+<td>3</td>
+<td><strong>9 Medium</strong></td>
+<td>Lead</td>
+<td><code>UTCDateTime</code> TypeDecorator normalises at the boundary: aware → UTC naive on write, naive → UTC-aware on read; every comparison in the pipeline goes through it</td>
+<td>Low</td>
+</tr>
+<tr>
+<th>R12</th>
+<td>The second peer reviewer is unavailable in W9–W12</td>
+<td>Resource</td>
+<td>2</td>
+<td>2</td>
+<td><strong>4 Low</strong></td>
+<td>Lead</td>
+<td>Review duties are documented (this document, <code>docs/03</code> §4); the lead self-reviews against the same checklist; supervisor arbitrates</td>
+<td>Low</td>
+</tr>
+<tr>
+<th>R13</th>
+<td>Airflow cannot be installed (dependency or version conflict)</td>
+<td>Technical</td>
+<td>2</td>
+<td>3</td>
+<td><strong>6 Medium</strong></td>
+<td>Lead</td>
+<td>The DAG module imports Airflow behind a <code>try/except</code> and sets <code>AIRFLOW_AVAILABLE=False</code>; the pipeline is executable from the CLI and the API; <code>GET /api/v1/pipeline/schedule</code> reports the orchestrator state</td>
+<td>Low</td>
+</tr>
+<tr>
+<th>R14</th>
+<td>Frontend tooling cannot be installed (no network for npm)</td>
+<td>Technical</td>
+<td>3</td>
+<td>2</td>
+<td><strong>6 Medium</strong></td>
+<td>Lead</td>
+<td>The dashboard is a thin client over the documented REST API; the API smoke test (<code>scripts/api_smoke.py</code>) verifies the whole user journey with <code>curl</code>-equivalent calls; doc 16 documents every screen against its endpoints</td>
+<td>Low</td>
+</tr>
+<tr>
+<th>R15</th>
+<td>Duplicate pipeline runs on the same data corrupt the change feed</td>
+<td>Data</td>
+<td>2</td>
+<td>4</td>
+<td><strong>8 Medium</strong></td>
+<td>Lead</td>
+<td><code>fact_price_snapshot</code> has a unique constraint on <code>(product_id, run_id)</code>; every run gets a fresh <code>run_id</code>; DQ006 asserts the grain and is a blocking (critical) rule</td>
+<td>Low</td>
+</tr>
+<tr>
+<th>R16</th>
+<td>The price series is meaningless because sources change price too rarely</td>
+<td>Data</td>
+<td>3</td>
+<td>2</td>
+<td><strong>6 Medium</strong></td>
+<td>Reviewer A</td>
+<td>Sources publish <code>discountPrice</code> and stock counts, producing real deltas; the demo seeder models promo windows explicitly; DQ009 flags implausible &gt;50 % jumps</td>
+<td>Low</td>
+</tr>
+<tr>
+<th>R17</th>
+<td>Scope creep towards a full e-commerce intelligence suite</td>
+<td>Scope</td>
+<td>3</td>
+<td>3</td>
+<td><strong>9 Medium</strong></td>
+<td>Supervisor</td>
+<td>Explicit out-of-scope list in <code>docs/01</code> §3.2; change control after M2 (design freeze); any new capability must displace something of equal size</td>
+<td>Low</td>
+</tr>
+<tr>
+<th>R18</th>
+<td>Reviewer finds a security defect late (e.g. query console writes)</td>
+<td>Security</td>
+<td>2</td>
+<td>4</td>
+<td><strong>8 Medium</strong></td>
+<td>Reviewer B</td>
+<td><code>QueryRequest._readonly()</code> allows only <code>SELECT</code> / <code>WITH</code> / <code>EXPLAIN</code> and rejects write keywords, multi-statements and comments; the Query Lab requires the <code>query</code> right; the API session uses a read-only role in production</td>
+<td>Low</td>
+</tr>
+<tr>
+<th>R19</th>
+<td>FX table goes stale, making USD analytics drift</td>
+<td>Data</td>
+<td>3</td>
+<td>2</td>
+<td><strong>6 Medium</strong></td>
+<td>Reviewer A</td>
+<td><code>dim_currency.rate_source='static_reference_table'</code> and <code>as_of</code> date make staleness visible; <code>convert_to_usd()</code> is the single swap point for a live provider; DQ004 enforces that every stored currency exists in <code>dim_currency</code></td>
+<td>Low</td>
+</tr>
+<tr>
+<th>R20</th>
+<td>Academic documentation is written after the code and misses reality</td>
+<td>Process</td>
+<td>3</td>
+<td>3</td>
+<td><strong>9 Medium</strong></td>
+<td>Lead</td>
+<td>Every document references real file paths and line numbers; every KPI is re-measured at the end of W11; assumptions are recorded explicitly (<code>docs/01</code> §9)</td>
+<td>Low</td>
+</tr>
+</tbody></table></div>
+<h3 id="31-register-summary">3.1 Register summary</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Severity band</th>
+<th>Count</th>
+<th>Risk IDs</th>
+</tr></thead><tbody>
+<tr>
+<th>Critical (15–25)</th>
+<td>3</td>
+<td>R1, R2, R4</td>
+</tr>
+<tr>
+<th>High (10–14)</th>
+<td>6</td>
+<td>R3, R5, R6, R7, R9, R10</td>
+</tr>
+<tr>
+<th>Medium (5–9)</th>
+<td>7</td>
+<td>R8, R11, R13, R14, R15, R17, R18, R19, R20</td>
+</tr>
+<tr>
+<th>Low (1–4)</th>
+<td>3</td>
+<td>R12</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="4-risk-treatment-flow">4. Risk treatment flow</h2>
+<pre class="mermaid">flowchart TD
+    A[&quot;Risk identified&quot;] --&gt; B{&quot;Already in the register?&quot;}
+    B --&gt;|&quot;no&quot;| C[&quot;Score P and I with the team&quot;]
+    B --&gt;|&quot;yes&quot;| E{&quot;Residual changed?&quot;}
+    C --&gt; D{&quot;Severity band&quot;}
+    D --&gt;|&quot;Critical&quot;| F[&quot;Mitigate now - code or plan change required&quot;]
+    D --&gt;|&quot;High&quot;| G[&quot;Mitigate within 3 days - owner assigned&quot;]
+    D --&gt;|&quot;Medium&quot;| H[&quot;Mitigate inside the sprint&quot;]
+    D --&gt;|&quot;Low&quot;| I[&quot;Monitor only - revisit at review&quot;]
+    E --&gt;|&quot;no&quot;| I
+    E --&gt;|&quot;yes&quot;| C
+    F --&gt; J[&quot;Contingency plan defined&quot;]
+    G --&gt; J
+    H --&gt; J
+    J --&gt; K[&quot;Verify the mitigation with a command&quot;]
+    K --&gt; L{&quot;Mitigation effective?&quot;}
+    L --&gt;|&quot;yes&quot;| M[&quot;Close risk - record evidence&quot;]
+    L --&gt;|&quot;no&quot;| N[&quot;Escalate to supervisor - adjust scope or schedule&quot;]
+    N --&gt; C</pre>
+<hr>
+<h2 id="5-contingency-plans">5. Contingency plans</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Risk</th>
+<th>Trigger to activate the contingency</th>
+<th>Contingency action</th>
+<th>Impact on deliverables</th>
+</tr></thead><tbody>
+<tr>
+<th>R1 — terms change</th>
+<td><code>robots.txt</code> disallows the path, or the source sets <code>terms_allowed=False</code></td>
+<td>The source is skipped automatically; the run continues with the remaining sources and is marked <code>partial</code>; a note is added to <code>docs/20</code> and the demo switches to <code>local_demo</code></td>
+<td>None — the demo dataset is offline</td>
+</tr>
+<tr>
+<th>R2 — false merges</th>
+<td>DQ005 (<code>Product fingerprints unique</code>) fails, or a support ticket identifies a wrong merge</td>
+<td>Raise <code>DEDUPE_SIMILARITY_THRESHOLD</code> from 0.90 to 0.94 and re-run; <code>merged</code> products remain visible via <code>dim_product.matched_product_id</code> so a merge can be reversed</td>
+<td>Dedupe accuracy KPI must be re-measured</td>
+</tr>
+<tr>
+<th>R4 — dialect divergence</th>
+<td><code>make verify-dialects</code> reports structural drift</td>
+<td>Identify the table, fix the model (never the dialect), re-bootstrap both targets with <code>--drop</code>, re-verify</td>
+<td>1 day</td>
+</tr>
+<tr>
+<td>R5/R6 — upstream unavailable</td>
+<td><code>sync_state.status='failing'</code> or the source is missing from the run's <code>sources_processed</code></td>
+<td>Rerun later (the disk cache avoids repeat traffic); if the source is permanently gone, remove it from <code>DEFAULT_SOURCES</code> in the DAG and document the removal</td>
+<td>Sources count KPI changes</td>
+</tr>
+<tr>
+<th>R7 — scraper broken</th>
+<td>Zero records from <code>books_to_scrape</code> for two consecutive runs</td>
+<td>Replace the two API sources for the demonstration; keep the scraper in the code base as the BeautifulSoup deliverable and record the breakage in <code>docs/20</code></td>
+<td>Demo dataset source diversity</td>
+</tr>
+<tr>
+<th>R9 — schedule slip</th>
+<td>A sprint goal is missed by more than 3 days</td>
+<td>Apply the priority rule from <code>docs/01</code> §3.2: defer the lowest-value deliverable (documentation polish) before functionality</td>
+<td>Documentation length</td>
+</tr>
+<tr>
+<th>R10 — secret exposure</th>
+<td>A credential appears in a commit</td>
+<td>Rotate the credential immediately (<code>.env</code> is regenerated), rewrite the commit history, and record it in the incident note</td>
+<td>None if caught within the sprint</td>
+</tr>
+<tr>
+<th>R13 — Airflow unusable</th>
+<td><code>make airflow-init</code> fails twice</td>
+<td>Demonstrate the DAG definition statically (<code>dags/product_intelligence_pipeline.py</code> parses without Airflow) and run the pipeline through <code>make run-pipeline</code>, which is the same <code>Pipeline</code> object the DAG calls</td>
+<td>Orchestration demonstration only</td>
+</tr>
+<tr>
+<td>R14 — frontend unavailable</td>
+<td><code>npm install</code> fails</td>
+<td>Run the UAT against the API with the smoke test and use the CLI report (<code>make analytics</code>) as the demonstration surface</td>
+<td>Dashboard demonstration only</td>
+</tr>
+<tr>
+<th>R15 — grain violation</th>
+<td>DQ006 fails (critical)</td>
+<td>The run is marked <code>failed</code> by design; re-run with a new <code>run_id</code>; inspect <code>etl_run.records_valid</code> versus <code>fact_price_snapshot</code></td>
+<td>Run status</td>
+</tr>
+<tr>
+<td>R20 — documentation drift</td>
+<td>A doc statement cannot be reproduced with the command it cites</td>
+<td>Fix the document in the same commit as the behaviour change (definition of done, <code>docs/03</code> §6.3)</td>
+<td>Grading</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="6-issues-that-materialised-during-the-project">6. Issues that materialised during the project</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>#</th>
+<th>Issue</th>
+<th>Detected by</th>
+<th>Root cause</th>
+<th>Resolution</th>
+<th>Register link</th>
+</tr></thead><tbody>
+<tr>
+<th>I1</th>
+<td>Catalog reconciliation was too slow (2,975 ms for 57 SKUs)</td>
+<td>Sprint review timing</td>
+<td>Every catalog row compared against every product (O(n·m) fuzzy comparisons)</td>
+<td>Added blocking indexes (<code>_build_indexes</code>), a rare-token fallback and a capped pool (<code>max_pool=400</code>). Measured 104 ms with identical results — a 29× improvement</td>
+<td>R3</td>
+</tr>
+<tr>
+<th>I2</th>
+<td><code>vw_pipeline_health</code> could not be read on MySQL</td>
+<td>Cross-dialect verification</td>
+<td><code>TRIGGER</code> is a reserved word in MySQL 8.4; <code>pipeline_runs()</code> selects the column unqualified</td>
+<td>Recorded as a known defect with the exact fix (quote the identifier in <code>app/analytics/service.py</code> and <code>app/api/routers/pipeline.py</code>); PostgreSQL profile is unaffected</td>
+<td>R4</td>
+</tr>
+<tr>
+<th>I3</th>
+<td>Views failed to apply on MySQL when created inside one transaction</td>
+<td>Bootstrap log</td>
+<td>MySQL DDL triggers an implicit commit, invalidating SAVEPOINTs</td>
+<td><code>apply_views()</code> now runs every statement in its own connection/transaction and logs per-view failures</td>
+<td>R4</td>
+</tr>
+<tr>
+<th>I4</th>
+<td>A source error killed the whole run</td>
+<td>CLI run with <code>books_to_scrape</code></td>
+<td>Exception propagation from <code>_fetch_detail()</code></td>
+<td>Per-source isolation: exceptions become run warnings, run status becomes <code>partial</code></td>
+<td>R6, R7</td>
+</tr>
+<tr>
+<th>I5</th>
+<td>Naive timestamps returned by MySQL broke comparisons</td>
+<td>DQ007 evaluation</td>
+<td>MySQL drops the timezone</td>
+<td><code>UTCDateTime</code> TypeDecorator re-tags naive values as UTC on read</td>
+<td>R11</td>
+</tr>
+<tr>
+<th>I6</th>
+<td>Rating scale mismatch (Open Library averages on a 5-point scale, other feeds differ)</td>
+<td>DQ003 failure</td>
+<td>Naive copy of upstream values</td>
+<td><code>parse_rating(target_scale=5.0)</code> rescales every rating and clamps it to the range</td>
+<td>R19</td>
+</tr>
+<tr>
+<th>I7</th>
+<td>SQLite foreign keys were silently off</td>
+<td>Test failure on a fixture</td>
+<td>SQLite defaults <code>PRAGMA foreign_keys=off</code></td>
+<td><code>build_engine()</code> sets <code>foreign_keys=ON</code>, <code>journal_mode=WAL</code>, <code>synchronous=NORMAL</code> for SQLite connections</td>
+<td>R4</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="7-monitoring-and-review">7. Monitoring and review</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Control</th>
+<th>Frequency</th>
+<th>Method</th>
+<th>Record</th>
+</tr></thead><tbody>
+<tr>
+<th>Register review</th>
+<td>Fortnightly</td>
+<td>Sprint review agenda item 3</td>
+<td>Updated register rows with the new residual score</td>
+</tr>
+<tr>
+<th>KPI watch</th>
+<td>Weekly</td>
+<td><code>make analytics</code>, <code>scripts/api_smoke.py</code></td>
+<td><code>docs/05_kpis.md</code> targets vs measured table</td>
+</tr>
+<tr>
+<th>Compliance watch</th>
+<td>Weekly</td>
+<td><code>GET /api/v1/audit/compliance</code></td>
+<td><code>blocked_requests</code>, <code>cached_requests</code>, <code>retried_requests</code>, <code>avg_elapsed_ms</code></td>
+</tr>
+<tr>
+<th>Source watch</th>
+<td>Weekly</td>
+<td><code>GET /api/v1/pipeline/sources/status</code></td>
+<td><code>sync_status</code>, <code>consecutive_failures</code>, <code>success_rate_pct</code></td>
+</tr>
+<tr>
+<th>Schema watch</th>
+<td>After every model change</td>
+<td><code>make check-schema</code> (<code>app.cli.main check-schema</code>)</td>
+<td>Missing/extra table list</td>
+</tr>
+<tr>
+<th>Secret scan</th>
+<td>Before every submission</td>
+<td>`git log -p</td>
+<td>grep -i password`</td>
+<td>Incident note if a hit is found</td>
+</tr>
+</tbody></table></div>
+<h3 id="71-risk-acceptance-statement">7.1 Risk acceptance statement</h3>
+<p>Risks R13, R14, R19 and R20 are <strong>accepted</strong> with the documented contingency: the project does not depend on Airflow, on a browser build or on live FX data for its acceptance criteria. Risks R1, R2 and R4 are <strong>mitigated in code</strong> and must not be accepted silently in a future release: any change that removes the robots gate, the digit-signature guard or the dialect-portability layer is a regression of a Critical risk.</p>
+    </article>
+    <div class="doc-foot">
+      <span><a href="03_roles_and_responsibilities.html">← Roles and Responsibilities</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="05_kpis.html">KPIs →</a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

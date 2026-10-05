@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Team roles, RACI, hours log">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Roles and Responsibilities — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Team roles, RACI, hours log">
+<title>Roles and Responsibilities — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" class="active" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="23-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, all 113 operations, examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, 100-case plan, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="234 features with file references">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Roles and Responsibilities</h1>
+      <p>Team roles, RACI, hours log</p>
+    </div>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#table-of-contents">Table of contents</a></li><li class="lvl-2"><a href="#1-team-and-role-definitions">1. Team and role definitions</a></li><li class="lvl-3"><a href="#11-roles">1.1 Roles</a></li><li class="lvl-3"><a href="#12-responsibility-split-inside-the-single-developer-reality">1.2 Responsibility split inside the single-developer reality</a></li><li class="lvl-3"><a href="#13-role-responsibilities-in-detail">1.3 Role responsibilities in detail</a></li><li class="lvl-2"><a href="#2-responsibility-matrix-by-work-package">2. Responsibility matrix by work package</a></li><li class="lvl-2"><a href="#3-raci-matrix-for-deliverables">3. RACI matrix for deliverables</a></li><li class="lvl-2"><a href="#4-raci-matrix-for-key-decisions">4. RACI matrix for key decisions</a></li><li class="lvl-2"><a href="#5-communication-plan">5. Communication plan</a></li><li class="lvl-3"><a href="#51-channels">5.1 Channels</a></li><li class="lvl-3"><a href="#52-status-reporting-template-used-every-friday">5.2 Status reporting template (used every Friday)</a></li><li class="lvl-3"><a href="#53-escalation-matrix">5.3 Escalation matrix</a></li><li class="lvl-2"><a href="#6-sprint-and-iteration-plan">6. Sprint and iteration plan</a></li><li class="lvl-3"><a href="#61-iteration-structure">6.1 Iteration structure</a></li><li class="lvl-3"><a href="#62-task-board-convention">6.2 Task board convention</a></li><li class="lvl-3"><a href="#63-definition-of-done-dod">6.3 Definition of done (DoD)</a></li><li class="lvl-2"><a href="#7-hours-log-template">7. Hours log template</a></li><li class="lvl-3"><a href="#71-column-definition">7.1 Column definition</a></li><li class="lvl-3"><a href="#72-filled-example-rows">7.2 Filled example rows</a></li><li class="lvl-3"><a href="#73-weekly-roll-up-template">7.3 Weekly roll-up template</a></li><li class="lvl-3"><a href="#74-estimation-method">7.4 Estimation method</a></li><li class="lvl-2"><a href="#8-working-agreements">8. Working agreements</a></li></ol></details>
+    <article class="doc-body">
+<h2 id="purpose">Purpose</h2>
+<p>This document defines who does what in the project: the team roles, the RACI matrix over the deliverables, the communication plan, the sprint and iteration plan, and the hours log template used to record effort. It is the document consulted when someone asks "who owns the API?" or "who approves a schema change?".</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Field</th>
+<th>Value</th>
+</tr></thead><tbody>
+<tr>
+<th>Project</th>
+<td>Web-to-Warehouse Product Intelligence Pipeline</td>
+</tr>
+<tr>
+<th>Team size</th>
+<td>4 people (1 lead, 2 peer reviewers, 1 supervisor)</td>
+</tr>
+<tr>
+<th>Working model</th>
+<td>One full-time engineer (DEPI student) with asynchronous review</td>
+</tr>
+<tr>
+<th>Review cadence</th>
+<td>Weekly written review, fortnightly live demo</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="table-of-contents">Table of contents</h2>
+<ul>
+<li class="depth-0"><a href="#1-team-and-role-definitions">Team and role definitions</a></li>
+<li class="depth-0"><a href="#2-responsibility-matrix-by-work-package">Responsibility matrix by work package</a></li>
+<li class="depth-0"><a href="#3-raci-matrix-for-deliverables">RACI matrix for deliverables</a></li>
+<li class="depth-0"><a href="#4-raci-matrix-for-key-decisions">RACI matrix for key decisions</a></li>
+<li class="depth-0"><a href="#5-communication-plan">Communication plan</a></li>
+<li class="depth-0"><a href="#6-sprint-and-iteration-plan">Sprint and iteration plan</a></li>
+<li class="depth-0"><a href="#7-hours-log-template">Hours log template</a></li>
+<li class="depth-0"><a href="#8-working-agreements">Working agreements</a></li>
+</ul>
+<hr>
+<h2 id="1-team-and-role-definitions">1. Team and role definitions</h2>
+<h3 id="11-roles">1.1 Roles</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Role</th>
+<th>Person</th>
+<th>Commitment</th>
+<th>Mandate</th>
+<th>Responsibilities</th>
+</tr></thead><tbody>
+<tr>
+<td>Data Engineering Lead / Developer</td>
+<td>Ahmed Abobakr</td>
+<td>100 % (≈ 40 h/week)</td>
+<td>Owns the design and the code</td>
+<td>Architecture, ingestion, warehouse, API, documentation; makes technical decisions; runs the demos</td>
+</tr>
+<tr>
+<td>Peer reviewer — Data modelling</td>
+<td>Reviewer A</td>
+<td>20 % (≈ 8 h/week, W9–W12)</td>
+<td>Challenges the data model</td>
+<td>Reviews the ERD, normalisation, view definitions and the DQ rule set</td>
+</tr>
+<tr>
+<td>Peer reviewer — Application &amp; QA</td>
+<td>Reviewer B</td>
+<td>20 % (≈ 8 h/week, W9–W12)</td>
+<td>Challenges correctness and security</td>
+<td>Reviews auth, RBAC, error handling, the smoke test and performance claims</td>
+</tr>
+<tr>
+<th>Supervisor / Assessor</th>
+<td>DEPI supervisor</td>
+<td>5 % (≈ 2 h/week)</td>
+<td>Academic authority</td>
+<td>Approves the proposal, the design freeze and the final submission; arbitrates scope changes</td>
+</tr>
+<tr>
+<td>Business sponsor (simulated)</td>
+<td>Retail merchandising lead</td>
+<td>1 h total</td>
+<td>Represents the user</td>
+<td>Validates the analyst-facing screens during UAT (doc 15)</td>
+</tr>
+</tbody></table></div>
+<h3 id="12-responsibility-split-inside-the-single-developer-reality">1.2 Responsibility split inside the single-developer reality</h3>
+<pre class="mermaid">flowchart TB
+    SUP[&quot;Supervisor / Assessor&quot;]
+    LEAD[&quot;Data Engineering Lead (developer)&quot;]
+    RA[&quot;Peer reviewer A - data modelling&quot;]
+    RB[&quot;Peer reviewer B - application and QA&quot;]
+    BIZ[&quot;Business sponsor - merchandising&quot;]
+
+    SUP --&gt;|&quot;approves proposal, design freeze, submission&quot;| LEAD
+    RA --&gt;|&quot;reviews schema, views, DQ rules&quot;| LEAD
+    RB --&gt;|&quot;reviews auth, RBAC, tests, performance&quot;| LEAD
+    BIZ --&gt;|&quot;UAT feedback on analyst screens&quot;| LEAD
+    LEAD --&gt;|&quot;weekly written progress note&quot;| SUP
+    LEAD --&gt;|&quot;fortnightly demo&quot;| SUP
+    RA --&gt; RB</pre>
+<h3 id="13-role-responsibilities-in-detail">1.3 Role responsibilities in detail</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Role</th>
+<th>Decisions they own</th>
+<th>Deliverables they own</th>
+<th>Escalation path</th>
+</tr></thead><tbody>
+<tr>
+<th>Lead</th>
+<td>Table layout, algorithm design, API shape, source allow-listing</td>
+<td>All code, all docs except the peer review notes</td>
+<td>Supervisor for scope or deadline changes</td>
+</tr>
+<tr>
+<th>Reviewer A</th>
+<td>Physical normalisation, view contracts</td>
+<td>Design review record, data-model findings</td>
+<td>Supervisor if the design freeze is violated</td>
+</tr>
+<tr>
+<th>Reviewer B</th>
+<td>Security posture, test coverage, performance evidence</td>
+<td>QA review record, defect list</td>
+<td>Supervisor if a security finding is not fixed</td>
+</tr>
+<tr>
+<th>Supervisor</th>
+<td>Scope, weighting, acceptance</td>
+<td>Grades and feedback</td>
+<td>Department</td>
+</tr>
+<tr>
+<th>Business sponsor</th>
+<td>Priority of the analyst screens</td>
+<td>UAT sign-off on screens</td>
+<td>Lead</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="2-responsibility-matrix-by-work-package">2. Responsibility matrix by work package</h2>
+<p>Effort share and ownership per work package (hours from <code>docs/01_project_proposal.md</code> §7.1).</p>
+<div class='table-scroll'><table><thead><tr>
+<th>WP</th>
+<th>Work package</th>
+<th>Lead</th>
+<th>Reviewer A</th>
+<th>Reviewer B</th>
+<th>Supervisor</th>
+</tr></thead><tbody>
+<tr>
+<th>WP1</th>
+<td>Requirements and stakeholder analysis</td>
+<td>16</td>
+<td>0</td>
+<td>2</td>
+<td>M1 review</td>
+</tr>
+<tr>
+<th>WP2</th>
+<td>Literature review</td>
+<td>14</td>
+<td>0</td>
+<td>0</td>
+<td>M1 review</td>
+</tr>
+<tr>
+<th>WP3</th>
+<td>Database design</td>
+<td>16</td>
+<td>4</td>
+<td>0</td>
+<td>M2 approval</td>
+</tr>
+<tr>
+<th>WP4</th>
+<td>Compliance layer</td>
+<td>42</td>
+<td>0</td>
+<td>2</td>
+<td>—</td>
+</tr>
+<tr>
+<th>WP5</th>
+<td>Ingestion sources</td>
+<td>30</td>
+<td>0</td>
+<td>0</td>
+<td>—</td>
+</tr>
+<tr>
+<th>WP6</th>
+<td>Cleaning and normalisation</td>
+<td>24</td>
+<td>0</td>
+<td>0</td>
+<td>—</td>
+</tr>
+<tr>
+<th>WP7</th>
+<td>Deduplication engine</td>
+<td>28</td>
+<td>2</td>
+<td>0</td>
+<td>—</td>
+</tr>
+<tr>
+<th>WP8</th>
+<td>Loader and change detection</td>
+<td>34</td>
+<td>2</td>
+<td>0</td>
+<td>—</td>
+</tr>
+<tr>
+<th>WP9</th>
+<td>Catalog reconciliation</td>
+<td>22</td>
+<td>2</td>
+<td>0</td>
+<td>—</td>
+</tr>
+<tr>
+<th>WP10</th>
+<td>Data-quality framework</td>
+<td>18</td>
+<td>2</td>
+<td>0</td>
+<td>—</td>
+</tr>
+<tr>
+<th>WP11</th>
+<td>Views and analytics service</td>
+<td>26</td>
+<td>3</td>
+<td>0</td>
+<td>—</td>
+</tr>
+<tr>
+<th>WP12</th>
+<td>REST API, auth, RBAC</td>
+<td>46</td>
+<td>0</td>
+<td>4</td>
+<td>—</td>
+</tr>
+<tr>
+<th>WP13</th>
+<td>CLI and Makefile</td>
+<td>12</td>
+<td>0</td>
+<td>0</td>
+<td>—</td>
+</tr>
+<tr>
+<th>WP14</th>
+<td>Airflow DAG</td>
+<td>12</td>
+<td>0</td>
+<td>0</td>
+<td>—</td>
+</tr>
+<tr>
+<th>WP15</th>
+<td>Deployment documentation</td>
+<td>12</td>
+<td>0</td>
+<td>1</td>
+<td>—</td>
+</tr>
+<tr>
+<th>WP16</th>
+<td>Seed data and verification</td>
+<td>16</td>
+<td>1</td>
+<td>2</td>
+<td>M6 approval</td>
+</tr>
+<tr>
+<th>WP17</th>
+<td>Smoke test and API docs</td>
+<td>14</td>
+<td>0</td>
+<td>2</td>
+<td>—</td>
+</tr>
+<tr>
+<th>WP18</th>
+<td>Documentation set</td>
+<td>40</td>
+<td>2</td>
+<td>2</td>
+<td>M7 approval</td>
+</tr>
+<tr>
+<th>WP19</th>
+<td>Review and defence preparation</td>
+<td>14</td>
+<td>4</td>
+<td>4</td>
+<td>M8 defence</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="3-raci-matrix-for-deliverables">3. RACI matrix for deliverables</h2>
+<p>Legend: <strong>R</strong> = Responsible (does the work), <strong>A</strong> = Accountable (single owner, signs off), <strong>C</strong> = Consulted (two-way input), <strong>I</strong> = Informed (one-way update).</p>
+<div class='table-scroll'><table><thead><tr>
+<th>#</th>
+<th>Deliverable</th>
+<th>Lead</th>
+<th>Reviewer A</th>
+<th>Reviewer B</th>
+<th>Supervisor</th>
+<th>Business sponsor</th>
+</tr></thead><tbody>
+<tr>
+<th>1</th>
+<td>Project proposal</td>
+<td>R</td>
+<td>I</td>
+<td>I</td>
+<td>A</td>
+<td>C</td>
+</tr>
+<tr>
+<th>2</th>
+<td>Project plan and Gantt</td>
+<td>R</td>
+<td>I</td>
+<td>I</td>
+<td>A</td>
+<td>I</td>
+</tr>
+<tr>
+<th>3</th>
+<td>Roles and responsibilities</td>
+<td>R</td>
+<td>C</td>
+<td>C</td>
+<td>A</td>
+<td>I</td>
+</tr>
+<tr>
+<th>4</th>
+<td>Risk register</td>
+<td>R</td>
+<td>C</td>
+<td>C</td>
+<td>A</td>
+<td>I</td>
+</tr>
+<tr>
+<th>5</th>
+<td>KPI catalogue</td>
+<td>R</td>
+<td>I</td>
+<td>C</td>
+<td>A</td>
+<td>C</td>
+</tr>
+<tr>
+<th>6</th>
+<td>Literature review</td>
+<td>R</td>
+<td>C</td>
+<td>I</td>
+<td>A</td>
+<td>I</td>
+</tr>
+<tr>
+<th>7</th>
+<td>Requirements and user stories</td>
+<td>R</td>
+<td>C</td>
+<td>C</td>
+<td>A</td>
+<td>C</td>
+</tr>
+<tr>
+<th>8</th>
+<td>System analysis and architecture</td>
+<td>R</td>
+<td>C</td>
+<td>C</td>
+<td>A</td>
+<td>I</td>
+</tr>
+<tr>
+<th>9</th>
+<td>Database design and ERD</td>
+<td>R</td>
+<td>A</td>
+<td>I</td>
+<td>C</td>
+<td>I</td>
+</tr>
+<tr>
+<th>10</th>
+<td>Data flow diagrams</td>
+<td>R</td>
+<td>C</td>
+<td>I</td>
+<td>C</td>
+<td>I</td>
+</tr>
+<tr>
+<th>11</th>
+<td>Behaviour diagrams</td>
+<td>R</td>
+<td>C</td>
+<td>C</td>
+<td>C</td>
+<td>I</td>
+</tr>
+<tr>
+<th>12</th>
+<td>UI/UX design</td>
+<td>R</td>
+<td>I</td>
+<td>C</td>
+<td>I</td>
+<td>A</td>
+</tr>
+<tr>
+<th>13</th>
+<td>Deployment plan</td>
+<td>R</td>
+<td>I</td>
+<td>C</td>
+<td>C</td>
+<td>I</td>
+</tr>
+<tr>
+<th>14</th>
+<td>API documentation</td>
+<td>R</td>
+<td>I</td>
+<td>C</td>
+<td>C</td>
+<td>I</td>
+</tr>
+<tr>
+<th>15</th>
+<td>Testing strategy</td>
+<td>R</td>
+<td>C</td>
+<td>A</td>
+<td>C</td>
+<td>I</td>
+</tr>
+<tr>
+<th>16</th>
+<td>User manual</td>
+<td>R</td>
+<td>I</td>
+<td>C</td>
+<td>C</td>
+<td>A</td>
+</tr>
+<tr>
+<th>17</th>
+<td>Technical documentation</td>
+<td>R</td>
+<td>C</td>
+<td>C</td>
+<td>C</td>
+<td>I</td>
+</tr>
+<tr>
+<th>18</th>
+<td>Presentation outline</td>
+<td>R</td>
+<td>C</td>
+<td>C</td>
+<td>A</td>
+<td>I</td>
+</tr>
+<tr>
+<th>19</th>
+<td>Feature inventory</td>
+<td>R</td>
+<td>I</td>
+<td>I</td>
+<td>I</td>
+<td>I</td>
+</tr>
+<tr>
+<th>20</th>
+<td>Feedback and improvements</td>
+<td>R</td>
+<td>C</td>
+<td>C</td>
+<td>A</td>
+<td>I</td>
+</tr>
+<tr>
+<th>D1</th>
+<td>Ingestion module</td>
+<td>R</td>
+<td>I</td>
+<td>C</td>
+<td>I</td>
+<td>I</td>
+</tr>
+<tr>
+<th>D2</th>
+<td>Database schema</td>
+<td>R</td>
+<td>A</td>
+<td>I</td>
+<td>C</td>
+<td>I</td>
+</tr>
+<tr>
+<th>D3</th>
+<td>Price history table</td>
+<td>R</td>
+<td>A</td>
+<td>I</td>
+<td>I</td>
+<td>I</td>
+</tr>
+<tr>
+<th>D4</th>
+<td>ETL pipeline</td>
+<td>R</td>
+<td>C</td>
+<td>C</td>
+<td>I</td>
+<td>I</td>
+</tr>
+<tr>
+<th>D5</th>
+<td>Airflow DAG</td>
+<td>R</td>
+<td>I</td>
+<td>C</td>
+<td>I</td>
+<td>I</td>
+</tr>
+<tr>
+<th>D6</th>
+<td>Data-quality checks</td>
+<td>R</td>
+<td>A</td>
+<td>C</td>
+<td>C</td>
+<td>I</td>
+</tr>
+<tr>
+<th>D7</th>
+<td>SQL analysis and views</td>
+<td>R</td>
+<td>A</td>
+<td>I</td>
+<td>C</td>
+<td>I</td>
+</tr>
+<tr>
+<th>D8</th>
+<td>Dashboard</td>
+<td>R</td>
+<td>I</td>
+<td>C</td>
+<td>I</td>
+<td>A</td>
+</tr>
+<tr>
+<th>D10</th>
+<td>REST API</td>
+<td>R</td>
+<td>I</td>
+<td>A</td>
+<td>I</td>
+<td>I</td>
+</tr>
+<tr>
+<th>D12</th>
+<td>API smoke test</td>
+<td>R</td>
+<td>I</td>
+<td>A</td>
+<td>I</td>
+<td>I</td>
+</tr>
+</tbody></table></div>
+<p>Exactly one <code>A</code> per row — the rule enforced at every review.</p>
+<hr>
+<h2 id="4-raci-matrix-for-key-decisions">4. RACI matrix for key decisions</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Decision</th>
+<th>Proposed by</th>
+<th>Consulted</th>
+<th>Accountable</th>
+<th>Informed</th>
+</tr></thead><tbody>
+<tr>
+<td>Add a new ingestion source</td>
+<td>Lead</td>
+<td>Reviewer B, Supervisor</td>
+<td>Lead (terms allow-list)</td>
+<td>Team</td>
+</tr>
+<tr>
+<td>Change the dedupe threshold</td>
+<td>Lead</td>
+<td>Reviewer A</td>
+<td>Lead</td>
+<td>Business sponsor</td>
+</tr>
+<tr>
+<td>Change the star-schema grain (fact_price_snapshot)</td>
+<td>Lead</td>
+<td>Reviewer A, Supervisor</td>
+<td>Supervisor</td>
+<td>Team</td>
+</tr>
+<tr>
+<td>Add or rename a REST endpoint</td>
+<td>Lead</td>
+<td>Reviewer B</td>
+<td>Lead</td>
+<td>Dashboard developer</td>
+</tr>
+<tr>
+<th>Add a data-quality rule</th>
+<td>Lead</td>
+<td>Reviewer A, business sponsor</td>
+<td>Lead</td>
+<td>Team</td>
+</tr>
+<tr>
+<td>Change the public API contract in a breaking way</td>
+<td>Lead</td>
+<td>Reviewer B, Supervisor</td>
+<td>Supervisor</td>
+<td>Team</td>
+</tr>
+<tr>
+<td>Provision a new database target</td>
+<td>Lead</td>
+<td>Reviewer B</td>
+<td>Lead</td>
+<td>Team</td>
+</tr>
+<tr>
+<td>Change the retention window</td>
+<td>Lead</td>
+<td>Supervisor, compliance officer (simulated)</td>
+<td>Supervisor</td>
+<td>Team</td>
+</tr>
+<tr>
+<td>Disable a source because of a terms change</td>
+<td>Lead</td>
+<td>Supervisor</td>
+<td>Lead</td>
+<td>Business sponsor</td>
+</tr>
+<tr>
+<td>Submit the final documentation set</td>
+<td>Lead</td>
+<td>Both reviewers</td>
+<td>Supervisor</td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="5-communication-plan">5. Communication plan</h2>
+<h3 id="51-channels">5.1 Channels</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Channel</th>
+<th>Purpose</th>
+<th>Participants</th>
+<th>Frequency</th>
+<th>Response expectation</th>
+</tr></thead><tbody>
+<tr>
+<th>GitHub repository</th>
+<td>Source of truth for code and docs</td>
+<td>All</td>
+<td>Continuous</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Weekly progress note (repository <code>docs/</code> update)</td>
+<td>Status, next steps, blockers</td>
+<td>Supervisor</td>
+<td>Weekly (Friday)</td>
+<td>Supervisor comments within 3 working days</td>
+</tr>
+<tr>
+<th>Fortnightly sprint demo</th>
+<td>Evidence of progress</td>
+<td>Supervisor, both reviewers</td>
+<td>Every 2 weeks</td>
+<td>Live questions</td>
+</tr>
+<tr>
+<th>Design review meeting</th>
+<td>Approve or reject a design change</td>
+<td>Supervisor, lead, Reviewer A</td>
+<td>At M2 and on any schema change</td>
+<td>Decision recorded in the doc</td>
+</tr>
+<tr>
+<th>Code review</th>
+<td>Correctness before merge</td>
+<td>Lead + one reviewer</td>
+<td>On every pull request for <code>app/api</code>, <code>app/etl</code>, <code>db/</code></td>
+<td>Review within 1 working day</td>
+</tr>
+<tr>
+<th>Incident note</th>
+<td>Pipeline or environment failure</td>
+<td>Supervisor</td>
+<td>On failure</td>
+<td>Same day</td>
+</tr>
+</tbody></table></div>
+<h3 id="52-status-reporting-template-used-every-friday">5.2 Status reporting template (used every Friday)</h3>
+<pre class="code" data-lang="text"><code>Week:        W__
+Sprint goal: &lt;one sentence&gt;
+Done:        &lt;bullets with file references&gt;
+In progress: &lt;bullets&gt;
+Blocked:     &lt;issue, owner, needed decision&gt;
+KPIs:        DQ score __ | pipeline duration __ s | smoke __/__ | views __/20 | tables __/23
+Risks:       &lt;new / closed&gt;
+Next week:   &lt;bullets&gt;</code></pre>
+<h3 id="53-escalation-matrix">5.3 Escalation matrix</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Trigger</th>
+<th>Action</th>
+<th>Timeframe</th>
+</tr></thead><tbody>
+<tr>
+<td>Critical blocker on the critical path &gt; 2 days</td>
+<td>Raise in the weekly note and propose a scope reduction</td>
+<td>Same day</td>
+</tr>
+<tr>
+<td>Source becomes non-compliant (robots/terms change)</td>
+<td>Disable the source (<code>enabled=false</code>) and record the reason</td>
+<td>Immediate</td>
+</tr>
+<tr>
+<td>DQ score drops below 80 for two consecutive runs</td>
+<td>Open an incident note and re-run with <code>--strict</code></td>
+<td>Same day</td>
+</tr>
+<tr>
+<td>Database divergence between PostgreSQL and MySQL</td>
+<td>Stop feature work, run <code>make verify-dialects</code>, fix the model</td>
+<td>Immediate</td>
+</tr>
+<tr>
+<th>Smoke test failure</th>
+<td>Block the merge until fixed or explicitly waived by Reviewer B</td>
+<td>Immediate</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="6-sprint-and-iteration-plan">6. Sprint and iteration plan</h2>
+<h3 id="61-iteration-structure">6.1 Iteration structure</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Element</th>
+<th>Value</th>
+</tr></thead><tbody>
+<tr>
+<th>Iteration length</th>
+<td>2 weeks</td>
+</tr>
+<tr>
+<th>Iterations</th>
+<td>6 (S1 … S6)</td>
+</tr>
+<tr>
+<th>Sprint planning</th>
+<td>45 min, first day of the sprint</td>
+</tr>
+<tr>
+<th>Daily stand-up</th>
+<td>Written, 5 lines, in the repository (asynchronous because it is a solo project)</td>
+</tr>
+<tr>
+<th>Sprint review</th>
+<td>60 min demo against the sprint goal</td>
+</tr>
+<tr>
+<th>Retrospective</th>
+<td>30 min, three questions: what worked, what blocked, what changes next sprint</td>
+</tr>
+</tbody></table></div>
+<h3 id="62-task-board-convention">6.2 Task board convention</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Meaning</th>
+<th>Exit criterion</th>
+</tr></thead><tbody>
+<tr>
+<th><code>Backlog</code></th>
+<td>Identified but not started</td>
+<td>—</td>
+</tr>
+<tr>
+<th><code>Ready</code></th>
+<td>Specification, acceptance criteria and dependencies known</td>
+<td>Can be started without questions</td>
+</tr>
+<tr>
+<th><code>In progress</code></th>
+<td>Currently being implemented</td>
+<td>One task at a time per work package</td>
+</tr>
+<tr>
+<th><code>Code review</code></th>
+<td>Awaiting a reviewer</td>
+<td>Reviewer assigned</td>
+</tr>
+<tr>
+<th><code>Verify</code></th>
+<td>Awaiting a command-based check (test, smoke, KPI)</td>
+<td>Check command recorded in the task</td>
+</tr>
+<tr>
+<th><code>Done</code></th>
+<td>Acceptance criteria met and verified</td>
+<td>Linked to a commit and, where applicable, a KPI value</td>
+</tr>
+<tr>
+<th><code>Blocked</code></th>
+<td>Waiting on an external input</td>
+<td>Blocker and owner recorded</td>
+</tr>
+</tbody></table></div>
+<h3 id="63-definition-of-done-dod">6.3 Definition of done (DoD)</h3>
+<p>A task is <em>done</em> only when all of the following are true:</p>
+<ul>
+<li class="depth-0">Code is committed to the private repository.</li>
+<li class="depth-0"><code>make lint</code> and <code>make typecheck</code> pass (<code>ruff</code>, <code>mypy</code>).</li>
+<li class="depth-0">A verification command exists and has been run (<code>make test</code>, <code>make verify-dialects</code>,</li>
+</ul>
+<p><code>scripts/api_smoke.py</code>, or a CLI command).</p>
+<ul>
+<li class="depth-0">If the task changes behaviour, the corresponding document in <code>docs/</code> is updated in the same</li>
+</ul>
+<p>commit.</p>
+<ul>
+<li class="depth-0">If the task adds an endpoint, <code>scripts/api_smoke.py</code> gains a check for it.</li>
+</ul>
+<hr>
+<h2 id="7-hours-log-template">7. Hours log template</h2>
+<p>Effort is tracked per task so the final effort table in <code>docs/01_project_proposal.md</code> §7 can be audited. The log is maintained in the repository as <code>docs/assets/hours-log.csv</code>.</p>
+<h3 id="71-column-definition">7.1 Column definition</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Type</th>
+<th>Example</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>date</code></th>
+<td>ISO date</td>
+<td><code>2026-02-18</code></td>
+<td>Day of work</td>
+</tr>
+<tr>
+<th><code>week</code></th>
+<td><code>W1</code>…<code>W12</code></td>
+<td><code>W7</code></td>
+<td>Project week</td>
+</tr>
+<tr>
+<th><code>wp</code></th>
+<td><code>WP1</code>…<code>WP19</code></td>
+<td><code>WP7</code></td>
+<td>Work package</td>
+</tr>
+<tr>
+<th><code>task_id</code></th>
+<td>text</td>
+<td><code>T-124</code></td>
+<td>Task board identifier</td>
+</tr>
+<tr>
+<th><code>task</code></th>
+<td>text</td>
+<td><code>Blocking index for candidate pool</code></td>
+<td>Short task name</td>
+</tr>
+<tr>
+<th><code>role</code></th>
+<td><code>lead</code> / <code>revA</code> / <code>revB</code> / <code>sup</code></td>
+<td><code>lead</code></td>
+<td>Who worked on it</td>
+</tr>
+<tr>
+<th><code>hours</code></th>
+<td>decimal</td>
+<td><code>3.5</code></td>
+<td>Hours spent</td>
+</tr>
+<tr>
+<th><code>type</code></th>
+<td><code>build</code> / <code>review</code> / <code>doc</code> / <code>test</code> / <code>meeting</code></td>
+<td><code>build</code></td>
+<td>Activity type</td>
+</tr>
+<tr>
+<th><code>artifacts</code></th>
+<td>text</td>
+<td><code>app/ingestion/dedupe.py</code></td>
+<td>Files touched</td>
+</tr>
+<tr>
+<th><code>notes</code></th>
+<td>text</td>
+<td><code>29x faster than naive scan</code></td>
+<td>Outcome or finding</td>
+</tr>
+</tbody></table></div>
+<h3 id="72-filled-example-rows">7.2 Filled example rows</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>date</th>
+<th>week</th>
+<th>wp</th>
+<th>task_id</th>
+<th>task</th>
+<th>role</th>
+<th>hours</th>
+<th>type</th>
+<th>artifacts</th>
+<th>notes</th>
+</tr></thead><tbody>
+<tr>
+<th>2026-01-05</th>
+<td>W1</td>
+<td>WP1</td>
+<td>T-001</td>
+<td>Stakeholder interview — pricing analyst</td>
+<td>lead</td>
+<td>2.0</td>
+<td>meeting</td>
+<td><code>docs/07</code></td>
+<td>6 pain points recorded</td>
+</tr>
+<tr>
+<th>2026-01-07</th>
+<td>W1</td>
+<td>WP1</td>
+<td>T-004</td>
+<td>Docker Compose bring-up</td>
+<td>lead</td>
+<td>1.5</td>
+<td>build</td>
+<td><code>docker-compose.yml</code></td>
+<td>both DBs healthy</td>
+</tr>
+<tr>
+<th>2026-02-18</th>
+<td>W7</td>
+<td>WP7</td>
+<td>T-118</td>
+<td>Blocking index for the candidate pool</td>
+<td>lead</td>
+<td>3.5</td>
+<td>build</td>
+<td><code>app/ingestion/dedupe.py</code></td>
+<td>naive scan 2975 ms → 104 ms</td>
+</tr>
+<tr>
+<th>2026-03-19</th>
+<td>W11</td>
+<td>WP16</td>
+<td>T-204</td>
+<td>Cross-dialect verification run</td>
+<td>lead</td>
+<td>2.0</td>
+<td>test</td>
+<td><code>docs/05</code></td>
+<td>identical structural counts</td>
+</tr>
+<tr>
+<th>2026-03-24</th>
+<td>W11</td>
+<td>WP18</td>
+<td>T-231</td>
+<td>API endpoint inventory reconciled with OpenAPI</td>
+<td>lead</td>
+<td>2.0</td>
+<td>doc</td>
+<td><code>docs/14</code></td>
+<td>measured 113 operations</td>
+</tr>
+</tbody></table></div>
+<h3 id="73-weekly-roll-up-template">7.3 Weekly roll-up template</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Week</th>
+<th>build</th>
+<th>review</th>
+<th>doc</th>
+<th>test</th>
+<th>meeting</th>
+<th>Total</th>
+<th>Cumulative</th>
+</tr></thead><tbody>
+<tr>
+<th>W1</th>
+<td>24.0</td>
+<td>0.0</td>
+<td>12.0</td>
+<td>2.0</td>
+<td>2.0</td>
+<td>40.0</td>
+<td>40.0</td>
+</tr>
+<tr>
+<th>W2</th>
+<td>12.0</td>
+<td>0.0</td>
+<td>18.0</td>
+<td>0.0</td>
+<td>2.0</td>
+<td>32.0</td>
+<td>72.0</td>
+</tr>
+<tr>
+<th>…</th>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+</tr>
+<tr>
+<th>W12</th>
+<td>8.0</td>
+<td>4.0</td>
+<td>12.0</td>
+<td>2.0</td>
+<td>2.0</td>
+<td>28.0</td>
+<td>418.0</td>
+</tr>
+</tbody></table></div>
+<h3 id="74-estimation-method">7.4 Estimation method</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Class</th>
+<th>Meaning</th>
+<th>Planning factor</th>
+</tr></thead><tbody>
+<tr>
+<th>S</th>
+<td>≤ 4 h, single module, no design decision</td>
+<td>×1.0</td>
+</tr>
+<tr>
+<th>M</th>
+<td>≤ 12 h, one module plus its tests</td>
+<td>×1.5</td>
+</tr>
+<tr>
+<th>L</th>
+<td>≤ 30 h, crosses modules or needs a design decision</td>
+<td>×2.0</td>
+</tr>
+<tr>
+<th>XL</th>
+<td>&gt; 30 h or high uncertainty</td>
+<td>Split before starting; never planned as one task</td>
+</tr>
+</tbody></table></div>
+<p>Every task in the board carries a class. The sum of the estimates is compared with the roll-up table each sprint; a variance above 25 % triggers a retrospective item.</p>
+<hr>
+<h2 id="8-working-agreements">8. Working agreements</h2>
+<ul>
+<li class="depth-0"><strong>One work package at a time.</strong> Context switching between ingestion and API work is the main</li>
+</ul>
+<p>observed productivity risk.</p>
+<ul>
+<li class="depth-0"><strong>Commit messages state the why.</strong> Format: <code>&lt;type&gt;(&lt;scope&gt;): &lt;summary&gt; — &lt;reason&gt;</code>, where type is</li>
+</ul>
+<p>one of <code>feat</code>, <code>fix</code>, <code>refactor</code>, <code>docs</code>, <code>test</code>, <code>chore</code>.</p>
+<ul>
+<li class="depth-0"><strong>No schema change without a design note</strong> (see <code>docs/02</code> §7.1).</li>
+<li class="depth-0"><strong>No source without a terms justification</strong> (see <code>docs/01</code> §8.2).</li>
+<li class="depth-0"><strong>No endpoint without a smoke check.</strong></li>
+<li class="depth-0"><strong>Measurements are re-run before they are quoted.</strong> Every figure in <code>docs/05_kpis.md</code> carries the</li>
+</ul>
+<p>command that produced it.</p>
+<ul>
+<li class="depth-0"><strong>Secrets never enter the repository.</strong> <code>.env</code> is git-ignored; <code>.env.example</code> is the only</li>
+</ul>
+<p>committed configuration template.</p>
+<ul>
+<li class="depth-0"><strong>Reviewers respond within one working day</strong>; the lead responds to a review finding within two.</li>
+<li class="depth-0"><strong>The demo dataset is regenerated, never hand-edited</strong>, so the numbers in the documentation stay</li>
+</ul>
+<p>reproducible (<code>make demo-postgres</code>).</p>
+<ul>
+<li class="depth-0"><strong>Assumptions are written down.</strong> Anything not verifiable from the code base is recorded in the</li>
+</ul>
+<p>assumption tables of <code>docs/01</code> §9 rather than silently asserted.</p>
+    </article>
+    <div class="doc-foot">
+      <span><a href="02_project_plan.html">← Project Plan</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="04_risk_assessment.html">Risk Assessment →</a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

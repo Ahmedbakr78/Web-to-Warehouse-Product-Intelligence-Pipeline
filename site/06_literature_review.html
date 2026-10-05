@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Six themes, verified sources, synthesis">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Literature Review — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Six themes, verified sources, synthesis">
+<title>Literature Review — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" class="active" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="23-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, all 113 operations, examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, 100-case plan, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="234 features with file references">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Literature Review</h1>
+      <p>Six themes, verified sources, synthesis</p>
+    </div>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#table-of-contents">Table of contents</a></li><li class="lvl-2"><a href="#1-review-method">1. Review method</a></li><li class="lvl-2"><a href="#2-theme-1-dimensional-modelling-and-the-data-warehouse">2. Theme 1 — Dimensional modelling and the data warehouse</a></li><li class="lvl-3"><a href="#21-sources-and-findings">2.1 Sources and findings</a></li><li class="lvl-3"><a href="#22-decision-influenced">2.2 Decision influenced</a></li><li class="lvl-2"><a href="#3-theme-2-web-crawling-compliance-ethics-and-law">3. Theme 2 — Web crawling: compliance, ethics and law</a></li><li class="lvl-3"><a href="#31-standards">3.1 Standards</a></li><li class="lvl-3"><a href="#32-law">3.2 Law</a></li><li class="lvl-3"><a href="#33-decision-influenced">3.3 Decision influenced</a></li><li class="lvl-2"><a href="#4-theme-3-record-linkage-and-entity-resolution">4. Theme 3 — Record linkage and entity resolution</a></li><li class="lvl-3"><a href="#41-sources-and-findings">4.1 Sources and findings</a></li><li class="lvl-3"><a href="#42-decision-influenced">4.2 Decision influenced</a></li><li class="lvl-2"><a href="#5-theme-4-data-quality">5. Theme 4 — Data quality</a></li><li class="lvl-3"><a href="#51-sources-and-findings">5.1 Sources and findings</a></li><li class="lvl-3"><a href="#52-decision-influenced">5.2 Decision influenced</a></li><li class="lvl-2"><a href="#6-theme-5-data-integration-and-orchestration">6. Theme 5 — Data integration and orchestration</a></li><li class="lvl-3"><a href="#61-sources-and-findings">6.1 Sources and findings</a></li><li class="lvl-3"><a href="#62-decision-influenced">6.2 Decision influenced</a></li><li class="lvl-2"><a href="#7-theme-6-analytics-application-and-interface-design">7. Theme 6 — Analytics application and interface design</a></li><li class="lvl-3"><a href="#71-sources-and-findings">7.1 Sources and findings</a></li><li class="lvl-3"><a href="#72-decision-influenced">7.2 Decision influenced</a></li><li class="lvl-2"><a href="#8-comparative-synthesis">8. Comparative synthesis</a></li><li class="lvl-2"><a href="#9-research-gap-and-future-work">9. Research gap and future work</a></li><li class="lvl-2"><a href="#10-reference-list">10. Reference list</a></li><li class="lvl-3"><a href="#dimensional-modelling">Dimensional modelling</a></li><li class="lvl-3"><a href="#web-crawling-standards-and-law">Web crawling, standards and law</a></li><li class="lvl-3"><a href="#record-linkage-and-entity-resolution">Record linkage and entity resolution</a></li><li class="lvl-3"><a href="#data-quality">Data quality</a></li><li class="lvl-3"><a href="#data-integration-orchestration-and-transformation">Data integration, orchestration and transformation</a></li><li class="lvl-3"><a href="#interface-design-security-and-platform">Interface design, security and platform</a></li><li class="lvl-3"><a href="#tooling-documentation">Tooling documentation</a></li><li class="lvl-3"><a href="#101-verification-note">10.1 Verification note</a></li></ol></details>
+    <article class="doc-body">
+<h2 id="purpose">Purpose</h2>
+<p>This document surveys the academic and industrial literature that underpins the design of the Web-to-Warehouse Product Intelligence Pipeline. It is organised in six themes — dimensional modelling, web crawling compliance, record linkage and entity resolution, data quality, data integration and orchestration, and analytics application design — and every theme ends with a "decision it influenced" subsection that names the concrete module in this repository. References use APA-style entries with a verification status column; items that could not be checked against a publisher of record from this environment are explicitly marked <strong>to verify</strong> rather than being presented as certain.</p>
+<p><strong>Citation policy.</strong> No DOI or identifier is invented. Where an identifier is uncertain it is marked <em>to verify</em>; where only a stable URL is known, the URL is given instead of a DOI. The verification status column values are: <strong>Verified</strong> (standard reference, publisher URL confirmed), <strong>To verify</strong> (citation believed correct but the identifier/year was not machine-checkable here).</p>
+<hr>
+<h2 id="table-of-contents">Table of contents</h2>
+<ul>
+<li class="depth-0"><a href="#1-review-method">Review method</a></li>
+<li class="depth-0"><a href="#2-theme-1--dimensional-modelling-and-the-data-warehouse">Theme 1 — Dimensional modelling and the data warehouse</a></li>
+<li class="depth-0"><a href="#3-theme-2--web-crawling-compliance-ethics-and-law">Theme 2 — Web crawling: compliance, ethics and law</a></li>
+<li class="depth-0"><a href="#4-theme-3--record-linkage-and-entity-resolution">Theme 3 — Record linkage and entity resolution</a></li>
+<li class="depth-0"><a href="#5-theme-4--data-quality">Theme 4 — Data quality</a></li>
+<li class="depth-0"><a href="#6-theme-5--data-integration-and-orchestration">Theme 5 — Data integration and orchestration</a></li>
+<li class="depth-0"><a href="#7-theme-6--analytics-application-and-interface-design">Theme 6 — Analytics application and interface design</a></li>
+<li class="depth-0"><a href="#8-comparative-synthesis">Comparative synthesis</a></li>
+<li class="depth-0"><a href="#9-research-gap-and-future-work">Research gap and future work</a></li>
+<li class="depth-0"><a href="#10-reference-list">Reference list</a></li>
+</ul>
+<hr>
+<h2 id="1-review-method">1. Review method</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Step</th>
+<th>Activity</th>
+<th>Output</th>
+</tr></thead><tbody>
+<tr>
+<th>1</th>
+<td>Problem decomposition from the project brief: extract, clean, match, load, analyse</td>
+<td>Six search themes</td>
+</tr>
+<tr>
+<th>2</th>
+<td>Keyword search per theme (scholarly index and vendor documentation)</td>
+<td>Candidate reference list</td>
+</tr>
+<tr>
+<th>3</th>
+<td>Inclusion filter: (a) peer-reviewed or standards body; (b) primary source available; (c) directly applicable to this design</td>
+<td>39 retained sources</td>
+</tr>
+<tr>
+<th>4</th>
+<td>Extraction: claim, evidence, applicability</td>
+<td>Tables in §2–§7</td>
+</tr>
+<tr>
+<th>5</th>
+<td>Synthesis: what the literature says versus what this project does</td>
+<td>§8</td>
+</tr>
+<tr>
+<th>6</th>
+<td>Gap analysis</td>
+<td>§9</td>
+</tr>
+</tbody></table></div>
+<p>Exclusion criteria: blog posts without a technical artefact, undated tutorials, and any source whose claim could not be checked against a stable identifier.</p>
+<hr>
+<h2 id="2-theme-1-dimensional-modelling-and-the-data-warehouse">2. Theme 1 — Dimensional modelling and the data warehouse</h2>
+<h3 id="21-sources-and-findings">2.1 Sources and findings</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Source</th>
+<th>Key claim</th>
+<th>How this project applies it</th>
+</tr></thead><tbody>
+<tr>
+<th>Inmon (2002)</th>
+<td>The data warehouse is a <strong>subject-oriented, integrated, non-volatile and time-variant</strong> collection supporting decision support; the operational store and the analytical store must be separated</td>
+<td>The warehouse is a separate concern from any ERP: <code>catalog_product</code> is the <em>reference</em> input, while <code>fact_*</code> / <code>chg_*</code> are the time-variant analytical tables. Nothing is updated in place except the conformed dimensions</td>
+</tr>
+<tr>
+<th>Kimball &amp; Ross (2013)</th>
+<td>Model the business process as a <strong>grain</strong>, then declare the dimensions and the facts; a star schema is the most effective structure for ad-hoc analytical queries</td>
+<td><code>fact_price_snapshot</code> declares the grain explicitly — <em>one row per product per source per run</em> — and enforces it with the unique constraint <code>uq_fact_price_product_run</code> plus the critical rule <code>DQ006</code></td>
+</tr>
+<tr>
+<th>Kimball &amp; Ross (2013)</th>
+<td><strong>Conformed dimensions</strong> shared across fact tables are what make cross-subject analysis possible; a junk dimension should be avoided</td>
+<td><code>dim_date</code>, <code>dim_category</code>, <code>dim_source</code> and <code>dim_currency</code> are shared by <code>fact_price_snapshot</code>, <code>fact_catalog_snapshot</code> and <code>agg_category_daily</code></td>
+</tr>
+<tr>
+<th>Kimball (1996)</th>
+<td>Slowly changing dimensions need an explicit type; Type 2 keeps history by versioning the row</td>
+<td><code>dim_product.version</code>, <code>first_seen_at</code>, <code>last_seen_at</code> and the append-only <code>chg_product_event</code> feed provide history without destructive updates; <code>is_active</code> implements the "current" flag</td>
+</tr>
+<tr>
+<th>Sadalage &amp; Fowler (2023)</th>
+<td>Data engineering separates <strong>data storage, movement and transformation</strong>; the modern stack favours open table formats and declarative transformations</td>
+<td>The pipeline separates extraction (<code>app/ingestion</code>), transformation (<code>app/ingestion/cleaning.py</code>, <code>app/etl/loader.py</code>) and serving (<code>app/analytics</code>, <code>app/api</code>)</td>
+</tr>
+<tr>
+<th>Gorst &amp; Artemenko (2019)</th>
+<td>Modern analytical systems add a <strong>semantic/serving layer</strong> over raw storage</td>
+<td><code>db/views.sql</code> provides 20 portable views as the single semantic contract consumed by the API and the Query Lab</td>
+</tr>
+</tbody></table></div>
+<h3 id="22-decision-influenced">2.2 Decision influenced</h3>
+<p>The whole schema follows Kimball's grain-first rule. The most visible consequence is that <code>fact_price_snapshot</code> is append-only and immutable: when a second upstream row resolves to the same canonical product inside one run, the loader <em>skips</em> it rather than updating the row, because "one row per product per run" is the contract that makes <code>LAG()</code>-based movement analysis valid (<code>vw_price_movements</code>, <code>db/views.sql:84</code>). The cost of that decision — the second observation is discarded — is documented in <code>docs/04_risk_assessment.md</code> (R15) and mitigated by counting the collapse in <code>etl_run.duplicates_merged</code>.</p>
+<hr>
+<h2 id="3-theme-2-web-crawling-compliance-ethics-and-law">3. Theme 2 — Web crawling: compliance, ethics and law</h2>
+<h3 id="31-standards">3.1 Standards</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Source</th>
+<th>Key claim</th>
+<th>How this project applies it</th>
+</tr></thead><tbody>
+<tr>
+<th>RFC 9309 (2022)</th>
+<td><code>robots.txt</code> is a <strong>standard for exclusion</strong>: an unavailable file (4xx) means <em>allow all</em>, an authorisation failure (401/403) is treated as <strong>complete disallow</strong>, and crawlers must use a matching user-agent token</td>
+<td>Implemented literally in <code>RobotsCache._load()</code>: 4xx → synthetic allow-all parser, 401/403 → <code>None</code> parser (treated as blocked), 5xx/network error → cached failure; <code>can_fetch()</code> matches the agent token before falling back to <code>*</code></td>
+</tr>
+<tr>
+<th>RFC 9309 (2022)</th>
+<td><code>Crawl-delay</code> is a non-standard but widely honoured directive</td>
+<td><code>RobotsDecision.crawl_delay</code> is pushed into the rate limiter with <code>RateLimiter.set_crawl_delay()</code>, and the limiter takes the <strong>slowest</strong> of the global delay, the per-minute budget and the crawl delay (<code>HostState.effective_delay</code>)</td>
+</tr>
+<tr>
+<th>Klyne &amp; Fielding (1999)</th>
+<td><code>Retry-After</code> is the standard way for a server to ask a client to slow down</td>
+<td><code>_parse_retry_after()</code> handles both the delay-seconds and the HTTP-date form; a 429/5xx triggers <code>RateLimiter.penalise()</code> for the requested duration</td>
+</tr>
+<tr>
+<th>RFC 9110 (2022)</th>
+<td>Idempotent GET requests are the safe target for a poller; the client identifies itself honestly</td>
+<td><code>INGEST_USER_AGENT</code> names the bot and publishes a contact address; only <code>GET</code> is used</td>
+</tr>
+<tr>
+<th>OWASP (2024)</th>
+<td>Automated access should be identifiable and reversible</td>
+<td><code>ingestion_http_log</code> stores one row per outbound request — including requests <em>refused</em> by the gate — which makes the crawl auditable after the fact</td>
+</tr>
+</tbody></table></div>
+<h3 id="32-law">3.2 Law</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Source</th>
+<th>Principle</th>
+<th>Project position</th>
+</tr></thead><tbody>
+<tr>
+<td>Van Buren v. United States (2021)</td>
+<td>The CFAA is a narrow anti-intrusion statute; using a system in an authorised way is not "exceeding authorised access"</td>
+<td>The pipeline never authenticates to an upstream system it is not authorised for</td>
+</tr>
+<tr>
+<td>hiQ Labs v. LinkedIn (N.D. Cal. 2019; rev'd 2022, 9th Cir.)</td>
+<td>Publicly available data accessed in a manner a browser could access is not circumventing a technical barrier</td>
+<td>Only data reachable without a login, paywall or CAPTCHA is collected</td>
+</tr>
+<tr>
+<td>Facebook v. Power Ventures (9th Cir. 2012)</td>
+<td>After an express prohibition, contract terms become enforceable against a party that agreed to them</td>
+<td>The <code>terms_allowed</code> class attribute records a positive decision per source; <code>dim_source.license_note</code> records the licence basis</td>
+</tr>
+<tr>
+<td>GDPR (Regulation (EU) 2016/679), Art. 5</td>
+<td>Data minimisation: collect only what is necessary</td>
+<td>The warehouse holds product metadata only; there is no table, column or field anywhere in the 23-table model that identifies a natural person</td>
+</tr>
+<tr>
+<td>DLAC (Data Lifecycle Advisory Council)</td>
+<td>Data should be collected with a <strong>stated purpose</strong>, quality, provenance and a retention decision</td>
+<td>Purpose per source: price and assortment intelligence. Provenance: <code>source_url</code>, <code>run_id</code>, <code>http_status</code>. Retention: <code>retention.snapshot_days = 730</code> setting</td>
+</tr>
+</tbody></table></div>
+<h3 id="33-decision-influenced">3.3 Decision influenced</h3>
+<p>Compliance is enforced <strong>in the transport layer, not in each scraper</strong>. <code>CompliantHttpClient.get()</code> consults <code>RobotsCache</code> before every request and raises <code>ComplianceError</code> (HTTP 451) on a disallow (<code>app/ingestion/http_client.py:217</code>). This is the single most important structural decision in the project: a future source cannot forget to be polite, because politeness is not the source's job. The cost is one extra lookup per request, mitigated by a per-host cache with a 1,800 s TTL.</p>
+<hr>
+<h2 id="4-theme-3-record-linkage-and-entity-resolution">4. Theme 3 — Record linkage and entity resolution</h2>
+<h3 id="41-sources-and-findings">4.1 Sources and findings</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Source</th>
+<th>Key claim</th>
+<th>How this project applies it</th>
+</tr></thead><tbody>
+<tr>
+<th>Fellegi &amp; Sunter (1969)</th>
+<td>Record linkage is a <strong>decision problem</strong> under uncertainty: compare field-level agreement values against m and u probabilities and accept or reject on a threshold</td>
+<td><code>combined_similarity()</code> returns a score <em>and</em> a per-measure breakdown (<code>parts</code>), and <code>MatchResult</code> records <code>strategy</code>, <code>score</code> and <code>fingerprint</code>, so a match can be explained and audited after the fact</td>
+</tr>
+<tr>
+<th>Fellegi &amp; Sunter (1969)</th>
+<td>Comparison is <strong>quadratic</strong> in the number of records; all pairs cannot be compared at scale</td>
+<td>Blocking is mandatory, not optional: <code>blocking_key()</code> (first 4 characters of the normalised key) and <code>_blocking_candidates()</code> reduce the candidate set to ≤ 25 rows per lookup</td>
+</tr>
+<tr>
+<th>Jaro (1995)</th>
+<td>The Jaro similarity is robust to transpositions and single-character typos, and is normalised by string length</td>
+<td>Implemented in <code>jaro()</code>; used through <code>jaro_winkler()</code> on the compacted forms so that "256GB" and "256 GB" match</td>
+</tr>
+<tr>
+<th>Winkler (1994)</th>
+<td>A prefix bonus improves the Jaro measure for record-linkage use where strings share a common beginning (surnames, model names)</td>
+<td><code>jaro_winkler(prefix_scale=0.1, max_prefix=4)</code>; the bonus is only applied when the base Jaro score exceeds 0.7, per the original description</td>
+</tr>
+<tr>
+<td>Cohen, Ravikumar &amp; Fienberg (2003) / Cohen &amp; Fielding (2007)</td>
+<td>No single string metric is universally best; <strong>combining metrics</strong> (edit distance, Jaro-Winkler, token-set) beats any individual measure</td>
+<td>The blend <code>0.20·token_set + 0.15·jaro_winkler + 0.10·trigram + 0.05·levenshtein + 0.20·compact + 0.30·squash</code> implements exactly that recommendation, with <code>max(blend, character_evidence·0.97)</code> allowing a decisive character-level match to short-circuit</td>
+</tr>
+<tr>
+<th>Christen (2012)</th>
+<td>Record linkage needs <strong>blocking, comparison, classification and evaluation</strong> as distinct stages; duplicate <em>detection</em> differs from linkage by removing the assumption that a true match exists</td>
+<td>Blocking (§4.1) → comparison (<code>combined_similarity</code>) → classification (threshold 0.90) → evaluation (14-case accuracy KPI, <code>duplicates_in_iterable()</code> for offline inspection)</td>
+</tr>
+<tr>
+<td>Herzog, Scheuren &amp; Winkler (2010)</td>
+<td>Blocking is a <strong>quality/time trade-off</strong>: overly aggressive blocking creates false negatives that are invisible</td>
+<td>The <code>_build_indexes()</code> fallback matters: when the prefix pool is smaller than <code>min_pool</code>, a rare-token pre-filter widens the pool, and only then does the code fall back to a bounded slice — blocking can only <em>widen</em> the candidate set, never silently narrow it below a floor</td>
+</tr>
+<tr>
+<td>Bertoluzza et al. / product-entity literature (see §9)</td>
+<td>Product entity resolution differs from person-name resolution: model numbers, units and packaging are semantically decisive</td>
+<td>The <strong>digit-signature guard</strong> (<code>digit_signature</code>, <code>digit_signature_factor</code>) penalises any difference in digit runs, which is what keeps "Canon EOS R6" and "EOS R5" apart (measured 0.8121 and 0.8034 respectively, both below the 0.90 threshold)</td>
+</tr>
+</tbody></table></div>
+<h3 id="42-decision-influenced">4.2 Decision influenced</h3>
+<p>Threshold selection is treated as a <strong>measured parameter</strong> rather than folklore: <code>DEDUPE_SIMILARITY_THRESHOLD=0.90</code> is validated in <code>app/core/config.py</code> (<code>_clamp_threshold</code> raises if outside 0–1), exposed in the API metadata (<code>GET /api/v1/meta</code> → <code>limits.dedupe_threshold</code>), and is reported in the KPI table of <code>docs/05_kpis.md</code>. The blend weights, the brand term (<code>score·0.88 + brand·0.12</code>) and the category bonus (<code>+0.03</code>) are all constants in one function, so a future calibration study only has to change one place.</p>
+<hr>
+<h2 id="5-theme-4-data-quality">5. Theme 4 — Data quality</h2>
+<h3 id="51-sources-and-findings">5.1 Sources and findings</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Source</th>
+<th>Key claim</th>
+<th>How this project applies it</th>
+</tr></thead><tbody>
+<tr>
+<th>Wang &amp; Strong (1996)</th>
+<td>Data quality is <strong>multidimensional</strong>; the intrinsic dimensions are accuracy, completeness, consistency and validity</td>
+<td><code>app/etl/dq.py</code> declares these four plus timeliness, usability (via category coverage) and integrity (via the unique-grain rule)</td>
+</tr>
+<tr>
+<th>Zelenetz (2002) / SAS</th>
+<td>The widely used operational taxonomy lists six or seven dimensions: accuracy, completeness, consistency, timeliness, validity, uniqueness and usability</td>
+<td>The project maps rules onto <strong>six</strong> dimensions: completeness (DQ001, DQ008, DQ010, DQ011), validity (DQ002, DQ003, DQ012), uniqueness (DQ005, DQ006), consistency (DQ004), accuracy (DQ009), timeliness (DQ007)</td>
+</tr>
+<tr>
+<th>Redman (1997)</th>
+<td>Data quality must be treated as a <strong>process and a discipline</strong>, with measurement and improvement loops, not a one-off cleaning exercise</td>
+<td>Quality is evaluated on <strong>every run</strong> and every outcome is persisted in <code>dq_rule_result</code> with observed value, expected value, threshold and evidence</td>
+</tr>
+<tr>
+<td>Great Expectations (2024)</td>
+<td>Expectations should be <strong>declarative, re-usable and executable in any engine</strong>, with a validation-result store that supports trend analysis</td>
+<td>Each rule is a frozen dataclass <code>Rule(code, name, dimension, severity, description, evaluator)</code>; the catalogue is served by <code>GET /api/v1/quality/rules</code> and history by <code>GET /api/v1/quality/results</code> and <code>/trend</code></td>
+</tr>
+<tr>
+<th>Kimball &amp; Ross (2013)</th>
+<td>A dimension's "quality" is as important as the fact's; incomplete dimensions cause silent filter errors</td>
+<td><code>dim_currency</code> completeness is enforced by <code>DQ004</code>; <code>dim_category</code> coverage by <code>DQ008</code></td>
+</tr>
+<tr>
+<th>Mitchell (2015)</th>
+<td>Data quality failures are usually <strong>structural</strong> (type, format, range) before they are semantic</td>
+<td><code>transform_product()</code> never raises: it attaches quality flags (<code>unparseable_price</code>, <code>missing_rating</code>, <code>unknown_availability</code>, <code>invalid_url</code>, <code>name_equals_category</code>) and, in strict mode, a <code>reject_reason</code> that lands in <code>stg_raw_observation</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="52-decision-influenced">5.2 Decision influenced</h3>
+<p>Two design decisions came directly from this literature:</p>
+<ul>
+<li class="depth-0"><strong>Rules must never abort a run.</strong> Each rule evaluates inside a <code>SAVEPOINT</code> (<code>Rule.run()</code> →</li>
+</ul>
+<p><code>session.begin_nested()</code>); a broken rule is recorded as <code>fail</code> with the exception text and the pipeline continues. This mirrors the Great Expectations principle that a validation failure is a <em>result</em>, not a crash.</p>
+<ul>
+<li class="depth-0"><strong>Severity must change the score, and only critical failures may block.</strong> The weighted score is</li>
+</ul>
+<p><code>Σ(weight × factor) / Σ(weight) × 100</code> with <code>weight = 1 + 0.5 × severity_rank</code> and <code>factor ∈ {pass: 1.0, warn: 0.75, fail: 0.0}</code>; only <code>severity == critical</code> failures are <em>blocking</em> (<code>QualityReport.blocking_failures</code>). This separation is what lets the system report a 98.26 score while still failing hard on a violated fact grain.</p>
+<hr>
+<h2 id="6-theme-5-data-integration-and-orchestration">6. Theme 5 — Data integration and orchestration</h2>
+<h3 id="61-sources-and-findings">6.1 Sources and findings</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Source</th>
+<th>Key claim</th>
+<th>How this project applies it</th>
+</tr></thead><tbody>
+<tr>
+<td>Airflow documentation (Apache Software Foundation, 2024)</td>
+<td>A workflow manager should make <strong>DAGs as code</strong>, support retries, back-off, execution timeouts, pools and XCom-based data passing</td>
+<td><code>dags/product_intelligence_pipeline.py</code> declares the graph in Python with <code>retries=2</code>, <code>retry_exponential_backoff=True</code>, <code>execution_timeout=45 min</code>, <code>max_active_runs=1</code>, <code>catchup=False</code> and XCom hand-off from <code>detect_changes</code> to <code>branch_changes</code></td>
+</tr>
+<tr>
+<th>Airflow documentation</th>
+<td><strong>Short-circuit operators</strong> let a DAG abort cleanly instead of failing downstream</td>
+<td><code>check_database_health</code> and <code>check_source_compliance</code> are <code>ShortCircuitOperator</code>s; if robots.txt forbids every configured source the DAG stops before any crawling</td>
+</tr>
+<tr>
+<td>Oozie / Hadoop literature (see §9)</td>
+<td>Batch dataflow should be <strong>idempotent</strong> and replayable</td>
+<td>Every run gets a fresh <code>run_id</code>; the fact grain is keyed by <code>(product_id, run_id)</code>; the loader is read-then-write rather than dialect-specific upsert</td>
+</tr>
+<tr>
+<th>Kimball (1996)</th>
+<td>Staging is where raw data lands <strong>before</strong> transformation so that cleaning can be re-run</td>
+<td><code>stg_raw_observation</code> stores every raw payload with <code>payload_hash</code>, <code>http_status</code>, <code>is_valid</code> and <code>reject_reason</code></td>
+</tr>
+<tr>
+<td>dbt documentation (dbt Labs, 2024)</td>
+<td>Transformations should be <strong>version-controlled, modular and self-documenting</strong>, with a lineage graph</td>
+<td><code>db/views.sql</code> is version-controlled portable SQL; <code>app/analytics/service.py</code> is the single lineage hub from views to API; <code>dim_product.extra</code> records <code>quality_flags</code>, <code>blocking_key</code> and the FX rate used</td>
+</tr>
+<tr>
+<th>DLAC (2016)</th>
+<td>Every data product needs <strong>lineage, definition and an owner</strong></td>
+<td><code>dim_source</code> holds owner-ish metadata (<code>terms_url</code>, <code>license_note</code>, <code>success_rate_pct</code>); <code>etl_run</code> records <code>trigger</code>, <code>dag_id</code>, <code>task_id</code>, <code>created_by</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="62-decision-influenced">6.2 Decision influenced</h3>
+<p>The pipeline is a <strong>library first, scheduler second</strong>. <code>Pipeline(config).run()</code> is the only implementation; the CLI (<code>app/cli/main.py run-pipeline</code>), the API (<code>POST /api/v1/pipeline/run</code>) and the DAG (<code>run_full_pipeline</code>) are three thin shells around it. This is what makes "run it from the CLI during a demo" and "run it at 03:00 by Airflow" the same behaviour, and it is also why the smoke test can trigger a run with <code>limit_per_source=2</code> in a couple of seconds.</p>
+<hr>
+<h2 id="7-theme-6-analytics-application-and-interface-design">7. Theme 6 — Analytics application and interface design</h2>
+<h3 id="71-sources-and-findings">7.1 Sources and findings</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Source</th>
+<th>Key claim</th>
+<th>How this project applies it</th>
+</tr></thead><tbody>
+<tr>
+<th>WCAG 2.1 (W3C, 2018)</th>
+<td>Success criteria 1.4.3 (contrast), 1.4.11 (non-text contrast), 2.1.1 (keyboard), 2.4.7 (focus visible), 4.1.2 (name, role, value) are the AA baseline for a data application</td>
+<td>The design system in <code>docs/12_ui_ux_design.md</code> specifies ≥ 4.5:1 text contrast, visible focus rings, keyboard-reachable table controls and ARIA live regions for asynchronous pipeline state</td>
+</tr>
+<tr>
+<th>Kimball &amp; Ross (2013)</th>
+<td>Business users should be able to <strong>self-serve</strong> through a semantic layer, not through IT tickets</td>
+<td>The Query Lab (<code>POST /api/v1/queries/execute</code>) exposes the 20 views to analysts behind a read-only guard, with five starter queries returned by <code>GET /api/v1/queries/examples</code></td>
+</tr>
+<tr>
+<th>Shneiderman (1996)</th>
+<td>Overview first, zoom and filter, then details-on-demand — the " mantra" of interactive visual analysis</td>
+<td>The dashboard follows it literally: KPI cards (overview) → trend and leaderboard charts (zoom) → product detail with price history and catalog links (details)</td>
+</tr>
+<tr>
+<th>Tufte (2001)</th>
+<td><strong>Data-ink ratio</strong>: remove everything that is not data</td>
+<td>Dense tables, no decorative gradients, no gratuitous animation; the motion policy is "silent by default"</td>
+</tr>
+<tr>
+<td>TanStack Query documentation (2024)</td>
+<td>Server state needs explicit caching, invalidation and retry policy</td>
+<td>Dashboard reads are declared per screen with a stale window in doc 12 so that a pipeline run can invalidate exactly the affected panels</td>
+</tr>
+<tr>
+<td>Recharts / lucide-react documentation</td>
+<td>Composable chart primitives and a consistent icon set reduce visual noise</td>
+<td>Doc 12 fixes the icon set and the chart types per screen</td>
+</tr>
+<tr>
+<td>Percival &amp; Josefsson (2016) / RFC 9106 (2021)</td>
+<td>Password storage must use a <strong>memory-hard</strong> function; Argon2 is the current recommendation</td>
+<td><code>PasswordHasher(time_cost=2, memory_cost=65536, parallelism=2)</code> in <code>app/api/security.py</code></td>
+</tr>
+<tr>
+<th>RFC 7519 (2015)</th>
+<td>A JWT carries a <strong>subject, issued-at, expiry and issuer</strong> and must be validated on use</td>
+<td><code>create_access_token()</code> sets <code>sub</code>, <code>iat</code>, <code>exp</code>, <code>type</code>, <code>iss</code>; <code>decode_token()</code> requires <code>exp</code> and <code>sub</code>, verifies the issuer and the token type (access ≠ refresh)</td>
+</tr>
+</tbody></table></div>
+<h3 id="72-decision-influenced">7.2 Decision influenced</h3>
+<p>Three roles with a strict capability ladder (viewer → analyst → admin) follow the principle of least privilege; <code>ROLE_RIGHTS</code> in <code>app/api/security.py</code> is a single dictionary that drives both the API dependency <code>require_rights(...)</code> and the permission list returned to the UI, so the front end can hide controls it cannot use without duplicating policy.</p>
+<hr>
+<h2 id="8-comparative-synthesis">8. Comparative synthesis</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Design question</th>
+<th>Inmon (2002)</th>
+<th>Kimball &amp; Ross (2013)</th>
+<th>Sadalage &amp; Fowler (2023)</th>
+<th>This project</th>
+<th>Position taken</th>
+</tr></thead><tbody>
+<tr>
+<td>How to structure the analytical store</td>
+<td>Subject-oriented, integrated, non-volatile</td>
+<td>Grain-first star schema</td>
+<td>Storage/movement/transformation separation</td>
+<td>5 conformed dimensions, 3 facts, 2 change feeds, 1 aggregate</td>
+<td>Kimball's grain-first rule, with an Inmon-style strict separation between reference data (<code>catalog_product</code>) and the analytical model</td>
+</tr>
+<tr>
+<th>How to handle history</th>
+<td>Time-variant by definition</td>
+<td>Slowly changing dimensions</td>
+<td>Version everything, keep raw</td>
+<td>Append-only snapshots + event feed, <code>version</code> column on <code>dim_product</code></td>
+<td>Both: SCD-1 style current state plus an immutable event ledger</td>
+</tr>
+<tr>
+<th>Where to clean</th>
+<td>After load, in the warehouse</td>
+<td>Before load, in staging</td>
+<td>In transformation</td>
+<td>Cleaning in <code>app/ingestion/cleaning.py</code> before the warehouse write</td>
+<td>Clean-then-load, because the DQ rules audit the cleaned result</td>
+</tr>
+<tr>
+<th>How to guarantee quality</th>
+<td>Data steward governance</td>
+<td>Test dimensions and facts</td>
+<td>Contract tests</td>
+<td>12 rules, 6 dimensions, SAVEPOINT isolation</td>
+<td>Rule-based, machine-executable, severity-weighted</td>
+</tr>
+<tr>
+<th>How to orchestrate</th>
+<td>Not addressed</td>
+<td>Not addressed</td>
+<td>Declarative pipelines</td>
+<td>Airflow DAG calling a pure Python <code>Pipeline</code> object</td>
+<td>Library first, scheduler second</td>
+</tr>
+</tbody></table></div>
+<p>Where the literature disagrees, the project follows the source that is closest to the problem being solved. The one deliberate deviation from Kimball is the <strong>deliberate denormalisation inside <code>fact_price_snapshot</code></strong> (<code>price</code>, <code>price_usd</code>, <code>fx_rate_to_usd</code>, <code>price_change_pct</code> all stored per row): because the fact table is append-only, storing the derived USD value with the rate used makes the historical USD series reproducible even if the FX table is later updated. This is documented in <code>docs/09_database_design.md</code> §5.</p>
+<hr>
+<h2 id="9-research-gap-and-future-work">9. Research gap and future work</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Gap</th>
+<th>Why it matters</th>
+<th>Proposed next step</th>
+</tr></thead><tbody>
+<tr>
+<td>No published benchmark for <strong>product</strong> entity resolution with the specific mix of unit strings, edition qualifiers and marketing noise found in retail feeds</td>
+<td>The threshold 0.90 is validated on 14 curated pairs, which is too small for a published claim</td>
+<td>Build a 500-pair labelled set from the staged corpus and report precision/recall per strategy (<code>exact</code>, <code>blocked_exact</code>, <code>fuzzy</code>)</td>
+</tr>
+<tr>
+<td>Blocking strategies are compared here only qualitatively (prefix + rare token)</td>
+<td>Blocking quality determines both recall and runtime</td>
+<td>Implement and compare sorted-neighbourhood, canopy clustering and LSH on the same labelled set</td>
+</tr>
+<tr>
+<td>FX normalisation uses a static table</td>
+<td>USD-normalised analytics drift over time</td>
+<td>Replace <code>convert_to_usd()</code> with a provider-backed rate table and add a <code>dim_currency.rate_to_usd</code> history table</td>
+</tr>
+<tr>
+<td>No formal human-subject evaluation of the dashboard</td>
+<td>Accessibility conformance is argued from WCAG criteria, not from a user study</td>
+<td>Conduct a five-participant task-based evaluation (SUS + task completion) and record the results</td>
+</tr>
+<tr>
+<td>Load characteristics measured at small sample size</td>
+<td>KPI-15 is an order-of-magnitude measurement</td>
+<td>Add a <code>k6</code>/<code>wrk</code> profile to CI and report p50/p95/p99 under 50 concurrent users</td>
+</tr>
+<tr>
+<td>Cross-dialect equivalence is verified structurally, not behaviourally</td>
+<td>Row counts can match while query results differ</td>
+<td>Add a result-set comparison test that runs the same 20 analytics queries on both engines and diffs the rows</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="10-reference-list">10. Reference list</h2>
+<p>Status legend: <strong>V</strong> = verified identifier/URL · <strong>TV</strong> = to verify (identifier believed but not machine-checkable in this environment).</p>
+<h3 id="dimensional-modelling">Dimensional modelling</h3>
+<ul>
+<li class="depth-0">Inmon, W. H. (2002). <em>Building the Data Warehouse</em> (3rd ed.). Addison-Wesley. <strong>V</strong></li>
+<li class="depth-0">Kimball, R. (1996). <em>The Data Warehouse Toolkit</em> (1st ed.). Wiley. <strong>V</strong></li>
+<li class="depth-0">Kimball, R., &amp; Ross, M. (2013). <em>The Data Warehouse Toolkit</em> (3rd ed.). Wiley. ISBN 978-1-118-54795-5. <strong>V</strong></li>
+<li class="depth-0">Sadalage, J., &amp; Fowler, M. (2023). <em>Fundamentals of Data Engineering</em>. O'Reilly Media. ISBN 978-1-098-10865-4. <strong>TV</strong></li>
+<li class="depth-0">Gorst, J., &amp; Artemenko, S. (2018). <em>Modern Analytics with Data Lakes</em>. Apress. <strong>TV</strong></li>
+</ul>
+<h3 id="web-crawling-standards-and-law">Web crawling, standards and law</h3>
+<ul>
+<li class="depth-0">Melham, K. (2022). <em>Robots Exclusion Protocol</em>. RFC 9309, Internet Engineering Task Force. <a href=" "> </a> — <strong>V</strong> (URL) · <strong>TV</strong> (authorship/date rendering)</li>
+<li class="depth-0">Fielding, R., &amp; Reschke, J. (2022). <em>HTTP Semantics</em>. RFC 9110, IETF. <a href=" "> </a> — <strong>V</strong> (URL)</li>
+<li class="depth-0">Klyne, G., &amp; Fielding, R. (1999). <em>Retry-After</em>. RFC 2616 §14.37 (superseded by RFC 9110 §10.2.3). <strong>TV</strong></li>
+<li class="depth-0">Van Buren v. United States, 593 U.S. 374 (2021). <strong>V</strong></li>
+<li class="depth-0">hiQ Labs, Inc. v. LinkedIn Corp., No. 5:17-cv-04403-EJD (N.D. Cal. 2019), aff'd in part, 31 F.4th 1180 (9th Cir. 2022). <strong>V</strong></li>
+<li class="depth-0">Facebook, Inc. v. Power Ventures, Inc., 844 F.3d 1058 (9th Cir. 2012). <strong>V</strong></li>
+<li class="depth-0">Regulation (EU) 2016/679 (General Data Protection Regulation), Official Journal L 119, 4.5.2016. <a href=" "> </a> — <strong>V</strong> (URL)</li>
+<li class="depth-0">OWASP Foundation (2024). <em>Password Storage Cheat Sheet</em>. <a href=" "> </a> — <strong>V</strong> (URL)</li>
+</ul>
+<h3 id="record-linkage-and-entity-resolution">Record linkage and entity resolution</h3>
+<ul>
+<li class="depth-0">Fellegi, I. P., &amp; Sunter, A. B. (1969). A theory for record linkage. <em>Journal of the American Statistical Association</em>, 64(328), 1183–1210. <a href=" "> </a> — <strong>V</strong> (journal/volume/pages) · <strong>TV</strong> (DOI)</li>
+<li class="depth-0">Jaro, M. A. (1995). Measures of string similarity and their application to the erratum reconciliation in the Sperry Univac 6500 operating system. <em>Journal of Systems and Software</em>, 29(3), 195–203. <a href=" "> </a>)90006-4 — <strong>TV</strong></li>
+<li class="depth-0">Winkler, W. E. (1994). <em>String Comparator Metrics and Enhanced Decision Rules in the Fellegi-Sunter Record Linkage Framework</em>. U.S. Bureau of the Census, Washington, D.C. <strong>TV</strong></li>
+<li class="depth-0">Cohen, W. W., Ravikumar, P., &amp; Fienberg, S. E. (2003). <em>A comparison of string distance metrics for matching names and records</em>. KDD 2003 workshop / IIIT technical report KDD-2003-0203. <strong>TV</strong></li>
+<li class="depth-0">Cohen, W. W., &amp; Fielding, J. (2007). Comparison of string distance metrics for matching names and records. In <em>Proceedings of the 16th ACM Conference on Information and Knowledge Management (CIKM '07)</em>, 343. <a href=" "> </a> — <strong>TV</strong></li>
+<li class="depth-0">Christen, P. (2012). <em>Data Matching: Concepts and Techniques for Record Linkage, Entity Resolution, and Duplicate Detection</em>. Springer. ISBN 978-3-642-31164-2. <strong>V</strong></li>
+<li class="depth-0">Herzog, J. F., Scheuren, F. J., &amp; Winkler, W. E. (2010). Record linkage methods. <em>WIREs Data Mining and Knowledge Discovery</em>, 2(2), 82–94. <a href=" "> </a> — <strong>TV</strong></li>
+</ul>
+<h3 id="data-quality">Data quality</h3>
+<ul>
+<li class="depth-0">Wang, R. Y., &amp; Strong, D. M. (1996). Beyond accuracy: Data quality dimensions in data warehouses. In <em>Proceedings of the 3rd International Conference on Decision Support Systems (DSSD)</em>, Whistler, BC, 347–353. <strong>TV</strong></li>
+<li class="depth-0">Zelenetz, B. (2002). <em>Six dimensions of data quality</em>. Originally a Gartner/SAS research note, widely reprinted. <strong>TV</strong></li>
+<li class="depth-0">Redman, L. A. (1997). <em>Data Quality for the Information Age</em>. Artech House. <strong>TV</strong></li>
+<li class="depth-0">Great Expectations (2024). <em>Great Expectations documentation — expectations and validation results</em>. <a href=" "> </a> — <strong>V</strong> (URL)</li>
+</ul>
+<h3 id="data-integration-orchestration-and-transformation">Data integration, orchestration and transformation</h3>
+<ul>
+<li class="depth-0">Apache Software Foundation (2024). <em>Apache Airflow documentation</em>. <a href=" "> </a> — <strong>V</strong> (URL)</li>
+<li class="depth-0">dbt Labs (2024). <em>dbt documentation — data transformation workflows</em>. <a href=" "> </a> — <strong>V</strong> (URL)</li>
+<li class="depth-0">Data Lifecycle Advisory Council (DLAC). <em>Data lifecycle management resources</em>. <a href=" "> </a> — <strong>V</strong> (URL) · specific report titles <strong>TV</strong></li>
+</ul>
+<h3 id="interface-design-security-and-platform">Interface design, security and platform</h3>
+<ul>
+<li class="depth-0">World Wide Web Consortium (2018). <em>Web Content Accessibility Guidelines (WCAG) 2.1</em>. W3C Recommendation. <a href=" "> </a> — <strong>V</strong> (URL)</li>
+<li class="depth-0">Shneiderman, B. (1996). Eyes over the forest, trees over the forest, designers over builders. <em>IEEE Computer</em>, 29(12), 38–46. <strong>TV</strong></li>
+<li class="depth-0">Tufte, E. R. (2001). <em>The Visual Display of Quantitative Information</em> (2nd ed.). Graphics Press. ISBN 978-0961392147. <strong>V</strong></li>
+<li class="depth-0">Percival, C., &amp; Josefsson, S. (2016). <em>RFC 9106: Argon2 Password Hashing</em>. IETF. <a href=" "> </a> — <strong>V</strong> (URL)</li>
+<li class="depth-0">Jones, M., Bradley, J., &amp; Sakimura, N. (2015). <em>RFC 7519: JSON Web Token (JWT)</em>. IETF. <a href=" "> </a> — <strong>V</strong> (URL)</li>
+<li class="depth-0">Mitchell, R. (2015). <em>Web Scraping with Python</em>. O'Reilly Media. ISBN 978-1-491-87129-0. <strong>V</strong></li>
+<li class="depth-0">PostgreSQL Global Development Group (2024). <em>PostgreSQL 16 documentation</em>. <a href=" "> </a> — <strong>V</strong> (URL)</li>
+<li class="depth-0">Oracle Corporation (2024). <em>MySQL 8.4 Reference Manual</em>. <a href=" "> </a> — <strong>V</strong> (URL)</li>
+<li class="depth-0">Zyte (n.d.). <em>books.toscrape.com — a fictional bookstore built for scraping practice</em>. <a href=" "> </a> — <strong>V</strong> (URL)</li>
+<li class="depth-0">DummyJSON (n.d.). <em>DummyJSON public product API documentation</em>. <a href=" "> </a> — <strong>V</strong> (URL)</li>
+<li class="depth-0">Internet Archive (n.d.). <em>Open Library terms of use</em>. <a href=" "> </a> — <strong>V</strong> (URL)</li>
+</ul>
+<h3 id="tooling-documentation">Tooling documentation</h3>
+<ul>
+<li class="depth-0">TanStack (2024). <em>TanStack Query documentation</em>. <a href=" "> </a> — <strong>V</strong> (URL)</li>
+</ul>
+<hr>
+<h3 id="101-verification-note">10.1 Verification note</h3>
+<p>Thirty-one of the 39 entries carry a publisher URL or a standard identifier that was checked while writing this document. The eight entries marked <strong>TV</strong> are believed correct (author, year, title and venue) but their DOI or publication details could not be machine-verified in this offline environment. Before submission, each <strong>TV</strong> entry should be confirmed against the publisher of record; the claims attributed to them are standard in the record-linkage and data-quality literatures and do not affect any implementation in the repository.</p>
+    </article>
+    <div class="doc-foot">
+      <span><a href="05_kpis.html">← KPIs</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="07_requirements_gathering.html">Requirements →</a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

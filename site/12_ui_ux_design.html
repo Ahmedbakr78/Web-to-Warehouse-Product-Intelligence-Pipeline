@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Wireframes, design system, WCAG 2.1 AA">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="UI/UX Design — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Wireframes, design system, WCAG 2.1 AA">
+<title>UI/UX Design — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="23-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" class="active" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, all 113 operations, examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, 100-case plan, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="234 features with file references">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>UI/UX Design</h1>
+      <p>Wireframes, design system, WCAG 2.1 AA</p>
+    </div>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#table-of-contents">Table of contents</a></li><li class="lvl-2"><a href="#1-design-principles">1. Design principles</a></li><li class="lvl-2"><a href="#2-information-architecture">2. Information architecture</a></li><li class="lvl-3"><a href="#21-global-chrome">2.1 Global chrome</a></li><li class="lvl-2"><a href="#3-navigation-map">3. Navigation map</a></li><li class="lvl-2"><a href="#4-screen-inventory">4. Screen inventory</a></li><li class="lvl-2"><a href="#5-wireframes">5. Wireframes</a></li><li class="lvl-3"><a href="#51-s1-sign-in">5.1 S1 — Sign in</a></li><li class="lvl-3"><a href="#52-s2-dashboard">5.2 S2 — Dashboard</a></li><li class="lvl-3"><a href="#53-s3-products">5.3 S3 — Products</a></li><li class="lvl-3"><a href="#54-s4-product-detail">5.4 S4 — Product detail</a></li><li class="lvl-3"><a href="#55-s5-changes-price">5.5 S5 — Changes (price)</a></li><li class="lvl-3"><a href="#56-s6-changes-new-removed-category">5.6 S6 — Changes (new / removed / category)</a></li><li class="lvl-3"><a href="#57-s7-analytics">5.7 S7 — Analytics</a></li><li class="lvl-3"><a href="#58-s8-pipeline">5.8 S8 — Pipeline</a></li><li class="lvl-3"><a href="#59-s9-run-detail">5.9 S9 — Run detail</a></li><li class="lvl-3"><a href="#510-s10-quality">5.10 S10 — Quality</a></li><li class="lvl-3"><a href="#511-s11-catalog">5.11 S11 — Catalog</a></li><li class="lvl-3"><a href="#512-s12-sources">5.12 S12 — Sources</a></li><li class="lvl-3"><a href="#513-s13-query-lab">5.13 S13 — Query Lab</a></li><li class="lvl-3"><a href="#514-s14-account-and-settings">5.14 S14 — Account and settings</a></li><li class="lvl-3"><a href="#515-s15-admin">5.15 S15 — Admin</a></li><li class="lvl-2"><a href="#6-design-system">6. Design system</a></li><li class="lvl-3"><a href="#61-colour-tokens-light-mode">6.1 Colour tokens — light mode</a></li><li class="lvl-3"><a href="#62-colour-tokens-dark-mode">6.2 Colour tokens — dark mode</a></li><li class="lvl-3"><a href="#63-colour-usage-rules">6.3 Colour usage rules</a></li><li class="lvl-3"><a href="#64-typography-scale">6.4 Typography scale</a></li><li class="lvl-3"><a href="#65-spacing-and-layout-scale">6.5 Spacing and layout scale</a></li><li class="lvl-3"><a href="#66-icon-set">6.6 Icon set</a></li><li class="lvl-2"><a href="#7-accessibility">7. Accessibility</a></li><li class="lvl-2"><a href="#8-responsive-design">8. Responsive design</a></li><li class="lvl-2"><a href="#9-motion-policy">9. Motion policy</a></li><li class="lvl-2"><a href="#10-component-inventory">10. Component inventory</a></li><li class="lvl-2"><a href="#11-empty-loading-and-error-states">11. Empty, loading and error states</a></li></ol></details>
+    <article class="doc-body">
+<h2 id="purpose">Purpose</h2>
+<p>This document specifies the interface of the analytics dashboard: the information architecture, the navigation map, a wireframe for every screen, the design system (colour tokens for light and dark mode with measured contrast ratios, typography scale, spacing, component inventory), the accessibility statement against WCAG 2.1 AA, the responsive breakpoints and the motion policy.</p>
+<p><strong>Scope note.</strong> Every screen is defined by the data it displays and the API calls that back it. The endpoints named in each wireframe exist in the delivered API (see <code>docs/14_api_documentation.md</code>), so each screen is implementable — and verifiable — directly against the specification.</p>
+<hr>
+<h2 id="table-of-contents">Table of contents</h2>
+<ul>
+<li class="depth-0"><a href="#1-design-principles">Design principles</a></li>
+<li class="depth-0"><a href="#2-information-architecture">Information architecture</a></li>
+<li class="depth-0"><a href="#3-navigation-map">Navigation map</a></li>
+<li class="depth-0"><a href="#4-screen-inventory">Screen inventory</a></li>
+<li class="depth-0"><a href="#5-wireframes">Wireframes</a></li>
+<li class="depth-0"><a href="#6-design-system">Design system</a></li>
+<li class="depth-0"><a href="#7-accessibility">Accessibility</a></li>
+<li class="depth-0"><a href="#8-responsive-design">Responsive design</a></li>
+<li class="depth-0"><a href="#9-motion-policy">Motion policy</a></li>
+<li class="depth-0"><a href="#10-component-inventory">Component inventory</a></li>
+<li class="depth-0"><a href="#11-empty-loading-and-error-states">Empty, loading and error states</a></li>
+</ul>
+<hr>
+<h2 id="1-design-principles">1. Design principles</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>#</th>
+<th>Principle</th>
+<th>Consequence in the interface</th>
+</tr></thead><tbody>
+<tr>
+<th>P1</th>
+<td>Data first</td>
+<td>No hero images, no gradients behind text, no decorative illustration. The chart or table is the page</td>
+</tr>
+<tr>
+<th>P2</th>
+<td>Overview, then zoom, then detail</td>
+<td>Dashboard KPI cards → filtered lists → product drawer</td>
+</tr>
+<tr>
+<th>P3</th>
+<td>Filters are visible, never hidden</td>
+<td>Filters live in a left rail on desktop and in a collapsible sheet on mobile; the active filter count is always shown</td>
+</tr>
+<tr>
+<th>P4</th>
+<td>Show the provenance of every number</td>
+<td>Screens display the run id, the observation window and the data-quality score where a number appears</td>
+</tr>
+<tr>
+<th>P5</th>
+<td>Silent by default</td>
+<td>No spinners that flash, no skeleton shimmer, no auto-refresh animation, no page transitions beyond an instant swap</td>
+</tr>
+<tr>
+<th>P6</th>
+<td>Keyboard first</td>
+<td>Every action is reachable with Tab; Enter activates; Esc closes overlays; focus is always visible</td>
+</tr>
+<tr>
+<th>P7</th>
+<td>Density with rhythm</td>
+<td>Compact table rows (32 px) for scanning, generous 24–32 px padding around panels</td>
+</tr>
+<tr>
+<th>P8</th>
+<td>One accent colour</td>
+<td>The user's accent choice (<code>app_user.accent</code>) recolours the primary control only; status colours are semantic and never themed</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="2-information-architecture">2. Information architecture</h2>
+<pre class="mermaid">flowchart TB
+    ROOT[&quot;Product Intelligence Pipeline&quot;]
+    ROOT --&gt; DASH[&quot;Dashboard&lt;br/&gt;/&quot;]
+    ROOT --&gt; PROD[&quot;Products&lt;br/&gt;/products&quot;]
+    ROOT --&gt; CHG[&quot;Changes&lt;br/&gt;/changes&quot;]
+    ROOT --&gt; ANA[&quot;Analytics&lt;br/&gt;/analytics&quot;]
+    ROOT --&gt; PIPE[&quot;Pipeline&lt;br/&gt;/pipeline&quot;]
+    ROOT --&gt; QUAL[&quot;Quality&lt;br/&gt;/quality&quot;]
+    ROOT --&gt; CAT[&quot;Catalog&lt;br/&gt;/catalog&quot;]
+    ROOT --&gt; SRC[&quot;Sources&lt;br/&gt;/sources&quot;]
+    ROOT --&gt; QL[&quot;Query Lab&lt;br/&gt;/queries&quot;]
+    ROOT --&gt; ACC[&quot;Account&lt;br/&gt;/account&quot;]
+    ROOT --&gt; ADM[&quot;Admin&lt;br/&gt;/admin&quot;]
+
+    PROD --&gt; PDET[&quot;Product detail&lt;br/&gt;/products/:id&quot;]
+    CHG --&gt; PRICE[&quot;Price changes&quot;]
+    CHG --&gt; NEW[&quot;New products&quot;]
+    CHG --&gt; REM[&quot;Removed products&quot;]
+    CHG --&gt; CATDR[&quot;Category changes&quot;]
+    ANA --&gt; BRAND[&quot;Brand leaderboard&quot;]
+    ANA --&gt; AVAIL[&quot;Availability&quot;]
+    ANA --&gt; IDX[&quot;Category price index&quot;]
+    ANA --&gt; DRIFT[&quot;Assortment drift&quot;]
+    PIPE --&gt; RDET[&quot;Run detail&lt;br/&gt;/pipeline/runs/:runId&quot;]
+    QUAL --&gt; QRULES[&quot;Rule catalogue&quot;]
+    QUAL --&gt; QHIST[&quot;Result history&quot;]
+    CAT --&gt; CREC[&quot;Reconciliation&quot;]
+    CAT --&gt; COP[&quot;Pricing opportunities&quot;]
+    SRC --&gt; SPREV[&quot;Source preview&quot;]
+    ACC --&gt; PREF[&quot;Preferences&quot;]
+    ACC --&gt; SV[&quot;Saved views&quot;]
+    ACC --&gt; AL[&quot;Alerts&quot;]
+    ACC --&gt; KEY[&quot;API keys&quot;]
+    ADM --&gt; USERS[&quot;Users&quot;]
+    ADM --&gt; SET[&quot;Settings&quot;]
+    ADM --&gt; AUD[&quot;Audit log&quot;]
+    ADM --&gt; COMP[&quot;Compliance&quot;]</pre>
+<h3 id="21-global-chrome">2.1 Global chrome</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Region</th>
+<th>Contents</th>
+<th>Behaviour</th>
+</tr></thead><tbody>
+<tr>
+<th>Top bar</th>
+<td>Product name, environment badge (<code>development</code> / <code>production</code>), global search, theme switch, notification bell, account menu</td>
+<td>Fixed height 56 px; sticky</td>
+</tr>
+<tr>
+<th>Left rail</th>
+<td>Primary navigation with icons and labels; collapses to icons below 1280 px; hidden behind a hamburger below 768 px</td>
+<td>240 px expanded, 64 px collapsed</td>
+</tr>
+<tr>
+<th>Breadcrumb</th>
+<td>Only on detail screens (product detail, run detail)</td>
+<td>Static text, clickable segments</td>
+</tr>
+<tr>
+<th>Content area</th>
+<td>Max width 1,440 px, centred, 24 px gutter</td>
+<td>Single column of panels</td>
+</tr>
+<tr>
+<th>Footer strip</th>
+<td>Active database, schema version, last refresh time, API version</td>
+<td>40 px; static text, no animation</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="3-navigation-map">3. Navigation map</h2>
+<pre class="mermaid">flowchart LR
+    AUTH[&quot;Sign in&lt;br/&gt;/login&quot;] --&gt; DASH
+    DASH --&gt; PROD
+    DASH --&gt; CHG
+    DASH --&gt; ANA
+    PROD --&gt; PDET
+    PROD --&gt; SV
+    CHG --&gt; PRICE
+    CHG --&gt; NEW
+    CHG --&gt; REM
+    ANA --&gt; QL
+    PIPE --&gt; RDET
+    QUAL --&gt; QHIST
+    CAT --&gt; CREC
+    CAT --&gt; COP
+    SRC --&gt; SPREV
+    ACC --&gt; AL
+    ACC --&gt; KEY
+    ADM --&gt; USERS
+    ADM --&gt; SET
+    ADM --&gt; AUD
+    ADM --&gt; COMP
+    COMP -.-&gt;|&quot;evidence for&quot;| AUD
+    RDET -.-&gt;|&quot;DQ outcomes&quot;| QHIST
+    PDET -.-&gt;|&quot;catalog links&quot;| CREC
+    SPREV -.-&gt;|&quot;raw to cleaned&quot;| PDET</pre>
+<p><strong>Rules.</strong> Every screen is reachable in at most two clicks from the dashboard. Cross-links are one-way and contextual (a run detail links to its DQ results, a product detail links to its catalog rows). No screen links to itself. No dead ends: every list has an export or a parent link.</p>
+<hr>
+<h2 id="4-screen-inventory">4. Screen inventory</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>#</th>
+<th>Screen</th>
+<th>Route</th>
+<th>Primary data source</th>
+<th>Roles</th>
+</tr></thead><tbody>
+<tr>
+<th>S1</th>
+<td>Sign in</td>
+<td><code>/login</code></td>
+<td><code>POST /auth/login</code></td>
+<td>Public</td>
+</tr>
+<tr>
+<th>S2</th>
+<td>Dashboard</td>
+<td><code>/</code></td>
+<td><code>/analytics/kpi</code>, <code>/analytics/trend</code>, <code>/analytics/price-trend</code></td>
+<td>viewer+</td>
+</tr>
+<tr>
+<th>S3</th>
+<td>Products</td>
+<td><code>/products</code></td>
+<td><code>/products</code>, <code>/products/facets</code></td>
+<td>viewer+</td>
+</tr>
+<tr>
+<th>S4</th>
+<td>Product detail</td>
+<td><code>/products/:id</code></td>
+<td><code>/products/{id}</code>, <code>/history</code>, <code>/duplicates</code>, <code>/catalog</code></td>
+<td>viewer+</td>
+</tr>
+<tr>
+<th>S5</th>
+<td>Changes — price</td>
+<td><code>/changes/price</code></td>
+<td><code>/changes/price</code>, <code>/top-movers</code></td>
+<td>viewer+</td>
+</tr>
+<tr>
+<th>S6</th>
+<td>Changes — new / removed / category</td>
+<td><code>/changes/new</code>, <code>/removed</code>, <code>/categories</code></td>
+<td><code>/changes/*</code></td>
+<td>viewer+</td>
+</tr>
+<tr>
+<th>S7</th>
+<td>Analytics</td>
+<td><code>/analytics</code></td>
+<td><code>/analytics/categories</code>, <code>/brands</code>, <code>/availability</code>, <code>/category-index</code></td>
+<td>viewer+</td>
+</tr>
+<tr>
+<th>S8</th>
+<td>Pipeline</td>
+<td><code>/pipeline</code></td>
+<td><code>/pipeline/runs</code>, <code>/stages</code>, <code>/schedule</code>, <code>/sources/status</code></td>
+<td>viewer+</td>
+</tr>
+<tr>
+<th>S9</th>
+<td>Run detail</td>
+<td><code>/pipeline/runs/:runId</code></td>
+<td><code>/pipeline/runs/{id}</code>, <code>/dq</code>, <code>/http</code></td>
+<td>viewer+</td>
+</tr>
+<tr>
+<th>S10</th>
+<td>Quality</td>
+<td><code>/quality</code></td>
+<td><code>/quality/latest</code>, <code>/rules</code>, <code>/results</code>, <code>/trend</code>, <code>/summary</code></td>
+<td>viewer+</td>
+</tr>
+<tr>
+<th>S11</th>
+<td>Catalog</td>
+<td><code>/catalog</code></td>
+<td><code>/catalog/reconciliation</code>, <code>/summary</code>, <code>/opportunities</code>, <code>/products</code></td>
+<td>viewer+</td>
+</tr>
+<tr>
+<th>S12</th>
+<td>Sources</td>
+<td><code>/sources</code></td>
+<td><code>/sources</code>, <code>/sources/robots</code>, <code>/sources/{code}/preview</code></td>
+<td>viewer+</td>
+</tr>
+<tr>
+<th>S13</th>
+<td>Query Lab</td>
+<td><code>/queries</code></td>
+<td><code>/queries/views</code>, <code>/tables</code>, <code>/examples</code>, <code>/execute</code></td>
+<td>analyst+</td>
+</tr>
+<tr>
+<th>S14</th>
+<td>Account and settings</td>
+<td><code>/account</code></td>
+<td><code>/users/me</code> (PATCH), <code>/auth/change-password</code>, <code>/saved-views</code>, <code>/alerts</code>, <code>/users/{id}/api-keys</code></td>
+<td>viewer+</td>
+</tr>
+<tr>
+<th>S15</th>
+<td>Admin</td>
+<td><code>/admin</code></td>
+<td><code>/users</code>, <code>/users/stats</code>, <code>/settings</code>, <code>/audit</code>, <code>/audit/http</code>, <code>/pipeline/clear-history</code></td>
+<td>admin</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="5-wireframes">5. Wireframes</h2>
+<h3 id="51-s1-sign-in">5.1 S1 — Sign in</h3>
+<pre class="code" data-lang="text"><code>+--------------------------------------------------------------+
+|                                                              |
+|                    Product Intelligence Pipeline              |
+|                                                              |
+|         +------------------------------------------------+ |
+|         | Email                                           | |
+|         | [ ahmed.abobakr@example.com                ]  | |
+|         | Password                                        | |
+|         | [ **************                         ] [show]| |
+|         | ( ) Remember me                                 | |
+|         |            [ Sign in ]                          | |
+|         | error: invalid email or password                | |
+|         +------------------------------------------------+ |
+|                                                              |
+|   Demo accounts (development only)                          |
+|   admin@example.com  ·  analyst@example.com  ·  viewer@...   |
++--------------------------------------------------------------+</code></pre>
+<div class='table-scroll'><table><thead><tr>
+<th>Element</th>
+<th>Behaviour</th>
+</tr></thead><tbody>
+<tr>
+<th>Email field</th>
+<td><code>type=email</code>, <code>autocomplete=username</code>, autofocus, error text linked by <code>aria-describedby</code></td>
+</tr>
+<tr>
+<th>Password field</th>
+<td><code>type=password</code>, show/hide toggle button with <code>aria-pressed</code></td>
+</tr>
+<tr>
+<th>Remember me</th>
+<td>Maps to the refresh-token lifetime (<code>remember=true</code>)</td>
+</tr>
+<tr>
+<th>Demo accounts</th>
+<td>Rendered from <code>GET /api/v1/auth/demo-accounts</code>; the endpoint returns an empty list in production</td>
+</tr>
+</tbody></table></div>
+<h3 id="52-s2-dashboard">5.2 S2 — Dashboard</h3>
+<pre class="code" data-lang="text"><code>+----------------- Dashboard ----------------- [30d v] [Refresh] ------------+
+| KPI                                                                   |
+| +-------------+ +-------------+ +-------------+ +-------------+ +-----------+ |
+| | Products    | | Price chgs  | | New / rmv   | | DQ score    | | Catalog   | |
+| | 66          | | 412         | | 6 / 0       | | 98.26       | | 39/57     | |
+| | +2 this week| | 48 signif.  | | 7 recat.    | | 0 failures  | | 68.4%     | |
+| +-------------+ +-------------+ +-------------+ +-------------+ +-----------+ |
+|                                                                           |
+| Observations and average price (90 days)        Price-change timeline      |
+| +-----------------------------------------+     +------------------------+ |
+| |  line chart: observations + avg price  |     |  bars: up / down       | |
+| |                                         |     |  line: avg |change %|   | |
+| +-----------------------------------------+     +------------------------+ |
+|                                                                           |
+| Category breakdown (top 8)                    Brand leaderboard           |
+| +-----------------------------------------+     +------------------------+ |
+| | horizontal bars: avg price + count      |     |  table: brand, price, | |
+| |                                         |     |  rating, in-stock %   | |
+| +-----------------------------------------+     +------------------------+ |
+|                                                                           |
+| Latest run: run_id | status | duration | extracted | valid | DQ | warnings |
++---------------------------------------------------------------------------+</code></pre>
+<div class='table-scroll'><table><thead><tr>
+<th>Panel</th>
+<th>Endpoint</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<th>KPI cards</th>
+<td><code>GET /api/v1/analytics/kpi?days=30</code></td>
+<td>Five cards: products, price changes, new/removed, DQ score, catalog match</td>
+</tr>
+<tr>
+<th>Trend</th>
+<td><code>GET /api/v1/analytics/trend?days=90</code></td>
+<td>Dual axis: observation count and average USD price</td>
+</tr>
+<tr>
+<th>Price timeline</th>
+<td><code>GET /api/v1/analytics/price-trend?days=90</code></td>
+<td>Diverging bars for increases/decreases plus the mean absolute change</td>
+</tr>
+<tr>
+<th>Category breakdown</th>
+<td><code>GET /api/v1/analytics/categories?limit=8</code></td>
+<td>Horizontal bars, value labels, click-through to the filtered product list</td>
+</tr>
+<tr>
+<th>Brand leaderboard</th>
+<td><code>GET /api/v1/analytics/brands?limit=10</code></td>
+<td>Sortable table with in-stock percentage</td>
+</tr>
+<tr>
+<th>Latest run strip</th>
+<td><code>GET /api/v1/pipeline/runs/latest</code></td>
+<td>One line, no chart; link to the run detail</td>
+</tr>
+</tbody></table></div>
+<h3 id="53-s3-products">5.3 S3 — Products</h3>
+<pre class="code" data-lang="text"><code>+---------------- Products -------- [Save view] [Export CSV] [Compare] -------+
+| Filters (left rail)          | Results (table)                            |
+|  Search [____________]       | +------------------------------------------------+ |
+|  Category  [ All        v ]  | | Name | Brand | Category | Price | Δ% | Stock |  |
+|  Brand     [ All        v ]  | +------------------------------------------------+ |
+|  Source    [ All        v ]  | | Smart LED TV 55&quot;| Samsung | Televis..| 899.00 | |
+|  Stock     [ Any        v ]  | | Wireless Earbuds| Sony    | Audio   | 249.99 | |
+|  Price     [ 0 ] – [ 2000 ] | | ...                                            | |
+|  Rating    [ &gt;= 0     v ]   | +------------------------------------------------+ |
+|  Movement  [ &gt;= 5 %    v ]  | Showing 1-25 of 66        [&lt;] 1 2 3 [&gt;]        |
+|  Recency   [ 30 days   v ]  | Sort: Price | Δ% | Rating | Last seen        |
+|  Active    [ x ]           | Sortable headers are buttons with aria-sort       |
+| +---------------------------+------------------------------------------------+</code></pre>
+<div class='table-scroll'><table><thead><tr>
+<th>Feature</th>
+<th>Detail</th>
+</tr></thead><tbody>
+<tr>
+<th>Facets</th>
+<td><code>GET /api/v1/products/facets</code> populates the left rail with counts (categories, brands, sources, availability, price bands)</td>
+</tr>
+<tr>
+<th>Filtering</th>
+<td>Every filter maps to a query parameter of <code>GET /api/v1/products</code>; the URL is the state, so a filtered list is shareable</td>
+</tr>
+<tr>
+<th>Sorting</th>
+<td><code>sort_by</code> + <code>sort_dir</code>; only whitelisted columns are accepted server-side</td>
+</tr>
+<tr>
+<th>Saved view</th>
+<td><code>POST /api/v1/saved-views</code> stores filters, sort and visible columns; <code>POST /api/v1/saved-views/{id}/use</code> increments the usage counter</td>
+</tr>
+<tr>
+<th>Export</th>
+<td><code>GET /api/v1/analytics/export/products.csv?limit=5000</code></td>
+</tr>
+<tr>
+<th>Compare</th>
+<td>Tick up to 6 rows, then <code>GET /api/v1/products/compare/ids?ids=…</code> opens a side-by-side drawer</td>
+</tr>
+<tr>
+<th>Type-ahead</th>
+<td><code>GET /api/v1/products/search/suggest?q=</code> after 2 characters</td>
+</tr>
+</tbody></table></div>
+<h3 id="54-s4-product-detail">5.4 S4 — Product detail</h3>
+<pre class="code" data-lang="text"><code>+---------------------- Product: Samsung 4K Smart TV 55 inch ----------------+
+| Breadcrumb: Products &gt; Electronics &gt; Televisions                           |
++----------------------------------------------------------------------------+
+| Price 899.00 USD   | Rating 4.4 / 5 (312) | Stock in_stock | Δ +2.31%        |
+| Match: fuzzy 0.9823 against &quot;Samsung 4K Smart TV 55 inch&quot; | source local_demo|
+| Link to source page [open]                     Link to catalog SKU [open] |
++-------------------------------------+--------------------------------------+
+| Price history (captured_at, USD)   | Recent changes                       |
+| +---------------------------------+ | +----------------------------------+ |
+| |  line chart, markers for every  | | | 2026-03-01  899.00 -&gt; 919.00 +2.25%| |
+| |  observation, band for ±1%       | | | 2026-02-27  899.00 -&gt; 899.00 0.00% | |
+| +---------------------------------+ | +----------------------------------+ |
+| min 799.00 | avg 861.20 | max 949.00 | Lifecycle events: new, recurring x12, |
+| Observations: 150 | First seen 2025-10-07 |  | category_changed 2026-02-14         |
++-------------------------------------+--------------------------------------+
+| Duplicate candidates: similar name | score | breakdown (token-set, JW, trigram,|
+|  Samsung 4K Smart TV 55 inch        | 0.981 | digit factor) -&gt; &quot;Same product&quot; hint|
+| Catalog position: SKU-00012, our    | gap    | market position                       |
++----------------------------------------------------------------------------+</code></pre>
+<div class='table-scroll'><table><thead><tr>
+<th>Panel</th>
+<th>Endpoint</th>
+</tr></thead><tbody>
+<tr>
+<th>Header</th>
+<td><code>GET /api/v1/products/{id}</code></td>
+</tr>
+<tr>
+<th>History chart</th>
+<td><code>history[]</code> in the same response, plus <code>GET /api/v1/products/{id}/history?limit=500</code></td>
+</tr>
+<tr>
+<th>Changes</th>
+<td><code>changes[]</code> in the detail response (25 rows)</td>
+</tr>
+<tr>
+<th>Events</th>
+<td><code>events[]</code> in the detail response</td>
+</tr>
+<tr>
+<th>Duplicate candidates</th>
+<td><code>GET /api/v1/products/{id}/duplicates?limit=10</code></td>
+</tr>
+<tr>
+<th>Catalog position</th>
+<td><code>GET /api/v1/products/{id}/catalog</code></td>
+</tr>
+<tr>
+<th>Tabs</th>
+<td><em>Overview · History · Duplicates · Catalog · Raw payload</em> (raw shows <code>quality_flags</code>, <code>blocking_key</code>, <code>fx_rate_to_usd</code> from <code>dim_product.extra</code>)</td>
+</tr>
+</tbody></table></div>
+<h3 id="55-s5-changes-price">5.5 S5 — Changes (price)</h3>
+<pre class="code" data-lang="text"><code>+-------------------- Changes: price -------------------- [Export] [Saved v] --+
+| Window [90d v] Direction [Both v] Category [All v] Brand [All v]          |
+| [x] Significant only   Min |change| [ 5 % ]  Source [All v]              |
++---------------------------------------------------------------------------+
+| Date | Product | Category | From | To | Δ% | Band | Sig | Source |           |
+| 03-04| Dell Deskt.. | Computers | 4.99 | 201.00 | +3927.76 | major | yes | local | |
+| 03-04| Samsung 4K.. | Televisions | 899.00 | 919.00 | +2.23 | minor | yes | local | |
++---------------------------------------------------------------------------+
+| 1-50 of 8,062                                   [&lt;] 1 2 … 163 [&gt;]          |
++---------------------------------------------------------------------------+
+| Pagination note: total = SQL count, not the row estimate; sorting is by    |
+| ABS(change_pct) DESC by default so the biggest movers appear first.        |
++---------------------------------------------------------------------------+</code></pre>
+<h3 id="56-s6-changes-new-removed-category">5.6 S6 — Changes (new / removed / category)</h3>
+<pre class="code" data-lang="text"><code>+-- Changes: tabs [Price] [Events] [New] [Removed] [Category] [Drift] ------+
+|                                                                            |
+| Tab: New            | Tab: Removed        | Tab: Category change            |
+| +-----------------+ | +-----------------+ | +------------------------------+ |
+| | Name | Category  | | | Name | Days miss.| | | Product | From | To | When    | |
+| | Price | First seen| | | Last price      | | |                              | |
+| +-----------------+ | +-----------------+ | +------------------------------+ |
+|                                                                            |
+| Tab: Drift (SQL report)                                                    |
+| +------------------------------------------------------------------------+ |
+| | Category | Added | Removed | Recategorised | Net change                   | |
+| | Electronics   | 12 |       3 |            4 |           +9                | |
+| +------------------------------------------------------------------------+ |</code></pre>
+<div class='table-scroll'><table><thead><tr>
+<th>Tab</th>
+<th>Endpoint</th>
+<th>Key columns</th>
+</tr></thead><tbody>
+<tr>
+<th>Events</th>
+<td><code>GET /api/v1/changes/events?event_type=…</code></td>
+<td>type, severity, old/new value</td>
+</tr>
+<tr>
+<th>New</th>
+<td><code>GET /api/v1/changes/new?days=30</code></td>
+<td>name, category, first price, first seen</td>
+</tr>
+<tr>
+<th>Removed</th>
+<td><code>GET /api/v1/changes/removed?days=180</code></td>
+<td>name, days missing, last known price</td>
+</tr>
+<tr>
+<th>Category</th>
+<td><code>GET /api/v1/changes/categories?days=180</code></td>
+<td>product, old and new category</td>
+</tr>
+<tr>
+<th>Drift</th>
+<td><code>GET /api/v1/changes/category-drift?days=90</code></td>
+<td>added, removed, recategorised, net</td>
+</tr>
+</tbody></table></div>
+<h3 id="57-s7-analytics">5.7 S7 — Analytics</h3>
+<pre class="code" data-lang="text"><code>+--------------------- Analytics ------------------- [30d v] [Export] -----+
+| +------------------------------+  +--------------------------------------+ |
+| | Category price index         |  | Availability by category           | |
+| | lines per category           |  | stacked bars: in / limited / out  | |
+| | + variance band              |  |                                      | |
+| +------------------------------+  +--------------------------------------+ |
+| +------------------------------+  +--------------------------------------+ |
+| | Brand leaderboard            |  | Source coverage matrix              | |
+| | brand | products | avg | rating|  | source x category heat map           | |
+| +------------------------------+  +--------------------------------------+ |
+| +------------------------------+  +--------------------------------------+ |
+| | Price movers (top 20)        |  | Category drift                      | |
+| | name | from | to | Δ% | band |  | category | added | removed | net     | |
+| +------------------------------+  +--------------------------------------+ |
++----------------------------------------------------------------------------+</code></pre>
+<p>Each panel maps 1:1 to an endpoint: <code>/analytics/category-index</code>, <code>/analytics/availability</code>, <code>/analytics/brands</code>, <code>/analytics/report/source-matrix</code>, <code>/analytics/report/price-changes</code>, <code>/changes/category-drift</code>.</p>
+<h3 id="58-s8-pipeline">5.8 S8 — Pipeline</h3>
+<pre class="code" data-lang="text"><code>+------------------------- Pipeline ---------------------- [Run pipeline] ---+
+| Schedule: 0 3 * * *  |  Orchestrator: Airflow 2.10.5 LocalExecutor        |
+| Last run: 2026-03-04 03:08 UTC  |  Next expected: 2026-03-05 03:08 UTC      |
+| Status badges: success 34 | partial 2 | failed 0                           |
++---------------------------------------------------------------------------+
+| Stage catalogue: extract, stage, transform, resolve, load, detect,        |
+| reconcile, quality, aggregate                                              |
+| +------------------------------------------------------------------------+ |
+| | run_id | status | trigger | target | started | dur | ext | valid | DQ | warn | |
+| +------------------------------------------------------------------------+ |
+| | 6d795cd6f4 | success | cli | postgres | 03:08 | 0.2 s | 2 | 2 | 98.26 | - | |
+| | bde43996c1 | success | airflow | postgres | 02:31 | 3.5 s | 60 | 57 | 98.26 | - | |
++---------------------------------------------------------------------------+
+| Source health table: source | kind | rate | last run | success % | duration | |
+|                                consecutive failures | sync status         |
++---------------------------------------------------------------------------+</code></pre>
+<p><code>[Run pipeline]</code> opens a modal with <code>sources[]</code>, <code>limit_per_source</code>, <code>strict</code>, <code>skip_dq</code>, <code>skip_catalog</code> and posts to <code>POST /api/v1/pipeline/run</code> (background) or <code>/run/sync</code> (blocking). The button is only rendered for roles with <code>run_pipeline</code>.</p>
+<h3 id="59-s9-run-detail">5.9 S9 — Run detail</h3>
+<pre class="code" data-lang="text"><code>+-------------------- Run 6d795cd6f4f43945 -------------------------------+
+| status | trigger | target | started | finished | duration | DQ score  |
+| Counters: extracted 2 | valid 2 | rejected 0 | new 0 | changes 0 |        |
+| Warnings: none                                                             |
++-----------------------------------+--------------------------------------+
+| DQ outcomes (12 rules)            | HTTP compliance for this run        |
+| rule | dimension | sev | status   | host | status | ms | robots | cache |     |
++-----------------------------------+--------------------------------------+
+| Reconciliation: matched 39/57, price mismatches 36, by strategy          |
+| Run params JSON (expand/collapse), warnings JSON, errors                 |
++----------------------------------------------------------------------------+</code></pre>
+<h3 id="510-s10-quality">5.10 S10 — Quality</h3>
+<pre class="code" data-lang="text"><code>+------------------------- Quality ------------------- [Re-evaluate] -------+
+| Score 98.26 | pass 22 | warn 2 | fail 0 | blocking: none              |
+| Dimension matrix: completeness 4 rules | validity 3 | uniqueness 2 |        |
+| consistency 1 | accuracy 1 | timeliness 1                                |
++---------------------------------------------------------------------------+
+| Score trend per run (line, threshold line at 80)                          |
++---------------------------------------------------------------------------+
+| Rule results table                                                       |
+| | rule | name | dimension | severity | status | observed | expected | msg | |
+| | DQ005 | fingerprints unique | uniqueness | warn | warn | 99.8 | 99.5 | ...| |
++---------------------------------------------------------------------------+
+| Rule catalogue tab: code | name | dimension | severity | description    |
+| Result history tab: paginated /quality/results with status and dimension |
++---------------------------------------------------------------------------+</code></pre>
+<p><code>[Re-evaluate]</code> is admin/analyst only and calls <code>POST /api/v1/pipeline/quality</code> equivalent through the CLI (<code>pip-cli quality --run-id …</code>); the screen itself is read-only over <code>/quality/*</code>.</p>
+<h3 id="511-s11-catalog">5.11 S11 — Catalog</h3>
+<pre class="code" data-lang="text"><code>+---------------------- Catalog ------------------- tabs [Reconciliation] ---+
+| Summary: total 57 | matched 39 | unmatched 18 | match 68.42% | gaps 36   |
+| by strategy: sku 38 | normalized_name 1 | fuzzy 0        avg gap 4.1%  |
++----------------------------------------------------------------------------+
+| SKU | Catalog name | Supplier | Our price | Market price | Gap % | Status |
++----------------------------------------------------------------------------+
+| Top opportunities                                                        |
+| | SKU | Our price | Market price | Gap % | Position (cheaper / dearer) |    |
++----------------------------------------------------------------------------+
+| Internal catalog tab: SKU | Name | Brand | Category | Cost | List | Stock |   |
+| Status | Supplier |                                                       |
++----------------------------------------------------------------------------+</code></pre>
+<h3 id="512-s12-sources">5.12 S12 — Sources</h3>
+<pre class="code" data-lang="text"><code>+------------------------ Sources ------------------- [Preview] ------------+
+| code | name | kind | base URL | rate/min | delay | paging | terms | robots |
++---------------------------------------------------------------------------+
+| robots.txt cache: fetched 1 | cached 3 | blocked 0 | allowed 4 | errors 0 |
+| user-agent: ProductIntelligenceBot/1.0 (+contact)                         |
++---------------------------------------------------------------------------+
+| Preview drawer for the selected source                                    |
+| +------------------------------------------------------------------------+ |
+| | raw_name | cleaned name | category | price | USD | rating | stock | flags | |
+| | DEMO-0001 | Wireless Earbuds Pro | Electronics | 129.99 | 129.99 | 4.4 | in_stock | - | |
+| +------------------------------------------------------------------------+ |
+| http_calls 0 | errors 0 | returned 3                                     |
++---------------------------------------------------------------------------+</code></pre>
+<p><code>GET /api/v1/sources/{code}/preview?limit=5</code> is the transparency feature that shows raw versus cleaned side by side — the fastest way to explain the cleaning stage in a demonstration.</p>
+<h3 id="513-s13-query-lab">5.13 S13 — Query Lab</h3>
+<pre class="code" data-lang="text"><code>+-------------------- Query Lab ---------------- [Run] [Explain] [Format] ---+
+| Tables (23) | Views (20) | Examples (5)                                        |
++---------------------------------------------------------------------------+
+| SELECT canonical_name, category_name, previous_price, new_price, change_pct|
+| FROM vw_price_changes                                                      |
+| WHERE ABS(change_pct) &gt; 5                                                  |
+| ORDER BY change_pct LIMIT 25;                                              |
++---------------------------------------------------------------------------+
+| 12 rows in 18.4 ms                                                         |
+| +------------------------------------------------------------------+     |
+| | canonical_name | category_name | previous | new | change_pct |     |     |
+| +------------------------------------------------------------------+     |
+| Truncation notice when result_count == limit                          |
++---------------------------------------------------------------------------+</code></pre>
+<p>Restrictions surfaced in the UI: only <code>SELECT</code>, <code>WITH</code> and <code>EXPLAIN</code>; a 5,000-row hard cap; a 200-row default; requires the <code>query</code> right, so the tab is hidden from viewers.</p>
+<h3 id="514-s14-account-and-settings">5.14 S14 — Account and settings</h3>
+<pre class="code" data-lang="text"><code>+---------------------- Account -------------------------------------------+
+| Profile: name, job title, department, avatar colour, timezone            |
+| Appearance: theme [System|Light|Dark] | accent [indigo|sky|emerald…]      |
+| Density: [Compact|Comfortable|Spacious] | rows per page [25]              |
+| Data: default currency [USD] | price change alert [% 5]                |
+| Notifications: e-mail alerts [ ] | weekly digest [ ] | two-factor (n/a)   |
++---------------------------------------------------------------------------+
+| Tabs: [Profile] [Security] [Saved views] [Alerts] [API keys]              |
+| Security: change password (current + new + confirm), password strength     |
+| Saved views: name | entity | filters | shared | favourite | uses | delete    |
+| Alerts: name | metric | operator | threshold | scope | active | evaluate  |
+| API keys: name | prefix | created | last used | uses | expires | revoke    |
++---------------------------------------------------------------------------+</code></pre>
+<p><code>PATCH /api/v1/users/me</code> persists the preferences; the theme switch writes <code>theme</code> and reloads the token-free shell immediately (no page reload).</p>
+<h3 id="515-s15-admin">5.15 S15 — Admin</h3>
+<pre class="code" data-lang="text"><code>+------------------------- Admin -----------------------------------------+
+| tabs [Users] [Settings] [Audit] [Compliance] [Maintenance]               |
+| Users: email | name | role | active | logins | last login | actions      |
+| Stats: total | active | logins 24h | logins 7d | locked | keys | by role      |
+| Settings (grouped by category): pipeline, dq, ingestion, ui, retention   |
+| Audit: action | user | status | ip | duration | when (filters by action)  |
+| Compliance: requests | blocked | cached | retried | bytes | avg/max ms | hosts   |
+| Maintenance: clear run history (requires confirm=true and admin)        |
++----------------------------------------------------------------------------+</code></pre>
+<hr>
+<h2 id="6-design-system">6. Design system</h2>
+<h3 id="61-colour-tokens-light-mode">6.1 Colour tokens — light mode</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Token</th>
+<th>Hex</th>
+<th>Used for</th>
+<th>Contrast note</th>
+</tr></thead><tbody>
+<tr>
+<th><code>bg</code></th>
+<td><code>#FFFFFF</code></td>
+<td>Page background</td>
+<td>—</td>
+</tr>
+<tr>
+<th><code>surface</code></th>
+<td><code>#F8FAFC</code></td>
+<td>Panels, table header</td>
+<td>Text <code>#0F172A</code> = 17.06:1</td>
+</tr>
+<tr>
+<th><code>surface-alt</code></th>
+<td><code>#F1F5F9</code></td>
+<td>Hover rows, secondary panels</td>
+<td>Text <code>#0F172A</code> = 16.4:1; muted text must be <code>#475569</code> (6.92:1), <strong>not</strong> <code>#64748B</code> (4.34:1, fails AA)</td>
+</tr>
+<tr>
+<th><code>border</code></th>
+<td><code>#E2E8F0</code></td>
+<td>Dividers, input outlines</td>
+<td>Non-text contrast against <code>#FFFFFF</code> ≈ 1.2:1 — paired with a 3:1 focus ring to satisfy 1.4.11</td>
+</tr>
+<tr>
+<th><code>text</code></th>
+<td><code>#0F172A</code></td>
+<td>Primary text</td>
+<td>17.85:1 on <code>#FFFFFF</code></td>
+</tr>
+<tr>
+<th><code>text-muted</code></th>
+<td><code>#475569</code></td>
+<td>Labels, secondary text</td>
+<td>7.58:1 on <code>#FFFFFF</code>; 6.92:1 on <code>#F1F5F9</code></td>
+</tr>
+<tr>
+<th><code>text-subtle</code></th>
+<td><code>#64748B</code></td>
+<td>Timestamps, footnotes</td>
+<td>4.76:1 on <code>#FFFFFF</code> — passes AA for normal text, use only for non-essential text</td>
+</tr>
+<tr>
+<th><code>primary</code></th>
+<td><code>#4F46E5</code></td>
+<td>Primary buttons, active nav, links</td>
+<td>White text 6.29:1</td>
+</tr>
+<tr>
+<th><code>primary-hover</code></th>
+<td><code>#4338CA</code></td>
+<td>Hover state</td>
+<td>White text 8.4:1</td>
+</tr>
+<tr>
+<th><code>success</code></th>
+<td><code>#047857</code></td>
+<td>Positive deltas, <code>pass</code>, in-stock</td>
+<td>White text 5.48:1</td>
+</tr>
+<tr>
+<th><code>warning</code></th>
+<td><code>#B45309</code></td>
+<td><code>warn</code>, minor mismatches</td>
+<td>White text 5.02:1</td>
+</tr>
+<tr>
+<th><code>danger</code></th>
+<td><code>#B91C1C</code></td>
+<td><code>fail</code>, decreases, destructive actions</td>
+<td>White text 6.47:1</td>
+</tr>
+<tr>
+<th><code>info</code></th>
+<td><code>#1D4ED8</code></td>
+<td>Informational badges</td>
+<td>White text 6.70:1</td>
+</tr>
+<tr>
+<th><code>accent-alt</code></th>
+<td><code>#6D28D9</code></td>
+<td>User-selected alternate accent</td>
+<td>White text 7.10:1</td>
+</tr>
+<tr>
+<th><code>focus-ring</code></th>
+<td><code>#0F172A</code></td>
+<td>Focus outline</td>
+<td>3:1 minimum against adjacent colours</td>
+</tr>
+</tbody></table></div>
+<h3 id="62-colour-tokens-dark-mode">6.2 Colour tokens — dark mode</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Token</th>
+<th>Hex</th>
+<th>Contrast note</th>
+</tr></thead><tbody>
+<tr>
+<th><code>bg</code></th>
+<td><code>#0B1220</code></td>
+<td>Page background</td>
+</tr>
+<tr>
+<th><code>surface</code></th>
+<td><code>#111827</code></td>
+<td>Panels, table header</td>
+</tr>
+<tr>
+<th><code>surface-alt</code></th>
+<td><code>#1F2937</code></td>
+<td>Hover rows, secondary panels</td>
+</tr>
+<tr>
+<th><code>border</code></th>
+<td><code>#1F2937</code></td>
+<td>Dividers</td>
+</tr>
+<tr>
+<th><code>text</code></th>
+<td><code>#F8FAFC</code></td>
+<td>17.89:1 on <code>#0B1220</code>; 16.5:1 on <code>#111827</code></td>
+</tr>
+<tr>
+<th><code>text-muted</code></th>
+<td><code>#94A3B8</code></td>
+<td>7.30:1 on <code>#0B1220</code>; 6.92:1 on <code>#111827</code></td>
+</tr>
+<tr>
+<th><code>text-subtle</code></th>
+<td><code>#64748B</code></td>
+<td>3.75:1 on <code>#0F172A</code> — <strong>decorative use only</strong>; never for data text</td>
+</tr>
+<tr>
+<th><code>primary</code></th>
+<td><code>#818CF8</code></td>
+<td>Dark text <code>#0B1220</code> on it = 6.28:1</td>
+</tr>
+<tr>
+<th><code>primary-hover</code></th>
+<td><code>#A78BFA</code></td>
+<td>6.88:1 with dark text</td>
+</tr>
+<tr>
+<th><code>success</code></th>
+<td><code>#34D399</code></td>
+<td>9.74:1</td>
+</tr>
+<tr>
+<th><code>warning</code></th>
+<td><code>#FBBF24</code></td>
+<td>11.22:1</td>
+</tr>
+<tr>
+<th><code>danger</code></th>
+<td><code>#F87171</code></td>
+<td>6.77:1</td>
+</tr>
+<tr>
+<th><code>info</code></th>
+<td><code>#38BDF8</code></td>
+<td>8.74:1</td>
+</tr>
+<tr>
+<th><code>focus-ring</code></th>
+<td><code>#F8FAFC</code></td>
+<td>3:1 minimum</td>
+</tr>
+</tbody></table></div>
+<h3 id="63-colour-usage-rules">6.3 Colour usage rules</h3>
+<ul>
+<li class="depth-0">Colour is never the only carrier of meaning: a price drop shows <code>▼ -2.3 %</code> with a down arrow and</li>
+</ul>
+<p>the <code>danger</code> colour; a <code>warn</code> DQ rule shows the word <code>warn</code>.</p>
+<ul>
+<li class="depth-0">Status colours map to data, not to decoration: <code>success</code> = price down / rule pass / in stock;</li>
+</ul>
+<p><code>danger</code> = price up / rule fail; <code>warning</code> = warn severity or an unmatched catalog row.</p>
+<ul>
+<li class="depth-0">Direction colours follow the retail convention: <strong>green = price decreased</strong> (good for the</li>
+</ul>
+<p>buyer), <strong>red = price increased</strong>. The convention is stated in the legend of the Changes screen.</p>
+<ul>
+<li class="depth-0">Charts use at most four categorical hues plus the semantic status colours; a single-series chart</li>
+</ul>
+<p>uses <code>primary</code> only.</p>
+<h3 id="64-typography-scale">6.4 Typography scale</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Token</th>
+<th>Size / line height</th>
+<th>Weight</th>
+<th>Use</th>
+</tr></thead><tbody>
+<tr>
+<th><code>display</code></th>
+<td>30 px / 36 px</td>
+<td>700</td>
+<td>KPI value</td>
+</tr>
+<tr>
+<th><code>h1</code></th>
+<td>24 px / 32 px</td>
+<td>650</td>
+<td>Page title</td>
+</tr>
+<tr>
+<th><code>h2</code></th>
+<td>18 px / 26 px</td>
+<td>600</td>
+<td>Panel title</td>
+</tr>
+<tr>
+<th><code>h3</code></th>
+<td>15 px / 22 px</td>
+<td>600</td>
+<td>Card title</td>
+</tr>
+<tr>
+<th><code>body</code></th>
+<td>14 px / 21 px</td>
+<td>400</td>
+<td>Table cells, paragraphs</td>
+</tr>
+<tr>
+<th><code>body-strong</code></th>
+<td>14 px / 21 px</td>
+<td>600</td>
+<td>Emphasised cell values</td>
+</tr>
+<tr>
+<th><code>small</code></th>
+<td>12.5 px / 18 px</td>
+<td>400</td>
+<td>Column headers, timestamps</td>
+</tr>
+<tr>
+<th><code>code</code></th>
+<td>13 px / 20 px mono</td>
+<td>400</td>
+<td><code>run_id</code>, SKU, SQL, raw payloads</td>
+</tr>
+</tbody></table></div>
+<p>Font stack: system UI stack (<code>system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial</code>) with <code>ui-monospace, SFMono-Regular, Menlo, Consolas, monospace</code> for code. Numeric columns use <code>font-variant-numeric: tabular-nums</code> so digits align in columns.</p>
+<h3 id="65-spacing-and-layout-scale">6.5 Spacing and layout scale</h3>
+<p>4 px base: <code>4, 8, 12, 16, 20, 24, 32, 40, 48, 64</code>. Panel padding 20–24 px; gutter between panels 16–24 px; table row height 32 px (compact) / 40 px (comfortable) / 48 px (spacious); icon sizes 16 and 20 px; control height 32 px (default) / 36 px (comfortable) / 40 px (spacious).</p>
+<h3 id="66-icon-set">6.6 Icon set</h3>
+<p><code>lucide-react</code>, 16 px stroke 1.75 by default. Mapped icons: layout-dashboard (Dashboard), package (Products), trending-up/down (Changes), bar-chart-3 (Analytics), activity (Pipeline), shield-check (Quality), database (Catalog), globe (Sources), terminal (Query Lab), user-circle (Account), settings (Admin), bell (notifications), filter, download, refresh-cw, chevron-left/right, check, x, alert-triangle, info, clock, external-link.</p>
+<hr>
+<h2 id="7-accessibility">7. Accessibility</h2>
+<p>Target: <strong>WCAG 2.1 level AA</strong> (W3C Recommendation, 2018).</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Criterion</th>
+<th>Requirement</th>
+<th>How the design meets it</th>
+</tr></thead><tbody>
+<tr>
+<th>1.1.1 Non-text content</th>
+<td>Every chart has a text alternative</td>
+<td>Each chart has a title, a <code>figcaption</code> summary line and a "Show data table" disclosure containing the same numbers</td>
+</tr>
+<tr>
+<td>1.3.1 Info and relationships</td>
+<td>Structure conveyed programmatically</td>
+<td>Semantic HTML: <code>header</code>, <code>nav</code>, <code>main</code>, <code>table</code> with <code>caption</code> and <code>scope</code> on <code>th</code>, <code>section</code> with <code>aria-labelledby</code></td>
+</tr>
+<tr>
+<td>1.3.2 Meaningful sequence</td>
+<td>Logical reading order</td>
+<td>DOM order equals visual order; no CSS re-ordering</td>
+</tr>
+<tr>
+<th>1.4.1 Use of colour</th>
+<td>Colour is not the only cue</td>
+<td>Arrows, signs and words accompany every colour (see §6.3)</td>
+</tr>
+<tr>
+<th>1.4.3 Contrast (minimum)</th>
+<td>4.5:1 for text</td>
+<td>Token table: body 17.85:1, muted 7.58:1, subtle 4.76:1 (light); 17.89:1, 7.30:1 (dark)</td>
+</tr>
+<tr>
+<th>1.4.4 Resize text</th>
+<td>Works at 200 %</td>
+<td>Layout uses relative units in tables and wraps long names; no fixed-height text containers</td>
+</tr>
+<tr>
+<th>1.4.10 Reflow</th>
+<td>Usable at 320 CSS px</td>
+<td>Single-column reflow below 768 px; no horizontal scrolling except inside data grids with a sticky first column</td>
+</tr>
+<tr>
+<th>1.4.11 Non-text contrast</th>
+<td>3:1 for controls and focus</td>
+<td>Focus ring <code>2px solid #0F172A</code> (light) / <code>#F8FAFC</code> (dark) with a 2 px offset, ≥ 3:1 against both fill and background</td>
+</tr>
+<tr>
+<th>1.4.12 Text spacing</th>
+<td>No loss of content when spacing is increased</td>
+<td>No fixed-height text boxes; line clamping only on table cells with an expandable row</td>
+</tr>
+<tr>
+<th>2.1.1 Keyboard</th>
+<td>All functionality from the keyboard</td>
+<td>Skip link first in tab order; rail and filters reachable; modals trap focus and close on <code>Esc</code></td>
+</tr>
+<tr>
+<th>2.1.2 No keyboard trap</th>
+<td>Focus can always leave</td>
+<td>Modal focus trap releases on close; no infinite focus loop</td>
+</tr>
+<tr>
+<th>2.4.1 Bypass blocks</th>
+<td>Skip link</td>
+<td>"Skip to main content" as the first focusable element</td>
+</tr>
+<tr>
+<th>2.4.2 Page titled</th>
+<td>Descriptive titles</td>
+<td>Route-based titles, e.g. "Products · Product Intelligence Pipeline"</td>
+</tr>
+<tr>
+<th>2.4.3 Focus order</th>
+<td>Logical order</td>
+<td>Follows DOM order; the filter rail precedes the results region</td>
+</tr>
+<tr>
+<th>2.4.4 Link purpose</th>
+<td>Purpose clear from context</td>
+<td>Link text includes the entity, e.g. "SKU-00012", never "click here"</td>
+</tr>
+<tr>
+<td>2.4.6 Headings and labels</td>
+<td>Descriptive</td>
+<td>One <code>h1</code> per screen; panel titles as <code>h2</code>; form inputs labelled</td>
+</tr>
+<tr>
+<th>2.4.7 Focus visible</th>
+<td>Visible focus</td>
+<td>Global <code>:focus-visible</code> ring, never <code>outline: none</code> without a replacement</td>
+</tr>
+<tr>
+<th>2.5.1 Pointer gestures</th>
+<td>Single pointer</td>
+<td>No drag-only interactions; column resizing is optional and mirrored by a settings control</td>
+</tr>
+<tr>
+<td>2.5.2 Pointer cancellation</td>
+<td>Act on up-event</td>
+<td>All clicks on <code>pointerup</code>/<code>click</code>, so they can be aborted</td>
+</tr>
+<tr>
+<th>2.5.3 Label in name</th>
+<td>Accessible name contains visible label</td>
+<td>Buttons read "Export CSV", not "Export" alone</td>
+</tr>
+<tr>
+<th>2.5.4 Motion actuation</th>
+<td>No motion required</td>
+<td>All actions are click/keyboard-triggered</td>
+</tr>
+<tr>
+<th>3.1.1 Language of page</th>
+<td>Declared</td>
+<td><code>&lt;html lang="en"&gt;</code></td>
+</tr>
+<tr>
+<th>3.2.1 On focus</th>
+<td>Context stays</td>
+<td>Focus never opens a dialog or submits a form</td>
+</tr>
+<tr>
+<th>3.2.2 On input</th>
+<td>No context change</td>
+<td>Filters update on change without navigating away; the URL updates without a reload</td>
+</tr>
+<tr>
+<td>3.3.1 Error identification</td>
+<td>Errors described in text</td>
+<td>Field errors are text next to the field and are announced through <code>aria-live="polite"</code></td>
+</tr>
+<tr>
+<td>3.3.2 Labels or instructions</td>
+<td>Inputs labelled</td>
+<td>Every input has a visible label, plus helper text for units (for example "days")</td>
+</tr>
+<tr>
+<th>3.3.3 Error suggestion</th>
+<td>Correction suggested</td>
+<td>"Password too weak: at least one symbol" — the missing criteria are listed</td>
+</tr>
+<tr>
+<th>4.1.2 Name, role, value</th>
+<td>Programmatic names</td>
+<td>Icon-only buttons carry <code>aria-label</code>; toggles expose <code>aria-pressed</code>; sorting headers expose <code>aria-sort</code></td>
+</tr>
+<tr>
+<th>4.1.3 Status messages</th>
+<td>Announced without focus</td>
+<td><code>aria-live="polite"</code> regions report "Pipeline run queued", "78 of 78 checks passed", filter result counts</td>
+</tr>
+</tbody></table></div>
+<p>Additional measures beyond the criteria: visible focus on every interactive element, a 44 × 44 px minimum touch target on mobile, <code>prefers-reduced-motion</code> honoured, and a "high contrast borders" preference that swaps <code>--border</code> for a 3:1 colour.</p>
+<hr>
+<h2 id="8-responsive-design">8. Responsive design</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Breakpoint</th>
+<th>Width</th>
+<th>Layout</th>
+<th>Navigation</th>
+<th>Tables</th>
+</tr></thead><tbody>
+<tr>
+<th>Mobile</th>
+<td>&lt; 768 px</td>
+<td>Single column, 16 px gutter</td>
+<td>Hamburger drawer, overlay</td>
+<td>Card list instead of a grid; each card shows name, price, Δ%, stock</td>
+</tr>
+<tr>
+<th>Tablet</th>
+<td>768 – 1279 px</td>
+<td>Single column with a two-up grid for KPI cards</td>
+<td>Collapsed icon rail (64 px)</td>
+<td>Horizontal scroll with a sticky name column; filter sheet</td>
+</tr>
+<tr>
+<th>Desktop</th>
+<td>≥ 1280 px</td>
+<td>12-column grid; KPI cards 5-up; content max 1,440 px</td>
+<td>Expanded rail 240 px</td>
+<td>Full grid with all columns and column chooser</td>
+</tr>
+<tr>
+<th>Wide</th>
+<td>≥ 1600 px</td>
+<td>Same grid, wider gutters</td>
+<td>Expanded rail</td>
+<td>Additional columns visible by default</td>
+</tr>
+</tbody></table></div>
+<div class='table-scroll'><table><thead><tr>
+<th>Component</th>
+<th>Mobile</th>
+<th>Tablet</th>
+<th>Desktop</th>
+</tr></thead><tbody>
+<tr>
+<th>KPI card</th>
+<td>Full width, stacked</td>
+<td>2 per row</td>
+<td>5 per row</td>
+</tr>
+<tr>
+<th>Filter rail</th>
+<td>Bottom sheet</td>
+<td>Off-canvas drawer</td>
+<td>Fixed 240 px</td>
+</tr>
+<tr>
+<th>Data grid</th>
+<td>Cards</td>
+<td>Scroll + sticky first column</td>
+<td>Full grid</td>
+</tr>
+<tr>
+<th>Chart height</th>
+<td>180 px</td>
+<td>240 px</td>
+<td>280 px</td>
+</tr>
+<tr>
+<th>Run detail panels</th>
+<td>Stacked</td>
+<td>Stacked</td>
+<td>Two columns</td>
+</tr>
+<tr>
+<th>Query editor</th>
+<td>Full width, monospace, no line numbers</td>
+<td>+ line numbers</td>
+<td>+ line numbers and a results side-by-side toggle</td>
+</tr>
+<tr>
+<th>Modals</th>
+<td>Full-screen sheet</td>
+<td>80 % width</td>
+<td>Centred, max 720 px</td>
+</tr>
+</tbody></table></div>
+<p>Density preference (<code>compact</code> / <code>comfortable</code> / <code>spacious</code>) changes row heights only; the layout is unchanged, so the preference never breaks the grid.</p>
+<hr>
+<h2 id="9-motion-policy">9. Motion policy</h2>
+<p><strong>Policy: silent by default.</strong> The interface performs no decorative animation. This is a deliberate requirement of the project brief, and it has an accessibility justification: users read dense numeric tables for long sessions, and gratuitous motion increases cognitive load and can trigger vestibular discomfort.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Interaction</th>
+<th>Motion</th>
+<th>Duration</th>
+<th>Rationale</th>
+</tr></thead><tbody>
+<tr>
+<th>Page navigation</th>
+<td>Instant swap; no transition</td>
+<td>0 ms</td>
+<td>The fastest possible feedback</td>
+</tr>
+<tr>
+<th>Data fetch</th>
+<td>A static "Loading" label with the query name; <strong>no</strong> spinner rotation, no skeleton shimmer</td>
+<td>0 ms</td>
+<td>The label appears instantly and is removed on response; no animation loop</td>
+</tr>
+<tr>
+<th>Chart render</th>
+<td>Static SVG/canvas draw</td>
+<td>0 ms</td>
+<td>No grow-in, no line-draw animation</td>
+</tr>
+<tr>
+<th>Row hover</th>
+<td>Background colour change only</td>
+<td>0 ms</td>
+<td>Colour change only; no sliding highlight</td>
+</tr>
+<tr>
+<th>Filter applied</th>
+<td>Result count updates in place</td>
+<td>0 ms</td>
+<td>No fade of the table body</td>
+</tr>
+<tr>
+<th>Modal open</th>
+<td>Instant</td>
+<td>0 ms</td>
+<td>No scale or fade</td>
+</tr>
+<tr>
+<th>Toast / notification</th>
+<td>Appears and disappears; may stay 8 s</td>
+<td>0 ms</td>
+<td>Announced through <code>aria-live</code>, never auto-dismissed before reading if critical</td>
+</tr>
+<tr>
+<th>Theme switch</th>
+<td>Instant token swap</td>
+<td>0 ms</td>
+<td><code>prefers-color-scheme</code> respected when the theme is <code>system</code></td>
+</tr>
+<tr>
+<th>Progress (pipeline run)</th>
+<td>Status text with a static step list; refresh only on explicit user action</td>
+<td>0 ms</td>
+<td>Prevents a polling loop from becoming an animation loop</td>
+</tr>
+</tbody></table></div>
+<p>Rules: no CSS <code>transition</code> on layout-affecting properties, no <code>@keyframes</code> other than a disabled skeleton used for print, and <code>prefers-reduced-motion: reduce</code> disables any residual transition. Focus changes are instantaneous so keyboard users never lose their place.</p>
+<hr>
+<h2 id="10-component-inventory">10. Component inventory</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>#</th>
+<th>Component</th>
+<th>Type</th>
+<th>Purpose</th>
+<th>Data contract</th>
+</tr></thead><tbody>
+<tr>
+<th>C1</th>
+<td><code>AppShell</code></td>
+<td>Layout</td>
+<td>Top bar, rail, content, footer</td>
+<td>session metadata (<code>/auth/session</code>)</td>
+</tr>
+<tr>
+<th>C2</th>
+<td><code>NavRail</code></td>
+<td>Navigation</td>
+<td>Icon + label links, collapse, active state</td>
+<td>static</td>
+</tr>
+<tr>
+<th>C3</th>
+<td><code>TopBar</code></td>
+<td>Layout</td>
+<td>Search, theme, notifications, account</td>
+<td><code>/products/search/suggest</code>, <code>/notifications</code></td>
+</tr>
+<tr>
+<th>C4</th>
+<td><code>KpiCard</code></td>
+<td>Display</td>
+<td>Value, delta, context line, sparkline</td>
+<td><code>/analytics/kpi</code></td>
+</tr>
+<tr>
+<th>C5</th>
+<td><code>DataTable</code></td>
+<td>Display</td>
+<td>Sortable, paged, selectable, exportable grid</td>
+<td><code>Page[T]</code> envelope</td>
+</tr>
+<tr>
+<th>C6</th>
+<td><code>ColumnChooser</code></td>
+<td>Input</td>
+<td>Toggle visible columns</td>
+<td>saved view <code>visible_columns</code></td>
+</tr>
+<tr>
+<th>C7</th>
+<td><code>FilterRail</code></td>
+<td>Input</td>
+<td>Facet counts, range inputs, chips</td>
+<td><code>/products/facets</code></td>
+</tr>
+<tr>
+<th>C8</th>
+<td><code>ActiveFilterBar</code></td>
+<td>Display</td>
+<td>Removable chips, clear all</td>
+<td>derived from the URL query</td>
+</tr>
+<tr>
+<th>C9</th>
+<td><code>SavedViewMenu</code></td>
+<td>Input</td>
+<td>Save, load, share, favourite, delete</td>
+<td><code>/saved-views</code></td>
+</tr>
+<tr>
+<th>C10</th>
+<td><code>LineChart</code></td>
+<td>Display</td>
+<td>Time series with observation markers</td>
+<td><code>/analytics/trend</code>, product <code>history[]</code></td>
+</tr>
+<tr>
+<th>C11</th>
+<td><code>BarChart</code></td>
+<td>Display</td>
+<td>Diverging bars for increases/decreases</td>
+<td><code>/analytics/price-trend</code></td>
+</tr>
+<tr>
+<th>C12</th>
+<td><code>StackedBarChart</code></td>
+<td>Display</td>
+<td>Availability mix per category</td>
+<td><code>/analytics/availability</code></td>
+</tr>
+<tr>
+<th>C13</th>
+<td><code>HeatmapGrid</code></td>
+<td>Display</td>
+<td>Source × category coverage</td>
+<td><code>/analytics/report/source-matrix</code></td>
+</tr>
+<tr>
+<th>C14</th>
+<td><code>StatBadge</code></td>
+<td>Display</td>
+<td>pass / warn / fail / status pill</td>
+<td>DQ and run statuses</td>
+</tr>
+<tr>
+<th>C15</th>
+<td><code>DeltaCell</code></td>
+<td>Display</td>
+<td>Signed percentage with arrow and colour</td>
+<td><code>change_pct</code>, <code>change_abs</code></td>
+</tr>
+<tr>
+<th>C16</th>
+<td><code>Sparkline</code></td>
+<td>Display</td>
+<td>Inline 30-point trend</td>
+<td><code>/analytics/trend</code></td>
+</tr>
+<tr>
+<th>C17</th>
+<td><code>Drawer</code></td>
+<td>Overlay</td>
+<td>Product detail, compare, preview</td>
+<td>varies</td>
+</tr>
+<tr>
+<th>C18</th>
+<td><code>Modal</code></td>
+<td>Overlay</td>
+<td>Run pipeline, confirm destructive action</td>
+<td><code>POST /pipeline/run</code></td>
+</tr>
+<tr>
+<th>C19</th>
+<td><code>Toast</code></td>
+<td>Feedback</td>
+<td>Non-blocking confirmation, <code>aria-live</code></td>
+<td>local state</td>
+</tr>
+<tr>
+<th>C20</th>
+<td><code>ConfirmDialog</code></td>
+<td>Feedback</td>
+<td>Requires <code>confirm=true</code> for deletion</td>
+<td><code>POST /pipeline/clear-history</code></td>
+</tr>
+<tr>
+<th>C21</th>
+<td><code>Pagination</code></td>
+<td>Input</td>
+<td>Page size, page numbers, total</td>
+<td><code>Page.pages</code></td>
+</tr>
+<tr>
+<th>C22</th>
+<td><code>EmptyState</code></td>
+<td>Display</td>
+<td>Explains <em>why</em> there is no data and what to do</td>
+<td>—</td>
+</tr>
+<tr>
+<th>C23</th>
+<td><code>ErrorState</code></td>
+<td>Display</td>
+<td>Error code, message, retry button, request id</td>
+<td><code>ErrorResponse</code></td>
+</tr>
+<tr>
+<th>C24</th>
+<td><code>QualityScoreBadge</code></td>
+<td>Display</td>
+<td>Score with dimension breakdown</td>
+<td><code>/quality/latest</code></td>
+</tr>
+<tr>
+<th>C25</th>
+<td><code>RuleTable</code></td>
+<td>Display</td>
+<td>12 rules with status and threshold</td>
+<td><code>/quality/rules</code>, <code>/quality/results</code></td>
+</tr>
+<tr>
+<th>C26</th>
+<td><code>StageTimeline</code></td>
+<td>Display</td>
+<td>9 stages with rows and duration</td>
+<td><code>PipelineResult.timings</code>, <code>/pipeline/stages</code></td>
+</tr>
+<tr>
+<th>C27</th>
+<td><code>RunTable</code></td>
+<td>Display</td>
+<td>Run history with counters and warnings</td>
+<td><code>/pipeline/runs</code></td>
+</tr>
+<tr>
+<th>C28</th>
+<td><code>SourceCard</code></td>
+<td>Display</td>
+<td>Kind, rate, terms, robots, sync health</td>
+<td><code>/sources</code>, <code>/pipeline/sources/status</code></td>
+</tr>
+<tr>
+<th>C29</th>
+<td><code>RawVsCleanTable</code></td>
+<td>Display</td>
+<td>Raw and normalised fields side by side</td>
+<td><code>/sources/{code}/preview</code></td>
+</tr>
+<tr>
+<th>C30</th>
+<td><code>ComplianceSummary</code></td>
+<td>Display</td>
+<td>Requests, blocked, cached, retried, latency</td>
+<td><code>/audit/compliance</code></td>
+</tr>
+<tr>
+<th>C31</th>
+<td><code>SqlEditor</code></td>
+<td>Input</td>
+<td>Monospace editor with validation feedback</td>
+<td><code>/queries/execute</code></td>
+</tr>
+<tr>
+<th>C32</th>
+<td><code>ResultGrid</code></td>
+<td>Display</td>
+<td>Column headers, truncation notice, row count</td>
+<td><code>QueryResponse</code></td>
+</tr>
+<tr>
+<th>C33</th>
+<td><code>ThemeSwitch</code></td>
+<td>Input</td>
+<td>System / light / dark</td>
+<td><code>PATCH /users/me</code></td>
+</tr>
+<tr>
+<th>C34</th>
+<td><code>DensitySwitch</code></td>
+<td>Input</td>
+<td>Compact / comfortable / spacious</td>
+<td><code>PATCH /users/me</code></td>
+</tr>
+<tr>
+<th>C35</th>
+<td><code>AccentPicker</code></td>
+<td>Input</td>
+<td>Accent colour</td>
+<td><code>PATCH /users/me</code></td>
+</tr>
+<tr>
+<th>C36</th>
+<td><code>PasswordStrengthMeter</code></td>
+<td>Feedback</td>
+<td>Criteria checklist, non-colour cues</td>
+<td><code>/auth/change-password</code></td>
+</tr>
+<tr>
+<th>C37</th>
+<td><code>ApiKeyReveal</code></td>
+<td>Feedback</td>
+<td>Shows the key once with a copy button</td>
+<td><code>POST /users/{id}/api-keys</code></td>
+</tr>
+<tr>
+<th>C38</th>
+<td><code>AlertRuleEditor</code></td>
+<td>Input</td>
+<td>Metric, operator, threshold, scope</td>
+<td><code>/alerts</code>, <code>/alerts/evaluate</code></td>
+</tr>
+<tr>
+<th>C39</th>
+<td><code>TagInput</code></td>
+<td>Input</td>
+<td>Category / brand multi-select</td>
+<td><code>/products</code> filters</td>
+</tr>
+<tr>
+<th>C40</th>
+<td><code>RelativeTime</code></td>
+<td>Display</td>
+<td>"3 hours ago" plus an absolute <code>title</code></td>
+<td>timestamps</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="11-empty-loading-and-error-states">11. Empty, loading and error states</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>State</th>
+<th>Presentation</th>
+<th>Copy pattern</th>
+</tr></thead><tbody>
+<tr>
+<td>No data yet (fresh install)</td>
+<td>Empty state with the exact command to run</td>
+<td>"No price snapshots yet. Run <code>make bootstrap &amp;&amp; make run-pipeline</code>."</td>
+</tr>
+<tr>
+<th>Filter matches nothing</th>
+<td>Empty state that keeps the filter chips visible</td>
+<td>"No product matches these filters. Clear one filter to widen the search."</td>
+</tr>
+<tr>
+<th>A source is disabled</th>
+<td>Source card shows a badge, not an error</td>
+<td>"Disabled — terms of service do not permit automated access."</td>
+</tr>
+<tr>
+<th>Pipeline run in progress</th>
+<td>Static status line with the current stage</td>
+<td>"Run 6d795cd6 — load (57 of 60 products)"</td>
+</tr>
+<tr>
+<th>API 401</th>
+<td>Inline banner, redirect to <code>/login?next=…</code></td>
+<td>"Your session expired. Sign in again to continue where you were."</td>
+</tr>
+<tr>
+<th>API 403</th>
+<td>Inline banner naming the missing right</td>
+<td>"Your role (viewer) cannot trigger a pipeline run."</td>
+</tr>
+<tr>
+<th>API 404 on a product</th>
+<td>Empty state with a back link</td>
+<td>"Product 999999 does not exist, or it was removed."</td>
+</tr>
+<tr>
+<th>API 5xx</th>
+<td>Error state with the error code and a retry button</td>
+<td>"internal_error — the request was logged with id …"</td>
+</tr>
+<tr>
+<th>Query Lab rejection</th>
+<td>Inline message under the editor</td>
+<td>"Only SELECT / WITH / EXPLAIN statements are allowed."</td>
+</tr>
+<tr>
+<th>Offline (upstream down)</th>
+<td>Source card shows consecutive failures; the run becomes <code>partial</code></td>
+<td>"books_to_scrape failed 3 times in a row; the source has been disabled."</td>
+</tr>
+</tbody></table></div>
+    </article>
+    <div class="doc-foot">
+      <span><a href="11_behaviour_diagrams.html">← Behaviour Diagrams</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="13_deployment.html">Deployment →</a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

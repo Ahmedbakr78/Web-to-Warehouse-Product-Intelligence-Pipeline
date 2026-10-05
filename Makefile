@@ -207,8 +207,20 @@ docs-render: ## Render every Mermaid diagram to SVG inside docs/diagrams/out
 	bash scripts/render_diagrams.sh
 
 .PHONY: docs-serve
-docs-serve: ## Serve the documentation site locally
+docs-serve: ## Serve the raw documentation markdown locally
 	$(PYBIN) -m http.server 8001 --directory docs
+
+.PHONY: site
+site: ## Build the documentation website into ./site (no dependencies)
+	$(PYBIN) scripts/build_site.py
+
+.PHONY: site-serve
+site-serve: ## Build the documentation website and serve it on :8001
+	$(PYBIN) scripts/build_site.py --serve
+
+.PHONY: site-clean
+site-clean: ## Remove the built website
+	rm -rf site
 
 .PHONY: infographic
 infographic: ## Generate the DEPI project roadmap infographic (HTML + PNG)

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Defence deck, Q&amp;A, demo script">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Presentation Outline — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Defence deck, Q&amp;A, demo script">
+<title>Presentation Outline — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="23-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, all 113 operations, examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, 100-case plan, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" class="active" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="234 features with file references">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Presentation Outline</h1>
+      <p>Defence deck, Q&amp;A, demo script</p>
+    </div>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#table-of-contents">Table of contents</a></li><li class="lvl-2"><a href="#1-presentation-parameters">1. Presentation parameters</a></li><li class="lvl-2"><a href="#2-slide-deck-18-slides">2. Slide deck (18 slides)</a></li><li class="lvl-3"><a href="#slide-1-title">Slide 1 — Title</a></li><li class="lvl-3"><a href="#slide-2-the-problem">Slide 2 — The problem</a></li><li class="lvl-3"><a href="#slide-3-objectives-and-scope">Slide 3 — Objectives and scope</a></li><li class="lvl-3"><a href="#slide-4-compliance-position">Slide 4 — Compliance position</a></li><li class="lvl-3"><a href="#slide-5-architecture">Slide 5 — Architecture</a></li><li class="lvl-3"><a href="#slide-6-data-model">Slide 6 — Data model</a></li><li class="lvl-3"><a href="#slide-7-preparation-and-deduplication">Slide 7 — Preparation and deduplication</a></li><li class="lvl-3"><a href="#slide-8-change-detection-and-reconciliation">Slide 8 — Change detection and reconciliation</a></li><li class="lvl-3"><a href="#slide-9-data-quality">Slide 9 — Data quality</a></li><li class="lvl-3"><a href="#slide-10-orchestration-and-operations">Slide 10 — Orchestration and operations</a></li><li class="lvl-3"><a href="#slide-11-api-and-security">Slide 11 — API and security</a></li><li class="lvl-3"><a href="#slide-12-live-demo-3-minutes">Slide 12 — Live demo (3 minutes)</a></li><li class="lvl-3"><a href="#slide-13-results">Slide 13 — Results</a></li><li class="lvl-3"><a href="#slide-14-engineering-challenges-solved">Slide 14 — Engineering challenges solved</a></li><li class="lvl-3"><a href="#slide-15-limitations-and-known-issues">Slide 15 — Limitations and known issues</a></li><li class="lvl-3"><a href="#slide-16-evaluation-against-the-rubric">Slide 16 — Evaluation against the rubric</a></li><li class="lvl-3"><a href="#slide-17-future-work">Slide 17 — Future work</a></li><li class="lvl-3"><a href="#slide-18-conclusion-and-questions">Slide 18 — Conclusion and questions</a></li><li class="lvl-2"><a href="#3-qa-preparation">3. Q&amp;A preparation</a></li><li class="lvl-2"><a href="#4-three-minute-demo-script">4. Three-minute demo script</a></li><li class="lvl-3"><a href="#41-preparation-before-the-defence-5-minutes">4.1 Preparation (before the defence, 5 minutes)</a></li><li class="lvl-3"><a href="#42-the-script-minute-by-minute">4.2 The script, minute by minute</a></li><li class="lvl-3"><a href="#43-optional-20-second-flourish-cross-dialect-parity">4.3 Optional 20-second flourish: cross-dialect parity</a></li><li class="lvl-3"><a href="#44-backup-the-same-story-with-curl">4.4 Backup: the same story with curl</a></li><li class="lvl-2"><a href="#5-rehearsal-plan">5. Rehearsal plan</a></li><li class="lvl-2"><a href="#6-backup-plan-if-the-demo-fails">6. Backup plan if the demo fails</a></li></ol></details>
+    <article class="doc-body">
+<h2 id="purpose">Purpose</h2>
+<p>This document is the defence script for the Web-to-Warehouse Product Intelligence Pipeline. It contains a slide-by-slide outline of the final presentation (with the message each slide must land), speaker notes, an anticipated question-and-answer preparation sheet, and a three-minute live demonstration script with the exact commands and URLs to type.</p>
+<hr>
+<h2 id="table-of-contents">Table of contents</h2>
+<ul>
+<li class="depth-0"><a href="#1-presentation-parameters">Presentation parameters</a></li>
+<li class="depth-0"><a href="#2-slide-deck-18-slides">Slide deck (18 slides)</a></li>
+<li class="depth-0"><a href="#3-qa-preparation">Q&amp;A preparation</a></li>
+<li class="depth-0"><a href="#4-three-minute-demo-script">Three-minute demo script</a></li>
+<li class="depth-0"><a href="#5-rehearsal-plan">Rehearsal plan</a></li>
+<li class="depth-0"><a href="#6-backup-plan-if-the-demo-fails">Backup plan if the demo fails</a></li>
+</ul>
+<hr>
+<h2 id="1-presentation-parameters">1. Presentation parameters</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Parameter</th>
+<th>Plan</th>
+</tr></thead><tbody>
+<tr>
+<th>Total time</th>
+<td>15 minutes presentation + 5 minutes questions</td>
+</tr>
+<tr>
+<th>Deck</th>
+<td>18 slides (target 45 seconds each)</td>
+</tr>
+<tr>
+<th>Live demo</th>
+<td>3 minutes, integrated after slide 11</td>
+</tr>
+<tr>
+<th>Audience</th>
+<td>Examination committee: academic supervisor, data-engineering panel, industry observer</td>
+</tr>
+<tr>
+<th>Style</th>
+<td>Problem → solution → evidence; every claim has a number and a command</td>
+</tr>
+<tr>
+<th>Visual language</th>
+<td>Mermaid diagrams rendered by GitHub or <code>make docs-render</code>; no stock imagery</td>
+</tr>
+<tr>
+<th>Backup</th>
+<td>Pre-recorded screenshots of each screen + the CLI report output in a text file</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="2-slide-deck-18-slides">2. Slide deck (18 slides)</h2>
+<h3 id="slide-1-title">Slide 1 — Title</h3>
+<p><strong>On screen:</strong> Project title, track, name, supervisor, date, repository link (private), one-line abstract.</p>
+<blockquote><p>"Web-to-Warehouse Product Intelligence Pipeline. A compliant, orchestrated and testable ETL platform that turns permitted public web sources into a dimensional warehouse with full price history, duplicate resolution, catalog reconciliation and a measured data-quality posture."</p></blockquote>
+<p><strong>Speaker note:</strong> 20 seconds. Do not read the abstract aloud; state the problem in one sentence and move on.</p>
+<h3 id="slide-2-the-problem">Slide 2 — The problem</h3>
+<p><strong>On screen:</strong> The six pain points from <code>docs/07</code> §2.2 as a table; the cost in analyst hours; the question nobody can answer today.</p>
+<p><strong>Message:</strong> Manual collection is slow, inconsistent and destroys history.</p>
+<blockquote><p>"A merchandising team spends 6–10 hours a week copying prices into spreadsheets. Nobody can answer 'what did this product cost last March?' because the history does not exist."</p></blockquote>
+<h3 id="slide-3-objectives-and-scope">Slide 3 — Objectives and scope</h3>
+<p><strong>On screen:</strong> The ten objectives from <code>docs/01</code> §2 with their targets; the out-of-scope list (streaming, ML, personal data, bypass of protections).</p>
+<p><strong>Message:</strong> Ten measurable objectives; five deliberate exclusions.</p>
+<h3 id="slide-4-compliance-position">Slide 4 — Compliance position</h3>
+<p><strong>On screen:</strong> The seven robots/terms principles; the decision table for all five sources.</p>
+<blockquote><p>"Politeness is not the scraper's job — it is the transport layer's job. <code>CompliantHttpClient</code> asks <code>RobotsCache</code> before every request, so a new source cannot forget to comply. RFC 9309's fallback rules are implemented literally: 4xx means allow, 401/403 means disallow."</p></blockquote>
+<p><strong>Anticipated question:</strong> "What if a site forbids scraping?" — Answer: the source is disabled, the run degrades to <code>partial</code>, and the reason is recorded in <code>dim_source.terms_allowed</code>.</p>
+<h3 id="slide-5-architecture">Slide 5 — Architecture</h3>
+<p><strong>On screen:</strong> The component diagram from <code>docs/08</code> §5.1 (simplified to one box per layer).</p>
+<p><strong>Message:</strong> Layered batch ETL plus a read-only serving API.</p>
+<blockquote><p>"Nine pipeline stages, five ingestion sources, five conformed dimensions, twenty views, one semantic layer, 104 API operations. The pipeline is a plain Python object: the CLI, the API and Airflow all call the same <code>Pipeline.run()</code>."</p></blockquote>
+<h3 id="slide-6-data-model">Slide 6 — Data model</h3>
+<p><strong>On screen:</strong> The star schema plus the change feeds; the grain of each fact table; the normalisation argument in three bullets.</p>
+<p><strong>Message:</strong> Kimball's grain-first rule; 3NF dimensions, deliberate denormalisation in the facts.</p>
+<blockquote><p>"<code>fact_price_snapshot</code> is append-only with a declared grain — one row per product per source per run — and a unique constraint enforces it. That single decision makes the <code>LAG()</code>-based movement analysis valid, and it is checked by the critical rule DQ006."</p></blockquote>
+<h3 id="slide-7-preparation-and-deduplication">Slide 7 — Preparation and deduplication</h3>
+<p><strong>On screen:</strong> The similarity formula; the digit-signature example (<code>Canon EOS R6</code> vs <code>R5</code>); the blocking diagram.</p>
+<p><strong>Message:</strong> Six measures blended, with a guard that protects against the classic false merge.</p>
+<blockquote><p>"Six string measures are blended with published weights, then a digit-signature factor penalises any difference in model numbers. That is what keeps two camera bodies apart, and it is measured: R6 vs R5 scores 0.81, below the 0.90 threshold."</p></blockquote>
+<h3 id="slide-8-change-detection-and-reconciliation">Slide 8 — Change detection and reconciliation</h3>
+<p><strong>On screen:</strong> The four event types with the measured event mix; the three-stage reconciliation cascade with the 39/57 result.</p>
+<p><strong>Message:</strong> Price history, four change classes and a quantified market position.</p>
+<h3 id="slide-9-data-quality">Slide 9 — Data quality</h3>
+<p><strong>On screen:</strong> The six dimensions, the 12 rules, the severity-weighted score formula, and the measured report (98.26, 22 pass / 2 warn / 0 fail).</p>
+<p><strong>Message:</strong> Quality is measured per run, persisted, and only critical failures block.</p>
+<blockquote><p>"The score is severity-weighted, and only <code>critical</code> rules can fail a run. Rules execute inside a savepoint, so a broken rule degrades to a recorded failure instead of killing the load."</p></blockquote>
+<h3 id="slide-10-orchestration-and-operations">Slide 10 — Orchestration and operations</h3>
+<p><strong>On screen:</strong> The Airflow DAG with its guards and branch; the CLI command list.</p>
+<p><strong>Message:</strong> One library, three entry points; recoverable tasks; a full CLI for the terminal.</p>
+<h3 id="slide-11-api-and-security">Slide 11 — API and security</h3>
+<p><strong>On screen:</strong> Router table with counts; the role matrix; the token and API-key flows.</p>
+<p><strong>Message:</strong> 113 documented operations behind JWT + RBAC; 78 automated regression checks.</p>
+<h3 id="slide-12-live-demo-3-minutes">Slide 12 — Live demo (3 minutes)</h3>
+<p><strong>On screen:</strong> The browser and a terminal. Use the script in §4 exactly.</p>
+<p><strong>Message:</strong> "Here is the system, end to end, in three minutes."</p>
+<h3 id="slide-13-results">Slide 13 — Results</h3>
+<p><strong>On screen:</strong> The measured results table (from <code>docs/05</code> §3) — DQ 98.26 on two engines, 39/57 catalog match rate, p95 ≤ 38.2 ms, 3.5 s run, 0 structural drift, 78/78 checks.</p>
+<p><strong>Message:</strong> Every number was produced by a command in front of the panel.</p>
+<h3 id="slide-14-engineering-challenges-solved">Slide 14 — Engineering challenges solved</h3>
+<p><strong>On screen:</strong> Four challenges with cause → fix → measured effect:</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Challenge</th>
+<th>Fix</th>
+<th>Effect</th>
+</tr></thead><tbody>
+<tr>
+<th>Reconciliation too slow</th>
+<td>Blocking index + rare-token fallback</td>
+<td>2,975 ms → 104 ms (29×)</td>
+</tr>
+<tr>
+<th>One model, two engines</th>
+<td>Portable types, per-statement view DDL, read-then-write upserts</td>
+<td>0 structural drift, identical DQ score</td>
+</tr>
+<tr>
+<td>A failing source killed the run</td>
+<td>Per-source isolation</td>
+<td>Run becomes <code>partial</code>, data stays usable</td>
+</tr>
+<tr>
+<td>MySQL DDL invalidates savepoints</td>
+<td>One transaction per view statement</td>
+<td>20/20 views on both engines</td>
+</tr>
+</tbody></table></div>
+<h3 id="slide-15-limitations-and-known-issues">Slide 15 — Limitations and known issues</h3>
+<p><strong>On screen:</strong> The five known issues from <code>docs/15</code> §10.4, especially the MySQL <code>TRIGGER</code> reserved-word defect, and the missing committed unit-test suite.</p>
+<p><strong>Message:</strong> Saying what is not finished is part of finishing.</p>
+<h3 id="slide-16-evaluation-against-the-rubric">Slide 16 — Evaluation against the rubric</h3>
+<p><strong>On screen:</strong> The self-assessment table from <code>docs/20</code> §4.</p>
+<h3 id="slide-17-future-work">Slide 17 — Future work</h3>
+<p><strong>On screen:</strong> Six items with effort and benefit (from <code>docs/20</code> §2): incremental sync, partitioned fact table, provider-backed FX, an alerting service, a committed test suite, ML forecasting.</p>
+<h3 id="slide-18-conclusion-and-questions">Slide 18 — Conclusion and questions</h3>
+<p><strong>On screen:</strong> One sentence per contribution; contact; repository; "Questions?"</p>
+<blockquote><p>"One pipeline, five permitted sources, 23 tables, 20 views, 12 quality rules, 104 API operations, two database engines, and a compliance trail for every request we made."</p></blockquote>
+<hr>
+<h2 id="3-qa-preparation">3. Q&amp;A preparation</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Likely question</th>
+<th>Short answer</th>
+<th>Evidence to show</th>
+</tr></thead><tbody>
+<tr>
+<td>Why is scraping the right approach instead of supplier feeds?</td>
+<td>Feeds are per-supplier, per-format and usually paid; the sandbox sites used here are published for exactly this purpose, so the engineering problem can be studied legally</td>
+<td><code>app/ingestion/sources/books_to_scrape.py</code> docstring; <code>docs/01</code> §8.2</td>
+</tr>
+<tr>
+<td>How do you know you are not breaking the law?</td>
+<td>Compliance is enforced in the transport layer, the terms position is recorded per source, and every request is audited with its robots decision</td>
+<td><code>RobotsCache</code>, <code>ingestion_http_log</code>, <code>GET /api/v1/audit/compliance</code></td>
+</tr>
+<tr>
+<td>How accurate is your deduplication?</td>
+<td>14/14 on the project's curated pair set at threshold 0.90; six measures blended; a digit-signature guard handles model numbers; the score and breakdown are stored per product and exposed by the API</td>
+<td><code>docs/05</code> §7.1, <code>GET /api/v1/products/{id}/duplicates</code></td>
+</tr>
+<tr>
+<td>How do you avoid false merges?</td>
+<td>The digit-signature factor penalises differing numeric runs; the brand term is weighted 12 %; the category adds at most 3 %; a merge is reversible because the absorbed row keeps <code>matched_product_id</code></td>
+<td><code>dedupe.py</code>, <code>dim_product.matched_product_id</code></td>
+</tr>
+<tr>
+<td>What is the data quality of the warehouse?</td>
+<td>A severity-weighted 98.26 out of 100 across 12 rules and 6 dimensions, persisted per run; two warnings are explained and no blocking failure</td>
+<td><code>GET /api/v1/quality/latest</code></td>
+</tr>
+<tr>
+<td>Why a star schema and not a flat table?</td>
+<td>Facts stay small, dimensions are reused across three facts, and 20 views hide the joins so analysts never write them</td>
+<td><code>db/views.sql</code>, <code>vw_daily_kpis</code></td>
+</tr>
+<tr>
+<td>Why support MySQL as well as PostgreSQL?</td>
+<td>The retailer may not choose the engine; the same model loads on both with no vendor SQL, and the DQ score is identical — that is a portability guarantee, not a claim</td>
+<td><code>make verify-dialects</code></td>
+</tr>
+<tr>
+<td>How do you handle timezones and money?</td>
+<td>One <code>UTCDateTime</code> decorator normalises every timestamp at the boundary; money is <code>NUMERIC(18,4)</code> and the FX rate used is stored with each observation</td>
+<td><code>app/models/base.py</code></td>
+</tr>
+<tr>
+<td>What happens if a source breaks?</td>
+<td>The run degrades to <code>partial</code>, the failure is a warning, the sync state records consecutive failures, and after three the source is disabled</td>
+<td><code>pipeline._process_source</code>, <code>sync_state</code></td>
+</tr>
+<tr>
+<td>How is performance maintained as the catalogue grows?</td>
+<td>Blocking bounds the comparison set, dimensions are cached, facts are batched, and <code>preload_latest</code> removes the N+1 pattern; the reconciliation went from 3 s to 104 ms with identical results</td>
+<td><code>docs/09</code> §7, <code>docs/17</code> §9</td>
+</tr>
+<tr>
+<td>How do you secure the API?</td>
+<td>Argon2id, HS256 JWT with type and issuer validation, three roles with ten rights, hashed revocable API keys, an audit trail, and a read-only SQL console that rejects writes before execution</td>
+<td><code>app/api/security.py</code>, <code>scripts/api_smoke.py</code></td>
+</tr>
+<tr>
+<td>Why is the dashboard not in the repository?</td>
+<td>The delivered repository snapshot contains the API and the specification for every screen (doc 12); each screen is mapped to the endpoints that back it, and the API smoke suite verifies the same journeys</td>
+<td><code>docs/12</code>, <code>docs/16</code></td>
+</tr>
+<tr>
+<td>What would you do differently?</td>
+<td>Commit the unit suite, partition the fact table, replace the static FX table with a provider, and enforce the retention job</td>
+<td><code>docs/20</code></td>
+</tr>
+<tr>
+<td>How would this scale to 100,000 SKUs?</td>
+<td>Partition by month, persist a sorted-neighbourhood index for blocking, raise the candidate pool, add a read replica for the dashboard and move Airflow to a distributed executor</td>
+<td><code>docs/13</code> §10</td>
+</tr>
+<tr>
+<td>What is your contribution?</td>
+<td>End-to-end: the compliance layer, the cleaning and normalisation, the deduplication engine with its blocking optimisation, the dimensional model and views, the DQ framework, the API with RBAC, the orchestration and this documentation set</td>
+<td><code>docs/19</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Three rules for the Q&amp;A:</strong> answer in one sentence first; give the file path second; run the command third. If you do not know, say "I would measure that" and name the measurement.</p>
+<hr>
+<h2 id="4-three-minute-demo-script">4. Three-minute demo script</h2>
+<h3 id="41-preparation-before-the-defence-5-minutes">4.1 Preparation (before the defence, 5 minutes)</h3>
+<pre class="code" data-lang="bash"><code>cd /home/ahmed/Downloads/Depi_Ahmed_Abobakr_Project
+make db-wait                    # both databases healthy
+pip-cli status | tail -20       # row counts and the last runs
+pip-cli serve --port 8000 &gt; var/demo-api.log 2&gt;&amp;1 &amp;    # API on 8000
+sleep 6
+curl -s localhost:8000/api/v1/health | head -c 200; echo
+# Open two browser tabs: http://localhost:8000/docs and the dashboard (http://localhost:5173)
+# Sign in as admin@example.com / Admin@12345</code></pre>
+<h3 id="42-the-script-minute-by-minute">4.2 The script, minute by minute</h3>
+<p><strong>0:00–0:30 — Prove the warehouse exists (terminal)</strong></p>
+<pre class="code" data-lang="bash"><code>pip-cli status | head -25</code></pre>
+<p>Say: "23 tables, 20 views, 66 products, 8,302 price snapshots over 150 days."</p>
+<p><strong>0:30–1:00 — Run the pipeline live (terminal)</strong></p>
+<pre class="code" data-lang="bash"><code>pip-cli run-pipeline --sources local_demo,dummyjson_products --limit 25 --quiet</code></pre>
+<p>Say: "One command. Nine instrumented stages, compliance-gated extraction, dedupe, change detection, catalog reconciliation and twelve quality rules. It finished in under four seconds."</p>
+<p><strong>1:00–1:30 — Show the run detail (browser: Pipeline screen, or terminal)</strong></p>
+<pre class="code" data-lang="bash"><code>pip-cli report --days 30 --limit 5</code></pre>
+<p>Say: "Top movers, category drift and the quality report — all of it SQL, no hard-coded numbers."</p>
+<p><strong>1:30–2:00 — Dashboard (browser)</strong></p>
+<p>Open <code>http://localhost:5173</code>. Point at the KPI cards, then the price-change timeline, then the category breakdown. Say: "Sixty-six products, 1,608 price changes in the window, DQ score 98.26, and 195 of 285 catalog rows matched."</p>
+<p><strong>2:00–2:30 — Product detail and duplicates (browser)</strong></p>
+<p>Open Products → <em>Samsung 4K Smart TV 55 inch Plus</em>. Say: "Price history with 150 observations. The match strategy is shown — this product was merged with a fuzzy match at 0.98." Open the Duplicate candidates tab: "and here is the score breakdown for every near match."</p>
+<p><strong>2:30–2:50 — Quality and compliance (browser)</strong></p>
+<p>Open Quality: "12 rules, 6 dimensions, score 98.26, two warnings explained." Open Compliance: "Every outbound request is logged with its robots decision — zero unlogged requests."</p>
+<p><strong>2:50–3:00 — The API (browser: <code>http://localhost:8000/docs</code>)</strong></p>
+<p>Say: "113 documented operations, JWT plus role-based access, and 78 automated checks that exercise all of it — including the 401 and the 403."</p>
+<h3 id="43-optional-20-second-flourish-cross-dialect-parity">4.3 Optional 20-second flourish: cross-dialect parity</h3>
+<pre class="code" data-lang="bash"><code>pip-cli verify</code></pre>
+<p>Say: "The same model, the same data, two engines — zero structural drift and an identical data-quality score of 98.26 on PostgreSQL 16 and MySQL 8.4."</p>
+<h3 id="44-backup-the-same-story-with-curl">4.4 Backup: the same story with <code>curl</code></h3>
+<p>If the dashboard is unavailable, the demo still works:</p>
+<pre class="code" data-lang="bash"><code>TOKEN=$(curl -s -X POST localhost:8000/api/v1/auth/login -H &#x27;content-type: application/json&#x27; \
+  -d &#x27;{&quot;email&quot;:&quot;admin@example.com&quot;,&quot;password&quot;:&quot;Admin@12345&quot;}&#x27; | jq -r .access_token)
+
+curl -s &quot;localhost:8000/api/v1/analytics/kpi?days=30&quot; -H &quot;Authorization: Bearer $TOKEN&quot; \
+  | jq &#x27;{products: .latest.products, changes: .changes.total_changes, dq: .quality.dq_score, catalog: .catalog}&#x27;
+
+curl -s &quot;localhost:8000/api/v1/changes/price?days=90&amp;significant_only=true&amp;page_size=3&quot; \
+  -H &quot;Authorization: Bearer $TOKEN&quot; | jq &#x27;.items[] | {name: .canonical_name, change: .change_pct}&#x27;
+
+curl -s &quot;localhost:8000/api/v1/audit/compliance?days=7&quot; -H &quot;Authorization: Bearer $TOKEN&quot; | jq</code></pre>
+<hr>
+<h2 id="5-rehearsal-plan">5. Rehearsal plan</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Rehearsal</th>
+<th>Duration</th>
+<th>Focus</th>
+<th>Success criterion</th>
+</tr></thead><tbody>
+<tr>
+<th>R1 — Content</th>
+<td>45 min</td>
+<td>Slides 1–18 spoken aloud, timing each slide</td>
+<td>Within 15 minutes, no slide over 60 seconds</td>
+</tr>
+<tr>
+<th>R2 — Q&amp;A</th>
+<td>30 min</td>
+<td>The 15 questions in §3 answered from memory, then with notes</td>
+<td>Each answer under 30 seconds with a file path</td>
+</tr>
+<tr>
+<th>R3 — Demo dry run</th>
+<td>20 min</td>
+<td>The full §4 script twice, cold</td>
+<td>Under 3 minutes, no unexplained waiting</td>
+</tr>
+<tr>
+<th>R4 — Failure drill</th>
+<td>15 min</td>
+<td>Kill the API, kill the database, block the network</td>
+<td>Demonstrate the fallback in §6 without panic</td>
+</tr>
+<tr>
+<th>R5 — Final</th>
+<td>15 min</td>
+<td>Full run-through standing up, no notes</td>
+<td>Clean, and the demo fits inside the slot</td>
+</tr>
+</tbody></table></div>
+<p><strong>Rehearsal checklist</strong></p>
+<ul>
+<li class="depth-0">[ ] Terminal font size increased; <code>PYTHONPATH</code> correct; the working directory is the project root</li>
+<li class="depth-0">[ ] Browser zoom at 100 %, dashboard tab already signed in, devtools closed</li>
+<li class="depth-0">[ ] <code>pip-cli status</code> and <code>pip-cli report</code> executed once so the output is warm</li>
+<li class="depth-0">[ ] Screenshots of every screen exported to the backup slide deck</li>
+<li class="depth-0">[ ] CLI report output saved to <code>var/artifacts/demo-report.txt</code> as text backup</li>
+<li class="depth-0">[ ] Laptop power supply, screen sharing tested, presentation file exported as PDF as well</li>
+</ul>
+<hr>
+<h2 id="6-backup-plan-if-the-demo-fails">6. Backup plan if the demo fails</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Failure</th>
+<th>Immediate action</th>
+<th>Narration to use</th>
+</tr></thead><tbody>
+<tr>
+<th>API does not start</th>
+<td><code>pip-cli status</code>; check the port; start with <code>--port 8001</code> and use <code>curl</code></td>
+<td>"Let me show the same evidence through the CLI, which uses the same code."</td>
+</tr>
+<tr>
+<th>Database is down</th>
+<td><code>make db-wait</code>; if that fails, show the SQLite fallback: <code>ACTIVE_DATABASE=sqlite</code></td>
+<td>"The warehouse is the same model; only the engine differs."</td>
+</tr>
+<tr>
+<th>No internet</th>
+<td>Use <code>--sources local_demo</code> — the synthetic source needs no network</td>
+<td>"This is the offline source; it is how the project is demonstrated without internet access."</td>
+</tr>
+<tr>
+<th>Dashboard is blank</th>
+<td>Switch to Swagger UI at <code>/docs</code> and run <code>GET /analytics/kpi</code></td>
+<td>"Here is the same contract the dashboard consumes."</td>
+</tr>
+<tr>
+<th>Everything fails</th>
+<td>Present the results slide with the measured table from <code>docs/05</code> §3</td>
+<td>"These numbers were measured and re-measurable; the commands are in the documentation."</td>
+</tr>
+</tbody></table></div>
+<p><strong>Never</strong> spend more than 30 seconds recovering on stage. Switch to the backup narrative and continue with slides 13–18.</p>
+    </article>
+    <div class="doc-foot">
+      <span><a href="17_technical_documentation.html">← Technical Documentation</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="19_feature_list.html">Feature Inventory →</a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

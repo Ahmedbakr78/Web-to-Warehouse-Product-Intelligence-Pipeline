@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Every screen, filters, exports, troubleshooting">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="User Manual — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Every screen, filters, exports, troubleshooting">
+<title>User Manual — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="23-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, all 113 operations, examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, 100-case plan, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" class="active" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="234 features with file references">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>User Manual</h1>
+      <p>Every screen, filters, exports, troubleshooting</p>
+    </div>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#table-of-contents">Table of contents</a></li><li class="lvl-2"><a href="#1-before-you-start">1. Before you start</a></li><li class="lvl-2"><a href="#2-signing-in-and-out">2. Signing in and out</a></li><li class="lvl-3"><a href="#21-sign-in">2.1 Sign in</a></li><li class="lvl-3"><a href="#22-what-your-role-can-see">2.2 What your role can see</a></li><li class="lvl-3"><a href="#23-sign-out">2.3 Sign out</a></li><li class="lvl-2"><a href="#3-the-dashboard">3. The dashboard</a></li><li class="lvl-3"><a href="#31-the-five-kpi-cards">3.1 The five KPI cards</a></li><li class="lvl-3"><a href="#32-the-charts">3.2 The charts</a></li><li class="lvl-3"><a href="#33-latest-run-strip">3.3 Latest run strip</a></li><li class="lvl-2"><a href="#4-products">4. Products</a></li><li class="lvl-3"><a href="#41-filters">4.1 Filters</a></li><li class="lvl-3"><a href="#42-sorting-and-paging">4.2 Sorting and paging</a></li><li class="lvl-3"><a href="#43-actions">4.3 Actions</a></li><li class="lvl-2"><a href="#5-product-detail">5. Product detail</a></li><li class="lvl-2"><a href="#6-changes">6. Changes</a></li><li class="lvl-2"><a href="#7-analytics">7. Analytics</a></li><li class="lvl-2"><a href="#8-pipeline">8. Pipeline</a></li><li class="lvl-3"><a href="#81-reading-the-header">8.1 Reading the header</a></li><li class="lvl-3"><a href="#82-the-run-table">8.2 The run table</a></li><li class="lvl-3"><a href="#83-running-the-pipeline">8.3 Running the pipeline</a></li><li class="lvl-3"><a href="#84-stage-timings">8.4 Stage timings</a></li><li class="lvl-3"><a href="#85-source-health">8.5 Source health</a></li><li class="lvl-2"><a href="#9-run-detail">9. Run detail</a></li><li class="lvl-2"><a href="#10-quality">10. Quality</a></li><li class="lvl-2"><a href="#11-catalog">11. Catalog</a></li><li class="lvl-3"><a href="#111-reconciliation-tab">11.1 Reconciliation tab</a></li><li class="lvl-3"><a href="#112-opportunities-tab">11.2 Opportunities tab</a></li><li class="lvl-3"><a href="#113-internal-catalog-tab">11.3 Internal catalog tab</a></li><li class="lvl-2"><a href="#12-sources">12. Sources</a></li><li class="lvl-3"><a href="#121-source-preview">12.1 Source preview</a></li><li class="lvl-2"><a href="#13-query-lab">13. Query Lab</a></li><li class="lvl-2"><a href="#14-account-and-preferences">14. Account and preferences</a></li><li class="lvl-3"><a href="#141-profile">14.1 Profile</a></li><li class="lvl-3"><a href="#142-appearance">14.2 Appearance</a></li><li class="lvl-3"><a href="#143-data-and-notifications">14.3 Data and notifications</a></li><li class="lvl-3"><a href="#144-security">14.4 Security</a></li><li class="lvl-2"><a href="#15-saved-views">15. Saved views</a></li><li class="lvl-2"><a href="#16-alerts-and-notifications">16. Alerts and notifications</a></li><li class="lvl-3"><a href="#161-alert-rules">16.1 Alert rules</a></li><li class="lvl-3"><a href="#162-notifications">16.2 Notifications</a></li><li class="lvl-2"><a href="#17-api-keys">17. API keys</a></li><li class="lvl-2"><a href="#18-administration">18. Administration</a></li><li class="lvl-3"><a href="#181-users">18.1 Users</a></li><li class="lvl-3"><a href="#182-settings">18.2 Settings</a></li><li class="lvl-3"><a href="#183-audit-log">18.3 Audit log</a></li><li class="lvl-3"><a href="#184-compliance">18.4 Compliance</a></li><li class="lvl-3"><a href="#185-maintenance">18.5 Maintenance</a></li><li class="lvl-2"><a href="#19-exporting-data">19. Exporting data</a></li><li class="lvl-2"><a href="#20-troubleshooting">20. Troubleshooting</a></li><li class="lvl-2"><a href="#21-faq">21. FAQ</a></li><li class="lvl-2"><a href="#22-glossary">22. Glossary</a></li></ol></details>
+    <article class="doc-body">
+<h2 id="purpose">Purpose</h2>
+<p>This manual is written for the people who use the Product Intelligence Pipeline every day: the pricing analyst, the category manager, the data platform lead and the system administrator. It explains how to sign in, what each screen shows, what you can do on it, how to filter, export, save a view and raise an alert, how to change your own settings, what an administrator administers, and what to do when something does not work.</p>
+<p>No code is required to follow this manual. Every action is described with the screen it happens on and, where it helps, the API path behind it.</p>
+<hr>
+<h2 id="table-of-contents">Table of contents</h2>
+<ul>
+<li class="depth-0"><a href="#1-before-you-start">Before you start</a></li>
+<li class="depth-0"><a href="#2-signing-in-and-out">Signing in and out</a></li>
+<li class="depth-0"><a href="#3-the-dashboard">The dashboard</a></li>
+<li class="depth-0"><a href="#4-products">Products</a></li>
+<li class="depth-0"><a href="#5-product-detail">Product detail</a></li>
+<li class="depth-0"><a href="#6-changes">Changes</a></li>
+<li class="depth-0"><a href="#7-analytics">Analytics</a></li>
+<li class="depth-0"><a href="#8-pipeline">Pipeline</a></li>
+<li class="depth-0"><a href="#9-run-detail">Run detail</a></li>
+<li class="depth-0"><a href="#10-quality">Quality</a></li>
+<li class="depth-0"><a href="#11-catalog">Catalog</a></li>
+<li class="depth-0"><a href="#12-sources">Sources</a></li>
+<li class="depth-0"><a href="#13-query-lab">Query Lab</a></li>
+<li class="depth-0"><a href="#14-account-and-preferences">Account and preferences</a></li>
+<li class="depth-0"><a href="#15-saved-views">Saved views</a></li>
+<li class="depth-0"><a href="#16-alerts-and-notifications">Alerts and notifications</a></li>
+<li class="depth-0"><a href="#17-api-keys">API keys</a></li>
+<li class="depth-0"><a href="#18-administration">Administration</a></li>
+<li class="depth-0"><a href="#19-exporting-data">Exporting data</a></li>
+<li class="depth-0"><a href="#20-troubleshooting">Troubleshooting</a></li>
+<li class="depth-0"><a href="#21-faq">FAQ</a></li>
+<li class="depth-0"><a href="#22-glossary">Glossary</a></li>
+</ul>
+<hr>
+<h2 id="1-before-you-start">1. Before you start</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Item</th>
+<th>Value</th>
+</tr></thead><tbody>
+<tr>
+<th>Dashboard URL</th>
+<td><code>http://localhost:5173</code> (development)</td>
+</tr>
+<tr>
+<th>API URL</th>
+<td><code>http://localhost:8000/api/v1</code></td>
+</tr>
+<tr>
+<th>Interactive API docs</th>
+<td><code>http://localhost:8000/docs</code></td>
+</tr>
+<tr>
+<th>Demo accounts</th>
+<td><code>admin@example.com</code>, <code>analyst@example.com</code>, <code>viewer@example.com</code></td>
+</tr>
+<tr>
+<th>Default passwords</th>
+<td><code>Admin@12345</code>, <code>Analyst@12345</code>, <code>Viewer@12345</code></td>
+</tr>
+<tr>
+<th>Expected data state</th>
+<td>23 tables, 20 views, 60 demo products, 150 days of history, DQ score 98.26</td>
+</tr>
+</tbody></table></div>
+<p>If the dashboard cannot be reached, ask the operator to run:</p>
+<pre class="code" data-lang="bash"><code>make up-db &amp;&amp; make db-wait      # databases
+make serve                      # API on port 8000
+make frontend-dev               # dashboard on port 5173</code></pre>
+<hr>
+<h2 id="2-signing-in-and-out">2. Signing in and out</h2>
+<h3 id="21-sign-in">2.1 Sign in</h3>
+<ul>
+<li class="depth-0">Open the dashboard URL. You land on the sign-in screen.</li>
+<li class="depth-0">Enter your email address and password.</li>
+<li class="depth-0">Tick <strong>Remember me</strong> if you work on this machine regularly; it extends the refresh token to 30 days.</li>
+<li class="depth-0">Press <strong>Sign in</strong>. The shell loads with your role's navigation.</li>
+</ul>
+<p>If you make five wrong attempts the account locks for 15 minutes and the message says so. Wait, then sign in again, or ask an administrator to reset the account.</p>
+<h3 id="22-what-your-role-can-see">2.2 What your role can see</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Role</th>
+<th>Sees</th>
+<th>Cannot do</th>
+</tr></thead><tbody>
+<tr>
+<th><strong>Viewer</strong></th>
+<td>Dashboard, Products, Changes, Analytics, Pipeline, Quality, Catalog, Sources, Account</td>
+<td>Run a pipeline, use the Query Lab, change settings, manage users, see the audit log</td>
+</tr>
+<tr>
+<th><strong>Analyst</strong></th>
+<td>Everything a viewer sees, plus <strong>Query Lab</strong>, saved views, alerts, and the <strong>Run pipeline</strong> button</td>
+<td>Manage users, edit global settings, see the application audit log</td>
+</tr>
+<tr>
+<th><strong>Admin</strong></th>
+<td>Everything, plus <strong>Admin</strong> (users, settings, audit, compliance) and run-history maintenance</td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<p>Navigation items you cannot use are not rendered; API calls that bypass the UI return <code>403 permission_denied</code>.</p>
+<h3 id="23-sign-out">2.3 Sign out</h3>
+<p>Click the account menu (top right) → <strong>Sign out</strong>. The session is recorded in the audit log with your IP address. Tokens are held in memory only, so closing the browser also ends the session.</p>
+<hr>
+<h2 id="3-the-dashboard">3. The dashboard</h2>
+<p>The dashboard answers "what is the state of my data today?" in one screen.</p>
+<h3 id="31-the-five-kpi-cards">3.1 The five KPI cards</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Card</th>
+<th>Meaning</th>
+<th>Where the number comes from</th>
+</tr></thead><tbody>
+<tr>
+<th><strong>Products</strong></th>
+<td>Products observed in the selected window</td>
+<td><code>GET /api/v1/analytics/kpi</code></td>
+</tr>
+<tr>
+<th><strong>Price changes</strong></th>
+<td>Price changes in the window, with the significant count</td>
+<td>same</td>
+</tr>
+<tr>
+<th><strong>New / removed</strong></th>
+<td>New arrivals and products that disappeared</td>
+<td>same</td>
+</tr>
+<tr>
+<th><strong>DQ score</strong></th>
+<td>Data-quality score of the last run, plus the failure count</td>
+<td>same</td>
+</tr>
+<tr>
+<th><strong>Catalog</strong></th>
+<td>Internal SKUs matched in the last reconciliation</td>
+<td>same</td>
+</tr>
+</tbody></table></div>
+<p>Use the window selector (7 / 30 / 90 days) in the card header to change every card and chart at once.</p>
+<h3 id="32-the-charts">3.2 The charts</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Chart</th>
+<th>What to read from it</th>
+</tr></thead><tbody>
+<tr>
+<td>Observations and average price</td>
+<td>Whether the daily observation volume is stable and how the average USD price moves</td>
+</tr>
+<tr>
+<th>Price-change timeline</th>
+<td>Green (down) and red (up) bars; the line is the mean absolute change — spikes mean a promotion cycle</td>
+</tr>
+<tr>
+<th>Category breakdown</th>
+<td>Bars are average USD price; click a bar to filter the Products screen</td>
+</tr>
+<tr>
+<th>Brand leaderboard</th>
+<td>Ranked by product count; the in-stock percentage highlights availability risk</td>
+</tr>
+</tbody></table></div>
+<h3 id="33-latest-run-strip">3.3 Latest run strip</h3>
+<p>The strip at the bottom shows the most recent run: <code>run_id</code>, status, duration, records extracted and loaded, DQ score and warnings. Click it to open the run detail.</p>
+<hr>
+<h2 id="4-products">4. Products</h2>
+<p>The Products screen is the deduplicated, canonical catalogue.</p>
+<h3 id="41-filters">4.1 Filters</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Filter</th>
+<th>How to use</th>
+<th>Effect</th>
+</tr></thead><tbody>
+<tr>
+<th>Search</th>
+<td>Type at least two characters</td>
+<td>Matches name, brand, category or URL</td>
+</tr>
+<tr>
+<th>Category</th>
+<td>Pick from the facet list (counts shown)</td>
+<td>Exact category name or a path prefix</td>
+</tr>
+<tr>
+<th>Brand</th>
+<td>Pick from the facet list</td>
+<td>Exact brand</td>
+</tr>
+<tr>
+<th>Source</th>
+<td>Pick a source code</td>
+<td>Only products observed by that source</td>
+</tr>
+<tr>
+<th>Stock</th>
+<td>Any / in stock / out of stock / limited / preorder</td>
+<td>Availability filter</td>
+</tr>
+<tr>
+<th>Price range</th>
+<td>Two numeric inputs</td>
+<td>Inclusive USD range</td>
+</tr>
+<tr>
+<th>Rating</th>
+<td>Dropdown</td>
+<td>Minimum rating</td>
+</tr>
+<tr>
+<th>Movement</th>
+<td>Numeric</td>
+<td>Only products whose last change is at least this percentage</td>
+</tr>
+<tr>
+<th>Recency</th>
+<td>30 / 90 / 365 days</td>
+<td>Products first seen or last seen inside the window</td>
+</tr>
+<tr>
+<th>Active</th>
+<td>On by default</td>
+<td>Untick to include removed products</td>
+</tr>
+</tbody></table></div>
+<p>Active filters appear as chips above the table. Click a chip to remove it, or <strong>Clear all</strong> to reset. The URL always reflects the current filters, so you can bookmark or share an exact view.</p>
+<h3 id="42-sorting-and-paging">4.2 Sorting and paging</h3>
+<p>Click a column header to sort; click again to reverse. Use the pager at the bottom to move between pages; the page size follows your account preference (default 25).</p>
+<h3 id="43-actions">4.3 Actions</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Action</th>
+<th>Result</th>
+</tr></thead><tbody>
+<tr>
+<th>Click a row</th>
+<td>Opens the product detail</td>
+</tr>
+<tr>
+<td>Tick rows (up to 6) → <strong>Compare</strong></td>
+<td>Side-by-side comparison drawer</td>
+</tr>
+<tr>
+<th><strong>Save view</strong></th>
+<td>Stores the current filters, sort and visible columns</td>
+</tr>
+<tr>
+<th><strong>Export CSV</strong></th>
+<td>Downloads the current product list</td>
+</tr>
+<tr>
+<th>Search box type-ahead</th>
+<td>Suggestions appear after two characters</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="5-product-detail">5. Product detail</h2>
+<p>Everything known about one canonical product.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Section</th>
+<th>What it shows</th>
+</tr></thead><tbody>
+<tr>
+<th>Header</th>
+<td>Name, current price (USD), rating with count, availability, last change, match strategy and score, links to the source page and to the catalog SKU</td>
+</tr>
+<tr>
+<th>Price history</th>
+<td>Line chart of every observation, with the minimum, average and maximum and the observation count</td>
+</tr>
+<tr>
+<th>Recent changes</th>
+<td>The last 25 price changes with date, previous, new, percentage, direction and magnitude band</td>
+</tr>
+<tr>
+<th>Lifecycle events</th>
+<td>New, recurring, removed and category-changed events</td>
+</tr>
+<tr>
+<th>Duplicate candidates</th>
+<td>Similar products with a similarity score and a breakdown; use this to judge whether a merge is correct</td>
+</tr>
+<tr>
+<th>Catalog position</th>
+<td>Internal SKU, our price, market price, price gap and match status</td>
+</tr>
+<tr>
+<th>Raw payload tab</th>
+<td>The original name, quality flags, blocking key and the FX rate that was applied</td>
+</tr>
+</tbody></table></div>
+<p><strong>Tip.</strong> If two products look merged that should not be, record the product id and the score and raise it — the threshold is configurable and can be tightened globally.</p>
+<hr>
+<h2 id="6-changes">6. Changes</h2>
+<p>The Changes screen has six tabs.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Tab</th>
+<th>Contents</th>
+<th>Useful filter</th>
+</tr></thead><tbody>
+<tr>
+<th><strong>Price</strong></th>
+<td>Every detected price change, largest first</td>
+<td>Window, direction, category, brand, source, significant only, minimum absolute change</td>
+</tr>
+<tr>
+<th><strong>Top movers</strong></th>
+<td>The biggest absolute movements in the window</td>
+<td>Direction</td>
+</tr>
+<tr>
+<th><strong>Events</strong></th>
+<td>The full lifecycle feed</td>
+<td>Event type, category</td>
+</tr>
+<tr>
+<th><strong>New</strong></th>
+<td>Products first seen in the window</td>
+<td>Window</td>
+</tr>
+<tr>
+<th><strong>Removed</strong></th>
+<td>Products that disappeared, with days missing and the last known price</td>
+<td>Window</td>
+</tr>
+<tr>
+<th><strong>Category</strong></th>
+<td>Products whose category changed</td>
+<td>Window</td>
+</tr>
+<tr>
+<th><strong>Drift</strong></th>
+<td>Per-category added / removed / recategorised / net change</td>
+<td>Window</td>
+</tr>
+</tbody></table></div>
+<p><strong>Reading a change row.</strong> <code>Δ%</code> is the percentage move against the previous observation of the same product <strong>from the same source</strong>. <code>Band</code> summarises the size: <code>minor</code> (&lt; 1 %), <code>small</code> (&lt; 5 %), <code>moderate</code> (&lt; 15 %), <code>large</code> (&lt; 30 %), <code>major</code> (≥ 30 %). <code>Sig</code> means the move is at least 1 %.</p>
+<hr>
+<h2 id="7-analytics">7. Analytics</h2>
+<p>Six panels, each one report:</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Panel</th>
+<th>Question it answers</th>
+</tr></thead><tbody>
+<tr>
+<th>Category price index</th>
+<td>How did the average price of each category move, and how volatile was it?</td>
+</tr>
+<tr>
+<th>Availability by category</th>
+<td>Which categories are running out of stock?</td>
+</tr>
+<tr>
+<th>Brand leaderboard</th>
+<td>Which brands are cheapest, best rated, most available?</td>
+</tr>
+<tr>
+<th>Source coverage matrix</th>
+<td>Which sources contribute which categories?</td>
+</tr>
+<tr>
+<th>Top movers</th>
+<td>Which products moved most in the window?</td>
+</tr>
+<tr>
+<th>Category drift</th>
+<td>Which categories are gaining or losing assortment?</td>
+</tr>
+</tbody></table></div>
+<p>Use the window selector at the top of the screen. The <strong>Explain</strong> action on the Query Lab and the <code>/analytics/report/*</code> endpoints provide the same data in tabular form for copying into a document.</p>
+<hr>
+<h2 id="8-pipeline">8. Pipeline</h2>
+<h3 id="81-reading-the-header">8.1 Reading the header</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Item</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th>Schedule</th>
+<td>The cron expression from the settings (<code>0 3 <em> </em> *</code> = daily at 03:00)</td>
+</tr>
+<tr>
+<th>Orchestrator</th>
+<td>Which engine is responsible (Airflow 2.10.5, LocalExecutor)</td>
+</tr>
+<tr>
+<th>Last run / next expected</th>
+<td>Last start time and the next scheduled time</td>
+</tr>
+<tr>
+<th>Status badges</th>
+<td>Counts of <code>success</code>, <code>partial</code> and <code>failed</code> runs</td>
+</tr>
+</tbody></table></div>
+<h3 id="82-the-run-table">8.2 The run table</h3>
+<p>Columns: run id, status, trigger (<code>manual</code>, <code>cli</code>, <code>api</code>, <code>airflow</code>, <code>schedule</code>, <code>smoke_test</code>), target database, start time, duration, extracted, valid, price changes, DQ score and warnings. Click a row for the run detail.</p>
+<h3 id="83-running-the-pipeline">8.3 Running the pipeline</h3>
+<p>If the <strong>Run pipeline</strong> button is visible (analyst or admin):</p>
+<ul>
+<li class="depth-0">Click <strong>Run pipeline</strong>.</li>
+<li class="depth-0">Choose the sources (all enabled sources by default).</li>
+<li class="depth-0">Set <strong>Records per source</strong> (default 25; use a small number for a quick check).</li>
+<li class="depth-0">Optionally tick <strong>Strict</strong> (reject records without a price), <strong>Skip quality checks</strong> or</li>
+</ul>
+<p><strong>Skip catalog reconciliation</strong>.</p>
+<ul>
+<li class="depth-0">Press <strong>Run</strong>. The run is queued and a notification confirms it. Refresh the run table to watch it.</li>
+</ul>
+<blockquote><p>The administrator can also clear the run history. This deletes run, quality, reconciliation and request-audit history — it cannot be undone, and it asks for confirmation twice.</p></blockquote>
+<h3 id="84-stage-timings">8.4 Stage timings</h3>
+<p>The stage list shows the nine stages — extract, stage, transform, resolve, load, detect, reconcile, quality, aggregate — with the average duration per status. Use it to answer "where does the time go?".</p>
+<h3 id="85-source-health">8.5 Source health</h3>
+<p>For each source: kind, rate limit, terms permission, robots status, last run, success rate, average duration, consecutive failures and sync status. Three consecutive failures mean the source should be reviewed or disabled.</p>
+<hr>
+<h2 id="9-run-detail">9. Run detail</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Section</th>
+<th>Contents</th>
+</tr></thead><tbody>
+<tr>
+<th>Header</th>
+<td>Status, trigger, target, start, finish, duration, DQ score</td>
+</tr>
+<tr>
+<th>Counters</th>
+<td>Extracted, valid, rejected, inserted, updated, duplicates merged, new, changes, removed, catalog matched</td>
+</tr>
+<tr>
+<th>DQ outcomes</th>
+<td>All 12 rules with status, severity, observed and expected values and the message</td>
+</tr>
+<tr>
+<th>HTTP compliance</th>
+<td>Requests grouped by source and host with status codes, latency, cache hits and robots refusals</td>
+</tr>
+<tr>
+<th>Reconciliation</th>
+<td>Matched / unmatched / price mismatches and the average similarity for this run</td>
+</tr>
+<tr>
+<th>Params</th>
+<td>The exact configuration the run used (expand)</td>
+</tr>
+<tr>
+<th>Warnings</th>
+<td>Any source error or DQ problem, verbatim</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="10-quality">10. Quality</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Element</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th>Score</th>
+<td>0–100, weighted by rule severity. The demo dataset scores <strong>98.26</strong></td>
+</tr>
+<tr>
+<th>pass / warn / fail</th>
+<td>Rule counts. <code>warn</code> means the value is within 5 % of the threshold</td>
+</tr>
+<tr>
+<th>Blocking</th>
+<td>Rules that failed at <code>critical</code> severity — any entry here means the run was marked <code>failed</code></td>
+</tr>
+<tr>
+<th>Dimension matrix</th>
+<td>Rules grouped by completeness, validity, uniqueness, consistency, accuracy and timeliness</td>
+</tr>
+<tr>
+<th>Score trend</th>
+<td>One point per run, with the 80-point threshold line</td>
+</tr>
+<tr>
+<th>Rule results</th>
+<td>Every historical outcome, filterable by status and dimension</td>
+</tr>
+<tr>
+<th>Rule catalogue</th>
+<td>The 12 rules with their descriptions and thresholds</td>
+</tr>
+</tbody></table></div>
+<p><strong>What to do when a rule fails.</strong> Open the rule's message: it states how many records were checked and how many failed. <code>DQ001</code> (required fields) usually means a source is publishing incomplete records; <code>DQ002</code>/<code>DQ003</code> mean the cleaning rules need a new pattern; <code>DQ004</code> means a new currency appeared — add it to the reference table; <code>DQ009</code> means a source published an implausible price jump.</p>
+<hr>
+<h2 id="11-catalog">11. Catalog</h2>
+<h3 id="111-reconciliation-tab">11.1 Reconciliation tab</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th>SKU</th>
+<td>The internal catalog identifier</td>
+</tr>
+<tr>
+<td>Catalog name / brand / category / supplier</td>
+<td>What our ERP thinks</td>
+</tr>
+<tr>
+<th>Our price / market price</th>
+<td>The two prices compared</td>
+</tr>
+<tr>
+<th>Gap %</th>
+<td><code>(market − ours) / ours × 100</code></td>
+</tr>
+<tr>
+<th>Status</th>
+<td><code>matched</code> or <code>unmatched</code></td>
+</tr>
+<tr>
+<th>Strategy</th>
+<td>How the match was made: <code>sku</code>, <code>normalized_name</code> or <code>fuzzy</code></td>
+</tr>
+<tr>
+<th>Similarity</th>
+<td>Score of the chosen match (1.0 for identifier matches)</td>
+</tr>
+</tbody></table></div>
+<p>Filter with <strong>only mismatches</strong> to see just the rows where the gap is at least 1 %.</p>
+<h3 id="112-opportunities-tab">11.2 Opportunities tab</h3>
+<p>The same rows sorted by the size of the gap, with a <strong>Position</strong> column:</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Position</th>
+<th>Meaning</th>
+<th>Action</th>
+</tr></thead><tbody>
+<tr>
+<th><code>we_are_dearer</code></th>
+<td>The market is cheaper than us</td>
+<td>Review sourcing or price</td>
+</tr>
+<tr>
+<th><code>we_are_cheaper</code></th>
+<td>We are cheaper than the market</td>
+<td>Check that we are not leaving margin on the table</td>
+</tr>
+</tbody></table></div>
+<h3 id="113-internal-catalog-tab">11.3 Internal catalog tab</h3>
+<p>Every SKU with cost price, list price, stock on hand, status (<code>active</code> / <code>discontinued</code>) and supplier. Use it to confirm that the delisted SKUs in the reconciliation output are genuinely internal-only.</p>
+<hr>
+<h2 id="12-sources">12. Sources</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th>code / name / kind</th>
+<td><code>api</code>, <code>scrape</code> or <code>synthetic</code></td>
+</tr>
+<tr>
+<th>base URL</th>
+<td>Where the data comes from</td>
+</tr>
+<tr>
+<th>rate / delay</th>
+<td>Requests per minute and the minimum delay enforced by the rate limiter</td>
+</tr>
+<tr>
+<th>paging</th>
+<td>Whether the source supports paging</td>
+</tr>
+<tr>
+<th>terms</th>
+<td>Whether the terms of service permit automated access</td>
+</tr>
+<tr>
+<th>robots</th>
+<td>Whether <code>robots.txt</code> is respected (it always is)</td>
+</tr>
+</tbody></table></div>
+<p>Below the table, the <strong>robots.txt cache</strong> shows <code>fetched</code>, <code>cached</code>, <code>blocked</code>, <code>allowed</code> and <code>errors</code>, plus the exact user-agent string used.</p>
+<h3 id="121-source-preview">12.1 Source preview</h3>
+<p>Select a source and press <strong>Preview</strong>. The drawer shows, for the first few records, the raw name next to the cleaned name, the normalised category, the parsed price, the USD price, the rating, the availability and any quality flags — plus how many HTTP calls were made. A synthetic source reports <code>http_calls 0</code>, which proves it never touches the network.</p>
+<hr>
+<h2 id="13-query-lab">13. Query Lab</h2>
+<p>Available to analysts and administrators.</p>
+<ul>
+<li class="depth-0">Pick a table, a view or one of the five example queries.</li>
+<li class="depth-0">Edit the statement.</li>
+<li class="depth-0">Press <strong>Run</strong>. The grid appears with the column names, the row count and the duration.</li>
+</ul>
+<p>Rules you must respect:</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Rule</th>
+<th>Consequence if broken</th>
+</tr></thead><tbody>
+<tr>
+<td>Only <code>SELECT</code>, <code>WITH</code> and <code>EXPLAIN</code></td>
+<td>The request is rejected with a message before anything runs</td>
+</tr>
+<tr>
+<td>No second statement, no comments</td>
+<td>Rejected</td>
+</tr>
+<tr>
+<td>At most 5,000 rows (200 by default)</td>
+<td>The result is truncated and flagged</td>
+</tr>
+</tbody></table></div>
+<p>Useful starting points:</p>
+<pre class="code" data-lang="sql"><code>-- Biggest price drops in the last 30 days
+SELECT canonical_name, category_name, previous_price, new_price, change_pct
+FROM vw_price_changes
+WHERE change_pct &lt; -5 ORDER BY change_pct LIMIT 25;
+
+-- Category price index with volatility
+SELECT category_name, full_date, avg_price_usd, price_stddev, distinct_products
+FROM vw_category_price_index ORDER BY full_date DESC LIMIT 50;
+
+-- Failing quality rules of the latest run
+SELECT rule_code, rule_name, dimension, severity, message
+FROM dq_rule_result WHERE status &lt;&gt; &#x27;pass&#x27; ORDER BY evaluated_at DESC;</code></pre>
+<p>Never write to the database from the Query Lab; the warehouse is maintained only by the pipeline.</p>
+<hr>
+<h2 id="14-account-and-preferences">14. Account and preferences</h2>
+<h3 id="141-profile">14.1 Profile</h3>
+<p>Name, job title, department, avatar colour and timezone. Press <strong>Save</strong> to persist.</p>
+<h3 id="142-appearance">14.2 Appearance</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Control</th>
+<th>Options</th>
+<th>Effect</th>
+</tr></thead><tbody>
+<tr>
+<th>Theme</th>
+<td>System / Light / Dark</td>
+<td><code>system</code> follows your operating system</td>
+</tr>
+<tr>
+<th>Accent</th>
+<td>Indigo / Sky / Emerald / Amber / Rose</td>
+<td>Recolours the primary control only</td>
+</tr>
+<tr>
+<th>Density</th>
+<td>Compact / Comfortable / Spacious</td>
+<td>Row height: 32 / 40 / 48 px</td>
+</tr>
+<tr>
+<th>Rows per page</th>
+<td>5 – 500</td>
+<td>Default page size for every list</td>
+</tr>
+</tbody></table></div>
+<h3 id="143-data-and-notifications">14.3 Data and notifications</h3>
+<p>Default currency for display, the price-change alert threshold (default 5 %), e-mail alerts and the weekly digest flags.</p>
+<h3 id="144-security">14.4 Security</h3>
+<p>Change your password: enter the current password, then a new one of at least 10 characters containing upper-case, lower-case, a digit and a symbol. The strength checklist shows exactly what is missing. Changing the password is written to the audit log.</p>
+<hr>
+<h2 id="15-saved-views">15. Saved views</h2>
+<p>A saved view stores the filters, the sort column and direction, and the visible columns of a list screen.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Action</th>
+<th>Effect</th>
+</tr></thead><tbody>
+<tr>
+<th><strong>Save view</strong></th>
+<td>Name it and choose whether to share it with the team</td>
+</tr>
+<tr>
+<th>Apply</th>
+<td>The filters are replayed; the usage counter is incremented</td>
+</tr>
+<tr>
+<th>Favourite (★)</th>
+<td>Pins the view to the top of the list</td>
+</tr>
+<tr>
+<th>Delete</th>
+<td>Removes the view (only your own views)</td>
+</tr>
+</tbody></table></div>
+<p>Four views ship with the demo data: <em>Big price drops</em>, <em>Out of stock</em>, <em>Electronics movers</em> and <em>New arrivals</em>.</p>
+<hr>
+<h2 id="16-alerts-and-notifications">16. Alerts and notifications</h2>
+<h3 id="161-alert-rules">16.1 Alert rules</h3>
+<p>An alert rule is <code>metric</code>, <code>operator</code>, <code>threshold</code>, plus an optional category or source scope.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Metric</th>
+<th>Fires when</th>
+<th>Example</th>
+</tr></thead><tbody>
+<tr>
+<th><code>price_change_pct</code></th>
+<td>A price change beyond the threshold</td>
+<td>"Price drop &gt; 10 %"</td>
+</tr>
+<tr>
+<th><code>rating</code></th>
+<td>A product rating below the threshold</td>
+<td>"Rating below 2.5"</td>
+</tr>
+<tr>
+<th><code>new_product</code></th>
+<td>New products in the scope</td>
+<td>"New product in Electronics"</td>
+</tr>
+<tr>
+<th><code>dq_failure</code></th>
+<td>The latest run has failing quality rules</td>
+<td>"DQ failure"</td>
+</tr>
+<tr>
+<th><code>stock_out</code></th>
+<td>Out-of-stock products exist</td>
+<td>"Stock out"</td>
+</tr>
+</tbody></table></div>
+<p>Operators: <code>lt</code>, <code>gt</code>, <code>lte</code>, <code>gte</code>, <code>eq</code>. Channels: <code>in_app</code> (always available), <code>email</code>, <code>webhook</code>.</p>
+<p>Use <strong>Evaluate now</strong> to see how many rows would fire each rule right now, without waiting for the next run.</p>
+<h3 id="162-notifications">16.2 Notifications</h3>
+<p>The bell shows unread notifications. A notification carries a level (<code>info</code>, <code>success</code>, <code>warning</code>, <code>critical</code>), a title, a body and a deep link to the affected screen. Mark one as read, or mark all as read. The scheduled DAG publishes price-movement notifications after a run that produced changes.</p>
+<hr>
+<h2 id="17-api-keys">17. API keys</h2>
+<p>For scheduled jobs and integrations.</p>
+<ul>
+<li class="depth-0">Open <strong>Account → API keys</strong>.</li>
+<li class="depth-0">Name the key (for example <code>nightly-export</code>) and press <strong>Create</strong>.</li>
+<li class="depth-0"><strong>Copy the key immediately</strong> — the full value is shown once and never again. Only the 12-character</li>
+</ul>
+<p>prefix is stored.</p>
+<ul>
+<li class="depth-0">Use it exactly like a token:</li>
+</ul>
+<pre class="code" data-lang="bash"><code>curl -s &quot;localhost:8000/api/v1/products?page_size=5&quot; -H &quot;Authorization: Bearer pip_xxxxxxxxxxxx&quot;</code></pre>
+<p>Keys expire after 90 days, are shown with their last use and usage count, and can be revoked at any time. Revocation is immediate.</p>
+<hr>
+<h2 id="18-administration">18. Administration</h2>
+<h3 id="181-users">18.1 Users</h3>
+<p>Create an account (email, name, role, job title, department). The password must satisfy the strength rules. You can change a user's fields and deactivate an account; <strong>you cannot deactivate your own account</strong>. Statistics show total and active users, logins in the last 24 hours and 7 days, locked accounts, active keys and the distribution by role.</p>
+<h3 id="182-settings">18.2 Settings</h3>
+<p>Settings are grouped by category. The seeded keys are:</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Key</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>pipeline.schedule_cron</code></th>
+<td><code>0 3 <em> </em> *</code></td>
+<td>When the scheduled DAG should run</td>
+</tr>
+<tr>
+<td><code>pipeline.default_sources</code></td>
+<td>four sources</td>
+<td>Sources used by a scheduled run</td>
+</tr>
+<tr>
+<th><code>dq.min_quality_score</code></th>
+<td><code>80</code></td>
+<td>Score below which a run is treated as a failure</td>
+</tr>
+<tr>
+<td><code>ingest.rate_limit_per_minute</code></td>
+<td><code>30</code></td>
+<td>Global ceiling per host</td>
+</tr>
+<tr>
+<th><code>ui.default_theme</code></th>
+<td><code>system</code></td>
+<td>Theme for new accounts</td>
+</tr>
+<tr>
+<td><code>retention.snapshot_days</code></td>
+<td><code>730</code></td>
+<td>Days of price history to keep</td>
+</tr>
+</tbody></table></div>
+<p>Only administrators can change settings. Keys prefixed <code>ui.</code> are public and are readable by all signed-in users.</p>
+<h3 id="183-audit-log">18.3 Audit log</h3>
+<p>Every mutating action is recorded with the action name, the user, the status, the IP address and the duration. Filter by action, user or time window. The <strong>Actions</strong> tab lists which action types exist and how often they occurred.</p>
+<h3 id="184-compliance">18.4 Compliance</h3>
+<p>Requests in the window, requests blocked by <code>robots.txt</code>, cache hits, retried requests, total bytes, average and maximum latency and the number of distinct hosts. Use this screen to answer "how did we behave?" — a non-zero <em>blocked</em> count is a signal to review the source's terms immediately.</p>
+<h3 id="185-maintenance">18.5 Maintenance</h3>
+<p><strong>Clear run history</strong> deletes <code>etl_run</code>, <code>dq_rule_result</code>, <code>fact_catalog_snapshot</code> and <code>ingestion_http_log</code>. It requires an administrator and an explicit confirmation. Price history and catalogue data are not affected.</p>
+<hr>
+<h2 id="19-exporting-data">19. Exporting data</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>What</th>
+<th>How</th>
+<th>Format</th>
+<th>Limit</th>
+</tr></thead><tbody>
+<tr>
+<th>Current product list</th>
+<td>Products screen → <strong>Export CSV</strong></td>
+<td>CSV</td>
+<td>50,000 rows</td>
+</tr>
+<tr>
+<th>Price changes</th>
+<td>Changes → Price → <strong>Export</strong></td>
+<td>CSV</td>
+<td>Uses the active filters</td>
+</tr>
+<tr>
+<th>Any table you can query</th>
+<td>Query Lab → run → copy, or use <code>analytics/report/*</code></td>
+<td>JSON</td>
+<td>5,000 rows per query</td>
+</tr>
+<tr>
+<td>A run's compliance evidence</td>
+<td>Compliance screen → <strong>Export</strong></td>
+<td>CSV / JSON</td>
+<td>1,000 log rows</td>
+</tr>
+</tbody></table></div>
+<p>The CSV export includes the run context so a file can be interpreted later: <code>product_id</code>, <code>canonical_name</code>, <code>brand</code>, <code>category_name</code>, <code>availability</code>, <code>price</code>, <code>price_usd</code>, <code>currency</code>, <code>rating</code>, <code>price_change_pct</code>, <code>last_seen_at</code>, <code>source_code</code>, <code>product_url</code>.</p>
+<hr>
+<h2 id="20-troubleshooting">20. Troubleshooting</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Symptom</th>
+<th>Likely cause</th>
+<th>Fix</th>
+</tr></thead><tbody>
+<tr>
+<td>"connection refused" on the dashboard</td>
+<td>Frontend not running</td>
+<td><code>make frontend-dev</code>, then open <code>http://localhost:5173</code></td>
+</tr>
+<tr>
+<td>Sign-in fails with a valid password</td>
+<td>Database unreachable</td>
+<td><code>make db-wait</code>; check <code>docker compose ps</code>; <code>pip-cli status</code></td>
+</tr>
+<tr>
+<th>"token expired" banner</th>
+<td>Access token older than 12 hours</td>
+<td>Sign in again; the client refreshes automatically once</td>
+</tr>
+<tr>
+<td>403 on the Run pipeline button</td>
+<td>Role is <code>viewer</code></td>
+<td>Ask for an analyst or admin account</td>
+</tr>
+<tr>
+<th>403 on the Query Lab tab</th>
+<td>Role is <code>viewer</code></td>
+<td>As above</td>
+</tr>
+<tr>
+<td>Dashboard shows 0 products</td>
+<td>Pipeline has not run, or the window is too short</td>
+<td><code>make run-pipeline</code>; widen the window to 90 days</td>
+</tr>
+<tr>
+<td>DQ score dropped below 90</td>
+<td>A source published bad data</td>
+<td>Open <strong>Quality → Rule results</strong>, read the message, then re-run with <strong>Strict</strong></td>
+</tr>
+<tr>
+<td>A run shows status <code>partial</code></td>
+<td>One source failed; the others completed</td>
+<td>Open the run detail → Warnings; fix the source or disable it</td>
+</tr>
+<tr>
+<td>A run shows status <code>failed</code></td>
+<td>A critical rule failed (grain or no observations)</td>
+<td>Check <code>DQ006</code>/<code>DQ011</code> in the run detail</td>
+</tr>
+<tr>
+<td>Compliance panel shows 0 requests</td>
+<td>Only the offline source has run</td>
+<td><code>make run-all-sources</code></td>
+</tr>
+<tr>
+<td>Compliance panel shows blocked requests</td>
+<td>A source's <code>robots.txt</code> disallows the path</td>
+<td>The source is skipped by design; review its terms before re-enabling</td>
+</tr>
+<tr>
+<td>Source card shows "Disabled"</td>
+<td><code>terms_allowed</code> is false for that source</td>
+<td>Obtain permission, then set <code>enabled = true</code> in <code>dim_source</code></td>
+</tr>
+<tr>
+<th>Query Lab returns 422</th>
+<td>Statement is not <code>SELECT</code>/<code>WITH</code>/<code>EXPLAIN</code>, or contains a write keyword or two statements</td>
+<td>Rewrite as a single read-only statement</td>
+</tr>
+<tr>
+<td>Query Lab returns no rows</td>
+<td>Filters too narrow, or the table is empty</td>
+<td>Remove filters; check the row count with <code>/analytics/stats/tables</code></td>
+</tr>
+<tr>
+<td>Export downloads an empty file</td>
+<td>No rows match the filters</td>
+<td>Clear a filter and retry</td>
+</tr>
+<tr>
+<td>A product looks merged with another</td>
+<td>Fuzzy match at threshold 0.90</td>
+<td>Raise <code>DEDUPE_SIMILARITY_THRESHOLD</code> to 0.94 and re-run; report the pair</td>
+</tr>
+<tr>
+<td>Product prices look wrong</td>
+<td>Currency mis-detected (for example <code>$</code> assumed USD)</td>
+<td>Check the product's <code>currency</code> in the detail header; add a source-specific hint</td>
+</tr>
+<tr>
+<td>Charts show a single point</td>
+<td>Only one day of data</td>
+<td>Seed more history: <code>pip-cli seed-demo --days 150</code></td>
+</tr>
+<tr>
+<th>Port 8000 already in use</th>
+<td>Another process is bound</td>
+<td><code>make serve-prod</code> or <code>pip-cli serve --port 8001</code></td>
+</tr>
+<tr>
+<th>Airflow UI unreachable</th>
+<td>Container not started or port busy</td>
+<td><code>docker compose ps</code>; open <code>http://localhost:8080</code></td>
+</tr>
+<tr>
+<td><code>vw_pipeline_health</code> query fails on MySQL</td>
+<td><code>TRIGGER</code> is a reserved word in MySQL 8.4</td>
+<td>Switch to the PostgreSQL target, or quote the column (see <code>docs/20</code>)</td>
+</tr>
+<tr>
+<th>Everything is slow</th>
+<td>Cache disabled or upstream slow</td>
+<td>Check <code>CACHE_ENABLED</code>; read <code>ingestion_http_log.elapsed_ms</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="21-faq">21. FAQ</h2>
+<p><strong>Q. Where does the price in USD come from?</strong> Each observation stores its original currency, the FX rate that was applied and the resulting USD value. The rate table is a documented static reference table; re-runs do not restate history.</p>
+<p><strong>Q. Why do two products from different sources appear once?</strong> That is duplicate detection working. The product detail shows the match strategy and score, and the Duplicate candidates panel shows every near match with its score.</p>
+<p><strong>Q. Why is a change shown as "recurring" rather than "new"?</strong> The product had already been observed in an earlier run, so this is another sighting, not an arrival.</p>
+<p><strong>Q. What is the difference between <code>partial</code> and <code>failed</code>?</strong> <code>partial</code> means at least one source failed but the run completed and the data is usable. <code>failed</code> means a critical rule failed — for example the fact grain was violated or no observation was produced.</p>
+<p><strong>Q. Can I delete a fact row?</strong> Not from the UI or the API. Facts are append-only; corrections arrive as new observations. Historical rows are managed only by the documented retention procedure.</p>
+<p><strong>Q. Does the dashboard work offline?</strong> Yes for everything derived from the warehouse. The Sources preview and any run that needs a network source require internet access; the synthetic source does not.</p>
+<p><strong>Q. Which currency is used in reports?</strong> The USD-normalised column, <code>price_usd</code>. Set your preferred display currency under Account → Data.</p>
+<p><strong>Q. Who can see the audit log?</strong> Administrators. Compliance data such as the HTTP request log is visible to any signed-in user with the <code>read</code> right.</p>
+<p><strong>Q. How do I reproduce the numbers in the documentation?</strong> Every figure in <code>docs/05_kpis.md</code> has a command next to it. In short: <code>make bootstrap &amp;&amp; make demo-postgres --days 150 &amp;&amp; make run-pipeline &amp;&amp; make verify-dialects</code>, then <code>.venv/bin/python scripts/api_smoke.py</code>.</p>
+<p><strong>Q. The demo password is public — is that a problem?</strong> Not in a development or demonstration environment. Change <code>SEED_*_PASSWORD</code> (or delete the seeded accounts) and set <code>SEED_DEMO_DATA=false</code> before any deployment that matters. See <code>docs/13</code> §8.</p>
+<p><strong>Q. How is "price changed" defined?</strong> A change is recorded when a product is observed again from the same source and the price differs from the previous observation. The percentage is <code>(new − previous) / |previous| × 100</code>; a change is <em>significant</em> at 1 % or more.</p>
+<p><strong>Q. Can I add a new source myself?</strong> Yes, in six steps, documented in <code>docs/17</code> §7. The terms justification is the only approval step required.</p>
+<hr>
+<h2 id="22-glossary">22. Glossary</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Term</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th>Blocking key</th>
+<td>The first four characters of the normalised name, used to limit which products are compared</td>
+</tr>
+<tr>
+<th>Canonical product</th>
+<td>The single <code>dim_product</code> row that represents a real-world product after deduplication</td>
+</tr>
+<tr>
+<th>Crawl delay</th>
+<td>The <code>Crawl-delay</code> advertised in <code>robots.txt</code>, honoured by the rate limiter</td>
+</tr>
+<tr>
+<th>DQ score</th>
+<td>The severity-weighted 0–100 data-quality score of a run</td>
+</tr>
+<tr>
+<th>Grain</th>
+<td>The definition of what one row means, e.g. one snapshot per product per run</td>
+</tr>
+<tr>
+<th>Magnitude band</th>
+<td>The size bucket of a price change: minor, small, moderate, large, major</td>
+</tr>
+<tr>
+<th>Match strategy</th>
+<td>How a record was matched: <code>sku</code>, <code>normalized_name</code>, <code>fuzzy</code>, <code>exact</code>, <code>blocked_exact</code>, <code>new</code>, <code>merged</code>, <code>seed</code></td>
+</tr>
+<tr>
+<th>Price gap</th>
+<td>The difference between the market price and our catalog price, in absolute and percentage terms</td>
+</tr>
+<tr>
+<th>Run</th>
+<td>One execution of the pipeline, identified by <code>run_id</code></td>
+</tr>
+<tr>
+<th>Snapshot</th>
+<td>One observed price for one product from one source in one run</td>
+</tr>
+<tr>
+<th>Staging zone</th>
+<td>The landing table that keeps every raw payload before cleaning</td>
+</tr>
+<tr>
+<th>Staleness window</th>
+<td>The number of days (default 7) after which an unseen product is marked removed</td>
+</tr>
+<tr>
+<th>View</th>
+<td>A stored SQL query (<code>vw_*</code>) that defines an analytical concept used by the API and the Query Lab</td>
+</tr>
+</tbody></table></div>
+    </article>
+    <div class="doc-foot">
+      <span><a href="15_testing_strategy.html">← Testing Strategy</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="17_technical_documentation.html">Technical Documentation →</a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

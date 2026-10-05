@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Stack, environments, CI/CD, backups">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Deployment — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Stack, environments, CI/CD, backups">
+<title>Deployment — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="23-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" class="active" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, all 113 operations, examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, 100-case plan, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="234 features with file references">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Deployment</h1>
+      <p>Stack, environments, CI/CD, backups</p>
+    </div>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#table-of-contents">Table of contents</a></li><li class="lvl-2"><a href="#1-technology-stack">1. Technology stack</a></li><li class="lvl-3"><a href="#11-application-stack">1.1 Application stack</a></li><li class="lvl-3"><a href="#12-front-end-stack">1.2 Front-end stack</a></li><li class="lvl-3"><a href="#13-data-and-storage-stack">1.3 Data and storage stack</a></li><li class="lvl-3"><a href="#14-external-data-sources">1.4 External data sources</a></li><li class="lvl-2"><a href="#2-deployment-diagram">2. Deployment diagram</a></li><li class="lvl-3"><a href="#21-deployment-tiers-and-their-responsibilities">2.1 Deployment tiers and their responsibilities</a></li><li class="lvl-2"><a href="#3-component-and-dependency-diagram">3. Component and dependency diagram</a></li><li class="lvl-3"><a href="#31-dependency-rules-enforced-by-review-not-by-tooling">3.1 Dependency rules (enforced by review, not by tooling)</a></li><li class="lvl-2"><a href="#4-environment-matrix">4. Environment matrix</a></li><li class="lvl-2"><a href="#5-docker-compose-services">5. Docker Compose services</a></li><li class="lvl-3"><a href="#51-notable-service-settings">5.1 Notable service settings</a></li><li class="lvl-3"><a href="#52-volumes">5.2 Volumes</a></li><li class="lvl-3"><a href="#53-makefile-deployment-targets">5.3 Makefile deployment targets</a></li><li class="lvl-2"><a href="#6-ports-and-endpoints">6. Ports and endpoints</a></li><li class="lvl-2"><a href="#7-installation-and-run-order">7. Installation and run order</a></li><li class="lvl-3"><a href="#71-full-local-stack">7.1 Full local stack</a></li><li class="lvl-3"><a href="#72-full-container-stack">7.2 Full container stack</a></li><li class="lvl-3"><a href="#73-verification-after-deployment">7.3 Verification after deployment</a></li><li class="lvl-3"><a href="#74-orchestration-run">7.4 Orchestration run</a></li><li class="lvl-2"><a href="#8-secrets-management">8. Secrets management</a></li><li class="lvl-3"><a href="#81-classification">8.1 Classification</a></li><li class="lvl-3"><a href="#82-controls">8.2 Controls</a></li><li class="lvl-3"><a href="#83-production-hardening-checklist">8.3 Production hardening checklist</a></li><li class="lvl-2"><a href="#9-backup-and-restore">9. Backup and restore</a></li><li class="lvl-3"><a href="#91-what-to-back-up">9.1 What to back up</a></li><li class="lvl-3"><a href="#92-backup">9.2 Backup</a></li><li class="lvl-3"><a href="#93-restore">9.3 Restore</a></li><li class="lvl-3"><a href="#94-recovery-objectives-and-drills">9.4 Recovery objectives and drills</a></li><li class="lvl-2"><a href="#10-scaling-and-high-availability">10. Scaling and high availability</a></li><li class="lvl-3"><a href="#101-serving-tier">10.1 Serving tier</a></li><li class="lvl-3"><a href="#102-batch-tier">10.2 Batch tier</a></li><li class="lvl-3"><a href="#103-data-tier">10.3 Data tier</a></li><li class="lvl-3"><a href="#104-availability-summary">10.4 Availability summary</a></li><li class="lvl-2"><a href="#11-monitoring-and-operations">11. Monitoring and operations</a></li><li class="lvl-3"><a href="#111-routine-tasks">11.1 Routine tasks</a></li><li class="lvl-2"><a href="#12-cicd">12. CI/CD</a></li><li class="lvl-3"><a href="#121-pipeline-stages">12.1 Pipeline stages</a></li><li class="lvl-3"><a href="#122-quality-gates">12.2 Quality gates</a></li><li class="lvl-3"><a href="#123-release-artefacts">12.3 Release artefacts</a></li><li class="lvl-3"><a href="#124-deployment-strategy">12.4 Deployment strategy</a></li><li class="lvl-2"><a href="#13-deployment-caveats">13. Deployment caveats</a></li></ol></details>
+    <article class="doc-body">
+<h2 id="purpose">Purpose</h2>
+<p>This document describes how the Web-to-Warehouse Product Intelligence Pipeline is built, configured, run and operated. It lists the technology stack, shows the deployment and component diagrams, defines the environment matrix (development / testing / production), documents every Docker Compose service and port, describes secrets management, backup and restore, the scaling and high-availability options, and the CI/CD pipeline.</p>
+<hr>
+<h2 id="table-of-contents">Table of contents</h2>
+<ul>
+<li class="depth-0"><a href="#1-technology-stack">Technology stack</a></li>
+<li class="depth-0"><a href="#2-deployment-diagram">Deployment diagram</a></li>
+<li class="depth-0"><a href="#3-component-and-dependency-diagram">Component and dependency diagram</a></li>
+<li class="depth-0"><a href="#4-environment-matrix">Environment matrix</a></li>
+<li class="depth-0"><a href="#5-docker-compose-services">Docker Compose services</a></li>
+<li class="depth-0"><a href="#6-ports-and-endpoints">Ports and endpoints</a></li>
+<li class="depth-0"><a href="#7-installation-and-run-order">Installation and run order</a></li>
+<li class="depth-0"><a href="#8-secrets-management">Secrets management</a></li>
+<li class="depth-0"><a href="#9-backup-and-restore">Backup and restore</a></li>
+<li class="depth-0"><a href="#10-scaling-and-high-availability">Scaling and high availability</a></li>
+<li class="depth-0"><a href="#11-monitoring-and-operations">Monitoring and operations</a></li>
+<li class="depth-0"><a href="#12-cicd">CI/CD</a></li>
+<li class="depth-0"><a href="#13-deployment-caveats">Deployment caveats</a></li>
+</ul>
+<hr>
+<h2 id="1-technology-stack">1. Technology stack</h2>
+<h3 id="11-application-stack">1.1 Application stack</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Layer</th>
+<th>Technology</th>
+<th>Version</th>
+<th>Role in the project</th>
+</tr></thead><tbody>
+<tr>
+<th>Language</th>
+<td>Python</td>
+<td>3.12 (floor 3.10)</td>
+<td>Whole backend, ETL and API</td>
+</tr>
+<tr>
+<th>Web framework</th>
+<td>FastAPI</td>
+<td>≥ 0.115</td>
+<td>REST API, OpenAPI, dependency injection</td>
+</tr>
+<tr>
+<th>ASGI server</th>
+<td>Uvicorn</td>
+<td>≥ 0.30</td>
+<td>Serves the app (<code>make serve</code>, <code>make serve-prod</code>, Compose <code>api</code>)</td>
+</tr>
+<tr>
+<th>Data validation</th>
+<td>Pydantic</td>
+<td>≥ 2.7</td>
+<td>Request/response models, <code>Settings</code></td>
+</tr>
+<tr>
+<th>Settings</th>
+<td>pydantic-settings</td>
+<td>≥ 2.3</td>
+<td>Validated environment configuration</td>
+</tr>
+<tr>
+<th>ORM</th>
+<td>SQLAlchemy</td>
+<td>≥ 2.0.30</td>
+<td>Models, sessions, engines, portable SQL</td>
+</tr>
+<tr>
+<th>PostgreSQL driver</th>
+<td>psycopg2-binary</td>
+<td>≥ 2.9</td>
+<td>Primary warehouse</td>
+</tr>
+<tr>
+<th>MySQL driver</th>
+<td>PyMySQL (+ cryptography)</td>
+<td>≥ 1.1</td>
+<td>Secondary warehouse target</td>
+</tr>
+<tr>
+<th>HTTP client</th>
+<td>httpx</td>
+<td>≥ 0.27</td>
+<td>Compliant outbound requests</td>
+</tr>
+<tr>
+<th>HTML parsing</th>
+<td>BeautifulSoup4 + lxml (+ lxml-html-clean)</td>
+<td>≥ 4.12 / ≥ 5.2</td>
+<td>The books.toscrape.com scraper</td>
+</tr>
+<tr>
+<th>Scheduling</th>
+<td>Apache Airflow</td>
+<td>2.10.5, LocalExecutor</td>
+<td>DAG orchestration</td>
+</tr>
+<tr>
+<th>Auth tokens</th>
+<td>PyJWT</td>
+<td>≥ 2.8</td>
+<td>HS256 access/refresh tokens</td>
+</tr>
+<tr>
+<th>Password hashing</th>
+<td>argon2-cffi</td>
+<td>≥ 23.1</td>
+<td>Argon2id (memory-hard)</td>
+</tr>
+<tr>
+<th>CLI</th>
+<td>Typer + Rich</td>
+<td>≥ 0.12 / ≥ 13.7</td>
+<td>Operator interface with formatted tables</td>
+</tr>
+<tr>
+<th>Retry</th>
+<td>tenacity</td>
+<td>≥ 8.3</td>
+<td>Reserved for extension points</td>
+</tr>
+<tr>
+<th>Logging</th>
+<td>stdlib logging + custom formatters</td>
+<td>—</td>
+<td>ANSI console and JSON output</td>
+</tr>
+<tr>
+<th>Serialisation</th>
+<td>orjson</td>
+<td>≥ 3.10</td>
+<td>Fast JSON responses (available for deployment tuning)</td>
+</tr>
+<tr>
+<th>Containerisation</th>
+<td>Docker + Docker Compose</td>
+<td>v2</td>
+<td>Databases, API, Airflow, frontend</td>
+</tr>
+<tr>
+<th>Tests</th>
+<td>pytest, pytest-cov</td>
+<td>≥ 8.0 / ≥ 5.0</td>
+<td>Test harness (<code>make test</code>, <code>make test-cov</code>)</td>
+</tr>
+<tr>
+<th>Lint / types</th>
+<td>ruff, mypy</td>
+<td>≥ 0.5 / ≥ 1.10</td>
+<td><code>make lint</code>, <code>make typecheck</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="12-front-end-stack">1.2 Front-end stack</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Technology</th>
+<th>Version</th>
+<th>Role</th>
+</tr></thead><tbody>
+<tr>
+<th>React</th>
+<td>19</td>
+<td>Component model</td>
+</tr>
+<tr>
+<th>Vite</th>
+<td>5+</td>
+<td>Dev server and production bundle</td>
+</tr>
+<tr>
+<th>TypeScript</th>
+<td>5+</td>
+<td>Static typing of API payloads</td>
+</tr>
+<tr>
+<th>Tailwind CSS</th>
+<td>3+</td>
+<td>Utility styling driven by the colour tokens in doc 12</td>
+</tr>
+<tr>
+<th>TanStack Query</th>
+<td>5</td>
+<td>Server-state caching, invalidation after a run</td>
+</tr>
+<tr>
+<th>Recharts</th>
+<td>2+</td>
+<td>Line, bar, stacked-bar and diverging charts</td>
+</tr>
+<tr>
+<th>lucide-react</th>
+<td>latest</td>
+<td>Icon set (16 px, stroke 1.75)</td>
+</tr>
+<tr>
+<th>nginx (alpine)</th>
+<td>stable</td>
+<td>Static hosting of the production bundle</td>
+</tr>
+</tbody></table></div>
+<h3 id="13-data-and-storage-stack">1.3 Data and storage stack</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Technology</th>
+<th>Version</th>
+<th>Role</th>
+</tr></thead><tbody>
+<tr>
+<th>PostgreSQL</th>
+<td>16-alpine</td>
+<td>Primary analytical warehouse</td>
+</tr>
+<tr>
+<th>MySQL</th>
+<td>8.4</td>
+<td>Secondary warehouse target for cross-dialect verification</td>
+</tr>
+<tr>
+<th>SQLite</th>
+<td>3.35+</td>
+<td>Optional local fallback (<code>var/pipeline.sqlite3</code>)</td>
+</tr>
+<tr>
+<th>Airflow metadata DB</th>
+<td>PostgreSQL</td>
+<td>Scheduler state, run history in the Airflow UI</td>
+</tr>
+</tbody></table></div>
+<h3 id="14-external-data-sources">1.4 External data sources</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Source</th>
+<th>Endpoint</th>
+<th>Licence / terms</th>
+<th>Budget</th>
+</tr></thead><tbody>
+<tr>
+<th>DummyJSON</th>
+<td><code>https://dummyjson.com/products</code></td>
+<td>Public test API</td>
+<td>Free</td>
+</tr>
+<tr>
+<th>FakeStore</th>
+<td><code>https://fakestoreapi.com/products</code></td>
+<td>Public demo API</td>
+<td>Free</td>
+</tr>
+<tr>
+<th>Open Library</th>
+<td><code>https://openlibrary.org/search.json</code></td>
+<td>Open bibliographic data</td>
+<td>Free</td>
+</tr>
+<tr>
+<th>books.toscrape.com</th>
+<td><code>https://books.toscrape.com/</code></td>
+<td>Sandbox published for scraping practice; non-commercial</td>
+<td>Free</td>
+</tr>
+<tr>
+<th>Local demo catalogue</th>
+<td><code>local://demo-catalogue</code></td>
+<td>Generated in-process</td>
+<td>Free</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="2-deployment-diagram">2. Deployment diagram</h2>
+<pre class="mermaid">flowchart TB
+    subgraph EDGE[&quot;Edge&quot;]
+        B[&quot;Browser&lt;br/&gt;React SPA served by nginx :80&quot;]
+        CLI[&quot;Operator shell&lt;br/&gt;curl / Python / CLI&quot;]
+    end
+
+    subgraph HOST[&quot;Single application host&quot;]
+        direction TB
+        subgraph SERVE[&quot;Serving tier&quot;]
+            NG[&quot;nginx&lt;br/&gt;static bundle + /api proxy&quot;]
+            API1[&quot;uvicorn worker 1&lt;br/&gt;FastAPI :8000&quot;]
+            API2[&quot;uvicorn worker 2&lt;br/&gt;FastAPI :8000&quot;]
+        end
+        subgraph SCHED[&quot;Scheduling tier&quot;]
+            AFB[&quot;airflow webserver :8080&quot;]
+            AFS[&quot;airflow scheduler&quot;]
+            AFX[&quot;task processes LocalExecutor&quot;]
+        end
+        subgraph JOBS[&quot;Batch tier&quot;]
+            JOB[&quot;python -m app.cli.main&lt;br/&gt;run-pipeline / bootstrap / seed&quot;]
+        end
+        FS[(&quot;Filesystem var/&lt;br/&gt;http-cache, logs, artifacts&quot;)]
+    end
+
+    subgraph DATA[&quot;Data tier&quot;]
+        PG[(&quot;PostgreSQL 16&lt;br/&gt;:5432&quot;)]
+        MY[(&quot;MySQL 8.4&lt;br/&gt;:3306&quot;)]
+        VOL[(&quot;Docker volumes&lt;br/&gt;pg_data, mysql_data,&lt;br/&gt;airflow_logs&quot;)]
+    end
+
+    EXT[&quot;External sources&lt;br/&gt;DummyJSON, FakeStore,&lt;br/&gt;Open Library, books.toscrape.com&quot;]
+
+    B --&gt; NG
+    NG --&gt; API1
+    NG --&gt; API2
+    CLI --&gt; API1
+    AFB --&gt; AFS
+    AFS --&gt; AFX
+    AFX --&gt; JOB
+    API1 --&gt; PG
+    API2 --&gt; PG
+    API1 -.-&gt; MY
+    API2 -.-&gt; MY
+    AFB --&gt; PG
+    AFX --&gt; PG
+    JOB --&gt; PG
+    JOB -.-&gt; MY
+    PG --&gt; VOL
+    MY --&gt; VOL
+    API1 &lt;--&gt; FS
+    API2 &lt;--&gt; FS
+    JOB &lt;--&gt; FS
+    AFX --&gt; EXT
+    JOB --&gt; EXT</pre>
+<h3 id="21-deployment-tiers-and-their-responsibilities">2.1 Deployment tiers and their responsibilities</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Tier</th>
+<th>Process</th>
+<th>Scaling unit</th>
+<th>State</th>
+</tr></thead><tbody>
+<tr>
+<th>Edge</th>
+<td>nginx serving the built SPA</td>
+<td>Static, horizontally scalable</td>
+<td>None</td>
+</tr>
+<tr>
+<th>Serving</th>
+<td>uvicorn workers running <code>app.api.main:app</code></td>
+<td>Process count (<code>--workers</code>)</td>
+<td>Stateless; JWT is self-contained</td>
+</tr>
+<tr>
+<th>Scheduling</th>
+<td>Airflow webserver + scheduler + task processes</td>
+<td>Executor choice</td>
+<td>Airflow metadata DB</td>
+</tr>
+<tr>
+<th>Batch</th>
+<td>One-shot CLI invocations</td>
+<td>Job queue (Airflow) or manual</td>
+<td>Filesystem cache</td>
+</tr>
+<tr>
+<th>Data</th>
+<td>PostgreSQL / MySQL</td>
+<td>Vertical, then read replicas</td>
+<td>Durable volumes</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="3-component-and-dependency-diagram">3. Component and dependency diagram</h2>
+<pre class="mermaid">flowchart TB
+    subgraph BACK[&quot;Backend package app&quot;]
+        direction LR
+        CORE[&quot;app.core&lt;br/&gt;config, db, errors, logging&quot;]
+        ING[&quot;app.ingestion&lt;br/&gt;base, cleaning, dedupe,&lt;br/&gt;robots, ratelimit, http_client, sources&quot;]
+        ETL[&quot;app.etl&lt;br/&gt;pipeline, loader, dq,&lt;br/&gt;catalog_reconcile, bootstrap, seed&quot;]
+        ANA[&quot;app.analytics&lt;br/&gt;service&quot;]
+        API[&quot;app.api&lt;br/&gt;main, deps, security,&lt;br/&gt;schemas, 16 routers&quot;]
+        MODELS[&quot;app.models&lt;br/&gt;base, dimensions, facts,&lt;br/&gt;operations, catalog, app_users&quot;]
+        CLIM[&quot;app.cli&lt;br/&gt;main&quot;]
+    end
+
+    subgraph ASSETS[&quot;Repository assets&quot;]
+        SQL[(&quot;db/views.sql&lt;br/&gt;20 views&quot;)]
+        DAG[&quot;dags/product_intelligence_pipeline.py&quot;]
+        MK[&quot;Makefile&quot;]
+        ENV[(&quot;.env.example&quot;)]
+        SMOKE[&quot;scripts/api_smoke.py&quot;]
+        CFG[&quot;pyproject.toml&quot;]
+    end
+
+    CORE --&gt; MODELS
+    ING --&gt; CORE
+    ING --&gt; MODELS
+    ETL --&gt; CORE
+    ETL --&gt; ING
+    ETL --&gt; MODELS
+    ANA --&gt; MODELS
+    API --&gt; ANA
+    API --&gt; ETL
+    API --&gt; MODELS
+    API --&gt; CORE
+    CLIM --&gt; ETL
+    CLIM --&gt; API
+    CLIM --&gt; CORE
+    ETL --&gt; SQL
+    MK --&gt; CLIM
+    MK --&gt; DAG
+    SMOKE --&gt; API
+    CFG --&gt; CORE</pre>
+<h3 id="31-dependency-rules-enforced-by-review-not-by-tooling">3.1 Dependency rules (enforced by review, not by tooling)</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Rule</th>
+<th>Reason</th>
+</tr></thead><tbody>
+<tr>
+<td><code>app.ingestion</code> must not import <code>app.etl</code>, <code>app.analytics</code> or <code>app.api</code></td>
+<td>Ingestion is reusable and must stay independent of serving</td>
+</tr>
+<tr>
+<td><code>app.ingestion.cleaning</code> and <code>app.ingestion.dedupe</code> must not import <code>app.core.db</code> or <code>httpx</code></td>
+<td>They must stay pure so they can be unit tested without I/O</td>
+</tr>
+<tr>
+<td><code>app.analytics</code> must not import <code>app.api</code></td>
+<td>The service layer is the single source of analytical SQL</td>
+</tr>
+<tr>
+<td><code>app.api</code> must not contain business rules</td>
+<td>Routers validate, delegate and serialise</td>
+</tr>
+<tr>
+<td><code>db/views.sql</code> is the only place analytical joins are defined</td>
+<td>One semantic layer</td>
+</tr>
+<tr>
+<td>No module may import Airflow outside <code>dags/</code></td>
+<td>The DAG must be optional</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="4-environment-matrix">4. Environment matrix</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Variable</th>
+<th>Development</th>
+<th>Testing</th>
+<th>Production</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<th><code>APP_ENV</code></th>
+<td><code>development</code></td>
+<td><code>testing</code></td>
+<td><code>production</code></td>
+<td>Drives <code>is_production</code>, demo-account exposure</td>
+</tr>
+<tr>
+<th><code>APP_DEBUG</code></th>
+<td><code>true</code></td>
+<td><code>true</code></td>
+<td><code>false</code></td>
+<td>Controls stack traces in 500 responses</td>
+</tr>
+<tr>
+<th><code>APP_HOST</code> / <code>APP_PORT</code></th>
+<td><code>0.0.0.0</code> / <code>8000</code></td>
+<td><code>127.0.0.1</code> / <code>8099</code></td>
+<td><code>0.0.0.0</code> / <code>8000</code></td>
+<td>Smoke test uses 8099</td>
+</tr>
+<tr>
+<th><code>APP_LOG_LEVEL</code></th>
+<td><code>INFO</code></td>
+<td><code>DEBUG</code></td>
+<td><code>INFO</code></td>
+<td></td>
+</tr>
+<tr>
+<th><code>APP_LOG_FORMAT</code></th>
+<td><code>text</code></td>
+<td><code>text</code></td>
+<td><code>json</code></td>
+<td>JSON for log shippers</td>
+</tr>
+<tr>
+<th><code>DATABASE_URL</code></th>
+<td><code>postgresql+psycopg2://pip:pip@localhost:5432/pipeline</code></td>
+<td><code>sqlite:///var/test.sqlite3</code></td>
+<td>secret manager reference</td>
+<td>Never hard-coded</td>
+</tr>
+<tr>
+<th><code>MYSQL_URL</code></th>
+<td><code>mysql+pymysql://pip:pip@localhost:3306/pipeline?charset=utf8mb4</code></td>
+<td>unset</td>
+<td>secret manager reference</td>
+<td>Needed for cross-dialect verification</td>
+</tr>
+<tr>
+<th><code>ACTIVE_DATABASE</code></th>
+<td><code>postgres</code></td>
+<td><code>sqlite</code></td>
+<td><code>postgres</code></td>
+<td><code>--database</code> overrides per invocation</td>
+</tr>
+<tr>
+<th><code>DB_SCHEMA</code></th>
+<td><code>public</code></td>
+<td><code>public</code></td>
+<td><code>public</code></td>
+<td>Created on PostgreSQL only</td>
+</tr>
+<tr>
+<td><code>DB_POOL_SIZE</code> / <code>DB_MAX_OVERFLOW</code> / <code>DB_POOL_RECYCLE</code></td>
+<td>10 / 20 / 1800</td>
+<td>5 / 5 / 900</td>
+<td>20 / 40 / 1800</td>
+<td>Larger pool with more API workers</td>
+</tr>
+<tr>
+<td><code>DB_STATEMENT_TIMEOUT_MS</code></td>
+<td>30,000</td>
+<td>30,000</td>
+<td>15,000</td>
+<td>PostgreSQL <code>statement_timeout</code></td>
+</tr>
+<tr>
+<th><code>DB_ECHO</code></th>
+<td><code>false</code></td>
+<td><code>false</code></td>
+<td><code>false</code></td>
+<td>Never enable in production</td>
+</tr>
+<tr>
+<th><code>SECRET_KEY</code></th>
+<td>development placeholder</td>
+<td>test key</td>
+<td>32+ random bytes from the secret manager</td>
+<td>Rotating it invalidates all tokens</td>
+</tr>
+<tr>
+<th><code>JWT_ALGORITHM</code></th>
+<td><code>HS256</code></td>
+<td><code>HS256</code></td>
+<td><code>HS256</code> (or RS256 with a key pair)</td>
+<td></td>
+</tr>
+<tr>
+<td><code>ACCESS_TOKEN_EXPIRE_MINUTES</code></td>
+<td><code>720</code></td>
+<td><code>60</code></td>
+<td><code>480</code></td>
+<td>8 h in production</td>
+</tr>
+<tr>
+<td><code>REFRESH_TOKEN_EXPIRE_DAYS</code></td>
+<td><code>30</code></td>
+<td><code>1</code></td>
+<td><code>14</code></td>
+<td></td>
+</tr>
+<tr>
+<th><code>CORS_ORIGINS</code></th>
+<td><code>http://localhost:5173,…</code></td>
+<td><code>http://localhost:5173</code></td>
+<td>exact dashboard origin</td>
+<td>No wildcard with credentials</td>
+</tr>
+<tr>
+<th><code>SEED_*_EMAIL/PASSWORD</code></th>
+<td>documented demo accounts</td>
+<td>unused</td>
+<td>unset</td>
+<td><code>SEED_DEMO_DATA=false</code> in production</td>
+</tr>
+<tr>
+<th><code>INGEST_USER_AGENT</code></th>
+<td>project bot with a contact address</td>
+<td>same</td>
+<td>same + real contact</td>
+<td>Honesty requirement</td>
+</tr>
+<tr>
+<th><code>RESPECT_ROBOTS_TXT</code></th>
+<td><code>true</code></td>
+<td><code>true</code></td>
+<td><code>true</code></td>
+<td>Must never be <code>false</code> in production</td>
+</tr>
+<tr>
+<td><code>RESPECT_TERMS_WHITELIST</code></td>
+<td><code>true</code></td>
+<td><code>true</code></td>
+<td><code>true</code></td>
+<td>Must never be <code>false</code> in production</td>
+</tr>
+<tr>
+<td><code>REQUESTS_PER_MINUTE</code> / <code>REQUESTS_PER_SECOND</code></td>
+<td>30 / 1.0</td>
+<td>30 / 1.0</td>
+<td>30 / 1.0</td>
+<td>Per host; sources may lower it further</td>
+</tr>
+<tr>
+<td><code>CRAWL_DELAY_FALLBACK_SECONDS</code></td>
+<td><code>2.0</code></td>
+<td><code>2.0</code></td>
+<td><code>2.0</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>MAX_CONCURRENT_REQUESTS</code></td>
+<td><code>4</code></td>
+<td><code>4</code></td>
+<td><code>8</code></td>
+<td>httpx connection limit</td>
+</tr>
+<tr>
+<td><code>CACHE_ENABLED</code> / <code>CACHE_TTL_SECONDS</code></td>
+<td><code>true</code> / <code>1800</code></td>
+<td><code>true</code> / <code>60</code></td>
+<td><code>true</code> / <code>1800</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>MAX_RETRIES</code> / <code>RETRY_BACKOFF_SECONDS</code></td>
+<td><code>3</code> / <code>1.5</code></td>
+<td><code>1</code> / <code>0.1</code></td>
+<td><code>3</code> / <code>1.5</code></td>
+<td></td>
+</tr>
+<tr>
+<th><code>PIPELINE_BATCH_SIZE</code></th>
+<td><code>500</code></td>
+<td><code>100</code></td>
+<td><code>500</code></td>
+<td>Staging and load batch size</td>
+</tr>
+<tr>
+<th><code>PIPELINE_FAIL_FAST</code></th>
+<td><code>false</code></td>
+<td><code>true</code></td>
+<td><code>false</code></td>
+<td>Strict fail-fast in CI</td>
+</tr>
+<tr>
+<td><code>DEDUPE_SIMILARITY_THRESHOLD</code></td>
+<td><code>0.90</code></td>
+<td><code>0.90</code></td>
+<td><code>0.90</code></td>
+<td>Validated to 0–1 at startup</td>
+</tr>
+<tr>
+<td><code>DEDUPE_BLOCKING_KEY_LENGTH</code> / <code>DEDUPE_CANDIDATE_LIMIT</code></td>
+<td><code>4</code> / <code>25</code></td>
+<td><code>4</code> / <code>25</code></td>
+<td><code>5</code> / <code>40</code></td>
+<td>Wider pool for larger catalogues</td>
+</tr>
+<tr>
+<td><code>MAX_PRODUCTS_PER_SOURCE</code></td>
+<td><code>400</code></td>
+<td><code>10</code></td>
+<td><code>400</code></td>
+<td>API trigger caps at 5,000</td>
+</tr>
+<tr>
+<th><code>VITE_API_BASE_URL</code></th>
+<td><code>http://localhost:8000/api/v1</code></td>
+<td><code>http://127.0.0.1:8099/api/v1</code></td>
+<td><code>https://&lt;host&gt;/api/v1</code></td>
+<td>Baked into the bundle at build time</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="5-docker-compose-services">5. Docker Compose services</h2>
+<p><code>docker-compose.yml</code> defines six services on one user-defined bridge network (<code>pipnet</code>) with four named volumes.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Service</th>
+<th>Image / build</th>
+<th>Purpose</th>
+<th>Depends on</th>
+<th>Health check</th>
+</tr></thead><tbody>
+<tr>
+<th><code>postgres</code></th>
+<td><code>postgres:16-alpine</code></td>
+<td>Primary warehouse; also stores the Airflow metadata DB</td>
+<td>—</td>
+<td><code>pg_isready -U pip -d pipeline</code>, 5 s interval, 20 retries</td>
+</tr>
+<tr>
+<th><code>mysql</code></th>
+<td><code>mysql:8.4</code></td>
+<td>Secondary warehouse for cross-dialect verification</td>
+<td>—</td>
+<td><code>mysqladmin ping</code>, 5 s interval, 30 retries</td>
+</tr>
+<tr>
+<th><code>api</code></th>
+<td>build <code>docker/api.Dockerfile</code></td>
+<td>FastAPI on port 8000</td>
+<td>healthy <code>postgres</code>, healthy <code>mysql</code></td>
+<td><code>GET /health</code> every 15 s, 10 retries</td>
+</tr>
+<tr>
+<th><code>airflow</code></th>
+<td><code>apache/airflow:2.10.5-python3.12</code></td>
+<td>Webserver; runs <code>airflow db migrate</code> then creates the admin user</td>
+<td>healthy <code>postgres</code></td>
+<td>none (start-up probe via depends_on)</td>
+</tr>
+<tr>
+<th><code>airflow-scheduler</code></th>
+<td><code>apache/airflow:2.10.5-python3.12</code></td>
+<td>Scheduler that fires the DAG on schedule</td>
+<td>started <code>airflow</code></td>
+<td>none</td>
+</tr>
+<tr>
+<th><code>frontend</code></th>
+<td>build <code>frontend/Dockerfile</code> (nginx)</td>
+<td>Serves the built SPA on port 5173 → container port 80</td>
+<td>started <code>api</code></td>
+<td>none</td>
+</tr>
+</tbody></table></div>
+<h3 id="51-notable-service-settings">5.1 Notable service settings</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Service</th>
+<th>Setting</th>
+<th>Reason</th>
+</tr></thead><tbody>
+<tr>
+<th><code>postgres</code></th>
+<td><code>POSTGRES_INITDB_ARGS=--data-checksums</code></td>
+<td>Detect silent corruption in a long-lived warehouse</td>
+</tr>
+<tr>
+<th><code>postgres</code></th>
+<td><code>TZ: UTC</code></td>
+<td>One timezone everywhere</td>
+</tr>
+<tr>
+<th><code>mysql</code></th>
+<td><code>character-set-server=utf8mb4</code>, <code>collation-server=utf8mb4_unicode_ci</code></td>
+<td>Unicode product names (e.g. <code>L'Oréal</code>, <code>Café</code>)</td>
+</tr>
+<tr>
+<th><code>mysql</code></th>
+<td><code>innodb-buffer-pool-size=512M</code>, <code>max-connections=300</code></td>
+<td>Right-sized for the measured workload</td>
+</tr>
+<tr>
+<th><code>api</code></th>
+<td><code>env_file: .env</code> plus explicit <code>DATABASE_URL</code>, <code>MYSQL_URL</code>, <code>CORS_ORIGINS</code></td>
+<td>Compose injects service-host names, not localhost</td>
+</tr>
+<tr>
+<th><code>api</code></th>
+<td><code>./app:/srv/app/app:ro</code>, <code>./db:/srv/app/db:ro</code></td>
+<td>Read-only source mounts so code edits do not require a rebuild</td>
+</tr>
+<tr>
+<th><code>airflow</code></th>
+<td><code>AIRFLOW__CORE__EXECUTOR: LocalExecutor</code></td>
+<td>Single-host execution</td>
+</tr>
+<tr>
+<th><code>airflow</code></th>
+<td><code>AIRFLOW__CORE__LOAD_EXAMPLES: "false"</code></td>
+<td>No example DAGs</td>
+</tr>
+<tr>
+<th><code>airflow</code></th>
+<td><code>AIRFLOW__CORE__DAG_DISCOVERY_SAFE_MODE: "false"</code></td>
+<td>Allows the DAG module to import without Airflow extras</td>
+</tr>
+<tr>
+<th><code>airflow</code></th>
+<td><code>AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.session</code></td>
+<td>Session auth for the UI</td>
+</tr>
+<tr>
+<th><code>airflow</code></th>
+<td><code>PIP_DATABASE_URL</code></td>
+<td>Lets the DAG reach the same warehouse as the API</td>
+</tr>
+<tr>
+<th><code>airflow</code></th>
+<td><code>AIRFLOW_UID/GID</code></td>
+<td>Aligns container file ownership with the host</td>
+</tr>
+<tr>
+<th>All</th>
+<td><code>restart: unless-stopped</code></td>
+<td>Survives host reboots</td>
+</tr>
+</tbody></table></div>
+<h3 id="52-volumes">5.2 Volumes</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Volume</th>
+<th>Mounted at</th>
+<th>Contents</th>
+</tr></thead><tbody>
+<tr>
+<th><code>pg_data</code></th>
+<td><code>/var/lib/postgresql/data</code></td>
+<td>Warehouse and Airflow metadata</td>
+</tr>
+<tr>
+<th><code>mysql_data</code></th>
+<td><code>/var/lib/mysql</code></td>
+<td>Secondary warehouse</td>
+</tr>
+<tr>
+<th><code>airflow_logs</code></th>
+<td><code>/opt/airflow/logs</code></td>
+<td>Task logs</td>
+</tr>
+<tr>
+<th><code>airflow_dags</code></th>
+<td><code>/opt/airflow/dags_processed</code></td>
+<td>Processed DAG files</td>
+</tr>
+</tbody></table></div>
+<h3 id="53-makefile-deployment-targets">5.3 Makefile deployment targets</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Target</th>
+<th>Effect</th>
+</tr></thead><tbody>
+<tr>
+<th><code>make up-db</code></th>
+<td>Start only <code>postgres</code> and <code>mysql</code></td>
+</tr>
+<tr>
+<th><code>make db-wait</code></th>
+<td>Block until both report healthy</td>
+</tr>
+<tr>
+<th><code>make up</code></th>
+<td><code>docker compose up -d --build</code> (full stack)</td>
+</tr>
+<tr>
+<th><code>make down</code></th>
+<td>Stop the stack, keep volumes</td>
+</tr>
+<tr>
+<th><code>make clean</code></th>
+<td>Stop and delete volumes (<strong>destructive</strong>)</td>
+</tr>
+<tr>
+<th><code>make ps</code> / <code>make logs</code></th>
+<td>Status and log tail</td>
+</tr>
+<tr>
+<td><code>make serve</code> / <code>make serve-prod</code></td>
+<td>Run the API on the host instead of a container</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="6-ports-and-endpoints">6. Ports and endpoints</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Port</th>
+<th>Service</th>
+<th>Protocol</th>
+<th>Exposure</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<th>5173</th>
+<td>Frontend (nginx in Compose, Vite in dev)</td>
+<td>HTTP</td>
+<td>Public</td>
+<td><code>FRONTEND_PORT</code></td>
+</tr>
+<tr>
+<th>8000</th>
+<td>FastAPI / uvicorn</td>
+<td>HTTP</td>
+<td>Public behind a proxy</td>
+<td><code>APP_PORT</code></td>
+</tr>
+<tr>
+<th>8000</th>
+<td><code>/docs</code>, <code>/redoc</code>, <code>/openapi.json</code></td>
+<td>HTTP</td>
+<td>Public</td>
+<td>Interactive API documentation</td>
+</tr>
+<tr>
+<th>8000</th>
+<td><code>/api/v1/*</code></td>
+<td>HTTP</td>
+<td>Public</td>
+<td>All 113 operations</td>
+</tr>
+<tr>
+<th>5432</th>
+<td>PostgreSQL</td>
+<td>TCP</td>
+<td>Internal only</td>
+<td><code>POSTGRES_PORT</code>; Airflow metadata too</td>
+</tr>
+<tr>
+<th>3306</th>
+<td>MySQL</td>
+<td>TCP</td>
+<td>Internal only</td>
+<td><code>MYSQL_PORT</code></td>
+</tr>
+<tr>
+<th>33060</th>
+<td>MySQL X protocol</td>
+<td>TCP</td>
+<td>Internal only</td>
+<td>Container-internal, not published</td>
+</tr>
+<tr>
+<th>8080</th>
+<td>Airflow webserver</td>
+<td>HTTP</td>
+<td>Internal or VPN</td>
+<td><code>AIRFLOW_PORT</code></td>
+</tr>
+<tr>
+<th>8001</th>
+<td>Documentation server (<code>make docs-serve</code>)</td>
+<td>HTTP</td>
+<td>Internal</td>
+<td>Serves <code>docs/</code></td>
+</tr>
+<tr>
+<th>8099</th>
+<td>Smoke-test API instance</td>
+<td>HTTP</td>
+<td>Loopback</td>
+<td><code>scripts/api_smoke.py --port 8099</code></td>
+</tr>
+<tr>
+<td>33060 / 8080 / 5173 / 8000</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>Not published outside the Compose network in production</td>
+</tr>
+</tbody></table></div>
+<p><strong>Production exposure recommendation.</strong> Publish only 5173 (or 80/443 through a reverse proxy) and 8000 behind TLS; keep 5432, 3306 and 8080 on an internal network reachable only by the operator.</p>
+<hr>
+<h2 id="7-installation-and-run-order">7. Installation and run order</h2>
+<h3 id="71-full-local-stack">7.1 Full local stack</h3>
+<pre class="code" data-lang="bash"><code>cp .env.example .env                 # then edit SECRET_KEY and credentials
+make install                         # venv + dependencies [postgres,mysql,dev,scrapy]
+make up-db &amp;&amp; make db-wait           # databases only
+make bootstrap                       # 23 tables + 20 views + reference data
+make demo-postgres                   # demo dataset (optional but recommended)
+make demo-mysql                      # the same dataset on MySQL
+make run-pipeline                    # one live multi-source run
+make verify-dialects                 # cross-dialect comparison
+make serve                           # API on http://localhost:8000/docs</code></pre>
+<h3 id="72-full-container-stack">7.2 Full container stack</h3>
+<pre class="code" data-lang="bash"><code>make env
+make up                              # builds api + frontend, starts everything
+docker compose exec api python -m app.cli.main bootstrap
+docker compose exec api python -m app.cli.main seed-demo --days 150
+docker compose exec api python -m app.cli.main run-pipeline
+open http://localhost:5173           # sign in with the documented demo account</code></pre>
+<h3 id="73-verification-after-deployment">7.3 Verification after deployment</h3>
+<pre class="code" data-lang="bash"><code>curl -s localhost:8000/api/v1/health | jq &#x27;{status, database: .database.connected, tables: .database.tables}&#x27;
+curl -s localhost:8000/api/v1/queries/views -H &quot;Authorization: Bearer $TOKEN&quot; | jq &#x27;length&#x27;   # 20
+.venv/bin/python scripts/api_smoke.py                                                        # 78 checks</code></pre>
+<h3 id="74-orchestration-run">7.4 Orchestration run</h3>
+<pre class="code" data-lang="bash"><code>make install-airflow                 # apache-airflow==2.10.5 with constraints for 3.12
+make airflow-init                    # metadata DB migrate + admin user (admin / admin)
+make airflow-test                    # run the DAG once for a fixed logical date
+# Or in the Compose stack: open http://localhost:8080, enable product_intelligence_pipeline</code></pre>
+<hr>
+<h2 id="8-secrets-management">8. Secrets management</h2>
+<h3 id="81-classification">8.1 Classification</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Secret</th>
+<th>Where it lives</th>
+<th>Rotation</th>
+</tr></thead><tbody>
+<tr>
+<th><code>SECRET_KEY</code></th>
+<td><code>.env</code> locally; secret manager in production</td>
+<td>On rotation every issued token becomes invalid; planned maintenance window</td>
+</tr>
+<tr>
+<td><code>POSTGRES_PASSWORD</code>, <code>MYSQL_PASSWORD</code>, <code>MYSQL_ROOT_PASSWORD</code></td>
+<td><code>.env</code> / Compose environment</td>
+<td>Rotate by updating the secret and restarting</td>
+</tr>
+<tr>
+<th><code>SEED_*_PASSWORD</code></th>
+<td><code>.env</code>; documented demo values</td>
+<td>Change on first production boot; then unset</td>
+</tr>
+<tr>
+<th><code>AIRFLOW_ADMIN_PASSWORD</code></th>
+<td><code>.env</code></td>
+<td>Before exposing the webserver</td>
+</tr>
+<tr>
+<th>API keys (<code>pip_…</code>)</th>
+<td>Issued once, stored hashed</td>
+<td>Revoke and re-issue</td>
+</tr>
+<tr>
+<th>User passwords</th>
+<td>Argon2id hash in <code>app_user.hashed_password</code></td>
+<td>User-initiated or admin reset; <code>password_changed_at</code> is recorded</td>
+</tr>
+</tbody></table></div>
+<h3 id="82-controls">8.2 Controls</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Control</th>
+<th>Implementation</th>
+</tr></thead><tbody>
+<tr>
+<td>No secrets in version control</td>
+<td><code>.env</code> is in <code>.gitignore</code>; only <code>.env.example</code> is committed</td>
+</tr>
+<tr>
+<th>Redaction in logs</th>
+<td><code>describe_target()</code> masks credentials: <code>scheme://<strong><em>:</em></strong>@host</code></td>
+</tr>
+<tr>
+<th>Redaction in errors</th>
+<td><code>ComplianceError</code> details carry the URL, never the connection string</td>
+</tr>
+<tr>
+<th>Least exposure</th>
+<td>API keys store <code>prefix</code> and a SHA-256 hash with a server pepper; only the prefix is ever listed</td>
+</tr>
+<tr>
+<th>Password strength</th>
+<td>≥ 10 characters with upper, lower, digit and symbol, enforced server-side</td>
+</tr>
+<tr>
+<th>Brute-force control</th>
+<td>5 failed logins lock the account for 15 minutes; failures are audited</td>
+</tr>
+<tr>
+<th>Transport</th>
+<td>JWT HS256 over TLS in production; the API must not be exposed over plain HTTP</td>
+</tr>
+<tr>
+<th>Rotation procedure</th>
+<td>Change in the secret manager → restart <code>api</code> and <code>airflow</code> → re-login; see §9 for data impact (none)</td>
+</tr>
+</tbody></table></div>
+<h3 id="83-production-hardening-checklist">8.3 Production hardening checklist</h3>
+<ul>
+<li class="depth-0">[ ] <code>APP_ENV=production</code>, <code>APP_DEBUG=false</code>, <code>APP_LOG_FORMAT=json</code></li>
+<li class="depth-0">[ ] <code>SEED_DEMO_DATA=false</code>; demo accounts removed or rotated</li>
+<li class="depth-0">[ ] <code>CORS_ORIGINS</code> restricted to the exact dashboard origin</li>
+<li class="depth-0">[ ] <code>RESPECT_ROBOTS_TXT=true</code> and <code>RESPECT_TERMS_WHITELIST=true</code> (never disable)</li>
+<li class="depth-0">[ ] <code>SECRET_KEY</code> from the secret manager, ≥ 32 random bytes</li>
+<li class="depth-0">[ ] Database credentials with only the privileges the app needs (<code>SELECT</code>, <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, <code>CREATE</code> during bootstrap)</li>
+<li class="depth-0">[ ] API behind TLS with a request-size limit</li>
+<li class="depth-0">[ ] Backup job scheduled and a restore rehearsed</li>
+</ul>
+<hr>
+<h2 id="9-backup-and-restore">9. Backup and restore</h2>
+<h3 id="91-what-to-back-up">9.1 What to back up</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Store</th>
+<th>Importance</th>
+<th>Frequency</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<th>PostgreSQL <code>pipeline</code></th>
+<td>Critical</td>
+<td>Daily, plus before releases</td>
+<td>Contains the warehouse, reference catalog and accounts</td>
+</tr>
+<tr>
+<th>Airflow metadata DB</th>
+<td>High</td>
+<td>Daily</td>
+<td>Run history and DAG state; can be rebuilt with <code>airflow db migrate</code></td>
+</tr>
+<tr>
+<th>MySQL <code>pipeline</code></th>
+<td>Medium</td>
+<td>Daily</td>
+<td>Only needed for cross-dialect verification</td>
+</tr>
+<tr>
+<th><code>app_setting</code> rows</th>
+<td>Medium</td>
+<td>With the database</td>
+<td>Small, but holds the schedule and thresholds</td>
+</tr>
+<tr>
+<th><code>var/http-cache</code></th>
+<td>Low</td>
+<td>Not required</td>
+<td>Rebuildable; disposable</td>
+</tr>
+<tr>
+<td>Repository (<code>docs/</code>, <code>db/</code>, <code>dags/</code>)</td>
+<td>Critical</td>
+<td>On every commit</td>
+<td>Version control is the backup</td>
+</tr>
+</tbody></table></div>
+<h3 id="92-backup">9.2 Backup</h3>
+<pre class="code" data-lang="bash"><code># PostgreSQL — custom format so a single-threaded restore is possible
+docker compose exec -T postgres pg_dump -U pip -d pipeline -Fc \
+  &gt; &quot;backup/pipeline-$(date +%F).dump&quot;
+
+# schema-only copy for environment provisioning
+docker compose exec -T postgres pg_dump -U pip -d pipeline -s \
+  &gt; &quot;backup/schema-$(date +%F).sql&quot;
+
+# Airflow metadata
+docker compose exec -T postgres pg_dump -U pip -d postgres -Fc \
+  &gt; &quot;backup/airflow-$(date +%F).dump&quot;
+
+# MySQL
+docker compose exec -T mysql mysqldump -u root -p&quot;$MYSQL_ROOT_PASSWORD&quot; \
+  --single-transaction --routines pipeline \
+  &gt; &quot;backup/mysql-$(date +%F).sql&quot;
+
+# Application configuration (non-secret keys only)
+docker compose exec -T postgres psql -U pip -d pipeline -c \
+  &quot;COPY app_setting TO STDOUT WITH CSV HEADER&quot; &gt; &quot;backup/app_setting-$(date +%F).csv&quot;</code></pre>
+<p>Recommended retention: 7 daily, 4 weekly, 6 monthly, stored off-host (encrypted).</p>
+<h3 id="93-restore">9.3 Restore</h3>
+<pre class="code" data-lang="bash"><code># 1. Stop the writers
+docker compose stop api airflow airflow-scheduler
+
+# 2. Recreate the database and restore
+docker compose exec -T postgres dropdb -U pip --if-exists pipeline
+docker compose exec -T postgres createdb -U pip pipeline
+docker compose exec -T postgres pg_restore -U pip -d pipeline --no-owner &lt; backup/pipeline-2026-03-20.dump
+
+# 3. Re-apply the analytical views (idempotent, and guarantees they match db/views.sql)
+docker compose exec -T postgres psql -U pip -d pipeline -c &#x27;CREATE SCHEMA IF NOT EXISTS public&#x27;
+docker compose exec api python -m app.cli.main init-db      # create_all + apply_views, checkfirst
+
+# 4. Verify object completeness and data quality
+docker compose exec api python -m app.cli.main check-schema
+docker compose exec api python -m app.cli.main status
+
+# 5. Restart and smoke-test
+docker compose start api airflow airflow-scheduler
+.venv/bin/python scripts/api_smoke.py</code></pre>
+<h3 id="94-recovery-objectives-and-drills">9.4 Recovery objectives and drills</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Objective</th>
+<th>Target</th>
+<th>Basis</th>
+</tr></thead><tbody>
+<tr>
+<th>RPO</th>
+<td>≤ 24 h (daily dump)</td>
+<td>The warehouse is rebuilt by the next pipeline run</td>
+</tr>
+<tr>
+<th>RTO</th>
+<td>≤ 60 min</td>
+<td>Restore is a single <code>pg_restore</code> plus <code>init-db</code></td>
+</tr>
+<tr>
+<th>Drill frequency</th>
+<td>Every sprint in the final three sprints</td>
+<td>Rehearsed on a scratch database, not on production</td>
+</tr>
+<tr>
+<th>Verified recovery</th>
+<td>Row counts compared with <code>app.cli.main status</code></td>
+<td>23 tables, 20 views, DQ score equal to the recorded value</td>
+</tr>
+</tbody></table></div>
+<p>The <strong>fact tables are recoverable by re-running the pipeline</strong>: because extraction is polite and cached, a rebuild costs minutes. Only the <em>account</em> tables (<code>app_*</code>), <code>catalog_product</code>, <code>dim_date</code> and <code>dim_currency</code> are irreplaceable by re-running, which is why they are inside the same dump.</p>
+<hr>
+<h2 id="10-scaling-and-high-availability">10. Scaling and high availability</h2>
+<h3 id="101-serving-tier">10.1 Serving tier</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Concern</th>
+<th>Option</th>
+<th>Effect</th>
+<th>Cost</th>
+</tr></thead><tbody>
+<tr>
+<th>More parallelism</th>
+<td><code>uvicorn --workers N</code> (or Gunicorn with Uvicorn workers)</td>
+<td>N × concurrency; API workers are stateless</td>
+<td>Memory only</td>
+</tr>
+<tr>
+<th>Process supervision</th>
+<td>systemd unit, <code>restart: unless-stopped</code>, Kubernetes Deployment</td>
+<td>Automatic restart</td>
+<td>Operational</td>
+</tr>
+<tr>
+<th>Multiple hosts</th>
+<td>2+ API replicas behind nginx</td>
+<td>Removes a single point of failure</td>
+<td>Load balancer</td>
+</tr>
+<tr>
+<th>Session state</th>
+<td>Already stateless (self-contained JWT)</td>
+<td>No sticky sessions needed</td>
+<td>Zero</td>
+</tr>
+<tr>
+<th>Caching</th>
+<td>HTTP cache for the dashboard bundle; server-side cache for <code>table_counts()</code> and <code>kpi_summary()</code> keyed by <code>(window, run_id)</code></td>
+<td>Removes repeated aggregate queries</td>
+<td>Invalidation on new run</td>
+</tr>
+<tr>
+<th>Database reads</th>
+<td>PostgreSQL read replica for the analytics views</td>
+<td>Offloads dashboard queries</td>
+<td>Replication lag</td>
+</tr>
+<tr>
+<th>Slow endpoints</th>
+<td>Cap <code>page_size</code> at 200 and <code>days</code> at 3650 (already enforced)</td>
+<td>Prevents accidental full scans</td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<h3 id="102-batch-tier">10.2 Batch tier</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Concern</th>
+<th>Option</th>
+<th>Effect</th>
+</tr></thead><tbody>
+<tr>
+<th>Longer runs</th>
+<td>Partition by date and run sources in parallel (<code>ThreadPoolExecutor</code> over sources; the HTTP layer is thread-safe)</td>
+<td>Wall-clock time falls roughly linearly</td>
+</tr>
+<tr>
+<th>Larger catalogues</th>
+<td>Raise <code>MAX_PRODUCTS_PER_SOURCE</code>; widen the blocking key; move the candidate index to a materialised view</td>
+<td>Keeps comparison cost bounded</td>
+</tr>
+<tr>
+<th>Faster dedupe</th>
+<td>Replace the in-process blocking index with a sorted-neighbourhood index persisted per source</td>
+<td>O(n log n) instead of O(n·k)</td>
+</tr>
+<tr>
+<th>Airflow at scale</th>
+<td><code>CeleryExecutor</code> or <code>KubernetesExecutor</code> with a broker</td>
+<td>Distributed task execution</td>
+</tr>
+<tr>
+<th>Scheduling</th>
+<td>Replace cron with <code>0 3 <em> </em> *</code> in Airflow, plus <code>max_active_runs=1</code> to prevent overlap</td>
+<td>Already the delivered configuration</td>
+</tr>
+<tr>
+<th>Backfill</th>
+<td><code>seed_history</code> style batch insert with <code>PIPELINE_BATCH_SIZE</code> = 5,000</td>
+<td>10× faster history loading</td>
+</tr>
+</tbody></table></div>
+<h3 id="103-data-tier">10.3 Data tier</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Concern</th>
+<th>Option</th>
+<th>Effect</th>
+</tr></thead><tbody>
+<tr>
+<th>Read scaling</th>
+<td>Replica + <code>DATABASE_URL</code> pointing the dashboard at the replica</td>
+<td>Dashboard never competes with ingestion</td>
+</tr>
+<tr>
+<th>Write scaling</th>
+<td>PostgreSQL partitioning by month; archive old partitions</td>
+<td>Keeps indexes small</td>
+</tr>
+<tr>
+<th>Storage</th>
+<td><code>agg_category_daily</code> retained beyond the fact table</td>
+<td>Cheaper history</td>
+</tr>
+<tr>
+<th>Connection budget</th>
+<td>Pool size = workers × 2, <code>pool_recycle=1800</code> to survive proxy timeouts</td>
+<td>Avoids stale connections</td>
+</tr>
+<tr>
+<th>MySQL parity</th>
+<td>Keep the dialect-portable SQL; add a comparison test</td>
+<td>No divergence</td>
+</tr>
+</tbody></table></div>
+<h3 id="104-availability-summary">10.4 Availability summary</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Component</th>
+<th>Single point of failure?</th>
+<th>Mitigation available</th>
+</tr></thead><tbody>
+<tr>
+<th>Frontend (nginx)</th>
+<td>No</td>
+<td>Static; any replica works</td>
+</tr>
+<tr>
+<th>API</th>
+<td>Yes, in the single-host profile</td>
+<td><code>--workers</code>, then multiple replicas</td>
+</tr>
+<tr>
+<th>Airflow scheduler</th>
+<td>Yes</td>
+<td>Retry policy, <code>max_active_runs=1</code>, manual CLI fallback</td>
+</tr>
+<tr>
+<th>PostgreSQL</th>
+<td>Yes</td>
+<td>Daily dump, replica for reads</td>
+</tr>
+<tr>
+<th>Cache directory</th>
+<td>No</td>
+<td>Disposable</td>
+</tr>
+<tr>
+<th>Upstream sources</th>
+<td>Yes, by nature</td>
+<td>Degradation to <code>partial</code>, offline <code>local_demo</code> fallback</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="11-monitoring-and-operations">11. Monitoring and operations</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Signal</th>
+<th>Source</th>
+<th>Threshold</th>
+<th>Action</th>
+</tr></thead><tbody>
+<tr>
+<th>API liveness</th>
+<td><code>GET /api/v1/health</code></td>
+<td><code>status != ok</code></td>
+<td>Restart the container</td>
+</tr>
+<tr>
+<th>API readiness</th>
+<td><code>GET /api/v1/health/ready</code></td>
+<td><code>ready = false</code></td>
+<td>Check the database and the schema</td>
+</tr>
+<tr>
+<th>Object completeness</th>
+<td><code>GET /api/v1/meta/tables</code></td>
+<td>≠ 23 tables</td>
+<td>Run <code>init-db</code></td>
+</tr>
+<tr>
+<th>View completeness</th>
+<td><code>GET /api/v1/queries/views</code></td>
+<td>≠ 20 views</td>
+<td>Run <code>init-db</code></td>
+</tr>
+<tr>
+<th>Data freshness</th>
+<td><code>GET /api/v1/quality/latest</code> → <code>DQ007</code></td>
+<td>&gt; 24 h warn, &gt; 48 h fail</td>
+<td>Trigger a run</td>
+</tr>
+<tr>
+<th>DQ score</th>
+<td><code>GET /api/v1/quality/latest</code></td>
+<td>&lt; 80</td>
+<td>Investigate the failing rules</td>
+</tr>
+<tr>
+<th>Run failures</th>
+<td><code>GET /api/v1/pipeline/runs?status=failed</code></td>
+<td>Any</td>
+<td>Read <code>error_message</code>, re-run</td>
+</tr>
+<tr>
+<th>Source failures</th>
+<td><code>GET /api/v1/pipeline/sources/status</code></td>
+<td>3 consecutive</td>
+<td>Disable the source</td>
+</tr>
+<tr>
+<th>Compliance</th>
+<td><code>GET /api/v1/audit/compliance</code></td>
+<td><code>blocked_requests &gt; 0</code></td>
+<td>Review the source terms</td>
+</tr>
+<tr>
+<th>Latency</th>
+<td><code>X-Process-Time-Ms</code></td>
+<td>p95 &gt; 500 ms</td>
+<td>Inspect the query plan</td>
+</tr>
+<tr>
+<th>Slow requests</th>
+<td>Application log</td>
+<td>&gt; 2,000 ms (logged automatically)</td>
+<td>Investigate</td>
+</tr>
+<tr>
+<th>Disk</th>
+<td>Host metrics</td>
+<td>Cache/log growth</td>
+<td>Prune <code>var/</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="111-routine-tasks">11.1 Routine tasks</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Task</th>
+<th>Frequency</th>
+<th>Command</th>
+</tr></thead><tbody>
+<tr>
+<th>Pipeline run</th>
+<td>Daily 03:00</td>
+<td>Airflow DAG <code>product_intelligence_pipeline</code></td>
+</tr>
+<tr>
+<th>Health check</th>
+<td>Daily</td>
+<td><code>curl -s localhost:8000/api/v1/health</code></td>
+</tr>
+<tr>
+<th>Backup</th>
+<td>Daily</td>
+<td>§9.2</td>
+</tr>
+<tr>
+<th>Cache prune</th>
+<td>Weekly</td>
+<td><code>make clean-cache</code>; the TTL prunes payloads automatically</td>
+</tr>
+<tr>
+<th>Schema check</th>
+<td>After every deployment</td>
+<td><code>make check-schema</code></td>
+</tr>
+<tr>
+<th>Smoke test</th>
+<td>After every deployment</td>
+<td><code>.venv/bin/python scripts/api_smoke.py</code></td>
+</tr>
+<tr>
+<td>Cross-dialect verification</td>
+<td>Monthly</td>
+<td><code>make verify-dialects</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="12-cicd">12. CI/CD</h2>
+<h3 id="121-pipeline-stages">12.1 Pipeline stages</h3>
+<pre class="mermaid">flowchart LR
+    A[&quot;Push / pull request&quot;] --&gt; B[&quot;Install dependencies&lt;br/&gt;make install&quot;]
+    B --&gt; C[&quot;Lint and format&lt;br/&gt;make lint&quot;]
+    C --&gt; D[&quot;Type check&lt;br/&gt;make typecheck&quot;]
+    D --&gt; E[&quot;Unit tests&lt;br/&gt;make test&quot;]
+    E --&gt; F[&quot;Start PostgreSQL and MySQL services&quot;]
+    F --&gt; G[&quot;Bootstrap both targets&lt;br/&gt;make bootstrap / bootstrap-mysql&quot;]
+    G --&gt; H[&quot;Seed and run the pipeline&lt;br/&gt;make demo-postgres / run-pipeline&quot;]
+    H --&gt; I[&quot;Cross-dialect verification&lt;br/&gt;make verify-dialects&quot;]
+    I --&gt; J[&quot;API smoke test&lt;br/&gt;scripts/api_smoke.py&quot;]
+    J --&gt; K[&quot;Build the dashboard&lt;br/&gt;make frontend-build&quot;]
+    K --&gt; L{&quot;All green?&quot;}
+    L --&gt;|&quot;yes&quot;| M[&quot;Tag release v1.0.0 and build images&quot;]
+    L --&gt;|&quot;no&quot;| N[&quot;Fail with the stage name in the log&quot;]</pre>
+<h3 id="122-quality-gates">12.2 Quality gates</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Gate</th>
+<th>Command</th>
+<th>Blocking condition</th>
+</tr></thead><tbody>
+<tr>
+<th>Lint</th>
+<td><code>make lint</code> (ruff check + format check)</td>
+<td>Any finding</td>
+</tr>
+<tr>
+<th>Types</th>
+<td><code>make typecheck</code> (mypy)</td>
+<td>Any error</td>
+</tr>
+<tr>
+<th>Unit tests</th>
+<td><code>make test</code></td>
+<td>Any failure</td>
+</tr>
+<tr>
+<th>Coverage</th>
+<td><code>make test-cov</code></td>
+<td>Coverage below the target in <code>docs/15</code> §6</td>
+</tr>
+<tr>
+<th>Schema</th>
+<td><code>make check-schema</code></td>
+<td>Missing table</td>
+</tr>
+<tr>
+<th>Dialects</th>
+<td><code>make verify-dialects</code></td>
+<td>Structural drift or differing DQ score</td>
+</tr>
+<tr>
+<th>API</th>
+<td><code>scripts/api_smoke.py</code></td>
+<td>Any of the 78 checks failing</td>
+</tr>
+<tr>
+<th>Frontend</th>
+<td><code>make frontend-lint</code>, <code>make frontend-build</code></td>
+<td>ESLint, <code>tsc</code> or bundling error</td>
+</tr>
+</tbody></table></div>
+<h3 id="123-release-artefacts">12.3 Release artefacts</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Artefact</th>
+<th>Produced by</th>
+<th>Published to</th>
+</tr></thead><tbody>
+<tr>
+<th>Python distribution</th>
+<td><code>pip install -e .</code> / <code>python -m build</code></td>
+<td>Package index (private)</td>
+</tr>
+<tr>
+<th>API image</th>
+<td><code>docker build -f docker/api.Dockerfile .</code></td>
+<td>Container registry</td>
+</tr>
+<tr>
+<th>Frontend bundle</th>
+<td><code>make frontend-build</code></td>
+<td>Served by the nginx image</td>
+</tr>
+<tr>
+<th>Schema + views</th>
+<td><code>db/views.sql</code></td>
+<td>Applied by <code>init-db</code> at deploy time</td>
+</tr>
+<tr>
+<th>Documentation</th>
+<td><code>docs/*.md</code></td>
+<td>GitHub (private repository)</td>
+</tr>
+</tbody></table></div>
+<h3 id="124-deployment-strategy">12.4 Deployment strategy</h3>
+<p>Blue/green is unnecessary for a single-warehouse batch system; a <strong>rolling restart with a verification step</strong> is sufficient:</p>
+<pre class="code" data-lang="bash"><code>git pull --ff-only
+make check                                   # lint, types, unit tests
+docker compose build api frontend
+docker compose up -d                         # recreate changed services
+docker compose exec api python -m app.cli.main init-db
+.venv/bin/python scripts/api_smoke.py        # 78 checks
+docker compose exec api python -m app.cli.main status</code></pre>
+<p>If the smoke test fails, <code>docker compose up -d --build</code> restores the previous image tag, because the schema change is additive (<code>create_all(checkfirst=True)</code> and <code>DROP VIEW IF EXISTS</code> before re-creating the views) and no migration destroys data.</p>
+<hr>
+<h2 id="13-deployment-caveats">13. Deployment caveats</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>#</th>
+<th>Caveat</th>
+<th>Impact</th>
+<th>Recommendation</th>
+</tr></thead><tbody>
+<tr>
+<th>1</th>
+<td><code>docker-compose.yml</code> builds the <code>api</code> service from <code>docker/api.Dockerfile</code> and the <code>frontend</code> service from <code>frontend/Dockerfile</code>. Those build contexts are not present in this repository snapshot, so <code>make up</code> (which builds) cannot run as delivered</td>
+<td><code>make up-db</code>, <code>make bootstrap</code>, <code>make serve</code>, <code>make run-pipeline</code> and <code>scripts/api_smoke.py</code> are unaffected, because they only need Python and the databases</td>
+<td>Recreate the two Dockerfiles, or deploy with <code>make serve</code> plus <code>make frontend-dev</code></td>
+</tr>
+<tr>
+<th>2</th>
+<td>No CI workflow file is committed under <code>.github/</code></td>
+<td>The gates in §12.2 must be run locally with <code>make check</code></td>
+<td>Add the workflow described in §12.1</td>
+</tr>
+<tr>
+<th>3</th>
+<td><code>AIRFLOW_UID/GID</code> default to <code>50000:0</code></td>
+<td>On a host without that user, the Airflow logs volume may be unwritable</td>
+<td>Set <code>AIRFLOW_UID=$(id -u)</code> in <code>.env</code></td>
+</tr>
+<tr>
+<th>4</th>
+<td><code>ingestion_http_log</code> grows with every request</td>
+<td>Disk growth on a long-running deployment</td>
+<td>Retention job (§8 of doc 09)</td>
+</tr>
+<tr>
+<th>5</th>
+<td>SQLite is a development fallback</td>
+<td>No concurrent writers, <code>WAL</code> mode only</td>
+<td>Never use SQLite for a production API</td>
+</tr>
+<tr>
+<th>6</th>
+<td>The Airflow webserver uses session auth with the default credentials in the Compose command</td>
+<td>Not acceptable in production</td>
+<td>Set <code>AIRFLOW_ADMIN_PASSWORD</code> and place the webserver behind SSO or a VPN</td>
+</tr>
+</tbody></table></div>
+    </article>
+    <div class="doc-foot">
+      <span><a href="12_ui_ux_design.html">← UI/UX Design</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="14_api_documentation.html">API Documentation →</a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

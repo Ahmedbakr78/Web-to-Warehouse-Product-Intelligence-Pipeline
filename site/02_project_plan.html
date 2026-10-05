@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Twelve-week schedule, milestones, deliverables">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Project Plan — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Twelve-week schedule, milestones, deliverables">
+<title>Project Plan — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" class="active" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="23-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, all 113 operations, examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, 100-case plan, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="234 features with file references">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Project Plan</h1>
+      <p>Twelve-week schedule, milestones, deliverables</p>
+    </div>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#table-of-contents">Table of contents</a></li><li class="lvl-2"><a href="#1-planning-approach">1. Planning approach</a></li><li class="lvl-2"><a href="#2-12-week-timeline-gantt">2. 12-week timeline (Gantt)</a></li><li class="lvl-3"><a href="#21-week-by-week-narrative">2.1 Week-by-week narrative</a></li><li class="lvl-2"><a href="#3-milestones">3. Milestones</a></li><li class="lvl-2"><a href="#4-deliverables-matrix">4. Deliverables matrix</a></li><li class="lvl-3"><a href="#41-deliverable-traceability-to-acceptance-criteria">4.1 Deliverable traceability to acceptance criteria</a></li><li class="lvl-2"><a href="#5-resource-allocation">5. Resource allocation</a></li><li class="lvl-3"><a href="#51-person-hours-per-phase">5.1 Person-hours per phase</a></li><li class="lvl-3"><a href="#52-weekly-capacity-model">5.2 Weekly capacity model</a></li><li class="lvl-3"><a href="#53-reconciliation-of-the-two-effort-views">5.3 Reconciliation of the two effort views</a></li><li class="lvl-3"><a href="#54-tools-and-environments-consumed">5.4 Tools and environments consumed</a></li><li class="lvl-2"><a href="#6-sprint-plan">6. Sprint plan</a></li><li class="lvl-3"><a href="#61-sprint-ceremony-agenda-45-minutes">6.1 Sprint ceremony agenda (45 minutes)</a></li><li class="lvl-2"><a href="#7-governance-and-reporting">7. Governance and reporting</a></li><li class="lvl-3"><a href="#71-change-control">7.1 Change control</a></li><li class="lvl-2"><a href="#8-critical-path-and-slack">8. Critical path and slack</a></li></ol></details>
+    <article class="doc-body">
+<h2 id="purpose">Purpose</h2>
+<p>This document turns the proposal (<code>01_project_proposal.md</code>) into an executable plan: a 12-week timeline with a Mermaid Gantt chart, a milestone table with entry/exit criteria, a deliverable-to-work-package matrix, a resource allocation table and the governance rhythm that the team used. It is the reference used in the project review meetings.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Field</th>
+<th>Value</th>
+</tr></thead><tbody>
+<tr>
+<th>Project</th>
+<td>Web-to-Warehouse Product Intelligence Pipeline</td>
+</tr>
+<tr>
+<th>Duration</th>
+<td>12 weeks (W1 – W12), academic semester</td>
+</tr>
+<tr>
+<th>Cadence</th>
+<td>2-week sprints, weekly supervisor checkpoint, demo at the end of each sprint</td>
+</tr>
+<tr>
+<th>Team</th>
+<td>1 data-engineering lead (full time), 1 supervisor (review), 2 peer reviewers (Sprint 9–12)</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="table-of-contents">Table of contents</h2>
+<ul>
+<li class="depth-0"><a href="#1-planning-approach">Planning approach</a></li>
+<li class="depth-0"><a href="#2-12-week-timeline-gantt">12-week timeline (Gantt)</a></li>
+<li class="depth-0"><a href="#3-milestones">Milestones</a></li>
+<li class="depth-0"><a href="#4-deliverables-matrix">Deliverables matrix</a></li>
+<li class="depth-0"><a href="#5-resource-allocation">Resource allocation</a></li>
+<li class="depth-0"><a href="#6-sprint-plan">Sprint plan</a></li>
+<li class="depth-0"><a href="#7-governance-and-reporting">Governance and reporting</a></li>
+<li class="depth-0"><a href="#8-critical-path-and-slack">Critical path and slack</a></li>
+</ul>
+<hr>
+<h2 id="1-planning-approach">1. Planning approach</h2>
+<p>The plan follows a requirements → design → build → verify → document sequence, with two deliberate parallel tracks:</p>
+<ul>
+<li class="depth-0"><strong>Data track</strong> — warehouse schema, cleaning, dedupe, quality, reconciliation. This is the</li>
+</ul>
+<p>academically interesting part and must be right before anything is presented.</p>
+<ul>
+<li class="depth-0"><strong>Serving track</strong> — REST API and dashboard. It consumes only the analytical views, so it can start</li>
+</ul>
+<p>as soon as <code>db/views.sql</code> is stable (end of W5).</p>
+<p>Two hard constraints shaped the plan:</p>
+<ul>
+<li class="depth-0">The warehouse must be demonstrable offline (<code>local_demo</code>), so no external dependency can block a</li>
+</ul>
+<p>sprint demonstration.</p>
+<ul>
+<li class="depth-0">Cross-dialect verification requires both databases, so W1 includes the Docker Compose bring-up.</li>
+</ul>
+<hr>
+<h2 id="2-12-week-timeline-gantt">2. 12-week timeline (Gantt)</h2>
+<pre class="mermaid">gantt
+    title Web-to-Warehouse Product Intelligence Pipeline - 12 week delivery plan
+    dateFormat YYYY-MM-DD
+    axisFormat %b %d
+    todayMarker off
+
+    section Phase 1 - Initiation (W1-W2)
+    Requirements gathering and stakeholder analysis      :req, 2026-01-05, 10d
+    Literature review                                    :lit, 2026-01-05, 12d
+    Project proposal and plan sign-off                   :plan, after req, 3d
+    Environment bring-up and repository setup            :env, 2026-01-07, 5d
+
+    section Phase 2 - Design (W3-W4)
+    Logical and physical database design                 :dbdesign, 2026-01-19, 8d
+    Data flow and behaviour diagrams                     :diagrams, 2026-01-21, 6d
+    Use cases, architecture and NFRs                     :arch, 2026-01-22, 7d
+    ERD review with supervisor                           :erdrev, after dbdesign, 2d
+
+    section Phase 3 - Ingestion (W4-W6)
+    Compliance layer robots, rate limit, cache, audit    :comp, 2026-01-26, 8d
+    Cleaning and currency normalisation                  :clean, 2026-02-02, 7d
+    API source connectors                                :apisrc, 2026-02-04, 6d
+    HTML scraper for books.toscrape.com                  :scrape, 2026-02-06, 6d
+    Offline synthetic source                             :synth, 2026-02-02, 4d
+
+    section Phase 4 - Warehouse (W6-W8)
+    Deduplication engine and blocking                    :dedupe, 2026-02-16, 9d
+    Loader, change detection and aggregates              :loader, 2026-02-19, 9d
+    Analytical views and analytics service               :views, 2026-02-23, 8d
+    Data-quality framework                               :dq, 2026-03-02, 6d
+
+    section Phase 5 - Serving (W8-W10)
+    FastAPI application, auth, RBAC, schemas             :api, 2026-03-04, 10d
+    Catalog reconciliation and price gaps                :recon, 2026-03-04, 7d
+    Dashboard screens and design system                  :ui, 2026-03-09, 10d
+    Airflow DAG                                          :dag, 2026-03-11, 5d
+
+    section Phase 6 - Verification (W10-W11)
+    Cross-dialect verification PostgreSQL and MySQL      :dialect, 2026-03-18, 4d
+    Seed data and demo dataset                           :seed, 2026-03-16, 5d
+    Smoke test and performance measurement               :smoke, 2026-03-20, 4d
+    Documentation set review                             :docrev, 2026-03-23, 6d
+
+    section Phase 7 - Close-out (W11-W12)
+    Risk register review and contingency drill           :risk, 2026-03-25, 3d
+    Final rehearsal and defence preparation              :defence, 2026-03-27, 8d
+    Submission and handover                              :submit, 2026-04-03, 2d
+
+    section Milestones
+    M1 Proposal approved                                 :milestone, m1, 2026-01-16, 0d
+    M2 Design frozen                                     :milestone, m2, 2026-02-06, 0d
+    M3 Ingestion demo                                    :milestone, m3, 2026-02-27, 0d
+    M4 Warehouse load demo                               :milestone, m4, 2026-03-13, 0d
+    M5 API and dashboard usable                          :milestone, m5, 2026-03-27, 0d
+    M6 System verified on two databases                  :milestone, m6, 2026-04-01, 0d
+    M7 Documentation complete                            :milestone, m7, 2026-04-02, 0d
+    M8 Final defence                                     :milestone, m8, 2026-04-10, 0d</pre>
+<h3 id="21-week-by-week-narrative">2.1 Week-by-week narrative</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Week</th>
+<th>Focus</th>
+<th>Key artefact produced</th>
+<th>Verification command</th>
+</tr></thead><tbody>
+<tr>
+<th>W1</th>
+<td>Requirements, stakeholder map, literature</td>
+<td><code>docs/07_requirements_gathering.md</code>, <code>docs/06_literature_review.md</code></td>
+<td>Document review with supervisor</td>
+</tr>
+<tr>
+<th>W2</th>
+<td>Proposal, plan, risk register, KPI definitions</td>
+<td><code>docs/01</code> … <code>docs/05</code></td>
+<td>Sign-off on objectives and KPIs</td>
+</tr>
+<tr>
+<th>W3</th>
+<td>Logical schema, normalisation argument</td>
+<td><code>docs/09_database_design.md</code></td>
+<td>ERD review</td>
+</tr>
+<tr>
+<th>W4</th>
+<td>Use cases, architecture, DFD, behaviour diagrams</td>
+<td><code>docs/08</code>, <code>docs/10</code>, <code>docs/11</code></td>
+<td>Design freeze (M2)</td>
+</tr>
+<tr>
+<th>W5</th>
+<td>Compliance layer + cleaning + FX normalisation</td>
+<td><code>app/ingestion/robots.py</code>, <code>ratelimit.py</code>, <code>http_client.py</code>, <code>cleaning.py</code></td>
+<td><code>make sources</code></td>
+</tr>
+<tr>
+<th>W6</th>
+<td>Source connectors (3 APIs, 1 scraper, 1 synthetic)</td>
+<td><code>app/ingestion/sources/</code></td>
+<td><code>make sources preview books_to_scrape -n 3</code></td>
+</tr>
+<tr>
+<th>W7</th>
+<td>Deduplication engine</td>
+<td><code>app/ingestion/dedupe.py</code></td>
+<td>Threshold + blocking evaluation</td>
+</tr>
+<tr>
+<th>W8</th>
+<td>Loader, change detection, aggregates, views</td>
+<td><code>app/etl/loader.py</code>, <code>db/views.sql</code></td>
+<td><code>make bootstrap</code> then row counts</td>
+</tr>
+<tr>
+<th>W9</th>
+<td>DQ framework + catalog reconciliation</td>
+<td><code>app/etl/dq.py</code>, <code>app/etl/catalog_reconcile.py</code></td>
+<td><code>make analytics</code></td>
+</tr>
+<tr>
+<th>W10</th>
+<td>REST API, auth, RBAC; dashboard screens</td>
+<td><code>app/api/</code></td>
+<td><code>scripts/api_smoke.py</code></td>
+</tr>
+<tr>
+<th>W11</th>
+<td>Airflow DAG, demo dataset, cross-dialect verification, docs</td>
+<td><code>dags/</code>, <code>app/etl/seed.py</code>, <code>docs/</code></td>
+<td><code>make verify-dialects</code></td>
+</tr>
+<tr>
+<th>W12</th>
+<td>Rehearsal, defence, submission</td>
+<td><code>docs/18_presentation_outline.md</code></td>
+<td>Full dry run of the 3-minute demo</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="3-milestones">3. Milestones</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Milestone</th>
+<th>Date (plan)</th>
+<th>Entry criteria</th>
+<th>Exit criteria</th>
+<th>Verification</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>M1 — Proposal approved</strong></td>
+<td>End W2</td>
+<td>Requirements doc complete, at least 2 stakeholder interviews</td>
+<td>Objectives, scope, KPIs and risk register accepted in writing</td>
+<td>Signed <code>docs/01</code>, <code>docs/05</code></td>
+</tr>
+<tr>
+<th><strong>M2 — Design frozen</strong></th>
+<td>End W4</td>
+<td>Logical schema drafted</td>
+<td>ERD, use cases, architecture and DFD approved; no schema change after this date without a design note</td>
+<td><code>docs/08</code> … <code>docs/11</code> reviewed</td>
+</tr>
+<tr>
+<th><strong>M3 — Ingestion demo</strong></th>
+<td>End W6</td>
+<td>Compliance layer complete</td>
+<td>5 sources registered, records extracted, cleaning applied, <code>robots.txt</code> respected</td>
+<td><code>make sources</code> + <code>make sources preview</code></td>
+</tr>
+<tr>
+<td><strong>M4 — Warehouse load demo</strong></td>
+<td>End W8</td>
+<td>Dedupe engine complete</td>
+<td>Snapshots, changes, events and aggregates loaded; 20 views created</td>
+<td><code>make run-pipeline</code>, <code>GET /api/v1/analytics/kpi</code></td>
+</tr>
+<tr>
+<td><strong>M5 — API and dashboard usable</strong></td>
+<td>End W10</td>
+<td>Views stable</td>
+<td>113 operations documented, RBAC enforced, dashboard screens functional</td>
+<td><code>scripts/api_smoke.py</code> 78/78</td>
+</tr>
+<tr>
+<td><strong>M6 — Verified on two databases</strong></td>
+<td>End W11</td>
+<td>MySQL target provisioned</td>
+<td>Identical structural row counts and identical DQ score on PostgreSQL and MySQL</td>
+<td><code>make verify-dialects</code></td>
+</tr>
+<tr>
+<td><strong>M7 — Documentation complete</strong></td>
+<td>End W11</td>
+<td>All measurements reproducible</td>
+<td>20 documents present, each with a purpose paragraph and diagram</td>
+<td><code>ls -l docs/</code></td>
+</tr>
+<tr>
+<th><strong>M8 — Final defence</strong></th>
+<td>End W12</td>
+<td>Rehearsal passed</td>
+<td>Live demo + Q&amp;A</td>
+<td><code>docs/18_presentation_outline.md</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="4-deliverables-matrix">4. Deliverables matrix</h2>
+<p>Rows are deliverables, columns are the project phases. <code>●</code> = primary owner phase, <code>○</code> = contributing phase, <code>—</code> = not involved.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Deliverable</th>
+<th>P1 Initiation</th>
+<th>P2 Design</th>
+<th>P3 Ingestion</th>
+<th>P4 Warehouse</th>
+<th>P5 Serving</th>
+<th>P6 Verification</th>
+<th>P7 Close-out</th>
+</tr></thead><tbody>
+<tr>
+<td>Requirements and stakeholders</td>
+<td>●</td>
+<td>○</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<th>Literature review</th>
+<td>●</td>
+<td>○</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Database schema (23 tables)</td>
+<td>○</td>
+<td>●</td>
+<td>—</td>
+<td>○</td>
+<td>—</td>
+<td>○</td>
+<td>—</td>
+</tr>
+<tr>
+<th>Analytical views (20)</th>
+<td>—</td>
+<td>○</td>
+<td>—</td>
+<td>●</td>
+<td>○</td>
+<td>○</td>
+<td>—</td>
+</tr>
+<tr>
+<th>Compliance layer</th>
+<td>—</td>
+<td>○</td>
+<td>●</td>
+<td>—</td>
+<td>—</td>
+<td>○</td>
+<td>—</td>
+</tr>
+<tr>
+<th>Cleaning / normalisation</th>
+<td>—</td>
+<td>○</td>
+<td>●</td>
+<td>○</td>
+<td>—</td>
+<td>○</td>
+<td>—</td>
+</tr>
+<tr>
+<th>Deduplication engine</th>
+<td>—</td>
+<td>○</td>
+<td>○</td>
+<td>●</td>
+<td>—</td>
+<td>○</td>
+<td>—</td>
+</tr>
+<tr>
+<th>ETL pipeline</th>
+<td>—</td>
+<td>○</td>
+<td>—</td>
+<td>●</td>
+<td>○</td>
+<td>○</td>
+<td>—</td>
+</tr>
+<tr>
+<th>Data-quality framework</th>
+<td>—</td>
+<td>○</td>
+<td>—</td>
+<td>●</td>
+<td>○</td>
+<td>○</td>
+<td>—</td>
+</tr>
+<tr>
+<th>Catalog reconciliation</th>
+<td>—</td>
+<td>○</td>
+<td>—</td>
+<td>●</td>
+<td>○</td>
+<td>○</td>
+<td>—</td>
+</tr>
+<tr>
+<th>REST API</th>
+<td>—</td>
+<td>○</td>
+<td>—</td>
+<td>—</td>
+<td>●</td>
+<td>○</td>
+<td>—</td>
+</tr>
+<tr>
+<th>Dashboard</th>
+<td>—</td>
+<td>○</td>
+<td>—</td>
+<td>—</td>
+<td>●</td>
+<td>○</td>
+<td>—</td>
+</tr>
+<tr>
+<th>Airflow DAG</th>
+<td>—</td>
+<td>○</td>
+<td>—</td>
+<td>○</td>
+<td>●</td>
+<td>○</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Deployment (Compose, docs)</td>
+<td>—</td>
+<td>○</td>
+<td>—</td>
+<td>—</td>
+<td>○</td>
+<td>●</td>
+<td>○</td>
+</tr>
+<tr>
+<th>Demo dataset</th>
+<td>—</td>
+<td>—</td>
+<td>○</td>
+<td>○</td>
+<td>—</td>
+<td>●</td>
+<td>—</td>
+</tr>
+<tr>
+<th>Documentation set</th>
+<td>○</td>
+<td>●</td>
+<td>○</td>
+<td>○</td>
+<td>○</td>
+<td>●</td>
+<td>●</td>
+</tr>
+</tbody></table></div>
+<h3 id="41-deliverable-traceability-to-acceptance-criteria">4.1 Deliverable traceability to acceptance criteria</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Deliverable</th>
+<th>Supports acceptance criteria</th>
+</tr></thead><tbody>
+<tr>
+<th>Ingestion module</th>
+<td>AC5, AC6, AC12</td>
+</tr>
+<tr>
+<th>Database schema</th>
+<td>AC1, AC2, AC3</td>
+</tr>
+<tr>
+<th>ETL pipeline</th>
+<td>AC6, AC7</td>
+</tr>
+<tr>
+<th>Airflow DAG</th>
+<td>AC9, AC10</td>
+</tr>
+<tr>
+<th>Data-quality framework</th>
+<td>AC4, AC6</td>
+</tr>
+<tr>
+<th>SQL analysis</th>
+<td>AC11</td>
+</tr>
+<tr>
+<th>REST API</th>
+<td>AC8, AC9</td>
+</tr>
+<tr>
+<th>Documentation</th>
+<td>AC12 and the whole grading rubric</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="5-resource-allocation">5. Resource allocation</h2>
+<h3 id="51-person-hours-per-phase">5.1 Person-hours per phase</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Phase</th>
+<th>Lead (h)</th>
+<th>Peer reviewer (h)</th>
+<th>Supervisor (h)</th>
+<th>Total (h)</th>
+</tr></thead><tbody>
+<tr>
+<th>P1 Initiation</th>
+<td>40</td>
+<td>0</td>
+<td>8</td>
+<td>48</td>
+</tr>
+<tr>
+<th>P2 Design</th>
+<td>56</td>
+<td>0</td>
+<td>12</td>
+<td>68</td>
+</tr>
+<tr>
+<th>P3 Ingestion</th>
+<td>96</td>
+<td>0</td>
+<td>6</td>
+<td>102</td>
+</tr>
+<tr>
+<th>P4 Warehouse</th>
+<td>88</td>
+<td>0</td>
+<td>8</td>
+<td>96</td>
+</tr>
+<tr>
+<th>P5 Serving</th>
+<td>68</td>
+<td>12</td>
+<td>10</td>
+<td>90</td>
+</tr>
+<tr>
+<th>P6 Verification</th>
+<td>40</td>
+<td>12</td>
+<td>6</td>
+<td>58</td>
+</tr>
+<tr>
+<th>P7 Close-out</th>
+<td>30</td>
+<td>8</td>
+<td>6</td>
+<td>44</td>
+</tr>
+<tr>
+<th><strong>Total</strong></th>
+<td><strong>418</strong></td>
+<td><strong>32</strong></td>
+<td><strong>56</strong></td>
+<td><strong>506</strong></td>
+</tr>
+</tbody></table></div>
+<p>(Phase totals include the review overhead that the pure build effort of <code>docs/01</code> §7 does not.)</p>
+<h3 id="52-weekly-capacity-model">5.2 Weekly capacity model</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Week</th>
+<th>Planned hours</th>
+<th>Buffer hours</th>
+<th>Utilisation</th>
+<th>Note</th>
+</tr></thead><tbody>
+<tr>
+<th>W1</th>
+<td>40</td>
+<td>10</td>
+<td>80 %</td>
+<td>Requirements interviews are hard to schedule</td>
+</tr>
+<tr>
+<th>W2</th>
+<td>32</td>
+<td>16</td>
+<td>67 %</td>
+<td>Documentation week</td>
+</tr>
+<tr>
+<th>W3</th>
+<td>40</td>
+<td>10</td>
+<td>80 %</td>
+<td>Schema work</td>
+</tr>
+<tr>
+<th>W4</th>
+<td>40</td>
+<td>10</td>
+<td>80 %</td>
+<td>Diagram work</td>
+</tr>
+<tr>
+<th>W5</th>
+<td>45</td>
+<td>5</td>
+<td>90 %</td>
+<td>Compliance layer is on the critical path</td>
+</tr>
+<tr>
+<th>W6</th>
+<td>45</td>
+<td>5</td>
+<td>90 %</td>
+<td>Source connectors</td>
+</tr>
+<tr>
+<th>W7</th>
+<td>40</td>
+<td>10</td>
+<td>80 %</td>
+<td>Dedupe</td>
+</tr>
+<tr>
+<th>W8</th>
+<td>45</td>
+<td>5</td>
+<td>90 %</td>
+<td>Loader + views</td>
+</tr>
+<tr>
+<th>W9</th>
+<td>40</td>
+<td>10</td>
+<td>80 %</td>
+<td>DQ + reconciliation</td>
+</tr>
+<tr>
+<th>W10</th>
+<td>45</td>
+<td>5</td>
+<td>90 %</td>
+<td>API surface is the largest single block</td>
+</tr>
+<tr>
+<th>W11</th>
+<td>40</td>
+<td>10</td>
+<td>80 %</td>
+<td>Verification + docs</td>
+</tr>
+<tr>
+<th>W12</th>
+<td>28</td>
+<td>22</td>
+<td>56 %</td>
+<td>Rehearsal and defence</td>
+</tr>
+</tbody></table></div>
+<h3 id="53-reconciliation-of-the-two-effort-views">5.3 Reconciliation of the two effort views</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>View</th>
+<th>Total</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td><code>docs/01</code> §7.1 (work packages)</td>
+<td>442 h</td>
+<td>Build, analysis and documentation effort</td>
+</tr>
+<tr>
+<td><code>docs/02</code> §5.1 (phases, all roles)</td>
+<td>506 h</td>
+<td>Build effort plus review, supervision and defence preparation</td>
+</tr>
+<tr>
+<td>§5.2 weekly model (12 weeks)</td>
+<td>480 h planned</td>
+<td>Capacity reserved for the lead, including code review responses, environment failures and rework</td>
+</tr>
+</tbody></table></div>
+<p>The three views are consistent: the weekly model reserves more capacity than the recorded build effort, which is the intended buffer (2–10 hours per week depending on the phase).</p>
+<h3 id="54-tools-and-environments-consumed">5.4 Tools and environments consumed</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Resource</th>
+<th>Purpose</th>
+<th>Provisioning</th>
+<th>Cost</th>
+</tr></thead><tbody>
+<tr>
+<th>Docker Desktop</th>
+<td>Compose stack (PostgreSQL, MySQL, Airflow, API, frontend)</td>
+<td>W1</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Python 3.12 venv (<code>.venv</code>)</td>
+<td>Application runtime and test execution</td>
+<td>W1 (<code>make install</code>)</td>
+<td>0</td>
+</tr>
+<tr>
+<th>Airflow 2.10.5</th>
+<td>Orchestration</td>
+<td>W11 (<code>make install-airflow</code>)</td>
+<td>0</td>
+</tr>
+<tr>
+<th>Node.js + npm</th>
+<td>Dashboard build</td>
+<td>W10 (<code>make frontend-install</code>)</td>
+<td>0</td>
+</tr>
+<tr>
+<td>GitHub private repository</td>
+<td>Version control and documentation hosting</td>
+<td>W1</td>
+<td>0</td>
+</tr>
+<tr>
+<th>Public source APIs</th>
+<td>Extraction</td>
+<td>Continuous</td>
+<td>0</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="6-sprint-plan">6. Sprint plan</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Sprint</th>
+<th>Weeks</th>
+<th>Sprint goal</th>
+<th>Definition of done</th>
+</tr></thead><tbody>
+<tr>
+<th>S1</th>
+<td>W1 – W2</td>
+<td>Requirements and plan agreed</td>
+<td>Docs 01–07 drafted; KPIs measurable; risk register populated</td>
+</tr>
+<tr>
+<th>S2</th>
+<td>W3 – W4</td>
+<td>Design frozen</td>
+<td>ERD, use cases, DFD, architecture, behaviour diagrams reviewed</td>
+</tr>
+<tr>
+<th>S3</th>
+<td>W5 – W6</td>
+<td>Compliant extraction</td>
+<td>5 sources return records; robots gate and rate limiter enforced; cleaning applied</td>
+</tr>
+<tr>
+<th>S4</th>
+<td>W7 – W8</td>
+<td>Warehouse loaded</td>
+<td>Dedupe, loader, change detection, aggregates and 20 views working</td>
+</tr>
+<tr>
+<th>S5</th>
+<td>W9 – W10</td>
+<td>Measurable and served</td>
+<td>DQ framework, reconciliation, 113 API operations, dashboard screens</td>
+</tr>
+<tr>
+<th>S6</th>
+<td>W11 – W12</td>
+<td>Verified and defended</td>
+<td>Two-dialect verification, smoke test 78/78, documentation complete, rehearsal passed</td>
+</tr>
+</tbody></table></div>
+<h3 id="61-sprint-ceremony-agenda-45-minutes">6.1 Sprint ceremony agenda (45 minutes)</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Item</th>
+<th>Minutes</th>
+<th>Output</th>
+</tr></thead><tbody>
+<tr>
+<td>Demo against the sprint goal</td>
+<td>15</td>
+<td>Evidence that the goal was met</td>
+</tr>
+<tr>
+<th>KPI dashboard review</th>
+<td>10</td>
+<td>Any KPI that regressed becomes a task</td>
+</tr>
+<tr>
+<th>Risk register review</th>
+<td>5</td>
+<td>New risks entered, closed risks archived</td>
+</tr>
+<tr>
+<th>Plan the next sprint</th>
+<td>15</td>
+<td>Task board updated</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="7-governance-and-reporting">7. Governance and reporting</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Artefact</th>
+<th>Frequency</th>
+<th>Audience</th>
+<th>Owner</th>
+</tr></thead><tbody>
+<tr>
+<th>Sprint demo</th>
+<td>Every 2 weeks</td>
+<td>Supervisor, peers</td>
+<td>Lead</td>
+</tr>
+<tr>
+<td>Weekly progress note (repo <code>docs/</code> update)</td>
+<td>Weekly</td>
+<td>Supervisor</td>
+<td>Lead</td>
+</tr>
+<tr>
+<td>KPI report (<code>docs/05_kpis.md</code> targets vs measured)</td>
+<td>Fortnightly</td>
+<td>Supervisor</td>
+<td>Lead</td>
+</tr>
+<tr>
+<th>Risk register review</th>
+<td>Every 2 weeks</td>
+<td>Team</td>
+<td>Lead</td>
+</tr>
+<tr>
+<td>Change log in the GitHub repository</td>
+<td>On every merge</td>
+<td>All</td>
+<td>Lead</td>
+</tr>
+</tbody></table></div>
+<h3 id="71-change-control">7.1 Change control</h3>
+<p>After milestone <strong>M2 (Design frozen)</strong> the following rules apply:</p>
+<ul>
+<li class="depth-0">Any schema change requires a design note in <code>docs/09_database_design.md</code> explaining the impact on</li>
+</ul>
+<p>the ERD, the views and the API.</p>
+<ul>
+<li class="depth-0">Any new endpoint requires an entry in <code>docs/14_api_documentation.md</code> and a check in</li>
+</ul>
+<p><code>scripts/api_smoke.py</code>.</p>
+<ul>
+<li class="depth-0">Any new source requires a <code>terms_allowed</code> justification in <code>docs/01_project_proposal.md</code> §8.2.</li>
+</ul>
+<hr>
+<h2 id="8-critical-path-and-slack">8. Critical path and slack</h2>
+<pre class="mermaid">flowchart LR
+    A[&quot;M1 Proposal approved&quot;] --&gt; B[&quot;Compliance layer&quot;]
+    B --&gt; C[&quot;Source connectors&quot;]
+    C --&gt; D[&quot;Deduplication engine&quot;]
+    D --&gt; E[&quot;Warehouse loader&quot;]
+    E --&gt; F[&quot;Analytical views&quot;]
+    F --&gt; G[&quot;REST API&quot;]
+    F --&gt; H[&quot;Dashboard&quot;]
+    G --&gt; I[&quot;Smoke test&quot;]
+    H --&gt; I
+    I --&gt; J[&quot;M8 Final defence&quot;]
+    D --&gt; K[&quot;Catalog reconciliation&quot;]
+    K --&gt; J
+    B --&gt; L[&quot;Airflow DAG&quot;]
+    L --&gt; J</pre>
+<div class='table-scroll'><table><thead><tr>
+<th>Element</th>
+<th>Float</th>
+<th>Consequence if delayed</th>
+</tr></thead><tbody>
+<tr>
+<td>Compliance layer → connectors</td>
+<td>2 days</td>
+<td>Blocks every extraction-based task</td>
+</tr>
+<tr>
+<th>Dedupe → loader</th>
+<td>0 days</td>
+<td>Hard dependency; <code>upsert_product()</code> consumes <code>MatchResult</code></td>
+</tr>
+<tr>
+<th>Views → API / dashboard</th>
+<td>3 days</td>
+<td>API and UI can start on table queries instead</td>
+</tr>
+<tr>
+<th>API → smoke test</th>
+<td>1 day</td>
+<td>Documentation of endpoints slips into W12</td>
+</tr>
+<tr>
+<th>Airflow DAG</th>
+<td>5 days</td>
+<td>Can be demonstrated from the CLI if Airflow installation fails</td>
+</tr>
+<tr>
+<th>Documentation set</th>
+<td>8 days</td>
+<td>Was the main buffer of the plan; used deliberately in W12</td>
+</tr>
+</tbody></table></div>
+<p>The plan reserves the last week of slack for documentation, which is the deliverable most exposed to measurement drift — every number quoted in <code>docs/05_kpis.md</code> is re-measured at the end of W11.</p>
+    </article>
+    <div class="doc-foot">
+      <span><a href="01_project_proposal.html">← Project Proposal</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="03_roles_and_responsibilities.html">Roles and Responsibilities →</a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

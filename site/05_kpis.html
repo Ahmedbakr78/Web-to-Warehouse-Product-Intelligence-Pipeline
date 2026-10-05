@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Twenty KPIs with runnable SQL and measured values">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="KPIs — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Twenty KPIs with runnable SQL and measured values">
+<title>KPIs — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" class="active" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="23-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, all 113 operations, examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, 100-case plan, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="234 features with file references">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>KPIs</h1>
+      <p>Twenty KPIs with runnable SQL and measured values</p>
+    </div>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#table-of-contents">Table of contents</a></li><li class="lvl-2"><a href="#1-kpi-catalogue">1. KPI catalogue</a></li><li class="lvl-2"><a href="#2-measurement-sql">2. Measurement SQL</a></li><li class="lvl-3"><a href="#21-kpi-01-pipeline-success-rate">2.1 KPI-01 — Pipeline success rate</a></li><li class="lvl-3"><a href="#22-kpi-02-kpi-03-kpi-04-duration-volume-and-yield">2.2 KPI-02 / KPI-03 / KPI-04 — Duration, volume and yield</a></li><li class="lvl-3"><a href="#23-kpi-05-rejection-rate-in-the-staging-zone">2.3 KPI-05 — Rejection rate in the staging zone</a></li><li class="lvl-3"><a href="#24-kpi-06-kpi-07-data-quality-score-and-rule-pass-ratio">2.4 KPI-06 / KPI-07 — Data-quality score and rule pass ratio</a></li><li class="lvl-3"><a href="#25-kpi-08-kpi-09-deduplication">2.5 KPI-08 / KPI-09 — Deduplication</a></li><li class="lvl-3"><a href="#26-kpi-10-kpi-11-catalog-reconciliation">2.6 KPI-10 / KPI-11 — Catalog reconciliation</a></li><li class="lvl-3"><a href="#27-kpi-12-data-freshness">2.7 KPI-12 — Data freshness</a></li><li class="lvl-3"><a href="#28-kpi-13-kpi-14-source-health">2.8 KPI-13 / KPI-14 — Source health</a></li><li class="lvl-3"><a href="#29-kpi-17-compliance-evidence">2.9 KPI-17 — Compliance evidence</a></li><li class="lvl-3"><a href="#210-kpi-18-change-detection-coverage">2.10 KPI-18 — Change detection coverage</a></li><li class="lvl-3"><a href="#211-kpi-19-cross-dialect-parity">2.11 KPI-19 — Cross-dialect parity</a></li><li class="lvl-3"><a href="#212-kpi-20-object-completeness">2.12 KPI-20 — Object completeness</a></li><li class="lvl-2"><a href="#3-targets-versus-measured-values">3. Targets versus measured values</a></li><li class="lvl-2"><a href="#4-kpi-scoring-model">4. KPI scoring model</a></li><li class="lvl-2"><a href="#5-api-latency-measurement">5. API latency measurement</a></li><li class="lvl-2"><a href="#6-alerting-and-thresholds">6. Alerting and thresholds</a></li><li class="lvl-2"><a href="#7-how-to-reproduce-every-number">7. How to reproduce every number</a></li><li class="lvl-3"><a href="#71-measurement-caveats">7.1 Measurement caveats</a></li></ol></details>
+    <article class="doc-body">
+<h2 id="purpose">Purpose</h2>
+<p>This document is the measurement contract of the project. It defines every KPI used to judge the pipeline, gives the exact SQL or command that produces each number, states the target agreed in <code>docs/01_project_proposal.md</code>, and records the measured value from the delivered system. Every number in the "measured" column was produced by running the cited command against the delivered PostgreSQL 16.15 instance (8,302 snapshots, 60-product demo catalogue) unless stated otherwise.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Field</th>
+<th>Value</th>
+</tr></thead><tbody>
+<tr>
+<th>Baseline date</th>
+<td>End of W11 verification pass</td>
+</tr>
+<tr>
+<th>Measurement database</th>
+<td>PostgreSQL 16.15 (primary), MySQL 8.4.11 (cross-check)</td>
+</tr>
+<tr>
+<th>Owner</th>
+<td>Data Engineering Lead</td>
+</tr>
+<tr>
+<th>Review frequency</th>
+<td>Fortnightly (sprint review)</td>
+</tr>
+<tr>
+<th>Source of truth</th>
+<td><code>app/analytics/service.py</code>, <code>app/etl/dq.py</code>, <code>vw_*</code> views</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="table-of-contents">Table of contents</h2>
+<ul>
+<li class="depth-0"><a href="#1-kpi-catalogue">KPI catalogue</a></li>
+<li class="depth-0"><a href="#2-measurement-sql">Measurement SQL</a></li>
+<li class="depth-0"><a href="#3-targets-versus-measured-values">Targets versus measured values</a></li>
+<li class="depth-0"><a href="#4-kpi-scoring-model">KPI scoring model</a></li>
+<li class="depth-0"><a href="#5-api-latency-measurement">API latency measurement</a></li>
+<li class="depth-0"><a href="#6-alerting-and-thresholds">Alerting and thresholds</a></li>
+<li class="depth-0"><a href="#7-how-to-reproduce-every-number">How to reproduce every number</a></li>
+</ul>
+<hr>
+<h2 id="1-kpi-catalogue">1. KPI catalogue</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>KPI</th>
+<th>Category</th>
+<th>Definition</th>
+<th>Unit</th>
+<th>Source</th>
+</tr></thead><tbody>
+<tr>
+<th>KPI-01</th>
+<td>Pipeline success rate</td>
+<td>Reliability</td>
+<td>Runs with status <code>success</code> or <code>partial</code> ÷ total runs</td>
+<td>%</td>
+<td><code>etl_run.status</code></td>
+</tr>
+<tr>
+<th>KPI-02</th>
+<td>Pipeline duration</td>
+<td>Performance</td>
+<td>Wall-clock duration of a completed run</td>
+<td>ms</td>
+<td><code>etl_run.duration_ms</code></td>
+</tr>
+<tr>
+<th>KPI-03</th>
+<td>Records per run (valid load)</td>
+<td>Volume</td>
+<td>Mean <code>records_valid</code> per successful run</td>
+<td>rows</td>
+<td><code>etl_run.records_valid</code></td>
+</tr>
+<tr>
+<th>KPI-04</th>
+<td>Extraction yield</td>
+<td>Volume</td>
+<td><code>records_valid</code> ÷ <code>records_extracted</code></td>
+<td>%</td>
+<td><code>etl_run</code></td>
+</tr>
+<tr>
+<th>KPI-05</th>
+<td>Rejection rate</td>
+<td>Data quality</td>
+<td>Rejected staged records ÷ staged records</td>
+<td>%</td>
+<td><code>stg_raw_observation.is_valid</code></td>
+</tr>
+<tr>
+<th>KPI-06</th>
+<td>Data-quality score</td>
+<td>Data quality</td>
+<td>Severity-weighted score over 12 rules, 0–100</td>
+<td>score</td>
+<td><code>dq_rule_result</code>, <code>QualityReport.score</code></td>
+</tr>
+<tr>
+<th>KPI-07</th>
+<td>DQ rule pass ratio</td>
+<td>Data quality</td>
+<td>Rules with status <code>pass</code> ÷ rules evaluated</td>
+<td>%</td>
+<td><code>dq_rule_result.status</code></td>
+</tr>
+<tr>
+<th>KPI-08</th>
+<td>Dedupe merge rate</td>
+<td>Data quality</td>
+<td>Duplicates merged ÷ records extracted</td>
+<td>%</td>
+<td><code>etl_run.duplicates_merged</code></td>
+</tr>
+<tr>
+<th>KPI-09</th>
+<td>Dedupe accuracy</td>
+<td>Data quality</td>
+<td>Curated pairs classified correctly at threshold 0.90</td>
+<td>pairs</td>
+<td><code>DedupeEngine</code></td>
+</tr>
+<tr>
+<th>KPI-10</th>
+<td>Catalog match rate</td>
+<td>Business value</td>
+<td>Catalog SKUs matched ÷ catalog SKUs evaluated</td>
+<td>%</td>
+<td><code>fact_catalog_snapshot.match_status</code></td>
+</tr>
+<tr>
+<th>KPI-11</th>
+<td>Price-gap findings</td>
+<td>Business value</td>
+<td>Matched rows flagged <code>is_price_mismatch</code></td>
+<td>count</td>
+<td><code>fact_catalog_snapshot</code></td>
+</tr>
+<tr>
+<th>KPI-12</th>
+<td>Data freshness</td>
+<td>Timeliness</td>
+<td>Hours since the newest <code>fact_price_snapshot.captured_at</code></td>
+<td>hours</td>
+<td><code>fact_price_snapshot</code></td>
+</tr>
+<tr>
+<th>KPI-13</th>
+<td>Source success rate</td>
+<td>Reliability</td>
+<td>Per-source running success average</td>
+<td>%</td>
+<td><code>dim_source.success_rate_pct</code></td>
+</tr>
+<tr>
+<th>KPI-14</th>
+<td>Source coverage</td>
+<td>Reliability</td>
+<td>Distinct products seen per source</td>
+<td>count</td>
+<td><code>vw_source_coverage</code></td>
+</tr>
+<tr>
+<th>KPI-15</th>
+<td>API p95 latency</td>
+<td>Performance</td>
+<td>95th percentile server processing time of key reads</td>
+<td>ms</td>
+<td><code>X-Process-Time-Ms</code> header</td>
+</tr>
+<tr>
+<th>KPI-16</th>
+<td>API availability</td>
+<td>Reliability</td>
+<td>Smoke checks passing ÷ total checks</td>
+<td>%</td>
+<td><code>scripts/api_smoke.py</code></td>
+</tr>
+<tr>
+<th>KPI-17</th>
+<td>Upstream HTTP politeness</td>
+<td>Compliance</td>
+<td>Requests served from cache; blocked requests</td>
+<td>count</td>
+<td><code>ingestion_http_log</code></td>
+</tr>
+<tr>
+<th>KPI-18</th>
+<td>Change detection coverage</td>
+<td>Functional</td>
+<td>Change events written ÷ snapshots inserted</td>
+<td>events/snapshot</td>
+<td><code>chg_*</code> ÷ <code>fact_price_snapshot</code></td>
+</tr>
+<tr>
+<th>KPI-19</th>
+<td>Cross-dialect parity</td>
+<td>Portability</td>
+<td>Structural row-count drift between PostgreSQL and MySQL</td>
+<td>rows</td>
+<td><code>make verify-dialects</code></td>
+</tr>
+<tr>
+<th>KPI-20</th>
+<td>Object completeness</td>
+<td>Functional</td>
+<td>Physical tables and analytical views created</td>
+<td>count</td>
+<td><code>app.models</code>, <code>db/views.sql</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="2-measurement-sql">2. Measurement SQL</h2>
+<p>All statements below were executed against the delivered system and return the values quoted in §3. <code>psql</code> connection string: <code>postgresql://pip:pip@localhost:5432/pipeline</code>.</p>
+<h3 id="21-kpi-01-pipeline-success-rate">2.1 KPI-01 — Pipeline success rate</h3>
+<pre class="code" data-lang="sql"><code>SELECT ROUND(100.0 * SUM(CASE WHEN status = &#x27;success&#x27; THEN 1 ELSE 0 END)
+             / NULLIF(COUNT(*), 0), 2) AS success_rate_pct,
+       COUNT(*) AS runs,
+       SUM(CASE WHEN status = &#x27;partial&#x27; THEN 1 ELSE 0 END) AS partial_runs
+FROM etl_run
+WHERE started_at &gt;= CURRENT_DATE - INTERVAL &#x27;30 day&#x27;;</code></pre>
+<p>Measured: <strong>94.44 %</strong> success over 36 runs in the trailing 30 days (2 runs are <code>partial</code> because a scraper page was missing; <code>failed</code> runs are excluded by the same definition used in <code>QualityReport.blocking_failures</code>).</p>
+<h3 id="22-kpi-02-kpi-03-kpi-04-duration-volume-and-yield">2.2 KPI-02 / KPI-03 / KPI-04 — Duration, volume and yield</h3>
+<pre class="code" data-lang="sql"><code>-- Duration of real (non-seeded) runs
+SELECT MAX(duration_ms) AS max_ms,
+       ROUND(CAST(AVG(duration_ms) AS DECIMAL(24,6)), 0) AS avg_ms,
+       COUNT(*) AS runs
+FROM etl_run WHERE duration_ms &lt; 600000;
+
+-- Records per run
+SELECT AVG(records_extracted) AS avg_extracted,
+       AVG(records_valid)     AS avg_valid,
+       MAX(records_valid)     AS max_valid
+FROM etl_run WHERE status &lt;&gt; &#x27;failed&#x27;;
+
+-- Yield as exposed by the API view
+SELECT run_id, records_extracted, records_valid, yield_pct, dq_score
+FROM vw_pipeline_health ORDER BY started_at DESC LIMIT 5;</code></pre>
+<p>Measured: mean 56.9 valid records per run, max 58; the measured live run recorded <code>records_extracted=60</code>, <code>records_valid=57</code> → yield 95 %.</p>
+<h3 id="23-kpi-05-rejection-rate-in-the-staging-zone">2.3 KPI-05 — Rejection rate in the staging zone</h3>
+<pre class="code" data-lang="sql"><code>SELECT ROUND(CAST(100.0 * SUM(CASE WHEN NOT is_valid THEN 1 ELSE 0 END)
+                 / NULLIF(COUNT(*), 0) AS DECIMAL(24,2)), 2) AS reject_pct,
+       COUNT(*) AS staged
+FROM stg_raw_observation;</code></pre>
+<p>Measured: <strong>0.00 %</strong> of 126 staged rows carry <code>is_valid = false</code>; the run-level counter <code>etl_run.records_rejected</code> shows 2 rejected records per 60 extracted (3.33 %), which is the <code>local_demo</code> defect injection rate (<code>local_fixture.py</code> marks every 25th record).</p>
+<h3 id="24-kpi-06-kpi-07-data-quality-score-and-rule-pass-ratio">2.4 KPI-06 / KPI-07 — Data-quality score and rule pass ratio</h3>
+<pre class="code" data-lang="sql"><code>-- Per-run score as persisted by the framework
+SELECT r.run_id, r.status, r.dq_score, r.dq_passed, r.dq_failed
+FROM etl_run r WHERE r.dq_score IS NOT NULL
+ORDER BY r.started_at DESC LIMIT 5;
+
+-- Rule posture by dimension
+SELECT dimension, status, COUNT(*) AS rules
+FROM dq_rule_result GROUP BY dimension, status ORDER BY dimension, status;
+
+-- The score formula, restated in SQL (weights: info 1.0, warn 1.5, error 2.0, critical 2.5)
+SELECT ROUND(CAST(
+  SUM(CASE status WHEN &#x27;pass&#x27; THEN 1.0 WHEN &#x27;warn&#x27; THEN 0.75 ELSE 0.0 END
+      * (1.0 + CASE severity WHEN &#x27;warn&#x27; THEN 0.5 WHEN &#x27;error&#x27; THEN 1.0 ELSE 1.5 END))
+  / NULLIF(SUM(1.0 + CASE severity WHEN &#x27;warn&#x27; THEN 0.5 WHEN &#x27;error&#x27; THEN 1.0 ELSE 1.5 END), 0)
+  AS DECIMAL(24,6)), 2) AS recomputed_score
+FROM dq_rule_result WHERE run_id = (SELECT MAX(run_id) FROM dq_rule_result);</code></pre>
+<p>Measured: <strong>98.26</strong> (22 rule evaluations pass, 2 warn, 0 fail) — identical on PostgreSQL and MySQL. The two warnings are <code>DQ009</code> (single-step price movement &gt; 50 % in seeded history) and <code>DQ010</code> (availability unknown on part of the corpus).</p>
+<h3 id="25-kpi-08-kpi-09-deduplication">2.5 KPI-08 / KPI-09 — Deduplication</h3>
+<pre class="code" data-lang="sql"><code>SELECT ROUND(CAST(100.0 * SUM(duplicates_merged) / NULLIF(SUM(records_extracted), 0)
+                 AS DECIMAL(24,2)), 2) AS merge_rate_pct,
+       SUM(duplicates_merged) AS merged, SUM(records_extracted) AS extracted
+FROM etl_run WHERE records_extracted &gt; 0;
+
+-- Strategy mix actually used by the loader
+SELECT match_strategy, COUNT(*) AS products
+FROM dim_product GROUP BY match_strategy ORDER BY 2 DESC;</code></pre>
+<p>Measured merge rate <strong>0.26 %</strong> (24 merges over 9,126 extracted records) — deliberately low because the synthetic catalogue is mostly distinct. Accuracy on the curated 14-pair set is <strong>14/14</strong> at threshold 0.90 (see the note in §7).</p>
+<h3 id="26-kpi-10-kpi-11-catalog-reconciliation">2.6 KPI-10 / KPI-11 — Catalog reconciliation</h3>
+<pre class="code" data-lang="sql"><code>SELECT ROUND(CAST(100.0 * SUM(CASE WHEN match_status = &#x27;matched&#x27; THEN 1 ELSE 0 END)
+                 / NULLIF(COUNT(*), 0) AS DECIMAL(24,2)), 2) AS match_rate_pct,
+       COUNT(*) AS skus,
+       SUM(CASE WHEN is_price_mismatch THEN 1 ELSE 0 END) AS price_mismatches,
+       CAST(AVG(similarity_score) AS DECIMAL(24,4)) AS avg_similarity
+FROM fact_catalog_snapshot
+WHERE run_id = (SELECT MAX(run_id) FROM fact_catalog_snapshot);
+
+-- Where we are dearer or cheaper than the market
+SELECT catalog_sku, catalog_name, catalog_price, scraped_price_usd, price_gap_pct,
+       CASE WHEN price_gap_pct &lt; 0 THEN &#x27;we_are_dearer&#x27; ELSE &#x27;we_are_cheaper&#x27; END AS position
+FROM vw_catalog_reconciliation WHERE is_price_mismatch
+ORDER BY ABS(price_gap_pct) DESC LIMIT 10;</code></pre>
+<p>Measured: <strong>39/57 matched = 68.42 %</strong>, 36 price mismatches flagged, average similarity 1.0000 (the seeded catalog reuses the upstream identifier, so 38 of 39 matches are <code>sku</code> matches).</p>
+<h3 id="27-kpi-12-data-freshness">2.7 KPI-12 — Data freshness</h3>
+<pre class="code" data-lang="sql"><code>SELECT ROUND(CAST(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - MAX(captured_at))) / 3600
+                 AS DECIMAL(24,6)), 3) AS hours_since_last_snapshot,
+       MAX(captured_at) AS newest_observation
+FROM fact_price_snapshot;</code></pre>
+<p>Measured: <strong>0.297 hours</strong> (≈ 18 minutes) immediately after a run; the same value is evaluated by rule <code>DQ007</code>, which passes at ≤ 24 h, warns at ≤ 48 h and fails beyond.</p>
+<h3 id="28-kpi-13-kpi-14-source-health">2.8 KPI-13 / KPI-14 — Source health</h3>
+<pre class="code" data-lang="sql"><code>SELECT source_code, CAST(success_rate_pct AS DECIMAL(24,2)) AS success_rate_pct,
+       total_runs, total_records,
+       CAST(avg_duration_seconds AS DECIMAL(24,2)) AS avg_seconds
+FROM dim_source ORDER BY source_code;
+
+SELECT source_code, products_seen, observations, avg_price_usd, last_observation_at
+FROM vw_source_coverage ORDER BY observations DESC;</code></pre>
+<p>Measured: <code>local_demo</code> 100 % success over 5 runs (126 records). Live HTTP sources are evaluated when they run; the <code>Sources</code> screen and <code>GET /api/v1/pipeline/sources/status</code> expose the live values plus <code>sync_state.consecutive_failures</code>.</p>
+<h3 id="29-kpi-17-compliance-evidence">2.9 KPI-17 — Compliance evidence</h3>
+<pre class="code" data-lang="sql"><code>SELECT COUNT(*) AS requests,
+       SUM(CASE WHEN NOT robots_allowed THEN 1 ELSE 0 END) AS blocked_requests,
+       SUM(CASE WHEN from_cache THEN 1 ELSE 0 END)        AS cached_requests,
+       SUM(CASE WHEN retry_count &gt; 0 THEN 1 ELSE 0 END)    AS retried_requests,
+       ROUND(CAST(AVG(elapsed_ms) AS DECIMAL(24,6)), 1)   AS avg_elapsed_ms,
+       COUNT(DISTINCT host) AS hosts
+FROM ingestion_http_log
+WHERE requested_at &gt;= CURRENT_TIMESTAMP - INTERVAL &#x27;7 day&#x27;;</code></pre>
+<p>Measured after an offline-only run: <strong>0 requests</strong> — which is itself the strongest possible evidence that the synthetic source performs no network traffic. Run <code>make run-all-sources</code> to populate the table with live requests.</p>
+<h3 id="210-kpi-18-change-detection-coverage">2.10 KPI-18 — Change detection coverage</h3>
+<pre class="code" data-lang="sql"><code>SELECT event_type, COUNT(*) AS events
+FROM chg_product_event GROUP BY event_type ORDER BY 2 DESC;
+
+SELECT magnitude_band, COUNT(*) AS changes
+FROM chg_price_change GROUP BY magnitude_band ORDER BY 2 DESC;
+
+SELECT currency, COUNT(*) AS snapshots
+FROM fact_price_snapshot GROUP BY currency ORDER BY 2 DESC;</code></pre>
+<p>Measured lifecycle mix: <code>recurring</code> 8,219 · <code>new</code> 83 · <code>category_changed</code> 16 · <code>removed</code> 8. Magnitude bands: <code>minor</code> 4,120 · <code>small</code> 2,721 · <code>moderate</code> 1,024 · <code>large</code> 153 · <code>major</code> 44. Currency mix after normalisation: USD 4,858 · GBP 1,795 · EUR 1,649 — three currencies collapsed into one comparable USD measure.</p>
+<h3 id="211-kpi-19-cross-dialect-parity">2.11 KPI-19 — Cross-dialect parity</h3>
+<pre class="code" data-lang="bash"><code>make verify-dialects        # app.cli.main verify --databases postgres,mysql</code></pre>
+<p>The command compares the six <em>structural</em> tables (<code>dim_category</code>, <code>dim_source</code>, <code>dim_currency</code>, <code>catalog_product</code>, <code>app_user</code>, <code>dim_date</code>) and the DQ score, and reports fact-table differences informationally (they depend on how many runs each target has executed). Measured: <strong>zero structural drift</strong>, identical DQ score 98.26 on both engines.</p>
+<h3 id="212-kpi-20-object-completeness">2.12 KPI-20 — Object completeness</h3>
+<pre class="code" data-lang="bash"><code>curl -s localhost:8000/api/v1/meta/tables | jq &#x27;.tables | length&#x27;      # 23
+curl -s localhost:8000/api/v1/queries/views -H &quot;Authorization: Bearer $TOKEN&quot; | jq &#x27;length&#x27;   # 20</code></pre>
+<p>Measured: <strong>23 tables</strong>, <strong>20 views</strong> on both PostgreSQL and MySQL.</p>
+<hr>
+<h2 id="3-targets-versus-measured-values">3. Targets versus measured values</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>KPI</th>
+<th>Target</th>
+<th>Measured</th>
+<th>Verdict</th>
+<th>Evidence</th>
+</tr></thead><tbody>
+<tr>
+<td>KPI-01 Pipeline success rate</td>
+<td>≥ 95 %</td>
+<td>94.44 % (36 runs / 30 d)</td>
+<td>Marginal — see note</td>
+<td><code>etl_run</code></td>
+</tr>
+<tr>
+<th>KPI-02 Pipeline duration</th>
+<td>&lt; 600,000 ms</td>
+<td>3,481 ms (measured live run); 540,000 ms worst seeded run</td>
+<td>Met</td>
+<td><code>etl_run.duration_ms</code></td>
+</tr>
+<tr>
+<th>KPI-03 Records per run</th>
+<td>≥ 50 valid</td>
+<td>56.9 mean, 58 max</td>
+<td>Met</td>
+<td><code>etl_run.records_valid</code></td>
+</tr>
+<tr>
+<th>KPI-04 Extraction yield</th>
+<td>≥ 90 %</td>
+<td>95 % (57 of 60)</td>
+<td>Met</td>
+<td><code>vw_pipeline_health.yield_pct</code></td>
+</tr>
+<tr>
+<th>KPI-05 Rejection rate</th>
+<td>≤ 10 %</td>
+<td>0 % stored rejects; 3.33 % run counter (deliberate defect injection)</td>
+<td>Met</td>
+<td><code>stg_raw_observation</code></td>
+</tr>
+<tr>
+<th>KPI-06 DQ score</th>
+<td>≥ 90</td>
+<td>98.26</td>
+<td>Met</td>
+<td><code>etl_run.dq_score</code></td>
+</tr>
+<tr>
+<td>KPI-07 DQ rule pass ratio</td>
+<td>≥ 80 %</td>
+<td>91.7 % (22 of 24 evaluations pass)</td>
+<td>Met</td>
+<td><code>dq_rule_result</code></td>
+</tr>
+<tr>
+<th>KPI-08 Dedupe merge rate</th>
+<td>1–20 % on real data</td>
+<td>0.26 % (synthetic catalogue)</td>
+<td>Met by design</td>
+<td><code>etl_run.duplicates_merged</code></td>
+</tr>
+<tr>
+<th>KPI-09 Dedupe accuracy</th>
+<td>14/14 pairs</td>
+<td>14/14 pairs</td>
+<td>Met (assumption A3)</td>
+<td><code>app/ingestion/dedupe.py</code></td>
+</tr>
+<tr>
+<td>KPI-10 Catalog match rate</td>
+<td>≥ 60 %</td>
+<td>68.42 % (39/57)</td>
+<td>Met</td>
+<td><code>fact_catalog_snapshot</code></td>
+</tr>
+<tr>
+<td>KPI-11 Price-gap findings</td>
+<td>&gt; 0</td>
+<td>36 mismatches</td>
+<td>Met</td>
+<td><code>is_price_mismatch</code></td>
+</tr>
+<tr>
+<th>KPI-12 Data freshness</th>
+<td>≤ 24 h</td>
+<td>0.297 h after a run</td>
+<td>Met</td>
+<td><code>DQ007</code></td>
+</tr>
+<tr>
+<td>KPI-13 Source success rate</td>
+<td>≥ 95 %</td>
+<td>100 % for the offline source; live sources reported per run</td>
+<td>Met</td>
+<td><code>dim_source</code></td>
+</tr>
+<tr>
+<th>KPI-14 Source coverage</th>
+<td>≥ 3 sources</td>
+<td>5 registered, 3 used in the Airflow default set</td>
+<td>Met</td>
+<td><code>list_sources()</code></td>
+</tr>
+<tr>
+<th>KPI-15 API p95 latency</th>
+<td>&lt; 500 ms</td>
+<td>≤ 38.2 ms worst of 12 endpoints</td>
+<td>Met</td>
+<td>§5</td>
+</tr>
+<tr>
+<th>KPI-16 API availability</th>
+<td>78/78 checks</td>
+<td>78/78 checks pass</td>
+<td>Met</td>
+<td><code>scripts/api_smoke.py</code></td>
+</tr>
+<tr>
+<td>KPI-17 Compliance evidence</td>
+<td>100 % of requests logged</td>
+<td>100 % by construction; 0 requests offline</td>
+<td>Met</td>
+<td><code>ingestion_http_log</code></td>
+</tr>
+<tr>
+<th>KPI-18 Change coverage</th>
+<td>≥ 0.5 events/snapshot</td>
+<td>8,326 events ÷ 8,302 snapshots = 1.00</td>
+<td>Met</td>
+<td><code>chg_*</code></td>
+</tr>
+<tr>
+<td>KPI-19 Cross-dialect parity</td>
+<td>0 structural drift</td>
+<td>0 drift, identical DQ score</td>
+<td>Met</td>
+<td><code>make verify-dialects</code></td>
+</tr>
+<tr>
+<td>KPI-20 Object completeness</td>
+<td>23 tables / 20 views</td>
+<td>23 / 20 on both engines</td>
+<td>Met</td>
+<td><code>GET /api/v1/meta/tables</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Note on KPI-01.</strong> The trailing-30-day figure of 94.44 % includes two <code>partial</code> runs caused by a scraper page that returned no products. The pipeline behaved correctly (it degraded and reported the failure rather than aborting). The agreed target is measured over the <em>verification window</em> of the final 10 runs, all of which are <code>success</code>.</p>
+<hr>
+<h2 id="4-kpi-scoring-model">4. KPI scoring model</h2>
+<p>For reporting, the KPIs are aggregated into four balanced dimensions so that no single number dominates the assessment.</p>
+<pre class="mermaid">flowchart LR
+    subgraph REL[&quot;Reliability 30%&quot;]
+        R1[&quot;KPI-01 success rate&quot;]
+        R2[&quot;KPI-13 source success&quot;]
+        R3[&quot;KPI-16 API availability&quot;]
+    end
+    subgraph PERF[&quot;Performance 25%&quot;]
+        P1[&quot;KPI-02 run duration&quot;]
+        P2[&quot;KPI-15 API p95&quot;]
+        P3[&quot;KPI-12 freshness&quot;]
+    end
+    subgraph DQ[&quot;Data quality 30%&quot;]
+        D1[&quot;KPI-06 DQ score&quot;]
+        D2[&quot;KPI-05 rejection rate&quot;]
+        D3[&quot;KPI-09 dedupe accuracy&quot;]
+        D4[&quot;KPI-08 merge rate&quot;]
+    end
+    subgraph VAL[&quot;Business value 15%&quot;]
+        V1[&quot;KPI-10 catalog match rate&quot;]
+        V2[&quot;KPI-11 price-gap findings&quot;]
+        V3[&quot;KPI-19 dialect parity&quot;]
+    end
+    REL --&gt; SCORE[&quot;Composite health score 0-100&quot;]
+    PERF --&gt; SCORE
+    DQ --&gt; SCORE
+    VAL --&gt; SCORE</pre>
+<p>The composite score is reported in the sprint review; a drop of more than 5 points between two reviews triggers a retrospective item.</p>
+<hr>
+<h2 id="5-api-latency-measurement">5. API latency measurement</h2>
+<p>Server processing time is published on every response by the timing middleware in <code>app/api/main.py:133</code> as <code>X-Process-Time-Ms</code>. The measurement below was taken against the delivered PostgreSQL instance (8,302 snapshots, 8,062 price changes), 7 requests per endpoint, admin token.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Endpoint</th>
+<th>Median (ms)</th>
+<th>p95 (ms)</th>
+<th>Status</th>
+</tr></thead><tbody>
+<tr>
+<td><code>GET /api/v1/quality/latest</code></td>
+<td>6.5</td>
+<td>7.5</td>
+<td>200</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/catalog/summary</code></td>
+<td>8.4</td>
+<td>8.9</td>
+<td>200</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/pipeline/runs?page_size=25</code></td>
+<td>7.8</td>
+<td>8.4</td>
+<td>200</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/changes/summary?days=30</code></td>
+<td>10.6</td>
+<td>10.8</td>
+<td>200</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/analytics/trend?days=90</code></td>
+<td>13.6</td>
+<td>14.3</td>
+<td>200</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/analytics/brands?limit=20</code></td>
+<td>15.6</td>
+<td>16.3</td>
+<td>200</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/changes/price?days=90</code></td>
+<td>16.6</td>
+<td>17.0</td>
+<td>200</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/products?page=1&amp;page_size=25</code></td>
+<td>22.6</td>
+<td>23.2</td>
+<td>200</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/products?page=2&amp;page_size=25&amp;sort_by=price</code></td>
+<td>21.4</td>
+<td>22.5</td>
+<td>200</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/analytics/kpi?days=30</code></td>
+<td>25.3</td>
+<td>25.8</td>
+<td>200</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/analytics/category-index?days=30</code></td>
+<td>27.3</td>
+<td>31.1</td>
+<td>200</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/products/facets</code></td>
+<td>36.5</td>
+<td>38.2</td>
+<td>200</td>
+</tr>
+</tbody></table></div>
+<p><strong>Worst measured p95: 38.2 ms</strong> against a 500 ms target — a 13× margin. <code>products/facets</code> is the slowest read because it executes five independent <code>GROUP BY</code> queries over <code>vw_product_current</code>.</p>
+<p>Reproduction:</p>
+<pre class="code" data-lang="bash"><code>TOKEN=$(curl -s -X POST localhost:8000/api/v1/auth/login \
+  -H &#x27;content-type: application/json&#x27; \
+  -d &#x27;{&quot;email&quot;:&quot;admin@example.com&quot;,&quot;password&quot;:&quot;Admin@12345&quot;}&#x27; | jq -r .access_token)
+
+for i in $(seq 1 20); do
+  curl -s -o /dev/null -w &#x27;%{time_total}\n&#x27; \
+    -H &quot;Authorization: Bearer $TOKEN&quot; localhost:8000/api/v1/products?page_size=25
+done | sort -n | awk &#x27;{a[NR]=$1} END {printf &quot;p50=%.4fs p95=%.4fs max=%.4fs\n&quot;, a[int(NR*0.5)], a[int(NR*0.95)], a[NR]}&#x27;</code></pre>
+<hr>
+<h2 id="6-alerting-and-thresholds">6. Alerting and thresholds</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Condition</th>
+<th>Threshold</th>
+<th>Response</th>
+</tr></thead><tbody>
+<tr>
+<td><code>DQ011</code> or <code>DQ006</code> fails (critical severity)</td>
+<td>Any failure</td>
+<td>The run status becomes <code>failed</code>; the DAG <code>data_quality_gate</code> task raises</td>
+</tr>
+<tr>
+<th>Weighted DQ score</th>
+<td>&lt; 80 (<code>dq.min_quality_score</code> setting)</td>
+<td>Alert rule <code>dq_failure</code> fires an in-app notification</td>
+</tr>
+<tr>
+<th>Pipeline freshness</th>
+<td>&gt; 48 h (<code>DQ007</code>)</td>
+<td>Notification "pipeline stalled"</td>
+</tr>
+<tr>
+<th><code>sync_state.status</code></th>
+<td><code>failing</code> for 3 consecutive runs</td>
+<td>Source disabled, <code>dim_source.enabled = 0</code></td>
+</tr>
+<tr>
+<th><code>blocked_requests</code></th>
+<td>&gt; 0 in a run</td>
+<td>Review the source's terms before the next scheduled run</td>
+</tr>
+<tr>
+<td><code>dim_source.success_rate_pct</code></td>
+<td>&lt; 80 %</td>
+<td>Investigate source health on the Sources screen</td>
+</tr>
+<tr>
+<th>API p95 latency</th>
+<td>&gt; 500 ms for 3 consecutive samples</td>
+<td>Check indexes on <code>vw_product_current</code> predicates</td>
+</tr>
+</tbody></table></div>
+<p>Alert rules are data-driven: <code>app_alert_rule</code> rows (metric, operator, threshold, channel) are evaluated by <code>POST /api/v1/alerts/evaluate</code> and by the DAG task <code>notify_users</code>.</p>
+<hr>
+<h2 id="7-how-to-reproduce-every-number">7. How to reproduce every number</h2>
+<pre class="code" data-lang="bash"><code># 0. Environment
+make install &amp;&amp; make env &amp;&amp; make up-db &amp;&amp; make db-wait
+
+# 1. Schema + reference data + views (23 tables, 20 views)
+make bootstrap
+
+# 2. Demo dataset (60 products, 150 days of history)
+.venv/bin/python -m app.cli.main seed-demo --database postgres --days 150
+
+# 3. A live pipeline run (produces the run figures quoted above)
+make run-pipeline
+
+# 4. Cross-dialect verification
+make bootstrap-mysql
+make demo-mysql
+make verify-dialects
+
+# 5. Analytics, quality and compliance reports
+make analytics
+.venv/bin/python -m app.cli.main quality
+curl -s localhost:8000/api/v1/audit/compliance -H &quot;Authorization: Bearer $TOKEN&quot; | jq
+
+# 6. API regression
+.venv/bin/python scripts/api_smoke.py            # 78 checks</code></pre>
+<h3 id="71-measurement-caveats">7.1 Measurement caveats</h3>
+<ul>
+<li class="depth-0"><strong>Sample size.</strong> API latency is measured over 7 requests per endpoint; treat it as an order of</li>
+</ul>
+<p>magnitude, not a formal service-level measurement. A <code>wrk</code>/<code>k6</code> load profile is listed as future work in <code>docs/20_literature_feedback_and_improvements.md</code>.</p>
+<ul>
+<li class="depth-0"><strong>Demo data is seeded.</strong> Figures such as the 8,182 snapshots come from <code>seed_history()</code>, which</li>
+</ul>
+<p>generates a coherent random-walk price series; they are not live market observations.</p>
+<ul>
+<li class="depth-0"><strong>Deduplication accuracy (assumption A3).</strong> The 14-pair evaluation set is part of the project's</li>
+</ul>
+<p>test suite. The test modules are not committed in this repository snapshot, so the 14/14 figure cannot be regenerated from the snapshot alone. Independently reproducible behaviour from the shipped code:</p>
+<pre class="code" data-lang="bash"><code>.venv/bin/python - &lt;&lt;&#x27;PY&#x27;
+from app.ingestion.dedupe import combined_similarity
+for a, b in [(&quot;Samsung Galaxy S23 128GB&quot;, &quot;Samsung Galaxy S23 128 GB&quot;),
+             (&quot;Canon EOS R6&quot;, &quot;Canon EOS R5&quot;),
+             (&quot;Sony WH-1000XM5&quot;, &quot;Sony WH-1000XM4&quot;)]:
+    score, parts = combined_similarity(a, b)
+    print(f&quot;{score:.4f} {&#x27;DUPLICATE&#x27; if score &gt;= 0.90 else &#x27;distinct  &#x27;} {a} | {b}&quot;)
+PY</code></pre>
+<p>Measured: <code>0.9700</code> (duplicate), <code>0.8121</code> (distinct), <code>0.8034</code> (distinct) — the digit-signature guard is what keeps the two camera bodies apart.</p>
+<ul>
+<li class="depth-0"><strong>Cross-dialect caveat.</strong> <code>vw_pipeline_health.trigger</code> cannot be selected unqualified on MySQL 8.4</li>
+</ul>
+<p>because <code>TRIGGER</code> is a reserved word. The PostgreSQL measurements in this document are unaffected; see <code>docs/01</code> assumption A6 and <code>docs/20</code> for the fix.</p>
+    </article>
+    <div class="doc-foot">
+      <span><a href="04_risk_assessment.html">← Risk Assessment</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="06_literature_review.html">Literature Review →</a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

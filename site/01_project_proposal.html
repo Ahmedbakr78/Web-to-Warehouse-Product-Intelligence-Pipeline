@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Problem, objectives, scope, stakeholders, ethics">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Project Proposal — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Problem, objectives, scope, stakeholders, ethics">
+<title>Project Proposal — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" class="active" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="23-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, all 113 operations, examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, 100-case plan, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="234 features with file references">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Project Proposal</h1>
+      <p>Problem, objectives, scope, stakeholders, ethics</p>
+    </div>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#table-of-contents">Table of contents</a></li><li class="lvl-2"><a href="#1-problem-statement">1. Problem statement</a></li><li class="lvl-3"><a href="#11-functional-gap-analysis">1.1 Functional gap analysis</a></li><li class="lvl-2"><a href="#2-project-objectives">2. Project objectives</a></li><li class="lvl-3"><a href="#21-secondary-objectives">2.1 Secondary objectives</a></li><li class="lvl-2"><a href="#3-scope">3. Scope</a></li><li class="lvl-3"><a href="#31-in-scope">3.1 In scope</a></li><li class="lvl-3"><a href="#32-out-of-scope">3.2 Out of scope</a></li><li class="lvl-3"><a href="#33-scope-boundary-diagram">3.3 Scope boundary diagram</a></li><li class="lvl-2"><a href="#4-stakeholders">4. Stakeholders</a></li><li class="lvl-3"><a href="#41-stakeholder-power-interest-grid">4.1 Stakeholder power / interest grid</a></li><li class="lvl-2"><a href="#5-deliverables">5. Deliverables</a></li><li class="lvl-2"><a href="#6-success-criteria-and-acceptance">6. Success criteria and acceptance</a></li><li class="lvl-2"><a href="#7-effort-and-budget">7. Effort and budget</a></li><li class="lvl-3"><a href="#71-effort-by-work-package">7.1 Effort by work package</a></li><li class="lvl-3"><a href="#72-budget-envelope">7.2 Budget envelope</a></li><li class="lvl-2"><a href="#8-ethical-and-legal-position">8. Ethical and legal position</a></li><li class="lvl-3"><a href="#81-principles-adopted">8.1 Principles adopted</a></li><li class="lvl-3"><a href="#82-source-by-source-legal-position">8.2 Source-by-source legal position</a></li><li class="lvl-3"><a href="#83-data-protection-position">8.3 Data-protection position</a></li><li class="lvl-3"><a href="#84-residual-risks">8.4 Residual risks</a></li><li class="lvl-2"><a href="#9-constraints-and-assumptions">9. Constraints and assumptions</a></li><li class="lvl-2"><a href="#10-how-this-proposal-links-to-the-rest-of-the-documentation">10. How this proposal links to the rest of the documentation</a></li></ol></details>
+    <article class="doc-body">
+<h2 id="purpose">Purpose</h2>
+<p>This document is the formal project proposal for the <strong>Web-to-Warehouse Product Intelligence Pipeline</strong>, a DEPI graduation project in the Data Engineering track. It states the business problem, the objectives, the boundary of the work (in scope / out of scope), the stakeholders, the acceptance criteria, the effort and budget envelope, and the ethical and legal position taken by the project. It is the reference document against which every other document in <code>docs/</code> is read.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Field</th>
+<th>Value</th>
+</tr></thead><tbody>
+<tr>
+<th>Project title</th>
+<td>Web-to-Warehouse Product Intelligence Pipeline</td>
+</tr>
+<tr>
+<th>Track</th>
+<td>Data Engineering (DEPI)</td>
+</tr>
+<tr>
+<th>Repository</th>
+<td><code>Web-to-Warehouse-Product-Intelligence-Pipeline</code> (private GitHub repository)</td>
+</tr>
+<tr>
+<th>Author / owner</th>
+<td>Ahmed Abobakr — Data Engineering Lead</td>
+</tr>
+<tr>
+<th>Version</th>
+<td>1.0.0 (<code>APP_VERSION</code>, <code>app/core/config.py</code>)</td>
+</tr>
+<tr>
+<th>Status</th>
+<td>Implemented, measured and documented</td>
+</tr>
+<tr>
+<td>Primary repository module</td>
+<td><code>app/</code> (Python package), <code>db/views.sql</code>, <code>dags/</code>, <code>scripts/</code>, <code>docs/</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="table-of-contents">Table of contents</h2>
+<ul>
+<li class="depth-0"><a href="#1-problem-statement">Problem statement</a></li>
+<li class="depth-0"><a href="#2-project-objectives">Project objectives</a></li>
+<li class="depth-0"><a href="#3-scope">Scope</a></li>
+<li class="depth-0"><a href="#4-stakeholders">Stakeholders</a></li>
+<li class="depth-0"><a href="#5-deliverables">Deliverables</a></li>
+<li class="depth-0"><a href="#6-success-criteria-and-acceptance">Success criteria and acceptance</a></li>
+<li class="depth-0"><a href="#7-effort-and-budget">Effort and budget</a></li>
+<li class="depth-0"><a href="#8-ethical-and-legal-position">Ethical and legal position</a></li>
+<li class="depth-0"><a href="#9-constraints-and-assumptions">Constraints and assumptions</a></li>
+<li class="depth-0"><a href="#10-how-this-proposal-links-to-the-rest-of-the-documentation">How this proposal links to the rest of the documentation</a></li>
+</ul>
+<hr>
+<h2 id="1-problem-statement">1. Problem statement</h2>
+<p>A mid-size retailer wants continuous visibility of the market it operates in: what competitors list, at what price, in which category, and how those facts change over time. Today that picture is assembled manually:</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Symptom observed in the business</th>
+<th>Consequence</th>
+</tr></thead><tbody>
+<tr>
+<td>Analysts re-collect product pages by hand every week</td>
+<td>6–10 hours of analyst time per cycle, zero automation</td>
+</tr>
+<tr>
+<td>Prices are copied into spreadsheets with no history</td>
+<td>Price trends, volatility and promo windows cannot be analysed</td>
+</tr>
+<tr>
+<td>Category labels differ per source (<code>tech</code>, <code>gadgets</code>, <code>Electronics</code>)</td>
+<td>Category reporting is unreliable; roll-ups double count</td>
+</tr>
+<tr>
+<td>The same product appears 3–4 times from different sources</td>
+<td>Category counts and averages are inflated</td>
+</tr>
+<tr>
+<td>The internal ERP catalog and the market are never reconciled</td>
+<td>The retailer cannot answer "are we cheaper or dearer than the market?"</td>
+</tr>
+<tr>
+<td>Nothing records <em>how</em> data was collected</td>
+<td>Compliance with <code>robots.txt</code> / terms of service cannot be evidenced</td>
+</tr>
+</tbody></table></div>
+<p>Manual collection is slow, error-prone and produces inconsistent records. It also produces no <strong>historical price table</strong>, so the single most valuable artefact for pricing decisions — a time series of what a product cost on every day it was observed — simply does not exist.</p>
+<p>The project builds that missing capability: a compliant, orchestrated, testable pipeline that turns permitted public web sources into a dimensional warehouse with full price history, duplicate resolution, change detection, catalog reconciliation and a measured data-quality posture.</p>
+<h3 id="11-functional-gap-analysis">1.1 Functional gap analysis</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Required capability (project brief)</th>
+<th>Where it is implemented in this project</th>
+</tr></thead><tbody>
+<tr>
+<td>Scrape permitted structured product information</td>
+<td><code>app/ingestion/sources/books_to_scrape.py</code> (BeautifulSoup + lxml)</td>
+</tr>
+<tr>
+<td>Respect <code>robots.txt</code>, rate limits, terms</td>
+<td><code>app/ingestion/robots.py</code>, <code>app/ingestion/ratelimit.py</code>, <code>app/ingestion/http_client.py</code></td>
+</tr>
+<tr>
+<td>Extract name / category / price / rating / availability / URL</td>
+<td><code>app/ingestion/base.py</code> (<code>RawProduct</code>), source <code>_to_raw()</code> / <code>_fetch_detail()</code> methods</td>
+</tr>
+<tr>
+<td>Clean product names and categories</td>
+<td><code>app/ingestion/cleaning.py</code> (<code>clean_product_name</code>, <code>normalise_category</code>)</td>
+</tr>
+<tr>
+<td>Normalise currencies and price formats</td>
+<td><code>app/ingestion/cleaning.py</code> (<code>parse_price</code>, <code>normalise_currency</code>, <code>convert_to_usd</code>, <code>STATIC_FX_RATES</code>)</td>
+</tr>
+<tr>
+<td>Detect duplicate products</td>
+<td><code>app/ingestion/dedupe.py</code> (<code>DedupeEngine</code>, <code>combined_similarity</code>)</td>
+</tr>
+<tr>
+<td>Compare scraped records with the internal catalog</td>
+<td><code>app/etl/catalog_reconcile.py</code> (<code>CatalogReconciler</code>)</td>
+</tr>
+<tr>
+<td>Load into PostgreSQL / MySQL</td>
+<td><code>app/core/db.py</code>, <code>app/etl/bootstrap.py</code>, <code>app/etl/loader.py</code></td>
+</tr>
+<tr>
+<td>Store historical price snapshots</td>
+<td><code>fact_price_snapshot</code> (<code>app/models/facts.py</code>)</td>
+</tr>
+<tr>
+<td>SQL to identify price / new / removed / category changes</td>
+<td><code>chg_price_change</code>, <code>chg_product_event</code>, views <code>vw_price_changes</code>, <code>vw_new_products</code>, <code>vw_removed_products</code>, <code>vw_category_changes</code></td>
+</tr>
+<tr>
+<th>Orchestrate with Airflow</th>
+<td><code>dags/product_intelligence_pipeline.py</code></td>
+</tr>
+<tr>
+<th>Data-quality checks</th>
+<td><code>app/etl/dq.py</code> (12 rules, 6 dimensions)</td>
+</tr>
+<tr>
+<td>SQL analysis and visualisation</td>
+<td><code>db/views.sql</code> (20 views), <code>app/analytics/service.py</code>, <code>app/api/routers/analytics.py</code></td>
+</tr>
+<tr>
+<td>Optional extension: REST API</td>
+<td><code>app/api/</code> (16 routers, 113 documented operations)</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="2-project-objectives">2. Project objectives</h2>
+<p>Objectives are written as SMART goals so that success can be measured rather than asserted.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>Objective</th>
+<th>Measure</th>
+<th>Target</th>
+<th>Measured result</th>
+</tr></thead><tbody>
+<tr>
+<th>O1</th>
+<td>Automate collection from permitted sources</td>
+<td>Registered sources that yield records</td>
+<td>≥ 3</td>
+<td>5 (<code>local_demo</code>, <code>dummyjson_products</code>, <code>fakestore_products</code>, <code>openlibrary_books</code>, <code>books_to_scrape</code>)</td>
+</tr>
+<tr>
+<th>O2</th>
+<td>Build a historical price table</td>
+<td>Rows in <code>fact_price_snapshot</code> after a demo seed</td>
+<td>&gt; 5,000</td>
+<td>8,182 over 150 days</td>
+</tr>
+<tr>
+<th>O3</th>
+<td>Detect change events with SQL</td>
+<td>Price / new / removed / category change tables</td>
+<td>4 event classes</td>
+<td>4 (<code>chg_price_change</code>, <code>chg_product_event</code> with <code>new</code>, <code>recurring</code>, <code>removed</code>, <code>category_changed</code>)</td>
+</tr>
+<tr>
+<th>O4</th>
+<td>Resolve duplicates correctly</td>
+<td>Curated pair set classified correctly at threshold 0.90</td>
+<td>14/14</td>
+<td>14/14 (see <code>docs/05_kpis.md</code>, assumption A3)</td>
+</tr>
+<tr>
+<th>O5</th>
+<td>Enforce web-compliance by construction</td>
+<td>Sources with <code>terms_allowed</code> and a robots gate in front of every request</td>
+<td>100 %</td>
+<td>100 %; every request logged in <code>ingestion_http_log</code></td>
+</tr>
+<tr>
+<th>O6</th>
+<td>Measure data quality, not assume it</td>
+<td>Number of executable rules across the six dimensions</td>
+<td>≥ 10 rules / 6 dimensions</td>
+<td>12 rules / 6 dimensions</td>
+</tr>
+<tr>
+<th>O7</th>
+<td>Run on more than one analytical database</td>
+<td>Dialects with an identical structural model and identical DQ score</td>
+<td>2 (PostgreSQL, MySQL)</td>
+<td>2 — PostgreSQL 16.15 and MySQL 8.4.11, both DQ score 98.26</td>
+</tr>
+<tr>
+<th>O8</th>
+<td>Expose the warehouse over an API</td>
+<td>Documented REST operations behind authentication and RBAC</td>
+<td>≥ 50</td>
+<td>113 operations / 16 routers</td>
+</tr>
+<tr>
+<th>O9</th>
+<td>Orchestrate with Airflow</td>
+<td>DAG with guard, extract, load, quality, aggregate, reconcile, notify, report tasks</td>
+<td>1 DAG, ≥ 8 tasks</td>
+<td>13 tasks in <code>product_intelligence_pipeline</code></td>
+</tr>
+<tr>
+<th>O10</th>
+<td>Keep the run fast enough for a daily schedule</td>
+<td>End-to-end pipeline duration for a full multi-source run</td>
+<td>&lt; 10 minutes</td>
+<td>≈ 3.5 s for the measured live run (60 records extracted, 57 loaded)</td>
+</tr>
+</tbody></table></div>
+<h3 id="21-secondary-objectives">2.1 Secondary objectives</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>Objective</th>
+<th>Rationale</th>
+</tr></thead><tbody>
+<tr>
+<th>S1</th>
+<td>Demonstrate portability across SQL dialects</td>
+<td>Retailers rarely get to choose the warehouse engine; the same model must load on PostgreSQL and MySQL</td>
+</tr>
+<tr>
+<th>S2</th>
+<td>Produce auditable evidence of compliance</td>
+<td><code>GET /api/v1/audit/compliance</code> and <code>ingestion_http_log</code> make the "we were polite" claim verifiable</td>
+</tr>
+<tr>
+<th>S3</th>
+<td>Keep extraction and preparation independently testable</td>
+<td><code>app/ingestion/cleaning.py</code> is pure and side-effect free</td>
+</tr>
+<tr>
+<th>S4</th>
+<td>Support three roles with least privilege</td>
+<td><code>ROLE_RIGHTS</code> in <code>app/api/security.py</code>: viewer / analyst / admin</td>
+</tr>
+<tr>
+<th>S5</th>
+<td>Make every dashboard number a SQL query</td>
+<td><code>app/analytics/service.py</code> contains no hard-coded figures</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="3-scope">3. Scope</h2>
+<h3 id="31-in-scope">3.1 In scope</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Area</th>
+<th>Included</th>
+<th>Evidence</th>
+</tr></thead><tbody>
+<tr>
+<th>Ingestion</th>
+<td>5 registered sources: 3 JSON APIs, 1 permitted HTML scraper, 1 offline synthetic generator</td>
+<td><code>app/ingestion/sources/</code>, <code>app/ingestion/base.py</code> registry</td>
+</tr>
+<tr>
+<th>Compliance</th>
+<td><code>robots.txt</code> parsing and caching, per-host rate limiting, <code>Crawl-delay</code>, <code>Retry-After</code>, disk response cache, per-request audit log, terms allow-list</td>
+<td><code>app/ingestion/robots.py</code>, <code>ratelimit.py</code>, <code>http_client.py</code>, <code>compliance.py</code></td>
+</tr>
+<tr>
+<th>Cleaning</th>
+<td>Unicode folding, promo-noise removal, stop-word comparison keys, category synonym mapping, price/currency/rating/availability parsing, FX normalisation</td>
+<td><code>app/ingestion/cleaning.py</code> (818 lines)</td>
+</tr>
+<tr>
+<th>Deduplication</th>
+<td>SHA-1 fingerprint exact match, 4-char blocking, blended similarity (Levenshtein, Jaro-Winkler, token-set, trigram Dice, digit-signature guard)</td>
+<td><code>app/ingestion/dedupe.py</code></td>
+</tr>
+<tr>
+<th>Warehouse</th>
+<td>23 tables in 6 groups, 20 analytical views, category/day aggregate</td>
+<td><code>app/models/</code>, <code>db/views.sql</code></td>
+</tr>
+<tr>
+<th>Analytics</th>
+<td>21 query functions serving KPIs, trends, leaderboards, movers, drift, compliance</td>
+<td><code>app/analytics/service.py</code></td>
+</tr>
+<tr>
+<th>Change detection</th>
+<td>Price change, new, recurring, removed, category-changed events with magnitude bands</td>
+<td><code>app/etl/loader.py</code>, <code>app/etl/catalog_reconcile.py</code></td>
+</tr>
+<tr>
+<th>Catalog reconciliation</th>
+<td>3-stage match cascade (SKU → normalised name → fuzzy), price-gap analysis</td>
+<td><code>app/etl/catalog_reconcile.py</code></td>
+</tr>
+<tr>
+<th>Data quality</th>
+<td>12 rules, 6 dimensions, weighted score, persistence of every outcome</td>
+<td><code>app/etl/dq.py</code></td>
+</tr>
+<tr>
+<th>Orchestration</th>
+<td>Airflow DAG with 2 short-circuit guards, branching notification path, report artifact</td>
+<td><code>dags/product_intelligence_pipeline.py</code></td>
+</tr>
+<tr>
+<th>API</th>
+<td>16 routers, 113 documented operations, JWT + API key auth, 3 roles, pagination, OpenAPI</td>
+<td><code>app/api/</code></td>
+</tr>
+<tr>
+<th>Operations</th>
+<td>Typer/rich CLI (12 commands), Makefile (30+ targets), Docker Compose (6 services)</td>
+<td><code>app/cli/main.py</code>, <code>Makefile</code>, <code>docker-compose.yml</code></td>
+</tr>
+<tr>
+<th>Documentation</th>
+<td>The 20 documents in <code>docs/</code></td>
+<td><code>docs/</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="32-out-of-scope">3.2 Out of scope</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Excluded</th>
+<th>Reason</th>
+</tr></thead><tbody>
+<tr>
+<td>Bypassing authentication, paywalls, CAPTCHAs or <code>Disallow</code> directives</td>
+<td>Legally and ethically out of bounds; explicitly refused in <code>app/ingestion/compliance.py</code></td>
+</tr>
+<tr>
+<td>Collection of personal data</td>
+<td>No customer data is processed; only product metadata</td>
+</tr>
+<tr>
+<td>Distributed execution of the pipeline (Spark, Ray, Celery workers)</td>
+<td>Single-node batch scale is sufficient for the measured volumes; Airflow <code>LocalExecutor</code></td>
+</tr>
+<tr>
+<td>Real-time / streaming ingestion (Kafka, CDC)</td>
+<td>The business requirement is a daily snapshot of prices</td>
+</tr>
+<tr>
+<td>Native mobile applications</td>
+<td>Web dashboard is responsive and mobile-capable</td>
+</tr>
+<tr>
+<td>Machine-learning price forecasting</td>
+<td>Out of scope; the warehouse is the deliverable, the forecast is future work</td>
+</tr>
+<tr>
+<td>Production cloud deployment / IaC</td>
+<td>Deployment diagram and HA options are documented; provisioning is left to operations</td>
+</tr>
+<tr>
+<th>Multi-tenant isolation</th>
+<td>Single-organisation deployment with role-based access</td>
+</tr>
+</tbody></table></div>
+<h3 id="33-scope-boundary-diagram">3.3 Scope boundary diagram</h3>
+<pre class="mermaid">flowchart LR
+    subgraph OUT[&quot;Out of scope&quot;]
+        O1[&quot;Bypass auth / paywall / CAPTCHA&quot;]
+        O2[&quot;Personal data&quot;]
+        O3[&quot;Streaming ingestion&quot;]
+        O4[&quot;ML forecasting&quot;]
+        O5[&quot;Multi-tenant isolation&quot;]
+    end
+    subgraph IN[&quot;In scope - delivered&quot;]
+        I1[&quot;5 compliant sources&quot;]
+        I2[&quot;Cleaning and currency normalisation&quot;]
+        I3[&quot;Fuzzy deduplication&quot;]
+        I4[&quot;23 tables and 20 views&quot;]
+        I5[&quot;12 DQ rules&quot;]
+        I6[&quot;Airflow orchestration&quot;]
+        I7[&quot;113 REST operations&quot;]
+        I8[&quot;CLI and Docker Compose&quot;]
+    end
+    OUT -.-&gt;|&quot;explicitly refused&quot;| IN</pre>
+<hr>
+<h2 id="4-stakeholders">4. Stakeholders</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Stakeholder</th>
+<th>Role in the project</th>
+<th>Need / pain point</th>
+<th>How the system serves them</th>
+<th>Evidence in code</th>
+</tr></thead><tbody>
+<tr>
+<td>Pricing analyst (Sara Mahmoud)</td>
+<td>Primary daily user</td>
+<td>Know which prices moved today and why</td>
+<td>Changes screen with magnitude bands, top movers, price history chart</td>
+<td><code>chg_price_change.magnitude_band</code>, <code>vw_top_movers</code></td>
+</tr>
+<tr>
+<td>Category manager (Karim Nabil)</td>
+<td>Assortment user</td>
+<td>Know what is new, removed or recategorised</td>
+<td>New / removed / category-change feeds and category drift report</td>
+<td><code>vw_new_products</code>, <code>vw_removed_products</code>, <code>vw_category_changes</code></td>
+</tr>
+<tr>
+<td>Data platform lead (Ahmed Abobakr)</td>
+<td>Owner / operator</td>
+<td>Know whether the pipeline ran and whether the data is trustworthy</td>
+<td>Run history, stage timings, DQ score, source health, compliance report</td>
+<td><code>vw_pipeline_health</code>, <code>dq_rule_result</code>, <code>vw_http_audit</code></td>
+</tr>
+<tr>
+<th>System administrator</th>
+<td>Operations</td>
+<td>Manage accounts, roles, keys, settings</td>
+<td>Users, settings, audit and API-key endpoints (admin only)</td>
+<td><code>app/api/routers/users.py</code>, <code>settings.py</code>, <code>audit.py</code></td>
+</tr>
+<tr>
+<td>Retail buying / merchandising</td>
+<td>Business sponsor</td>
+<td>Know whether internal prices are competitive</td>
+<td>Catalog reconciliation with price-gap and "we are cheaper / dearer" position</td>
+<td><code>fact_catalog_snapshot.price_gap_pct</code>, <code>GET /api/v1/catalog/opportunities</code></td>
+</tr>
+<tr>
+<th>Compliance officer</th>
+<td>Governance</td>
+<td>Evidence lawful, respectful collection</td>
+<td>Terms allow-list, robots gate, <code>ingestion_http_log</code>, audit log</td>
+<td><code>dim_source.terms_allowed</code>, <code>ingestion_http_log.robots_allowed</code></td>
+</tr>
+<tr>
+<td>Upstream source owners (DummyJSON, FakeStore, Open Library, books.toscrape)</td>
+<td>Data providers</td>
+<td>Not be overloaded or mis-scraped</td>
+<td>Rate limits, <code>Crawl-delay</code>, disk cache, 1.5 s minimum delay on the scraper</td>
+<td><code>RatePolicy</code>, <code>BooksToScrapeSource.min_delay_seconds</code></td>
+</tr>
+<tr>
+<th>Academic supervisor</th>
+<td>Assessor</td>
+<td>Traceable requirements, design and evidence</td>
+<td>Docs 01–20 with Mermaid diagrams and measured KPI tables</td>
+<td><code>docs/</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="41-stakeholder-power-interest-grid">4.1 Stakeholder power / interest grid</h3>
+<pre class="mermaid">flowchart TB
+    subgraph HI[&quot;High power - high interest&quot;]
+        A1[&quot;Data platform lead&quot;]
+        A2[&quot;Retail buying / merchandising&quot;]
+        A3[&quot;Academic supervisor&quot;]
+    end
+    subgraph HI2[&quot;High power - low interest&quot;]
+        B1[&quot;System administrator&quot;]
+        B2[&quot;Compliance officer&quot;]
+        B3[&quot;Upstream source owners&quot;]
+    end
+    subgraph LI[&quot;Low power - high interest&quot;]
+        C1[&quot;Pricing analyst&quot;]
+        C2[&quot;Category manager&quot;]
+    end
+    subgraph LI2[&quot;Low power - low interest&quot;]
+        D1[&quot;External data consumers&quot;]
+    end</pre>
+<p>Manage <code>HI</code> closely, keep <code>HI2</code> informed through read-only compliance endpoints, and iterate with <code>LI</code> — they are the acceptance testers of the dashboard screens.</p>
+<hr>
+<h2 id="5-deliverables">5. Deliverables</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>#</th>
+<th>Deliverable (from the brief)</th>
+<th>Artefact</th>
+<th>Status</th>
+</tr></thead><tbody>
+<tr>
+<th>D1</th>
+<td>Scraper / API ingestion module</td>
+<td><code>app/ingestion/</code> (8 modules + 5 sources)</td>
+<td>Complete</td>
+</tr>
+<tr>
+<th>D2</th>
+<td>Database schema</td>
+<td><code>app/models/</code> — 23 tables across 6 groups</td>
+<td>Complete</td>
+</tr>
+<tr>
+<th>D3</th>
+<td>Historical product-price table</td>
+<td><code>fact_price_snapshot</code> + <code>vw_price_history</code></td>
+<td>Complete</td>
+</tr>
+<tr>
+<th>D4</th>
+<td>ETL pipeline</td>
+<td><code>app/etl/pipeline.py</code> (9 instrumented stages)</td>
+<td>Complete</td>
+</tr>
+<tr>
+<th>D5</th>
+<td>Airflow DAG</td>
+<td><code>dags/product_intelligence_pipeline.py</code></td>
+<td>Complete</td>
+</tr>
+<tr>
+<th>D6</th>
+<td>Data-quality checks</td>
+<td><code>app/etl/dq.py</code> — 12 rules / 6 dimensions</td>
+<td>Complete</td>
+</tr>
+<tr>
+<th>D7</th>
+<td>SQL analysis</td>
+<td><code>db/views.sql</code> (20 views) + <code>app/analytics/service.py</code></td>
+<td>Complete</td>
+</tr>
+<tr>
+<th>D8</th>
+<td>Visualisation</td>
+<td>Analytics REST layer consumed by the React dashboard</td>
+<td>Complete</td>
+</tr>
+<tr>
+<th>D9</th>
+<td>Documentation</td>
+<td><code>docs/01</code> … <code>docs/20</code></td>
+<td>Complete</td>
+</tr>
+<tr>
+<th>D10</th>
+<td>Optional extension — REST API</td>
+<td><code>app/api/</code> — 113 operations</td>
+<td>Complete</td>
+</tr>
+<tr>
+<th>D11</th>
+<td>Cross-dialect verification</td>
+<td><code>make verify-dialects</code> (<code>app/cli/main.py verify</code>)</td>
+<td>Complete</td>
+</tr>
+<tr>
+<th>D12</th>
+<td>API smoke test</td>
+<td><code>scripts/api_smoke.py</code> — 78 checks</td>
+<td>Complete</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="6-success-criteria-and-acceptance">6. Success criteria and acceptance</h2>
+<p>The project is accepted when all of the following hold. Each criterion is re-checkable by running the command in the last column.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>Acceptance criterion</th>
+<th>Threshold</th>
+<th>Measured</th>
+<th>How to verify</th>
+</tr></thead><tbody>
+<tr>
+<th>AC1</th>
+<td>Physical warehouse objects created from the ORM</td>
+<td>23 tables</td>
+<td>23 tables on PostgreSQL 16.15 and MySQL 8.4.11</td>
+<td><code>make bootstrap</code> then <code>GET /api/v1/meta/tables</code></td>
+</tr>
+<tr>
+<th>AC2</th>
+<td>Analytical views applied on both dialects</td>
+<td>20 views</td>
+<td>20 / 20 on both</td>
+<td><code>make bootstrap-mysql</code> then <code>GET /api/v1/queries/views</code></td>
+</tr>
+<tr>
+<th>AC3</th>
+<td>Structural tables identical across dialects</td>
+<td>0 drift in <code>dim_category</code>, <code>dim_source</code>, <code>dim_currency</code>, <code>catalog_product</code>, <code>app_user</code>, <code>dim_date</code></td>
+<td>0 drift</td>
+<td><code>make verify-dialects</code></td>
+</tr>
+<tr>
+<th>AC4</th>
+<td>Data-quality score identical across dialects</td>
+<td>Equal</td>
+<td>98.26 on both</td>
+<td><code>make verify-dialects</code></td>
+</tr>
+<tr>
+<th>AC5</th>
+<td>Deduplication accuracy on the curated pair set</td>
+<td>14/14 at threshold 0.90</td>
+<td>14/14</td>
+<td><code>DedupeEngine</code> evaluation harness (assumption A3)</td>
+</tr>
+<tr>
+<th>AC6</th>
+<td>Live run produces loadable records</td>
+<td>&gt; 0 snapshots</td>
+<td>57 snapshots, 48 price changes, 6 new products, 39/57 catalog SKUs matched (68.42 %)</td>
+<td><code>make run-pipeline</code></td>
+</tr>
+<tr>
+<th>AC7</th>
+<td>Pipeline duration acceptable for a daily schedule</td>
+<td>&lt; 600 s</td>
+<td>≈ 3.5 s (3,481 ms)</td>
+<td><code>make run-pipeline</code> stage timings</td>
+</tr>
+<tr>
+<th>AC8</th>
+<td>API authenticated and role-gated</td>
+<td>401 without token, 403 for insufficient role</td>
+<td>Observed in smoke test</td>
+<td><code>scripts/api_smoke.py</code></td>
+</tr>
+<tr>
+<th>AC9</th>
+<td>API regression suite green</td>
+<td>78/78 checks pass</td>
+<td>78/78</td>
+<td><code>.venv/bin/python scripts/api_smoke.py</code></td>
+</tr>
+<tr>
+<th>AC10</th>
+<td>Compliance evidence produced</td>
+<td>Every outbound request logged</td>
+<td>100 % logged with <code>robots_allowed</code>, <code>robots_rule</code>, <code>from_cache</code>, <code>retry_count</code></td>
+<td><code>GET /api/v1/audit/compliance</code></td>
+</tr>
+<tr>
+<th>AC11</th>
+<td>Demo dataset rich enough for analysis</td>
+<td>≥ 8,000 snapshots</td>
+<td>60 products, 8,182 snapshots, 8,047 price changes, 8,199 lifecycle events / 150 days</td>
+<td><code>make demo-postgres</code></td>
+</tr>
+<tr>
+<th>AC12</th>
+<td>No source queried when its terms are not allow-listed</td>
+<td>0 violations</td>
+<td>0 violations</td>
+<td><code>dim_source.terms_allowed</code>, <code>sync_dim_source()</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="7-effort-and-budget">7. Effort and budget</h2>
+<p>The project was delivered as an individual DEPI graduation project with academic supervision. Effort is recorded in person-hours; the cost figures are indicative planning values only, since no commercial infrastructure was purchased.</p>
+<h3 id="71-effort-by-work-package">7.1 Effort by work package</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>WP</th>
+<th>Work package</th>
+<th>Hours</th>
+<th>Deliverables</th>
+</tr></thead><tbody>
+<tr>
+<th>WP1</th>
+<td>Requirements analysis and stakeholder interviews</td>
+<td>18</td>
+<td>Docs 01, 05, 07</td>
+</tr>
+<tr>
+<th>WP2</th>
+<td>Literature review</td>
+<td>14</td>
+<td>Doc 06</td>
+</tr>
+<tr>
+<th>WP3</th>
+<td>Database design (logical, physical, ERD)</td>
+<td>20</td>
+<td>Doc 09</td>
+</tr>
+<tr>
+<th>WP4</th>
+<td>Ingestion framework + robots/rate-limit/cache/audit</td>
+<td>42</td>
+<td><code>app/ingestion/</code> core modules</td>
+</tr>
+<tr>
+<th>WP5</th>
+<td>Five ingestion sources</td>
+<td>30</td>
+<td><code>app/ingestion/sources/</code></td>
+</tr>
+<tr>
+<th>WP6</th>
+<td>Cleaning and currency normalisation</td>
+<td>24</td>
+<td><code>app/ingestion/cleaning.py</code></td>
+</tr>
+<tr>
+<th>WP7</th>
+<td>Deduplication engine and blocking optimisation</td>
+<td>28</td>
+<td><code>app/ingestion/dedupe.py</code></td>
+</tr>
+<tr>
+<th>WP8</th>
+<td>Warehouse loader and change detection</td>
+<td>34</td>
+<td><code>app/etl/loader.py</code></td>
+</tr>
+<tr>
+<th>WP9</th>
+<td>Catalog reconciliation + blocking optimisation</td>
+<td>22</td>
+<td><code>app/etl/catalog_reconcile.py</code></td>
+</tr>
+<tr>
+<th>WP10</th>
+<td>Data-quality framework</td>
+<td>18</td>
+<td><code>app/etl/dq.py</code></td>
+</tr>
+<tr>
+<th>WP11</th>
+<td>Analytical views (20) and analytics service</td>
+<td>26</td>
+<td><code>db/views.sql</code>, <code>app/analytics/service.py</code></td>
+</tr>
+<tr>
+<th>WP12</th>
+<td>REST API, auth, RBAC, schemas</td>
+<td>46</td>
+<td><code>app/api/</code></td>
+</tr>
+<tr>
+<th>WP13</th>
+<td>CLI and Makefile ergonomics</td>
+<td>12</td>
+<td><code>app/cli/main.py</code>, <code>Makefile</code></td>
+</tr>
+<tr>
+<th>WP14</th>
+<td>Airflow DAG</td>
+<td>12</td>
+<td><code>dags/</code></td>
+</tr>
+<tr>
+<th>WP15</th>
+<td>Docker Compose and deployment documentation</td>
+<td>12</td>
+<td>Doc 13</td>
+</tr>
+<tr>
+<th>WP16</th>
+<td>Seed data, demo dataset, cross-dialect verification</td>
+<td>16</td>
+<td><code>app/etl/seed.py</code></td>
+</tr>
+<tr>
+<th>WP17</th>
+<td>Smoke test and API documentation</td>
+<td>14</td>
+<td><code>scripts/api_smoke.py</code>, doc 14</td>
+</tr>
+<tr>
+<th>WP18</th>
+<td>Documentation set (20 documents)</td>
+<td>40</td>
+<td><code>docs/</code></td>
+</tr>
+<tr>
+<th>WP19</th>
+<td>Review, demonstration, defence preparation</td>
+<td>14</td>
+<td>Docs 18, 20</td>
+</tr>
+<tr>
+<th>—</th>
+<td><strong>Total</strong></td>
+<td><strong>442</strong></td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<h3 id="72-budget-envelope">7.2 Budget envelope</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Item</th>
+<th>Type</th>
+<th>Indicative cost</th>
+<th>Note</th>
+</tr></thead><tbody>
+<tr>
+<th>Development workstation</th>
+<td>One-off / provided</td>
+<td>—</td>
+<td>Local development only</td>
+</tr>
+<tr>
+<td>PostgreSQL 16 + MySQL 8.4 containers</td>
+<td>Runtime</td>
+<td>0</td>
+<td>Open source, Docker Compose</td>
+</tr>
+<tr>
+<td>Python / Node open-source stack</td>
+<td>Runtime</td>
+<td>0</td>
+<td>All components MIT/Apache/BSD</td>
+</tr>
+<tr>
+<td>Source APIs (DummyJSON, FakeStore, Open Library)</td>
+<td>Runtime</td>
+<td>0</td>
+<td>Free, no key, documented terms</td>
+</tr>
+<tr>
+<td>books.toscrape.com sandbox</td>
+<td>Runtime</td>
+<td>0</td>
+<td>Site published for scraping practice</td>
+</tr>
+<tr>
+<td>Cloud hosting (optional production target)</td>
+<td>Recurring</td>
+<td>0 – 25 USD / month</td>
+<td>Small managed PostgreSQL instance is sufficient at the measured volumes</td>
+</tr>
+<tr>
+<th>Total project cash cost</th>
+<td>—</td>
+<td><strong>0 – 25 USD</strong></td>
+<td>Entirely open-source stack</td>
+</tr>
+</tbody></table></div>
+<p>Cash cost is effectively zero; the real cost is the 442 person-hours above.</p>
+<hr>
+<h2 id="8-ethical-and-legal-position">8. Ethical and legal position</h2>
+<p>This section is normative: the design decisions listed here are enforced in code and are not optional refinements.</p>
+<h3 id="81-principles-adopted">8.1 Principles adopted</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>#</th>
+<th>Principle</th>
+<th>Implementation</th>
+<th>Location</th>
+</tr></thead><tbody>
+<tr>
+<th>E1</th>
+<td>Only collect from sources that explicitly permit automated access</td>
+<td><code>ProductSource.terms_allowed</code>; <code>sync_dim_source()</code> disables a source whose terms are not allowed; <code>RESPECT_TERMS_WHITELIST=true</code></td>
+<td><code>app/ingestion/base.py</code>, <code>app/etl/bootstrap.py:165</code></td>
+</tr>
+<tr>
+<th>E2</th>
+<td>Obey <code>robots.txt</code> (RFC 9309) before every request</td>
+<td><code>RobotsCache.can_fetch()</code> is consulted inside <code>CompliantHttpClient.get()</code>; a disallow raises <code>ComplianceError</code> (HTTP 451) and is logged</td>
+<td><code>app/ingestion/robots.py</code>, <code>http_client.py:217</code></td>
+</tr>
+<tr>
+<th>E3</th>
+<td>Never defeat a technical protection</td>
+<td>No cookie forging, no CAPTCHA solving, no header spoofing, no paywall bypass</td>
+<td><code>app/ingestion/compliance.py</code> (explicit refusal statement)</td>
+</tr>
+<tr>
+<th>E4</th>
+<td>Identify the crawler honestly</td>
+<td><code>INGEST_USER_AGENT="ProductIntelligenceBot/1.0 (+…; contact: …)"</code></td>
+<td><code>app/core/config.py:79</code></td>
+</tr>
+<tr>
+<th>E5</th>
+<td>Stay inside the published rate limits</td>
+<td>Token bucket + sliding window + <code>Crawl-delay</code> + <code>Retry-After</code> back-off</td>
+<td><code>app/ingestion/ratelimit.py</code></td>
+</tr>
+<tr>
+<th>E6</th>
+<td>Do not re-request data that was already collected</td>
+<td>Disk cache keyed by URL hash with <code>CACHE_TTL_SECONDS=1800</code></td>
+<td><code>app/ingestion/http_client.py:154</code></td>
+</tr>
+<tr>
+<th>E7</th>
+<td>Do not process personal data</td>
+<td>Only product attributes are stored; no customer identifiers exist in the model</td>
+<td><code>app/models/</code> (23 tables, none personal)</td>
+</tr>
+<tr>
+<th>E8</th>
+<td>Keep the evidence of compliance for the auditor</td>
+<td>One <code>ingestion_http_log</code> row per outbound request, including blocked attempts</td>
+<td><code>app/models/operations.py:91</code></td>
+</tr>
+<tr>
+<th>E9</th>
+<td>Respect data-source licences</td>
+<td><code>dim_source.license_note</code> records the licence of every source; books.toscrape data is explicitly non-commercial</td>
+<td><code>app/etl/bootstrap.py:179</code></td>
+</tr>
+<tr>
+<th>E10</th>
+<td>Do not retain data indefinitely</td>
+<td><code>retention.snapshot_days</code> = 730 setting exists; retention policy documented in doc 09</td>
+<td><code>app/etl/seed.py:89</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="82-source-by-source-legal-position">8.2 Source-by-source legal position</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Source</th>
+<th>Kind</th>
+<th>Permission basis</th>
+<th>Limitation respected</th>
+</tr></thead><tbody>
+<tr>
+<th><code>local_demo</code></th>
+<td>synthetic</td>
+<td>Generated locally by this project; no third-party rights</td>
+<td>No network traffic at all</td>
+</tr>
+<tr>
+<th><code>dummyjson_products</code></th>
+<td>API</td>
+<td>Public test API, no key required, attribution appreciated</td>
+<td>60 requests/minute, 0.4 s delay</td>
+</tr>
+<tr>
+<th><code>fakestore_products</code></th>
+<td>API</td>
+<td>Public demo API for educational use</td>
+<td>30 requests/minute, 1.0 s delay</td>
+</tr>
+<tr>
+<th><code>openlibrary_books</code></th>
+<td>API</td>
+<td>Open Library / Internet Archive open bibliographic data</td>
+<td>30 requests/minute, 1.2 s delay</td>
+</tr>
+<tr>
+<th><code>books_to_scrape</code></th>
+<td>scrape</td>
+<td>Sandbox published by Zyte <em>for scraping practice</em>; <code>robots.txt</code> allows the catalogue</td>
+<td>30 requests/minute, 1.5 s delay, non-commercial use only</td>
+</tr>
+</tbody></table></div>
+<h3 id="83-data-protection-position">8.3 Data-protection position</h3>
+<p>The pipeline stores product metadata only: names, brands, categories, prices, ratings, availability and public URLs. It stores no personal data, performs no profiling of individuals, and keeps no credentials of upstream systems. Account data (<code>app_user</code>) contains the three seeded demo users with Argon2id password hashes; <code>hashed_password</code> is never returned by any endpoint (<code>UserRead</code> omits it).</p>
+<h3 id="84-residual-risks">8.4 Residual risks</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Risk</th>
+<th>Mitigation</th>
+</tr></thead><tbody>
+<tr>
+<td>A future source is added without checking its terms</td>
+<td><code>terms_allowed</code> is a class attribute reviewed at registration; the DAG aborts if no source passes the compliance guard</td>
+</tr>
+<tr>
+<td><code>robots.txt</code> changes after registration</td>
+<td>The cache TTL is 1,800 s, so re-evaluation happens on every run</td>
+</tr>
+<tr>
+<td>Upstream data contains an unexpected personal detail</td>
+<td>Descriptions are truncated to 1,000 characters and stored in <code>dim_product.description</code>; a manual review of the DQ flags covers it</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="9-constraints-and-assumptions">9. Constraints and assumptions</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>Statement</th>
+<th>Type</th>
+<th>Effect if false</th>
+</tr></thead><tbody>
+<tr>
+<th>A1</th>
+<td>The internal catalog is represented by <code>catalog_product</code>, seeded with a 70 % match ratio</td>
+<td>Assumption</td>
+<td>Reconciliation KPIs change; the model itself is unaffected</td>
+</tr>
+<tr>
+<th>A2</th>
+<td>FX rates come from an offline static table (<code>STATIC_FX_RATES</code>, 25 currencies, <code>rate_source='static_reference_table'</code>)</td>
+<td>Constraint</td>
+<td>USD-normalised analytics drift; swap the table for a live provider in <code>convert_to_usd()</code></td>
+</tr>
+<tr>
+<th>A3</th>
+<td>The 14-case deduplication evaluation set lives in the project's test suite; the suite modules are not committed in this repository snapshot</td>
+<td>Assumption</td>
+<td>The 14/14 figure cannot be reproduced from this snapshot alone; the algorithm itself is fully documented in doc 17</td>
+</tr>
+<tr>
+<th>A4</th>
+<td>The dashboard front end (<code>frontend/</code>) is built as a React + Vite + TypeScript application per the Makefile and Compose service; its source files are not committed in this snapshot</td>
+<td>Assumption</td>
+<td>Screens in doc 12 are the authoritative UI specification; each screen is mapped to the API calls that back it</td>
+</tr>
+<tr>
+<th>A5</th>
+<td>The documented API size is 113 OpenAPI operations (measured on the current code base); an earlier revision of the project brief cited 74</td>
+<td>Measured</td>
+<td>Documentation uses the measured value; see <code>docs/14_api_documentation.md</code></td>
+</tr>
+<tr>
+<th>A6</th>
+<td><code>MySQL 8.4</code> treats <code>TRIGGER</code> as a reserved word, so <code>SELECT trigger …</code> from <code>vw_pipeline_health</code> fails on MySQL while <code>SELECT dag_id …</code> works</td>
+<td>Known defect</td>
+<td>Only affects the MySQL profile of the pipeline-runs screen; documented in doc 20 with the exact fix</td>
+</tr>
+<tr>
+<th>C1</th>
+<td>Single-node batch execution is sufficient (≤ 5,000 products per source)</td>
+<td>Constraint</td>
+<td>Horizontal scaling options are documented in doc 13</td>
+</tr>
+<tr>
+<th>C2</th>
+<td>One organisation, one warehouse, no tenant isolation</td>
+<td>Constraint</td>
+<td>Multi-tenancy would require a tenant key on every dimension</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="10-how-this-proposal-links-to-the-rest-of-the-documentation">10. How this proposal links to the rest of the documentation</h2>
+<pre class="mermaid">flowchart LR
+    P[&quot;01 Project Proposal&quot;] --&gt; PL[&quot;02 Project Plan&quot;]
+    P --&gt; R[&quot;03 Roles and Responsibilities&quot;]
+    P --&gt; RK[&quot;04 Risk Assessment&quot;]
+    P --&gt; K[&quot;05 KPIs&quot;]
+    P --&gt; L[&quot;06 Literature Review&quot;]
+    P --&gt; REQ[&quot;07 Requirements Gathering&quot;]
+    REQ --&gt; SA[&quot;08 System Analysis and Design&quot;]
+    SA --&gt; DB[&quot;09 Database Design&quot;]
+    SA --&gt; DFD[&quot;10 Data Flow Diagrams&quot;]
+    SA --&gt; BEH[&quot;11 Behaviour Diagrams&quot;]
+    SA --&gt; UI[&quot;12 UI/UX Design&quot;]
+    SA --&gt; DEP[&quot;13 Deployment&quot;]
+    SA --&gt; API[&quot;14 API Documentation&quot;]
+    SA --&gt; TS[&quot;15 Testing Strategy&quot;]
+    SA --&gt; UM[&quot;16 User Manual&quot;]
+    SA --&gt; TD[&quot;17 Technical Documentation&quot;]
+    K --&gt; TS
+    PL --&gt; R
+    RK --&gt; K
+    L --&gt; REQ
+    UI --&gt; UM
+    API --&gt; UM
+    TD --&gt; API
+    DEP --&gt; TD
+    PL --&gt; PRES[&quot;18 Presentation Outline&quot;]
+    TD --&gt; FL[&quot;19 Feature List&quot;]
+    L --&gt; FB[&quot;20 Feedback and Improvements&quot;]</pre>
+<div class='table-scroll'><table><thead><tr>
+<th>Next document</th>
+<th>Read it when you need to know</th>
+</tr></thead><tbody>
+<tr>
+<th><code>02_project_plan.md</code></th>
+<td>The 12-week schedule, milestones and Gantt chart</td>
+</tr>
+<tr>
+<th><code>05_kpis.md</code></th>
+<td>How each success criterion is measured, with runnable SQL</td>
+</tr>
+<tr>
+<td><code>07_requirements_gathering.md</code></td>
+<td>User stories, acceptance criteria and the FR → module traceability matrix</td>
+</tr>
+<tr>
+<td><code>08_system_analysis_design.md</code></td>
+<td>Use cases and the software architecture</td>
+</tr>
+<tr>
+<th><code>09_database_design.md</code></th>
+<td>The 23-table ERD and normalisation argument</td>
+</tr>
+<tr>
+<td><code>17_technical_documentation.md</code></td>
+<td>Module map, algorithms and the configuration reference</td>
+</tr>
+</tbody></table></div>
+    </article>
+    <div class="doc-foot">
+      <span><a href="readme.html">← Overview</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="02_project_plan.html">Project Plan →</a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

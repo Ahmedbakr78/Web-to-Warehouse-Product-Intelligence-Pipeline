@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Prioritised next steps">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Feedback and Improvements — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Prioritised next steps">
+<title>Feedback and Improvements — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="23-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, all 113 operations, examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, 100-case plan, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="234 features with file references">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" class="active" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Feedback and Improvements</h1>
+      <p>Prioritised next steps</p>
+    </div>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#table-of-contents">Table of contents</a></li><li class="lvl-2"><a href="#1-lecturer-feedback">1. Lecturer feedback</a></li><li class="lvl-3"><a href="#11-assessment-record">1.1 Assessment record</a></li><li class="lvl-3"><a href="#12-criterion-by-criterion-feedback">1.2 Criterion-by-criterion feedback</a></li><li class="lvl-3"><a href="#13-what-the-project-asks-the-assessor-to-verify">1.3 What the project asks the assessor to verify</a></li><li class="lvl-3"><a href="#14-feedback-log-chronological">1.4 Feedback log (chronological)</a></li><li class="lvl-2"><a href="#2-suggested-improvements">2. Suggested improvements</a></li><li class="lvl-3"><a href="#21-band-a-correctness-and-completeness-do-first">2.1 Band A — Correctness and completeness (do first)</a></li><li class="lvl-3"><a href="#22-band-b-scale-and-performance">2.2 Band B — Scale and performance</a></li><li class="lvl-3"><a href="#23-band-c-data-engineering-depth">2.3 Band C — Data engineering depth</a></li><li class="lvl-3"><a href="#24-band-d-product-and-experience">2.4 Band D — Product and experience</a></li><li class="lvl-3"><a href="#25-band-e-platform-and-security">2.5 Band E — Platform and security</a></li><li class="lvl-3"><a href="#26-band-f-extensions">2.6 Band F — Extensions</a></li><li class="lvl-3"><a href="#27-prioritised-roadmap">2.7 Prioritised roadmap</a></li><li class="lvl-2"><a href="#3-self-evaluation">3. Self-evaluation</a></li><li class="lvl-3"><a href="#31-against-the-project-objectives">3.1 Against the project objectives</a></li><li class="lvl-3"><a href="#32-strengths">3.2 Strengths</a></li><li class="lvl-3"><a href="#33-weaknesses">3.3 Weaknesses</a></li><li class="lvl-3"><a href="#34-what-i-would-do-with-one-more-month">3.4 What I would do with one more month</a></li><li class="lvl-2"><a href="#4-grading-criteria-self-assessment">4. Grading-criteria self-assessment</a></li><li class="lvl-3"><a href="#41-honest-deductions-accepted">4.1 Honest deductions accepted</a></li><li class="lvl-3"><a href="#42-rubric-alignment-with-the-briefs-required-documents">4.2 Rubric alignment with the brief&#x27;s required documents</a></li><li class="lvl-2"><a href="#5-post-submission-plan">5. Post-submission plan</a></li><li class="lvl-2"><a href="#6-sign-off">6. Sign-off</a></li></ol></details>
+    <article class="doc-body">
+<h2 id="purpose">Purpose</h2>
+<p>This document is the closing section of the project documentation required by the brief ("Feedback &amp; Evaluation", "Suggested Improvements", "Final Grading Criteria"). It provides a structured place for the lecturer's assessment, an honest technical evaluation of the delivered system, a prioritised list of improvements with effort and benefit estimates, and a self-assessment against the marking rubric.</p>
+<hr>
+<h2 id="table-of-contents">Table of contents</h2>
+<ul>
+<li class="depth-0"><a href="#1-lecturer-feedback">Lecturer feedback</a></li>
+<li class="depth-0"><a href="#2-suggested-improvements">Suggested improvements</a></li>
+<li class="depth-0"><a href="#3-self-evaluation">Self-evaluation</a></li>
+<li class="depth-0"><a href="#4-grading-criteria-self-assessment">Grading-criteria self-assessment</a></li>
+<li class="depth-0"><a href="#5-post-submission-plan">Post-submission plan</a></li>
+<li class="depth-0"><a href="#6-sign-off">Sign-off</a></li>
+</ul>
+<hr>
+<h2 id="1-lecturer-feedback">1. Lecturer feedback</h2>
+<blockquote><p><strong>Instruction to the assessor.</strong> Please complete §1.1 during the defence or the written review. The remaining subsections are pre-filled with the evidence the assessor is likely to request, so that the feedback can be recorded against a specific artefact rather than in general terms.</p></blockquote>
+<h3 id="11-assessment-record">1.1 Assessment record</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Field</th>
+<th>To be completed by the assessor</th>
+</tr></thead><tbody>
+<tr>
+<th>Assessor name</th>
+<td></td>
+</tr>
+<tr>
+<th>Role / panel</th>
+<td></td>
+</tr>
+<tr>
+<th>Date of review</th>
+<td></td>
+</tr>
+<tr>
+<th>Artefacts reviewed</th>
+<td><code>docs/01</code> … <code>docs/20</code>, repository, live demonstration</td>
+</tr>
+<tr>
+<th>Overall grade</th>
+<td></td>
+</tr>
+<tr>
+<td>Distinction / merit / pass</td>
+<td></td>
+</tr>
+</tbody></table></div>
+<h3 id="12-criterion-by-criterion-feedback">1.2 Criterion-by-criterion feedback</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Criterion</th>
+<th>Assessor comment</th>
+<th>Evidence reference</th>
+<th>Action agreed</th>
+</tr></thead><tbody>
+<tr>
+<td>Problem definition and objectives</td>
+<td></td>
+<td><code>docs/01</code> §1–§2</td>
+<td></td>
+</tr>
+<tr>
+<td>Scope management (in / out)</td>
+<td></td>
+<td><code>docs/01</code> §3</td>
+<td></td>
+</tr>
+<tr>
+<td>Literature review and citations</td>
+<td></td>
+<td><code>docs/06</code></td>
+<td></td>
+</tr>
+<tr>
+<td>Requirements completeness and traceability</td>
+<td></td>
+<td><code>docs/07</code> §5, §8</td>
+<td></td>
+</tr>
+<tr>
+<td>Use-case and system design quality</td>
+<td></td>
+<td><code>docs/08</code></td>
+<td></td>
+</tr>
+<tr>
+<td>Database design and normalisation</td>
+<td></td>
+<td><code>docs/09</code> §3, §5</td>
+<td></td>
+</tr>
+<tr>
+<td>Data-flow and behaviour modelling</td>
+<td></td>
+<td><code>docs/10</code>, <code>docs/11</code></td>
+<td></td>
+</tr>
+<tr>
+<td>Interface design and accessibility</td>
+<td></td>
+<td><code>docs/12</code></td>
+<td></td>
+</tr>
+<tr>
+<td>Implementation quality and structure</td>
+<td></td>
+<td><code>docs/17</code> §1–§3</td>
+<td></td>
+</tr>
+<tr>
+<th>Data-quality engineering</th>
+<td></td>
+<td><code>app/etl/dq.py</code>, <code>docs/09</code> §11</td>
+<td></td>
+</tr>
+<tr>
+<td>Cross-dialect engineering</td>
+<td></td>
+<td><code>make verify-dialects</code></td>
+<td></td>
+</tr>
+<tr>
+<td>Compliance and ethical position</td>
+<td></td>
+<td><code>docs/01</code> §8</td>
+<td></td>
+</tr>
+<tr>
+<td>Testing depth and evidence</td>
+<td></td>
+<td><code>docs/15</code></td>
+<td></td>
+</tr>
+<tr>
+<td>Documentation quality and consistency</td>
+<td></td>
+<td><code>docs/</code></td>
+<td></td>
+</tr>
+<tr>
+<th>Presentation and defence</th>
+<td><code>docs/18</code></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table></div>
+<h3 id="13-what-the-project-asks-the-assessor-to-verify">1.3 What the project asks the assessor to verify</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Claim</th>
+<th>How to verify in 60 seconds</th>
+</tr></thead><tbody>
+<tr>
+<td>23 tables and 20 views exist</td>
+<td>`curl -s localhost:8000/api/v1/meta/tables \</td>
+<td>jq '.tables \</td>
+<td>length'<code> and </code>GET /api/v1/queries/views \</td>
+<td>jq length`</td>
+</tr>
+<tr>
+<td>The pipeline runs end to end</td>
+<td><code>make run-pipeline --quiet</code> (≈ 3.5 s)</td>
+</tr>
+<tr>
+<td>Data quality is measured, not claimed</td>
+<td>`curl -s localhost:8000/api/v1/quality/latest -H "Authorization: Bearer $TOKEN" \</td>
+<td>jq '{score, pass, warn, fail}'`</td>
+</tr>
+<tr>
+<td>Deduplication works and is explained</td>
+<td><code>GET /api/v1/products/1/duplicates</code></td>
+</tr>
+<tr>
+<th>The model is portable</th>
+<td><code>make verify-dialects</code></td>
+</tr>
+<tr>
+<td>The API is secured and stable</td>
+<td><code>.venv/bin/python scripts/api_smoke.py</code> → 78/78</td>
+</tr>
+<tr>
+<th>Compliance is evidenced</th>
+<td><code>GET /api/v1/audit/compliance</code> plus the <code>ingestion_http_log</code> table</td>
+</tr>
+</tbody></table></div>
+<h3 id="14-feedback-log-chronological">1.4 Feedback log (chronological)</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>#</th>
+<th>Date</th>
+<th>Source</th>
+<th>Feedback</th>
+<th>Response / action</th>
+</tr></thead><tbody>
+<tr>
+<th>1</th>
+<td></td>
+<td>Supervisor</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<th>2</th>
+<td></td>
+<td>Panel</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<th>3</th>
+<td></td>
+<td>Peer review (data modelling)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<th>4</th>
+<td></td>
+<td>Peer review (application and QA)</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="2-suggested-improvements">2. Suggested improvements</h2>
+<p>Each item states the problem, the proposal, an effort estimate in person-days, a benefit rating, and the concrete anchor point in the code. Items are ordered by priority within their band.</p>
+<h3 id="21-band-a-correctness-and-completeness-do-first">2.1 Band A — Correctness and completeness (do first)</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>#</th>
+<th>Item</th>
+<th>Problem</th>
+<th>Proposal</th>
+<th>Effort (days)</th>
+<th>Benefit</th>
+<th>Anchor</th>
+</tr></thead><tbody>
+<tr>
+<th>A1</th>
+<td>Quote the <code>trigger</code> identifier</td>
+<td><code>vw_pipeline_health.trigger</code> cannot be selected unqualified on MySQL 8.4 because <code>TRIGGER</code> is a reserved word; the pipeline-runs query therefore fails on the MySQL profile</td>
+<td>Wrap the column in the dialect identifier preparer, or rename the view column to <code>run_trigger</code></td>
+<td>0.5</td>
+<td>High — removes the last known cross-dialect defect</td>
+<td><code>app/analytics/service.py:442</code>, <code>app/api/routers/pipeline.py:36</code></td>
+</tr>
+<tr>
+<th>A2</th>
+<td>Commit the unit and integration suites</td>
+<td><code>tests/</code> is configured (<code>pyproject.toml</code>) but no modules are committed, so <code>make test</code> collects nothing</td>
+<td>Port the 100-case plan in <code>docs/15</code> §3 into <code>tests/app/…</code> and <code>tests/integration/…</code></td>
+<td>6–8</td>
+<td>High — converts claims into executable proof</td>
+<td><code>tests/</code>, <code>docs/15</code></td>
+</tr>
+<tr>
+<th>A3</th>
+<td>Filter the run HTTP log by run id</td>
+<td><code>GET /pipeline/runs/{run_id}/http</code> ignores the path parameter and returns the global log</td>
+<td>Add the <code>run_id</code> predicate to <code>analytics.http_log</code></td>
+<td>0.5</td>
+<td>Medium — removes a misleading screen</td>
+<td><code>app/analytics/service.py:580</code></td>
+</tr>
+<tr>
+<th>A4</th>
+<td>Populate <code>median_price</code> or drop the column</td>
+<td><code>agg_category_daily.median_price</code> is declared and never written; no portable median exists</td>
+<td>Compute the median with <code>ROW_NUMBER()</code> in a CTE, or remove the column with a design note</td>
+<td>0.5</td>
+<td>Medium — removes an inaccurate schema promise</td>
+<td><code>app/models/facts.py:169</code></td>
+</tr>
+<tr>
+<th>A5</th>
+<td>Make <code>POST /users/me/password</code> functional</td>
+<td>The endpoint returns guidance instead of changing the password</td>
+<td>Delegate to the same implementation as <code>POST /auth/change-password</code></td>
+<td>0.25</td>
+<td>Low — removes a confusing dead end</td>
+<td><code>app/api/routers/users.py:71</code></td>
+</tr>
+<tr>
+<th>A6</th>
+<td>Guarantee a portable <code>ORDER BY</code> for products</td>
+<td>The products list builds <code>ORDER BY</code> from a whitelist, but other endpoints interpolate column names by string</td>
+<td>Route every sort through the dialect preparer</td>
+<td>1</td>
+<td>Medium — defence in depth against a future injection</td>
+<td><code>app/api/routers/products.py:106</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="22-band-b-scale-and-performance">2.2 Band B — Scale and performance</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>#</th>
+<th>Item</th>
+<th>Problem</th>
+<th>Proposal</th>
+<th>Effort (days)</th>
+<th>Benefit</th>
+<th>Anchor</th>
+</tr></thead><tbody>
+<tr>
+<th>B1</th>
+<td>Partition the fact table</td>
+<td><code>fact_price_snapshot</code> is append-only and will dominate storage; queries degrade over years</td>
+<td>Range partitioning by month on PostgreSQL; key-ordered indexes on MySQL</td>
+<td>3</td>
+<td>High for 3× data volume</td>
+<td><code>app/models/facts.py</code></td>
+</tr>
+<tr>
+<th>B2</th>
+<td>Persist the dedupe blocking index</td>
+<td>The blocking index is rebuilt in memory per run</td>
+<td>Materialise <code>blocking_key</code> as an indexed column and query it directly</td>
+<td>1.5</td>
+<td>High — removes an O(n) scan per run</td>
+<td><code>WarehouseLoader.upsert_product</code></td>
+</tr>
+<tr>
+<th>B3</th>
+<td>Incremental sync via cursors</td>
+<td><code>sync_state</code> has cursor columns but no source uses them</td>
+<td>Implement <code>updated_since</code> paging for the API sources so a run fetches only deltas</td>
+<td>3</td>
+<td>High — cuts upstream traffic by an order of magnitude</td>
+<td><code>sync_state.cursor_value</code>, <code>sync_state.cursor_json</code></td>
+</tr>
+<tr>
+<th>B4</th>
+<td>Parallel source extraction</td>
+<td>Sources run sequentially</td>
+<td>Extract with a bounded thread pool (the HTTP layer is thread-safe) and load per source</td>
+<td>2</td>
+<td>Medium — wall-clock time falls with source count</td>
+<td><code>Pipeline._execute</code></td>
+</tr>
+<tr>
+<th>B5</th>
+<td>Cache dashboard aggregates</td>
+<td><code>kpi_summary</code> and <code>table_counts</code> re-run aggregates on every request</td>
+<td>Cache keyed by <code>(window, latest run_id)</code> and invalidate on a new run</td>
+<td>1</td>
+<td>Medium — protects the dashboard at peak</td>
+<td><code>app/analytics/service.py:61</code></td>
+</tr>
+<tr>
+<th>B6</th>
+<td>Sort index for the catalogue</td>
+<td><code>vw_product_current</code> uses a correlated max-subquery for the newest snapshot</td>
+<td>Replace with <code>ROW_NUMBER()</code> in a CTE</td>
+<td>1</td>
+<td>Medium — turns a per-row lookup into a single pass</td>
+<td><code>db/views.sql:44</code></td>
+</tr>
+<tr>
+<th>B7</th>
+<td>Pre-aggregate facets</td>
+<td><code>products/facets</code> runs five group-bys per request</td>
+<td>Compute facets nightly into a small table</td>
+<td>1</td>
+<td>Low–Medium</td>
+<td><code>app/api/routers/products.py:129</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="23-band-c-data-engineering-depth">2.3 Band C — Data engineering depth</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>#</th>
+<th>Item</th>
+<th>Problem</th>
+<th>Proposal</th>
+<th>Effort (days)</th>
+<th>Benefit</th>
+<th>Anchor</th>
+</tr></thead><tbody>
+<tr>
+<th>C1</th>
+<td>Provider-backed FX</td>
+<td>USD values use a static table and drift over time</td>
+<td>Store a daily rate history in <code>dim_currency</code> and join by date; keep the static table as a fallback</td>
+<td>3</td>
+<td>High — removes a documented assumption</td>
+<td><code>cleaning.convert_to_usd</code></td>
+</tr>
+<tr>
+<th>C2</th>
+<td>Slowly changing dimensions</td>
+<td><code>dim_product</code> mutates in place; category and brand history are only in the event feed</td>
+<td>Add a Type-2 <code>dim_product_history</code> or SCD-2 flags on <code>dim_product</code></td>
+<td>4</td>
+<td>High for a retailer (audits and attribution)</td>
+<td><code>app/models/dimensions.py:70</code></td>
+</tr>
+<tr>
+<th>C3</th>
+<td>Threshold calibration study</td>
+<td>0.90 is validated on 14 pairs</td>
+<td>Build a 500-pair labelled set from the staging corpus; report precision/recall per strategy</td>
+<td>4</td>
+<td>High — turns tuning into evidence</td>
+<td><code>app/ingestion/dedupe.py</code></td>
+</tr>
+<tr>
+<th>C4</th>
+<td>Record-linkage evaluation</td>
+<td>Blocking strategies are compared only qualitatively</td>
+<td>Compare prefix blocking, sorted neighbourhood, canopy clustering and LSH on the same labelled set</td>
+<td>5</td>
+<td>Medium–High (academic value)</td>
+<td><code>CatalogReconciler._build_indexes</code></td>
+</tr>
+<tr>
+<th>C5</th>
+<td>Retention jobs</td>
+<td>No automated pruning of staging, audit or fact data</td>
+<td>Add a <code>pip-cli prune --older-than 90d</code> command and a scheduled task</td>
+<td>1</td>
+<td>Medium — controls storage growth</td>
+<td>doc 09 §8.2</td>
+</tr>
+<tr>
+<th>C6</th>
+<td>Data contracts</td>
+<td>Consumers depend on view column names without a machine-readable contract</td>
+<td>Emit a JSON schema per view at build time and diff it in CI</td>
+<td>2</td>
+<td>Medium</td>
+<td><code>db/views.sql</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="24-band-d-product-and-experience">2.4 Band D — Product and experience</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>#</th>
+<th>Item</th>
+<th>Problem</th>
+<th>Proposal</th>
+<th>Effort (days)</th>
+<th>Benefit</th>
+<th>Anchor</th>
+</tr></thead><tbody>
+<tr>
+<th>D1</th>
+<td>Scheduled alert dispatch</td>
+<td><code>publish_notifications</code> creates in-app notifications only</td>
+<td>Add email and webhook channels using <code>app_alert_rule.channel</code></td>
+<td>2</td>
+<td>High for operational use</td>
+<td><code>dags/…publish_notifications</code>, <code>app_alert_rule.channel</code></td>
+</tr>
+<tr>
+<th>D2</th>
+<td>Dashboard delivery</td>
+<td>The front-end sources are not committed in this snapshot</td>
+<td>Commit the React application and wire it to <code>VITE_API_BASE_URL</code></td>
+<td>5–8</td>
+<td>High — completes the deliverable set</td>
+<td><code>frontend/</code>, <code>docker-compose.yml</code></td>
+</tr>
+<tr>
+<th>D3</th>
+<td>Self-service alerts from the UI</td>
+<td>Alert creation exists in the API and the spec but needs a form</td>
+<td>Implement the form against <code>/alerts</code></td>
+<td>1</td>
+<td>Medium</td>
+<td>doc 12 §5.14</td>
+</tr>
+<tr>
+<th>D4</th>
+<td>Export scheduling</td>
+<td>CSV export is on demand</td>
+<td>Allow a scheduled export to <code>var/artifacts</code> and a download link</td>
+<td>2</td>
+<td>Medium</td>
+<td><code>GET /api/v1/analytics/export/products.csv</code></td>
+</tr>
+<tr>
+<th>D5</th>
+<td>Accessibility audit</td>
+<td>Conformance is argued from WCAG criteria</td>
+<td>Run a screen-reader pass and an automated audit; fix the findings</td>
+<td>3</td>
+<td>High for the rubric</td>
+<td>doc 12 §7</td>
+</tr>
+<tr>
+<th>D6</th>
+<td>Onboarding tour</td>
+<td>12 screens with no orientation</td>
+<td>Add a dismissible checklist on first login</td>
+<td>1</td>
+<td>Low</td>
+<td>doc 12 §4</td>
+</tr>
+</tbody></table></div>
+<h3 id="25-band-e-platform-and-security">2.5 Band E — Platform and security</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>#</th>
+<th>Item</th>
+<th>Problem</th>
+<th>Proposal</th>
+<th>Effort (days)</th>
+<th>Benefit</th>
+<th>Anchor</th>
+</tr></thead><tbody>
+<tr>
+<th>E1</th>
+<td>Enforce API-key rate limits</td>
+<td><code>rate_limit_per_minute</code> is stored but not enforced</td>
+<td>Add a middleware counter keyed by key id</td>
+<td>1</td>
+<td>Medium</td>
+<td><code>app_api_key.rate_limit_per_minute</code></td>
+</tr>
+<tr>
+<th>E2</th>
+<td>Two-factor authentication</td>
+<td>The column exists; the flow does not</td>
+<td>TOTP with a recovery-code flow</td>
+<td>3</td>
+<td>High for a production system</td>
+<td><code>app_user.two_factor_enabled</code></td>
+</tr>
+<tr>
+<th>E3</th>
+<td>Read-only database role for the Query Lab</td>
+<td>The console is guarded in the validator only</td>
+<td>Point <code>queries/execute</code> at a connection with <code>SELECT</code> only</td>
+<td>1.5</td>
+<td>High (defence in depth)</td>
+<td><code>routers/queries.py</code></td>
+</tr>
+<tr>
+<th>E4</th>
+<td>Refresh-token rotation with revocation</td>
+<td>A refresh token is valid for 30 days with no server-side record</td>
+<td>Store a token family id and revoke on reuse</td>
+<td>2</td>
+<td>High</td>
+<td><code>app/api/security.py</code></td>
+</tr>
+<tr>
+<th>E5</th>
+<td>Secret manager integration</td>
+<td><code>.env</code> is used in every environment</td>
+<td>Add a settings source that reads from the platform secret store</td>
+<td>1</td>
+<td>Medium</td>
+<td><code>app/core/config.py</code></td>
+</tr>
+<tr>
+<th>E6</th>
+<td>Content-security headers</td>
+<td>Not set by the application</td>
+<td>Add HSTS, <code>nosniff</code>, <code>frame-ancestors</code> and a CSP at the edge</td>
+<td>0.5</td>
+<td>Medium</td>
+<td>doc 13 §10.1</td>
+</tr>
+<tr>
+<th>E7</th>
+<td>Dockerfiles and CI workflow</td>
+<td>Referenced by Compose but not committed</td>
+<td>Add <code>docker/api.Dockerfile</code>, <code>frontend/Dockerfile</code> and the GitHub Actions workflow</td>
+<td>1.5</td>
+<td>High — makes <code>make up</code> and CI work</td>
+<td><code>docker-compose.yml</code>, <code>.github/</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="26-band-f-extensions">2.6 Band F — Extensions</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>#</th>
+<th>Item</th>
+<th>Proposal</th>
+<th>Effort (days)</th>
+<th>Benefit</th>
+</tr></thead><tbody>
+<tr>
+<th>F1</th>
+<td>Incremental alerting on price anomalies</td>
+<td>z-score per product over its own history, with a notification channel</td>
+<td>4</td>
+<td>High</td>
+</tr>
+<tr>
+<th>F2</th>
+<td>Assortment gap analysis</td>
+<td>Products the market lists but our catalog does not, ranked by price similarity</td>
+<td>3</td>
+<td>High for buying</td>
+</tr>
+<tr>
+<th>F3</th>
+<td>Supplier scorecards</td>
+<td>Price variance and availability per supplier over time</td>
+<td>4</td>
+<td>Medium</td>
+</tr>
+<tr>
+<th>F4</th>
+<td>Basket-level analysis</td>
+<td>A session/cart schema to study price elasticity across a basket</td>
+<td>8</td>
+<td>Medium (data-model heavy)</td>
+</tr>
+<tr>
+<th>F5</th>
+<td>Price forecasting</td>
+<td>Gradient boosting on the stored price history, with a documented baseline comparison</td>
+<td>8</td>
+<td>High academically, low operational urgency</td>
+</tr>
+<tr>
+<th>F6</th>
+<td>Source onboarding UI</td>
+<td>Register a source (with a terms declaration) through the API</td>
+<td>3</td>
+<td>Medium</td>
+</tr>
+</tbody></table></div>
+<h3 id="27-prioritised-roadmap">2.7 Prioritised roadmap</h3>
+<pre class="mermaid">flowchart LR
+    NOW[&quot;Now - 1 week&lt;br/&gt;A1 A3 A4 A5&lt;br/&gt;Quotable identifier,&lt;br/&gt;honest endpoints&quot;]
+    NEXT[&quot;Next - 1 month&lt;br/&gt;A2 E7 D2&lt;br/&gt;Commit tests,&lt;br/&gt;Dockerfiles, front end&quot;]
+    MID[&quot;Mid term - 1 quarter&lt;br/&gt;B1 B2 C1 C2 E2&lt;br/&gt;Partition, block index,&lt;br/&gt;FX history, SCD-2, 2FA&quot;]
+    LONG[&quot;Long term&lt;br/&gt;C3 C4 F1 F2 F5&lt;br/&gt;Calibration study,&lt;br/&gt;blocking comparison,&lt;br/&gt;alerts, assortment gaps, forecasting&quot;]
+    NOW --&gt; NEXT --&gt; MID --&gt; LONG</pre>
+<div class='table-scroll'><table><thead><tr>
+<th>Band</th>
+<th>Items</th>
+<th>Effort</th>
+<th>Expected value</th>
+</tr></thead><tbody>
+<tr>
+<th>A — correctness</th>
+<td>6 items</td>
+<td>≈ 9 days</td>
+<td>Removes every known defect</td>
+</tr>
+<tr>
+<th>B — scale</th>
+<td>7 items</td>
+<td>≈ 12.5 days</td>
+<td>10× headroom on volume</td>
+</tr>
+<tr>
+<th>C — depth</th>
+<td>6 items</td>
+<td>≈ 19 days</td>
+<td>Academic and audit credibility</td>
+</tr>
+<tr>
+<th>D — product</th>
+<td>6 items</td>
+<td>≈ 15 days</td>
+<td>Completeness of the deliverable set</td>
+</tr>
+<tr>
+<th>E — platform</th>
+<td>7 items</td>
+<td>≈ 10.5 days</td>
+<td>Production readiness</td>
+</tr>
+<tr>
+<th>F — extensions</th>
+<td>6 items</td>
+<td>≈ 30 days</td>
+<td>New analytical value</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="3-self-evaluation">3. Self-evaluation</h2>
+<h3 id="31-against-the-project-objectives">3.1 Against the project objectives</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Objective</th>
+<th>Achieved?</th>
+<th>Evidence</th>
+<th>Comment</th>
+</tr></thead><tbody>
+<tr>
+<td>Collect from permitted sources</td>
+<td>Yes</td>
+<td>5 sources; <code>robots.txt</code> gate; audit log</td>
+<td>Compliance is structural, not procedural</td>
+</tr>
+<tr>
+<th>Historical price table</th>
+<td>Yes</td>
+<td>8,182 snapshots over 150 days; 8,062 changes</td>
+<td>The core business artefact exists</td>
+</tr>
+<tr>
+<td>Four change classes via SQL</td>
+<td>Yes</td>
+<td><code>chg_price_change</code>, <code>chg_product_event</code>, four views</td>
+<td>Fully queryable without the application</td>
+</tr>
+<tr>
+<th>Duplicate resolution</th>
+<td>Yes</td>
+<td>14/14 pairs at 0.90; blocking optimisation</td>
+<td>The digit-signature guard is the strongest single idea</td>
+</tr>
+<tr>
+<th>Catalog reconciliation</th>
+<td>Yes</td>
+<td>39/57 matched (68.42 %), 36 price gaps</td>
+<td>The unmatched 30 % are internal-only SKUs by design</td>
+</tr>
+<tr>
+<th>Measured data quality</th>
+<td>Yes</td>
+<td>12 rules, 6 dimensions, score 98.26 persisted per run</td>
+<td>Rules are production code, not a test artefact</td>
+</tr>
+<tr>
+<th>Two SQL engines</th>
+<td>Yes</td>
+<td>0 structural drift, identical DQ score</td>
+<td>One known reserved-word defect remains (A1)</td>
+</tr>
+<tr>
+<th>Secure API</th>
+<td>Yes</td>
+<td>113 operations, 3 roles, 78/78 checks</td>
+<td>API keys and audit are implemented, not stubbed</td>
+</tr>
+<tr>
+<th>Airflow orchestration</th>
+<td>Yes</td>
+<td>13 tasks, guards, branch, retries</td>
+<td>Optional import keeps the CLI usable without Airflow</td>
+</tr>
+<tr>
+<th>Operable without the UI</th>
+<td>Yes</td>
+<td>11 CLI commands, 30+ Make targets</td>
+<td>Demonstrations never depend on the browser</td>
+</tr>
+</tbody></table></div>
+<h3 id="32-strengths">3.2 Strengths</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>#</th>
+<th>Strength</th>
+<th>Why it matters</th>
+</tr></thead><tbody>
+<tr>
+<th>1</th>
+<td>Compliance enforced in the transport layer</td>
+<td>A future source cannot be impolite by accident</td>
+</tr>
+<tr>
+<th>2</th>
+<td>Pure preparation and matching code</td>
+<td>Testable and deterministic; the only I/O is at the edges</td>
+</tr>
+<tr>
+<th>3</th>
+<td>Blocking as a first-class design decision</td>
+<td>Turned a 3-second reconciliation into 104 ms with identical results</td>
+</tr>
+<tr>
+<th>4</th>
+<td>Data quality treated as production code</td>
+<td>Every load is measured; verdicts are persisted and trendable</td>
+</tr>
+<tr>
+<th>5</th>
+<td>One warehouse model, two engines</td>
+<td>Proved rather than asserted, with a repeatable verification command</td>
+</tr>
+<tr>
+<th>6</th>
+<td>The pipeline is a library, not a script</td>
+<td>CLI, API and Airflow share one implementation</td>
+</tr>
+<tr>
+<th>7</th>
+<td>Documentation generated where it can be</td>
+<td>The ERD and the API catalogue come from the code</td>
+</tr>
+<tr>
+<th>8</th>
+<td>Graceful degradation</td>
+<td>A failing source produces <code>partial</code>, not an outage</td>
+</tr>
+</tbody></table></div>
+<h3 id="33-weaknesses">3.3 Weaknesses</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>#</th>
+<th>Weakness</th>
+<th>Impact</th>
+<th>Fix reference</th>
+</tr></thead><tbody>
+<tr>
+<th>1</th>
+<td>Unit and integration suites not committed in this snapshot</td>
+<td><code>make test</code> collects nothing; quality evidence rests on the smoke suite and the DQ framework</td>
+<td>A2</td>
+</tr>
+<tr>
+<th>2</th>
+<td>Front-end sources not committed</td>
+<td>The dashboard is specified and verifiable through the API but not shippable as code in this snapshot</td>
+<td>D2</td>
+</tr>
+<tr>
+<th>3</th>
+<td>Dockerfiles and CI workflow not committed</td>
+<td><code>make up</code> and CI cannot run as delivered</td>
+<td>E7</td>
+</tr>
+<tr>
+<th>4</th>
+<td>MySQL reserved-word defect</td>
+<td>The pipeline-runs query fails on the MySQL profile</td>
+<td>A1</td>
+</tr>
+<tr>
+<th>5</th>
+<td>Static FX table</td>
+<td>USD analytics drift over time</td>
+<td>C1</td>
+</tr>
+<tr>
+<th>6</th>
+<td>Small deduplication evaluation set</td>
+<td>The threshold claim rests on 14 pairs</td>
+<td>C3</td>
+</tr>
+<tr>
+<th>7</th>
+<td>Latency measured at small sample size</td>
+<td>KPI-15 is an order-of-magnitude figure, not a service-level measurement</td>
+<td><code>docs/05</code> §7.1</td>
+</tr>
+<tr>
+<th>8</th>
+<td>Some declared columns are never populated</td>
+<td><code>median_price</code>, <code>av_duration_seconds</code> inconsistencies</td>
+<td>A4</td>
+</tr>
+</tbody></table></div>
+<h3 id="34-what-i-would-do-with-one-more-month">3.4 What I would do with one more month</h3>
+<ul>
+<li class="depth-0">Ship Band A and E7 (about 10 days) — the project would then have no known defects and a</li>
+</ul>
+<p>reproducible container/CI path.</p>
+<ul>
+<li class="depth-0">Ship A2 (the test suite, 6–8 days) — the single biggest credibility gain.</li>
+<li class="depth-0">Ship D2 (the front end, 5–8 days) — completes the deliverable set.</li>
+<li class="depth-0">Spend the remainder on C3 (the calibration study), because it turns the most interesting algorithm</li>
+</ul>
+<p>in the project from "tuned" into "measured".</p>
+<hr>
+<h2 id="4-grading-criteria-self-assessment">4. Grading-criteria self-assessment</h2>
+<p>Indicative weighting for a DEPI data-engineering graduation project; adjust the percentages to the official rubric. Each row cites the artefact that supports the claim.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>#</th>
+<th>Criterion</th>
+<th>Weight</th>
+<th>Self-assessment</th>
+<th>Score (%)</th>
+<th>Evidence</th>
+</tr></thead><tbody>
+<tr>
+<th>1</th>
+<td>Problem definition, objectives and scope</td>
+<td>10 %</td>
+<td>Complete, measurable objectives with an explicit out-of-scope list</td>
+<td>90</td>
+<td><code>docs/01</code> §1–§3, <code>docs/07</code> §5</td>
+</tr>
+<tr>
+<th>2</th>
+<td>Literature review and academic grounding</td>
+<td>10 %</td>
+<td>Six themes, 39 sources with a verification status, synthesis and a research gap</td>
+<td>88</td>
+<td><code>docs/06</code></td>
+</tr>
+<tr>
+<th>3</th>
+<td>Requirements engineering</td>
+<td>10 %</td>
+<td>58 requirements with MoSCoW, 10 user stories with Given/When/Then, full FR traceability</td>
+<td>92</td>
+<td><code>docs/07</code></td>
+</tr>
+<tr>
+<th>4</th>
+<td>System analysis and design</td>
+<td>10 %</td>
+<td>Use-case diagram, 20 use cases, layered architecture with rationale</td>
+<td>90</td>
+<td><code>docs/08</code></td>
+</tr>
+<tr>
+<th>5</th>
+<td>Database design and data modelling</td>
+<td>12 %</td>
+<td>Generated 23-table ERD, 3NF argument with documented exceptions, indexing and retention plan</td>
+<td>94</td>
+<td><code>docs/09</code></td>
+</tr>
+<tr>
+<th>6</th>
+<td>Data-flow and behaviour modelling</td>
+<td>6 %</td>
+<td>Level 0/1/2 DFDs, data dictionary, sequence, activity, two state and a class diagram</td>
+<td>88</td>
+<td><code>docs/10</code>, <code>docs/11</code></td>
+</tr>
+<tr>
+<th>7</th>
+<td>Implementation quality</td>
+<td>14 %</td>
+<td>Layered packages, pure domain logic, portability, no vendor SQL, 218 features</td>
+<td>90</td>
+<td><code>docs/17</code>, <code>docs/19</code></td>
+</tr>
+<tr>
+<th>8</th>
+<td>Data engineering depth (ETL, quality, change detection)</td>
+<td>12 %</td>
+<td>Nine instrumented stages, 12 DQ rules with a weighted score, four change classes, reconciliation with blocking</td>
+<td>93</td>
+<td><code>app/etl/</code>, <code>db/views.sql</code></td>
+</tr>
+<tr>
+<th>9</th>
+<td>Testing and verification</td>
+<td>10 %</td>
+<td>100-case plan, 78/78 API checks, cross-dialect verification, DQ as executable assertions — but unit suites not committed</td>
+<td>74</td>
+<td><code>docs/15</code>, <code>scripts/api_smoke.py</code></td>
+</tr>
+<tr>
+<th>10</th>
+<td>Compliance, ethics and security</td>
+<td>6 %</td>
+<td>RFC 9309 gate, terms allow-list, audit trail, Argon2id, JWT, RBAC, API keys, audit log</td>
+<td>92</td>
+<td><code>docs/01</code> §8, <code>docs/17</code> §10</td>
+</tr>
+<tr>
+<th>11</th>
+<td>Documentation quality</td>
+<td>10 %</td>
+<td>20 documents, Mermaid diagrams, runnable measurement SQL, generated artefacts, assumptions recorded</td>
+<td>95</td>
+<td><code>docs/</code></td>
+</tr>
+<tr>
+<th>12</th>
+<td>Presentation and defence</td>
+<td>—</td>
+<td>Deck, 3-minute demo script, Q&amp;A preparation, rehearsal plan</td>
+<td>90</td>
+<td><code>docs/18</code></td>
+</tr>
+<tr>
+<th>—</th>
+<td><strong>Weighted total</strong></td>
+<td><strong>100 %</strong></td>
+<td>—</td>
+<td><strong>≈ 90 %</strong></td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<h3 id="41-honest-deductions-accepted">4.1 Honest deductions accepted</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Deduction</th>
+<th>Reason</th>
+</tr></thead><tbody>
+<tr>
+<th>−6 points on criterion 9</th>
+<td>The pytest suites are configured but not committed; the verification burden falls on the smoke test and the DQ framework</td>
+</tr>
+<tr>
+<td>−4 points spread across criteria 7 and 12</td>
+<td>Dockerfiles and the front-end sources are absent from this snapshot, so <code>make up</code> and the dashboard build cannot run as delivered</td>
+</tr>
+<tr>
+<th>−2 points on criterion 5</th>
+<td>Two declared columns are never populated (<code>median_price</code>, and a source-level average maintained only by the seeder)</td>
+</tr>
+<tr>
+<th>−1 point on criterion 2</th>
+<td>Eight references could not be machine-verified offline and are marked <em>to verify</em></td>
+</tr>
+<tr>
+<th>−1 point on criterion 8</th>
+<td>The FX table is static and the deduplication evaluation set is small</td>
+</tr>
+</tbody></table></div>
+<h3 id="42-rubric-alignment-with-the-briefs-required-documents">4.2 Rubric alignment with the brief's required documents</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Brief requirement</th>
+<th>Document</th>
+<th>Status</th>
+</tr></thead><tbody>
+<tr>
+<th>Project proposal</th>
+<td><code>01_project_proposal.md</code></td>
+<td>Complete</td>
+</tr>
+<tr>
+<td>Project plan (Gantt, milestones, deliverables, resources)</td>
+<td><code>02_project_plan.md</code></td>
+<td>Complete</td>
+</tr>
+<tr>
+<td>Task assignment and roles</td>
+<td><code>03_roles_and_responsibilities.md</code></td>
+<td>Complete</td>
+</tr>
+<tr>
+<td>Risk assessment and mitigation</td>
+<td><code>04_risk_assessment.md</code></td>
+<td>Complete</td>
+</tr>
+<tr>
+<th>KPIs</th>
+<td><code>05_kpis.md</code></td>
+<td>Complete</td>
+</tr>
+<tr>
+<th>Lecturer assessment</th>
+<td><code>20_literature_feedback_and_improvements.md</code> §1</td>
+<td>Template provided for completion</td>
+</tr>
+<tr>
+<th>Suggested improvements</th>
+<td><code>20_literature_feedback_and_improvements.md</code> §2</td>
+<td>Complete (32 items, prioritised)</td>
+</tr>
+<tr>
+<th>Final grading criteria</th>
+<td><code>20_literature_feedback_and_improvements.md</code> §4</td>
+<td>Self-assessment provided</td>
+</tr>
+<tr>
+<th>Stakeholder analysis</th>
+<td><code>07_requirements_gathering.md</code> §2</td>
+<td>Complete</td>
+</tr>
+<tr>
+<td>User stories and use cases</td>
+<td><code>07_requirements_gathering.md</code> §3–§4</td>
+<td>Complete</td>
+</tr>
+<tr>
+<th>Functional requirements</th>
+<td><code>07_requirements_gathering.md</code> §5</td>
+<td>Complete (58 requirements)</td>
+</tr>
+<tr>
+<td>Non-functional requirements</td>
+<td><code>07_requirements_gathering.md</code> §6</td>
+<td>Complete (26 NFRs)</td>
+</tr>
+<tr>
+<td>Problem statement and objectives</td>
+<td><code>08_system_analysis_design.md</code> §1</td>
+<td>Complete</td>
+</tr>
+<tr>
+<td>Use-case diagram and descriptions</td>
+<td><code>08_system_analysis_design.md</code> §2–§3</td>
+<td>Complete</td>
+</tr>
+<tr>
+<td>Software architecture and style</td>
+<td><code>08_system_analysis_design.md</code> §5–§6</td>
+<td>Complete</td>
+</tr>
+<tr>
+<th>ER diagram</th>
+<td><code>09_database_design.md</code> §3</td>
+<td>Complete (23 tables)</td>
+</tr>
+<tr>
+<td>Logical and physical schema</td>
+<td><code>09_database_design.md</code> §4</td>
+<td>Complete</td>
+</tr>
+<tr>
+<th>DFDs</th>
+<td><code>10_data_flow_diagrams.md</code></td>
+<td>Complete (levels 0, 1, 2a–c)</td>
+</tr>
+<tr>
+<th>Sequence diagrams</th>
+<td><code>11_behaviour_diagrams.md</code> §1–§2</td>
+<td>Complete</td>
+</tr>
+<tr>
+<th>Activity diagram</th>
+<td><code>11_behaviour_diagrams.md</code> §3</td>
+<td>Complete</td>
+</tr>
+<tr>
+<th>State diagrams</th>
+<td><code>11_behaviour_diagrams.md</code> §4–§6</td>
+<td>Complete (product, run, source)</td>
+</tr>
+<tr>
+<th>Class diagram</th>
+<td><code>11_behaviour_diagrams.md</code> §7</td>
+<td>Complete</td>
+</tr>
+<tr>
+<th>UI design</th>
+<td><code>12_ui_ux_design.md</code></td>
+<td>Complete (12 screens, design system, WCAG)</td>
+</tr>
+<tr>
+<th>Deployment plan</th>
+<td><code>13_deployment.md</code></td>
+<td>Complete</td>
+</tr>
+<tr>
+<th>API documentation</th>
+<td><code>14_api_documentation.md</code></td>
+<td>Complete (113 operations)</td>
+</tr>
+<tr>
+<th>Testing documents</th>
+<td><code>15_testing_strategy.md</code></td>
+<td>Complete</td>
+</tr>
+<tr>
+<th>User manual</th>
+<td><code>16_user_manual.md</code></td>
+<td>Complete</td>
+</tr>
+<tr>
+<th>Feature list</th>
+<td><code>19_feature_list.md</code></td>
+<td>Complete (218 features)</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="5-post-submission-plan">5. Post-submission plan</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>When</th>
+<th>Activity</th>
+<th>Purpose</th>
+</tr></thead><tbody>
+<tr>
+<th>Week +1</th>
+<td>Read the feedback and publish the response table in §1.4</td>
+<td>Close the loop with the assessor</td>
+</tr>
+<tr>
+<th>Week +1</th>
+<td>Start Band A (correctness fixes)</td>
+<td>Remove the known defects while they are fresh</td>
+</tr>
+<tr>
+<th>Week +2</th>
+<td>Commit the test suites (A2) and Dockerfiles (E7)</td>
+<td>Make the repository reproducible by a third party</td>
+</tr>
+<tr>
+<th>Week +4</th>
+<td>Commit the dashboard (D2) and wire it to the API</td>
+<td>Complete the deliverable set</td>
+</tr>
+<tr>
+<th>Week +6</th>
+<td>Begin the calibration study (C3) and the FX history (C1)</td>
+<td>Move tuning into evidence</td>
+</tr>
+<tr>
+<th>Ongoing</th>
+<td>Monthly <code>make verify-dialects</code> and <code>scripts/api_smoke.py</code></td>
+<td>Prevent silent regression</td>
+</tr>
+<tr>
+<th>Ongoing</th>
+<td>Retention job (C5) and partition maintenance (B1)</td>
+<td>Keep the warehouse operable at growth</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="6-sign-off">6. Sign-off</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Role</th>
+<th>Name</th>
+<th>Signature</th>
+<th>Date</th>
+</tr></thead><tbody>
+<tr>
+<td>Student / Data Engineering Lead</td>
+<td>Ahmed Abobakr</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<th>Supervisor</th>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<th>Panel member</th>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Industry observer (optional)</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table></div>
+<p><strong>Declaration.</strong> The code, configuration and SQL in this repository are the author's own work. All external data is obtained from sources whose terms permit automated access, and the compliance decisions are documented in <code>docs/01_project_proposal.md</code> §8. Every measured figure in this documentation set is reproducible with the command cited beside it. Where a figure could not be reproduced from this repository snapshot, the assumption is stated explicitly rather than asserted.</p>
+    </article>
+    <div class="doc-foot">
+      <span><a href="19_feature_list.html">← Feature Inventory</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="21_architecture_deep_dive.html">Architecture Deep Dive →</a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>
