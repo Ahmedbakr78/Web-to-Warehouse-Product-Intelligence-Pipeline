@@ -9,6 +9,25 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 T = TypeVar("T")
 
+#: Accent palettes the dashboard ships. Mirrors `frontend/src/lib/theme.ts`;
+#: the two are cross-checked by `tests/test_api.py::test_appearance_palettes_match_frontend`.
+ACCENT_PRESETS: frozenset[str] = frozenset(
+    {
+        "indigo",
+        "blue",
+        "sky",
+        "cyan",
+        "teal",
+        "emerald",
+        "green",
+        "amber",
+        "orange",
+        "rose",
+        "pink",
+        "violet",
+    }
+)
+
 
 class ORMModel(BaseModel):
     """Base model that can serialise SQLAlchemy rows directly."""
@@ -116,6 +135,9 @@ class UserRead(ORMModel):
     theme: str = "system"
     accent: str = "indigo"
     density: str = "comfortable"
+    motion: str = "full"
+    direction: str = "ltr"
+    font_scale: str = "md"
     is_active: bool = True
     is_verified: bool = False
     rows_per_page: int = 25
@@ -137,9 +159,16 @@ class UserUpdate(BaseModel):
     department: str | None = None
     timezone: str | None = None
     locale: str | None = None
-    theme: Literal["system", "light", "dark"] | None = None
-    accent: str | None = None
+    # Five palettes: three light/dark variants plus system and a high-contrast mode.
+    theme: Literal["system", "light", "dark", "midnight", "high-contrast"] | None = None
+    accent: str | None = Field(default=None, max_length=32)
     density: Literal["compact", "comfortable", "spacious"] | None = None
+    # Animation policy, independent of the OS `prefers-reduced-motion` setting.
+    motion: Literal["full", "reduced", "none"] | None = None
+    # Layout direction; the frontend mirrors itself with CSS logical properties.
+    direction: Literal["ltr", "rtl"] | None = None
+    # Root font size, independent of density.
+    font_scale: Literal["xs", "sm", "md", "lg", "xl"] | None = None
     rows_per_page: int | None = Field(default=None, ge=5, le=500)
     default_currency: str | None = None
     price_change_alert_pct: float | None = Field(default=None, ge=0, le=100)
@@ -147,6 +176,13 @@ class UserUpdate(BaseModel):
     weekly_digest_enabled: bool | None = None
     avatar_color: str | None = None
     preferences: dict[str, Any] | None = None
+
+    @field_validator("accent")
+    @classmethod
+    def _known_accent(cls, value: str | None) -> str | None:
+        if value is None or value in ACCENT_PRESETS:
+            return value
+        raise ValueError(f"accent must be one of: {', '.join(sorted(ACCENT_PRESETS))}")
 
 
 class UserDeleteRequest(BaseModel):

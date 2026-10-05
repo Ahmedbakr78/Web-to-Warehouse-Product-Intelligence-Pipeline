@@ -25,9 +25,15 @@ class AppUser(Base, TimestampMixin):
     avatar_color: Mapped[str | None] = mapped_column(ShortStr, default="#6366f1")
     timezone: Mapped[str] = mapped_column(ShortStr, default="UTC")
     locale: Mapped[str] = mapped_column(ShortStr, default="en")
-    theme: Mapped[str] = mapped_column(ShortStr, default="system")  # system | light | dark
+    # Appearance preferences. `theme` accepts five values (see THEME_VALUES below);
+    # the other three axes are independent of it, so a user can have a dark palette
+    # with compact density and a large font scale at the same time.
+    theme: Mapped[str] = mapped_column(ShortStr, default="system")
     accent: Mapped[str] = mapped_column(ShortStr, default="indigo")
     density: Mapped[str] = mapped_column(ShortStr, default="comfortable")
+    motion: Mapped[str] = mapped_column(ShortStr, default="full")
+    direction: Mapped[str] = mapped_column(ShortStr, default="ltr")
+    font_scale: Mapped[str] = mapped_column(ShortStr, default="md")
     is_active: Mapped[bool] = mapped_column(sa.Boolean, default=True)
     is_verified: Mapped[bool] = mapped_column(sa.Boolean, default=False)
     rows_per_page: Mapped[int] = mapped_column(sa.Integer, default=25)

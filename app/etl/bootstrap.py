@@ -44,6 +44,10 @@ def create_schema(database: str | None = None, *, drop: bool = False) -> dict[st
         with engine.begin() as conn:
             conn.execute(sa.text(f'CREATE SCHEMA IF NOT EXISTS "{settings.db_schema}"'))
     Base.metadata.create_all(engine, checkfirst=True)
+    # `create_all` never adds a column to a table that already exists, so a
+    # deployment created before a new column was introduced would silently miss
+    # it. This narrow, additive sync bridges the gap until Alembic owns migrations.
+    added = sync_missing_columns(engine)
     elapsed = round((time.perf_counter() - started) * 1000, 2)
     tables = sorted(Base.metadata.tables)
     log.info("schema ready on %s (%d tables, %sms)", engine.dialect.name, len(tables), elapsed)
@@ -53,7 +57,50 @@ def create_schema(database: str | None = None, *, drop: bool = False) -> dict[st
         "tables": tables,
         "table_count": len(tables),
         "duration_ms": elapsed,
+        "columns_added": added,
     }
+
+
+def sync_missing_columns(engine: Any) -> dict[str, list[str]]:
+    """Additively add any ORM column that the database does not have yet.
+
+    Deliberately conservative and additive only:
+
+    * it never drops or renames anything;
+    * it refuses to touch a table with no primary key, because there is no
+      safe way to express "every row gets the default" there;
+    * it skips columns that already exist, so it is a no-op on a fresh database.
+
+    Alembic (`make migrate`) is the supported path for anything beyond adding a
+    nullable column with a default.
+    """
+    inspector = sa.inspect(engine)
+    existing_tables = set(inspector.get_table_names())
+    added: dict[str, list[str]] = {}
+    quote = '"' if engine.dialect.name != "mysql" else "`"
+
+    for table in Base.metadata.sorted_tables:
+        if table.name not in existing_tables or not table.primary_key:
+            continue
+        present = {column["name"] for column in inspector.get_columns(table.name)}
+        missing = [column for column in table.columns if column.name not in present]
+        if not missing:
+            continue
+        added[table.name] = []
+        with engine.begin() as conn:
+            for column in missing:
+                ddl = column.type.compile(dialect=engine.dialect)
+                default = "" if column.server_default is None else f" DEFAULT {column.server_default.arg}"
+                nullable = "" if column.nullable else " NOT NULL"
+                conn.execute(
+                    sa.text(
+                        f"ALTER TABLE {quote}{table.name}{quote} "
+                        f"ADD COLUMN {quote}{column.name}{quote} {ddl}{default}{nullable}"
+                    )
+                )
+                added[table.name].append(column.name)
+        log.info("added %d column(s) to %s", len(added[table.name]), table.name)
+    return added
 
 
 def quote_identifier(engine: Any, name: str) -> str:
