@@ -1035,59 +1035,101 @@ def test_a_valid_subset_resolves_to_just_those_topics():
     assert _resolve_topics(None) == list(TOPICS.values())
 
 
-def test_progress_is_persisted_while_the_job_is_still_running():
-    """Progress must reach the database mid-job, not only when the handler returns.
+def test_mid_run_progress_flush_is_skipped_only_on_sqlite():
+    """SQLite serialises writers, so a flush during the handler cannot succeed there.
 
-    Regression test: progress used to be buffered until the handler returned, so a
-    pipeline run crawling permitted web sources under a rate limit sat at 0% for its
-    whole duration and looked identical to a hung job.
+    Everywhere else it must be attempted: a run that crawls permitted web sources
+    under a rate limit takes minutes, and if `progress_pct` is only written on return
+    then `GET /jobs/{key}` reports 0% for that whole time. A job that looks hung is
+    indistinguishable from one that is hung.
     """
-    import time as _time
+    from app.jobs import queue
 
-    from app.jobs import handlers, queue
-
-    observed: list[int | None] = []
-
-    @handlers.job_type("pytest_slow_progress")
-    def slow(job_id: int, report) -> dict:
-        """Reports as a throttled crawl does: rarely, and slowly."""
-        report("first item", stage="extract", progress_pct=10)
-        # A long gap between reports, which is exactly when an unflushed buffer would
-        # make the job look hung.
-        _time.sleep(queue.PROGRESS_FLUSH_SECONDS + 0.5)
-        report("second item", stage="extract", progress_pct=40)
-        _time.sleep(queue.PROGRESS_FLUSH_SECONDS + 0.5)
-        with session_scope() as session:
-            observed.append(queue.get_job(session, job_id).progress_pct)
-        return {"ok": True}
-
-    with session_scope() as session:
-        handle = queue.enqueue(session, "pytest_slow_progress", {}, requested_by_email="pytest")
-        key, job_id = handle.job_key, handle.job_id
-
-    with session_scope() as session:
-        job = queue.get_job(session, key)
-        job.status = "running"
-        job.lease_owner = "test"
-        session.flush()
-
-    queue._execute(job_id, slow, None)
-
-    # Read back from the database, not from anything the handler held: at that point
-    # the job had not finished, yet a real percentage was already stored.
-    assert observed == [40], f"progress was not visible mid-job, only at the end: {observed}"
-
-    with session_scope() as session:
-        job = queue.get_job(session, key)
-        assert job.status == "succeeded"
-        assert job.progress_pct == 100
-        stages = [event["stage"] for event in queue.job_events(session, job.job_id)]
-        assert "extract" in stages and "done" in stages
+    assert queue._can_flush_mid_run("postgres") is True
+    assert queue._can_flush_mid_run("mysql") is True
+    assert queue._can_flush_mid_run("sqlite") is False
 
 
-def test_progress_flush_is_batched_not_per_event():
+def test_progress_flush_is_batched_and_time_bounded():
     """One write per event would contend with the handler's own transaction."""
     from app.jobs import queue
 
     assert queue.PROGRESS_FLUSH_COUNT >= 2, "flushing every event re-introduces the lock contention"
     assert queue.PROGRESS_FLUSH_SECONDS <= 5, "progress must be visible within a few seconds"
+
+
+def test_progress_is_written_even_when_events_are_flushed_late(session, monkeypatch):
+    """A slow run still ends with its whole progress history, in order."""
+    from app.jobs import handlers, queue
+
+    # Force the mid-run flush off, which is what SQLite does in practice.
+    monkeypatch.setattr(queue, "_can_flush_mid_run", lambda database: False)
+
+    @handlers.job_type("pytest_slow_progress")
+    def slow(job_id: int, report) -> dict:
+        for seen in (25, 50, 75):
+            report(f"item {seen}", stage="extract", progress_pct=seen)
+        return {"ok": True}
+
+    with session_scope() as session_:
+        handle = queue.enqueue(session_, "pytest_slow_progress", {}, requested_by_email="pytest")
+        key, job_id = handle.job_key, handle.job_id
+
+    with session_scope() as session_:
+        job = queue.get_job(session_, key)
+        job.status = "running"
+        job.lease_owner = "test"
+        session_.flush()
+
+    queue._execute(job_id, slow, None)
+
+    with session_scope() as session_:
+        job = queue.get_job(session_, key)
+        assert job.status == "succeeded"
+        assert job.progress_pct == 100
+        events = queue.job_events(session_, job.job_id)
+        percentages = [event["progress_pct"] for event in events if event["progress_pct"] is not None]
+        assert percentages == sorted(percentages), "progress history must be monotonic"
+        assert 75 in percentages and 100 in percentages
+
+
+def test_progress_is_persisted_mid_run_on_a_server_database(session, monkeypatch):
+    """The regression itself: a real percentage is readable while the handler runs."""
+    import time as _time
+
+    from app.jobs import handlers, queue
+
+    monkeypatch.setattr(queue, "_can_flush_mid_run", lambda database: True)
+    observed: list[int | None] = []
+
+    @handlers.job_type("pytest_midrun_progress")
+    def slow(job_id: int, report) -> dict:
+        report("first item", stage="extract", progress_pct=10)
+        # A long gap between reports is exactly when an unflushed buffer hides progress.
+        _time.sleep(queue.PROGRESS_FLUSH_SECONDS + 0.5)
+        report("second item", stage="extract", progress_pct=40)
+        _time.sleep(queue.PROGRESS_FLUSH_SECONDS + 0.5)
+        with session_scope() as inner:
+            observed.append(queue.get_job(inner, job_id).progress_pct)
+        return {"ok": True}
+
+    with session_scope() as session_:
+        handle = queue.enqueue(session_, "pytest_midrun_progress", {}, requested_by_email="pytest")
+        key, job_id = handle.job_key, handle.job_id
+
+    with session_scope() as session_:
+        job = queue.get_job(session_, key)
+        job.status = "running"
+        job.lease_owner = "test"
+        session_.flush()
+
+    queue._execute(job_id, slow, None)
+
+    assert observed == [40], f"progress was not visible mid-job, only at the end: {observed}"
+
+    with session_scope() as session_:
+        job = queue.get_job(session_, key)
+        assert job.status == "succeeded"
+        assert job.progress_pct == 100
+        stages = [event["stage"] for event in queue.job_events(session_, job.job_id)]
+        assert "extract" in stages and "done" in stages

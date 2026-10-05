@@ -394,21 +394,38 @@ PROGRESS_FLUSH_SECONDS = 2.0
 PROGRESS_FLUSH_COUNT = 5
 
 
+def _can_flush_mid_run(database: str | None) -> bool:
+    """Whether progress can be persisted while a handler is still running.
+
+    SQLite holds a file lock for the duration of a write transaction, so a flush during
+    the handler's own transaction is guaranteed to fail there; every server database
+    allows the concurrent writer.
+    """
+    return (database or settings.active_database) != "sqlite"
+
+
 def _execute(job_id: int, handler: Handler, database: str | None) -> None:
     """Run one handler, streaming progress live and persisting it promptly.
 
-    Progress is delivered over the in-memory broker the moment it happens, and to
-    `app_job_event` at most every few seconds. Batching matters: writing each line as
-    it occurs would open a second connection while the handler still holds its own
-    transaction, which SQLite refuses outright ("database is locked"). But batching
-    only to the end of the job was worse - a run that crawls permitted web sources
-    under a rate limit can take minutes, and `GET /jobs/{key}` reported 0% for that
-    whole time, because the row's `progress_pct` was only written on return. A job
-    that looks hung is indistinguishable from one that is hung, so the flush is
-    time-bounded as well as count-bounded.
+    Progress reaches the browser over the in-memory broker the moment it happens, and
+    reaches the database in batches. Both halves matter:
+
+    - One write per event would open a second connection while the handler still
+      holds its own transaction. SQLite refuses that outright ("database is locked"),
+      so events are batched rather than written individually.
+    - Batching *only* until the handler returns was worse. A run that crawls permitted
+      web sources under a rate limit takes minutes, and because `progress_pct` was
+      only written on return, `GET /jobs/{key}` reported 0% for that whole time. A job
+      that looks hung is indistinguishable from one that is hung.
+
+    So on a server that allows a concurrent writer, progress is flushed every few
+    seconds. SQLite serialises writers with a file lock, so there a mid-handler flush
+    cannot succeed and is not attempted; the buffer is written on return instead.
     """
     pending: list[dict[str, Any]] = []
     state = {"last": time.monotonic()}
+
+    flush_while_running = _can_flush_mid_run(database)
 
     def flush() -> None:
         if not pending:
@@ -443,7 +460,9 @@ def _execute(job_id: int, handler: Handler, database: str | None) -> None:
         _publish_progress(job_id, message, level=level, stage=stage, progress_pct=progress_pct)
         # Persist promptly so a long-running job reports real progress, but still in
         # batches: one write per event would contend with the handler's own session.
-        if len(pending) >= PROGRESS_FLUSH_COUNT or time.monotonic() - state["last"] >= PROGRESS_FLUSH_SECONDS:
+        if flush_while_running and (
+            len(pending) >= PROGRESS_FLUSH_COUNT or time.monotonic() - state["last"] >= PROGRESS_FLUSH_SECONDS
+        ):
             flush()
 
     try:
