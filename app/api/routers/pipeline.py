@@ -407,23 +407,81 @@ def stages(session: DbSession, _user: ReadUser) -> dict[str, Any]:
     }
 
 
-@router.post("/clear-history", response_model=Message, summary="Delete run history (admin)")
+@router.post(
+    "/clear-history",
+    response_model=Message,
+    summary="Delete run history (admin)",
+)
 def clear_history(
-    session: DbSession, user: PipelineUser, confirm: Annotated[bool, Query()] = False
+    session: DbSession,
+    user: PipelineUser,
+    confirm: Annotated[bool, Query()] = False,
+    include_facts: Annotated[
+        bool,
+        Query(
+            description="Also delete the price snapshots and change events of the deleted runs. "
+            "Without this flag, only operational history is removed and any run that still "
+            "has warehouse facts is kept."
+        ),
+    ] = False,
 ) -> Message:
+    """Purge run history.
+
+    Operational tables (`dq_rule_result`, `fact_catalog_snapshot`,
+    `ingestion_http_log`) are always cleared. The `etl_run` rows are only removed
+    when nothing else references them: `fact_price_snapshot`, `chg_price_change`
+    and `chg_product_event` all carry a `run_id`, so deleting those runs
+    unconditionally raised a foreign-key violation.
+
+    Pass `include_facts=true` to delete the warehouse facts too. That is
+    destructive and irreversible, so the response reports exactly what went.
+    """
     from app.api.security import at_least
 
     if not at_least(user.role, "admin") or not confirm:
         return Message(
             message="Refused: requires an admin role and confirm=true", detail={"required": "admin + confirm"}
         )
-    # Child rows first (foreign keys), then the parent runs. Each rowcount is
-    # captured under its own table name so the response reports real numbers.
+
+    session.add(
+        AppAuditLog(
+            user_id=user.user_id,
+            user_email=user.email,
+            action="pipeline.clear_history",
+            entity_type="etl_run",
+            entity_id="*",
+            details={"include_facts": include_facts},
+        )
+    )
+
     deleted: dict[str, int] = {}
-    for table in ("dq_rule_result", "fact_catalog_snapshot", "ingestion_http_log", "etl_run"):
+    for table in ("dq_rule_result", "fact_catalog_snapshot", "ingestion_http_log"):
         result = session.execute(sa.text(f"DELETE FROM {table}"))  # noqa: S608 - fixed table list
         deleted[table] = int(result.rowcount or 0)  # type: ignore[attr-defined]
-    return Message(message="Run history cleared", detail=deleted)
+
+    if include_facts:
+        for table in ("fact_price_snapshot", "chg_price_change", "chg_product_event"):
+            result = session.execute(sa.text(f"DELETE FROM {table}"))  # noqa: S608 - fixed table list
+            deleted[table] = int(result.rowcount or 0)  # type: ignore[attr-defined]
+        result = session.execute(sa.text("DELETE FROM etl_run"))
+        deleted["etl_run"] = int(result.rowcount or 0)  # type: ignore[attr-defined]
+        return Message(message="Run history and warehouse facts deleted", detail=deleted)
+
+    # Keep any run that still has facts pointing at it.
+    result = session.execute(
+        sa.text(
+            """
+            DELETE FROM etl_run
+            WHERE NOT EXISTS (SELECT 1 FROM fact_price_snapshot s WHERE s.run_id = etl_run.run_id)
+              AND NOT EXISTS (SELECT 1 FROM chg_price_change c  WHERE c.run_id = etl_run.run_id)
+              AND NOT EXISTS (SELECT 1 FROM chg_product_event e  WHERE e.run_id = etl_run.run_id)
+            """
+        )
+    )
+    deleted["etl_run"] = int(result.rowcount or 0)  # type: ignore[attr-defined]
+    remaining = session.execute(sa.select(sa.func.count()).select_from(EtlRun)).scalar() or 0
+    deleted["runs_kept_because_facts_exist"] = int(remaining)
+    return Message(message="Operational run history cleared", detail=deleted)
 
 
 @router.get("/schedule", summary="Configured schedule and orchestration status")
