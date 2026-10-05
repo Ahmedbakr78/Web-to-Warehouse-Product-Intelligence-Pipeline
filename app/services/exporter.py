@@ -26,13 +26,18 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.core.errors import PipelineError
+
 MAX_ROWS = 50_000
 DEFAULT_ROWS = 5_000
 SAFE_IDENTIFIER = re.compile(r"^[a-z_][a-z0-9_]*$")
 
 
-class ExportError(Exception):
+class ExportError(PipelineError):
     """Raised for unknown datasets, bad formats or malformed filter values."""
+
+    status_code = 400
+    code = "export_error"
 
 
 @dataclass(frozen=True)
@@ -84,14 +89,15 @@ DATASETS: dict[str, Dataset] = {
             description="Every recorded price movement with absolute and percentage deltas.",
             group="Changes",
             sql="""
-                SELECT change_id, product_id, product_key, product_name, source_code,
-                       old_price, new_price, change_pct, change_kind, detected_at
+                SELECT change_id, product_id, canonical_name, brand, category_name,
+                       source_code, previous_price, new_price, change_abs, change_pct,
+                       direction, magnitude_band, is_significant, currency, detected_at
                 FROM vw_price_changes
                 {where}
                 ORDER BY detected_at DESC, change_id DESC
                 LIMIT :row_limit
             """,
-            filters=("source_code", "change_kind"),
+            filters=("source_code", "direction"),
         ),
         Dataset(
             key="new_products",
@@ -99,7 +105,9 @@ DATASETS: dict[str, Dataset] = {
             description="First sightings per product with the run that found them.",
             group="Changes",
             sql="""
-                SELECT product_id, product_key, product_name, source_code, first_seen_at, run_id
+                SELECT product_id, canonical_name, brand, category_name, source_code,
+                       price_usd, currency, rating, availability, product_url,
+                       first_seen_at, first_seen_date, detected_at
                 FROM vw_new_products
                 {where}
                 ORDER BY first_seen_at DESC
@@ -113,10 +121,12 @@ DATASETS: dict[str, Dataset] = {
             description="Products that disappeared from a source between runs.",
             group="Changes",
             sql="""
-                SELECT product_id, product_key, product_name, source_code, last_seen_at, removed_at
+                SELECT product_id, canonical_name, brand, category_name, source_code,
+                       old_value, days_missing, last_known_price_usd, last_known_rating,
+                       detected_at, removed_date
                 FROM vw_removed_products
                 {where}
-                ORDER BY removed_at DESC
+                ORDER BY detected_at DESC
                 LIMIT :row_limit
             """,
             filters=("source_code",),
@@ -161,10 +171,11 @@ DATASETS: dict[str, Dataset] = {
             description="Scraped products matched against the internal catalog with similarity.",
             group="Warehouse",
             sql="""
-                SELECT match_id, run_id, catalog_sku, catalog_name, product_id,
-                       product_name, match_status, similarity_score,
-                       catalog_price, scraped_price, price_gap_pct,
-                       is_price_mismatch, matched_at
+                SELECT match_id, run_id, catalog_sku, catalog_name, catalog_brand,
+                       catalog_category, product_id, scraped_name, match_status,
+                       match_strategy, similarity_score, category_match, brand_match,
+                       catalog_price, scraped_price_usd, price_gap_abs, price_gap_pct,
+                       is_price_mismatch, supplier, matched_at
                 FROM vw_catalog_reconciliation
                 {where}
                 ORDER BY match_id DESC
@@ -178,11 +189,11 @@ DATASETS: dict[str, Dataset] = {
             description="Hierarchical categories with product and price aggregates.",
             group="Warehouse",
             sql="""
-                SELECT category_id, parent_category_id, category_name, category_path,
-                       level, product_count, avg_price_usd
+                SELECT category_id, parent_id, name, slug, path, level,
+                       product_count, active_products, avg_price_usd
                 FROM vw_category_tree
                 {where}
-                ORDER BY category_path
+                ORDER BY path
                 LIMIT :row_limit
             """,
             filters=(),
@@ -193,8 +204,9 @@ DATASETS: dict[str, Dataset] = {
             description="Largest absolute and percentage price movements.",
             group="Changes",
             sql="""
-                SELECT product_id, product_key, product_name, source_code,
-                       old_price, new_price, change_abs, change_pct, detected_at
+                SELECT product_id, canonical_name, category_name, source_code,
+                       full_date, previous_price, new_price, change_abs, change_pct,
+                       direction, magnitude_band, is_significant
                 FROM vw_top_movers
                 {where}
                 ORDER BY ABS(change_pct) DESC
@@ -208,14 +220,15 @@ DATASETS: dict[str, Dataset] = {
             description="Per-source product counts, coverage and last sync state.",
             group="Operations",
             sql="""
-                SELECT source_code, source_name, source_type, is_enabled,
-                       total_products, last_run_at, last_success_at
+                SELECT source_code, source_name, kind, enabled, rate_limit_per_minute,
+                       products_seen, observations, avg_price_usd, avg_rating,
+                       success_rate_pct, avg_duration_seconds, last_observation_at
                 FROM vw_source_coverage
                 {where}
                 ORDER BY source_code
                 LIMIT :row_limit
             """,
-            filters=("is_enabled",),
+            filters=("enabled",),
         ),
         Dataset(
             key="alerts",
@@ -223,14 +236,15 @@ DATASETS: dict[str, Dataset] = {
             description="Configured alert rules with severity and trigger conditions.",
             group="Operations",
             sql="""
-                SELECT alert_id, name, metric, operator, threshold, severity,
-                       channel, is_enabled, last_triggered_at, created_at
+                SELECT alert_id, user_id, name, metric, operator, threshold,
+                       category, source_code, channel, is_active,
+                       trigger_count, last_triggered_at, created_at
                 FROM app_alert_rule
                 {where}
                 ORDER BY created_at DESC
                 LIMIT :row_limit
             """,
-            filters=("severity", "is_enabled"),
+            filters=("is_active", "channel"),
         ),
         Dataset(
             key="audit",
@@ -238,14 +252,14 @@ DATASETS: dict[str, Dataset] = {
             description="Who changed what, with before/after values and IP address.",
             group="Security",
             sql="""
-                SELECT log_id, actor_email, action, entity_type, entity_id,
-                       details, ip_address, created_at
+                SELECT audit_id, user_id, user_email, action, entity_type, entity_id,
+                       status, ip_address, user_agent, duration_ms, details, created_at
                 FROM app_audit_log
                 {where}
                 ORDER BY created_at DESC
                 LIMIT :row_limit
             """,
-            filters=("action", "actor_email"),
+            filters=("action", "user_email"),
         ),
         Dataset(
             key="http_audit",
@@ -301,7 +315,8 @@ def _build_where(dataset: Dataset, filters: dict[str, Any]) -> tuple[str, dict[s
     column_for = {
         "database": "target_database",
         "trigger": "trigger",
-        "is_enabled": "is_enabled",
+        "is_active": "is_active",
+        "enabled": "enabled",
         "robots_allowed": "robots_allowed",
     }
 
@@ -317,7 +332,7 @@ def _build_where(dataset: Dataset, filters: dict[str, Any]) -> tuple[str, dict[s
         if not SAFE_IDENTIFIER.match(column):
             raise ExportError(f"invalid filter column '{column}'")
         value: Any = raw
-        if name == "is_enabled" or name == "robots_allowed":
+        if name in {"is_active", "enabled", "robots_allowed"}:
             if str(raw).lower() not in {"true", "false", "1", "0"}:
                 raise ExportError(f"filter '{name}' must be a boolean")
             value = str(raw).lower() in {"true", "1"}
@@ -325,9 +340,11 @@ def _build_where(dataset: Dataset, filters: dict[str, Any]) -> tuple[str, dict[s
             # Free-text search across the dataset's obvious text columns
             search_cols = {
                 "products": "canonical_name",
-                "new_products": "product_name",
-                "removed_products": "product_name",
-            }.get(dataset.key, "product_name")
+                "new_products": "canonical_name",
+                "removed_products": "canonical_name",
+                "price_changes": "canonical_name",
+                "movers": "canonical_name",
+            }.get(dataset.key, "canonical_name")
             clauses.append(f"{search_cols} ILIKE :search")
             params["search"] = f"%{raw}%"
             continue

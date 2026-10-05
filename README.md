@@ -117,16 +117,30 @@ Everything is engineered like a production system, not a demo:
 | **CLI** | Typer, 12 commands | bootstrap, seed, run, report, verify, quality, sources preview |
 | **Ops** | Docker Compose (6 services), Makefile (30+ targets), GitHub Actions CI | one-command everything |
 
-**Measured facts (every number reproducible — see [docs/19_feature_list.md](docs/19_feature_list.md)):**
+**Measured facts (every number below is reproducible with the command beside it):**
 
 ```text
 23 physical tables  |  20 analytical views  |  113 REST operations in 16 routers
-12 DQ rules across 6 dimensions, score 98.26 on BOTH engines
+12 DQ rules across 6 dimensions, weighted score persisted per run
 5 ingestion sources  |  9 pipeline stages  |  13 Airflow tasks
 255 unit tests  |  78/78 API smoke checks  |  mypy clean in 61 files  |  ruff zero warnings
 p95 API latency <= 38.2 ms measured across 12 endpoints
-Demo dataset: 130 products, 8,452 price snapshots, 8,062 price changes, 8,476 lifecycle events
+Catalog reconciliation: 2,975 ms -> 104 ms (29x) with identical results
 ```
+
+Demo dataset after `make demo-postgres` (120 days, seeded, deterministic — counts will differ
+slightly with a different `--days` or after live runs):
+
+```text
+263 product identities  |  10,135 price snapshots  |  8,062 price changes
+10,159 lifecycle events  |  60 internal catalog SKUs  |  1,539 reconciliation comparisons
+```
+
+> **On numbers in this README.** Structural figures (tables, views, routes, tests, rules) are exact
+> and re-verifiable with `make check` and `make bootstrap`. Row counts depend on how much data your
+> database holds, and latency depends on hardware — each is labelled with the command that produces
+> it. Where a document records a measurement taken on a specific machine at a specific date, that
+> document preserves that original figure rather than being silently rewritten.
 
 ---
 
@@ -142,7 +156,7 @@ cp .env.example .env              # then edit secrets, or keep the demo defaults
 make up                           # postgres + mysql + api + airflow + frontend
 make db-wait                      # block until both databases are healthy
 
-# one-time: schema + 20 views + demo users + 150 days of demo data
+# one-time: schema + 20 views + demo users + 120 days of demo data
 make bootstrap
 make demo-postgres                # use --database mysql for the MySQL twin
 

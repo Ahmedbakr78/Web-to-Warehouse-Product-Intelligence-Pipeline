@@ -3,6 +3,26 @@
 import { type ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { endpoints, tokenStore } from '@/lib/api'
 import { useQueryClient } from '@tanstack/react-query'
+import {
+  ACCENT_KEYS,
+  applyAccent,
+  applyDensity,
+  applyDirection,
+  applyFontScale,
+  applyMotion,
+  applyTheme,
+  DENSITIES,
+  FONT_SCALES,
+  MOTION_MODES,
+  setAccent,
+  setDensity,
+  setDirection,
+  setFontScale,
+  setMotion,
+  setTheme,
+  THEME_MODES,
+  useAppearanceSync,
+} from '@/lib/theme'
 
 type User = {
   user_id: number
@@ -13,9 +33,12 @@ type User = {
   department?: string | null
   timezone: string
   locale: string
-  theme: 'system' | 'light' | 'dark'
+  theme: string
   accent: string
-  density: 'compact' | 'comfortable' | 'spacious'
+  density: string
+  motion?: string | null
+  direction?: string | null
+  font_scale?: string | null
   rows_per_page: number
   default_currency: string
   price_change_alert_pct: number
@@ -40,6 +63,7 @@ type AuthState = {
   logout: () => void
   refresh: () => Promise<void>
   can: (permission: string) => boolean
+  saveAppearance: (patch: Partial<Pick<User, 'theme' | 'accent' | 'density' | 'motion' | 'direction' | 'font_scale'>>) => void
 }
 
 const AuthContext = createContext<AuthState>({
@@ -50,6 +74,7 @@ const AuthContext = createContext<AuthState>({
   logout: () => {},
   refresh: async () => {},
   can: () => false,
+  saveAppearance: () => {},
 })
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -86,19 +111,74 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('pip:unauthorized', onUnauthorized)
   }, [loadUser, queryClient])
 
-  // Keep the appearance in sync with the server-side profile.
+  // Keep two open tabs visually identical, and follow OS theme changes.
+  useAppearanceSync()
+
+  /**
+   * Reconcile the server-side profile with the local appearance store.
+   *
+   * The profile wins on sign-in so a preference follows the user across devices,
+   * but every value is pushed through the theme module's own setters so that
+   * `system` resolves against the OS instead of being coerced to a hard class.
+   */
   useEffect(() => {
     if (!user) return
-    if (user.theme) {
-      localStorage.setItem('pip.theme', user.theme)
-      document.documentElement.classList.toggle('dark', user.theme === 'dark')
-    }
-    if (user.density) {
-      localStorage.setItem('pip.density', user.density)
-      document.documentElement.dataset.density = user.density
-    }
-    if (user.accent) localStorage.setItem('pip.accent', user.accent)
+
+    const themeValues = THEME_MODES.map((mode) => mode.id)
+    if (user.theme && themeValues.includes(user.theme)) setTheme(user.theme as never)
+    if (user.accent && ACCENT_KEYS.includes(user.accent)) setAccent(user.accent)
+
+    const densityValues = DENSITIES.map((item) => item.id)
+    if (user.density && densityValues.includes(user.density)) setDensity(user.density as never)
+
+    const motionValues = MOTION_MODES.map((item) => item.id)
+    if (user.motion && motionValues.includes(user.motion)) setMotion(user.motion as never)
+
+    if (user.direction === 'rtl' || user.direction === 'ltr') setDirection(user.direction)
+
+    const fontValues = FONT_SCALES.map((item) => item.id)
+    if (user.font_scale && fontValues.includes(user.font_scale)) setFontScale(user.font_scale as never)
   }, [user])
+
+  /**
+   * Two-way binding for the appearance controls.
+   *
+   * Controls call these; the change is applied instantly (so the preview is live)
+   * and persisted to the profile in the background so it survives a device change.
+   */
+  const saveAppearance = useCallback(
+    (patch: Partial<Pick<User, 'theme' | 'accent' | 'density' | 'motion' | 'direction' | 'font_scale'>>) => {
+      if (patch.theme) {
+        applyTheme(patch.theme as never)
+        localStorage.setItem('pip.theme', patch.theme)
+      }
+      if (patch.accent) {
+        applyAccent(patch.accent)
+        localStorage.setItem('pip.accent', patch.accent)
+      }
+      if (patch.density) {
+        applyDensity(patch.density as never)
+        localStorage.setItem('pip.density', patch.density)
+      }
+      if (patch.motion) {
+        applyMotion(patch.motion as never)
+        localStorage.setItem('pip.motion', patch.motion)
+      }
+      if (patch.direction) {
+        applyDirection(patch.direction)
+        localStorage.setItem('pip.direction', patch.direction)
+      }
+      if (patch.font_scale) {
+        applyFontScale(patch.font_scale as never)
+        localStorage.setItem('pip.fontScale', patch.font_scale)
+      }
+      void endpoints
+        .updateMe(patch as Record<string, unknown>)
+        .then(setUser)
+        .catch(() => undefined)
+    },
+    [],
+  )
 
   const login = useCallback(
     async (email: string, password: string) => {
@@ -124,8 +204,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const value = useMemo<AuthState>(
-    () => ({ user, ready, authenticated: Boolean(user), login, logout, refresh: loadUser, can }),
-    [user, ready, login, logout, loadUser, can],
+    () => ({ user, ready, authenticated: Boolean(user), login, logout, refresh: loadUser, can, saveAppearance }),
+    [user, ready, login, logout, loadUser, can, saveAppearance],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

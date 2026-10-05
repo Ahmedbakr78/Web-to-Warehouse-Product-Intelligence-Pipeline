@@ -4,7 +4,7 @@
 
 This document is the complete reference for the REST API of the Web-to-Warehouse Product Intelligence
 Pipeline: the authentication flow, the role matrix, an operation-by-operation catalogue of all
-**113 documented operations** across 16 routers, the error catalogue, the pagination convention, the
+**110 documented operations** across 16 routers, the error catalogue, the pagination convention, the
 versioning policy, instructions for the interactive OpenAPI documentation, and worked examples in
 `curl`, Python and JavaScript.
 
@@ -179,8 +179,8 @@ Verified behaviour (from `scripts/api_smoke.py`): `GET /api/v1/products` without
 
 ## 5. Operation catalogue
 
-Generated from the live OpenAPI document: **113 documented operations in 16 routers** (118 routes in
-total; three are hidden from the schema — see §5.2).
+Generated from the live OpenAPI document: **110 documented operations in 16 routers** (113 route
+decorators in total; three are internal probes hidden from the schema — see §5.2).
 
 
 ## analytics  (13 operations)
@@ -198,9 +198,11 @@ total; three are hidden from the schema — see §5.2).
 | GET | `/api/v1/analytics/report/source-matrix` | read (viewer+) | SQL report: source x category coverage matrix |  |
 | GET | `/api/v1/analytics/export/products.csv` | read (viewer+) | Export the current product list as CSV | limit? |
 
-## users  (11 operations)
+## users  (13 operations)
 | GET | `/api/v1/users` | admin | List users (admin) | role?, q? |
 | GET | `/api/v1/users/me` | authenticated | My profile |  |
+| GET | `/api/v1/users/me/export` | authenticated | Export my account data as JSON |  |
+| DELETE | `/api/v1/users/me` | authenticated | Delete my account (password confirmation) | payload |
 | PATCH | `/api/v1/users/me` | authenticated | Update my profile & preferences | payload |
 | POST | `/api/v1/users/me/password` | authenticated | Set a new password | payload |
 | GET | `/api/v1/users/stats` | admin | Usage statistics |  |
@@ -236,10 +238,11 @@ total; three are hidden from the schema — see §5.2).
 | GET | `/api/v1/products/compare/ids` | read (viewer+) | Side-by-side comparison | ids |
 | GET | `/api/v1/products/count/active` | public |   [hidden from schema] |  |
 
-## system  (8 operations)
+## system  (9 operations)
 | GET | `/api/v1/health` | public | Liveness + dependency health |  |
 | GET | `/api/v1/health/ready` | public | Readiness probe |  |
-| GET | `/api/v1/meta` | public | API metadata, limits and feature catalogue |  |
+| GET | `/api/v1/meta` | public | API metadata, limits and feature list |  |
+| GET | `/api/v1/meta/features` | public | Structured feature catalogue (groups, icons, counts) |  |
 | GET | `/api/v1/meta/tables` | public | Physical tables managed by the ORM |  |
 | GET | `/api/v1/version` | public | Version string |  |
 | GET | `/api/v1/stats/tables` | public | Row counts per table |  |
@@ -308,13 +311,52 @@ total; three are hidden from the schema — see §5.2).
 | GET | `/api/v1/queries/tables` | query (analyst+) | Physical tables available for querying |  |
 | GET | `/api/v1/queries/examples` | query (analyst+) | Starter queries shown in the UI |  |
 
+## builder  (2 operations)
+| GET | `/api/v1/builder/schema` | query (analyst+) | Entities, columns, operators and aggregates |  |
+| POST | `/api/v1/builder/query` | query (analyst+) | Structured read-only query (group-by + aggregate) | payload |
+
+### 5.1 Structured builder queries
+
+`POST /api/v1/builder/query` never accepts raw SQL. The client selects a whitelisted entity, columns,
+operators and aggregate functions; the server assembles a parameterised `SELECT` from the `ENTITIES`
+whitelist in `app/api/routers/builder.py`. Every identifier is validated, every value is a bind
+parameter, and grouped queries may only sort by grouping columns or aggregate aliases.
+
+```jsonc
+// POST /api/v1/builder/query
+{
+  "entity": "products",              // one of 11 entities (see GET /builder/schema)
+  "columns": ["canonical_name"],     // ignored when group_by or aggregates are present
+  "group_by": ["category_name"],
+  "aggregates": [
+    { "function": "count" },
+    { "function": "avg", "column": "price_usd", "alias": "avg_price" }
+  ],
+  "filters": [
+    { "column": "price_usd", "operator": "between", "value": 5, "value2": 100 },
+    { "column": "brand", "operator": "in", "value": ["Penguin"] },
+    { "column": "discount_pct", "operator": "empty" }
+  ],
+  "sort": [{ "column": "avg_price", "direction": "desc" }],
+  "limit": 25
+}
+```
+
+Response fields: `entity`, `label`, `columns`, `rows`, `row_count`, `total`, `truncated`, `group_by`,
+`aggregates`, `sql_preview`, `duration_ms`.
+
+Validation errors use the standard envelope with HTTP 422 — an unknown entity, an unknown
+select/filter/group/aggregate column, an unknown operator, a non-list value for `in`/`not_in`, or a
+`between` without `value2`.
+
 ## settings  (4 operations)
 | GET | `/api/v1/settings` | optional | List settings |  |
 | PUT | `/api/v1/settings/{key}` | admin | Upsert a setting (admin) | key, payload |
 | DELETE | `/api/v1/settings/{key}` | admin | Delete a setting (admin) | key |
 | GET | `/api/v1/settings/groups` | optional | Settings grouped by category |  |
 
-## audit  (4 operations)
+## audit  (5 operations)
+| GET | `/api/v1/audit/me` | authenticated | My recent audited activity | days? |
 | GET | `/api/v1/audit` | admin | Application audit log (admin) | action?, user_id?, days? |
 | GET | `/api/v1/audit/actions` | admin | Distinct audited actions |  |
 | GET | `/api/v1/audit/http` | read (viewer+) | Outbound HTTP compliance log | limit?, source_code? |

@@ -3,14 +3,15 @@
 ## Purpose
 
 This document is the complete feature inventory of the Web-to-Warehouse Product Intelligence
-Pipeline: 234 features grouped into fifteen areas, each with a one-line description and a reference
+Pipeline: 271 features grouped into sixteen areas, each with a one-line description and a reference
 to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an
 endpoint, a CLI command or a documented design decision. Nothing here is aspirational.
 
 **Scale of the system, measured:** 5 ingestion sources · 23 physical tables · 20 analytical views ·
-12 data-quality rules across 6 dimensions · 113 documented REST operations in 16 routers · 9 pipeline
-stages · 13 Airflow tasks · 12 CLI commands · 30+ Makefile targets · 6 Docker Compose services ·
-20 documentation documents.
+12 data-quality rules across 6 dimensions · 113 REST route decorators (110 documented in OpenAPI plus
+3 internal probes) in 16 routers · 9 pipeline stages · 14 Airflow tasks · 12 CLI commands · 30+ Makefile
+targets · 6 Docker Compose services · 20 documentation documents · 255 automated tests ·
+86 end-to-end API smoke checks.
 
 ---
 
@@ -29,6 +30,9 @@ stages · 13 Airflow tasks · 12 CLI commands · 30+ Makefile targets · 6 Docke
 11. [Security and access control (10)](#11-security-and-access-control-10)
 12. [Dashboard and user experience (12)](#12-dashboard-and-user-experience-12)
 13. [Operations, orchestration and DX (23)](#13-operations-orchestration-and-dx-23)
+
+Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
+[v1.2 (8)](#15-platform-v12-additions-8) · [v1.3 (34)](#16-platform-v13-additions-34)
 
 ---
 
@@ -397,3 +401,48 @@ decision) rather than individual lines of code.
 | F-234 | Diagram extractor | Extracts every Mermaid block from the documentation set into `docs/diagrams/out/*.mmd` with an index table; optional `mmdc` rendering | `scripts/render_diagrams.sh`, `docs/diagrams/out/index.md` |
 
 **Revised total: 234 features.**
+---
+
+## 16. Platform v1.3 additions (34)
+
+| ID | Feature | Description | Where |
+| --- | --- | --- | --- |
+| F-235 | Feature catalogue module | Single source of truth for platform capabilities: 13 areas, 95 features, each with a Lucide icon name; consumed by the API, the dashboard and the website so they cannot drift | `app/core/features.py` |
+| F-236 | Structured feature catalogue endpoint | `GET /meta/features` returns the catalogue with per-group counts and totals; unauthenticated like `/meta` | `app/api/routers/health.py` `meta_features` |
+| F-237 | Feature catalogue in `/meta` | `/meta` derives `features` (flat names) and the new `feature_groups` count from the catalogue module instead of a hand-maintained list | `app/api/routers/health.py` |
+| F-238 | Feature catalogue screen | New `/features` dashboard screen rendering the catalogue as icon-headed cards with a search box, group chips, copy-to-clipboard per feature and a source-of-truth footer | `frontend/src/pages/Features.tsx` |
+| F-239 | Catalogue search and filtering | Live filter over feature names, details and group titles; chip row switches areas; an empty state guides the user to broader terms | `frontend/src/pages/Features.tsx` |
+| F-240 | Builder schema endpoint | `GET /builder/schema` publishes 11 entities, their columns with types and groupable flags, 15 operators with value types, and the aggregate list; drives the builder UI | `app/api/routers/builder.py` `schema` |
+| F-241 | Aggregate query endpoint | `POST /builder/query` runs a structured read-only query: group-by, six aggregate functions, filters, sort, paging; returns rows, total, duration and the generated SQL | `app/api/routers/builder.py` `run_query` |
+| F-242 | Whitelisted identifier SQL assembly | Every identifier reaching the SQL text comes from the server-side `ENTITIES` whitelist; every value is a bind parameter, making injection structurally impossible | `app/api/routers/builder.py` `_build_sql` |
+| F-243 | Fifteen filter operators | `eq`, `ne`, `gt`, `gte`, `lt`, `lte`, `contains`, `not_contains`, `starts_with`, `ends_with`, `in`, `not_in`, `between`, `empty`, `not_empty` with per-operator input handling | `app/api/routers/builder.py` `OPERATORS` |
+| F-244 | Six aggregate functions | `count`, `count_distinct`, `sum`, `avg`, `min`, `max` with optional aliases and validation (aggregates without a column must be `count`) | `app/api/routers/builder.py` `AGGREGATES` |
+| F-245 | Aggregate sort validation | Grouped queries may sort by grouping columns and aggregate aliases only; ungrouped queries by entity columns, preventing invalid `GROUP BY` SQL | `app/api/routers/builder.py` `_validate_sort` |
+| F-246 | Aggregate builder mode | The Builder screen gains a "Group & aggregate" mode with dataset, grouping, measure rows (add/remove), advanced filter rows, sort measure, direction and row count | `frontend/src/pages/AggregateBuilder.tsx` |
+| F-247 | Aggregate chart preview | Horizontal bar chart of the grouped result with a toggle, truncated to the top 20 groups | `frontend/src/pages/AggregateBuilder.tsx`, `frontend/src/components/charts.tsx` |
+| F-248 | Generated SQL preview | Every aggregate run displays the exact SQL the server executed, with values bound as parameters | `frontend/src/pages/AggregateBuilder.tsx` |
+| F-249 | Aggregate copy-as-cURL | Copies a ready-to-run `curl` command including the bearer-token header and the JSON body | `frontend/src/pages/AggregateBuilder.tsx` `copyCurl` |
+| F-250 | Aggregate export | CSV and JSON export of the aggregated rows, and a JSON bundle containing the composed query alongside the result | `frontend/src/pages/AggregateBuilder.tsx` `exportResult` |
+| F-251 | Account data export | `GET /users/me/export` returns a portable JSON snapshot: profile, preferences, API-key metadata (never secrets), saved views, alert rules, notifications and 90 days of activity | `app/api/routers/users.py` `export_me` |
+| F-252 | Account self-deletion | `DELETE /users/me` with password confirmation; personal rows cascade via foreign keys, audit history is preserved with the email recorded and the user link nulled | `app/api/routers/users.py` `delete_me` |
+| F-253 | Self-deletion audit trail | The deletion writes an `app_audit_log` entry before removing the user, so the event survives the foreign-key `SET NULL` | `app/api/routers/users.py` `delete_me` |
+| F-254 | Personal activity feed | `GET /audit/me` returns the caller's own audited actions with paging and a day window — no admin permission needed | `app/api/routers/audit.py` `my_activity` |
+| F-255 | Account activity tab | New Account tab listing recent sign-ins, key changes and settings updates with action, target, status, IP and relative time | `frontend/src/pages/Account.tsx` |
+| F-256 | Account data & privacy tab | New Account tab with a data-export card and a danger-zone card; deletion requires the password and typing `DELETE` | `frontend/src/pages/Account.tsx` |
+| F-257 | Change-event summary service | Lifecycle counters plus the price-change timeline moved out of the router into `analytics.change_event_summary`, reused by the API and the Airflow report task | `app/analytics/service.py` |
+| F-258 | Stable scrollbar gutter | `scrollbar-gutter: stable` reserves the rail so content never shifts sideways when a page grows past the viewport | `frontend/src/styles/index.css` |
+| F-259 | Refined scrollbar system | Translucent rounded thumbs, a brand-coloured thumb while dragging, slimmer 8px rails inside the sidebar, popovers and code blocks, all theme-aware via `color-mix` | `frontend/src/styles/index.css` |
+| F-260 | Scroll containment | `overscroll-behavior: contain` on the shell, sidebar nav, tables and scroll regions so scrolling a panel never drags the page behind it | `frontend/src/styles/index.css` |
+| F-261 | Mobile drawer scroll lock | Opening the off-canvas drawer locks background scrolling and restores the previous overflow on close | `frontend/src/components/AppShell.tsx` |
+| F-262 | Drawer accessibility | The mobile drawer is exposed as a modal dialog with an accessible name and respects the bottom safe-area inset for notched devices | `frontend/src/components/AppShell.tsx` |
+| F-263 | Static project website | A dependency-free landing page (`website/index.html`) with light/dark/system themes applied before first paint, inline SVG icons and no build step | `website/index.html` |
+| F-264 | API smoke coverage for v1.3 | The smoke suite grew from 78 to 86 checks, now covering the catalogue, builder schema, aggregate query, rejection of unknown entities, the viewer/analyst builder boundary, account export and personal activity | `scripts/api_smoke.py` |
+| F-265 | Analyst coverage in smoke tests | The smoke runner logs in as the analyst as well as the viewer, so role boundaries are exercised for both non-admin roles | `scripts/api_smoke.py` |
+| F-266 | Correct API container healthcheck | The compose healthcheck probed `/health` instead of `/api/v1/health`, so the service was permanently reported unhealthy; corrected | `docker-compose.yml` |
+| F-267 | Secret hygiene in templates | `.env.example` ships a placeholder service key and documents how to mint a real one; no live credential is committed | `.env.example` |
+| F-268 | DAG aggregate + reconciliation work | `build_aggregates` and `reconcile_catalog` perform their real in-process work again (rollup refresh and SKU matching) instead of only reporting state | `dags/product_intelligence_pipeline.py` |
+| F-269 | DAG compliance guard restored | The source-compliance guard once again honours per-source `enabled` and `terms_allowed` flags, and the REST fallback validates the registry response it receives | `dags/product_intelligence_pipeline.py` `source_enabled` |
+| F-270 | DAG report artifacts | `publish_report` writes a timestamped JSON KPI artifact to `var/reports/`, falling back to the repository root when the Airflow home is read-only | `dags/product_intelligence_pipeline.py` `_write_report_artifact` |
+| F-271 | v1.3 regression tests | 19 new tests covering the catalogue, the personal activity feed, account export and deletion, and every builder code path including validation failures | `tests/test_new_features.py` |
+
+**Revised total: 271 features.**
