@@ -980,7 +980,10 @@ are persisted per run in `dq_rule_result`, and the dashboard charts the score tr
 ## Feature catalogue
 
 The exhaustive, file-referenced inventory lives in
-[docs/19_feature_list.md](docs/19_feature_list.md) — 234 features in 15 areas. Highlights by area:
+[docs/19_feature_list.md](docs/19_feature_list.md) — 271 features in 16 areas. It is also served as
+structured JSON by `GET /api/v1/meta/features` and rendered by the **Features** screen, both generated
+from `app/core/features.py`, so this section can never describe something the code does not do.
+Highlights by area:
 
 ### Ingestion and web compliance
 
@@ -1051,6 +1054,16 @@ The exhaustive, file-referenced inventory lives in
 - global shortcuts: `/` or `Ctrl-K` palette, `Esc` closes overlays, sortable headers everywhere
 - accessibility-minded: focus-visible rings, ARIA labels, keyboard operation, zoom to 200 percent,
   reflow at 320 px
+
+### v1.3: discovery, aggregation and self-service
+
+- **Feature catalogue** — `GET /meta/features` + `/features` screen: 95 features, 13 areas, searchable
+- **Aggregate builder** — `POST /builder/query` + `/builder/schema`: 11 entities, 6 aggregates,
+  15 operators, whitelist-assembled parameterised SQL, chart preview, generated SQL, cURL copy
+- **Account self-service** — `GET /users/me/export` (portable JSON), `DELETE /users/me` (password
+  confirmed, cascade, audited), `GET /audit/me` (personal activity feed)
+- **Interface polish** — stable scrollbar gutter, theme-aware rounded scrollbars, scroll containment,
+  mobile drawer scroll lock and dialog semantics, safe-area insets
 
 ### Operations and developer experience
 
