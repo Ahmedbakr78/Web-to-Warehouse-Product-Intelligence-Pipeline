@@ -20,22 +20,31 @@ sequenceDiagram
     participant U as User
     participant API
     participant DB as app_users
-    U->>API: POST /auth/login (email, password)
+    U->>API: POST /auth/login (email, password[, totp_code | recovery_code])
     API->>DB: verify Argon2id hash
     alt password wrong
-        API-->>U: 401
-    else 2FA enabled
-        API-->>U: 401, mfa_required, totp challenge
-        U->>API: POST /auth/login/2fa (challenge, code)
-        API->>API: verify TOTP (±1 step) or recovery code
+        API-->>U: 401 invalid email or password
+    else 2FA enabled, no code supplied
+        API-->>U: 401 invalid verification code
+        U->>API: POST /auth/login again, with the code
+    else 2FA enabled, code supplied
+        API->>API: verify TOTP (±1 step), else redeem a recovery code
         API-->>U: tokens + session handle
     else 2FA not enabled
         API-->>U: tokens + session handle
     end
 ```
 
-Note the ordering: the password is verified **before** a challenge is issued, so
-the challenge itself leaks nothing about which accounts exist.
+The second factor travels on the **same** request as the password rather than in
+a second challenge round trip. Two reasons:
+
+- The password is checked first, so nothing is issued to an unauthenticated
+  caller and no challenge token can leak or be replayed.
+- One request is one audit row. A challenge flow would produce two, and the
+  correlation between them is exactly what an attacker would want to forge.
+
+A code sent for an account with no second factor is **rejected**, not ignored:
+silently accepting it would let a mistyped field pass unnoticed.
 
 ---
 
@@ -125,18 +134,39 @@ a credential in exactly the same sense, and the threat model is unchanged.
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| `GET` | `/api/v1/account/2fa/status` | Enabled, enrolled at, codes remaining, attempts left |
-| `POST` | `/api/v1/account/2fa/setup` | Returns the secret and `otpauth://` URI |
-| `POST` | `/api/v1/account/2fa/activate` | Confirms a code and enables 2FA |
-| `POST` | `/api/v1/account/2fa/disable` | Confirms a code and disables 2FA |
-| `POST` | `/api/v1/account/2fa/regenerate-codes` | New recovery codes, invalidating the old set |
-| `GET` | `/api/v1/account/sessions` | This device's sessions |
-| `POST` | `/api/v1/account/sessions/revoke` | Revoke one, or all others |
-| `POST` | `/api/v1/auth/login/2fa` | Second step of sign-in |
+| `POST` | `/api/v1/auth/login` | Password, plus `totp_code` or `recovery_code` when enrolled |
+| `GET` | `/api/v1/account/2fa/status` | Enabled, enrolled at, codes remaining, attempts left, lock state |
+| `POST` | `/api/v1/account/2fa/setup` | Returns the secret and the `otpauth://` URI |
+| `POST` | `/api/v1/account/2fa/activate` | Takes the offered `secret` and a `code`; enables 2FA and returns the recovery codes |
+| `POST` | `/api/v1/account/2fa/disable` | Takes a current `code`; disables 2FA |
+| `POST` | `/api/v1/account/2fa/recovery-codes` | A fresh set of codes, invalidating the previous set |
+| `POST` | `/api/v1/account/2fa/verify` | Checks a code without changing any state |
+| `GET` | `/api/v1/account/sessions` | This account's sessions |
+| `POST` | `/api/v1/account/sessions/revoke` | Revoke one session |
+| `POST` | `/api/v1/account/sessions/revoke-others` | Revoke every other session |
+| `POST` | `/api/v1/account/sessions/verify-password` | Confirm the password for a sensitive action |
 | `POST` | `/api/v1/auth/logout?session_key=…` | Ends a specific session |
 
-Every 2FA route requires the current password or a current code. Enabling a second
-factor and then disabling it are both authenticated actions.
+`activate` echoes the secret back because it was issued by `setup` and nothing has
+been stored yet: the server refuses to enable a factor it has never seen a working
+code for. `verify` exists so the UI can tell "wrong code" from "locked out" without
+consuming an attempt.
+
+Every 2FA route requires an authenticated session; enabling and disabling are
+themselves protected actions.
+
+### Verified against the running stack
+
+```
+setup            200
+activate         200   8 recovery codes issued
+login, no code   401
+login, TOTP      200   access token returned
+login, recovery  200   access token returned
+same code again  401   single use
+disable          200
+login, no code   200   back to a single factor
+```
 
 ---
 
@@ -164,6 +194,10 @@ Small decisions worth naming:
   a copy button — because this is the only moment they exist.
 - A warning appears when two or fewer codes remain, not at zero.
 - Disabling asks for a current code. The password alone will not do.
+- The sign-in form only reveals the code field once the server says a second factor
+  is required, so an account without one is never shown an irrelevant input. It also
+  accepts a recovery code in the same field, because that is what someone with a lost
+  phone actually has in their hand.
 
 ---
 

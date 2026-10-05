@@ -191,8 +191,10 @@ export const endpoints = {
   statsTables: () => api.get<any>('/stats/tables'),
   demoAccounts: () => api.get<any>('/auth/demo-accounts'),
 
-  login: (email: string, password: string, remember = true) =>
-    api.post<any>('/auth/login', { email, password, remember }),
+  // The second factor travels on the same request: the server verifies the password
+  // first and only then checks the code, so no unauthenticated challenge is issued.
+  login: (email: string, password: string, remember = true, secondFactor?: { totp_code?: string; recovery_code?: string }) =>
+    api.post<any>('/auth/login', { email, password, remember, ...(secondFactor ?? {}) }),
   logout: (sessionKey?: string) =>
     api.post<any>(`/auth/logout${sessionKey ? `?session_key=${encodeURIComponent(sessionKey)}` : ''}`),
   me: () => api.get<any>('/auth/me'),

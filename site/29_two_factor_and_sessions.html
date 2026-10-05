@@ -71,7 +71,7 @@
       <h1>Two-Factor &amp; Sessions</h1>
       <p>TOTP enrolment, recovery codes, per-device revocation</p>
     </div>
-    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#1-the-threat-this-addresses">1. The threat this addresses</a></li><li class="lvl-2"><a href="#2-totp">2. TOTP</a></li><li class="lvl-3"><a href="#enrolment-is-two-step-on-purpose">Enrolment is two-step, on purpose</a></li><li class="lvl-3"><a href="#the-secret-is-encrypted-at-rest">The secret is encrypted at rest</a></li><li class="lvl-3"><a href="#recovery-codes-are-hashed">Recovery codes are hashed</a></li><li class="lvl-2"><a href="#3-lockout-and-the-case-that-contradicts-it">3. Lockout, and the case that contradicts it</a></li><li class="lvl-2"><a href="#4-sessions">4. Sessions</a></li><li class="lvl-3"><a href="#the-handle-has-to-survive-a-reload">The handle has to survive a reload</a></li><li class="lvl-2"><a href="#5-api">5. API</a></li><li class="lvl-2"><a href="#6-ui">6. UI</a></li><li class="lvl-2"><a href="#7-what-is-deliberately-absent">7. What is deliberately absent</a></li><li class="lvl-2"><a href="#related">Related</a></li></ol></details>
+    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#1-the-threat-this-addresses">1. The threat this addresses</a></li><li class="lvl-2"><a href="#2-totp">2. TOTP</a></li><li class="lvl-3"><a href="#enrolment-is-two-step-on-purpose">Enrolment is two-step, on purpose</a></li><li class="lvl-3"><a href="#the-secret-is-encrypted-at-rest">The secret is encrypted at rest</a></li><li class="lvl-3"><a href="#recovery-codes-are-hashed">Recovery codes are hashed</a></li><li class="lvl-2"><a href="#3-lockout-and-the-case-that-contradicts-it">3. Lockout, and the case that contradicts it</a></li><li class="lvl-2"><a href="#4-sessions">4. Sessions</a></li><li class="lvl-3"><a href="#the-handle-has-to-survive-a-reload">The handle has to survive a reload</a></li><li class="lvl-2"><a href="#5-api">5. API</a></li><li class="lvl-3"><a href="#verified-against-the-running-stack">Verified against the running stack</a></li><li class="lvl-2"><a href="#6-ui">6. UI</a></li><li class="lvl-2"><a href="#7-what-is-deliberately-absent">7. What is deliberately absent</a></li><li class="lvl-2"><a href="#related">Related</a></li></ol></details>
     <article class="doc-body">
 <p>The account-security surface: a real TOTP second factor, real recovery codes, and sessions that can be revoked per device. Implemented in <a href="../app/services/twofactor.py"><code>app/services/twofactor.py</code></a>, <a href="../app/services/sessions.py"><code>app/services/sessions.py</code></a> and <a href="../app/api/routers/account.py"><code>app/api/routers/account.py</code></a>.</p>
 <hr>
@@ -81,19 +81,29 @@
     participant U as User
     participant API
     participant DB as app_users
-    U-&gt;&gt;API: POST /auth/login (email, password)
+    U-&gt;&gt;API: POST /auth/login (email, password[, totp_code | recovery_code])
     API-&gt;&gt;DB: verify Argon2id hash
     alt password wrong
-        API--&gt;&gt;U: 401
-    else 2FA enabled
-        API--&gt;&gt;U: 401, mfa_required, totp challenge
-        U-&gt;&gt;API: POST /auth/login/2fa (challenge, code)
-        API-&gt;&gt;API: verify TOTP (±1 step) or recovery code
+        API--&gt;&gt;U: 401 invalid email or password
+    else 2FA enabled, no code supplied
+        API--&gt;&gt;U: 401 invalid verification code
+        U-&gt;&gt;API: POST /auth/login again, with the code
+    else 2FA enabled, code supplied
+        API-&gt;&gt;API: verify TOTP (±1 step), else redeem a recovery code
         API--&gt;&gt;U: tokens + session handle
     else 2FA not enabled
         API--&gt;&gt;U: tokens + session handle
     end</pre>
-<p>Note the ordering: the password is verified <strong>before</strong> a challenge is issued, so the challenge itself leaks nothing about which accounts exist.</p>
+<p>The second factor travels on the <strong>same</strong> request as the password rather than in a second challenge round trip. Two reasons:</p>
+<ul>
+<li class="depth-0">The password is checked first, so nothing is issued to an unauthenticated</li>
+</ul>
+<p>caller and no challenge token can leak or be replayed.</p>
+<ul>
+<li class="depth-0">One request is one audit row. A challenge flow would produce two, and the</li>
+</ul>
+<p>correlation between them is exactly what an attacker would want to forge.</p>
+<p>A code sent for an account with no second factor is <strong>rejected</strong>, not ignored: silently accepting it would let a mistyped field pass unnoticed.</p>
 <hr>
 <h2 id="2-totp">2. TOTP</h2>
 <p>RFC 6238, SHA-1, 30-second steps, six digits, with ±1 step of drift tolerated — which is what a phone whose clock has slipped by a few seconds needs.</p>
@@ -154,44 +164,59 @@
 <th>Purpose</th>
 </tr></thead><tbody>
 <tr>
+<th><code>POST</code></th>
+<td><code>/api/v1/auth/login</code></td>
+<td>Password, plus <code>totp_code</code> or <code>recovery_code</code> when enrolled</td>
+</tr>
+<tr>
 <th><code>GET</code></th>
 <td><code>/api/v1/account/2fa/status</code></td>
-<td>Enabled, enrolled at, codes remaining, attempts left</td>
+<td>Enabled, enrolled at, codes remaining, attempts left, lock state</td>
 </tr>
 <tr>
 <th><code>POST</code></th>
 <td><code>/api/v1/account/2fa/setup</code></td>
-<td>Returns the secret and <code>otpauth://</code> URI</td>
+<td>Returns the secret and the <code>otpauth://</code> URI</td>
 </tr>
 <tr>
 <th><code>POST</code></th>
 <td><code>/api/v1/account/2fa/activate</code></td>
-<td>Confirms a code and enables 2FA</td>
+<td>Takes the offered <code>secret</code> and a <code>code</code>; enables 2FA and returns the recovery codes</td>
 </tr>
 <tr>
 <th><code>POST</code></th>
 <td><code>/api/v1/account/2fa/disable</code></td>
-<td>Confirms a code and disables 2FA</td>
+<td>Takes a current <code>code</code>; disables 2FA</td>
 </tr>
 <tr>
 <th><code>POST</code></th>
-<td><code>/api/v1/account/2fa/regenerate-codes</code></td>
-<td>New recovery codes, invalidating the old set</td>
+<td><code>/api/v1/account/2fa/recovery-codes</code></td>
+<td>A fresh set of codes, invalidating the previous set</td>
+</tr>
+<tr>
+<th><code>POST</code></th>
+<td><code>/api/v1/account/2fa/verify</code></td>
+<td>Checks a code without changing any state</td>
 </tr>
 <tr>
 <th><code>GET</code></th>
 <td><code>/api/v1/account/sessions</code></td>
-<td>This device's sessions</td>
+<td>This account's sessions</td>
 </tr>
 <tr>
 <th><code>POST</code></th>
 <td><code>/api/v1/account/sessions/revoke</code></td>
-<td>Revoke one, or all others</td>
+<td>Revoke one session</td>
 </tr>
 <tr>
 <th><code>POST</code></th>
-<td><code>/api/v1/auth/login/2fa</code></td>
-<td>Second step of sign-in</td>
+<td><code>/api/v1/account/sessions/revoke-others</code></td>
+<td>Revoke every other session</td>
+</tr>
+<tr>
+<th><code>POST</code></th>
+<td><code>/api/v1/account/sessions/verify-password</code></td>
+<td>Confirm the password for a sensitive action</td>
 </tr>
 <tr>
 <th><code>POST</code></th>
@@ -199,7 +224,17 @@
 <td>Ends a specific session</td>
 </tr>
 </tbody></table></div>
-<p>Every 2FA route requires the current password or a current code. Enabling a second factor and then disabling it are both authenticated actions.</p>
+<p><code>activate</code> echoes the secret back because it was issued by <code>setup</code> and nothing has been stored yet: the server refuses to enable a factor it has never seen a working code for. <code>verify</code> exists so the UI can tell "wrong code" from "locked out" without consuming an attempt.</p>
+<p>Every 2FA route requires an authenticated session; enabling and disabling are themselves protected actions.</p>
+<h3 id="verified-against-the-running-stack">Verified against the running stack</h3>
+<pre class="code" data-lang=""><code>setup            200
+activate         200   8 recovery codes issued
+login, no code   401
+login, TOTP      200   access token returned
+login, recovery  200   access token returned
+same code again  401   single use
+disable          200
+login, no code   200   back to a single factor</code></pre>
 <hr>
 <h2 id="6-ui">6. UI</h2>
 <p>One Account tab, <em>Devices &amp; 2FA</em>, holds both: the two-factor panel with its state, recovery codes remaining and the setup flow, and the device table with revoke and sign-out-everywhere-else.</p>
@@ -222,7 +257,9 @@
 <ul>
 <li class="depth-0">A warning appears when two or fewer codes remain, not at zero.</li>
 <li class="depth-0">Disabling asks for a current code. The password alone will not do.</li>
+<li class="depth-0">The sign-in form only reveals the code field once the server says a second factor</li>
 </ul>
+<p>is required, so an account without one is never shown an irrelevant input. It also accepts a recovery code in the same field, because that is what someone with a lost phone actually has in their hand.</p>
 <hr>
 <h2 id="7-what-is-deliberately-absent">7. What is deliberately absent</h2>
 <ul>

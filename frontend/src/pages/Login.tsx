@@ -1,6 +1,6 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { Database, Eye, EyeOff, KeyRound, Loader2, Moon, ShieldCheck, Sun, Zap } from 'lucide-react'
+import { Database, Eye, EyeOff, KeyRound, Loader2, Moon, ShieldCheck, Smartphone, Sun, Zap } from 'lucide-react'
 
 import { useAuth } from '@/hooks/useAuth'
 import { endpoints } from '@/lib/api'
@@ -26,6 +26,11 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  // Revealed when the server asks for a second factor, so accounts without one are
+  // never shown an irrelevant field.
+  const [needsFactor, setNeedsFactor] = useState(false)
+  const [code, setCode] = useState('')
+  const [useRecovery, setUseRecovery] = useState(false)
 
   const { data: meta } = useQuery({ queryKey: ['meta'], queryFn: endpoints.meta, retry: 0 })
   const { data: demo } = useQuery({ queryKey: ['demo-accounts'], queryFn: endpoints.demoAccounts, retry: 0 })
@@ -45,11 +50,18 @@ export default function LoginPage() {
     setError(null)
     setSubmitting(true)
     try {
-      await login(email.trim(), password)
+      await login(email.trim(), password, {
+        ...(code.trim() ? (useRecovery ? { recovery_code: code.trim() } : { totp_code: code.trim() }) : {}),
+      })
+      setNeedsFactor(false)
+      setCode('')
       navigate(localStore.get<string>('account.startPage', '/'), { replace: true })
     } catch (exception) {
       const message = exception instanceof Error ? exception.message : 'Sign in failed'
       setError(message)
+      if (/verification code|verification code/i.test(message) || /two.factor|2fa/i.test(message)) {
+        setNeedsFactor(true)
+      }
     } finally {
       setSubmitting(false)
     }
@@ -165,14 +177,55 @@ export default function LoginPage() {
                 </div>
               </div>
 
+              {needsFactor ? (
+                <div>
+                  <label htmlFor="code" className="stat-label mb-1.5 block">
+                    {useRecovery ? 'Recovery code' : 'Authenticator code'}
+                  </label>
+                  <input
+                    id="code"
+                    value={code}
+                    onChange={(event) => setCode(event.target.value)}
+                    className={`input font-mono ${useRecovery ? '' : 'tracking-[0.3em]'}`}
+                    inputMode={useRecovery ? 'text' : 'numeric'}
+                    autoComplete="one-time-code"
+                    placeholder={useRecovery ? 'abcd-efgh' : '000000'}
+                    aria-describedby="code-help"
+                  />
+                  <p id="code-help" className="mt-1.5 text-[11px] text-subtle">
+                    {useRecovery ? (
+                      'One of the single-use codes shown when you enrolled.'
+                    ) : (
+                      'The six digits your authenticator app is showing right now.'
+                    )}{' '}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUseRecovery((value) => !value)
+                        setCode('')
+                      }}
+                      className="underline"
+                    >
+                      {useRecovery ? 'Use the authenticator code' : 'Use a recovery code'}
+                    </button>
+                  </p>
+                </div>
+              ) : null}
+
               {error ? (
                 <div role="alert" className="rounded-lg border border-danger/40 bg-danger-soft px-3 py-2 text-xs text-danger">
                   {error}
                 </div>
               ) : null}
 
-              <Button type="submit" variant="primary" loading={submitting} className="w-full" icon={<KeyRound className="h-4 w-4" />}>
-                Sign in
+              <Button
+                type="submit"
+                variant="primary"
+                loading={submitting}
+                className="w-full"
+                icon={needsFactor ? <Smartphone className="h-4 w-4" /> : <KeyRound className="h-4 w-4" />}
+              >
+                {needsFactor ? 'Verify and sign in' : 'Sign in'}
               </Button>
             </form>
 

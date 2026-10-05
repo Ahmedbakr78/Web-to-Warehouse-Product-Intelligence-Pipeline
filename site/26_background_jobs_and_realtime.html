@@ -135,18 +135,18 @@
 <hr>
 <h2 id="3-registered-job-types">3. Registered job types</h2>
 <div class='table-scroll'><table><thead><tr>
-<th>Type</th>
+<th><code>job_type</code></th>
 <th>Trigger</th>
 <th>Cancellable</th>
 </tr></thead><tbody>
 <tr>
-<th><code>pipeline-run</code></th>
-<td><code>POST /pipeline/run</code>, <code>/jobs/pipeline-run</code></td>
+<th><code>pipeline_run</code></th>
+<td><code>POST /jobs/pipeline-run</code></td>
 <td>Yes</td>
 </tr>
 <tr>
 <th><code>backfill</code></th>
-<td><code>POST /pipeline/backfill</code></td>
+<td><code>POST /jobs/backfill</code></td>
 <td>Yes</td>
 </tr>
 <tr>
@@ -160,16 +160,17 @@
 <td>Yes</td>
 </tr>
 <tr>
-<th><code>aggregate</code></th>
-<td><code>POST /aggregates/rebuild</code></td>
-<td>Yes</td>
+<th><code>rebuild_aggregates</code></th>
+<td><code>POST /pipeline/rebuild-aggregates</code></td>
+<td>No</td>
 </tr>
 <tr>
 <th><code>report_pdf</code></th>
 <td><code>POST /reports/{template}/queue</code></td>
-<td>Yes</td>
+<td>No</td>
 </tr>
 </tbody></table></div>
+<p><code>GET /jobs/types</code> returns this list, and <code>GET /jobs/worker</code> returns the cancellable subset alongside queue depth, lease length and subscriber count — so a UI never hardcodes which buttons it is allowed to show.</p>
 <p>Each handler receives <code>(job, progress)</code> where <code>progress(stage, message, percent)</code> is the only way it reports back. Handlers therefore cannot silently swallow a failure: the queue owns the state transition.</p>
 <hr>
 <h2 id="4-job-api">4. Job API</h2>
@@ -186,22 +187,17 @@
 <tr>
 <th><code>GET</code></th>
 <td><code>/api/v1/jobs/{reference}</code></td>
-<td>Status, attempts, lease, error, full progress log</td>
+<td>Status, result, attempts, lease, error, progress events</td>
+</tr>
+<tr>
+<th><code>DELETE</code></th>
+<td><code>/api/v1/jobs/{reference}</code></td>
+<td>Remove a finished job row</td>
 </tr>
 <tr>
 <th><code>GET</code></th>
 <td><code>/api/v1/jobs/{reference}/events</code></td>
 <td>Progress events after an id, for polling or replay</td>
-</tr>
-<tr>
-<th><code>GET</code></th>
-<td><code>/api/v1/jobs/worker</code></td>
-<td>Queue depth, running count, lease age</td>
-</tr>
-<tr>
-<th><code>GET</code></th>
-<td><code>/api/v1/jobs/types</code></td>
-<td>Registered types and which are cancellable</td>
 </tr>
 <tr>
 <th><code>POST</code></th>
@@ -214,9 +210,69 @@
 <td>Re-queue a failed or cancelled job</td>
 </tr>
 <tr>
+<th><code>POST</code></th>
+<td><code>/api/v1/jobs/{reference}/run</code></td>
+<td>Admin: run a queued job synchronously</td>
+</tr>
+<tr>
+<th><code>GET</code></th>
+<td><code>/api/v1/jobs/worker</code></td>
+<td>Queue depth, running count, lease seconds, subscribers</td>
+</tr>
+<tr>
+<th><code>GET</code></th>
+<td><code>/api/v1/jobs/types</code></td>
+<td>Registered types and the cancellable subset</td>
+</tr>
+<tr>
+<th><code>POST</code></th>
+<td><code>/api/v1/jobs/pipeline-run</code></td>
+<td>Queue a pipeline run</td>
+</tr>
+<tr>
+<th><code>POST</code></th>
+<td><code>/api/v1/jobs/backfill</code></td>
+<td>Queue a historical backfill</td>
+</tr>
+<tr>
+<th><code>POST</code></th>
+<td><code>/api/v1/jobs/export</code></td>
+<td>Queue a dataset export</td>
+</tr>
+<tr>
 <th><code>GET</code></th>
 <td><code>/api/v1/jobs/stream/jobs</code></td>
 <td>SSE: live job progress</td>
+</tr>
+</tbody></table></div>
+<p>Live SSE topics, all on <code>/api/v1/stream</code>:</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Path</th>
+<th>Topics</th>
+</tr></thead><tbody>
+<tr>
+<th><code>GET /stream/runs</code></th>
+<td><code>run</code></td>
+</tr>
+<tr>
+<th><code>GET /stream/kpis</code></th>
+<td><code>kpi</code>, <code>change</code>, <code>quality</code></td>
+</tr>
+<tr>
+<td><code>GET /stream/notifications</code></td>
+<td><code>notification</code></td>
+</tr>
+<tr>
+<th><code>GET /stream/everything</code></th>
+<td>every topic, filterable with <code>?topics=</code></td>
+</tr>
+<tr>
+<th><code>GET /stream/snapshot</code></th>
+<td>One JSON snapshot of the same figures the stream pushes</td>
+</tr>
+<tr>
+<th><code>WS /stream/ws?token=</code></th>
+<td>The same topics over a WebSocket</td>
 </tr>
 </tbody></table></div>
 <p>A non-admin listing their own jobs is enforced in the query itself (<code>requested_by = user_id</code>), not by filtering after the fact.</p>

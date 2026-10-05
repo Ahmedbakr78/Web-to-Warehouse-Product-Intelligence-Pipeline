@@ -56,13 +56,14 @@ function JobProgress({ value, caption }: { value: number; caption?: string }) {
   )
 }
 
+/** Friendly names for the job types `GET /jobs/types` reports. */
 const LABELS: Record<string, string> = {
-  'pipeline-run': 'Pipeline run',
+  pipeline_run: 'Pipeline run',
   backfill: 'Backfill',
   export: 'Export',
   forecast: 'Forecast rebuild',
-  aggregate: 'Aggregate rebuild',
-  'report-pdf': 'Report PDF',
+  rebuild_aggregates: 'Aggregate rebuild',
+  report_pdf: 'Report PDF',
 }
 
 export default function JobQueue() {
@@ -79,7 +80,7 @@ export default function JobQueue() {
   const live = useRef(new Map<string, Record<string, any>>())
   const { state } = useEventStream(['job'], {
     onEvent: (event) => {
-      const reference = String(event.reference ?? event.job_reference ?? '')
+      const reference = String(event.job_key ?? event.job_reference ?? '')
       if (!reference) return
       if (TERMINAL.includes(String(event.status ?? ''))) live.current.delete(reference)
       else live.current.set(reference, event)
@@ -116,7 +117,7 @@ export default function JobQueue() {
       return {
         ...row,
         status: push.status ?? row.status,
-        progress: push.progress ?? row.progress,
+        progress_pct: push.progress_pct ?? row.progress_pct,
         stage: push.stage ?? row.stage,
         message: push.message ?? row.message,
         streamed: true,
@@ -181,7 +182,7 @@ export default function JobQueue() {
         ) : (
           <DataTable
             rows={rows}
-            rowKey={(row: any) => row.reference}
+            rowKey={(row: any) => row.job_key}
             maxHeight={520}
             onRowClick={(row: any) => setExpanded((current) => (current === row.reference ? null : row.reference))}
             columns={[
@@ -195,7 +196,7 @@ export default function JobQueue() {
                       <Icon className="h-4 w-4 shrink-0 text-subtle" aria-hidden />
                       <div className="min-w-0">
                         <p className="truncate font-medium">{LABELS[row.job_type] ?? row.job_type}</p>
-                        <p className="truncate font-mono text-[11px] text-subtle">{row.reference}</p>
+                        <p className="truncate font-mono text-[11px] text-subtle">{row.job_key}</p>
                       </div>
                     </div>
                   )
@@ -206,7 +207,7 @@ export default function JobQueue() {
                 header: 'Progress',
                 render: (row: any) => (
                   <JobProgress
-                    value={Number(row.progress ?? 0)}
+                    value={Number(row.progress_pct ?? 0)}
                     caption={row.stage ?? (row.message ? String(row.message) : undefined)}
                   />
                 ),
@@ -224,7 +225,7 @@ export default function JobQueue() {
               {
                 key: 'created_at',
                 header: 'Queued',
-                render: (row: any) => <span title={formatDateTime(row.created_at)}>{formatRelative(row.created_at)}</span>,
+                render: (row: any) => <span title={formatDateTime(row.queued_at)}>{formatRelative(row.queued_at)}</span>,
               },
               {
                 key: 'actions',
@@ -238,7 +239,7 @@ export default function JobQueue() {
                         variant="ghost"
                         icon={<Ban className="h-3.5 w-3.5" />}
                         disabled={cancel.isPending}
-                        onClick={() => cancel.mutate(row.reference)}
+                        onClick={() => cancel.mutate(row.job_key)}
                       >
                         Cancel
                       </Button>
@@ -249,7 +250,7 @@ export default function JobQueue() {
                         variant="ghost"
                         icon={<ListRestart className="h-3.5 w-3.5" />}
                         disabled={retry.isPending}
-                        onClick={() => retry.mutate(row.reference)}
+                        onClick={() => retry.mutate(row.job_key)}
                       >
                         Retry
                       </Button>
@@ -265,24 +266,28 @@ export default function JobQueue() {
       {detail ? (
         <Card>
           <CardHeader
-            title={`${LABELS[detail.job_type] ?? detail.job_type} · ${detail.reference}`}
+            title={`${LABELS[detail.job_type] ?? detail.job_type} · ${detail.job_key}`}
             subtitle={detail.message ?? 'Progress log for this job'}
             icon={<Timer className="h-4 w-4" />}
           />
           <KeyValue
             items={[
               { label: 'Status', value: String(detail.status ?? 'unknown') },
-              { label: 'Attempts', value: `${detail.attempts ?? 0} of ${detail.max_attempts ?? 1}` },
-              { label: 'Queued', value: formatDateTime(detail.created_at) },
+              { label: 'Attempt', value: `${detail.attempt ?? 1} of ${detail.max_attempts ?? 3}` },
+              { label: 'Queued', value: formatDateTime(detail.queued_at) },
+              {
+                label: 'Started',
+                value: detail.started_at ? formatDateTime(detail.started_at) : 'not yet',
+              },
               {
                 label: 'Finished',
                 value: detail.finished_at ? formatDateTime(detail.finished_at) : 'still running',
               },
-              {
-                label: 'Lease',
-                value: detail.lease_expires_at ? `expires ${formatRelative(detail.lease_expires_at)}` : 'not held',
-              },
               { label: 'Requested by', value: detail.requested_by_email ?? 'scheduler or API' },
+              {
+                label: 'Result',
+                value: detail.result?.filename ?? (detail.result ? Object.keys(detail.result)[0] : '—'),
+              },
             ]}
           />
           {detail.error ? (
@@ -290,11 +295,13 @@ export default function JobQueue() {
           ) : null}
           <ol className="mt-4 space-y-2 border-l border-line pl-4">
             {events.map((event: any) => (
-              <li key={event.id ?? event.at} className="relative">
+              <li key={event.event_id} className="relative">
                 <span className="absolute -left-[21px] top-1.5 h-2 w-2 rounded-full bg-brand-500" aria-hidden />
                 <p className="text-xs font-medium text-ink">{event.stage ?? event.status ?? 'update'}</p>
                 {event.message ? <p className="text-[11px] text-muted">{event.message}</p> : null}
-                <p className="text-[11px] text-subtle">{formatRelative(event.at ?? event.created_at)}</p>
+                <p className="text-[11px] text-subtle">
+                  {event.progress_pct ?? 0}% · {formatRelative(event.created_at)}
+                </p>
               </li>
             ))}
             {!events.length ? <li className="text-[11px] text-subtle">No progress events recorded yet.</li> : null}

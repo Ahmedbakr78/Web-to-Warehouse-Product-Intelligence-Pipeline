@@ -65,7 +65,7 @@ type AuthState = {
   user: User | null
   ready: boolean
   authenticated: boolean
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string, secondFactor?: { totp_code?: string; recovery_code?: string }) => Promise<void>
   logout: () => void
   refresh: () => Promise<void>
   can: (permission: string) => boolean
@@ -180,8 +180,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const login = useCallback(
-    async (email: string, password: string) => {
-      const response = await endpoints.login(email, password)
+    async (email: string, password: string, secondFactor?: { totp_code?: string; recovery_code?: string }) => {
+      const response = await endpoints.login(email, password, true, secondFactor)
       tokenStore.set(response.access_token, response.refresh_token)
       // The session handle is what makes "sign out this device" and "sign out
       // everywhere" revocable, so it has to survive a reload like the tokens do.

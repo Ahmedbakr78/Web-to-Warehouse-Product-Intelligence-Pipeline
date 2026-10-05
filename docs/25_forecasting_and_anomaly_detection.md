@@ -45,7 +45,7 @@ uncertainty is visible rather than implied.
 
 ```mermaid
 flowchart LR
-  facts[(price facts)] --> clean[median clean, dedupe]
+  views[(vw_price_history)] --> clean[median clean, dedupe]
   clean --> series[daily series, gaps zero-filled]
   series --> fit{damped Holt-Winters fit}
   fit --> points[projection points + bands]
@@ -153,16 +153,22 @@ not something anyone should act on.
 
 ## 6. API
 
-| Method | Path | Purpose |
+| Method | Path | Returns |
 | --- | --- | --- |
-| `GET` | `/api/v1/forecast/overview` | Every product: model, accuracy grade, current price, projection |
-| `GET` | `/api/v1/forecast/{product_id}` | Projection points and bands for one product |
-| `GET` | `/api/v1/forecast/{product_id}/backtest` | MAPE, MAE, RMSE and the held-out points |
-| `GET` | `/api/v1/forecast/anomalies` | Flagged moves across the catalogue, ranked by severity |
-| `GET` | `/api/v1/forecast/{product_id}/seasonal` | Day-of-week and monthly indices |
-| `GET` | `/api/v1/forecast/recommendations` | Price advice with elasticity and margin effect |
-| `POST` | `/api/v1/forecast/rebuild` | Queue a full recomputation in the background |
-| `GET` | `/api/v1/forecast/accuracy` | Distribution of accuracy grades across the catalogue |
+| `GET` | `/api/v1/forecast/{product_id}` | Projection points and bands, with the model's measured error |
+| `GET` | `/api/v1/forecast/backtest` | Accuracy across the catalogue: mean and median MAPE, best and worst |
+| `GET` | `/api/v1/forecast/products/anomalies` | Flagged moves across every product, most extreme first |
+| `GET` | `/api/v1/forecast/{product_id}/anomalies` | The same, for one product |
+| `GET` | `/api/v1/forecast/{product_id}/predict-price` | Recommended price, method, confidence and its reasoning |
+| `GET` | `/api/v1/forecast/{product_id}/seasonality` | Per-weekday mean, median, standard deviation and range |
+| `GET` | `/api/v1/forecast/category/{category}/elasticity` | Demand elasticity for a category |
+| `POST` | `/api/v1/forecast/rebuild` | Queue a full recomputation as a background job |
+
+Every read accepts `days` (history window) and `horizon` (days projected).
+
+`/backtest` is the honest endpoint to quote: it reports MAPE from a **holdout**
+tail, not from the fit that produced the forecast, and it returns both ends of the
+distribution so a good average cannot hide a set of hopeless products.
 
 All forecast routes require the `read` right. `rebuild` requires
 `run_pipeline`, because it is a pipeline action rather than a read.
@@ -199,7 +205,7 @@ press refresh.
 
 ## Related
 
-- [09_database_design.md](09_database_design.md) — the `fact_price_daily` table the series is built from
+- [09_database_design.md](09_database_design.md) — the `vw_price_history` view the series is built from
 - [05_kpis.md](05_kpis.md) — how forecast accuracy is reported as a KPI
 - [17_technical_documentation.md](17_technical_documentation.md) — module map and configuration
 - [15_testing_strategy.md](15_testing_strategy.md) — how the model is tested

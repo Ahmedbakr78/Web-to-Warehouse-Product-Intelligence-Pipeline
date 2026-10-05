@@ -70,14 +70,18 @@ PostgreSQL the writes go straight through.
 
 ## 3. Registered job types
 
-| Type | Trigger | Cancellable |
+| `job_type` | Trigger | Cancellable |
 | --- | --- | --- |
-| `pipeline-run` | `POST /pipeline/run`, `/jobs/pipeline-run` | Yes |
-| `backfill` | `POST /pipeline/backfill` | Yes |
+| `pipeline_run` | `POST /jobs/pipeline-run` | Yes |
+| `backfill` | `POST /jobs/backfill` | Yes |
 | `export` | `POST /jobs/export` | Yes |
 | `forecast` | `POST /forecast/rebuild` | Yes |
-| `aggregate` | `POST /aggregates/rebuild` | Yes |
-| `report_pdf` | `POST /reports/{template}/queue` | Yes |
+| `rebuild_aggregates` | `POST /pipeline/rebuild-aggregates` | No |
+| `report_pdf` | `POST /reports/{template}/queue` | No |
+
+`GET /jobs/types` returns this list, and `GET /jobs/worker` returns the
+cancellable subset alongside queue depth, lease length and subscriber count — so a
+UI never hardcodes which buttons it is allowed to show.
 
 Each handler receives `(job, progress)` where `progress(stage, message, percent)`
 is the only way it reports back. Handlers therefore cannot silently swallow a
@@ -90,13 +94,29 @@ failure: the queue owns the state transition.
 | Method | Path | Purpose |
 | --- | --- | --- |
 | `GET` | `/api/v1/jobs` | Job history; a non-admin sees only their own |
-| `GET` | `/api/v1/jobs/{reference}` | Status, attempts, lease, error, full progress log |
+| `GET` | `/api/v1/jobs/{reference}` | Status, result, attempts, lease, error, progress events |
+| `DELETE` | `/api/v1/jobs/{reference}` | Remove a finished job row |
 | `GET` | `/api/v1/jobs/{reference}/events` | Progress events after an id, for polling or replay |
-| `GET` | `/api/v1/jobs/worker` | Queue depth, running count, lease age |
-| `GET` | `/api/v1/jobs/types` | Registered types and which are cancellable |
 | `POST` | `/api/v1/jobs/{reference}/cancel` | Cooperative cancellation |
 | `POST` | `/api/v1/jobs/{reference}/retry` | Re-queue a failed or cancelled job |
+| `POST` | `/api/v1/jobs/{reference}/run` | Admin: run a queued job synchronously |
+| `GET` | `/api/v1/jobs/worker` | Queue depth, running count, lease seconds, subscribers |
+| `GET` | `/api/v1/jobs/types` | Registered types and the cancellable subset |
+| `POST` | `/api/v1/jobs/pipeline-run` | Queue a pipeline run |
+| `POST` | `/api/v1/jobs/backfill` | Queue a historical backfill |
+| `POST` | `/api/v1/jobs/export` | Queue a dataset export |
 | `GET` | `/api/v1/jobs/stream/jobs` | SSE: live job progress |
+
+Live SSE topics, all on `/api/v1/stream`:
+
+| Path | Topics |
+| --- | --- |
+| `GET /stream/runs` | `run` |
+| `GET /stream/kpis` | `kpi`, `change`, `quality` |
+| `GET /stream/notifications` | `notification` |
+| `GET /stream/everything` | every topic, filterable with `?topics=` |
+| `GET /stream/snapshot` | One JSON snapshot of the same figures the stream pushes |
+| `WS /stream/ws?token=` | The same topics over a WebSocket |
 
 A non-admin listing their own jobs is enforced in the query itself
 (`requested_by = user_id`), not by filtering after the fact.

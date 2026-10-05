@@ -113,7 +113,7 @@
 </tbody></table></div>
 <p>The model is fitted on the price history for one product, then projected over the requested horizon. Two-sided bands are produced at 80% and 95% so the uncertainty is visible rather than implied.</p>
 <pre class="mermaid">flowchart LR
-  facts[(price facts)] --&gt; clean[median clean, dedupe]
+  views[(vw_price_history)] --&gt; clean[median clean, dedupe]
   clean --&gt; series[daily series, gaps zero-filled]
   series --&gt; fit{damped Holt-Winters fit}
   fit --&gt; points[projection points + bands]
@@ -235,49 +235,51 @@
 <div class='table-scroll'><table><thead><tr>
 <th>Method</th>
 <th>Path</th>
-<th>Purpose</th>
+<th>Returns</th>
 </tr></thead><tbody>
 <tr>
 <th><code>GET</code></th>
-<td><code>/api/v1/forecast/overview</code></td>
-<td>Every product: model, accuracy grade, current price, projection</td>
-</tr>
-<tr>
-<th><code>GET</code></th>
 <td><code>/api/v1/forecast/{product_id}</code></td>
-<td>Projection points and bands for one product</td>
+<td>Projection points and bands, with the model's measured error</td>
 </tr>
 <tr>
 <th><code>GET</code></th>
-<td><code>/api/v1/forecast/{product_id}/backtest</code></td>
-<td>MAPE, MAE, RMSE and the held-out points</td>
+<td><code>/api/v1/forecast/backtest</code></td>
+<td>Accuracy across the catalogue: mean and median MAPE, best and worst</td>
 </tr>
 <tr>
 <th><code>GET</code></th>
-<td><code>/api/v1/forecast/anomalies</code></td>
-<td>Flagged moves across the catalogue, ranked by severity</td>
+<td><code>/api/v1/forecast/products/anomalies</code></td>
+<td>Flagged moves across every product, most extreme first</td>
 </tr>
 <tr>
 <th><code>GET</code></th>
-<td><code>/api/v1/forecast/{product_id}/seasonal</code></td>
-<td>Day-of-week and monthly indices</td>
+<td><code>/api/v1/forecast/{product_id}/anomalies</code></td>
+<td>The same, for one product</td>
 </tr>
 <tr>
 <th><code>GET</code></th>
-<td><code>/api/v1/forecast/recommendations</code></td>
-<td>Price advice with elasticity and margin effect</td>
+<td><code>/api/v1/forecast/{product_id}/predict-price</code></td>
+<td>Recommended price, method, confidence and its reasoning</td>
+</tr>
+<tr>
+<th><code>GET</code></th>
+<td><code>/api/v1/forecast/{product_id}/seasonality</code></td>
+<td>Per-weekday mean, median, standard deviation and range</td>
+</tr>
+<tr>
+<th><code>GET</code></th>
+<td><code>/api/v1/forecast/category/{category}/elasticity</code></td>
+<td>Demand elasticity for a category</td>
 </tr>
 <tr>
 <th><code>POST</code></th>
 <td><code>/api/v1/forecast/rebuild</code></td>
-<td>Queue a full recomputation in the background</td>
-</tr>
-<tr>
-<th><code>GET</code></th>
-<td><code>/api/v1/forecast/accuracy</code></td>
-<td>Distribution of accuracy grades across the catalogue</td>
+<td>Queue a full recomputation as a background job</td>
 </tr>
 </tbody></table></div>
+<p>Every read accepts <code>days</code> (history window) and <code>horizon</code> (days projected).</p>
+<p><code>/backtest</code> is the honest endpoint to quote: it reports MAPE from a <strong>holdout</strong> tail, not from the fit that produced the forecast, and it returns both ends of the distribution so a good average cannot hide a set of hopeless products.</p>
 <p>All forecast routes require the <code>read</code> right. <code>rebuild</code> requires <code>run_pipeline</code>, because it is a pipeline action rather than a read.</p>
 <hr>
 <h2 id="7-rebuilds-are-jobs">7. Rebuilds are jobs</h2>
@@ -301,7 +303,7 @@
 <hr>
 <h2 id="related">Related</h2>
 <ul>
-<li class="depth-0"><a href="09_database_design.html">09_database_design.md</a> — the <code>fact_price_daily</code> table the series is built from</li>
+<li class="depth-0"><a href="09_database_design.html">09_database_design.md</a> — the <code>vw_price_history</code> view the series is built from</li>
 <li class="depth-0"><a href="05_kpis.html">05_kpis.md</a> — how forecast accuracy is reported as a KPI</li>
 <li class="depth-0"><a href="17_technical_documentation.html">17_technical_documentation.md</a> — module map and configuration</li>
 <li class="depth-0"><a href="15_testing_strategy.html">15_testing_strategy.md</a> — how the model is tested</li>
