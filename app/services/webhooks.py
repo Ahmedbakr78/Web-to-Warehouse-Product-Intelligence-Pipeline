@@ -30,6 +30,7 @@ from typing import Any
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
+from app.core.errors import PipelineError
 from app.core.logging import get_logger
 from app.models.app_users import AppWebhook, AppWebhookDelivery
 from app.models.base import utcnow
@@ -58,8 +59,11 @@ DELIVERY_HEADER = "X-Webhook-Delivery"
 TIMESTAMP_HEADER = "X-Webhook-Timestamp"
 
 
-class WebhookError(Exception):
+class WebhookError(PipelineError):
     """Configuration or delivery problem that the caller should surface."""
+
+    status_code = 400
+    code = "webhook_error"
 
 
 def generate_secret() -> str:
@@ -143,9 +147,7 @@ def normalise_events(events: list[str] | None) -> list[str]:
         if not name or len(name) > MAX_EVENT_NAME:
             raise WebhookError(f"invalid event name: {raw!r}")
         if name != "*" and name not in WEBHOOK_EVENTS:
-            raise WebhookError(
-                f"unknown event '{name}'", details={"supported": list(WEBHOOK_EVENTS)}
-            )
+            raise WebhookError(f"unknown event '{name}'", details={"supported": list(WEBHOOK_EVENTS)})
         if name not in cleaned:
             cleaned.append(name)
     return cleaned
@@ -163,11 +165,7 @@ def subscriptions_for_event(session: Session, event: str) -> list[AppWebhook]:
         .scalars()
         .all()
     )
-    return [
-        hook
-        for hook in hooks
-        if (hook.events or []).count("*") or event in (hook.events or [])
-    ]
+    return [hook for hook in hooks if (hook.events or []).count("*") or event in (hook.events or [])]
 
 
 # --------------------------------------------------------------------------------------
@@ -196,9 +194,7 @@ def deliver(
     """Attempt one delivery, record the outcome and schedule a retry if it failed."""
     row: AppWebhookDelivery | None = None
     if record:
-        row = AppWebhookDelivery(
-            webhook_id=hook.webhook_id, event=event, payload=payload, status="pending"
-        )
+        row = AppWebhookDelivery(webhook_id=hook.webhook_id, event=event, payload=payload, status="pending")
         session.add(row)
         session.flush()
 
@@ -317,9 +313,7 @@ def retry_due(session: Session, limit: int = 50) -> int:
         elif delivery.attempts >= (hook.max_attempts or 3):
             delivery.status = "failed"
         else:
-            backoff = RETRY_BACKOFF_SECONDS[
-                min(delivery.attempts - 1, len(RETRY_BACKOFF_SECONDS) - 1)
-            ]
+            backoff = RETRY_BACKOFF_SECONDS[min(delivery.attempts - 1, len(RETRY_BACKOFF_SECONDS) - 1)]
             delivery.next_retry_at = now + dt.timedelta(seconds=backoff)
         attempted += 1
         session.flush()

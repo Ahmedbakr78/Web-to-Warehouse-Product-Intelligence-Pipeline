@@ -52,3 +52,7 @@ secrets/
 .DS_Store
 Thumbs.db
 *.swp
+
+# ---------- Generated documentation site ----------
+# `make site` rebuilds this from docs/; it is build output, not source.
+/site/

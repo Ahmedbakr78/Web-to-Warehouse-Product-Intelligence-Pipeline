@@ -49,12 +49,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
             <button className="btn btn-primary" onClick={() => this.setState({ error: null })}>
               Retry
             </button>
-            <button
-              className="btn btn-secondary"
-              onClick={() => {
-                window.location.href = '/'
-              }}
-            >
+            <button className="btn btn-secondary" onClick={() => window.location.reload()}>
               Reload app
             </button>
           </div>
@@ -261,15 +256,18 @@ export default function App() {
               </RequirePermission>
             }
           />
-          <Route
-            path="*"
-            element={
-              <Suspense fallback={<LoadingState />}>
-                <NotFound />
-              </Suspense>
-            }
-          />
-        </Route>
+          </Route>
+
+        {/* 404 lives outside the auth guard: a signed-out visitor who mistypes a URL
+            should see the not-found screen, not a login form. */}
+        <Route
+          path="*"
+          element={
+            <Suspense fallback={<LoadingState label="Loading…" />}>
+              <NotFound />
+            </Suspense>
+          }
+        />
       </Routes>
     </ErrorBoundary>
   )

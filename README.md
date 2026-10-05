@@ -56,7 +56,7 @@
   <a href="docs/21_architecture_deep_dive.md">Architecture deep dive</a> ·
   <a href="docs/22_data_dictionary.md">Data dictionary</a> ·
   <a href="docs/23_glossary_and_faq.md">Glossary &amp; FAQ</a> ·
-  <a href=".github/SECURITY.md">Security</a> ·
+  <a href="SECURITY.md">Security</a> ·
   <a href="CONTRIBUTING.md">Contributing</a> ·
   <a href=".github/CODE_OF_CONDUCT.md">Code of conduct</a> ·
   <a href="CHANGELOG.md">Changelog</a>
@@ -988,10 +988,23 @@ db/
 frontend/         React 19 dashboard: 20 screens, PWA, design system
   public/         manifest, icons
   src/            pages, components, hooks, libs
-docs/             20 numbered documents plus an index with diagrams
-scripts/          api_smoke.py regression suite (78 checks), run_analysis.py, make_infographic.py
+docs/             23 numbered documents plus an index with diagrams
+  diagrams/out/   Mermaid sources extracted for SVG rendering
+  assets/         generated infographic (SVG master + PNG + HTML preview)
+scripts/
+  api_smoke.py            regression suite (78 checks)
+  build_site.py           dependency-free documentation website builder
+  run_analysis.py         runs the standalone SQL analyses
+  make_infographic.py     generates the roadmap infographic
+  render_diagrams.sh      extracts every Mermaid block for SVG export
 tests/            pytest unit + integration suite (255 tests)
-.github/workflows ci.yml: ruff, mypy, pytest, eslint, tsc, vite build
+.github/
+  workflows/ci.yml        ruff, mypy, pytest, eslint, tsc, vite build
+  ISSUE_TEMPLATE/         bug, feature and documentation forms
+  CODE_OF_CONDUCT.md      Contributor Covenant 2.1
+  dependabot.yml          weekly pip / npm / actions updates
+  CODEOWNERS              review ownership
+site/             generated documentation website (make site; not committed)
 docker-compose.yml            postgres, mysql, api, airflow, scheduler, frontend
 Makefile                      30+ targets
 pyproject.toml                package configuration and tool settings

@@ -32,7 +32,7 @@ import {
 import { NAV_GROUPS, PAGE_TITLES, ALL_NAV_ITEMS } from '@/lib/nav'
 import { cn } from '@/lib/cn'
 import { useTheme } from '@/lib/theme'
-import { endpoints, tokenStore } from '@/lib/api'
+import { endpoints, searchProducts, tokenStore } from '@/lib/api'
 import { useQuery } from '@tanstack/react-query'
 import { Badge, Button, IconButton } from './ui'
 import { initials, formatRelative, titleCase, formatPrice } from '@/lib/format'
@@ -461,6 +461,7 @@ function CommandPalette({
     ===================================================================================== */
 function NotificationBell() {
   const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
   const { data, refetch } = useQuery({
     queryKey: ['notifications'],
     queryFn: () => endpoints.notifications(8, false),
@@ -469,8 +470,25 @@ function NotificationBell() {
   })
   const unread = data?.items?.filter((item: any) => !item.is_read).length ?? 0
 
+  // Dismiss on outside click or Escape, matching the account menu's behaviour.
+  useEffect(() => {
+    if (!open) return
+    const onPointerDown = (event: MouseEvent) => {
+      if (!containerRef.current?.contains(event.target as Node)) setOpen(false)
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open])
+
   return (
-    <div className="relative">
+    <div className="relative" ref={containerRef}>
       <IconButton
         label={`Notifications${unread ? ` (${unread} unread)` : ''}`}
         icon={
