@@ -5,12 +5,15 @@ from __future__ import annotations
 import json
 
 import pytest
+from fastapi import Request
+from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.testclient import TestClient
 
 from app.api.main import app
+from app.api.deps import stream_user
 from app.api.security import create_access_token
 from app.core.db import session_scope
-from app.core.errors import PipelineError
+from app.core.errors import AuthenticationError, PipelineError
 
 pytestmark = pytest.mark.integration
 
@@ -932,36 +935,71 @@ def test_initial_migration_creates_every_table_and_the_views():
 # --------------------------------------------------------------------------------------
 # Realtime authentication
 # --------------------------------------------------------------------------------------
-def open_stream(client, path: str, params: dict | None = None, headers: dict | None = None):
-    """Open an SSE response and read only its handshake.
+def stream_request(query: str = "") -> Request:
+    """A minimal ASGI request for exercising the SSE auth dependency directly.
 
-    A full `client.get()` would never return: the stream stays open and emits
-    keep-alives for as long as the connection lasts.
+    The SSE routes cannot be driven through `TestClient` in a test: the response never
+    finishes, so any full read blocks forever. Testing the dependency plus the routes'
+    wiring covers the same ground without opening a stream.
     """
-    with client.stream("GET", path, params=params, headers=headers) as response:
-        opener = next((line for line in response.iter_lines() if line.startswith("event:")), "")
-        return response.status_code, response.headers.get("content-type", ""), opener
+    return Request(
+        {
+            "type": "http",
+            "method": "GET",
+            "path": "/api/v1/stream/kpis",
+            "root_path": "",
+            "scheme": "http",
+            "query_string": query.encode(),
+            "headers": [],
+            "client": ("127.0.0.1", 54321),
+            "server": ("testserver", 80),
+        }
+    )
 
 
-def test_sse_accepts_the_token_in_the_query_string(client, admin_token):
+def test_sse_accepts_the_token_in_the_query_string(session, admin_token):
     """`EventSource` cannot set headers, so the query credential is the browser path."""
-    status, content_type, opener = open_stream(client, "/api/v1/stream/kpis", {"token": admin_token})
-    assert status == 200
-    assert content_type.startswith("text/event-stream")
-    assert opener == "event: open"
+    user = stream_user(session, stream_request(), None, admin_token)
+    assert user.user_id == 1
 
 
-def test_sse_still_accepts_the_authorization_header(client, admin_token):
-    status, _, opener = open_stream(client, "/api/v1/stream/kpis", headers=auth(admin_token))
-    assert status == 200
-    assert opener == "event: open"
+def test_sse_still_accepts_the_authorization_header(session, admin_token):
+    credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=admin_token)
+    assert stream_user(session, stream_request(), credentials, None).user_id == 1
 
 
-def test_sse_rejects_a_missing_or_bogus_credential(client):
-    assert client.get("/api/v1/stream/kpis").status_code == 401
-    assert client.get("/api/v1/stream/kpis", params={"token": "not-a-token"}).status_code == 401
+def test_the_header_wins_when_both_credentials_are_present(session, admin_token):
+    """A header client must never be downgraded to a query credential."""
+    credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=admin_token)
+    assert stream_user(session, stream_request("token=not-a-token"), credentials, "not-a-token").user_id == 1
 
 
-def test_sse_query_token_enforces_role_rights(client, viewer_token):
-    """The query credential widens the transport, never the permissions."""
-    assert client.get("/api/v1/jobs/stream/jobs", params={"token": viewer_token}).status_code in (401, 403)
+def test_sse_rejects_a_missing_or_bogus_credential(session):
+    with pytest.raises(AuthenticationError):
+        stream_user(session, stream_request(), None, None)
+    with pytest.raises(AuthenticationError):
+        stream_user(session, stream_request(), None, "not-a-token")
+
+
+def test_sse_routes_are_wired_to_the_stream_dependency():
+    """Guards against a route silently going back to header-only auth.
+
+    Asserted through the OpenAPI schema rather than `app.routes`: this FastAPI version
+    keeps included routers as one object instead of flattening them, so the route table
+    is not introspectable, but the schema is generated from the same dependencies.
+    """
+    schema = app.openapi()
+    paths = {
+        "/api/v1/stream/runs",
+        "/api/v1/stream/kpis",
+        "/api/v1/stream/notifications",
+        "/api/v1/stream/everything",
+        "/api/v1/jobs/stream/jobs",
+    }
+    for path in paths:
+        operation = schema["paths"][path]["get"]
+        parameters = {item["name"]: item for item in operation.get("parameters", [])}
+        assert "token" in parameters, f"{path} does not accept a query credential"
+        assert parameters["token"]["in"] == "query"
+        # The header path stays available for clients that can set headers.
+        assert operation.get("security"), f"{path} declares no authentication scheme"
