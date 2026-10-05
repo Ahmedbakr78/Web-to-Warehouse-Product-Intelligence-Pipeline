@@ -345,30 +345,34 @@ def detect_anomalies(
     Returns `(index, value, expected, score)`. The expectation is a centred rolling
     median, so an anomaly does not drag the baseline towards itself the way a rolling
     mean would.
+
+    The first and last `window // 2` positions are skipped. A truncated neighbourhood
+    has a narrower sample, which on a short or flat run yields a tiny spread and
+    therefore spurious high scores at the series edges - precisely where there is
+    least evidence to call anything anomalous.
     """
     array = np.asarray(values, dtype=float)
-    if array.size < 5:
+    half = max(2, window // 2)
+    if array.size < max(5, 2 * half + 1):
         return []
 
-    half = max(2, window // 2)
     anomalies: list[tuple[int, float, float, float]] = []
-    for index in range(array.size):
-        low = max(0, index - half)
-        high = min(array.size, index + half + 1)
-        neighbourhood = np.concatenate((array[low:index], array[index + 1 : high]))
-        if neighbourhood.size < 3:
-            continue
+    for index in range(half, array.size - half):
+        neighbourhood = np.concatenate((array[index - half : index], array[index + 1 : index + half + 1]))
         expected = float(np.median(neighbourhood))
-        spread = (
-            median_absolute_deviation(neighbourhood.tolist())
-            if method == "mad"
-            else float(np.std(neighbourhood))
-        )
         if method == "iqr":
             q1, q3 = np.percentile(neighbourhood, [25, 75])
-            spread = float((q3 - q1) / 1.349) or 1e-9
+            spread = float((q3 - q1) / 1.349)
+        elif method == "std":
+            spread = float(np.std(neighbourhood))
+        else:
+            spread = median_absolute_deviation(neighbourhood.tolist())
+
         if spread <= 1e-9:
+            # A perfectly flat neighbourhood gives a zero denominator. Fall back to the
+            # mean absolute deviation, and treat any real departure as an anomaly.
             spread = float(np.mean(np.abs(neighbourhood - expected))) or 1e-9
+
         score = (float(array[index]) - expected) / spread
         if abs(score) >= threshold:
             anomalies.append((index, float(array[index]), expected, score))
@@ -523,7 +527,22 @@ def load_series(
         ),
         {"product_id": product_id, "since": dt.date.today() - dt.timedelta(days=days)},
     ).all()
-    return [SeriesPoint(row[0], float(row[1])) for row in rows]
+    return [SeriesPoint(_as_date(row[0]), float(row[1])) for row in rows]
+
+
+def _as_date(value: Any) -> dt.date:
+    """Coerce a database date value to a `date`.
+
+    PostgreSQL and MySQL hand back a real `date`, but SQLite returns the column as
+    text. Without this the forecast arithmetic would fail on one of the three
+    supported dialects, which is exactly the kind of bug that only shows up on the
+    test database.
+    """
+    if isinstance(value, dt.datetime):
+        return value.date()
+    if isinstance(value, dt.date):
+        return value
+    return dt.date.fromisoformat(str(value)[:10])
 
 
 def product_ids_with_history(

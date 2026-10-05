@@ -670,8 +670,18 @@ def test_elasticity_is_reported_as_unidentifiable_rather_than_guessed(client, ad
 
 
 def test_forecast_endpoints_respond(client, admin_token):
-    product = client.get("/api/v1/products?page_size=1", headers=auth(admin_token)).json()["items"][0]
+    import datetime as dt
+
+    # `last_seen_at` is a datetime, not a date, so the query needs the right type.
+    product = (
+        client.get(
+            "/api/v1/products?page_size=1&sort_by=last_seen_at&sort_dir=desc",
+            headers=auth(admin_token),
+        )
+        .json()["items"][0]
+    )
     product_id = product["product_id"]
+    assert isinstance(dt.date.today(), dt.date)
 
     forecast = client.get(f"/api/v1/forecast/{product_id}?horizon=7", headers=auth(admin_token))
     assert forecast.status_code == 200
