@@ -1,0 +1,33 @@
+name: Documentation issue
+description: Missing, incorrect or unclear documentation
+labels: ["documentation"]
+body:
+  - type: textarea
+    id: location
+    attributes:
+      label: Where
+      description: File path and section heading.
+      placeholder: docs/14_api_documentation.md > "Rate matrix"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is wrong or missing
+    validations:
+      required: true
+
+  - type: textarea
+    id: correction
+    attributes:
+      label: Suggested correction
+      description: If you know the right answer, this is the fastest path to a merged fix.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I verified the claim against the code or a command output.
+        - label: Any number I quoted is reproducible with a command in the repository.
