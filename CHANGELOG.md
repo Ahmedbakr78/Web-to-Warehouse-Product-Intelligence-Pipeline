@@ -99,11 +99,29 @@ measured from the code:
   number, and the audit-isolation test compares identities rather than totals, which had made it
   order-dependent and therefore flaky.
 
+### Verified
+
+All six CI jobs green on the release commit:
+
+```text
+Backend (lint, types, tests)        success
+Frontend (lint, typecheck, build)   success
+REST API smoke test                 success
+PostgreSQL + MySQL parity           success
+Documentation (diagrams, links)     success   66/66 diagrams parse, 748 links resolve
+Project statistics (no drift)       success   every documented figure matches the code
+
+ruff: all checks pass               mypy: no issues
+pytest: 321 passed                  API smoke: 86/86 checks
+```
+
 ### Notes
 
 - `tsc --noEmit` at the repository root is a no-op because `tsconfig.json` uses project references;
   use `npm run typecheck` (`tsc --noEmit -p tsconfig.app.json`), `npm run build:strict` (`tsc -b`) or
   `npx tsc -b --noEmit` to type-check the dashboard.
+- Documentation figures are now measured, not asserted. `make stats` prints them, `make stats-check`
+  fails on drift, and `make docs-check` runs the diagram, anchor, link and figure gates together.
 
 ## [1.3.0] - 2026-10-05
 
