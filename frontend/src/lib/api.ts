@@ -171,7 +171,7 @@ export const api = {
     request<T>(`${path}${buildQuery(params)}`, { method: 'POST', body }),
   put: <T>(path: string, body?: unknown) => request<T>(path, { method: 'PUT', body }),
   patch: <T>(path: string, body?: unknown) => request<T>(path, { method: 'PATCH', body }),
-  del: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  del: <T>(path: string, body?: unknown) => request<T>(path, { method: 'DELETE', body }),
   refreshToken,
 }
 
@@ -179,6 +179,7 @@ export const api = {
 export const endpoints = {
   health: () => api.get<any>('/health'),
   meta: () => api.get<any>('/meta'),
+  metaFeatures: () => api.get<any>('/meta/features'),
   statsTables: () => api.get<any>('/stats/tables'),
   demoAccounts: () => api.get<any>('/auth/demo-accounts'),
 
@@ -190,6 +191,9 @@ export const endpoints = {
   updateMe: (payload: Record<string, unknown>) => api.patch<any>('/users/me', payload),
   changePassword: (current_password: string, new_password: string) =>
     api.post<any>('/auth/change-password', { current_password, new_password }),
+  exportMyData: () => api.get<any>('/users/me/export'),
+  deleteMyAccount: (password: string) => api.del<any>('/users/me', { password }),
+  myActivity: (params: Record<string, QueryValue> = {}) => api.get<any>('/audit/me', params),
 
   kpi: (days = 30) => api.get<any>('/analytics/kpi', { days }),
   trend: (days = 90) => api.get<any[]>('/analytics/trend', { days }),
@@ -250,6 +254,8 @@ export const endpoints = {
   queryTables: () => api.get<any>('/queries/tables'),
   queryExamples: () => api.get<any[]>('/queries/examples'),
   executeQuery: (sql: string, limit = 200) => api.post<any>('/queries/execute', { sql, limit }),
+  builderSchema: () => api.get<any>('/builder/schema'),
+  builderQuery: (payload: Record<string, unknown>) => api.post<any>('/builder/query', payload),
 
   users: (params: Record<string, QueryValue>) => api.get<any>('/users', params),
   userStats: () => api.get<any>('/users/stats'),
