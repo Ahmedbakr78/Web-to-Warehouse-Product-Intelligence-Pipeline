@@ -1004,6 +1004,7 @@ tests/            pytest unit + integration suite (255 tests)
   CODE_OF_CONDUCT.md      Contributor Covenant 2.1
   dependabot.yml          weekly pip / npm / actions updates
   CODEOWNERS              review ownership
+SECURITY.md       threat model, boundary controls, disclosure process
 site/             generated documentation website (make site; not committed)
 docker-compose.yml            postgres, mysql, api, airflow, scheduler, frontend
 Makefile                      30+ targets
