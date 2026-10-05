@@ -14,6 +14,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.api.ratelimit import rate_limit_middleware
 from app.api.routers import ROUTERS
 from app.api.schemas import ErrorResponse
 from app.core.config import settings
@@ -165,6 +166,10 @@ def create_app() -> FastAPI:
     )
 
     # ------------------------------------------------------------------ middleware
+    # Added last, so it is the outermost layer: a rejected request never reaches
+    # the database, which is the point of having a budget at all.
+    app.middleware("http")(rate_limit_middleware)
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origin_list,
