@@ -168,7 +168,7 @@ Everything is engineered like a production system, not a demo:
 <!-- BEGIN:STATS -->
 
 ```text
-28 physical tables  |  20 analytical views  |  160 REST route decorators in 21 routers
+28 physical tables  |  20 analytical views  |  150 REST route decorators in 20 routers
 12 data-quality rules across 6 dimensions, weighted score persisted per run
 5 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
 11 CLI commands  |  6 Docker Compose services  |  24 documents  |  67 Mermaid diagrams
@@ -179,8 +179,8 @@ Everything is engineered like a production system, not a demo:
 | --- | ---: |
 | Physical tables         | 28 |
 | Analytical views        | 20 |
-| REST routers            | 21 |
-| REST route decorators   | 160 |
+| REST routers            | 20 |
+| REST route decorators   | 150 |
 | Data-quality rules      | 12 |
 | Ingestion sources       | 5 |
 | Airflow task callables  | 33 |

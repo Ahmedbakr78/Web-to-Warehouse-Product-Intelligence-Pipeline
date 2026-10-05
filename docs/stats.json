@@ -12,8 +12,8 @@
   "mermaid_diagrams": 67,
   "physical_tables": 28,
   "pipeline_stages": 9,
-  "rest_route_decorators": 160,
-  "rest_routers": 21,
+  "rest_route_decorators": 150,
+  "rest_routers": 20,
   "test_cases": 348,
   "test_functions": 242
 }
