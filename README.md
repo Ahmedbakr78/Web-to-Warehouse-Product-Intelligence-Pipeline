@@ -14,7 +14,6 @@
   <img src="https://img.shields.io/badge/DQ%20rules-12-success" alt="Data quality rules"/>
   <img src="https://img.shields.io/badge/unit%20tests-321%20passing-brightgreen" alt="Tests"/>
   <img src="https://img.shields.io/badge/API%20smoke-86%2F86-brightgreen" alt="API smoke"/>
-  <img src="https://img.shields.io/badge/mypy-clean-61%20files-brightgreen" alt="mypy"/>
   <img src="https://img.shields.io/badge/ruff-0%20warnings-brightgreen" alt="ruff"/>
   <img src="https://img.shields.io/badge/CI-github%20actions-2088FF?logo=github-actions&logoColor=white" alt="CI"/>
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT"/>
