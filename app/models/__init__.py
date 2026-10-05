@@ -8,6 +8,7 @@ from app.models.app_users import (
     AppAuditLog,
     AppJob,
     AppJobEvent,
+    AppSession,
     AppNotification,
     AppSavedView,
     AppSetting,
@@ -62,8 +63,10 @@ ALL_MODELS = (
     AppSetting,
     AppJob,
     AppJobEvent,
+    AppSession,
     AppJob,
     AppJobEvent,
+    AppSession,
     AppWebhook,
     AppWebhookDelivery,
 )
@@ -98,6 +101,7 @@ CORE_TABLES: tuple[str, ...] = (
     "app_webhook_delivery",
     "app_job",
     "app_job_event",
+    "app_session",
 )
 
 #: Logical groups drive the documentation ERD and the API surface.
@@ -118,6 +122,7 @@ TABLE_GROUPS: dict[str, tuple[str, ...]] = {
     ),
     "integrations": ("app_webhook", "app_webhook_delivery"),
     "jobs": ("app_job", "app_job_event"),
+    "sessions": ("app_session",),
 }
 
 
@@ -155,6 +160,7 @@ __all__ = [
     "AppUser",
     "AppJob",
     "AppJobEvent",
+    "AppSession",
     "AppWebhook",
     "AppWebhookDelivery",
     "AppApiKey",

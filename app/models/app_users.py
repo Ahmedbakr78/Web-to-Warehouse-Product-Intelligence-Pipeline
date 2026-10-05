@@ -46,6 +46,11 @@ class AppUser(Base, TimestampMixin):
     last_login_ip: Mapped[str | None] = mapped_column(ShortStr)
     password_changed_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
     two_factor_enabled: Mapped[bool] = mapped_column(sa.Boolean, default=False)
+    #: TOTP shared secret, encrypted at rest. Only set once 2FA has been enrolled.
+    totp_secret: Mapped[str | None] = mapped_column(sa.String(255))
+    #: Hashed single-use recovery codes, so a lost authenticator is recoverable.
+    recovery_codes: Mapped[list | None] = mapped_column(JSONType, default=list)
+    two_factor_enrolled_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
     failed_login_count: Mapped[int] = mapped_column(sa.Integer, default=0)
     locked_until: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
     preferences: Mapped[dict | None] = mapped_column(JSONType, default=dict)
@@ -244,6 +249,32 @@ class AppSetting(Base):
     )
 
 
+class AppSession(Base, TimestampMixin):
+    """One signed-in browser session, so a user can see and revoke their own devices."""
+
+    __tablename__ = "app_session"
+
+    session_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(sa.Integer, sa.ForeignKey("app_user.user_id", ondelete="CASCADE"))
+    #: Short public handle used in the UI and in revoke URLs.
+    session_key: Mapped[str] = mapped_column(ShortStr, nullable=False, unique=True)
+    #: SHA-256 of the refresh token, so a database read cannot replay a session.
+    refresh_hash: Mapped[str | None] = mapped_column(sa.String(128))
+    ip_address: Mapped[str | None] = mapped_column(ShortStr)
+    user_agent: Mapped[str | None] = mapped_column(sa.String(512))
+    created_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), default=utcnow, nullable=False, index=True)
+    last_seen_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
+    expires_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), nullable=False, index=True)
+    revoked_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
+    #: Set when the session was terminated by the user rather than by expiry.
+    revoked_reason: Mapped[str | None] = mapped_column(ShortStr)
+
+    __table_args__ = (
+        sa.Index("ix_app_session_user_active", "user_id", "revoked_at"),
+        sa.Index("ix_app_session_expiry", "expires_at"),
+    )
+
+
 class AppJob(Base, TimestampMixin):
     """A unit of background work with a durable lease, progress and retry state.
 
@@ -321,6 +352,7 @@ __all__ = [
     "AppNotification",
     "AppAuditLog",
     "AppSetting",
+    "AppSession",
     "AppWebhook",
     "AppWebhookDelivery",
     "AppJob",
