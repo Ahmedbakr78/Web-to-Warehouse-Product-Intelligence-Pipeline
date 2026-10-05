@@ -166,7 +166,35 @@ Everything is engineered like a production system, not a demo:
 `make stats-check` in CI to prove they still match the code.
 
 <!-- BEGIN:STATS -->
+
+```text
+25 physical tables  |  20 analytical views  |  132 REST route decorators in 18 routers
+12 data-quality rules across 6 dimensions, weighted score persisted per run
+5 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
+11 CLI commands  |  6 Docker Compose services  |  23 documents  |  66 Mermaid diagrams
+321 tests  |  86/86 API smoke checks  |  295 catalogued features
+```
+
+| Metric | Count |
+| --- | ---: |
+| Physical tables         | 25 |
+| Analytical views        | 20 |
+| REST routers            | 18 |
+| REST route decorators   | 132 |
+| Data-quality rules      | 12 |
+| Ingestion sources       | 5 |
+| Airflow task callables  | 33 |
+| CLI commands            | 11 |
+| Pipeline stages         | 9 |
+| Docker Compose services | 6 |
+| Numbered documents      | 23 |
+| Mermaid diagrams        | 66 |
+| Catalogued features     | 295 |
+| Collected test cases    | 321 |
+| API smoke checks        | 86 |
+
 <!-- END:STATS -->
+
 
 Demo dataset after `make demo-postgres` (120 days, seeded, deterministic — counts will differ
 slightly with a different `--days` or after live runs):
