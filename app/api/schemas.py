@@ -437,6 +437,39 @@ class AlertRuleRead(ORMModel):
     user_id: int | None = None
 
 
+class BackfillRequest(BaseModel):
+    start_date: dt.date = Field(description="First day to replay (inclusive)")
+    end_date: dt.date = Field(description="Last day to replay (inclusive, never in the future)")
+    sources: list[str] | None = None
+    database: str = "postgres"
+    limit_per_source: int | None = Field(default=None, ge=1, le=5_000)
+    skip_dq: bool = False
+    skip_catalog: bool = False
+    dry_run: bool = False
+
+
+class BackfillDayResult(BaseModel):
+    date: str
+    run_id: str | None = None
+    status: str
+    records_extracted: int | None = None
+    records_valid: int | None = None
+    dq_score: float | None = None
+    error: str | None = None
+
+
+class BackfillResult(BaseModel):
+    backfill_id: str
+    status: str
+    planned_days: int
+    succeeded_days: int
+    failed_days: int
+    started_at: str
+    finished_at: str
+    duration_ms: int
+    runs: list[BackfillDayResult]
+
+
 class WebhookRead(ORMModel):
     webhook_id: int
     user_id: int
@@ -644,6 +677,9 @@ __all__ = [name for name in dir() if name[0].isupper()] + [
     "SavedViewCreate",
     "AlertRuleRead",
     "AlertRuleCreate",
+    "BackfillRequest",
+    "BackfillResult",
+    "BackfillDayResult",
     "WebhookRead",
     "WebhookCreate",
     "WebhookUpdate",

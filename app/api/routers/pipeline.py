@@ -10,7 +10,14 @@ from fastapi import APIRouter, BackgroundTasks, Query, Request
 
 from app.analytics import service as analytics
 from app.api.deps import DbSession, OptionalUser, PaginationDep, PipelineUser, ReadUser, request_meta
-from app.api.schemas import Message, Page, PipelineRunRead, PipelineTriggerRequest
+from app.api.schemas import (
+    BackfillRequest,
+    BackfillResult,
+    Message,
+    Page,
+    PipelineRunRead,
+    PipelineTriggerRequest,
+)
 from app.core.errors import NotFoundError, PipelineError
 from app.core.logging import get_logger
 from app.models.app_users import AppAuditLog, AppNotification
@@ -226,6 +233,72 @@ def trigger_sync(
         )
     ).run()
     return result.as_dict()
+
+
+@router.get("/backfills", response_model=list[dict[str, Any]], summary="Recent backfill jobs")
+def backfills(session: DbSession, _user: ReadUser, limit: int = 25) -> list[dict[str, Any]]:
+    from app.services.backfill import list_backfills
+
+    return list_backfills(session, limit=limit)
+
+
+@router.post(
+    "/backfill",
+    response_model=BackfillResult,
+    summary="Replay the pipeline across a date range (one run per day)",
+)
+def backfill(
+    payload: BackfillRequest,
+    request: Request,
+    session: DbSession,
+    user: PipelineUser,
+) -> dict[str, Any]:
+    """Queue a backfill. Days run independently so one failure cannot abort the job."""
+    from app.services.backfill import execute_backfill, plan_backfill
+
+    plan = plan_backfill(
+        start_date=payload.start_date,
+        end_date=payload.end_date,
+        sources=payload.sources,
+        database=payload.database,
+        limit_per_source=payload.limit_per_source,
+        skip_dq=payload.skip_dq,
+        skip_catalog=payload.skip_catalog,
+        dry_run=payload.dry_run,
+        created_by=user.email,
+    )
+    meta = request_meta(request)
+    session.add(
+        AppAuditLog(
+            user_id=user.user_id,
+            user_email=user.email,
+            action="pipeline.backfill",
+            entity_type="backfill",
+            entity_id=plan.backfill_id,
+            ip_address=meta["ip_address"],
+            user_agent=meta["user_agent"],
+            details=plan.as_dict(),
+        )
+    )
+    summary = execute_backfill(plan)
+    log.info("backfill %s finished status=%s", plan.backfill_id, summary["status"])
+    try:
+        from app.services.webhooks import emit
+
+        emit(session, "backfill.completed", {"backfill_id": plan.backfill_id, **summary})
+    except Exception:  # noqa: BLE001 - webhook problems must never fail a backfill
+        log.warning("backfill webhook emission failed for %s", plan.backfill_id)
+    return summary
+
+
+@router.get("/backfill/{backfill_id}", summary="Progress and per-day results of a backfill")
+def backfill_detail(backfill_id: str, session: DbSession, _user: ReadUser) -> dict[str, Any]:
+    from app.services.backfill import backfill_progress
+
+    progress = backfill_progress(session, backfill_id)
+    if not progress.get("found"):
+        raise NotFoundError(f"backfill '{backfill_id}' not found")
+    return progress
 
 
 @router.get("/sources/status", summary="Source health with sync state")
