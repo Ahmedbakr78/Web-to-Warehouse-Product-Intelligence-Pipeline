@@ -21,7 +21,7 @@ from fastapi.responses import StreamingResponse
 
 from app.analytics import service as analytics
 from app.api.deps import ReadUser, StreamUser, _resolve_token, get_session_factory
-from app.core.errors import AuthenticationError
+from app.core.errors import AuthenticationError, ValidationError
 from app.core.logging import get_logger
 from app.models.app_users import AppJobEvent
 from app.services.realtime import (
@@ -58,13 +58,21 @@ SSE_HEADERS = {
 
 
 def _resolve_topics(requested: list[str] | None) -> list[str]:
+    """Map topic names to broker topics.
+
+    An unknown name is a client mistake, so it is a 422 naming the topics that do
+    exist rather than an unhandled 500 - the caller can fix a typo from the message.
+    """
     if not requested:
         return list(TOPICS.values())
     resolved: list[str] = []
     for name in requested:
         topic = TOPICS.get(name.strip().lower())
         if topic is None:
-            raise ValueError(f"unknown topic '{name}'; known topics: {', '.join(sorted(TOPICS))}")
+            raise ValidationError(
+                f"unknown topic '{name}'",
+                details={"known_topics": sorted(TOPICS)},
+            )
         resolved.append(topic)
     return resolved
 
