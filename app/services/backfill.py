@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 from app.core.errors import ValidationError
 from app.core.logging import get_logger
 from app.models.base import utcnow
+from app.models.operations import EtlRun
 
 log = get_logger(__name__)
 
@@ -188,20 +189,30 @@ def execute_backfill(plan: BackfillPlan) -> dict[str, Any]:
 
 def backfill_runs(session: Session, backfill_id: str) -> list[dict[str, Any]]:
     """Every pipeline run belonging to a backfill job, oldest first."""
-    rows = session.execute(
-        sa.text(
-            """
-            SELECT run_id, status, trigger, started_at, finished_at, duration_ms,
-                   records_extracted, records_valid, records_rejected, new_products,
-                   price_changes, removed_products, dq_score, run_key, error_message
-            FROM etl_run
-            WHERE run_key LIKE :prefix
-            ORDER BY started_at
-            """
-        ),
-        {"prefix": f"{backfill_id}:%"},
-    ).mappings()
-    return [dict(row) for row in rows]
+    # ``ESCAPE`` is explicit because a bare LIKE treats "_" as a wildcard on some
+    # dialects (SQLite) and as an escaped literal on others (PostgreSQL, MySQL).
+    statement = (
+        sa.select(
+            EtlRun.run_id,
+            EtlRun.status,
+            EtlRun.trigger,
+            EtlRun.started_at,
+            EtlRun.finished_at,
+            EtlRun.duration_ms,
+            EtlRun.records_extracted,
+            EtlRun.records_valid,
+            EtlRun.records_rejected,
+            EtlRun.new_products,
+            EtlRun.price_changes,
+            EtlRun.removed_products,
+            EtlRun.dq_score,
+            EtlRun.run_key,
+            EtlRun.error_message,
+        )
+        .where(EtlRun.run_key.like(f"{backfill_id}:%", escape="\\"))
+        .order_by(EtlRun.started_at)
+    )
+    return [dict(row) for row in session.execute(statement).mappings()]
 
 
 def backfill_progress(session: Session, backfill_id: str) -> dict[str, Any]:
@@ -239,18 +250,15 @@ def list_backfills(session: Session, limit: int = 25) -> list[dict[str, Any]]:
     equivalent SQL substring functions do not.
     """
     rows = session.execute(
-        sa.text(
-            """
-            SELECT run_key,
-                   status,
-                   COALESCE(records_extracted, 0) AS records_extracted,
-                   started_at,
-                   finished_at
-            FROM etl_run
-            WHERE run_key LIKE 'bf\\_%'
-            ORDER BY started_at DESC
-            """
+        sa.select(
+            EtlRun.run_key,
+            EtlRun.status,
+            sa.func.coalesce(EtlRun.records_extracted, 0).label("records_extracted"),
+            EtlRun.started_at,
+            EtlRun.finished_at,
         )
+        .where(EtlRun.trigger == "backfill", EtlRun.run_key.like("bf\\_%", escape="\\"))
+        .order_by(EtlRun.started_at.desc())
     ).mappings()
 
     jobs: dict[str, dict[str, Any]] = {}
