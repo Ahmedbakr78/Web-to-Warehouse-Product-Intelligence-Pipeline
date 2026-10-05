@@ -1,0 +1,9 @@
+
+flowchart LR
+  facts[(price facts)] --> clean[median clean, dedupe]
+  clean --> series[daily series, gaps zero-filled]
+  series --> fit{damped Holt-Winters fit}
+  fit --> points[projection points + bands]
+  fit --> holdout[holdout tail]
+  holdout --> metrics[MAPE, MAE, RMSE]
+  metrics --> grade[accuracy grade]

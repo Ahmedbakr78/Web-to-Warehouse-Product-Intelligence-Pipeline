@@ -1,0 +1,17 @@
+
+sequenceDiagram
+    participant U as User
+    participant API
+    participant DB as app_users
+    U->>API: POST /auth/login (email, password)
+    API->>DB: verify Argon2id hash
+    alt password wrong
+        API-->>U: 401
+    else 2FA enabled
+        API-->>U: 401, mfa_required, totp challenge
+        U->>API: POST /auth/login/2fa (challenge, code)
+        API->>API: verify TOTP (±1 step) or recovery code
+        API-->>U: tokens + session handle
+    else 2FA not enabled
+        API-->>U: tokens + session handle
+    end

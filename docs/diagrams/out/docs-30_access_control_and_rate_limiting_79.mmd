@@ -1,0 +1,8 @@
+
+flowchart TD
+  request[request with pip_ key] --> resolve[resolve key → owner]
+  resolve --> check1{owner has the right?}
+  check1 -->|no| 403[403 permission_denied]
+  check1 -->|yes| check2{key carries the scope?}
+  check2 -->|no| 403
+  check2 -->|yes| route[handler runs]

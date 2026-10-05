@@ -1,0 +1,9 @@
+
+flowchart LR
+  views[(20 analytical views)] --> template[template function]
+  template --> blocks[typed blocks]
+  blocks --> screen[React block renderer]
+  blocks --> html[server-side HTML]
+  blocks --> pdf[WeasyPrint PDF]
+  blocks --> csv[CSV built from table blocks]
+  blocks --> json[JSON for anything downstream]
