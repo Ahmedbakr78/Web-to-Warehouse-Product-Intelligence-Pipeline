@@ -38,11 +38,22 @@ make analysis ANALYSIS=01_price_changes.sql
 
 ## Bind parameters
 
-| Name | Meaning | Default |
-| ---- | ------- | ------- |
-| `:since` | Inclusive lower bound (date or timestamp) | today − 30 days |
-| `:row_limit` | Maximum rows returned | 25 |
-| `:gap_pct` | Minimum absolute price gap (%) for catalog analysis | 1.0 |
+| Name | Meaning | Default | Set by |
+| ---- | ------- | ------- | ------ |
+| `:since` | Inclusive lower bound (date or timestamp) | today − 30 days | `--days/-w` |
+| `:days` | Window length in days, accepted as an alias for `:since` | 30 | `--days/-w` |
+| `:row_limit` | Maximum rows returned | 25 | `--limit/-l` |
+| `:gap_pct` | Minimum absolute price gap (%) for catalog analysis | 1.0 | — |
+
+```bash
+make analysis ANALYSIS=01_price_changes.sql        # default 30-day window, 25 rows
+python scripts/run_analysis.py 01_price --days 7   # last 7 days only
+python scripts/run_analysis.py 06_catalog -l 100   # 100 rows per statement
+```
+
+> Each script's header comment names the window it was written for (`:days 30` or
+> `:days 60`); the runner binds both `:since` and `:days` so a script runs unchanged
+> whichever name it uses.
 
 ## Conventions
 

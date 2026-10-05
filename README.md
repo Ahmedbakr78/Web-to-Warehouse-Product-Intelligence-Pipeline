@@ -1075,6 +1075,89 @@ Highlights by area:
 
 ---
 
+## Integrations: export, webhooks and backfill
+
+### Dataset export
+
+Every list surface can be handed to a user as a file. One registry
+(`app/services/exporter.py`) declares 12 datasets — products, price changes, new products,
+removed products, runs, quality results, catalog reconciliation, categories, top movers, sources,
+alerts, audit log and HTTP compliance log — and serves each one in two formats:
+
+```bash
+# what can be exported, and which filters each dataset accepts
+curl -s localhost:8000/api/v1/export/datasets -H "Authorization: Bearer $TOKEN"
+
+# download, with filters applied (CSV or JSON)
+curl -s "localhost:8000/api/v1/export/price_changes.csv?source_code=local_demo&limit=2000" \
+  -H "Authorization: Bearer $TOKEN" -o price_changes.csv
+curl -s "localhost:8000/api/v1/export/runs.json?status=failed" -H "Authorization: Bearer $TOKEN"
+
+# JSON preview without downloading
+curl -s "localhost:8000/api/v1/export/products?limit=5" -H "Authorization: Bearer $TOKEN"
+```
+
+Filters are declared per dataset and always bound as query parameters, identifiers are validated
+against a strict pattern, and row counts are capped in SQL (50,000 by default) so a download can
+never exhaust memory. CSV and JSON carry identical values: decimals become floats and timestamps
+become ISO-8601 strings.
+
+### Outbound webhooks
+
+Subscribe your own systems to pipeline events. Payloads are signed with HMAC-SHA256 over
+`timestamp.body`, so a receiver can verify authenticity and detect replays:
+
+```bash
+# create a subscription (the signing secret is returned exactly once)
+curl -s -X POST localhost:8000/api/v1/webhooks -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"pricing-service","target_url":"https://hooks.example.com/pi",
+       "events":["run.completed","price.spike"],"max_attempts":4}'
+
+# send a test event and read the delivery log
+curl -s -X POST localhost:8000/api/v1/webhooks/1/test -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' -d '{"event":"run.completed"}'
+curl -s "localhost:8000/api/v1/webhooks/1/deliveries" -H "Authorization: Bearer $TOKEN"
+```
+
+Verifying a delivery in the receiving system:
+
+```python
+import hmac, hashlib
+
+def verify(secret: str, timestamp: str, body: bytes, signature: str) -> bool:
+    expected = "sha256=" + hmac.new(
+        secret.encode(), timestamp.encode() + b"." + body, hashlib.sha256
+    ).hexdigest()
+    return hmac.compare_digest(expected, signature)
+```
+
+Events: `run.completed`, `run.failed`, `run.started`, `dq.failed`, `price.spike`, `product.new`,
+`product.removed`, `catalog.mismatch`, `alert.triggered`, `backfill.completed`. Deliveries retry with
+backoff (30s, 5m, 30m) up to the subscription's attempt limit, every attempt is logged, and a
+subscription auto-disables after repeated consecutive failures. Targets are validated before any
+request is made: only public `http(s)` URLs are accepted, so loopback, private, link-local and
+cloud-metadata addresses are refused and a webhook can never be aimed at the warehouse host. A failing
+webhook never fails a pipeline run.
+
+### Historical backfill
+
+Replay any past date range — one pipeline run per day, up to 31 days per job:
+
+```bash
+curl -s -X POST localhost:8000/api/v1/pipeline/backfill -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"start_date":"2026-09-20","end_date":"2026-09-26","sources":["local_demo"],"dry_run":true}'
+
+curl -s localhost:8000/api/v1/pipeline/backfills -H "Authorization: Bearer $TOKEN"
+curl -s localhost:8000/api/v1/pipeline/backfill/bf_c0e8c3372333 -H "Authorization: Bearer $TOKEN"
+```
+
+Days are isolated: a failing day records its error and the job continues, so one bad source cannot
+abandon the range. Use `dry_run: true` to validate the plan without loading anything.
+
+---
+
 ## Configuration reference
 
 All configuration arrives through environment variables (`.env.example` documents every one):
@@ -1112,7 +1195,7 @@ All configuration arrives through environment variables (`.env.example` document
 | **Product detail** | price history chart, rating trend, identity and fingerprint evidence, snapshots, price changes, lifecycle events, duplicate candidates, catalog links |
 | **Changes** | summary tiles, daily activity, movers, and six tabs: price changes, lifecycle, new, removed, recategorised, drift |
 | **Analytics** | category price index, category and brand leaderboards, radar comparison, availability analysis, source matrix |
-| **Pipeline** | run history with stage timings, manual trigger dialog (source + limit + dialect options), source health, schedule information |
+| **Pipeline** | run history with stage timings, manual trigger dialog (source + limit + dialect options), **run comparison** (12 metric deltas, DQ regressions, catalogue and price movement, runtime), source health, schedule information |
 | **Quality** | latest report, rule catalogue, results with filters, 90-day score trend |
 | **Catalog** | internal SKUs versus scraped market prices, reconciliation summary, pricing opportunities |
 | **Sources** | registry cards with compliance metadata, robots.txt statistics, raw-versus-cleaned preview |
@@ -1120,6 +1203,7 @@ All configuration arrives through environment variables (`.env.example` document
 | **Builder** | two modes: *filter & customise* (facets, columns, order, saved presets) and *group & aggregate* (11 entities, six measures, fifteen operators, bar chart, generated SQL, cURL copy, exports) |
 | **Features** | searchable, filterable catalogue of all 118 catalogued features in 15 areas, each with an icon and copy-to-clipboard |
 | **Alerts** | alert rules with thresholds and channels, notification feed, evaluate action |
+| **Webhooks** | outbound event subscriptions with HMAC-signed payloads, one-time secret reveal and rotation, test delivery, per-attempt delivery log |
 | **Account** | profile, preferences, appearance (theme, accent, density, motion), password change, API keys, **personal activity feed**, **data export**, **account deletion** |
 | **Settings / Users / Audit** | admin-only: global settings, role management, audit trail and HTTP evidence |
 | **Login / 404** | brand panel, demo-account picker, theme switch, friendly not-found screen |

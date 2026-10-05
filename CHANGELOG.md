@@ -10,6 +10,49 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Nothing yet.
 
+## [1.4.0] - 2026-10-05
+
+### Added
+
+- **Run comparison** — `GET /api/v1/pipeline/runs/compare?base=&target=` diffs any two pipeline runs:
+  12 metric deltas with absolute and percentage change, DQ rules that regressed or were fixed,
+  products added and dropped, the largest price moves, and the runtime delta. A zero baseline reports a
+  null percentage instead of dividing by zero. Exposed as a **Compare** tab on the Runs screen.
+- **Universal dataset export** — a dataset registry (`app/services/exporter.py`) backs
+  `GET /api/v1/export/{dataset}.csv|.json` for 12 datasets: products, price changes, new products,
+  removed products, runs, quality results, catalog reconciliation, categories, top movers, sources,
+  alerts, audit log and HTTP compliance log. Filters are declared per dataset and always bound as query
+  parameters, identifiers are validated against a strict pattern, row counts are capped in SQL
+  (50,000) and `GET /export/{dataset}` returns a JSON preview. Downloads use the server-generated,
+  date-stamped filename, and the dashboard gains CSV/JSON buttons on the data screens.
+- **Outbound webhooks** — per-user event subscriptions (`POST/GET/PATCH/DELETE /api/v1/webhooks`) with
+  HMAC-SHA256 signed payloads (`X-Webhook-Signature` over `timestamp.body`, so replays are detectable),
+  ten pipeline events (`run.completed`, `run.failed`, `run.started`, `dq.failed`, `price.spike`,
+  `product.new`, `product.removed`, `catalog.mismatch`, `alert.triggered`, `backfill.completed`),
+  exponential-backoff retries (30s, 5m, 30m), a per-attempt delivery log, secret rotation, and automatic
+  disabling after repeated failures. Targets are validated before any request is made, so loopback,
+  private, link-local and cloud-metadata addresses are refused — a webhook can never be pointed at the
+  warehouse host. A failing webhook can never fail a pipeline run. New **Webhooks** screen with
+  one-time secret reveal, test delivery and the delivery log.
+- **Historical backfill** — `POST /api/v1/pipeline/backfill` replays any date range (up to 31 days per
+  job) with one run per day, every run tagged with the job id. Days are isolated, so a single failing
+  source records its error and the job continues. `GET /api/v1/pipeline/backfills` and
+  `GET /api/v1/pipeline/backfill/{id}` report roll-up progress, per-day results and aggregate DQ.
+- **Expanded feature catalogue** — now 118 features in 15 groups, including new *Integrations* and
+  *Run comparison & observability* groups, surfaced by `GET /api/v1/meta/features` and the Features screen.
+
+### Fixed
+
+- Test-suite robustness: the table-count assertion now derives from the ORM instead of a hard-coded
+  number, and the audit-isolation test compares identities rather than totals, which had made it
+  order-dependent and therefore flaky.
+
+### Notes
+
+- `tsc --noEmit` at the repository root is a no-op because `tsconfig.json` uses project references;
+  use `npm run typecheck` (`tsc --noEmit -p tsconfig.app.json`), `npm run build:strict` (`tsc -b`) or
+  `npx tsc -b --noEmit` to type-check the dashboard.
+
 ## [1.3.0] - 2026-10-05
 
 ### Added

@@ -32,8 +32,13 @@ GREEN, RED, CYAN, DIM, BOLD, NC = ("\033[0;32m", "\033[0;31m", "\033[0;36m", "\0
 ANALYSIS_DIR = ROOT / "db" / "analysis"
 
 #: Bind parameters with dialect-independent defaults.
+#:
+#: `:since` is the inclusive lower bound used by every dated script. `:days` is
+#: accepted as an alias because the per-file headers document a window in days;
+#: binding both means a script written against either name runs unchanged.
 DEFAULT_PARAMS: dict[str, Any] = {
     "since": dt.date.today() - dt.timedelta(days=30),
+    "days": 30,
     "row_limit": 25,
     "gap_pct": 1.0,
 }
@@ -96,7 +101,7 @@ def _cell(value: Any) -> str:
     return str(value)[:46]
 
 
-def run(database: str, only: str | None, as_json: bool, limit: int) -> int:
+def run(database: str, only: str | None, as_json: bool, limit: int, days: int | None = None) -> int:
     if not ANALYSIS_DIR.exists():
         print(f"{RED}No analysis directory at {ANALYSIS_DIR}{NC}")
         return 2
@@ -110,6 +115,10 @@ def run(database: str, only: str | None, as_json: bool, limit: int) -> int:
 
     params = dict(DEFAULT_PARAMS)
     params["row_limit"] = limit
+    if days is not None:
+        # `--days` shifts both the window name and the bound date together.
+        params["days"] = days
+        params["since"] = dt.date.today() - dt.timedelta(days=days)
     payload: dict[str, Any] = {}
     failures = 0
 
@@ -159,9 +168,12 @@ def main() -> int:
     parser.add_argument("--database", "-d", default=None, help="postgres | mysql | sqlite")
     parser.add_argument("script", nargs="?", default=None, help="script prefix, e.g. 01_price")
     parser.add_argument("--limit", "-l", type=int, default=25, help="value for :row_limit")
+    parser.add_argument(
+        "--days", "-w", type=int, default=None, help="window in days for :since / :days (default 30)"
+    )
     parser.add_argument("--json", action="store_true", help="emit JSON instead of tables")
     args = parser.parse_args()
-    return run((args.database or settings.active_database).lower(), args.script, args.json, args.limit)
+    return run((args.database or settings.active_database).lower(), args.script, args.json, args.limit, args.days)
 
 
 if __name__ == "__main__":
