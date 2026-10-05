@@ -20,6 +20,7 @@ import {
   StatTile,
   Tabs,
 } from '@/components/ui'
+import { ExportButton } from '@/components/ExportButton'
 import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { useDebounce } from '@/hooks/useDebounce'
@@ -145,7 +146,12 @@ export default function Changes() {
 
       <div className="grid grid-cols-1 gap-3 xl:grid-cols-3">
         <Card className="xl:col-span-2">
-          <CardHeader title="Change activity" subtitle="Daily increases and decreases" icon={<Activity className="h-4 w-4" />} />
+          <CardHeader
+            title="Change activity"
+            subtitle="Daily increases and decreases"
+            icon={<Activity className="h-4 w-4" />}
+            action={<ExportButton dataset="price_changes" params={source ? { source_code: source } : undefined} />}
+          />
           {timelineData.length ? (
             <BarSeries
               data={timelineData}

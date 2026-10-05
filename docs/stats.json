@@ -1,0 +1,19 @@
+{
+  "_comment": "Structural counts measured by scripts/project_stats.py. Update with `make stats-update` in the same commit as any prose that quotes these figures.",
+  "airflow_tasks": 30,
+  "analytical_views": 20,
+  "api_smoke_checks": 86,
+  "catalogued_features": 286,
+  "cli_commands": 11,
+  "compose_services": 6,
+  "data_quality_rules": 12,
+  "documentation_documents": 23,
+  "ingestion_sources": 5,
+  "mermaid_diagrams": 66,
+  "physical_tables": 25,
+  "pipeline_stages": 9,
+  "rest_route_decorators": 131,
+  "rest_routers": 18,
+  "test_cases": 321,
+  "test_functions": 220
+}

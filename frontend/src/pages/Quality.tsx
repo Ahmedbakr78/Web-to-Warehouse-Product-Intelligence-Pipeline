@@ -19,6 +19,7 @@ import {
   Tabs,
 } from '@/components/ui'
 import { cn } from '@/lib/cn'
+import { ExportButton } from '@/components/ExportButton'
 import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { useDebounce } from '@/hooks/useDebounce'
@@ -121,7 +122,12 @@ export default function Quality() {
 
           <div className="grid grid-cols-1 gap-3 xl:grid-cols-3">
             <Card>
-              <CardHeader title="Score" subtitle={`Run ${report.run_id?.slice(0, 12) ?? '—'}`} icon={<ShieldCheck className="h-4 w-4" />} />
+              <CardHeader
+                title="Score"
+                subtitle={`Run ${report.run_id?.slice(0, 12) ?? '—'}`}
+                icon={<ShieldCheck className="h-4 w-4" />}
+                action={<ExportButton dataset="quality" />}
+              />
               {latest.isLoading ? (
                 <LoadingState label="Loading score…" rows={2} />
               ) : (

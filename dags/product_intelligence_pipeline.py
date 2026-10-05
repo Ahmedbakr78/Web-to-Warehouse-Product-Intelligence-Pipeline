@@ -75,9 +75,10 @@ DEFAULT_ARGS: dict[str, Any] = {
     "pool": "product_pipeline",
 }
 
-#: Sources the DAG collects on every schedule (all of them allow automated access).
+#: Sources the DAG collects on every schedule. All of them permit automated access;
+#: `books_to_scrape` is deliberately NOT in the default set because it is an HTML
+#: scrape of a third-party site - enable it explicitly via `params.sources`.
 DEFAULT_SOURCES = ["local_demo", "dummyjson_products", "fakestore_products"]
-SCRAPE_SOURCES = ["books_to_scrape"]
 REQUESTS_PER_SOURCE = int(os.environ.get("PIP_REQUESTS_PER_SOURCE", "120"))
 
 
@@ -127,11 +128,13 @@ def _task_id(context: dict) -> str | None:
     return getattr(task, "task_id", None)
 
 
-def latest_run_id_via_api() -> str:
-    run = _api("GET", "/pipeline/runs/latest")
-    if not run or not run.get("run_id"):
-        raise RuntimeError("no pipeline run found to work with")
-    return run["run_id"]
+def _database_target(context: dict) -> str:
+    """Which warehouse the DAG should talk to (overridable via DAG params)."""
+    return (context.get("params") or {}).get("database") or "postgres"
+
+
+def _requested_sources(context: dict) -> list[str]:
+    return (context.get("params") or {}).get("sources") or DEFAULT_SOURCES
 
 
 # --------------------------------------------------------------------------------------

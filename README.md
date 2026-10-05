@@ -30,7 +30,7 @@
 </p>
 
 <p align="center">
-  <b>110 REST operations</b> · <b>23 tables</b> · <b>20 analytical views</b> ·
+  <b>128 REST operations</b> · <b>25 tables</b> · <b>20 analytical views</b> ·
   <b>12 DQ rules</b> · <b>5 compliant sources</b> · <b>321 tests</b> ·
   <b>86/86 API checks</b> · <b>two SQL dialects, one schema</b>
 </p>
@@ -152,12 +152,12 @@ Everything is engineered like a production system, not a demo:
 | **Ingestion** | 5 source adapters (3 JSON APIs, 1 BeautifulSoup/lxml HTML scraper, 1 offline synthetic) | robots.txt gate, token-bucket rate limiter, sliding-window ceiling, circuit breaker, response cache, per-request audit log |
 | **Cleaning** | 29-step normalisation engine | product names, categories, 18+ currencies converted to USD via an offline FX table, rating and availability vocabularies |
 | **Deduplication** | 4-signal fuzzy matcher | jaro-winkler, token-set, trigram and digit signatures, block-indexed for O(n) candidate pools |
-| **Warehouse** | SQLAlchemy 2.0 Core ORM | **23 physical tables, 20 analytical views**, identical schema on PostgreSQL 16 and MySQL 8.4 |
+| **Warehouse** | SQLAlchemy 2.0 Core ORM | **25 physical tables, 20 analytical views**, identical schema on PostgreSQL 16 and MySQL 8.4 |
 | **ETL** | 9-stage Python pipeline | stage timings, counters, warnings, resumable staging table, idempotent loads |
 | **Orchestration** | Apache Airflow 2.10 DAG | 13 tasks, branch-on-changes, alert fan-out, report publication, sync-run API for demos |
 | **Data quality** | 12-rule framework over 6 dimensions | completeness, validity, uniqueness, accuracy, consistency, timeliness, weighted score |
 | **Change detection** | SQL plus an event engine | price changes banded by magnitude, new and removed products, category drift, lifecycle events |
-| **REST API** | FastAPI | **110 operations in 16 routers**, JWT and API-key auth, RBAC (admin / analyst / viewer), OpenAPI docs, gzip, timing headers |
+| **REST API** | FastAPI | **128 operations in 18 routers**, JWT and API-key auth, RBAC (admin / analyst / viewer), OpenAPI docs, gzip, timing headers |
 | **Dashboard** | React 19 + TypeScript + Tailwind + ReCharts | 21 screens, light/dark/system themes, 6 accent colours, 3 densities, command palette, installable PWA, responsive from 320 px |
 | **CLI** | Typer, 12 commands | bootstrap, seed, run, report, verify, quality, sources preview |
 | **Ops** | Docker Compose (6 services), Makefile (30+ targets), GitHub Actions CI | one-command everything |
@@ -165,7 +165,7 @@ Everything is engineered like a production system, not a demo:
 **Measured facts (every number below is reproducible with the command beside it):**
 
 ```text
-23 physical tables  |  20 analytical views  |  110 REST operations in 16 routers
+25 physical tables  |  20 analytical views  |  128 REST operations in 18 routers
 12 DQ rules across 6 dimensions, weighted score persisted per run
 5 ingestion sources  |  9 pipeline stages  |  13 Airflow tasks
 321 unit tests  |  86/86 API smoke checks  |  mypy clean in 61 files  |  ruff zero warnings
@@ -289,7 +289,7 @@ flowchart LR
 
     subgraph Ops["Operations"]
         AF["Airflow DAG<br/>13 tasks"]
-        API["FastAPI REST<br/>110 operations"]
+        API["FastAPI REST<br/>128 operations"]
         DQ["12-rule DQ framework"]
     end
 
@@ -332,7 +332,7 @@ flowchart TB
     end
     subgraph Server["FastAPI monolith, modular"]
         MW["CORS - gzip - timing headers"]
-        RT["16 routers, 110 operations"]
+        RT["18 routers, 128 operations"]
         SV["analytics + ETL services"]
         SEC["JWT + API keys - RBAC - audit"]
         MW --> RT --> SV
@@ -537,7 +537,7 @@ flowchart LR
     E -->|"RawProduct"| V["Validator + Cleaner"]
     V -->|"clean rows + flags"| ST["stg_raw_observation"]
     ST -->|"valid staged rows"| L["Warehouse loader"]
-    L -->|"dims + facts"| WH[("23 tables, 20 views")]
+    L -->|"dims + facts"| WH[("25 tables, 20 views")]
     WH --> CD["Change detector"]
     CD -->|"chg_price_change<br/>chg_product_event"| AN["Analytics engine"]
     WH -->|"agg_category_daily"| AN
@@ -629,7 +629,7 @@ The run receives a weighted score; the dashboard charts the 90-day trend.
 
 ### 6 - Serve
 
-The FastAPI app (110 operations) exposes products, changes, analytics, pipeline operations, quality,
+The FastAPI app (128 operations) exposes products, changes, analytics, pipeline operations, quality,
 catalog, sources, the read-only query lab, saved views, notifications, settings and audit. The React
 dashboard consumes it, and both endpoints and UI offer CSV and JSON exports. Airflow triggers the
 whole cycle daily; the API's sync endpoint and the CLI produce the identical `etl_run` record.
@@ -772,7 +772,7 @@ graph TB
         PAL["Command palette<br/>Ctrl/Cmd-K"]
     end
     subgraph Edge["FastAPI application"]
-        ROUTES["16 routers<br/>110 operations"]
+        ROUTES["18 routers<br/>128 operations"]
         AUTH["Security layer<br/>Argon2id · JWT · API keys · RBAC"]
         GUARD["Guards<br/>error envelope · GZip · timing · rate limit"]
         BUILDER["Builder DSL<br/>whitelist → parameterised SELECT"]
@@ -786,7 +786,7 @@ graph TB
         REC["Catalog reconciler"]
     end
     subgraph Store["Warehouse"]
-        PG[("PostgreSQL 16<br/>23 tables · 20 views")]
+        PG[("PostgreSQL 16<br/>25 tables · 20 views")]
         MY[("MySQL 8.4<br/>same schema")]
     end
     subgraph Sources["Permitted sources"]
@@ -1010,7 +1010,7 @@ Highlights by area:
 
 ### Warehouse and ETL
 
-- Kimball star schema, 23 tables, dialect-portable to MySQL
+- Kimball star schema, 25 tables, dialect-portable to MySQL
 - staged, idempotent, resumable loads with per-stage timings and counters
 - every run recorded with more than 15 counters plus warnings
 
@@ -1031,7 +1031,7 @@ Highlights by area:
 
 - JWT access and refresh rotation, API keys (`pip_...`), Argon2id password hashing
 - role-based access control: admin, analyst, viewer, enforced per route server-side
-- 110 operations, OpenAPI and ReDoc documentation, gzip compression, `X-Process-Time-Ms` headers
+- 128 operations, OpenAPI and ReDoc documentation, gzip compression, `X-Process-Time-Ms` headers
 - CSV and JSON exports on the API and in the dashboard
 - one consistent error envelope (`error`, `message`, `details`) with validation detail
 
@@ -1057,7 +1057,7 @@ Highlights by area:
 
 ### v1.3: discovery, aggregation and self-service
 
-- **Feature catalogue** — `GET /meta/features` + `/features` screen: 95 features, 13 areas, searchable
+- **Feature catalogue** — `GET /meta/features` + `/features` screen: 118 features, 15 areas, searchable
 - **Aggregate builder** — `POST /builder/query` + `/builder/schema`: 11 entities, 6 aggregates,
   15 operators, whitelist-assembled parameterised SQL, chart preview, generated SQL, cURL copy
 - **Account self-service** — `GET /users/me/export` (portable JSON), `DELETE /users/me` (password
@@ -1118,7 +1118,7 @@ All configuration arrives through environment variables (`.env.example` document
 | **Sources** | registry cards with compliance metadata, robots.txt statistics, raw-versus-cleaned preview |
 | **Query Lab** | read-only SQL console over the 20 views, table inventory, starter examples, CSV export |
 | **Builder** | two modes: *filter & customise* (facets, columns, order, saved presets) and *group & aggregate* (11 entities, six measures, fifteen operators, bar chart, generated SQL, cURL copy, exports) |
-| **Features** | searchable, filterable catalogue of all 95 shipped features in 13 areas, each with an icon and copy-to-clipboard |
+| **Features** | searchable, filterable catalogue of all 118 catalogued features in 13 areas, each with an icon and copy-to-clipboard |
 | **Alerts** | alert rules with thresholds and channels, notification feed, evaluate action |
 | **Account** | profile, preferences, appearance (theme, accent, density, motion), password change, API keys, **personal activity feed**, **data export**, **account deletion** |
 | **Settings / Users / Audit** | admin-only: global settings, role management, audit trail and HTTP evidence |
