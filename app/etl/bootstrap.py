@@ -69,10 +69,12 @@ def sync_missing_columns(engine: Any) -> dict[str, list[str]]:
     * it never drops or renames anything;
     * it refuses to touch a table with no primary key, because there is no
       safe way to express "every row gets the default" there;
+    * it adds an existing NOT NULL column in two steps (nullable, backfill,
+      then set NOT NULL) so a populated table does not fail on the constraint;
     * it skips columns that already exist, so it is a no-op on a fresh database.
 
     Alembic (`make migrate`) is the supported path for anything beyond adding a
-    nullable column with a default.
+    column with a default.
     """
     inspector = sa.inspect(engine)
     existing_tables = set(inspector.get_table_names())
@@ -90,14 +92,58 @@ def sync_missing_columns(engine: Any) -> dict[str, list[str]]:
         with engine.begin() as conn:
             for column in missing:
                 ddl = column.type.compile(dialect=engine.dialect)
-                default = "" if column.server_default is None else f" DEFAULT {column.server_default.arg}"
-                nullable = "" if column.nullable else " NOT NULL"
+                # Add nullable first so existing rows are not rejected; the
+                # NOT NULL constraint is applied afterwards, after backfilling.
                 conn.execute(
                     sa.text(
-                        f"ALTER TABLE {quote}{table.name}{quote} "
-                        f"ADD COLUMN {quote}{column.name}{quote} {ddl}{default}{nullable}"
+                        f"ALTER TABLE {quote}{table.name}{quote} ADD COLUMN {quote}{column.name}{quote} {ddl}"
                     )
                 )
+                # Only a scalar, client-side default is safe to bind as a parameter.
+                # `FetchedValue` (e.g. a timestamp default) has no literal value
+                # and is deliberately left to the database.
+                default: Any = None
+                candidate = column.default
+                if (
+                    candidate is not None
+                    and not isinstance(candidate, sa.sql.schema.FetchedValue)
+                    and hasattr(candidate, "arg")
+                    and isinstance(candidate.arg, (str, int, float, bool))
+                ):
+                    default = candidate.arg
+                if default is not None:
+                    conn.execute(
+                        sa.text(
+                            f"UPDATE {quote}{table.name}{quote} "
+                            f"SET {quote}{column.name}{quote} = :default "
+                            f"WHERE {quote}{column.name}{quote} IS NULL"
+                        ),
+                        {"default": default},
+                    )
+                if not column.nullable:
+                    nulls = conn.execute(
+                        sa.text(
+                            f"SELECT COUNT(*) FROM {quote}{table.name}{quote} "
+                            f"WHERE {quote}{column.name}{quote} IS NULL"
+                        )
+                    ).scalar()
+                    if nulls:
+                        log.warning(
+                            "column %s.%s has %s NULL row(s); leaving it nullable",
+                            table.name,
+                            column.name,
+                            nulls,
+                        )
+                    else:
+                        conn.execute(
+                            sa.text(
+                                f"ALTER TABLE {quote}{table.name}{quote} "
+                                f"ALTER COLUMN {quote}{column.name}{quote} SET NOT NULL"
+                                if engine.dialect.name in {"postgresql", "sqlite"}
+                                else f"ALTER TABLE {quote}{table.name}{quote} "
+                                f"MODIFY {quote}{column.name}{quote} {ddl} NOT NULL"
+                            )
+                        )
                 added[table.name].append(column.name)
         log.info("added %d column(s) to %s", len(added[table.name]), table.name)
     return added
