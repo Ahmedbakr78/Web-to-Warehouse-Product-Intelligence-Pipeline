@@ -275,7 +275,9 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
                 names = payload.get("topics") or []
                 try:
                     wanted = _resolve_topics([str(name) for name in names])
-                except ValueError as exc:
+                except ValidationError as exc:
+                    # The socket has no status line, so a bad subscription is reported
+                    # as an error frame and the connection stays open.
                     await websocket.send_json({"topic": "error", "message": str(exc)})
                     continue
                 broker.unsubscribe(resolved, queue_obj)

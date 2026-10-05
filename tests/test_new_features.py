@@ -1003,3 +1003,33 @@ def test_sse_routes_are_wired_to_the_stream_dependency():
         assert parameters["token"]["in"] == "query"
         # The header path stays available for clients that can set headers.
         assert operation.get("security"), f"{path} declares no authentication scheme"
+
+
+def test_topic_filtering_narrows_the_stream(client, admin_token):
+    """`?topics=` must actually narrow the subscription, not be ignored."""
+    schema = app.openapi()
+    assert "topics" in {
+        item["name"] for item in schema["paths"]["/api/v1/stream/everything"]["get"].get("parameters", [])
+    }, "/stream/everything does not advertise a topics filter"
+
+
+def test_unknown_topic_is_a_422_naming_the_valid_ones(client, admin_token):
+    """A typo must be a client error with a usable message, not a 500."""
+    from app.api.routers.stream import TOPICS, _resolve_topics
+    from app.core.errors import ValidationError
+
+    with pytest.raises(ValidationError) as caught:
+        _resolve_topics(["bogus"])
+    assert set(caught.value.details["known_topics"]) == set(TOPICS)
+
+    # A typo on the live route is reported as a validation error, before any stream opens.
+    response = client.get("/api/v1/stream/everything", params={"topics": "bogus"}, headers=auth(admin_token))
+    assert response.status_code == 422
+    assert response.json()["details"]["known_topics"] == sorted(TOPICS)
+
+
+def test_a_valid_subset_resolves_to_just_those_topics():
+    from app.api.routers.stream import TOPICS, _resolve_topics
+
+    assert _resolve_topics(["job", "kpi"]) == [TOPICS["job"], TOPICS["kpi"]]
+    assert _resolve_topics(None) == list(TOPICS.values())
