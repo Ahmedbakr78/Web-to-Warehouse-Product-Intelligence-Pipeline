@@ -168,19 +168,19 @@ Everything is engineered like a production system, not a demo:
 <!-- BEGIN:STATS -->
 
 ```text
-28 physical tables  |  20 analytical views  |  150 REST route decorators in 20 routers
+28 physical tables  |  20 analytical views  |  160 REST route decorators in 21 routers
 12 data-quality rules across 6 dimensions, weighted score persisted per run
 5 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
 11 CLI commands  |  6 Docker Compose services  |  24 documents  |  67 Mermaid diagrams
-348 tests  |  86/86 API smoke checks  |  311 catalogued features
+353 tests  |  86/86 API smoke checks  |  311 catalogued features
 ```
 
 | Metric | Count |
 | --- | ---: |
 | Physical tables         | 28 |
 | Analytical views        | 20 |
-| REST routers            | 20 |
-| REST route decorators   | 150 |
+| REST routers            | 21 |
+| REST route decorators   | 160 |
 | Data-quality rules      | 12 |
 | Ingestion sources       | 5 |
 | Airflow task callables  | 33 |
@@ -190,7 +190,7 @@ Everything is engineered like a production system, not a demo:
 | Numbered documents      | 24 |
 | Mermaid diagrams        | 67 |
 | Catalogued features     | 311 |
-| Collected test cases    | 348 |
+| Collected test cases    | 353 |
 | API smoke checks        | 86 |
 
 <!-- END:STATS -->
