@@ -11,6 +11,7 @@ from app.api.routers import (
     builder,
     catalog,
     changes,
+    exports,
     health,
     notifications,
     pipeline,
@@ -40,6 +41,7 @@ ROUTERS: tuple[APIRouter, ...] = (
     notifications.router,
     settings.router,
     audit.router,
+    exports.router,
 )
 
 __all__ = ["ROUTERS"]

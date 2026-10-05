@@ -6,6 +6,43 @@
     <meta name="description" content="Product Intelligence Pipeline - analytics dashboard for the Web-to-Warehouse ETL platform" />
     <meta name="theme-color" content="#0b1120" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
+    <script>
+      // Resolve the persisted appearance before first paint so the app never
+      // flashes the wrong theme. Mirrors src/lib/theme.ts.
+      ;(function () {
+        try {
+          var root = document.documentElement
+          var stored = localStorage.getItem('pip.theme') || 'system'
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+          var dark =
+            stored === 'dark' || stored === 'midnight' || stored === 'high-contrast' ||
+            (stored === 'system' && prefersDark)
+          root.classList.toggle('dark', dark)
+          root.classList.toggle('theme-midnight', stored === 'midnight')
+          root.classList.toggle('theme-high-contrast', stored === 'high-contrast')
+          root.dataset.theme = stored
+          root.style.colorScheme = dark ? 'dark' : 'light'
+
+          root.dataset.density = localStorage.getItem('pip.density') || 'comfortable'
+
+          var motion = localStorage.getItem('pip.motion') || 'full'
+          root.dataset.motion = motion === 'auto' ? 'full' : motion
+
+          var scale = localStorage.getItem('pip.fontScale') || 'md'
+          root.dataset.fontScale = scale
+          var sizes = { xs: '13px', sm: '15px', md: '16px', lg: '17.5px', xl: '19px' }
+          root.style.setProperty('--app-font-size', sizes[scale] || sizes.md)
+
+          var direction = localStorage.getItem('pip.direction') || 'ltr'
+          root.dataset.direction = direction
+          root.setAttribute('dir', direction)
+
+          root.dataset.accent = localStorage.getItem('pip.accent') || 'indigo'
+        } catch (error) {
+          /* storage blocked - fall back to the light default */
+        }
+      })()
+    </script>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Pipeline" />
@@ -14,22 +51,7 @@
     <link rel="apple-touch-icon" href="/icon.svg" />
     <title>Product Intelligence Pipeline</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M8 21V13m5 8V9m5 12v-6m5 6V11' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E" />
-    <script>
-      // Apply the persisted theme before first paint to avoid a flash of the wrong theme.
-      (function () {
-        try {
-          var stored = localStorage.getItem('pip.theme') || 'system'
-          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-          var dark = stored === 'dark' || (stored === 'system' && prefersDark)
-          document.documentElement.classList.toggle('dark', dark)
-          document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
-          var density = localStorage.getItem('pip.density')
-          if (density) document.documentElement.dataset.density = density
-          var motion = localStorage.getItem('pip.motion')
-          document.documentElement.dataset.motion = motion === 'reduced' ? 'reduced' : 'auto'
-        } catch (e) {}
-      })()
-    </script>
+    
   </head>
   <body class="h-full">
     <div id="root" class="h-full"></div>

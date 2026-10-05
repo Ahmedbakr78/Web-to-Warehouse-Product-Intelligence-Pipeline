@@ -414,6 +414,30 @@ Change your password: enter the current password, then a new one of at least 10 
 upper-case, lower-case, a digit and a symbol. The strength checklist shows exactly what is missing.
 Changing the password is written to the audit log.
 
+### 14.5 API keys
+
+Create, copy and revoke machine credentials from the **API keys** tab. A key is shown exactly once,
+prefix-indexed, stored as a SHA-256 hash with a server pepper, and carries its own usage counter,
+expiry and rate limit. Use it as `Authorization: Bearer pip_…`.
+
+### 14.6 Activity
+
+The **Activity** tab lists everything you did in the last 90 days — sign-ins, password changes, API-key
+operations and settings updates — with the target, outcome, IP address and relative time. It reads your
+own audit entries only, so no administrator permission is required. Use **Refresh** after performing an
+action elsewhere.
+
+### 14.7 Data & privacy
+
+| Action | What it does |
+| --- | --- |
+| **Download my data** | Saves a JSON snapshot: profile, preferences, API-key metadata (never secrets), saved views, alert rules, notifications and 90 days of activity |
+| **Delete my account** | Irreversible. Requires your password and typing `DELETE` |
+
+Deleting your account removes your personal rows (keys, views, alert rules, notifications) and signs
+you out. The audit trail keeps a `user.self_delete` entry with your email recorded. Warehouse data is
+not affected — it belongs to the pipeline, not to your account.
+
 ---
 
 ## 15. Saved views

@@ -27,17 +27,39 @@ the command cited beside it.
 | 18 | [Presentation Outline](18_presentation_outline.md) | 18-slide defence deck, Q&A preparation, three-minute demo script, rehearsal and fallback plans |
 | 19 | [Feature Inventory](19_feature_list.md) | 234 features in 15 areas, each with a description and a file reference |
 | 20 | [Feedback and Improvements](20_literature_feedback_and_improvements.md) | Lecturer feedback template, 32 prioritised improvements, self-assessment and rubric |
+| 21 | [Architecture Deep Dive](21_architecture_deep_dive.md) | Design drivers, decisions with rejected alternatives, request lifecycle, warehouse layering, known limitations |
+| 22 | [Data Dictionary](22_data_dictionary.md) | Every table, column, type and meaning; controlled vocabularies; view catalogue; dialect portability |
+| 23 | [Glossary and FAQ](23_glossary_and_faq.md) | Terms defined, then setup, pipeline, quality, security and development questions answered |
+
+---
+
+## How to read these numbers
+
+Structural figures are exact and re-verifiable:
+
+| Claim | Verify with |
+| --- | --- |
+| 23 tables, 20 views | `make bootstrap` |
+| 113 REST operations in 16 routers | `http://localhost:8000/docs`, or count route decorators in `app/api/routers/` |
+| 255 tests pass | `make test` |
+| 78/78 API smoke checks | `.venv/bin/python scripts/api_smoke.py` |
+| ruff and mypy clean | `make lint` and `make typecheck` |
+| 12 DQ rules and the score | Quality screen, or `pip-cli quality` |
+
+Row counts and latencies are **measurements, not constants**. They depend on how much data a given
+database holds and on the hardware. Each figure in these documents records the measurement taken at
+a stated moment — generally the development machine at the stated date — and is not silently
+rewritten when a later run produces a different number. Where a document reports a dataset size,
+the command that regenerates it is named alongside.
 
 ## Measured facts referenced throughout
 
 | Fact | Value |
 | --- | --- |
-| Physical tables / analytical views | 23 / 20 (on PostgreSQL 16.15 and MySQL 8.4.11) |
+| Physical tables / analytical views | 23 / 20 (identical on PostgreSQL 16 and MySQL 8.4) |
 | REST operations | 113 documented in 16 routers |
-| Data-quality rules / dimensions | 12 / 6, score 98.26 on both engines |
+| Data-quality rules / dimensions | 12 / 6, verdicts persisted per run |
 | Ingestion sources | 5 (3 APIs, 1 HTML scraper, 1 offline synthetic) |
-| Demo dataset | 60 products, 8,182 price snapshots, 8,047 price changes, 8,199 lifecycle events over 150 days |
-| Measured live run | 57 snapshots, 48 price changes, 6 new products, 39/57 catalog SKUs matched (68.42 %), DQ 98.26, ≈ 3.5 s |
 | Reconciliation optimisation | 2,975 ms → 104 ms (29×) with identical results |
 | API latency | p95 ≤ 38.2 ms across 12 read endpoints |
 | API regression suite | 78/78 checks pass |
@@ -63,5 +85,31 @@ GitHub renders Mermaid natively, so no build step is required. To export SVGs:
 
 ```bash
 make docs-render      # writes docs/diagrams/out/*.svg
-make docs-serve       # serves docs/ on http://localhost:8001
+make docs-serve       # serves the raw markdown on http://localhost:8001
 ```
+
+## The documentation website
+
+Every document above is also published as a browsable website, with client-side search, a dark
+mode that follows the system preference, and all 50+ diagrams rendered.
+
+```bash
+make site             # builds ./site (standard library only — no dependencies to install)
+make site-serve       # builds it and serves it on http://localhost:8001
+python3 scripts/build_site.py --out /tmp/docs   # build somewhere else
+```
+
+The builder is a single dependency-free script (`scripts/build_site.py`). It exists because GitHub
+Pages does not serve private repositories on the free plan, so a Pages workflow would never deploy
+here — but the output is a plain directory of static files that can be served locally, dropped on
+any static host, or attached to a release.
+
+## Related files
+
+| File | Purpose |
+| --- | --- |
+| [../README.md](../README.md) | Project gateway: overview, architecture, quick start |
+| [../CHANGELOG.md](../CHANGELOG.md) | Every release, following Keep a Changelog |
+| [../CONTRIBUTING.md](../CONTRIBUTING.md) | How to contribute |
+| [../SECURITY.md](../SECURITY.md) | Threat model and disclosure process |
+| [../db/analysis/README.md](../db/analysis/README.md) | The four standalone SQL analyses |
