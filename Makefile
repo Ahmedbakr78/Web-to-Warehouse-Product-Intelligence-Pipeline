@@ -225,13 +225,25 @@ airflow-test: ## Run the product intelligence DAG once for a fixed date
 	airflow dags test product_intelligence_pipeline 2026-01-01
 
 # ---------------------------------------------------------------- docs
+MMDC_BIN ?= $(shell command -v mmdc 2>/dev/null || echo /tmp/mmdc/node_modules/.bin/mmdc)
+export MMDC_BIN
+
+.PHONY: mermaid-install
+mermaid-install: ## Install the Mermaid CLI into /tmp/mmdc (no global permissions needed)
+	npm install --prefix /tmp/mmdc @mermaid-js/mermaid-cli
+
 .PHONY: docs-render
-docs-render: ## Render every Mermaid diagram to SVG inside docs/diagrams/out
+docs-render: ## Render every Mermaid diagram to SVG (MMDC_BIN=... to point at the CLI)
 	$(PYBIN) scripts/diagrams.py render
 
 .PHONY: docs-diagrams
 docs-diagrams: ## Extract every Mermaid block into docs/diagrams/out with an index
 	$(PYBIN) scripts/diagrams.py extract
+
+.PHONY: docs-site
+docs-site: ## Render the diagrams, then build the documentation website
+	$(MAKE) docs-render
+	$(PYBIN) scripts/build_site.py --out site --diagrams docs/diagrams/out
 
 .PHONY: docs-validate
 docs-validate: ## Parse-check every Mermaid diagram (requires the mermaid CLI)

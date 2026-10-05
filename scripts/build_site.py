@@ -609,6 +609,20 @@ h2:hover .anchor-link, h3:hover .anchor-link, h4:hover .anchor-link { opacity: 1
 .doc-card:hover { border-color: var(--brand); text-decoration: none; transform: translateY(-2px); box-shadow: var(--shadow); }
 .doc-card b { display: block; font-size: 14px; margin-bottom: 3px; }
 .doc-card small { color: var(--muted); font-size: 12.5px; line-height: 1.5; display: block; }
+/* ------------------------------------------------------------------ gallery */
+.gallery {
+  display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+}
+.gallery figure {
+  margin: 0; padding: 12px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
+}
+.gallery img { display: block; width: 100%; height: auto; background: #fff; border-radius: 6px; }
+.gallery figcaption {
+  margin-top: 8px; font-size: 12px; color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere;
+}
+
 .notfound { text-align: center; padding: 80px 20px; }
 .notfound h1 { font-size: 62px; margin: 0; color: var(--brand); letter-spacing: -.04em; }
 
@@ -1064,7 +1078,60 @@ FAVICON = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
 </svg>"""
 
 
-def build(out_dir: Path) -> list[Path]:
+def copy_diagrams(out_dir: Path, source: Path | None = None) -> list[Path]:
+    """Copy the rendered SVGs next to the pages and wire them into the diagram index.
+
+    The SVGs are generated output (`make docs-render`), so they are not committed.
+    When they are present the site gets real vector diagrams; when they are not the
+    Mermaid sources are still inlined and GitHub/most viewers render them, so the site
+    degrades rather than breaks.
+    """
+    source = source or (ROOT / "docs" / "diagrams" / "out")
+    if not source.is_dir():
+        return []
+    target = out_dir / "diagrams"
+    target.mkdir(parents=True, exist_ok=True)
+    copied: list[Path] = []
+    for svg in sorted(source.glob("*.svg")):
+        destination = target / svg.name
+        shutil.copy2(svg, destination)
+        copied.append(destination)
+
+    index_source = source / "index.md"
+    if copied and index_source.exists():
+        rows = [
+            line
+            for line in index_source.read_text(encoding="utf-8").splitlines()
+            if line.strip().startswith("|") and ".mmd" in line
+        ]
+        body = "\n".join(
+            f"| {row.split('|')[1].strip()} | `{Path(row.split('`')[1]).stem}.svg` |"
+            for row in rows
+            if row.count("`") >= 2
+        )
+        figures = "".join(
+            f'<figure><img src="{item.name}" alt="{item.stem}" loading=lazy>'
+            f"<figcaption>{item.stem}</figcaption></figure>"
+            for item in copied
+        )
+        (target / "index.html").write_text(
+            page(
+                title="Diagram gallery",
+                body=(
+                    "<h1>Diagram gallery</h1>"
+                    f"<p class=blurb>{len(copied)} rendered Mermaid diagram(s), as SVG.</p>"
+                    f'<div class="gallery">{figures}</div>'
+                ),
+                active="diagrams",
+                description="Every Mermaid diagram in the documentation, rendered to SVG.",
+            ),
+            encoding="utf-8",
+        )
+        copied.append(target / "index.html")
+    return copied
+
+
+def build(out_dir: Path, diagrams: Path | None = None) -> list[Path]:
     """Generate every page, the search index and the static assets."""
     if out_dir.exists():
         shutil.rmtree(out_dir)
@@ -1084,6 +1151,8 @@ def build(out_dir: Path) -> list[Path]:
         target.write_text(content, encoding="utf-8")
         written.append(target)
         index.append(entry)
+
+    written.extend(copy_diagrams(out_dir, diagrams))
 
     (out_dir / "index.html").write_text(landing_page(), encoding="utf-8")
     written.append(out_dir / "index.html")
@@ -1145,13 +1214,17 @@ def serve(out_dir: Path, port: int) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Build the documentation website.")
     parser.add_argument("--out", default="site", help="output directory (default: site)")
+    parser.add_argument(
+        "--diagrams", default=None, help="directory of rendered SVGs (default: docs/diagrams/out)"
+    )
     parser.add_argument("--serve", action="store_true", help="serve the result after building")
     parser.add_argument("--port", type=int, default=8001, help="port for --serve (default: 8001)")
     args = parser.parse_args()
 
     out_dir = (ROOT / args.out).resolve() if not Path(args.out).is_absolute() else Path(args.out)
     print(f"Building documentation site into {out_dir}")
-    written = build(out_dir)
+    diagrams = Path(args.diagrams) if args.diagrams else None
+    written = build(out_dir, diagrams)
     print(f"Done — {len(written)} pages.")
     if args.serve:
         serve(out_dir, args.port)

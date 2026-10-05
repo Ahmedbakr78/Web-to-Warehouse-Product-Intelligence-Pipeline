@@ -211,19 +211,33 @@ jobs:
 
       # A Mermaid syntax error would otherwise only surface as a broken image on
       # github.com, long after review. This turns it into a build failure.
-      - name: Validate every Mermaid diagram
+      # The SVGs are written to the workspace rather than committed: they are 5 MB of
+      # derived output that goes stale on any edit.
+      - name: Render every Mermaid diagram to SVG
         run: |
-          npm install -g @mermaid-js/mermaid-cli
-          python3 scripts/diagrams.py validate
+          npm install --prefix "$RUNNER_TEMP/mermaid" @mermaid-js/mermaid-cli
+          echo "MMDC_BIN=$RUNNER_TEMP/mermaid/node_modules/.bin/mmdc" >> "$GITHUB_ENV"
+          python3 scripts/diagrams.py render
 
       - name: Extract diagrams
         run: python3 scripts/diagrams.py extract
 
-      - name: Verify extracted diagrams are committed
+      - name: Verify extracted .mmd sources are committed
         run: |
+          python3 scripts/diagrams.py extract
           if ! git diff --quiet -- docs/diagrams/out; then
-            echo "::error::docs/diagrams/out is stale. Run 'make docs-diagrams' and commit."
+            echo "::error::docs/diagrams/out/*.mmd is stale. Run 'make docs-diagrams' and commit."
             git --no-pager diff --stat -- docs/diagrams/out
+            exit 1
+          fi
+
+      - name: Confirm every diagram rendered
+        run: |
+          rendered=$(ls -1 docs/diagrams/out/*.svg | wc -l)
+          sources=$(ls -1 docs/diagrams/out/*.mmd | wc -l)
+          echo "$rendered SVG(s) from $sources source(s)"
+          if [ "$rendered" -lt "$sources" ]; then
+            echo "::error::only $rendered of $sources diagrams rendered"
             exit 1
           fi
 

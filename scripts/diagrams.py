@@ -21,6 +21,7 @@ Exit code is 0 only when every diagram parses.
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import shutil
 import subprocess
@@ -112,16 +113,40 @@ def extract(diagrams: list[Diagram]) -> list[Path]:
     return written
 
 
-def _mmdc_available() -> bool:
-    return shutil.which("mmdc") is not None
+#: Locations searched for the Mermaid CLI, in order. A global npm install often needs
+#: elevated permissions, so a project-local install is checked as well - including one
+#: outside the repository, which is where a `npm i --prefix` lands.
+MMDC_CANDIDATES: tuple[str, ...] = (
+    "mmdc",
+    str(ROOT / "node_modules" / ".bin" / "mmdc"),
+    str(Path.home() / ".npm-global" / "bin" / "mmdc"),
+    "/tmp/mmdc/node_modules/.bin/mmdc",
+    str(Path("/usr/local/lib/node_modules/@mermaid-js/mermaid-cli/dist/index.js")),
+)
+
+
+def _mmdc_path() -> str | None:
+    """Locate the Mermaid CLI, or return None with instructions."""
+    override = os.environ.get("MMDC_BIN")
+    candidates = (override, *MMDC_CANDIDATES) if override else MMDC_CANDIDATES
+    for candidate in candidates:
+        if not candidate:
+            continue
+        if Path(candidate).exists() or shutil.which(candidate):
+            return candidate
+    return None
 
 
 def validate(diagrams: list[Diagram], *, render: bool = False) -> int:
     """Parse-check every diagram. Returns a process exit code."""
-    if not _mmdc_available():
+    mmdc = _mmdc_path()
+    if mmdc is None:
         print(
-            "error: mmdc not found.\n\n"
-            "  Install the Mermaid CLI:\n\n"
+            "error: the Mermaid CLI (mmdc) was not found.\n\n"
+            "  Install it into a writable prefix, then re-run:\n\n"
+            "      npm install --prefix /tmp/mmdc @mermaid-js/mermaid-cli\n"
+            "      MMDC_BIN=/tmp/mmdc/node_modules/.bin/mmdc make docs-render\n\n"
+            "  or, if you can write to the global prefix:\n\n"
             "      npm install -g @mermaid-js/mermaid-cli\n\n"
             "  CI runs this check as part of the docs job.",
             file=sys.stderr,
@@ -145,7 +170,7 @@ def validate(diagrams: list[Diagram], *, render: bool = False) -> int:
             target = OUT / f"{diagram.slug}_{number:02d}.svg" if render else tmp_path / f"{number:03d}.svg"
 
             result = subprocess.run(
-                ["mmdc", "-i", str(source_file), "-o", str(target), "-p", str(config), "-q"],
+                [mmdc, "-i", str(source_file), "-o", str(target), "-p", str(config), "-q"],
                 capture_output=True,
                 text=True,
                 timeout=120,
