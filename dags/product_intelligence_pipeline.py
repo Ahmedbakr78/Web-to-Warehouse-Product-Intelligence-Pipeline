@@ -1,15 +1,20 @@
 """Apache Airflow DAG: orchestrated product intelligence pipeline.
 
-    Product Intelligence Pipeline
-      check_health ──► extract ──► stage ──► transform ──► dedupe ──► load_warehouse
-                                                        │                │
-                                              data_quality ◄──────────┤
-                                                        │           detect_changes
-                                                 build_aggregates ◄────┘
-                                                        │
-                                              reconcile_catalog
-                                                        │
-                                              publish_notifications ──► report
+The DAG has 14 tasks. The task graph is:
+
+    start
+      └─► check_database_health (ShortCircuit)
+            └─► check_source_compliance (ShortCircuit)
+                  └─► probe_sources
+                        └─► run_pipeline
+                              ├─► detect_changes ──► branch_on_changes
+                              │                        ├─ yes ─► publish_notifications
+                              │                        └─ no  ─► skip_notifications
+                              ├─► data_quality_gate
+                              ├─► build_aggregates
+                              └─► reconcile_catalog
+                                    [notifications, quality, aggregates, reconcile]
+                                          └─► publish_report ──► end
 
 Design notes
 ------------
@@ -17,9 +22,9 @@ Design notes
   ``run_id`` and the fact table is keyed by ``(product_id, run_id)``).
 * ``ShortCircuitOperator`` guards stop the DAG when the database is unreachable or
   robots.txt forbids every configured source, instead of failing loudly at load time.
-* A single ``PipelineTrigger`` task can be switched on (``EXECUTE_FULL_PIPELINE``) to
-  run the orchestrator in-process, which is handy for demonstrations; the default is the
-  explicit task-by-task graph below, which shows the ETL stages individually.
+* Inside the Airflow container the DAG drives the pipeline over its REST API
+  (see "Transport" below); on a developer machine it imports the pipeline directly.
+  ``make airflow-test`` takes the in-process path.
 """
 
 from __future__ import annotations
@@ -36,11 +41,8 @@ from typing import Any
 try:  # pragma: no cover - exercised only inside Airflow
     from airflow import DAG
     from airflow.models.param import Param
-    from airflow.operators.bash import BashOperator
     from airflow.operators.empty import EmptyOperator
     from airflow.operators.python import BranchPythonOperator, PythonOperator, ShortCircuitOperator
-    from airflow.providers.postgres.hooks.postgres import PostgresHook
-    from airflow.utils.task_group import TaskGroup
     from airflow.utils.trigger_rule import TriggerRule
 
     AIRFLOW_AVAILABLE = True
@@ -48,9 +50,8 @@ except Exception:  # pragma: no cover - local development without Airflow
     AIRFLOW_AVAILABLE = False
     DAG = Any  # type: ignore[assignment,misc]
     Param = dict  # type: ignore[assignment,misc]
-    BashOperator = PythonOperator = ShortCircuitOperator = BranchPythonOperator = None  # type: ignore[assignment]
-    EmptyOperator = TaskGroup = None  # type: ignore[assignment]
-    PostgresHook = None  # type: ignore[assignment]
+    PythonOperator = ShortCircuitOperator = BranchPythonOperator = None  # type: ignore[assignment]
+    EmptyOperator = None  # type: ignore[assignment]
     TriggerRule = None  # type: ignore[assignment]
 
 PROJECT_ROOT = os.environ.get("PIP_PROJECT_ROOT", "/opt/airflow")
