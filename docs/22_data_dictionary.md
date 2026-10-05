@@ -531,7 +531,58 @@ Grain: **one row per mutating request.**
 `app_setting.is_public` is the single flag that decides whether a setting reaches the browser —
 anything sensitive stays server-side by default.
 
-### 8.5 `catalog_product`
+### 8.5 `app_webhook` — outbound event subscriptions
+
+Added in v1.3. One row per webhook a user has registered to receive pipeline and
+quality events.
+
+| Column | Type | Null | Meaning |
+| --- | --- | --- | --- |
+| `webhook_id` | INTEGER | **PK** | Surrogate key |
+| `user_id` | INTEGER | FK | Owner |
+| `name` | VARCHAR(512) | no | Human label |
+| `target_url` | VARCHAR(512) | no | Endpoint that receives the POST |
+| `secret` | VARCHAR(128) | no | Shared secret used to sign the payload |
+| `events` | JSON | yes | Subscribed event names |
+| `is_active` | BOOLEAN | no | Delivery switch |
+| `description` | TEXT | yes | Free-text note |
+| `headers` | JSON | yes | Extra headers sent with each delivery |
+| `timeout_seconds` | INTEGER | no | Per-attempt timeout |
+| `max_attempts` | INTEGER | no | Retry ceiling before disabling |
+| `success_count` / `failure_count` | INTEGER | no | Lifetime counters |
+| `consecutive_failures` | INTEGER | no | Drives automatic disabling |
+| `last_status_code` | INTEGER | yes | Most recent response status |
+| `last_error` | TEXT | yes | Most recent failure detail |
+| `last_triggered_at` | DATETIME | yes | Most recent attempt |
+| `disabled_reason` | VARCHAR(128) | yes | Why it was switched off |
+| `created_at` / `updated_at` | DATETIME | no | Audit timestamps |
+
+`consecutive_failures` combined with `disabled_reason` means a webhook that keeps
+failing stops being called rather than hammering an unhealthy endpoint — the same
+circuit-breaker principle applied to outbound webhooks.
+
+### 8.6 `app_webhook_delivery` — the delivery log
+
+One row per delivery attempt, so a failing integration is diagnosable rather than
+mysterious.
+
+| Column | Type | Null | Meaning |
+| --- | --- | --- | --- |
+| `delivery_id` | INTEGER | **PK** | Surrogate key |
+| `webhook_id` | INTEGER | FK | Target webhook |
+| `event` | VARCHAR(128) | no | Event name delivered |
+| `payload` | JSON | yes | Body sent |
+| `status` | VARCHAR(128) | no | `pending`, `delivered`, `failed` |
+| `attempts` | INTEGER | no | Attempts made so far |
+| `status_code` | INTEGER | yes | Response status |
+| `response_excerpt` | TEXT | yes | Truncated response body |
+| `error` | TEXT | yes | Failure detail |
+| `duration_ms` | INTEGER | yes | Latency |
+| `next_retry_at` | DATETIME | yes | Scheduled retry |
+| `delivered_at` | DATETIME | yes | Successful delivery time |
+| `created_at` | DATETIME | no | When the attempt was queued |
+
+### 8.7 `catalog_product`
 
 The retailer's own catalog — the left-hand side of every price-gap comparison.
 

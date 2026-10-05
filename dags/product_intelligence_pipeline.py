@@ -310,7 +310,7 @@ def run_full_pipeline(**context: Any) -> dict[str, Any]:
 
 def evaluate_quality(**context: Any) -> dict[str, Any]:
     """Data-quality gate: only a *critical* failure stops the run."""
-    payload = call_pipeline(lambda: _quality_local(), "/quality/latest")
+    payload = call_pipeline(lambda: _quality_local(context), "/quality/latest")
     print(f"dq summary: {payload}")
     blocking = payload.get("blocking") if isinstance(payload, dict) else None
     if blocking:
@@ -318,12 +318,11 @@ def evaluate_quality(**context: Any) -> dict[str, Any]:
     return payload
 
 
-def _quality_local() -> dict[str, Any]:
+def _quality_local(context: dict) -> dict[str, Any]:
     from app.core.db import session_scope
     from app.etl.dq import evaluate_quality as evaluate
 
-    database = "postgres"
-    with session_scope(database) as session:
+    with session_scope(_database_target(context)) as session:
         return evaluate(session, _latest_run_id(session)).summary()
 
 
@@ -339,19 +338,25 @@ def _latest_run_id(session: Any) -> str:
 
 
 def build_aggregates(**context: Any) -> dict[str, Any]:
-    """Rebuild the pre-aggregated category/day rollup for the latest run."""
+    """Rebuild the pre-aggregated category/day rollup for the latest run.
+
+    The REST fallback is `POST /pipeline/rebuild-aggregates`, which performs the
+    same work. It used to call `GET /pipeline/stages` - a read-only stage
+    catalogue - so the containerised DAG silently skipped the rebuild while still
+    reporting success.
+    """
 
     def local() -> dict[str, Any]:
         from app.core.db import session_scope
         from app.etl.loader import WarehouseLoader
 
-        with session_scope("postgres") as session:
+        with session_scope(_database_target(context)) as session:
             run_id = _latest_run_id(session)
             written = WarehouseLoader(session, run_id).refresh_category_daily()
         print(f"category-daily aggregates refreshed: {written} rows for run {run_id}")
         return {"status": "refreshed", "rows": written, "run_id": run_id}
 
-    return call_pipeline(local, "/pipeline/stages")
+    return call_pipeline(local, "/pipeline/rebuild-aggregates", method="POST")
 
 
 def reconcile_catalog(**context: Any) -> dict[str, Any]:
@@ -361,7 +366,7 @@ def reconcile_catalog(**context: Any) -> dict[str, Any]:
         from app.core.db import session_scope
         from app.etl.catalog_reconcile import CatalogReconciler, reconciliation_summary
 
-        with session_scope("postgres") as session:
+        with session_scope(_database_target(context)) as session:
             results = CatalogReconciler(session, _latest_run_id(session)).run(persist=True)
         return reconciliation_summary(results)
 
@@ -372,19 +377,44 @@ def reconcile_catalog(**context: Any) -> dict[str, Any]:
 
 
 def detect_changes(**context: Any) -> dict[str, Any]:
-    """Publish change counts to XCom so the branching task can consume them."""
-    payload = call_pipeline(lambda: _changes_local(), "/changes/summary", params={"days": 1})
-    print(f"changes: {payload}")
-    return payload
+    """Publish change counts to XCom so the branching task can consume them.
+
+    `GET /changes/summary` reports `removed_products`, but `branch_on_changes`
+    reads `removed`. The response is normalised here so both transport paths
+    produce the identical shape - otherwise the containerised DAG silently always
+    took the "no changes" branch and never raised an alert.
+    """
+    payload = call_pipeline(lambda: _changes_local(context), "/changes/summary", params={"days": 1})
+    normalised = normalise_change_counts(payload)
+    print(f"changes: {normalised}")
+    return normalised
 
 
-def _changes_local() -> dict[str, Any]:
+def normalise_change_counts(payload: Any) -> dict[str, Any]:
+    """Map a `/changes/summary` response onto the four keys the branch needs."""
+    if not isinstance(payload, dict):
+        return {"price_changes": 0, "new_products": 0, "removed": 0, "category_changes": 0}
+    timeline = payload.get("timeline") or []
+    price_changes = payload.get("price_changes")
+    if price_changes is None:
+        # The summary endpoint has no per-run price-change counter; derive one from
+        # the timeline it does return.
+        price_changes = sum(int(point.get("changes") or 0) for point in timeline)
+    return {
+        "price_changes": int(price_changes or 0),
+        "new_products": int(payload.get("new_products") or 0),
+        "removed": int(payload.get("removed_products") or payload.get("removed") or 0),
+        "category_changes": int(payload.get("category_changes") or 0),
+    }
+
+
+def _changes_local(context: dict) -> dict[str, Any]:
     """In-process implementation (used when the interpreter allows SQLAlchemy 2)."""
     import sqlalchemy as sa
 
     from app.core.db import session_scope
 
-    with session_scope("postgres") as session:
+    with session_scope(_database_target(context)) as session:
         run_id = _latest_run_id(session)
         row = (
             session.execute(
@@ -406,10 +436,10 @@ def _changes_local() -> dict[str, Any]:
 
 def publish_notifications(**context: Any) -> dict[str, Any]:
     """Evaluate the alert rules and raise in-app notifications for whatever matches."""
-    return call_pipeline(lambda: _notify_local(), "/alerts/evaluate", method="POST")
+    return call_pipeline(lambda: _notify_local(context), "/alerts/evaluate", method="POST")
 
 
-def _notify_local() -> dict[str, Any]:
+def _notify_local(context: dict) -> dict[str, Any]:
     import sqlalchemy as sa
 
     from app.core.db import session_scope
@@ -417,7 +447,7 @@ def _notify_local() -> dict[str, Any]:
 
     created = 0
     since = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=1)
-    with session_scope("postgres") as session:
+    with session_scope(_database_target(context)) as session:
         rules = (
             session.execute(sa.select(AppAlertRule).where(AppAlertRule.is_active.is_(True))).scalars().all()
         )
@@ -464,21 +494,21 @@ def publish_report(**context: Any) -> dict[str, Any]:
         from app.analytics import service as analytics
         from app.core.db import session_scope
 
-        with session_scope("postgres") as session:
+        with session_scope(_database_target(context)) as session:
             return analytics.kpi_summary(session, days=30)
 
     def changes_local() -> dict[str, Any]:
         from app.analytics import service as analytics
         from app.core.db import session_scope
 
-        with session_scope("postgres") as session:
+        with session_scope(_database_target(context)) as session:
             return analytics.change_event_summary(session, days=30)
 
     def quality_local() -> dict[str, Any]:
         from app.core.db import session_scope
         from app.etl.dq import latest_report
 
-        with session_scope("postgres") as session:
+        with session_scope(_database_target(context)) as session:
             return latest_report(session)
 
     report = {
@@ -520,7 +550,13 @@ def _write_report_artifact(report: dict[str, Any], context: dict[str, Any]) -> s
 
 def branch_on_changes(**context: Any) -> str:
     """Only run the notification task when something actually changed."""
-    changes = context["ti"].xcom_pull(task_ids="detect_changes") or {}
+    # Every other callable uses defensive `.get()` helpers; this one indexed the
+    # context directly and raised `KeyError` outside a real TaskInstance.
+    task_instance = context.get("ti")
+    if task_instance is None:
+        print("branch input: no task instance available; skipping notifications")
+        return "skip_notifications"
+    changes = task_instance.xcom_pull(task_ids="detect_changes") or {}
     print(f"branch input: {changes}")
     if changes.get("price_changes") or changes.get("new_products") or changes.get("removed"):
         return "notify_users"

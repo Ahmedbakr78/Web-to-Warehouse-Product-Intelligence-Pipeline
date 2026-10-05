@@ -100,8 +100,7 @@ def main() -> int:
 
     if not target.is_file():
         print(
-            f"error: {target.relative_to(ROOT)} is missing.\n"
-            "Create it once with:  make stats-update",
+            f"error: {target.relative_to(ROOT)} is missing.\nCreate it once with:  make stats-update",
             file=sys.stderr,
         )
         return 2

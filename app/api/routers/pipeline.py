@@ -350,6 +350,38 @@ def sources_status(session: DbSession, _user: OptionalUser) -> list[dict[str, An
     return payload
 
 
+@router.post(
+    "/rebuild-aggregates",
+    summary="Rebuild the category/day rollup for the latest run",
+)
+def rebuild_aggregates(session: DbSession, user: PipelineUser) -> dict[str, Any]:
+    """Recompute `agg_category_daily` from the latest run's snapshots.
+
+    Exposed so the Airflow DAG can rebuild the rollup over REST when it cannot
+    import the pipeline package in-process (the Airflow container pins
+    SQLAlchemy 1.4). `GET /stages` is deliberately not used for this: it is a
+    read-only catalogue and does not refresh anything.
+    """
+    from app.etl.loader import WarehouseLoader
+
+    run = session.execute(sa.select(EtlRun).order_by(EtlRun.started_at.desc()).limit(1)).scalars().first()
+    if run is None:
+        raise NotFoundError("no pipeline run found; run the pipeline before rebuilding aggregates")
+    written = WarehouseLoader(session, run.run_id).refresh_category_daily()
+    session.add(
+        AppAuditLog(
+            user_id=user.user_id,
+            user_email=user.email,
+            action="pipeline.rebuild_aggregates",
+            entity_type="etl_run",
+            entity_id=run.run_id,
+            details={"rows": written},
+        )
+    )
+    log.info("aggregates rebuilt for run %s: %s rows", run.run_id, written)
+    return {"status": "refreshed", "run_id": run.run_id, "rows": written}
+
+
 @router.get("/stages", summary="Stage catalogue and average durations")
 def stages(session: DbSession, _user: ReadUser) -> dict[str, Any]:
     from app.etl.pipeline import STAGE_NAMES

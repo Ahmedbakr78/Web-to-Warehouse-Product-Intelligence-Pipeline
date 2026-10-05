@@ -35,6 +35,9 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY app /srv/app/app
 COPY db /srv/app/db
 COPY dags /srv/app/dags
+# The canonical version file, so /version and /meta report the real release inside the
+# container instead of falling back to 0.0.0.
+COPY VERSION /srv/app/VERSION
 
 RUN useradd --create-home --uid 10001 pipeline \
  && mkdir -p /srv/app/var && chown -R pipeline:pipeline /srv/app
