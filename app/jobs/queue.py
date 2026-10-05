@@ -388,28 +388,70 @@ def claim_next(database: str | None, owner: str) -> AppJob | None:
 
 
 def _execute(job_id: int, handler: Handler, database: str | None) -> None:
+    """Run one handler, streaming progress live and persisting it in one batch.
+
+    Progress is delivered immediately over the in-memory broker, but written to
+    `app_job_event` only when the handler returns. Writing each line as it happens
+    would open a second connection while the handler still holds its own transaction:
+    SQLite refuses that outright ("database is locked"), and on PostgreSQL it costs a
+    round trip per stage for data that is only ever read back as history.
+    """
+    pending: list[dict[str, Any]] = []
+
+    def flush() -> None:
+        if not pending:
+            return
+        batch, pending[:] = list(pending), []
+        try:
+            with session_scope(database) as session:
+                job = session.get(AppJob, job_id)
+                if job is None:
+                    return
+                for item in batch:
+                    session.add(
+                        AppJobEvent(
+                            job_id=job_id,
+                            level=item["level"],
+                            stage=item["stage"],
+                            message=item["message"],
+                            progress_pct=item["progress_pct"],
+                        )
+                    )
+                    job.stage = item["stage"] or job.stage
+                    if item["progress_pct"] is not None:
+                        job.progress_pct = max(0, min(100, int(item["progress_pct"])))
+        except Exception as exc:  # noqa: BLE001 - an audit trail must never fail a job
+            log.warning("could not persist progress events for job %s: %s", job_id, exc)
+
     def report(
         message: str, *, stage: str | None = None, progress_pct: int | None = None, level: str = "info"
     ) -> None:
-        with session_scope(database) as session:
-            log_event(session, job_id, message, level=level, stage=stage, progress_pct=progress_pct)
+        pending.append({"message": message, "stage": stage, "progress_pct": progress_pct, "level": level})
+        _publish_progress(job_id, message, level=level, stage=stage, progress_pct=progress_pct)
 
     try:
-        with session_scope(database) as session:
-            log_event(session, job_id, "job started", stage="start", progress_pct=0)
+        report("job started", stage="start", progress_pct=0)
         result = handler(job_id, report) or {}
+        flush()
+
         with session_scope(database) as session:
             job = session.get(AppJob, job_id)
             if job is not None:
                 job.result = jsonable(result)
                 job.status = "succeeded"
                 job.progress_pct = 100
+                job.stage = "done"
                 job.finished_at = _utcnow()
                 job.lease_owner = None
                 job.lease_expires_at = None
-                log_event(session, job_id, "job finished", stage="done", progress_pct=100)
+                session.add(
+                    AppJobEvent(
+                        job_id=job_id, level="info", stage="done", message="job finished", progress_pct=100
+                    )
+                )
         log.info("job %s succeeded", job_id)
     except Exception as exc:  # noqa: BLE001 - a worker must never die on one job
+        flush()
         with session_scope(database) as session:
             job = session.get(AppJob, job_id)
             if job is not None:
@@ -422,16 +464,24 @@ def _execute(job_id: int, handler: Handler, database: str | None) -> None:
                     # Requeue for another attempt rather than failing outright.
                     job.status = "queued"
                     job.finished_at = None
-                    log_event(
-                        session,
-                        job_id,
-                        f"attempt {job.attempt}/{job.max_attempts} failed: {message}",
-                        level="warning",
-                        stage="retry",
+                    session.add(
+                        AppJobEvent(
+                            job_id=job_id,
+                            level="warning",
+                            stage="retry",
+                            message=f"attempt {job.attempt}/{job.max_attempts} failed: {message}",
+                        )
                     )
                 else:
                     job.status = "failed"
-                    log_event(session, job_id, f"failed: {message}", level="error", stage="failed")
+                    session.add(
+                        AppJobEvent(
+                            job_id=job_id,
+                            level="error",
+                            stage="failed",
+                            message=f"failed: {message}",
+                        )
+                    )
         log.warning("job %s failed or will retry: %s", job_id, exc)
 
 

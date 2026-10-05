@@ -30,6 +30,7 @@ the command cited beside it.
 | 21 | [Architecture Deep Dive](21_architecture_deep_dive.md) | Design drivers, decisions with rejected alternatives, request lifecycle, warehouse layering, known limitations |
 | 22 | [Data Dictionary](22_data_dictionary.md) | Every table, column, type and meaning; controlled vocabularies; view catalogue; dialect portability |
 | 23 | [Glossary and FAQ](23_glossary_and_faq.md) | Terms defined, then setup, pipeline, quality, security and development questions answered |
+| 24 | [Demo Runbook](24_demo_runbook.md) | Pre-flight checklist, the eight-minute screen-by-screen script, time-boxed variants and a failure playbook that falls back to `curl` |
 
 ---
 

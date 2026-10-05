@@ -75,6 +75,7 @@ NAV: list[tuple[str, str, str]] = [
     ("21_architecture_deep_dive.md", "Architecture Deep Dive", "Decisions, trade-offs, request lifecycle"),
     ("22_data_dictionary.md", "Data Dictionary", "Every table, column, type and meaning"),
     ("23_glossary_and_faq.md", "Glossary and FAQ", "Terms defined, questions answered"),
+    ("24_demo_runbook.md", "Demo Runbook", "Screen-by-screen live demo script and failure playbook"),
 ]
 
 #: Documents grouped for the sidebar; keys render as section headers.
@@ -115,6 +116,7 @@ NAV_GROUPS: list[tuple[str, list[str]]] = [
             "20_literature_feedback_and_improvements.md",
             "22_data_dictionary.md",
             "23_glossary_and_faq.md",
+            "24_demo_runbook.md",
         ],
     ),
 ]

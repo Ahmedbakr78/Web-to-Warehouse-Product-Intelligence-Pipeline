@@ -168,29 +168,29 @@ Everything is engineered like a production system, not a demo:
 <!-- BEGIN:STATS -->
 
 ```text
-25 physical tables  |  20 analytical views  |  132 REST route decorators in 18 routers
+27 physical tables  |  20 analytical views  |  150 REST route decorators in 20 routers
 12 data-quality rules across 6 dimensions, weighted score persisted per run
 5 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
-11 CLI commands  |  6 Docker Compose services  |  23 documents  |  66 Mermaid diagrams
-338 tests  |  86/86 API smoke checks  |  295 catalogued features
+11 CLI commands  |  6 Docker Compose services  |  24 documents  |  66 Mermaid diagrams
+348 tests  |  86/86 API smoke checks  |  295 catalogued features
 ```
 
 | Metric | Count |
 | --- | ---: |
-| Physical tables         | 25 |
+| Physical tables         | 27 |
 | Analytical views        | 20 |
-| REST routers            | 18 |
-| REST route decorators   | 132 |
+| REST routers            | 20 |
+| REST route decorators   | 150 |
 | Data-quality rules      | 12 |
 | Ingestion sources       | 5 |
 | Airflow task callables  | 33 |
 | CLI commands            | 11 |
 | Pipeline stages         | 9 |
 | Docker Compose services | 6 |
-| Numbered documents      | 23 |
+| Numbered documents      | 24 |
 | Mermaid diagrams        | 66 |
 | Catalogued features     | 295 |
-| Collected test cases    | 338 |
+| Collected test cases    | 348 |
 | API smoke checks        | 86 |
 
 <!-- END:STATS -->
@@ -1342,7 +1342,7 @@ db/
 frontend/         React 19 dashboard: 21 screens, PWA, design system
   public/         manifest, icons
   src/            pages, components, hooks, libs
-docs/             23 numbered documents plus an index with diagrams
+docs/             24 numbered documents plus an index with diagrams
   diagrams/out/   Mermaid sources extracted for SVG rendering
   assets/         generated infographic (SVG master + PNG + HTML preview)
 scripts/
@@ -1371,7 +1371,7 @@ pyproject.toml                package configuration and tool settings
 
 ## Documentation
 
-All twenty-three documents live in [docs/](docs/README.md). Every diagram is Mermaid and renders
+All twenty-four documents live in [docs/](docs/README.md). Every diagram is Mermaid and renders
 natively on GitHub; every structural number is tied to a runnable command.
 
 | # | Document | Contents |
@@ -1399,6 +1399,7 @@ natively on GitHub; every structural number is tied to a runnable command.
 | 21 | **Architecture Deep Dive** | design drivers, decisions with rejected alternatives, request lifecycle, layering, known limitations |
 | 22 | **Data Dictionary** | every table, column, type and meaning; controlled vocabularies; view catalogue; dialect portability |
 | 23 | **Glossary and FAQ** | terms defined, then setup, pipeline, quality, security and development Q&A |
+| 24 | **Demo Runbook** | pre-flight checklist, the eight-minute screen-by-screen script, time-boxed variants, and a failure playbook that falls back to `curl` |
 
 ### The documentation website
 
