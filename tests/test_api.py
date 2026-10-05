@@ -383,3 +383,155 @@ def test_error_payloads_are_consistent(client, admin_token):
     response = client.get("/api/v1/products/99999999", headers=auth(admin_token))
     body = response.json()
     assert set(body) >= {"error", "message", "details"}
+
+
+# --------------------------------------------------------------------------------------
+# Appearance preferences: the profile must accept exactly what the dashboard offers
+# --------------------------------------------------------------------------------------
+APPEARANCE_PATCHES = [
+    {"theme": "midnight"},
+    {"theme": "high-contrast"},
+    {"motion": "none"},
+    {"font_scale": "xl"},
+    {"direction": "rtl"},
+    {"accent": "teal"},
+]
+
+
+@pytest.mark.parametrize("patch", APPEARANCE_PATCHES)
+def test_appearance_preferences_round_trip(client, admin_token, patch):
+    response = client.patch("/api/v1/users/me", json=patch, headers=auth(admin_token))
+    assert response.status_code == 200, response.text
+    for key, value in patch.items():
+        assert response.json()[key] == value
+
+
+def test_invalid_appearance_values_are_rejected(client, admin_token):
+    """A bad theme or accent is a 422, never a silently stored typo."""
+    bad_theme = client.patch("/api/v1/users/me", json={"theme": "neon"}, headers=auth(admin_token))
+    assert bad_theme.status_code == 422
+
+    bad_accent = client.patch("/api/v1/users/me", json={"accent": "chartreuse"}, headers=auth(admin_token))
+    assert bad_accent.status_code == 422
+    assert "accent must be one of" in bad_accent.text
+
+
+def test_appearance_palettes_match_frontend(client):
+    """The API's accent allow-list and the dashboard's presets must not drift apart."""
+    import re
+    from pathlib import Path
+
+    from app.api.schemas import ACCENT_PRESETS
+
+    theme_file = Path(__file__).resolve().parents[1] / "frontend" / "src" / "lib" / "theme.ts"
+    if not theme_file.exists():  # frontend may be excluded from a backend-only checkout
+        return
+    block = re.search(
+        r"export const ACCENTS: Record<string, Accent> = \{(.*?)\n\}", theme_file.read_text(), re.S
+    )
+    assert block, "could not find the ACCENTS map in frontend/src/lib/theme.ts"
+    frontend_keys = set(re.findall(r"^\s{2}(\w+):\s*\{", block.group(1), re.M))
+    assert frontend_keys == set(ACCENT_PRESETS), (
+        f"frontend/backend accent drift: only frontend={frontend_keys - set(ACCENT_PRESETS)}, "
+        f"only backend={set(ACCENT_PRESETS) - frontend_keys}"
+    )
+
+
+def test_profile_exposes_every_appearance_axis(client, admin_token):
+    profile = client.get("/api/v1/users/me", headers=auth(admin_token)).json()
+    for axis in ("theme", "accent", "density", "motion", "direction", "font_scale"):
+        assert axis in profile, f"profile is missing the '{axis}' appearance axis"
+
+
+def test_readiness_really_probes_the_views(client):
+    """`views` must not be hard-coded to `pass`."""
+    payload = client.get("/api/v1/health/ready").json()
+    assert payload["checks"]["views"] == "pass"
+    assert payload["views_present"] == payload["views_expected"] > 0
+    assert payload["views_error"] is None
+
+
+def test_change_pct_filters_are_signed_bounds(client, admin_token):
+    """`min_change_pct=-5` keeps falls, `max_change_pct=5` keeps rises."""
+    falls = client.get("/api/v1/products?min_change_pct=-5&page_size=200", headers=auth(admin_token)).json()
+    assert all((item.get("price_change_pct") or 0) <= -5 for item in falls["items"])
+
+    rises = client.get("/api/v1/products?max_change_pct=5&page_size=200", headers=auth(admin_token)).json()
+    assert all((item.get("price_change_pct") or 0) >= 5 for item in rises["items"])
+
+
+def test_user_pagination_total_respects_filters(client, admin_token):
+    """The filtered count must match the number of rows, not the whole table."""
+    everyone = client.get("/api/v1/users?page_size=200", headers=auth(admin_token)).json()
+    viewers = client.get("/api/v1/users?role=viewer&page_size=200", headers=auth(admin_token)).json()
+    assert viewers["total"] <= everyone["total"]
+    assert viewers["total"] == len(viewers["items"])
+    assert all(item["role"] == "viewer" for item in viewers["items"])
+
+
+def test_run_http_log_is_scoped_to_the_run(client, admin_token):
+    """`/runs/{run_id}/http` must not return the global audit log."""
+    latest = client.get("/api/v1/pipeline/runs/latest", headers=auth(admin_token)).json()
+    run_id = latest.get("run_id")
+    if not run_id:
+        return
+    rows = client.get(f"/api/v1/pipeline/runs/{run_id}/http", headers=auth(admin_token)).json()
+    assert all(row["run_id"] == run_id for row in rows)
+
+
+def test_rebuild_aggregates_endpoint_exists(client, admin_token):
+    response = client.post("/api/v1/pipeline/rebuild-aggregates", headers=auth(admin_token))
+    assert response.status_code == 200, response.text
+    assert response.json()["status"] == "refreshed"
+
+
+def test_change_password_requires_the_current_password(client, admin_token):
+    # A strong candidate password with the wrong current password must be rejected
+    # as an authentication failure, not a validation error.
+    wrong = client.post(
+        "/api/v1/users/me/password",
+        json={"current_password": "definitely-wrong", "new_password": "BrandNew!Pass123"},
+        headers=auth(admin_token),
+    )
+    assert wrong.status_code == 401, wrong.text
+
+    # A weak candidate is a validation error, caught before any credential check.
+    weak = client.post(
+        "/api/v1/users/me/password",
+        json={"current_password": "Admin@12345", "new_password": "short"},
+        headers=auth(admin_token),
+    )
+    assert weak.status_code == 422
+
+
+def test_pagination_order_rejects_injection():
+    """`Pagination.order` must sanitise a hostile sort expression."""
+    from app.api.deps import Pagination
+
+    hostile = Pagination(page=1, page_size=25, sort_by="name; DROP TABLE app_user--", sort_dir="asc")
+    assert "DROP" not in hostile.order.upper()
+    assert hostile.order == "created_at ASC"
+
+    safe = Pagination(page=1, page_size=25, sort_by="v.last_seen_at", sort_dir="asc")
+    assert safe.order == "v.last_seen_at ASC"
+
+
+def test_version_is_consistent():
+    """One canonical VERSION file feeds the API, the package and pyproject."""
+    import json
+    import re
+    from pathlib import Path
+
+    import tomllib
+
+    from app.core.config import canonical_version
+
+    root = Path(__file__).resolve().parents[1]
+    version = canonical_version()
+    assert re.fullmatch(r"\d+\.\d+\.\d+", version)
+
+    packaging = tomllib.loads((root / "pyproject.toml").read_text())["project"]["version"]
+    assert packaging == version, "pyproject.toml has drifted from VERSION"
+
+    frontend = json.loads((root / "frontend" / "package.json").read_text())["version"]
+    assert frontend == version, "frontend/package.json has drifted from VERSION"
