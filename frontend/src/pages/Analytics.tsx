@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Activity, Braces, Boxes, Download, Layers, Package, Star, Tags, TrendingUp, Wallet } from 'lucide-react'
 
 import { AreaTrend, BarSeries, DonutChart, LineTrend, RadarCompare, HeatmapStrip } from '@/components/charts'
@@ -31,6 +31,7 @@ const RANGES = [
 ]
 
 export default function Analytics() {
+  const navigate = useNavigate()
   const [tab, setTab] = useState('categories')
   const [days, setDays] = useState('30')
   const windowDays = Number(days)
