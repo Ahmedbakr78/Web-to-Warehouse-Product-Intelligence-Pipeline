@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import re
 from collections.abc import Generator
 from typing import Annotated, Literal
 
@@ -27,6 +28,10 @@ from app.models.app_users import AppApiKey, AppUser
 log = get_logger(__name__)
 
 bearer_scheme = HTTPBearer(auto_error=False, description="JWT access token (Bearer) or API key")
+
+# A bare, optionally schema-qualified SQL identifier: letters, digits, underscore
+# and at most one dot. Anything else can never reach an ORDER BY clause.
+_SORTABLE_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)?")
 
 
 # --------------------------------------------------------------------------------------
@@ -85,9 +90,20 @@ class Pagination:
 
     @property
     def order(self) -> str:
-        direction = "DESC" if str(self.sort_dir).lower() != "asc" else "ASC"
-        column = self.sort_by or "created_at"
-        return f"{column} {direction}"
+        """A safe ORDER BY fragment.
+
+        The previous implementation interpolated `sort_by` straight into the
+        clause, which was a latent SQL-injection footgun for any future caller.
+        The column is now validated against `SORTABLE_COLUMNS` (identifier
+        characters only) and falls back to `created_at`, and the direction is
+        constrained to ASC/DESC. Routers with a wider allow-list build their own
+        fragment from their `SORTABLE` map.
+        """
+        direction = "ASC" if str(self.sort_dir).lower() == "asc" else "DESC"
+        candidate = (self.sort_by or "created_at").strip()
+        if not _SORTABLE_RE.fullmatch(candidate):
+            candidate = "created_at"
+        return f"{candidate} {direction}"
 
 
 PaginationDep = Annotated[Pagination, Depends(Pagination)]
