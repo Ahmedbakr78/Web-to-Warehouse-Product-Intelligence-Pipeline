@@ -195,7 +195,6 @@ Everything is engineered like a production system, not a demo:
 
 <!-- END:STATS -->
 
-
 Demo dataset after `make demo-postgres` (120 days, seeded, deterministic — counts will differ
 slightly with a different `--days` or after live runs):
 

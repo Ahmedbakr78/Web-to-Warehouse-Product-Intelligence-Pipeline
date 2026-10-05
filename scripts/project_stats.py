@@ -299,7 +299,12 @@ def stats_block(stats: dict[str, int]) -> str:
 
 
 def sync_readme(stats: dict[str, int]) -> int:
-    """Replace the generated block in README.md between the markers."""
+    """Replace the generated block in README.md between the markers.
+
+    The surrounding blank lines are normalised on both sides so that running this
+    twice in a row is a no-op. Without that, every invocation would append
+    another blank line and CI would report the file as modified forever.
+    """
     readme = ROOT / "README.md"
     text = readme.read_text(encoding="utf-8")
 
@@ -313,9 +318,12 @@ def sync_readme(stats: dict[str, int]) -> int:
     head, _, rest = text.partition(README_BEGIN)
     _, _, tail = rest.partition(README_END)
 
-    updated = f"{head}{stats_block(stats)}\n{tail}"
+    # Exactly one blank line separates the generated block from the prose on
+    # either side, whatever the original spacing was.
+    updated = f"{head.rstrip()}\n\n{stats_block(stats)}\n\n{tail.lstrip()}"
+
     if updated == text:
-        print("README.md is already up to date.")
+        print(f"{readme.name} is already up to date.")
         return 0
 
     readme.write_text(updated, encoding="utf-8")
