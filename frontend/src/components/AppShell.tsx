@@ -91,14 +91,26 @@ export default function AppShell() {
     return match ? { title: match.label, subtitle: match.description } : { title: 'Product Intelligence', subtitle: '' }
   }, [location.pathname])
 
+  return (
+    <div
+      className="flex h-full min-h-[100dvh] bg-bg text-ink"
+      onTouchStart={overlay ? edgeSwipe : undefined}
+    >
+      {/* ---------------------------------------------------------- desktop rail */}
+      {!overlay ? <Sidebar collapsed={collapsed} onToggle={toggleRail} /> : null}
+
+      {/* --------------------------------------------------------- overlay drawer */}
+      <div className="lg:hidden" onTouchStart={edgeSwipe}>
+        <NavDrawer open={drawerOpen} onClose={closeDrawer} ref={drawerRef} />
+      </div>
 
       {/* ---------------------------------------------------------------- content */}
-      <div className="flex min-w-0 flex-1 flex-col lg:pl-0">
-        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-line bg-[var(--surface)]/95 px-3 backdrop-blur sm:px-4">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-line bg-[var(--surface)]/95 px-3 pt-[env(safe-area-inset-top)] backdrop-blur sm:px-4">
           <IconButton
             label="Open menu"
             icon={<Menu className="h-5 w-5" />}
-            onClick={() => setMobileOpen(true)}
+            onClick={() => setDrawerOpen(true)}
             className="lg:hidden"
           />
           <div className="min-w-0 flex-1">
@@ -106,14 +118,16 @@ export default function AppShell() {
             {page.subtitle ? <p className="hidden truncate text-xs text-subtle sm:block">{page.subtitle}</p> : null}
           </div>
 
-          <button
-            onClick={() => setPaletteOpen(true)}
-            className="hidden items-center gap-2 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm text-subtle hover:border-line-strong md:flex"
-          >
-            <Search className="h-4 w-4" aria-hidden />
-            <span>Search everything</span>
-            <kbd className="ml-6 rounded border border-line bg-surface-3 px-1.5 py-0.5 font-mono text-[10px]">⌘K</kbd>
-          </button>
+          {isPhone ? null : (
+            <button
+              onClick={() => setPaletteOpen(true)}
+              className="hidden items-center gap-2 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm text-subtle hover:border-line-strong md:flex"
+            >
+              <Search className="h-4 w-4" aria-hidden />
+              <span>Search everything</span>
+              <kbd className="ml-6 rounded border border-line bg-surface-3 px-1.5 py-0.5 font-mono text-[10px]">⌘K</kbd>
+            </button>
+          )}
           <IconButton label="Search" icon={<Search className="h-4 w-4" />} onClick={() => setPaletteOpen(true)} className="md:hidden" />
 
           <IconButton
@@ -121,23 +135,27 @@ export default function AppShell() {
             icon={isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             onClick={toggle}
           />
-          <NotificationBell />
+          {isPhone ? null : <NotificationBell />}
           <UserMenu />
         </header>
 
+        {/* pb-20 clears the fixed phone tab bar. */}
         <main className="min-h-0 flex-1 overflow-y-auto">
-          <div className="mx-auto w-full max-w-[1600px] p-3 sm:p-4 lg:p-5">
+          <div className={cn('mx-auto w-full max-w-[1600px] p-3 sm:p-4 lg:p-5', isPhone && 'pb-24')}>
             <Outlet />
           </div>
         </main>
       </div>
+
+      <PhoneTabBar />
 
       {/* ------------------------------------------------------------ command palette */}
       <CommandPalette
         open={paletteOpen}
         onClose={() => setPaletteOpen(false)}
         onToggleTheme={toggle}
-        onToggleSidebar={() => setCollapsed((value) => !value)}
+        onToggleSidebar={overlay ? () => setDrawerOpen((value) => !value) : toggleRail}
+        toggleSidebarLabel={overlay ? 'Open navigation' : collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       />
     </div>
   )
@@ -156,11 +174,13 @@ function CommandPalette({
   onClose,
   onToggleTheme,
   onToggleSidebar,
+  toggleSidebarLabel,
 }: {
   open: boolean
   onClose: () => void
   onToggleTheme: () => void
   onToggleSidebar: () => void
+  toggleSidebarLabel: string
 }) {
   const [query, setQuery] = useState('')
   const [cursor, setCursor] = useState(0)
