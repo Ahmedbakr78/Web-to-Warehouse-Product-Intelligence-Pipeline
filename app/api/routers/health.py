@@ -50,31 +50,27 @@ def health() -> HealthResponse:
 def _probe_views() -> tuple[str, int, str | None]:
     """Actually query one analytical view so readiness cannot lie.
 
-    Returns `(status, view_count, error)`. A missing view is a real failure: the
-    whole analytics layer reads through `vw_*` objects.
+    Uses `sqlalchemy.inspect` for the catalogue lookup because that works on all
+    three supported dialects, then executes a real query so a view that exists
+    but is broken is still caught.
+
+    Returns `(status, view_count, error)`.
     """
     import sqlalchemy as sa
 
-    from app.core.db import read_session
+    from app.core.db import get_engine, read_session
 
     try:
+        engine = get_engine()
+        existing = set(sa.inspect(engine).get_view_names())
+        expected = expected_view_names()
+        missing = sorted(expected - existing)
+        if missing:
+            return "fail", len(expected) - len(missing), f"missing views: {', '.join(missing[:5])}"
         with read_session() as session:
-            rows = session.execute(
-                sa.text(
-                    "SELECT table_name FROM information_schema.views WHERE table_name LIKE 'vw\\_%' ESCAPE '\\'"
-                    if settings.dialect_name == "postgresql"
-                    else "SHOW FULL TABLES WHERE Table_type = 'VIEW'"
-                )
-            ).all()
-            names = {str(row[0]) for row in rows}
-            expected = expected_view_names()
-            present = sorted(expected & names)
-            missing = sorted(expected - names)
-            if missing:
-                return "fail", len(present), f"missing views: {', '.join(missing[:5])}"
             # Prove the views are queryable, not merely present in the catalogue.
             session.execute(sa.text("SELECT COUNT(*) FROM vw_product_current")).scalar()
-            return "pass", len(present), None
+        return "pass", len(expected), None
     except Exception as exc:  # pragma: no cover - defensive
         return "fail", 0, str(exc)[:200]
 
