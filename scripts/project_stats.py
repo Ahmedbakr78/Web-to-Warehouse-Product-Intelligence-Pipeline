@@ -258,11 +258,7 @@ def stats_block(stats: dict[str, int]) -> str:
     Written as a table rather than prose so a reviewer reading the diff can see
     exactly which figure moved, without reading a sentence to find the number.
     """
-    rows = [
-        (label, stats.get(key, -1))
-        for key, label in LABELS.items()
-        if key not in {"test_functions"}
-    ]
+    rows = [(label, stats.get(key, -1)) for key, label in LABELS.items() if key not in {"test_functions"}]
     width = max(len(label) for label, _ in rows)
 
     lines = [
@@ -290,10 +286,7 @@ def stats_block(stats: dict[str, int]) -> str:
         "| Metric | Count |",
         "| --- | ---: |",
     ]
-    lines += [
-        f"| {label.ljust(width)} | {value if value >= 0 else 'n/a'} |"
-        for label, value in rows
-    ]
+    lines += [f"| {label.ljust(width)} | {value if value >= 0 else 'n/a'} |" for label, value in rows]
     lines += ["", README_END]
     return "\n".join(lines)
 
