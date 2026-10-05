@@ -98,10 +98,20 @@ async def stream_notifications(_user: StreamUser) -> StreamingResponse:
     )
 
 
-@router.get("/everything", summary="SSE: every topic")
-async def stream_everything(_user: StreamUser) -> StreamingResponse:
+@router.get("/everything", summary="SSE: every topic, or a filtered subset")
+async def stream_everything(
+    _user: StreamUser,
+    topics: Annotated[str | None, Query(description="Comma-separated topic names")] = None,
+) -> StreamingResponse:
+    """The general-purpose endpoint.
+
+    A client that asks for a subset gets exactly that subset. Without this the
+    `?topics=` parameter was silently ignored here, so a screen subscribing to one
+    topic received all six - which works, but is the opposite of what it asked for.
+    """
+    selected = _resolve_topics(topics.split(",")) if topics else list(TOPICS.values())
     return StreamingResponse(
-        _frames(list(TOPICS.values())),
+        _frames(selected),
         media_type="text/event-stream",
         headers=SSE_HEADERS,
     )
