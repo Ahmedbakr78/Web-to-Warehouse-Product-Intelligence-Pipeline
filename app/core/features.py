@@ -348,25 +348,58 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "key": "dashboard",
         "title": "Dashboard & user experience",
         "icon": "layout-dashboard",
-        "summary": "19 screens, light/dark/system themes, PWA, command palette.",
+        "summary": "19 screens, 5 themes, 12 accents, PWA, command palette, phone tab bar.",
         "features": [
             {
-                "name": "17 analytic screens",
-                "detail": "Dashboard, Analytics, Changes, Products, Catalog, Quality, Sources...",
+                "name": "19 analytic screens",
+                "detail": "Dashboard, Analytics, Changes, Products, Catalog, Quality, Sources and more",
             },
             {
-                "name": "Light + dark + system themes",
-                "detail": "Instant CSS-variable switch, no flash, OS-synced",
+                "name": "5 themes",
+                "detail": "Light, dark, midnight (OLED), high contrast and system; switched via CSS "
+                "variables with no flash and no re-render",
             },
-            {"name": "6 accent colours x 3 densities"},
+            {
+                "name": "12 accent colours",
+                "detail": "Indigo, blue, sky, cyan, teal, emerald, green, amber, orange, rose, pink, violet",
+            },
+            {"name": "3 density levels", "detail": "Compact, comfortable, spacious"},
+            {
+                "name": "5 font scales",
+                "detail": "Independent of density, so dense rows and large text can coexist",
+            },
+            {
+                "name": "3 motion levels",
+                "detail": "Full, reduced, none - none also stops the loading spinners",
+            },
+            {"name": "RTL support", "detail": "The whole layout mirrors using CSS logical properties"},
             {"name": "Command palette", "detail": "Ctrl/Cmd-K or / - screens, products, actions"},
-            {"name": "Mobile-first responsive shell", "detail": "Off-canvas drawer sidebar, 320px and up"},
+            {
+                "name": "Keyboard shortcuts",
+                "detail": "Ctrl/Cmd-B toggles navigation, [ and ] collapse or expand the rail",
+            },
+            {
+                "name": "Three-state sidebar",
+                "detail": "Expanded, icon rail, or off-canvas drawer; the choice is shared across tabs",
+            },
+            {"name": "Phone bottom tab bar", "detail": "Five primary destinations under 640px"},
+            {
+                "name": "Card-view tables on phones",
+                "detail": "Dense data tables become stacked cards below 640px instead of a "
+                "horizontal scroller",
+            },
+            {
+                "name": "Silent reload",
+                "detail": "No smooth scroll, no page transition, scroll position restored on back, "
+                "focus moved to the page heading",
+            },
+            {"name": "Modern scrollbars", "detail": "Custom thin scrollbars with scroll shadows and no scroll chaining"},
             {"name": "PWA", "detail": "Installable, maskable icons, offline fallback"},
             {"name": "Accessibility", "detail": "WCAG 2.1 AA: focus rings, ARIA, reduced motion"},
             {"name": "Notification centre", "detail": "Bell, unread badge, mark read, alert rules"},
             {
                 "name": "Feature catalogue screen",
-                "detail": "Searchable list of everything the platform ships",
+                "detail": "Searchable list of everything the platform ships, counts read from /meta/features",
             },
         ],
     },

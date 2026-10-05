@@ -173,7 +173,9 @@ def main() -> int:
     )
     parser.add_argument("--json", action="store_true", help="emit JSON instead of tables")
     args = parser.parse_args()
-    return run((args.database or settings.active_database).lower(), args.script, args.json, args.limit, args.days)
+    return run(
+        (args.database or settings.active_database).lower(), args.script, args.json, args.limit, args.days
+    )
 
 
 if __name__ == "__main__":
