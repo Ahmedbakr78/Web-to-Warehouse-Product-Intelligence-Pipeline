@@ -10,6 +10,8 @@ from app.models.app_users import (
     AppSavedView,
     AppSetting,
     AppUser,
+    AppWebhook,
+    AppWebhookDelivery,
 )
 from app.models.base import Base
 from app.models.catalog import CatalogProduct
@@ -56,6 +58,8 @@ ALL_MODELS = (
     AppNotification,
     AppAuditLog,
     AppSetting,
+    AppWebhook,
+    AppWebhookDelivery,
 )
 
 MODEL_BY_TABLE: dict[str, type[Base]] = {model.__tablename__: model for model in ALL_MODELS}
@@ -137,6 +141,8 @@ __all__ = [
     "StgRawObservation",
     "SyncState",
     "AppUser",
+    "AppWebhook",
+    "AppWebhookDelivery",
     "AppApiKey",
     "AppSavedView",
     "AppAlertRule",

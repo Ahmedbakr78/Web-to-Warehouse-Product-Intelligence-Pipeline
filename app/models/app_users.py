@@ -141,6 +141,63 @@ class AppNotification(Base):
     __table_args__ = (sa.Index("ix_app_notification_user_read", "user_id", "is_read"),)
 
 
+class AppWebhook(Base, TimestampMixin):
+    """Outbound webhook subscription with a per-subscription signing secret."""
+
+    __tablename__ = "app_webhook"
+
+    webhook_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(sa.Integer, sa.ForeignKey("app_user.user_id", ondelete="CASCADE"))
+    name: Mapped[str] = mapped_column(MediumStr, nullable=False)
+    target_url: Mapped[str] = mapped_column(sa.String(512), nullable=False)
+    secret: Mapped[str] = mapped_column(sa.String(128), nullable=False)
+    events: Mapped[list | None] = mapped_column(JSONType, default=list)  # subscribed event names
+    is_active: Mapped[bool] = mapped_column(sa.Boolean, default=True)
+    description: Mapped[str | None] = mapped_column(sa.Text)
+    headers: Mapped[dict | None] = mapped_column(JSONType, default=dict)  # extra static headers
+    timeout_seconds: Mapped[int] = mapped_column(sa.Integer, default=10)
+    max_attempts: Mapped[int] = mapped_column(sa.Integer, default=3)
+    success_count: Mapped[int] = mapped_column(sa.Integer, default=0)
+    failure_count: Mapped[int] = mapped_column(sa.Integer, default=0)
+    consecutive_failures: Mapped[int] = mapped_column(sa.Integer, default=0)
+    last_status_code: Mapped[int | None] = mapped_column(sa.Integer)
+    last_error: Mapped[str | None] = mapped_column(sa.Text)
+    last_triggered_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
+    disabled_reason: Mapped[str | None] = mapped_column(ShortStr)
+
+    __table_args__ = (
+        sa.Index("ix_app_webhook_user_active", "user_id", "is_active"),
+        sa.Index("ix_app_webhook_target", "target_url"),
+    )
+
+
+class AppWebhookDelivery(Base):
+    """One delivery attempt (or attempt series) for a webhook event."""
+
+    __tablename__ = "app_webhook_delivery"
+
+    delivery_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, autoincrement=True)
+    webhook_id: Mapped[int] = mapped_column(
+        sa.Integer, sa.ForeignKey("app_webhook.webhook_id", ondelete="CASCADE")
+    )
+    event: Mapped[str] = mapped_column(ShortStr, nullable=False)
+    payload: Mapped[dict | None] = mapped_column(JSONType, default=dict)
+    status: Mapped[str] = mapped_column(ShortStr, default="pending")  # pending|success|failed
+    attempts: Mapped[int] = mapped_column(sa.Integer, default=0)
+    status_code: Mapped[int | None] = mapped_column(sa.Integer)
+    response_excerpt: Mapped[str | None] = mapped_column(sa.Text)
+    error: Mapped[str | None] = mapped_column(sa.Text)
+    duration_ms: Mapped[int | None] = mapped_column(sa.Integer)
+    next_retry_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime(), index=True)
+    delivered_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
+    created_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), default=utcnow, nullable=False, index=True)
+
+    __table_args__ = (
+        sa.Index("ix_app_webhook_delivery_hook", "webhook_id", "created_at"),
+        sa.Index("ix_app_webhook_delivery_status", "status", "next_retry_at"),
+    )
+
+
 class AppAuditLog(Base):
     """Immutable audit trail for every mutating operation."""
 
