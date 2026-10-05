@@ -383,6 +383,7 @@ decision) rather than individual lines of code.
 | F-224 | GitHub Actions CI | Two jobs (backend: ruff + mypy + pytest; frontend: eslint + tsc + vite build) with artefact upload | `.github/workflows/ci.yml` |
 | F-225 | Iconography pass | Every screen action, empty state and navigation item carries a Lucide icon; aria-labels on all icon-only controls | `frontend/src/**` |
 | F-226 | Modern slim scrollbars | Thin rounded theme-aware scrollbars app-wide via `scrollbar-width`/`::-webkit-scrollbar` tokens | `frontend/src/styles/index.css` |
+| F-287 | Demo runbook | Screen-by-screen live demo script with exact URLs, the sentence worth saying at each step, time-boxed 3/5/8-minute variants, a pre-flight checklist, the five questions that always get asked, and a failure playbook that falls back to `curl` when the browser dies | `docs/24_demo_runbook.md` |
 
 **Revised total: 226 features.**
 
@@ -406,7 +407,7 @@ missing identifiers) — superseded by section 17 below. Each section heading st
 beneath them.
 ---
 
-## 16. Platform v1.3 additions (52)
+## 16. Platform v1.3 additions (53)
 
 | ID | Feature | Description | Where |
 | --- | --- | --- | --- |
