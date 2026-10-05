@@ -1,0 +1,65 @@
+
+flowchart LR
+    subgraph CORE["app.core"]
+        C1["config<br/>Settings, paths, reload"]
+        C2["db<br/>engines, sessions, ping"]
+        C3["errors<br/>typed domain errors"]
+        C4["logging<br/>ANSI / JSON formatters"]
+    end
+    subgraph ING["app.ingestion"]
+        I1["base<br/>ProductSource, RawProduct,<br/>NormalizedProduct, transform_product, registry"]
+        I2["cleaning<br/>pure normalisation"]
+        I3["dedupe<br/>similarity + DedupeEngine"]
+        I4["robots<br/>robots.txt cache"]
+        I5["ratelimit<br/>token bucket + breaker"]
+        I6["http_client<br/>robots + limit + cache + retry + audit"]
+        I7["sources/*<br/>5 adapters"]
+        I8["compliance<br/>policy statement"]
+    end
+    subgraph ETL["app.etl"]
+        E1["pipeline<br/>9 stages, PipelineConfig/Result"]
+        E2["loader<br/>dimensions, facts, changes, aggregate"]
+        E3["dq<br/>12 rules, score, persistence"]
+        E4["catalog_reconcile<br/>3-stage match, price gap"]
+        E5["bootstrap<br/>schema, reference data, views"]
+        E6["seed<br/>users, catalog, history"]
+    end
+    subgraph ANA["app.analytics"]
+        A1["service<br/>21 query functions"]
+    end
+    subgraph API["app.api"]
+        P1["main<br/>factory, middleware, handlers"]
+        P2["deps<br/>session, paging, auth, RBAC"]
+        P3["security<br/>Argon2id, JWT, API keys, rights"]
+        P4["schemas<br/>Pydantic contracts"]
+        P5["routers/*<br/>16 routers"]
+    end
+    subgraph OPS["Operations"]
+        O1["app.cli.main<br/>12 commands"]
+        O2["dags/*<br/>Airflow DAG"]
+    end
+
+    C1 --> C2
+    I1 --> I2
+    I1 --> I6
+    I3 --> I2
+    I6 --> I4
+    I6 --> I5
+    E1 --> I1
+    E1 --> I3
+    E1 --> E2
+    E1 --> E4
+    E1 --> E5
+    E1 --> E3
+    E2 --> I2
+    E4 --> I3
+    E6 --> E2
+    A1 --> E5
+    P1 --> P5
+    P5 --> P2
+    P5 --> A1
+    P5 --> E1
+    P2 --> P3
+    O1 --> E1
+    O1 --> A1
+    O2 --> E1

@@ -1,0 +1,11 @@
+
+flowchart TB
+    subgraph PYR["Test pyramid"]
+        E2E["End-to-end / UAT<br/>78 API smoke checks<br/>1 live pipeline run<br/>2 cross-dialect verifications<br/>~2 min"]
+        INT["Integration<br/>pipeline stages against a live DB<br/>bootstrap and view application<br/>API with real tokens<br/>Airflow DAG execution<br/>~40 tests"]
+        UNIT["Unit<br/>cleaning, dedupe, robots parsing,<br/>DQ scoring, API schemas, security<br/>~150 tests"]
+    end
+    E2E --> INT --> UNIT
+    UNIT -.->|"fast feedback, no I/O"| R1["Purity of cleaning.py and dedupe.py"]
+    INT -.->|"requires PostgreSQL or MySQL"| R2["Marked integration"]
+    E2E -.->|"requires both databases and a running API"| R3["Marked integration or slow"]

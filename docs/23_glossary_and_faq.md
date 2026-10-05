@@ -515,7 +515,7 @@ Quality screen. A number nobody can reproduce is a number nobody should trust.
 
 ```mermaid
 flowchart LR
-    A["Markdown"] --> B["scripts/render_diagrams.sh"] --> C["docs/diagrams/out/*.mmd"] --> D["mmdc → SVG"]
+    A["Markdown"] --> B["scripts/diagrams.py"] --> C["docs/diagrams/out/*.mmd"] --> D["mmdc → SVG"]
     A --> E["GitHub renders Mermaid natively"]
 ```
 

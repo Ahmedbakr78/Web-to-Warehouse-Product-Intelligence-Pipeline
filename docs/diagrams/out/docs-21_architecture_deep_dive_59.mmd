@@ -1,0 +1,41 @@
+
+flowchart TB
+    subgraph EXT["Outside the system"]
+        WEB["Public web sources"]
+        HUMAN["Analysts and admins"]
+    end
+
+    subgraph EDGE["Edge"]
+        MWS["Middleware<br/>CORS · gzip · timing · error envelope"]
+    end
+
+    subgraph API["Interface — app/api"]
+        RT["16 routers, 113 operations"]
+        SEC["Security dependency<br/>JWT · API key · RBAC · audit"]
+    end
+
+    subgraph DOMAIN["Domain logic — app/etl, app/analytics"]
+        PIPE["Pipeline orchestrator<br/>9 stages"]
+        DQ["Data-quality framework"]
+        REC["Catalog reconciliation"]
+        AN["Analytics service"]
+    end
+
+    subgraph PORT["Ports — app/ingestion"]
+        HTTP["HTTP client<br/>robots · rate limit · breaker · cache · audit"]
+        SRC["Source adapters"]
+    end
+
+    subgraph DATA["Data plane — app/models"]
+        WH[("23 tables · 20 views")]
+    end
+
+    WEB --> HTTP
+    HUMAN --> MWS
+    MWS --> RT
+    SEC -.enforces on.-> RT
+    RT --> PIPE & DQ & REC & AN
+    PIPE --> HTTP & WH
+    SRC --> HTTP
+    AN --> WH
+    WH -.raw rows only.-> PIPE

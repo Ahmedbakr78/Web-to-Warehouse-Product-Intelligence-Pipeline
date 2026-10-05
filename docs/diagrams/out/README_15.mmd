@@ -1,0 +1,15 @@
+
+flowchart LR
+    subgraph Untrusted["Untrusted — the public web"]
+        W["Third-party sites"]
+    end
+    subgraph Semi["Semi-trusted — authenticated users"]
+        U["viewer · analyst · admin"]
+    end
+    subgraph Trusted["Trusted — our infrastructure"]
+        API["FastAPI<br/>auth · RBAC · audit"]
+        WH[("PostgreSQL / MySQL")]
+    end
+    W -->|"robots-gated, rate-limited,<br/>audited, cached HTTP"| API
+    U -->|"JWT or API key,<br/>permission per route"| API
+    API -->|"parameterised SQL only"| WH

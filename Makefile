@@ -204,7 +204,15 @@ airflow-test: ## Run the product intelligence DAG once for a fixed date
 # ---------------------------------------------------------------- docs
 .PHONY: docs-render
 docs-render: ## Render every Mermaid diagram to SVG inside docs/diagrams/out
-	bash scripts/render_diagrams.sh
+	$(PYBIN) scripts/diagrams.py render
+
+.PHONY: docs-diagrams
+docs-diagrams: ## Extract every Mermaid block into docs/diagrams/out with an index
+	$(PYBIN) scripts/diagrams.py extract
+
+.PHONY: docs-validate
+docs-validate: ## Parse-check every Mermaid diagram (requires the mermaid CLI)
+	$(PYBIN) scripts/diagrams.py validate
 
 .PHONY: docs-serve
 docs-serve: ## Serve the raw documentation markdown locally

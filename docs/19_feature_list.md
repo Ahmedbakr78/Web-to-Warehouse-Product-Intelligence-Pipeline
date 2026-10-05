@@ -398,7 +398,7 @@ decision) rather than individual lines of code.
 | F-231 | Builder copy-as-API-request | Copies the composed query as a ready-to-run REST URL with the correct endpoint path and query-string for each entity | `frontend/src/pages/Builder.tsx` `copyApiRequest` |
 | F-232 | Builder preview export | CSV and JSON export of the live preview using the visible columns and plain-text mapping per entity | `frontend/src/pages/Builder.tsx` `exportPreview` |
 | F-233 | Project infographic generator | Reusable script producing the DEPI 16:9 roadmap slide (SVG master, HTML preview, PNG when cairosvg is installed) straight from the documented facts | `scripts/make_infographic.py`, `docs/assets/infographic.svg` |
-| F-234 | Diagram extractor | Extracts every Mermaid block from the documentation set into `docs/diagrams/out/*.mmd` with an index table; optional `mmdc` rendering | `scripts/render_diagrams.sh`, `docs/diagrams/out/index.md` |
+| F-234 | Diagram extractor | Extracts every Mermaid block from the documentation set into `docs/diagrams/out/*.mmd` with an index table; optional `mmdc` rendering | `scripts/diagrams.py`, `docs/diagrams/out/index.md` |
 
 **Revised total: 234 features.**
 ---

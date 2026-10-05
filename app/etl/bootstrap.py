@@ -6,9 +6,9 @@ every target without changing a single line of application code.
 
 from __future__ import annotations
 
-import re
 import contextlib
 import datetime as dt
+import re
 import time
 from typing import Any
 

@@ -1,0 +1,30 @@
+
+flowchart TB
+    subgraph APP["Application and access (7 tables)"]
+        U["app_user"] --> AK["app_api_key"]
+        U --> SV["app_saved_view"]
+        U --> AR["app_alert_rule"] --> N["app_notification"]
+        U --> AL["app_audit_log"]
+        ST["app_setting"]
+    end
+    subgraph OPS["Operational (5 tables)"]
+        R["etl_run"] --> DQ["dq_rule_result"]
+        R --> HL["ingestion_http_log"]
+        SS["sync_state"]
+    end
+subgraph CORE["Analytical core (10 tables)"]
+        DP["dim_product"] --> FP["fact_price_snapshot"]
+        DC["dim_category"] --> DP
+        DS["dim_source"] --> DP
+        DU["dim_currency"] --> FP
+        DD["dim_date"] --> FP
+        FP --> AG["agg_category_daily"]
+        DP --> CP["chg_price_change"]
+        DP --> CE["chg_product_event"]
+        CAT["catalog_product"] --> FC["fact_catalog_snapshot"]
+        DP --> FC
+    end
+    subgraph STG["Staging (1 table)"]
+        RAW["stg_raw_observation"]
+    end
+    RAW -.validated and promoted.-> DP

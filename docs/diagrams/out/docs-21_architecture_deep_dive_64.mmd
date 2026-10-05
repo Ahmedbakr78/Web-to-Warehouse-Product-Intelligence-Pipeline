@@ -1,0 +1,16 @@
+
+stateDiagram-v2
+    [*] --> created
+    created --> running: Pipeline.run()
+    running --> staged: rows in stg_raw_observation
+    staged --> loaded: dimensions upserted
+    loaded --> detected: change detection complete
+    detected --> scored: DQ rules evaluated
+    scored --> succeeded: all stages ok
+    running --> partial: one source failed
+    staged --> failed: unrecoverable error
+    partial --> running: retry (idempotent)
+    failed --> running: retry (idempotent)
+    succeeded --> [*]
+    partial --> [*]
+    failed --> [*]

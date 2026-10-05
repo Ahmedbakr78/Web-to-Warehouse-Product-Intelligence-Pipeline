@@ -1,0 +1,31 @@
+
+flowchart TB
+    subgraph RAW["1 · Staging — raw, flagged, disposable"]
+        STG["stg_raw_observation<br/>one row per observation, with reject flags"]
+    end
+    subgraph CONFORM["2 · Conformed dimensions"]
+        DP["dim_product<br/>identity + fingerprint + match evidence"]
+        DC["dim_category<br/>slug, level, path"]
+        DS["dim_source<br/>compliance metadata"]
+        DU["dim_currency<br/>FX table"]
+        DD["dim_date<br/>calendar"]
+    end
+    subgraph FACT["3 · Facts — append-only"]
+        FP["fact_price_snapshot<br/>grain: product x source x captured_at"]
+        FC["fact_catalog_snapshot<br/>grain: catalog SKU x run"]
+    end
+    subgraph AGG["4 · Aggregates — derived, rebuildable"]
+        AG["agg_category_daily<br/>grain: category x date"]
+    end
+    subgraph CHANGE["5 · Change capture"]
+        CP["chg_price_change"]
+        CE["chg_product_event"]
+    end
+    subgraph SERVE["6 · Views — the only read surface"]
+        VW["20 analytical views"]
+    end
+
+    STG --> CONFORM --> FACT --> AGG --> VW
+    FACT --> CHANGE --> VW
+    FC --> VW
+    DP -.fingerprint.-> STG

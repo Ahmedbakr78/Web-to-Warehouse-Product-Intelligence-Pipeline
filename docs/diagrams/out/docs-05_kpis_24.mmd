@@ -1,0 +1,27 @@
+
+flowchart LR
+    subgraph REL["Reliability 30%"]
+        R1["KPI-01 success rate"]
+        R2["KPI-13 source success"]
+        R3["KPI-16 API availability"]
+    end
+    subgraph PERF["Performance 25%"]
+        P1["KPI-02 run duration"]
+        P2["KPI-15 API p95"]
+        P3["KPI-12 freshness"]
+    end
+    subgraph DQ["Data quality 30%"]
+        D1["KPI-06 DQ score"]
+        D2["KPI-05 rejection rate"]
+        D3["KPI-09 dedupe accuracy"]
+        D4["KPI-08 merge rate"]
+    end
+    subgraph VAL["Business value 15%"]
+        V1["KPI-10 catalog match rate"]
+        V2["KPI-11 price-gap findings"]
+        V3["KPI-19 dialect parity"]
+    end
+    REL --> SCORE["Composite health score 0-100"]
+    PERF --> SCORE
+    DQ --> SCORE
+    VAL --> SCORE

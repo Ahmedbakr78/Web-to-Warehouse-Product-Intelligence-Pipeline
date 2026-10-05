@@ -1,0 +1,84 @@
+
+classDiagram
+    class ProductSource {
+        <<abstract>>
+        +code: str
+        +name: str
+        +kind: str
+        +base_url: str
+        +terms_allowed: bool
+        +rate_limit_per_minute: int
+        +fetch(limit) Iterator~RawProduct~
+        +health_check() dict
+        +close() None
+    }
+    class RawProduct {
+        +source_code: str
+        +source_product_id: str
+        +name: str
+        +price_text: str
+        +currency_hint: str
+        +rating_text: str
+        +availability_text: str
+        +url: str
+        +payload: dict
+        +content_hash: str
+    }
+    class NormalizedProduct {
+        +canonical_name: str
+        +normalized_name: str
+        +fingerprint: str
+        +blocking_key: str
+        +category: str
+        +price_usd: float
+        +rating: float
+        +availability: str
+        +quality_flags: list
+        +is_valid: bool
+        +reject_reason: str
+        +flag(code)
+    }
+    class CompliantHttpClient {
+        +requests_per_second: float
+        +requests_per_minute: int
+        +get(url) Response
+        +request(method, url) Response
+    }
+    class RobotsCache {
+        +can_fetch(url) Decision
+        +stats() dict
+    }
+    class CatalogReconciler {
+        +run(persist) list
+        +match_one(row, candidates, prices)
+    }
+    class WarehouseLoader {
+        +stage(records) int
+        +upsert_product(record, match) tuple
+        +insert_snapshot(...) int
+        +detect_removed(...) int
+        +refresh_category_daily(...) int
+    }
+    class DedupeEngine {
+        +fingerprint(name, brand) str
+        +similarity(a, b) float
+        +match(record, candidates) Match
+    }
+    class Pipeline {
+        +run() PipelineResult
+    }
+
+    ProductSource <|-- BooksToScrape : kind = scrape
+    ProductSource <|-- DummyJsonProducts : kind = api
+    ProductSource <|-- FakesStoreProducts : kind = api
+    ProductSource <|-- OpenLibraryBooks : kind = api
+    ProductSource <|-- LocalDemoSource : offline
+    ProductSource --> CompliantHttpClient : polite I/O
+    CompliantHttpClient --> RobotsCache : consults
+    ProductSource ..> RawProduct : yields
+    RawProduct ..> NormalizedProduct : transform_product
+    Pipeline --> ProductSource : fetch
+    Pipeline --> WarehouseLoader : stage + load
+    Pipeline --> DedupeEngine : resolve identity
+    Pipeline --> CatalogReconciler : reconcile
+    NormalizedProduct --> DedupeEngine

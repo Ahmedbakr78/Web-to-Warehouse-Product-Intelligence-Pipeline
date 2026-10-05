@@ -1,0 +1,32 @@
+
+sequenceDiagram
+    autonumber
+    participant SRC as Source adapter
+    participant HC as HTTP client (the only egress point)
+    participant CB as Circuit breaker
+    participant RB as robots cache
+    participant RL as Rate limiter
+    participant NET as The web
+    participant LOG as ingestion_http_log
+
+    SRC->>HC: get(url)
+    HC->>CB: is this host open?
+    alt breaker open after 5 failures
+        CB-->>HC: skip — zero network I/O
+        HC->>LOG: record circuit_open
+        HC-->>SRC: SkipRequest
+    else closed
+        HC->>RB: allowed(host, path)?
+        RB-->>HC: decision + crawl_delay
+        HC->>LOG: record robots decision
+        alt disallowed by robots.txt
+            HC-->>SRC: ComplianceError — nothing fetched
+        else allowed
+            HC->>RL: acquire delay
+            RL-->>HC: slowest of global, budget and Crawl-delay
+            HC->>NET: the actual request
+            NET-->>HC: response
+            HC->>LOG: status, latency, bytes, retries
+            HC-->>SRC: FetchResult
+        end
+    end

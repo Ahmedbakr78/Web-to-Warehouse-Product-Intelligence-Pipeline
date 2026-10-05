@@ -1,0 +1,49 @@
+
+graph TB
+    subgraph Client["Browser / PWA"]
+        DASH["React 19 dashboard<br/>21 screens, light & dark"]
+        PAL["Command palette<br/>Ctrl/Cmd-K"]
+    end
+    subgraph Edge["FastAPI application"]
+        ROUTES["16 routers<br/>110 operations"]
+        AUTH["Security layer<br/>Argon2id · JWT · API keys · RBAC"]
+        GUARD["Guards<br/>error envelope · GZip · timing · rate limit"]
+        BUILDER["Builder DSL<br/>whitelist → parameterised SELECT"]
+        QLAB["Query lab<br/>SELECT / WITH / EXPLAIN only"]
+    end
+    subgraph Domain["Domain services"]
+        ING["Ingestion<br/>robots · rate limit · cache"]
+        ETL["ETL pipeline<br/>9 stages"]
+        DQ["Data quality<br/>12 rules / 6 dimensions"]
+        AN["Analytics<br/>20 views + reports"]
+        REC["Catalog reconciler"]
+    end
+    subgraph Store["Warehouse"]
+        PG[("PostgreSQL 16<br/>23 tables · 20 views")]
+        MY[("MySQL 8.4<br/>same schema")]
+    end
+    subgraph Sources["Permitted sources"]
+        S1["JSON APIs"]
+        S2["HTML scrape<br/>BeautifulSoup + lxml"]
+        S3["Offline fixture"]
+    end
+    AF["Apache Airflow 2.10<br/>14 tasks, daily 03:00"]
+
+    DASH --> ROUTES
+    PAL --> ROUTES
+    ROUTES --> AUTH --> GUARD
+    ROUTES --> BUILDER
+    ROUTES --> QLAB
+    ROUTES --> AN
+    ROUTES --> DQ
+    ROUTES --> REC
+    ETL --> ING --> Sources
+    ETL --> DQ
+    ETL --> REC
+    ETL --> Store
+    AN --> Store
+    DQ --> Store
+    REC --> Store
+    AN -.SQL.-> QLAB
+    AF -->|"REST transport"| ROUTES
+    AF --> ETL

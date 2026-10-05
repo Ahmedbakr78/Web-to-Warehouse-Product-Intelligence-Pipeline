@@ -1,0 +1,16 @@
+
+flowchart LR
+    A["M1 Proposal approved"] --> B["Compliance layer"]
+    B --> C["Source connectors"]
+    C --> D["Deduplication engine"]
+    D --> E["Warehouse loader"]
+    E --> F["Analytical views"]
+    F --> G["REST API"]
+    F --> H["Dashboard"]
+    G --> I["Smoke test"]
+    H --> I
+    I --> J["M8 Final defence"]
+    D --> K["Catalog reconciliation"]
+    K --> J
+    B --> L["Airflow DAG"]
+    L --> J

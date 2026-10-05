@@ -92,7 +92,8 @@ frontend: eslint clean, tsc clean, production build ok
 - DEPI project infographic generator: `make infographic` produces the 16:9 roadmap slide as an
   SVG master plus an HTML preview and a PNG raster when cairosvg is available
   (`docs/assets/infographic.*`).
-- Diagram extractor: `scripts/render_diagrams.sh` pulls all 51 Mermaid diagrams out of the
+- Diagram extractor: `scripts/render_diagrams.sh` (superseded by `scripts/diagrams.py` in 1.3.0)
+  pulled all 51 Mermaid diagrams out of the
   documentation into `docs/diagrams/out/*.mmd` with an index table, ready for `mmdc` rendering.
 - Feature inventory section 15: eight new entries (F-227 to F-234), revised total 234.
 

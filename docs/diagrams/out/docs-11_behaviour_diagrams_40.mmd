@@ -1,0 +1,20 @@
+
+sequenceDiagram
+    participant UI as Client
+    participant MW as Error handlers
+    participant RT as Router
+    participant DB as Warehouse
+
+    UI->>RT: GET /api/v1/products/999999
+    RT->>DB: SELECT from vw_product_index
+    DB-->>RT: no rows
+    RT->>RT: raise ProductNotFoundError
+    RT->>MW: PipelineError status 404
+    MW-->>UI: 404 {"error":"product_not_found","message":"product 999999 not found","details":{"product_id":999999}}
+    UI->>RT: POST /api/v1/queries/execute with DELETE statement
+    RT->>RT: QueryRequest validator rejects the statement
+    RT->>MW: RequestValidationError
+    MW-->>UI: 422 validation_error with field, message, type
+    UI->>RT: GET /api/v1/products without a token
+    RT->>MW: AuthenticationError
+    MW-->>UI: 401 authentication_failed with a hint header

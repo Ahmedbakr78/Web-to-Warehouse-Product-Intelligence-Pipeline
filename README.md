@@ -1243,7 +1243,7 @@ scripts/
   build_site.py           dependency-free documentation website builder
   run_analysis.py         runs the standalone SQL analyses
   make_infographic.py     generates the roadmap infographic
-  render_diagrams.sh      extracts every Mermaid block for SVG export
+  diagrams.py            extract, validate and render all Mermaid diagrams
 tests/            pytest unit + integration suite (255 tests)
 website/          single-file project landing page (index.html) with light/dark themes
 .github/
