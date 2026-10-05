@@ -234,6 +234,10 @@ site-clean: ## Remove the built website
 stats: ## Print the measured structural counts (tables, routes, tests, diagrams)
 	$(PYBIN) scripts/project_stats.py
 
+.PHONY: stats-sync
+stats-sync: ## Rewrite the generated statistics block in README.md
+	$(PYBIN) scripts/project_stats.py --sync-readme
+
 .PHONY: stats-check
 stats-check: ## Fail if a documented structural figure no longer matches reality
 	$(PYBIN) scripts/check_stats.py docs/stats.json
