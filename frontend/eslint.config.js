@@ -7,6 +7,12 @@ import tseslint from 'typescript-eslint'
 export default tseslint.config(
   { ignores: ['dist', 'node_modules'] },
   {
+    // Tests use vitest's globals (`describe`, `it`, `expect`) rather than importing
+    // them, and touch globals that are not in the browser set.
+    files: ['src/**/*.test.{ts,tsx}', 'src/test/**/*.ts'],
+    languageOptions: { globals: { ...globals.browser, ...globals.node } },
+  },
+  {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
     languageOptions: { ecmaVersion: 2022, globals: globals.browser },
