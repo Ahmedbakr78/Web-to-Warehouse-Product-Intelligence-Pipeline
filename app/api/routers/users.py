@@ -27,6 +27,7 @@ from app.core.config import settings
 from app.core.errors import (
     AuthenticationError,
     ConflictError,
+    PermissionDeniedError,
     ProductNotFoundError,
     ValidationError,
 )
@@ -354,8 +355,6 @@ def deactivate(user_id: int, session: DbSession, admin: AdminUser) -> Message:
 @router.get("/{user_id}/api-keys", response_model=list[ApiKeyRead], summary="API keys of a user")
 def list_keys(user_id: int, session: DbSession, user: CurrentUser) -> list[ApiKeyRead]:
     if user_id != user.user_id and not at_least(user.role, "admin"):
-        from app.core.errors import PermissionDeniedError
-
         raise PermissionDeniedError("you can only list your own API keys")
     rows = (
         session.execute(
@@ -372,8 +371,6 @@ def list_keys(user_id: int, session: DbSession, user: CurrentUser) -> list[ApiKe
 )
 def create_key(user_id: int, payload: ApiKeyCreate, session: DbSession, user: CurrentUser) -> ApiKeyCreated:
     if user_id != user.user_id and not at_least(user.role, "admin"):
-        from app.core.errors import PermissionDeniedError
-
         raise PermissionDeniedError("you can only create keys for yourself")
     plain, prefix, hashed = generate_api_key()
     # A key can never be granted more than its owner already has.
@@ -412,8 +409,6 @@ def revoke_key(user_id: int, key_id: int, session: DbSession, user: CurrentUser)
     if row is None or row.user_id != user_id:
         raise ProductNotFoundError(f"api key {key_id} not found")
     if user_id != user.user_id and not at_least(user.role, "admin"):
-        from app.core.errors import PermissionDeniedError
-
         raise PermissionDeniedError("you can only revoke your own keys")
     session.delete(row)
     return Message(message="API key revoked")

@@ -240,6 +240,10 @@ class ApiKeyRead(ORMModel):
     last_used_at: dt.datetime | None = None
     usage_count: int
     expires_at: dt.datetime | None = None
+    #: The budget actually enforced by the rate limiter for this key.
+    rate_limit_per_minute: int = 240
+    #: True once `expires_at` has passed; the key is refused even while `is_active`.
+    expired: bool = False
 
 
 class ApiKeyCreate(BaseModel):
