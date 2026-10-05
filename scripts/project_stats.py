@@ -88,25 +88,22 @@ def test_functions() -> int:
 
 
 def test_cases() -> int:
-    """Actual collected test count, via pytest --collect-only."""
+    """Actual collected test count, via ``pytest --collect-only``.
+
+    ``-q`` is deliberately not used: this pytest version suppresses the
+    "N tests collected" summary under it, printing only the test file names.
+    """
     result = subprocess.run(
-        [sys.executable, "-m", "pytest", "--collect-only", "-q"],
+        [sys.executable, "-m", "pytest", "--collect-only"],
         cwd=ROOT,
         capture_output=True,
         text=True,
         timeout=600,
     )
+    # The summary line looks like: "321 tests collected in 3.21s"
     match = re.search(r"(\d+)\s+tests? collected", result.stdout)
     if match:
         return int(match.group(1))
-    # Parametrised suites report "N tests collected" only on success; fall back
-    # to counting the dots pytest prints with -q.
-    tail = result.stdout.strip().splitlines()
-    for line in reversed(tail):
-        if "passed" in line or "collected" in line:
-            found = re.search(r"(\d+)\s+(?:passed|collected)", line)
-            if found:
-                return int(found.group(1))
     return -1
 
 

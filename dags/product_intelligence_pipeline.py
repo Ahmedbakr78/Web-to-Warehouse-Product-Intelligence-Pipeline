@@ -153,9 +153,15 @@ def check_database_health(**context: Any) -> bool:
 
 
 def check_source_compliance(**context: Any) -> bool:
-    """Short-circuit guard: at least one allow-listed source must pass robots.txt."""
+    """Short-circuit guard: at least one allow-listed source must pass robots.txt.
 
-    def local() -> bool:
+    `local()` returns the list of usable source codes rather than a bare `True`.
+    That matters because `call_pipeline` prefers the in-process result, and the old
+    `True` was then treated as an empty response below - so the in-process path
+    always raised "no usable source" and `make airflow-test` could never pass.
+    """
+
+    def local() -> list[str]:
         from app.ingestion.base import list_sources
         from app.ingestion.robots import get_robots_cache
 
@@ -175,13 +181,16 @@ def check_source_compliance(**context: Any) -> bool:
         if not usable:
             raise RuntimeError("robots.txt forbids every configured source - aborting")
         print(f"usable sources: {usable}")
-        return True
+        return usable
 
     payload = call_pipeline(local, "/sources")
     # REST fallback: the registry response carries the enabled/terms flags per source.
-    entries = payload if isinstance(payload, list) else []
-    if isinstance(payload, dict):  # tolerate a wrapped response
+    if isinstance(payload, list):
+        entries = payload
+    elif isinstance(payload, dict):
         entries = payload.get("sources") or payload.get("items") or []
+    else:
+        entries = []
     codes = (context.get("params") or {}).get("sources") or DEFAULT_SOURCES
     usable = [
         entry.get("code")
@@ -190,7 +199,7 @@ def check_source_compliance(**context: Any) -> bool:
     ]
     if not usable:
         raise RuntimeError("no usable (enabled + terms-allowed) source configured - aborting")
-    print(f"usable sources (via API): {usable}")
+    print(f"usable sources: {usable}")
     return True
 
 

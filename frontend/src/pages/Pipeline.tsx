@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   AlertTriangle,
   Boxes,
@@ -600,10 +600,12 @@ function RunCompare({ runs }: { runs: RunSummary[] }) {
   const [target, setTarget] = useState('')
 
   // Default to the two most recent comparable runs so the tab is useful immediately.
-  useMemo(() => {
-    if (!base && usable.length >= 2) setBase(usable[1].run_id)
-    if (!target && usable.length >= 1) setTarget(usable[0].run_id)
-  }, [usable, base, target])
+  // An effect (not render-time work) so state updates never happen during render.
+  useEffect(() => {
+    if (base || usable.length < 2) return
+    setBase(usable[1].run_id)
+    setTarget(usable[0].run_id)
+  }, [usable, base])
 
   const comparison = useApiQuery<Comparison>(
     ['run-compare', base, target],
