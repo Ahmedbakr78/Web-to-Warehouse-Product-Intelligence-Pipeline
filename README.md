@@ -162,16 +162,11 @@ Everything is engineered like a production system, not a demo:
 | **CLI** | Typer, 12 commands | bootstrap, seed, run, report, verify, quality, sources preview |
 | **Ops** | Docker Compose (6 services), Makefile (30+ targets), GitHub Actions CI | one-command everything |
 
-**Measured facts (every number below is reproducible with the command beside it):**
+**Measured facts.** These are not maintained by hand — run `make stats` to regenerate them, and
+`make stats-check` in CI to prove they still match the code.
 
-```text
-25 physical tables  |  20 analytical views  |  128 REST operations in 18 routers
-12 DQ rules across 6 dimensions, weighted score persisted per run
-5 ingestion sources  |  9 pipeline stages  |  13 Airflow tasks
-321 unit tests  |  86/86 API smoke checks  |  mypy clean in 61 files  |  ruff zero warnings
-p95 API latency <= 38.2 ms measured across 12 endpoints
-Catalog reconciliation: 2,975 ms -> 104 ms (29x) with identical results
-```
+<!-- BEGIN:STATS -->
+<!-- END:STATS -->
 
 Demo dataset after `make demo-postgres` (120 days, seeded, deterministic — counts will differ
 slightly with a different `--days` or after live runs):
@@ -182,10 +177,11 @@ slightly with a different `--days` or after live runs):
 ```
 
 > **On numbers in this README.** Structural figures (tables, views, routes, tests, rules) are exact
-> and re-verifiable with `make check` and `make bootstrap`. Row counts depend on how much data your
-> database holds, and latency depends on hardware — each is labelled with the command that produces
-> it. Where a document records a measurement taken on a specific machine at a specific date, that
-> document preserves that original figure rather than being silently rewritten.
+> and re-verifiable — they are measured from the code by `scripts/project_stats.py` and pinned in
+> [`docs/stats.json`](docs/stats.json), so CI fails if any of them drifts. Row counts depend on how
+> much data your database holds, and latency depends on hardware — each is labelled with the command
+> that produces it. Where a document records a measurement taken on a specific machine at a specific
+> date, that document preserves that original figure rather than being silently rewritten.
 
 ---
 
