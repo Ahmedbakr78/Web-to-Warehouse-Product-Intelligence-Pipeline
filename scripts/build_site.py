@@ -1097,18 +1097,7 @@ def copy_diagrams(out_dir: Path, source: Path | None = None) -> list[Path]:
         shutil.copy2(svg, destination)
         copied.append(destination)
 
-    index_source = source / "index.md"
-    if copied and index_source.exists():
-        rows = [
-            line
-            for line in index_source.read_text(encoding="utf-8").splitlines()
-            if line.strip().startswith("|") and ".mmd" in line
-        ]
-        body = "\n".join(
-            f"| {row.split('|')[1].strip()} | `{Path(row.split('`')[1]).stem}.svg` |"
-            for row in rows
-            if row.count("`") >= 2
-        )
+    if copied:
         figures = "".join(
             f'<figure><img src="{item.name}" alt="{item.stem}" loading=lazy>'
             f"<figcaption>{item.stem}</figcaption></figure>"

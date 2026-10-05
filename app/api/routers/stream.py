@@ -3,6 +3,10 @@
 SSE is the primary transport because the browser reconnects it automatically and it
 passes through the same bearer-token auth as any other request. The WebSocket is
 provided for clients that want one bidirectional channel.
+
+`EventSource` cannot set headers, so these routes accept the credential as a query
+parameter too (see `stream_user`). That is a transport concession only: the role and
+API-key scope checks are the same ones every other read goes through.
 """
 
 from __future__ import annotations
@@ -16,7 +20,7 @@ from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
 
 from app.analytics import service as analytics
-from app.api.deps import ReadUser, _resolve_token, get_session_factory
+from app.api.deps import ReadUser, StreamUser, _resolve_token, get_session_factory
 from app.core.errors import AuthenticationError
 from app.core.logging import get_logger
 from app.models.app_users import AppJobEvent
@@ -66,7 +70,7 @@ def _resolve_topics(requested: list[str] | None) -> list[str]:
 
 
 @router.get("/runs", summary="SSE: pipeline run progress")
-async def stream_runs(_user: ReadUser, topics: Annotated[str | None, Query()] = None) -> StreamingResponse:
+async def stream_runs(_user: StreamUser, topics: Annotated[str | None, Query()] = None) -> StreamingResponse:
     selected = _resolve_topics(topics.split(",") if topics else ["run"])
     return StreamingResponse(
         _frames(selected),
@@ -76,7 +80,7 @@ async def stream_runs(_user: ReadUser, topics: Annotated[str | None, Query()] = 
 
 
 @router.get("/kpis", summary="SSE: KPI and price-change counters")
-async def stream_kpis(_user: ReadUser, topics: Annotated[str | None, Query()] = None) -> StreamingResponse:
+async def stream_kpis(_user: StreamUser, topics: Annotated[str | None, Query()] = None) -> StreamingResponse:
     selected = _resolve_topics(topics.split(",") if topics else ["kpi", "change", "quality"])
     return StreamingResponse(
         _frames(selected),
@@ -86,7 +90,7 @@ async def stream_kpis(_user: ReadUser, topics: Annotated[str | None, Query()] = 
 
 
 @router.get("/notifications", summary="SSE: in-app notifications as they are created")
-async def stream_notifications(_user: ReadUser) -> StreamingResponse:
+async def stream_notifications(_user: StreamUser) -> StreamingResponse:
     return StreamingResponse(
         _frames([TOPIC_NOTIFICATION]),
         media_type="text/event-stream",
@@ -95,7 +99,7 @@ async def stream_notifications(_user: ReadUser) -> StreamingResponse:
 
 
 @router.get("/everything", summary="SSE: every topic")
-async def stream_everything(_user: ReadUser) -> StreamingResponse:
+async def stream_everything(_user: StreamUser) -> StreamingResponse:
     return StreamingResponse(
         _frames(list(TOPICS.values())),
         media_type="text/event-stream",

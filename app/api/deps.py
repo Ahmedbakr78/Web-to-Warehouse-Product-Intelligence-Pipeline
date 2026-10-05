@@ -170,6 +170,41 @@ def get_current_user_optional(
 OptionalUser = Annotated[AppUser | None, Depends(get_current_user_optional)]
 
 
+def stream_user(
+    session: DbSession,
+    request: Request,
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)] = None,
+    token: Annotated[str | None, Query(description="JWT or API key; EventSource cannot send headers")] = None,
+) -> AppUser:
+    """Authenticate a Server-Sent Events request.
+
+    `EventSource` offers no way to set an `Authorization` header, so a browser can
+    only authenticate by putting the credential in the query string. That is normally
+    a bad idea - query strings end up in proxy and access logs - so it is accepted
+    *only* on the SSE routes, and only as a fallback for the header. The rights and
+    API-key scope checks are identical to a normal read, so this widens the transport
+    and not the permissions.
+    """
+
+    # The header wins when both are present, so a header-based client can never be
+    # downgraded to a query credential.
+    if credentials is None and token:
+        credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+    user = _resolve_token(session, credentials)
+    missing = [right for right in ("read",) if not has_right(user.role, right)]
+    if missing:
+        raise PermissionDeniedError(
+            f"role '{user.role}' lacks the required permission(s): {', '.join(missing)}",
+            details={"role": user.role, "missing": missing, "granted": sorted(ROLE_RIGHTS.get(user.role, set()))},
+        )
+    key_row, owner = _api_key_context(request)
+    enforce_scope(key_row, owner or user, "read")
+    return user
+
+
+StreamUser = Annotated[AppUser, Depends(stream_user)]
+
+
 def require_rights(*rights: str):
     """Dependency factory: require every listed right on the caller's role.
 
@@ -269,6 +304,8 @@ __all__ = [
     "require_rights",
     "enforce_scope",
     "ReadUser",
+    "StreamUser",
+    "stream_user",
     "WriteUser",
     "AdminUser",
     "PipelineUser",

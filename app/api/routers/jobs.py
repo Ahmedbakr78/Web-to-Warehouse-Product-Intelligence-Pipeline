@@ -8,7 +8,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import StreamingResponse
 
-from app.api.deps import AdminUser, CurrentUser, DbSession, PipelineUser, ReadUser, request_meta
+from app.api.deps import AdminUser, CurrentUser, DbSession, PipelineUser, ReadUser, StreamUser, request_meta
 from app.api.schemas import Message
 from app.core.errors import PermissionDeniedError, ValidationError
 from app.core.logging import get_logger
@@ -218,7 +218,7 @@ def enqueue_export(
 
 
 @router.get("/stream/jobs", summary="Server-Sent Events: live job progress")
-async def stream_jobs(user: CurrentUser) -> StreamingResponse:
+async def stream_jobs(user: StreamUser) -> StreamingResponse:
     """Live job progress. Auto-reconnecting, with a keep-alive every 25 seconds."""
     return StreamingResponse(
         _event_stream(),

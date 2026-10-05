@@ -183,6 +183,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (email: string, password: string) => {
       const response = await endpoints.login(email, password)
       tokenStore.set(response.access_token, response.refresh_token)
+      // The session handle is what makes "sign out this device" and "sign out
+      // everywhere" revocable, so it has to survive a reload like the tokens do.
+      if (response.session_key) localStorage.setItem('pip.session', response.session_key)
       setUser(response.user)
       setReady(true)
       queryClient.clear()
@@ -191,7 +194,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const logout = useCallback(() => {
-    void endpoints.logout().catch(() => undefined)
+    const sessionKey = localStorage.getItem('pip.session') ?? undefined
+    void endpoints.logout(sessionKey).catch(() => undefined)
+    localStorage.removeItem('pip.session')
     tokenStore.clear()
     setUser(null)
     queryClient.clear()

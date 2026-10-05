@@ -7,7 +7,7 @@
  * any projection is the honest ordering.
  */
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Activity,
@@ -78,7 +78,16 @@ export default function Forecast() {
   )
 
   const job = useJob(rebuildJob)
-  const jobRunning = job.job && !['succeeded', 'failed', 'cancelled'].includes(String(job.job.status))
+  const jobStatus = String(job.job?.status ?? '')
+  const jobRunning = Boolean(job.job) && !['succeeded', 'failed', 'cancelled'].includes(jobStatus)
+
+  // A rebuild writes new forecasts; refresh the panels once it lands, then stop
+  // tracking that job so the effect does not re-fire on every render.
+  useEffect(() => {
+    if (!['succeeded', 'failed'].includes(jobStatus)) return
+    void queryClient.invalidateQueries({ queryKey: ['forecast-backtest'] })
+    setRebuildJob(null)
+  }, [jobStatus, queryClient])
 
   // The accuracy distribution is the useful shape: one mean hides that a few products
   // are modelled badly.

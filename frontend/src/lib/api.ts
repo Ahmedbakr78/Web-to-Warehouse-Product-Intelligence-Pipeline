@@ -193,7 +193,8 @@ export const endpoints = {
 
   login: (email: string, password: string, remember = true) =>
     api.post<any>('/auth/login', { email, password, remember }),
-  logout: () => api.post<any>('/auth/logout'),
+  logout: (sessionKey?: string) =>
+    api.post<any>(`/auth/logout${sessionKey ? `?session_key=${encodeURIComponent(sessionKey)}` : ''}`),
   me: () => api.get<any>('/auth/me'),
   session: () => api.get<any>('/auth/session'),
   updateMe: (payload: Record<string, unknown>) => api.patch<any>('/users/me', payload),

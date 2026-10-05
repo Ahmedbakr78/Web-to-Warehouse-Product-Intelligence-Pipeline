@@ -13,6 +13,7 @@ import {
   RefreshCw,
   Save,
   Shield,
+  ShieldCheck,
   Sun,
   Trash2,
   TriangleAlert,
@@ -59,6 +60,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { ALL_NAV_ITEMS } from '@/lib/nav'
 import { localStore } from '@/lib/session'
 import { formatDateTime, formatRelative, initials, titleCase, downloadJson } from '@/lib/format'
+import SecurityPanel from '@/components/SecurityPanel'
 
 const AVATAR_COLORS = [
   '#4f46e5', '#2563eb', '#0891b2', '#059669', '#d97706', '#dc2626',
@@ -295,6 +297,7 @@ export default function Account() {
           { id: 'profile', label: 'Profile', icon: <UserCircle className="h-4 w-4" /> },
           { id: 'appearance', label: 'Appearance', icon: <Palette className="h-4 w-4" /> },
           { id: 'security', label: 'Security', icon: <Shield className="h-4 w-4" /> },
+          { id: 'devices', label: 'Devices & 2FA', icon: <ShieldCheck className="h-4 w-4" /> },
           { id: 'api', label: 'API keys', count: apiKeys.data?.length ?? 0, icon: <KeyRound className="h-4 w-4" /> },
           { id: 'activity', label: 'Activity', icon: <Activity className="h-4 w-4" /> },
           { id: 'data', label: 'Data & privacy', icon: <Download className="h-4 w-4" /> },
@@ -627,6 +630,8 @@ export default function Account() {
           </Card>
         </div>
       ) : null}
+
+      {tab === 'devices' ? <SecurityPanel /> : null}
 
       {tab === 'api' ? (
         <Card padded={false}>
