@@ -96,18 +96,19 @@ export default function NotFound() {
               </ul>
             </div>
           ))}
-        </div>
-      </Card>
+          </div>
+        </Card>
+      ) : null}
 
-      <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-subtle">
-        <span>
-          {meta?.name ?? 'Product Intelligence Pipeline'} {'·'} v{meta?.version ?? '1.0.0'} {'·'}{' '}
-          {meta?.environment ?? 'local'}
-        </span>
-        <span>
-          {meta?.dialect ?? meta?.active_database ?? 'warehouse'}
-        </span>
-      </div>
+      {authenticated ? (
+        <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-subtle">
+          <span>
+            {meta?.name ?? 'Product Intelligence Pipeline'} {'·'} v{meta?.version ?? '1.0.0'} {'·'}{' '}
+            {meta?.environment ?? 'local'}
+          </span>
+          <span>{meta?.dialect ?? meta?.active_database ?? 'warehouse'}</span>
+        </div>
+      ) : null}
     </div>
   )
 }

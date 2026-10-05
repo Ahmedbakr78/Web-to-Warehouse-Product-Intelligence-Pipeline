@@ -257,10 +257,10 @@ def render_markdown(text: str) -> Rendered:
         fence = re.match(r"^(`{3,}|~{3,})\s*([\w+-]*)\s*$", stripped)
         if fence:
             close_list()
-            marker, lang = fence.group(1)[0] * 3, fence.group(2).lower()
+            lang = fence.group(2).lower()
             body: list[str] = []
             i += 1
-            while i < n and not re.match(rf"^\s*[`~]{{3,}}\s*$", lines[i]):
+            while i < n and not re.match(r"^\s*[`~]{3,}\s*$", lines[i]):
                 body.append(lines[i])
                 i += 1
             i += 1
@@ -949,7 +949,10 @@ def doc_page(fname: str, title: str, blurb: str) -> tuple[str, dict]:
 
 def landing_page() -> str:
     """The site home page: what this is, how to run it, and where to read next."""
-    stats = "".join(f'<div class="stat"><b>{v}</b><span>{html.escape(l)}</span></div>' for v, l in STATS)
+    stats = "".join(
+        f'<div class="stat"><b>{v}</b><span>{html.escape(label)}</span></div>'
+        for v, label in STATS
+    )
     steps = "".join(
         f'<div class="step"><b><span class="num">{i}</span>{html.escape(n)}</b>'
         f"<p>{html.escape(d)}</p></div>"

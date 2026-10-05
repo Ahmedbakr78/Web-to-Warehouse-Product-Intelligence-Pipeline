@@ -22,6 +22,7 @@ from app.api.routers import (
     settings,
     sources,
     users,
+    webhooks,
 )
 
 ROUTERS: tuple[APIRouter, ...] = (
@@ -42,6 +43,7 @@ ROUTERS: tuple[APIRouter, ...] = (
     settings.router,
     audit.router,
     exports.router,
+    webhooks.router,
 )
 
 __all__ = ["ROUTERS"]
