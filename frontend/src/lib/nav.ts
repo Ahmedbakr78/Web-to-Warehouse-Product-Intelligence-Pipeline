@@ -6,6 +6,7 @@ import {
   Building2,
   Gauge,
   LayoutDashboard,
+  ListChecks,
   ListFilter,
   Package,
   Settings as SettingsIcon,
@@ -58,7 +59,8 @@ export const NAV_GROUPS: NavGroup[] = [
     title: 'Explore',
     items: [
       { to: '/query', label: 'Query lab', icon: Terminal, description: 'Read-only SQL over 20 views', permission: 'query' },
-      { to: '/builder', label: 'Builder', icon: Sparkles, description: 'Compose and save custom views', badge: 'beta' },
+      { to: '/builder', label: 'Builder', icon: Sparkles, description: 'Compose, aggregate and save custom views', badge: 'beta' },
+      { to: '/features', label: 'Features', icon: ListChecks, description: 'Everything the platform ships', badge: 'new' },
     ],
   },
   {
@@ -86,7 +88,8 @@ export const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = 
   '/quality': { title: 'Data quality', subtitle: 'Rule catalogue, results and quality score trend' },
   '/sources': { title: 'Ingestion sources', subtitle: 'Registered sources, robots.txt and rate limits' },
   '/query': { title: 'Query lab', subtitle: 'Read-only SQL console over the analytical views' },
-  '/builder': { title: 'View builder', subtitle: 'Compose, save and share custom list views' },
+  '/builder': { title: 'View builder', subtitle: 'Compose, aggregate, save and share custom views' },
+  '/features': { title: 'Feature catalogue', subtitle: 'Every capability shipped by the platform, grouped and searchable' },
   '/alerts': { title: 'Alerts', subtitle: 'Rules, thresholds and in-app notifications' },
   '/account': { title: 'Account', subtitle: 'Profile, appearance, security and API keys' },
   '/settings': { title: 'Settings', subtitle: 'Global application configuration' },
