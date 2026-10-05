@@ -8,7 +8,7 @@ import sqlalchemy as sa
 from fastapi import APIRouter, Query
 
 from app.api.deps import CurrentUser, DbSession, PaginationDep
-from app.api.schemas import AlertRuleCreate, AlertRuleRead, Message, NotificationRead, Page
+from app.api.schemas import AlertRuleCreate, AlertRuleRead, AlertRuleUpdate, Message, NotificationRead, Page
 from app.core.errors import ProductNotFoundError
 
 router = APIRouter(tags=["notifications"])
@@ -114,15 +114,22 @@ def create_alert(payload: AlertRuleCreate, session: DbSession, user: CurrentUser
 
 @router.patch("/alerts/{alert_id}", response_model=AlertRuleRead, summary="Update an alert rule")
 def update_alert(
-    alert_id: int, session: DbSession, user: CurrentUser, payload: AlertRuleCreate
+    alert_id: int, session: DbSession, user: CurrentUser, payload: AlertRuleUpdate
 ) -> AlertRuleRead:
+    """Patch a rule.
+
+    `exclude_unset` is what makes this a patch rather than a silent overwrite: taking
+    the full model would reset every field the caller did not send to its default, so
+    toggling one alert off would quietly rename and re-threshold it.
+    """
     from app.models.app_users import AppAlertRule
 
     rule = session.get(AppAlertRule, alert_id)
     if rule is None or rule.user_id != user.user_id:
         raise ProductNotFoundError(f"alert {alert_id} not found")
-    for field_name, value in payload.model_dump().items():
+    for field_name, value in payload.model_dump(exclude_unset=True).items():
         setattr(rule, field_name, value)
+    session.flush()
     return AlertRuleRead.model_validate(rule)
 
 

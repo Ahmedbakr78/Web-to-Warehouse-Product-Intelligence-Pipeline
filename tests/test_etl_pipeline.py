@@ -83,19 +83,7 @@ def test_pipeline_runs_end_to_end(db):
     assert result.counters["snapshots_inserted"] > 0
     assert result.run_id and result.duration_ms is not None
     stage_names = [stage.name for stage in result.timings]
-    for stage in (
-        "extract",
-        "stage",
-        "transform",
-        "resolve",
-        "load",
-        "detect",
-        "aggregate",
-        "reconcile",
-        "quality",
-    ):
-        assert stage in stage_names, f"stage {stage} missing from the run"
-    assert set(stage_names) <= set(STAGE_NAMES)
+    assert set(stage_names) <= set(STAGE_NAMES), f"undeclared stages reported: {set(stage_names) - set(STAGE_NAMES)}"
 
 
 def test_pipeline_is_idempotent_for_the_same_run_id(db):
@@ -248,3 +236,37 @@ def test_run_detail_is_complete(db):
     detail = analytics.run_detail(db, run_id)
     assert detail["run_id"] == run_id
     assert "dq" in detail and "http" in detail and "reconciliation" in detail
+
+
+def test_stage_names_match_execution_order():
+    """Progress percentages are derived from this list, so it must be in run order.
+
+    `aggregate` executes before the conditional `reconcile` and `quality` stages. When
+    the declared order disagreed with execution, a job's progress went 67% -> 100%
+    (aggregate) -> 78% (reconcile): visibly non-monotonic, and wrong.
+
+    Checked against a real run rather than the source: the stages are timed across
+    several methods, so source position is not the order they execute in.
+    """
+    recorded: list[str] = []
+    result = Pipeline(
+        PipelineConfig(sources=["local_demo"], limit_per_source=20),
+        on_stage=lambda name, detail="": recorded.append(name),
+    ).run()
+    assert result.status in {"success", "partial"}, result.error
+
+    # Stages repeat per source, so compare the order of each stage's first appearance.
+    firsts = [name for index, name in enumerate(recorded) if name not in recorded[:index]]
+    assert set(firsts) == set(STAGE_NAMES), f"executed stages differ from STAGE_NAMES: {firsts}"
+    assert firsts == list(STAGE_NAMES), f"execution order differs from STAGE_NAMES: {firsts}"
+
+
+def test_job_progress_is_monotonic_across_stages():
+    """The job runner maps a stage callback to a percentage using STAGE_NAMES."""
+    from app.etl.pipeline import STAGE_NAMES as NAMES
+    from app.jobs.handlers import STAGES
+
+    assert tuple(STAGES) == tuple(NAMES), "the job runner must use the pipeline's own stage order"
+
+    percentages = [round((index + 1) / len(NAMES) * 100) for index in range(len(NAMES))]
+    assert percentages == sorted(percentages), f"progress would go backwards: {percentages}"

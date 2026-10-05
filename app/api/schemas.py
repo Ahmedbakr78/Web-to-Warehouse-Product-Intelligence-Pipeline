@@ -646,6 +646,19 @@ class AlertRuleCreate(BaseModel):
     is_active: bool = True
 
 
+class AlertRuleUpdate(BaseModel):
+    """A partial update: every field optional, so a toggle sends only `is_active`."""
+
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    metric: Literal["price_change_pct", "rating", "new_product", "dq_failure", "stock_out"] | None = None
+    operator: Literal["lt", "gt", "lte", "gte", "eq"] | None = None
+    threshold: float | None = None
+    category: str | None = None
+    source_code: str | None = None
+    channel: Literal["in_app", "email", "webhook"] | None = None
+    is_active: bool | None = None
+
+
 class NotificationRead(ORMModel):
     notification_id: int
     level: str

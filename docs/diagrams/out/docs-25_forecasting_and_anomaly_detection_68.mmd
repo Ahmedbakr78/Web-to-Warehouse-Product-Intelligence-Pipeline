@@ -1,6 +1,6 @@
 
 flowchart LR
-  facts[(price facts)] --> clean[median clean, dedupe]
+  views[(vw_price_history)] --> clean[median clean, dedupe]
   clean --> series[daily series, gaps zero-filled]
   series --> fit{damped Holt-Winters fit}
   fit --> points[projection points + bands]

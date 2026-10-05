@@ -3,14 +3,15 @@ sequenceDiagram
     participant U as User
     participant API
     participant DB as app_users
-    U->>API: POST /auth/login (email, password)
+    U->>API: POST /auth/login (email, password[, totp_code | recovery_code])
     API->>DB: verify Argon2id hash
     alt password wrong
-        API-->>U: 401
-    else 2FA enabled
-        API-->>U: 401, mfa_required, totp challenge
-        U->>API: POST /auth/login/2fa (challenge, code)
-        API->>API: verify TOTP (±1 step) or recovery code
+        API-->>U: 401 invalid email or password
+    else 2FA enabled, no code supplied
+        API-->>U: 401 invalid verification code
+        U->>API: POST /auth/login again, with the code
+    else 2FA enabled, code supplied
+        API->>API: verify TOTP (±1 step), else redeem a recovery code
         API-->>U: tokens + session handle
     else 2FA not enabled
         API-->>U: tokens + session handle

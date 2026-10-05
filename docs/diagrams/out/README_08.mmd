@@ -4,7 +4,7 @@ flowchart LR
     E -->|"RawProduct"| V["Validator + Cleaner"]
     V -->|"clean rows + flags"| ST["stg_raw_observation"]
     ST -->|"valid staged rows"| L["Warehouse loader"]
-    L -->|"dims + facts"| WH[("25 tables, 20 views")]
+    L -->|"dims + facts"| WH[("28 tables, 20 views")]
     WH --> CD["Change detector"]
     CD -->|"chg_price_change<br/>chg_product_event"| AN["Analytics engine"]
     WH -->|"agg_category_daily"| AN

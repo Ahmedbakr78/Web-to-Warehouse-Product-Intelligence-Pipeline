@@ -5,7 +5,7 @@ graph TB
         PAL["Command palette<br/>Ctrl/Cmd-K"]
     end
     subgraph Edge["FastAPI application"]
-        ROUTES["18 routers<br/>128 operations"]
+        ROUTES["23 routers<br/>173 operations"]
         AUTH["Security layer<br/>Argon2id · JWT · API keys · RBAC"]
         GUARD["Guards<br/>error envelope · GZip · timing · rate limit"]
         BUILDER["Builder DSL<br/>whitelist → parameterised SELECT"]
@@ -19,7 +19,7 @@ graph TB
         REC["Catalog reconciler"]
     end
     subgraph Store["Warehouse"]
-        PG[("PostgreSQL 16<br/>25 tables · 20 views")]
+        PG[("PostgreSQL 16<br/>28 tables · 20 views")]
         MY[("MySQL 8.4<br/>same schema")]
     end
     subgraph Sources["Permitted sources"]

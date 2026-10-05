@@ -37,6 +37,10 @@ from app.models.operations import EtlRun, IngestionHttpLog
 
 log = get_logger(__name__)
 
+#: The stages in the order `Pipeline.run` executes them, including the two that are
+#: conditional (`reconcile`, `quality`). Progress percentages are derived from this
+#: position, so it must reflect execution order: `aggregate` runs *before* both of the
+#: conditional stages, not after them.
 STAGE_NAMES = (
     "extract",
     "stage",
@@ -44,9 +48,9 @@ STAGE_NAMES = (
     "resolve",
     "load",
     "detect",
+    "aggregate",
     "reconcile",
     "quality",
-    "aggregate",
 )
 
 

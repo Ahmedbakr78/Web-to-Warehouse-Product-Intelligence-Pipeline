@@ -1,9 +1,12 @@
 # Documentation Index
 
-Web-to-Warehouse Product Intelligence Pipeline — DEPI graduation project (Data Engineering track).
-Twenty documents covering proposal, planning, requirements, design, implementation evidence and
-evaluation. Every diagram is Mermaid (rendered natively by GitHub); every number is reproducible with
-the command cited beside it.
+Web-to-Warehouse Product Intelligence Pipeline — DEPI graduation project, Data
+Engineering track. Thirty documents covering the proposal, planning, requirements,
+design, implementation evidence and evaluation.
+
+Every diagram is Mermaid, rendered natively by GitHub and to SVG for the static
+site. Every structural number is measured by a script and re-verifiable with the
+command cited beside it.
 
 | # | Document | What it covers |
 | --- | --- | --- |
@@ -15,22 +18,28 @@ the command cited beside it.
 | 06 | [Literature Review](06_literature_review.md) | Six themes, 39 sources with verification status, synthesis and research gaps |
 | 07 | [Requirements Gathering](07_requirements_gathering.md) | Stakeholders, 10 user stories with Given/When/Then, 20 use cases, 58 FRs, 26 NFRs, traceability |
 | 08 | [System Analysis and Design](08_system_analysis_design.md) | Use-case diagram, architecture diagram, style and rationale |
-| 09 | [Database Design](09_database_design.md) | Generated 25-table ERD, logical versus physical schema, normalisation, indexing, retention, dialect types |
+| 09 | [Database Design](09_database_design.md) | Generated 28-table ERD, logical versus physical schema, normalisation, indexing, retention, dialect types |
 | 10 | [Data Flow Diagrams](10_data_flow_diagrams.md) | Level 0/1/2 DFDs, data dictionary, control flows |
 | 11 | [Behaviour Diagrams](11_behaviour_diagrams.md) | Sequence, activity, three state diagrams, class diagram |
-| 12 | [UI/UX Design](12_ui_ux_design.md) | 12 screen wireframes, design system with contrast ratios, WCAG 2.1 AA, breakpoints, motion policy |
+| 12 | [UI/UX Design](12_ui_ux_design.md) | Screen wireframes, design system with contrast ratios, WCAG 2.1 AA, breakpoints, motion policy |
 | 13 | [Deployment](13_deployment.md) | Stack, deployment and component diagrams, environment matrix, Compose services, ports, secrets, backup, scaling, CI/CD |
-| 14 | [API Documentation](14_api_documentation.md) | Auth flow, role matrix, all 113 operations, worked examples in curl/Python/JS, errors, versioning |
-| 15 | [Testing Strategy](15_testing_strategy.md) | Test pyramid, 100-case plan, UAT scenarios, coverage targets, quality gates, defect management |
+| 14 | [API Documentation](14_api_documentation.md) | Auth flow, role matrix, 173 operations, worked examples in curl/Python/JS, errors, versioning |
+| 15 | [Testing Strategy](15_testing_strategy.md) | Test pyramid, case plan, UAT scenarios, coverage targets, quality gates, defect management |
 | 16 | [User Manual](16_user_manual.md) | Sign-in, every screen, filters, exports, saved views, alerts, admin, troubleshooting, FAQ |
-| 17 | [Technical Documentation](17_technical_documentation.md) | Module map, four key algorithms, every configuration variable, six-step source extension, performance and security |
-| 18 | [Presentation Outline](18_presentation_outline.md) | 18-slide defence deck, Q&A preparation, three-minute demo script, rehearsal and fallback plans |
-| 19 | [Feature Inventory](19_feature_list.md) | 311 features in 17 areas, each with a description and a file reference |
-| 20 | [Feedback and Improvements](20_literature_feedback_and_improvements.md) | Lecturer feedback template, 32 prioritised improvements, self-assessment and rubric |
+| 17 | [Technical Documentation](17_technical_documentation.md) | Module map, key algorithms, every configuration variable, source extension, performance and security |
+| 18 | [Presentation Outline](18_presentation_outline.md) | Defence deck, Q&A preparation, three-minute demo script, rehearsal and fallback plans |
+| 19 | [Feature Inventory](19_feature_list.md) | 311 features in sixteen areas (F-001 to F-311), each with a file reference |
+| 20 | [Feedback and Improvements](20_literature_feedback_and_improvements.md) | Lecturer feedback template, prioritised improvements, self-assessment and rubric |
 | 21 | [Architecture Deep Dive](21_architecture_deep_dive.md) | Design drivers, decisions with rejected alternatives, request lifecycle, warehouse layering, known limitations |
 | 22 | [Data Dictionary](22_data_dictionary.md) | Every table, column, type and meaning; controlled vocabularies; view catalogue; dialect portability |
 | 23 | [Glossary and FAQ](23_glossary_and_faq.md) | Terms defined, then setup, pipeline, quality, security and development questions answered |
-| 24 | [Demo Runbook](24_demo_runbook.md) | Pre-flight checklist, the eight-minute screen-by-screen script, time-boxed variants and a failure playbook that falls back to `curl` |
+| 24 | [Demo Runbook](24_demo_runbook.md) | Pre-flight checklist, the screen-by-screen script, time-boxed variants and a failure playbook that falls back to `curl` |
+| 25 | [Forecasting & Anomaly Detection](25_forecasting_and_anomaly_detection.md) | Damped Holt-Winters with measured accuracy, three anomaly detectors, seasonality, elasticity and pricing advice |
+| 26 | [Background Jobs & Realtime](26_background_jobs_and_realtime.md) | Job lifecycle, leases, retries, cancellation, SSE topics and the cross-worker event problem |
+| 27 | [Reporting & Document Generation](27_reporting_and_document_generation.md) | Typed blocks rendered to HTML, JSON, CSV and PDF from one definition; WeasyPrint deployment |
+| 28 | [Schema & Migrations](28_schema_and_migrations.md) | Alembic revisions, drift detection, view ownership, and why Airflow lives in its own database |
+| 29 | [Two-Factor Authentication & Sessions](29_two_factor_and_sessions.md) | TOTP enrolment, encrypted secrets, single-use recovery codes, per-device revocation |
+| 30 | [Access Control, API Keys & Rate Limiting](30_access_control_and_rate_limiting.md) | Roles and rights, scoped API keys enforced twice, sliding-window limits with honest headers |
 
 ---
 
@@ -40,77 +49,79 @@ Structural figures are exact and re-verifiable:
 
 | Claim | Verify with |
 | --- | --- |
-| 25 tables, 20 views | `make bootstrap` |
-| 113 REST operations in 16 routers | `http://localhost:8000/docs`, or count route decorators in `app/api/routers/` |
-| 321 tests pass | `make test` |
-| 78/78 API smoke checks | `.venv/bin/python scripts/api_smoke.py` |
+| 28 tables, 20 views | `make bootstrap`, or `make stats` |
+| 173 REST operations in 23 routers | `http://localhost:8000/docs`, or `make stats` |
+| 408 tests pass | `make test` |
+| 104 API smoke checks pass | `.venv/bin/python scripts/api_smoke.py` |
 | ruff and mypy clean | `make lint` and `make typecheck` |
+| No schema drift | `make db-check` |
+| 80 Mermaid diagrams | `make docs-render` |
 | 12 DQ rules and the score | Quality screen, or `pip-cli quality` |
 
-Row counts and latencies are **measurements, not constants**. They depend on how much data a given
-database holds and on the hardware. Each figure in these documents records the measurement taken at
-a stated moment — generally the development machine at the stated date — and is not silently
-rewritten when a later run produces a different number. Where a document reports a dataset size,
-the command that regenerates it is named alongside.
+`scripts/project_stats.py` recounts all of these, `scripts/check_stats.py` fails
+when a documented figure no longer matches reality, and `make stats-check` runs it
+in CI. A number in these documents is therefore either measured or checked.
+
+Row counts and latencies are **measurements, not constants**. They depend on how
+much data a given database holds and on the hardware. Each figure records the
+measurement taken at a stated moment — generally the development machine at the
+stated date — and is not silently rewritten when a later run produces a different
+number. Where a document reports a dataset size, the command that regenerates it is
+named alongside.
+
+---
 
 ## Measured facts referenced throughout
 
 | Fact | Value |
 | --- | --- |
-| Physical tables / analytical views | 23 / 20 (identical on PostgreSQL 16 and MySQL 8.4) |
-| REST operations | 113 documented in 16 routers |
+| Version | 1.5.0 |
+| Physical tables / analytical views | 28 / 20, identical on PostgreSQL 16 and MySQL 8.4 |
+| REST operations / routers | 173 / 23 |
+| Feature inventory / runtime catalogue | 311 rows in 16 areas (`docs/19`) / 233 features in 24 groups (`GET /meta/features`) |
 | Data-quality rules / dimensions | 12 / 6, verdicts persisted per run |
 | Ingestion sources | 5 (3 APIs, 1 HTML scraper, 1 offline synthetic) |
-| Reconciliation optimisation | 2,975 ms → 104 ms (29×) with identical results |
-| API latency | p95 ≤ 38.2 ms across 12 read endpoints |
-| API regression suite | 78/78 checks pass |
+| Documentation documents / diagrams | 30 / 80 Mermaid, all rendering to SVG |
+| API regression suite | 408 pytest cases, 104 smoke checks |
 | Demo accounts | `admin@example.com` / `Admin@12345`, `analyst@example.com` / `Analyst@12345`, `viewer@example.com` / `Viewer@12345` |
+
+---
+
+## Reading order
+
+If you are reviewing this for the first time:
+
+1. **[01 Project Proposal](01_project_proposal.md)** — what problem, and why.
+2. **[08 System Analysis](08_system_analysis_design.md)** and
+   **[21 Architecture Deep Dive](21_architecture_deep_dive.md)** — how it is built
+   and why each decision was made.
+3. **[25–30](25_forecasting_and_anomaly_detection.md)** — the newer subsystems:
+   forecasting, jobs and realtime, reporting, migrations, two-factor, access control.
+4. **[14 API Documentation](14_api_documentation.md)** and
+   **[16 User Manual](16_user_manual.md)** — the two views most reviewers want.
+5. **[15 Testing Strategy](15_testing_strategy.md)** — what is verified, and how.
+6. **[24 Demo Runbook](24_demo_runbook.md)** — if you are seeing it live.
+
+---
 
 ## Quick commands
 
 ```bash
-make install && make env          # environment
-make up-db && make db-wait        # PostgreSQL 16 + MySQL 8.4
-make bootstrap                    # 25 tables + 20 views + reference data
-make demo-postgres                # demo dataset
-make run-pipeline                 # one full pipeline run
-make verify-dialects              # cross-dialect verification
-make serve                        # API on http://localhost:8000/docs
-.venv/bin/python scripts/api_smoke.py     # 78-check regression suite
-make help                         # all 30+ targets
+make help          # every target
+make up            # the six-service stack
+make bootstrap     # schema, views and demo users
+make demo-postgres # deterministic 120-day dataset
+make run-pipeline  # one pipeline run
+make verify        # the full quality gate
+make docs-build    # regenerate the static site from this Markdown
+make docs-render   # render every Mermaid diagram to SVG
+make stats         # measured structural counts
+make infographic   # the 2560x1440 DEPI poster
 ```
 
-## Rendering the diagrams
+## Related
 
-GitHub renders Mermaid natively, so no build step is required. To export SVGs:
-
-```bash
-make docs-render      # writes docs/diagrams/out/*.svg
-make docs-serve       # serves the raw markdown on http://localhost:8001
-```
-
-## The documentation website
-
-Every document above is also published as a browsable website, with client-side search, a dark
-mode that follows the system preference, and all 50+ diagrams rendered.
-
-```bash
-make site             # builds ./site (standard library only — no dependencies to install)
-make site-serve       # builds it and serves it on http://localhost:8001
-python3 scripts/build_site.py --out /tmp/docs   # build somewhere else
-```
-
-The builder is a single dependency-free script (`scripts/build_site.py`). It exists because GitHub
-Pages does not serve private repositories on the free plan, so a Pages workflow would never deploy
-here — but the output is a plain directory of static files that can be served locally, dropped on
-any static host, or attached to a release.
-
-## Related files
-
-| File | Purpose |
-| --- | --- |
-| [../README.md](../README.md) | Project gateway: overview, architecture, quick start |
-| [../CHANGELOG.md](../CHANGELOG.md) | Every release, following Keep a Changelog |
-| [../CONTRIBUTING.md](../CONTRIBUTING.md) | How to contribute |
-| [../SECURITY.md](../SECURITY.md) | Threat model and disclosure process |
-| [../db/analysis/README.md](../db/analysis/README.md) | The four standalone SQL analyses |
+- `README.md` at the repository root — orientation and quick start
+- `docs/stats.json` — the machine-readable counts, pinned by `make stats-update`
+- `site/` — the generated static site, 33 pages plus assets
+- `CHANGELOG.md` — what changed in each version

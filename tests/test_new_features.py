@@ -1133,3 +1133,57 @@ def test_progress_is_persisted_mid_run_on_a_server_database(session, monkeypatch
         assert job.progress_pct == 100
         stages = [event["stage"] for event in queue.job_events(session_, job.job_id)]
         assert "extract" in stages and "done" in stages
+
+
+def test_alert_rule_patch_only_changes_what_is_sent(client, admin_token):
+    """A PATCH with one field must not reset the others to their defaults."""
+    token = admin_token
+    created = client.post(
+        "/api/v1/alerts",
+        headers=auth(token),
+        json={
+            "name": "TV price drop",
+            "metric": "price_change_pct",
+            "operator": "lt",
+            "threshold": 15,
+            "channel": "in_app",
+        },
+    ).json()
+
+    patched = client.patch(
+        f"/api/v1/alerts/{created['alert_id']}", headers=auth(token), json={"is_active": False}
+    ).json()
+
+    assert patched["is_active"] is False
+    # Everything else must survive a one-field patch.
+    assert patched["name"] == "TV price drop"
+    assert patched["metric"] == "price_change_pct"
+    assert patched["operator"] == "lt"
+    assert patched["threshold"] == 15
+    assert patched["channel"] == "in_app"
+
+    client.delete(f"/api/v1/alerts/{created['alert_id']}", headers=auth(token))
+
+
+def test_alert_rules_are_scoped_to_their_owner(client, admin_token):
+    """One user cannot read, patch or delete another user's rules."""
+    token = admin_token
+    _disposable_user(client, admin_token, "alerts-other@example.com")
+    other = client.post(
+        "/api/v1/auth/login", json={"email": "alerts-other@example.com", "password": "Disposable@12345"}
+    ).json()
+    mine = client.post(
+        "/api/v1/alerts",
+        headers=auth(token),
+        json={"name": "Scoped rule", "metric": "rating", "operator": "lt", "threshold": 2},
+    ).json()
+
+    assert client.get("/api/v1/alerts", headers=auth(other["access_token"])).json() == []
+    assert client.patch(
+        f"/api/v1/alerts/{mine['alert_id']}", headers=auth(other["access_token"]), json={"is_active": False}
+    ).status_code == 404
+    assert client.delete(
+        f"/api/v1/alerts/{mine['alert_id']}", headers=auth(other["access_token"])
+    ).status_code == 404
+
+    client.delete(f"/api/v1/alerts/{mine['alert_id']}", headers=auth(token))

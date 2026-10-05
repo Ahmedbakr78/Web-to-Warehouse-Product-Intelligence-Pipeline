@@ -14,6 +14,6 @@
   "pipeline_stages": 9,
   "rest_route_decorators": 173,
   "rest_routers": 23,
-  "test_cases": 397,
-  "test_functions": 285
+  "test_cases": 408,
+  "test_functions": 296
 }

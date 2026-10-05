@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   Activity,
+  Bell,
   Copy,
   Download,
   Eye,
@@ -61,6 +62,7 @@ import { ALL_NAV_ITEMS } from '@/lib/nav'
 import { localStore } from '@/lib/session'
 import { formatDateTime, formatRelative, initials, titleCase, downloadJson } from '@/lib/format'
 import SecurityPanel from '@/components/SecurityPanel'
+import { AlertsPanel, PrivacyPanel } from '@/components/AccountPanels'
 
 const AVATAR_COLORS = [
   '#4f46e5', '#2563eb', '#0891b2', '#059669', '#d97706', '#dc2626',
@@ -124,6 +126,8 @@ export default function Account() {
   const [deletePassword, setDeletePassword] = useState('')
   const [deleteConfirm, setDeleteConfirm] = useState('')
 
+  // Only used for the tab badge; the AlertsPanel owns the list itself.
+  const alerts = useApiQuery(['alerts', 'badge'], endpoints.alerts, { staleTime: 60_000 })
   const activity = useApiQuery(['my-activity'], () => endpoints.myActivity({ page: 1, page_size: 25, days: 90 }), {
     staleTime: 60_000,
   })
@@ -299,6 +303,7 @@ export default function Account() {
           { id: 'security', label: 'Security', icon: <Shield className="h-4 w-4" /> },
           { id: 'devices', label: 'Devices & 2FA', icon: <ShieldCheck className="h-4 w-4" /> },
           { id: 'api', label: 'API keys', count: apiKeys.data?.length ?? 0, icon: <KeyRound className="h-4 w-4" /> },
+          { id: 'alerts', label: 'Alerts', count: alerts.data?.length ?? 0, icon: <Bell className="h-4 w-4" /> },
           { id: 'activity', label: 'Activity', icon: <Activity className="h-4 w-4" /> },
           { id: 'data', label: 'Data & privacy', icon: <Download className="h-4 w-4" /> },
         ]}
@@ -696,6 +701,8 @@ export default function Account() {
         </Card>
       ) : null}
 
+      {tab === 'alerts' ? <AlertsPanel /> : null}
+
       {tab === 'activity' ? (
         <Card padded={false}>
           <div className="flex flex-wrap items-center justify-between gap-2 p-4 sm:p-5">
@@ -738,40 +745,11 @@ export default function Account() {
       ) : null}
 
       {tab === 'data' ? (
-        <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-          <Card>
-            <CardHeader title="Export my data" subtitle="A portable JSON snapshot of everything stored about you" icon={<FileDown className="h-4 w-4" />} />
-            <p className="text-xs leading-relaxed text-muted">
-              Downloads your profile, preferences, API-key metadata, saved views, alert rules, notifications and recent
-              activity. Passwords and key secrets are never included.
-            </p>
-            <Button
-              className="mt-4"
-              variant="primary"
-              icon={<Download className="h-4 w-4" />}
-              loading={exportData.isPending}
-              onClick={() => exportData.mutate()}
-            >
-              Download my data
-            </Button>
-          </Card>
-
-          <Card className="border-danger/40">
-            <CardHeader title="Danger zone" subtitle="Irreversible actions" icon={<TriangleAlert className="h-4 w-4" />} />
-            <p className="text-xs leading-relaxed text-muted">
-              Deleting your account revokes every API key, saved view, alert rule and notification. Warehouse data is
-              untouched because it is not owned by your account.
-            </p>
-            <Button
-              className="mt-4"
-              variant="danger"
-              icon={<Trash2 className="h-4 w-4" />}
-              onClick={() => setShowDeleteModal(true)}
-            >
-              Delete my account
-            </Button>
-          </Card>
-        </div>
+        <PrivacyPanel
+          onExport={() => exportData.mutate()}
+          exporting={exportData.isPending}
+          onDelete={() => setShowDeleteModal(true)}
+        />
       ) : null}
 
       {/* ------------------------------------------------------------- modals */}
@@ -840,9 +818,17 @@ export default function Account() {
         }
       >
         <div className="space-y-3">
-          <div className="rounded-lg border border-danger/40 bg-danger-soft p-3 text-xs text-danger">
-            This cannot be undone. Your API keys stop working immediately and you will be signed out.
+          <div className="flex items-start gap-2 rounded-lg border border-danger/40 bg-danger-soft p-3 text-xs text-danger">
+            <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            <span>
+              This cannot be undone. Every API key stops working immediately, all sessions are revoked, and you will
+              be signed out. Warehouse data is untouched because it is not owned by your account.
+            </span>
           </div>
+          <p className="flex items-start gap-2 text-[11px] leading-relaxed text-muted">
+            <FileDown className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+            <span>Export your data first if you might want any of it afterwards.</span>
+          </p>
           <div>
             <p className="stat-label mb-1.5">Confirm your password</p>
             <TextInput type="password" value={deletePassword} onChange={(event) => setDeletePassword(event.target.value)} autoComplete="current-password" autoFocus />

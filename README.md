@@ -12,7 +12,7 @@
   <img src="https://img.shields.io/badge/views-20-informational" alt="Views"/>
   <img src="https://img.shields.io/badge/REST%20operations-128-success" alt="REST operations"/>
   <img src="https://img.shields.io/badge/DQ%20rules-12-success" alt="Data quality rules"/>
-  <img src="https://img.shields.io/badge/unit%20tests-321%20passing-brightgreen" alt="Tests"/>
+  <img src="https://img.shields.io/badge/unit%20tests-408%20passing-brightgreen" alt="Tests"/>
   <img src="https://img.shields.io/badge/API%20smoke-86%2F86-brightgreen" alt="API smoke"/>
   <img src="https://img.shields.io/badge/ruff-0%20warnings-brightgreen" alt="ruff"/>
   <img src="https://img.shields.io/badge/CI-github%20actions-2088FF?logo=github-actions&logoColor=white" alt="CI"/>
@@ -29,9 +29,9 @@
 </p>
 
 <p align="center">
-  <b>128 REST operations</b> · <b>25 tables</b> · <b>20 analytical views</b> ·
-  <b>12 DQ rules</b> · <b>5 compliant sources</b> · <b>321 tests</b> ·
-  <b>86/86 API checks</b> · <b>two SQL dialects, one schema</b>
+  <b>173 REST operations</b> · <b>28 tables</b> · <b>20 analytical views</b> ·
+  <b>12 DQ rules</b> · <b>5 compliant sources</b> · <b>311 catalogued features</b> ·
+  <b>408 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
 </p>
 
 <p align="center">
@@ -156,7 +156,7 @@ Everything is engineered like a production system, not a demo:
 | **Orchestration** | Apache Airflow 2.10 DAG | 13 tasks, branch-on-changes, alert fan-out, report publication, sync-run API for demos |
 | **Data quality** | 12-rule framework over 6 dimensions | completeness, validity, uniqueness, accuracy, consistency, timeliness, weighted score |
 | **Change detection** | SQL plus an event engine | price changes banded by magnitude, new and removed products, category drift, lifecycle events |
-| **REST API** | FastAPI | **128 operations in 18 routers**, JWT and API-key auth, RBAC (admin / analyst / viewer), OpenAPI docs, gzip, timing headers |
+| **REST API** | FastAPI | **173 operations in 23 routers**, JWT and API-key auth, RBAC (admin / analyst / viewer), OpenAPI docs, gzip, timing headers |
 | **Dashboard** | React 19 + TypeScript + Tailwind + ReCharts | 21 screens, light/dark/system themes, 6 accent colours, 3 densities, command palette, installable PWA, responsive from 320 px |
 | **CLI** | Typer, 12 commands | bootstrap, seed, run, report, verify, quality, sources preview |
 | **Ops** | Docker Compose (6 services), Makefile (30+ targets), GitHub Actions CI | one-command everything |
@@ -171,7 +171,7 @@ Everything is engineered like a production system, not a demo:
 12 data-quality rules across 6 dimensions, weighted score persisted per run
 5 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
 13 CLI commands  |  6 Docker Compose services  |  30 documents  |  80 Mermaid diagrams
-397 tests  |  104/104 API smoke checks  |  311 catalogued features
+408 tests  |  104/104 API smoke checks  |  311 catalogued features
 ```
 
 | Metric | Count |
@@ -189,7 +189,7 @@ Everything is engineered like a production system, not a demo:
 | Numbered documents      | 30 |
 | Mermaid diagrams        | 80 |
 | Catalogued features     | 311 |
-| Collected test cases    | 397 |
+| Collected test cases    | 408 |
 | API smoke checks        | 104 |
 
 <!-- END:STATS -->
@@ -311,7 +311,7 @@ flowchart LR
 
     subgraph Ops["Operations"]
         AF["Airflow DAG<br/>13 tasks"]
-        API["FastAPI REST<br/>128 operations"]
+        API["FastAPI REST<br/>173 operations"]
         DQ["12-rule DQ framework"]
     end
 
@@ -354,7 +354,7 @@ flowchart TB
     end
     subgraph Server["FastAPI monolith, modular"]
         MW["CORS - gzip - timing headers"]
-        RT["18 routers, 128 operations"]
+        RT["23 routers, 173 operations"]
         SV["analytics + ETL services"]
         SEC["JWT + API keys - RBAC - audit"]
         MW --> RT --> SV
@@ -559,7 +559,7 @@ flowchart LR
     E -->|"RawProduct"| V["Validator + Cleaner"]
     V -->|"clean rows + flags"| ST["stg_raw_observation"]
     ST -->|"valid staged rows"| L["Warehouse loader"]
-    L -->|"dims + facts"| WH[("25 tables, 20 views")]
+    L -->|"dims + facts"| WH[("28 tables, 20 views")]
     WH --> CD["Change detector"]
     CD -->|"chg_price_change<br/>chg_product_event"| AN["Analytics engine"]
     WH -->|"agg_category_daily"| AN
@@ -651,7 +651,7 @@ The run receives a weighted score; the dashboard charts the 90-day trend.
 
 ### 6 - Serve
 
-The FastAPI app (128 operations) exposes products, changes, analytics, pipeline operations, quality,
+The FastAPI app (173 operations) exposes products, changes, analytics, pipeline operations, quality,
 catalog, sources, the read-only query lab, saved views, notifications, settings and audit. The React
 dashboard consumes it, and both endpoints and UI offer CSV and JSON exports. Airflow triggers the
 whole cycle daily; the API's sync endpoint and the CLI produce the identical `etl_run` record.
@@ -794,7 +794,7 @@ graph TB
         PAL["Command palette<br/>Ctrl/Cmd-K"]
     end
     subgraph Edge["FastAPI application"]
-        ROUTES["18 routers<br/>128 operations"]
+        ROUTES["23 routers<br/>173 operations"]
         AUTH["Security layer<br/>Argon2id · JWT · API keys · RBAC"]
         GUARD["Guards<br/>error envelope · GZip · timing · rate limit"]
         BUILDER["Builder DSL<br/>whitelist → parameterised SELECT"]
@@ -808,7 +808,7 @@ graph TB
         REC["Catalog reconciler"]
     end
     subgraph Store["Warehouse"]
-        PG[("PostgreSQL 16<br/>25 tables · 20 views")]
+        PG[("PostgreSQL 16<br/>28 tables · 20 views")]
         MY[("MySQL 8.4<br/>same schema")]
     end
     subgraph Sources["Permitted sources"]
@@ -1002,7 +1002,7 @@ are persisted per run in `dq_rule_result`, and the dashboard charts the score tr
 ## Feature catalogue
 
 The exhaustive, file-referenced inventory lives in
-[docs/19_feature_list.md](docs/19_feature_list.md) — 311 features in 17 areas. It is also served as
+[docs/19_feature_list.md](docs/19_feature_list.md) — 311 features in sixteen areas. It is also served as
 structured JSON by `GET /api/v1/meta/features` and rendered by the **Features** screen, both generated
 from `app/core/features.py`, so this section can never describe something the code does not do.
 Highlights by area:
@@ -1032,7 +1032,7 @@ Highlights by area:
 
 ### Warehouse and ETL
 
-- Kimball star schema, 25 tables, dialect-portable to MySQL
+- Kimball star schema, 28 tables, dialect-portable to MySQL
 - staged, idempotent, resumable loads with per-stage timings and counters
 - every run recorded with more than 15 counters plus warnings
 
@@ -1053,7 +1053,7 @@ Highlights by area:
 
 - JWT access and refresh rotation, API keys (`pip_...`), Argon2id password hashing
 - role-based access control: admin, analyst, viewer, enforced per route server-side
-- 128 operations, OpenAPI and ReDoc documentation, gzip compression, `X-Process-Time-Ms` headers
+- 173 operations, OpenAPI and ReDoc documentation, gzip compression, `X-Process-Time-Ms` headers
 - CSV and JSON exports on the API and in the dashboard
 - one consistent error envelope (`error`, `message`, `details`) with validation detail
 
@@ -1295,9 +1295,9 @@ trigger a pipeline run is denied.
 | Layer | Command | Evidence in this repository |
 | --- | --- | --- |
 | Lint and format | `make lint` | ruff: all checks pass, zero warnings |
-| Static types | `make typecheck` | mypy: no issues in 61 source files |
-| Unit tests | `make test` | pytest: 321 passed (SQLite warehouse, no services required) |
-| API regression | `.venv/bin/python scripts/api_smoke.py` | 86/86 checks, including auth, RBAC and 404 paths |
+| Static types | `make typecheck` | mypy: no issues in 83 source files |
+| Unit tests | `make test` | pytest: 408 passed (SQLite warehouse, no services required) |
+| API regression | `.venv/bin/python scripts/api_smoke.py` | 104/104 checks, including auth, RBAC and 404 paths |
 | Frontend | `cd frontend && npm run lint && npm run typecheck && npm run build` | ESLint at zero warnings, clean tsc, production build |
 | Cross-dialect | `make verify-dialects` | identical model and DQ score on PostgreSQL and MySQL |
 | Orchestrated | `make airflow-test` | the DAG executes end-to-end for a fixed date |
@@ -1350,7 +1350,7 @@ scripts/
   run_analysis.py         runs the standalone SQL analyses
   make_infographic.py     generates the roadmap infographic
   diagrams.py            extract, validate and render all Mermaid diagrams
-tests/            pytest unit + integration suite (321 tests)
+tests/            pytest unit + integration suite (408 tests)
 website/          single-file project landing page (index.html) with light/dark themes
 .github/
   workflows/ci.yml        ruff, mypy, pytest, eslint, tsc, vite build
@@ -1383,27 +1383,33 @@ natively on GitHub; every structural number is tied to a runnable command.
 | 06 | Literature Review | six themes, 39 verified sources, synthesis, research gaps |
 | 07 | Requirements Gathering | stakeholders, 10 user stories, 20 use cases, 58 FRs, 26 NFRs, traceability |
 | 08 | System Analysis and Design | use-case diagram, architecture diagram, style and rationale |
-| 09 | Database Design | generated 25-table ERD, logical versus physical schema, indexing, retention |
+| 09 | Database Design | generated 28-table ERD, logical versus physical schema, indexing, retention |
 | 10 | Data Flow Diagrams | context and detailed DFDs, data dictionary, control flows |
 | 11 | Behaviour Diagrams | sequence, activity, three state diagrams, class diagram |
-| 12 | UI/UX Design | 12 screen wireframes, design system with contrast ratios, WCAG 2.1 AA |
+| 12 | UI/UX Design | screen wireframes, design system with contrast ratios, WCAG 2.1 AA |
 | 13 | Deployment | stack, deployment and component diagrams, environment matrix, CI/CD, backups |
-| 14 | API Documentation | auth flow, role matrix, all 128 operations, worked examples |
-| 15 | Testing Strategy | test pyramid, 100-case plan, UAT, coverage targets, quality gates |
+| 14 | API Documentation | auth flow, role matrix, all 173 operations, worked examples |
+| 15 | Testing Strategy | test pyramid, case plan, UAT, coverage targets, quality gates |
 | 16 | User Manual | sign-in, every screen, filters, exports, alerts, admin, troubleshooting, FAQ |
-| 17 | Technical Documentation | module map, four key algorithms, every configuration variable |
-| 18 | Presentation Outline | 18-slide defence deck, Q&A preparation, demo script |
-| 19 | Feature Inventory | 311 features in 17 areas with file references |
+| 17 | Technical Documentation | module map, key algorithms, every configuration variable |
+| 18 | Presentation Outline | defence deck, Q&A preparation, demo script |
+| 19 | Feature Inventory | 311 features in sixteen areas with file references |
 | 20 | Feedback and Improvements | feedback template, 32 prioritised improvements, self-assessment |
 | 21 | **Architecture Deep Dive** | design drivers, decisions with rejected alternatives, request lifecycle, layering, known limitations |
 | 22 | **Data Dictionary** | every table, column, type and meaning; controlled vocabularies; view catalogue; dialect portability |
 | 23 | **Glossary and FAQ** | terms defined, then setup, pipeline, quality, security and development Q&A |
-| 24 | **Demo Runbook** | pre-flight checklist, the eight-minute screen-by-screen script, time-boxed variants, and a failure playbook that falls back to `curl` |
+| 24 | **Demo Runbook** | pre-flight checklist, the screen-by-screen script, time-boxed variants, and a failure playbook that falls back to `curl` |
+| 25 | **Forecasting & Anomaly Detection** | damped Holt-Winters with measured accuracy, three anomaly detectors, seasonality, elasticity and pricing advice |
+| 26 | **Background Jobs & Realtime** | job lifecycle, leases, retries, cancellation, SSE topics and the cross-worker event problem |
+| 27 | **Reporting & Document Generation** | typed blocks rendered to HTML, JSON, CSV and PDF from one definition; WeasyPrint deployment |
+| 28 | **Schema & Migrations** | Alembic revisions, drift detection, view ownership, and why Airflow lives in its own database |
+| 29 | **Two-Factor Authentication & Sessions** | TOTP enrolment, encrypted secrets, single-use recovery codes, per-device revocation |
+| 30 | **Access Control, API Keys & Rate Limiting** | roles and rights, scoped keys enforced twice, sliding-window limits with honest headers |
 
 ### The documentation website
 
-Every document is also published as a browsable site, with client-side search, a dark mode that
-follows the system preference, and all 50+ diagrams rendered:
+All thirty documents are also published as a browsable site, with client-side search, a dark mode
+that follows the system preference, and all 80 Mermaid diagrams rendered to SVG:
 
 ```bash
 make site             # build ./site — standard library only, nothing to install

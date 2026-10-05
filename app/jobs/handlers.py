@@ -15,6 +15,7 @@ from typing import Any
 from app.core.db import session_scope
 from app.core.errors import NotFoundError, ValidationError
 from app.core.logging import get_logger
+from app.etl.pipeline import STAGE_NAMES
 from app.jobs import queue
 from app.models.app_users import AppJob
 
@@ -25,18 +26,10 @@ Report = Callable[..., None]
 #: job_type -> handler
 REGISTRY: dict[str, Callable[[int, Report], dict[str, Any]]] = {}
 
-#: The pipeline stages, used to translate a stage callback into a percentage.
-STAGES = (
-    "extract",
-    "stage",
-    "transform",
-    "resolve",
-    "load",
-    "detect",
-    "reconcile",
-    "quality",
-    "aggregate",
-)
+#: The pipeline's stage order, used to turn a stage callback into a percentage.
+#: Imported rather than copied: a second list here would drift, and a drifted list
+#: makes progress jump backwards (aggregate at 100%, then reconcile at 78%).
+STAGES = STAGE_NAMES
 
 
 def job_type(

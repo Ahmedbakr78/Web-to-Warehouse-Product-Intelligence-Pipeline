@@ -71,9 +71,10 @@
       <h1>Overview</h1>
       <p>What the project is and how to run it</p>
     </div>
-    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#how-to-read-these-numbers">How to read these numbers</a></li><li class="lvl-2"><a href="#measured-facts-referenced-throughout">Measured facts referenced throughout</a></li><li class="lvl-2"><a href="#quick-commands">Quick commands</a></li><li class="lvl-2"><a href="#rendering-the-diagrams">Rendering the diagrams</a></li><li class="lvl-2"><a href="#the-documentation-website">The documentation website</a></li><li class="lvl-2"><a href="#related-files">Related files</a></li></ol></details>
+    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#how-to-read-these-numbers">How to read these numbers</a></li><li class="lvl-2"><a href="#measured-facts-referenced-throughout">Measured facts referenced throughout</a></li><li class="lvl-2"><a href="#reading-order">Reading order</a></li><li class="lvl-2"><a href="#quick-commands">Quick commands</a></li><li class="lvl-2"><a href="#related">Related</a></li></ol></details>
     <article class="doc-body">
-<p>Web-to-Warehouse Product Intelligence Pipeline — DEPI graduation project (Data Engineering track). Twenty documents covering proposal, planning, requirements, design, implementation evidence and evaluation. Every diagram is Mermaid (rendered natively by GitHub); every number is reproducible with the command cited beside it.</p>
+<p>Web-to-Warehouse Product Intelligence Pipeline — DEPI graduation project, Data Engineering track. Thirty documents covering the proposal, planning, requirements, design, implementation evidence and evaluation.</p>
+<p>Every diagram is Mermaid, rendered natively by GitHub and to SVG for the static site. Every structural number is measured by a script and re-verifiable with the command cited beside it.</p>
 <div class='table-scroll'><table><thead><tr>
 <th>#</th>
 <th>Document</th>
@@ -122,7 +123,7 @@
 <tr>
 <th>09</th>
 <td><a href="09_database_design.html">Database Design</a></td>
-<td>Generated 25-table ERD, logical versus physical schema, normalisation, indexing, retention, dialect types</td>
+<td>Generated 28-table ERD, logical versus physical schema, normalisation, indexing, retention, dialect types</td>
 </tr>
 <tr>
 <th>10</th>
@@ -137,7 +138,7 @@
 <tr>
 <th>12</th>
 <td><a href="12_ui_ux_design.html">UI/UX Design</a></td>
-<td>12 screen wireframes, design system with contrast ratios, WCAG 2.1 AA, breakpoints, motion policy</td>
+<td>Screen wireframes, design system with contrast ratios, WCAG 2.1 AA, breakpoints, motion policy</td>
 </tr>
 <tr>
 <th>13</th>
@@ -147,12 +148,12 @@
 <tr>
 <th>14</th>
 <td><a href="14_api_documentation.html">API Documentation</a></td>
-<td>Auth flow, role matrix, all 113 operations, worked examples in curl/Python/JS, errors, versioning</td>
+<td>Auth flow, role matrix, 173 operations, worked examples in curl/Python/JS, errors, versioning</td>
 </tr>
 <tr>
 <th>15</th>
 <td><a href="15_testing_strategy.html">Testing Strategy</a></td>
-<td>Test pyramid, 100-case plan, UAT scenarios, coverage targets, quality gates, defect management</td>
+<td>Test pyramid, case plan, UAT scenarios, coverage targets, quality gates, defect management</td>
 </tr>
 <tr>
 <th>16</th>
@@ -162,22 +163,22 @@
 <tr>
 <th>17</th>
 <td><a href="17_technical_documentation.html">Technical Documentation</a></td>
-<td>Module map, four key algorithms, every configuration variable, six-step source extension, performance and security</td>
+<td>Module map, key algorithms, every configuration variable, source extension, performance and security</td>
 </tr>
 <tr>
 <th>18</th>
 <td><a href="18_presentation_outline.html">Presentation Outline</a></td>
-<td>18-slide defence deck, Q&amp;A preparation, three-minute demo script, rehearsal and fallback plans</td>
+<td>Defence deck, Q&amp;A preparation, three-minute demo script, rehearsal and fallback plans</td>
 </tr>
 <tr>
 <th>19</th>
 <td><a href="19_feature_list.html">Feature Inventory</a></td>
-<td>311 features in 17 areas, each with a description and a file reference</td>
+<td>311 features in sixteen areas (F-001 to F-311), each with a file reference</td>
 </tr>
 <tr>
 <th>20</th>
 <td><a href="20_literature_feedback_and_improvements.html">Feedback and Improvements</a></td>
-<td>Lecturer feedback template, 32 prioritised improvements, self-assessment and rubric</td>
+<td>Lecturer feedback template, prioritised improvements, self-assessment and rubric</td>
 </tr>
 <tr>
 <th>21</th>
@@ -197,7 +198,37 @@
 <tr>
 <th>24</th>
 <td><a href="24_demo_runbook.html">Demo Runbook</a></td>
-<td>Pre-flight checklist, the eight-minute screen-by-screen script, time-boxed variants and a failure playbook that falls back to <code>curl</code></td>
+<td>Pre-flight checklist, the screen-by-screen script, time-boxed variants and a failure playbook that falls back to <code>curl</code></td>
+</tr>
+<tr>
+<th>25</th>
+<td><a href="25_forecasting_and_anomaly_detection.html">Forecasting &amp; Anomaly Detection</a></td>
+<td>Damped Holt-Winters with measured accuracy, three anomaly detectors, seasonality, elasticity and pricing advice</td>
+</tr>
+<tr>
+<th>26</th>
+<td><a href="26_background_jobs_and_realtime.html">Background Jobs &amp; Realtime</a></td>
+<td>Job lifecycle, leases, retries, cancellation, SSE topics and the cross-worker event problem</td>
+</tr>
+<tr>
+<th>27</th>
+<td><a href="27_reporting_and_document_generation.html">Reporting &amp; Document Generation</a></td>
+<td>Typed blocks rendered to HTML, JSON, CSV and PDF from one definition; WeasyPrint deployment</td>
+</tr>
+<tr>
+<th>28</th>
+<td><a href="28_schema_and_migrations.html">Schema &amp; Migrations</a></td>
+<td>Alembic revisions, drift detection, view ownership, and why Airflow lives in its own database</td>
+</tr>
+<tr>
+<th>29</th>
+<td><a href="29_two_factor_and_sessions.html">Two-Factor Authentication &amp; Sessions</a></td>
+<td>TOTP enrolment, encrypted secrets, single-use recovery codes, per-device revocation</td>
+</tr>
+<tr>
+<th>30</th>
+<td><a href="30_access_control_and_rate_limiting.html">Access Control, API Keys &amp; Rate Limiting</a></td>
+<td>Roles and rights, scoped API keys enforced twice, sliding-window limits with honest headers</td>
 </tr>
 </tbody></table></div>
 <hr>
@@ -208,19 +239,19 @@
 <th>Verify with</th>
 </tr></thead><tbody>
 <tr>
-<th>25 tables, 20 views</th>
-<td><code>make bootstrap</code></td>
+<th>28 tables, 20 views</th>
+<td><code>make bootstrap</code>, or <code>make stats</code></td>
 </tr>
 <tr>
-<td>113 REST operations in 16 routers</td>
-<td><code>http://localhost:8000/docs</code>, or count route decorators in <code>app/api/routers/</code></td>
+<td>173 REST operations in 23 routers</td>
+<td><code>http://localhost:8000/docs</code>, or <code>make stats</code></td>
 </tr>
 <tr>
-<th>321 tests pass</th>
+<th>408 tests pass</th>
 <td><code>make test</code></td>
 </tr>
 <tr>
-<th>78/78 API smoke checks</th>
+<td>104 API smoke checks pass</td>
 <td><code>.venv/bin/python scripts/api_smoke.py</code></td>
 </tr>
 <tr>
@@ -228,23 +259,41 @@
 <td><code>make lint</code> and <code>make typecheck</code></td>
 </tr>
 <tr>
+<th>No schema drift</th>
+<td><code>make db-check</code></td>
+</tr>
+<tr>
+<th>80 Mermaid diagrams</th>
+<td><code>make docs-render</code></td>
+</tr>
+<tr>
 <td>12 DQ rules and the score</td>
 <td>Quality screen, or <code>pip-cli quality</code></td>
 </tr>
 </tbody></table></div>
-<p>Row counts and latencies are <strong>measurements, not constants</strong>. They depend on how much data a given database holds and on the hardware. Each figure in these documents records the measurement taken at a stated moment — generally the development machine at the stated date — and is not silently rewritten when a later run produces a different number. Where a document reports a dataset size, the command that regenerates it is named alongside.</p>
+<p><code>scripts/project_stats.py</code> recounts all of these, <code>scripts/check_stats.py</code> fails when a documented figure no longer matches reality, and <code>make stats-check</code> runs it in CI. A number in these documents is therefore either measured or checked.</p>
+<p>Row counts and latencies are <strong>measurements, not constants</strong>. They depend on how much data a given database holds and on the hardware. Each figure records the measurement taken at a stated moment — generally the development machine at the stated date — and is not silently rewritten when a later run produces a different number. Where a document reports a dataset size, the command that regenerates it is named alongside.</p>
+<hr>
 <h2 id="measured-facts-referenced-throughout">Measured facts referenced throughout</h2>
 <div class='table-scroll'><table><thead><tr>
 <th>Fact</th>
 <th>Value</th>
 </tr></thead><tbody>
 <tr>
-<td>Physical tables / analytical views</td>
-<td>23 / 20 (identical on PostgreSQL 16 and MySQL 8.4)</td>
+<th>Version</th>
+<td>1.5.0</td>
 </tr>
 <tr>
-<th>REST operations</th>
-<td>113 documented in 16 routers</td>
+<td>Physical tables / analytical views</td>
+<td>28 / 20, identical on PostgreSQL 16 and MySQL 8.4</td>
+</tr>
+<tr>
+<td>REST operations / routers</td>
+<td>173 / 23</td>
+</tr>
+<tr>
+<td>Feature inventory / runtime catalogue</td>
+<td>311 rows in 16 areas (<code>docs/19</code>) / 233 features in 24 groups (<code>GET /meta/features</code>)</td>
 </tr>
 <tr>
 <td>Data-quality rules / dimensions</td>
@@ -255,68 +304,57 @@
 <td>5 (3 APIs, 1 HTML scraper, 1 offline synthetic)</td>
 </tr>
 <tr>
-<td>Reconciliation optimisation</td>
-<td>2,975 ms → 104 ms (29×) with identical results</td>
-</tr>
-<tr>
-<th>API latency</th>
-<td>p95 ≤ 38.2 ms across 12 read endpoints</td>
+<td>Documentation documents / diagrams</td>
+<td>30 / 80 Mermaid, all rendering to SVG</td>
 </tr>
 <tr>
 <th>API regression suite</th>
-<td>78/78 checks pass</td>
+<td>408 pytest cases, 104 smoke checks</td>
 </tr>
 <tr>
 <th>Demo accounts</th>
 <td><code>admin@example.com</code> / <code>Admin@12345</code>, <code>analyst@example.com</code> / <code>Analyst@12345</code>, <code>viewer@example.com</code> / <code>Viewer@12345</code></td>
 </tr>
 </tbody></table></div>
+<hr>
+<h2 id="reading-order">Reading order</h2>
+<p>If you are reviewing this for the first time:</p>
+<ul>
+<li class="depth-0"><strong><a href="01_project_proposal.html">01 Project Proposal</a></strong> — what problem, and why.</li>
+<li class="depth-0"><strong><a href="08_system_analysis_design.html">08 System Analysis</a></strong> and</li>
+</ul>
+<p><strong><a href="21_architecture_deep_dive.html">21 Architecture Deep Dive</a></strong> — how it is built and why each decision was made.</p>
+<ul>
+<li class="depth-0"><strong><a href="25_forecasting_and_anomaly_detection.html">25–30</a></strong> — the newer subsystems:</li>
+</ul>
+<p>forecasting, jobs and realtime, reporting, migrations, two-factor, access control.</p>
+<ul>
+<li class="depth-0"><strong><a href="14_api_documentation.html">14 API Documentation</a></strong> and</li>
+</ul>
+<p><strong><a href="16_user_manual.html">16 User Manual</a></strong> — the two views most reviewers want.</p>
+<ul>
+<li class="depth-0"><strong><a href="15_testing_strategy.html">15 Testing Strategy</a></strong> — what is verified, and how.</li>
+<li class="depth-0"><strong><a href="24_demo_runbook.html">24 Demo Runbook</a></strong> — if you are seeing it live.</li>
+</ul>
+<hr>
 <h2 id="quick-commands">Quick commands</h2>
-<pre class="code" data-lang="bash"><code>make install &amp;&amp; make env          # environment
-make up-db &amp;&amp; make db-wait        # PostgreSQL 16 + MySQL 8.4
-make bootstrap                    # 25 tables + 20 views + reference data
-make demo-postgres                # demo dataset
-make run-pipeline                 # one full pipeline run
-make verify-dialects              # cross-dialect verification
-make serve                        # API on http://localhost:8000/docs
-.venv/bin/python scripts/api_smoke.py     # 78-check regression suite
-make help                         # all 30+ targets</code></pre>
-<h2 id="rendering-the-diagrams">Rendering the diagrams</h2>
-<p>GitHub renders Mermaid natively, so no build step is required. To export SVGs:</p>
-<pre class="code" data-lang="bash"><code>make docs-render      # writes docs/diagrams/out/*.svg
-make docs-serve       # serves the raw markdown on http://localhost:8001</code></pre>
-<h2 id="the-documentation-website">The documentation website</h2>
-<p>Every document above is also published as a browsable website, with client-side search, a dark mode that follows the system preference, and all 50+ diagrams rendered.</p>
-<pre class="code" data-lang="bash"><code>make site             # builds ./site (standard library only — no dependencies to install)
-make site-serve       # builds it and serves it on http://localhost:8001
-python3 scripts/build_site.py --out /tmp/docs   # build somewhere else</code></pre>
-<p>The builder is a single dependency-free script (<code>scripts/build_site.py</code>). It exists because GitHub Pages does not serve private repositories on the free plan, so a Pages workflow would never deploy here — but the output is a plain directory of static files that can be served locally, dropped on any static host, or attached to a release.</p>
-<h2 id="related-files">Related files</h2>
-<div class='table-scroll'><table><thead><tr>
-<th>File</th>
-<th>Purpose</th>
-</tr></thead><tbody>
-<tr>
-<td><a href="../readme.html">../README.md</a></td>
-<td>Project gateway: overview, architecture, quick start</td>
-</tr>
-<tr>
-<td><a href="../changelog.html">../CHANGELOG.md</a></td>
-<td>Every release, following Keep a Changelog</td>
-</tr>
-<tr>
-<td><a href="../contributing.html">../CONTRIBUTING.md</a></td>
-<td>How to contribute</td>
-</tr>
-<tr>
-<td><a href="../security.html">../SECURITY.md</a></td>
-<td>Threat model and disclosure process</td>
-</tr>
-<tr>
-<td><a href="../db/analysis/readme.html">../db/analysis/README.md</a></td>
-<td>The four standalone SQL analyses</td>
-</tr>
-</tbody></table></div>
+<pre class="code" data-lang="bash"><code>make help          # every target
+make up            # the six-service stack
+make bootstrap     # schema, views and demo users
+make demo-postgres # deterministic 120-day dataset
+make run-pipeline  # one pipeline run
+make verify        # the full quality gate
+make docs-build    # regenerate the static site from this Markdown
+make docs-render   # render every Mermaid diagram to SVG
+make stats         # measured structural counts
+make infographic   # the 2560x1440 DEPI poster</code></pre>
+<h2 id="related">Related</h2>
+<ul>
+<li class="depth-0"><code>README.md</code> at the repository root — orientation and quick start</li>
+<li class="depth-0"><code>docs/stats.json</code> — the machine-readable counts, pinned by <code>make stats-update</code></li>
+<li class="depth-0"><code>site/</code> — the generated static site, 33 pages plus assets</li>
+<li class="depth-0"><code>CHANGELOG.md</code> — what changed in each version</li>
+</ul>
     </article>
     <div class="doc-foot">
       <span></span>
