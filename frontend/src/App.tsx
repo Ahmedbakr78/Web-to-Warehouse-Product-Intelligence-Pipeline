@@ -19,6 +19,7 @@ const Quality = lazy(() => import('./pages/Quality'))
 const Sources = lazy(() => import('./pages/Sources'))
 const QueryLab = lazy(() => import('./pages/QueryLab'))
 const Builder = lazy(() => import('./pages/Builder'))
+const Features = lazy(() => import('./pages/Features'))
 const Alerts = lazy(() => import('./pages/Alerts'))
 const Account = lazy(() => import('./pages/Account'))
 const Settings = lazy(() => import('./pages/Settings'))
@@ -203,6 +204,14 @@ export default function App() {
             element={
               <Suspense fallback={<LoadingState label="Loading builder…" />}>
                 <Builder />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/features"
+            element={
+              <Suspense fallback={<LoadingState label="Loading feature catalogue…" />}>
+                <Features />
               </Suspense>
             }
           />
