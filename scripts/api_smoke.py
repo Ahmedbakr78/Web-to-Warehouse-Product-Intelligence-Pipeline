@@ -40,6 +40,13 @@ CHECKS: list[tuple[str, str, int, bool, str]] = [
     ("GET", "/api/v1/stats/tables", 200, False, "row counts"),
     ("POST", "/api/v1/auth/login", 200, False, "admin login"),
     ("GET", "/api/v1/auth/me", 200, True, "profile"),
+    ("GET", "/api/v1/account/2fa/status", 200, True, "two-factor status"),
+    ("GET", "/api/v1/account/sessions", 200, True, "signed-in devices"),
+    ("GET", "/api/v1/jobs/types", 200, True, "background job types"),
+    ("GET", "/api/v1/jobs/worker", 200, True, "background worker status"),
+    ("POST", "/api/v1/jobs/export?dataset=products&format=csv&row_limit=50", 200, True, "queue an export"),
+    ("GET", "/api/v1/stream/snapshot?days=1", 200, True, "realtime KPI snapshot"),
+    ("GET", "/api/v1/auth/login", 405, False, "login rejects GET"),
     ("GET", "/api/v1/auth/session", 200, True, "session metadata"),
     ("GET", "/api/v1/auth/demo-accounts", 200, False, "documented credentials"),
     ("GET", "/api/v1/products", 200, True, "product list"),
@@ -135,6 +142,61 @@ def wait_for(url: str, timeout: float = 60.0) -> bool:
     return False
 
 
+def login_payload(email: str, password: str) -> dict[str, str]:
+    """Add the TOTP code when the account has two-factor authentication enabled.
+
+    Without this the smoke run fails outright the moment someone enables 2FA on a
+    demo account, taking the whole authenticated suite down with it.
+    """
+    payload: dict[str, str] = {"email": email, "password": password}
+    code = current_totp_code(email)
+    if code:
+        payload["totp_code"] = code
+    return payload
+
+
+def current_totp_code(email: str) -> str | None:
+    """A valid code for an enrolled account, or None when 2FA is off.
+
+    Only works against a local database whose SECRET_KEY is known. Otherwise None is
+    returned and the login is skipped rather than failing the suite.
+    """
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        import sqlalchemy as sa
+
+        from app.core.db import read_session
+        from app.models.app_users import AppUser
+        from app.services.twofactor import current_code, decrypt_secret
+
+        with read_session() as session:
+            user = session.execute(sa.select(AppUser).where(AppUser.email == email)).scalars().first()
+            if user is None or not user.two_factor_enabled or not user.totp_secret:
+                return None
+            return current_code(decrypt_secret(user.totp_secret))
+    except Exception:  # noqa: BLE001 - no reachable database means no code to supply
+        return None
+
+
+def login(base_url: str, email: str | None = None, password: str | None = None) -> str:
+    """Sign in and return an access token, or an empty string."""
+    try:
+        response = httpx.post(
+            f"{base_url}/api/v1/auth/login",
+            json=login_payload(
+                email or os.getenv("SMOKE_EMAIL", "admin@example.com"),
+                password or os.getenv("SMOKE_PASSWORD", "Admin@12345"),
+            ),
+            timeout=30.0,
+        )
+    except Exception:  # noqa: BLE001
+        return ""
+    if response.status_code != 200:
+        return ""
+    return response.json().get("access_token", "")
+
+
 def run_checks(base_url: str, token: str, role_tokens: dict[str, str] | None = None) -> tuple[int, int, int]:
     role_tokens = role_tokens or {}
     headers = {"Authorization": f"Bearer {token}"} if token else {}
@@ -151,10 +213,10 @@ def run_checks(base_url: str, token: str, role_tokens: dict[str, str] | None = N
             request_headers = {"Authorization": f"Bearer {role_tokens.get(role, '')}"}
         payload = None
         if method == "POST" and path.endswith("/auth/login"):
-            payload = {
-                "email": os.getenv("SMOKE_EMAIL", "admin@example.com"),
-                "password": os.getenv("SMOKE_PASSWORD", "Admin@12345"),
-            }
+            payload = login_payload(
+                os.getenv("SMOKE_EMAIL", "admin@example.com"),
+                os.getenv("SMOKE_PASSWORD", "Admin@12345"),
+            )
         elif method == "POST" and path.endswith("/queries/execute"):
             payload = {"sql": "SELECT 1 AS ok"} if expected == 200 else {"sql": "DELETE FROM dim_product"}
         elif method == "POST" and path.endswith("/builder/query"):
@@ -265,37 +327,19 @@ def main() -> int:
 
     token = ""
     try:
-        login = httpx.post(
-            f"{base_url}/api/v1/auth/login",
-            json={
-                "email": os.getenv("SMOKE_EMAIL", "admin@example.com"),
-                "password": os.getenv("SMOKE_PASSWORD", "Admin@12345"),
-            },
-            timeout=30.0,
-        )
-        token = login.json().get("access_token", "") if login.status_code == 200 else ""
+        token = login(base_url)
         if not token:
-            print(f"{YELLOW}login failed ({login.status_code}) - authenticated checks will be skipped{NC}")
+            print(f"{YELLOW}login failed - authenticated checks will be skipped{NC}")
     except Exception as exc:
         print(f"{YELLOW}login error: {exc}{NC}")
 
     print(f"{CYAN}running {len(CHECKS)} checks against {base_url}{NC}\n")
     try:
-        role_tokens: dict[str, str] = {}
-        viewer = httpx.post(
-            f"{base_url}/api/v1/auth/login",
-            json={"email": "viewer@example.com", "password": "Viewer@12345"},
-            timeout=30.0,
-        )
-        if viewer.status_code == 200:
-            role_tokens["viewer"] = viewer.json().get("access_token", "")
-        analyst = httpx.post(
-            f"{base_url}/api/v1/auth/login",
-            json={"email": "analyst@example.com", "password": "Analyst@12345"},
-            timeout=30.0,
-        )
-        if analyst.status_code == 200:
-            role_tokens["analyst"] = analyst.json().get("access_token", "")
+        role_tokens: dict[str, str] = {
+            role: login(base_url, f"{role}@example.com", f"{role.capitalize()}@12345")
+            for role in ("viewer", "analyst")
+        }
+        role_tokens = {role: value for role, value in role_tokens.items() if value}
         _passed, failed, _skipped = run_checks(base_url, token, role_tokens)
     finally:
         if process is not None:

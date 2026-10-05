@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from app.api.main import app
 from app.api.security import create_access_token
+from app.core.db import read_session
 
 pytestmark = pytest.mark.integration
 
@@ -30,6 +31,10 @@ def viewer_token():
 
 def auth(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
+
+
+#: Module-level handle for the tests that walk a stateful 2FA enrolment.
+ADMIN_TOKEN = create_access_token(1, role="admin", email="admin@example.com")
 
 
 # --------------------------------------------------------------------------------------
@@ -535,3 +540,228 @@ def test_version_is_consistent():
 
     frontend = json.loads((root / "frontend" / "package.json").read_text())["version"]
     assert frontend == version, "frontend/package.json has drifted from VERSION"
+
+
+# --------------------------------------------------------------------------------------
+# Two-factor authentication and session management
+# --------------------------------------------------------------------------------------
+def _enrol_two_factor(client, token: str) -> tuple[str, list[str]]:
+    """Walk the whole enrolment flow and return (secret, recovery_codes)."""
+    from app.services import twofactor
+
+    setup = client.post("/api/v1/account/2fa/setup", headers=auth(token))
+    assert setup.status_code == 200, setup.text
+    secret = setup.json()["secret"]
+    assert setup.json()["otpauth_uri"].startswith("otpauth://totp/")
+
+    activated = client.post(
+        "/api/v1/account/2fa/activate",
+        json={"secret": secret, "code": twofactor.current_code(secret)},
+        headers=auth(token),
+    )
+    assert activated.status_code == 200, activated.text
+    return secret, activated.json()["recovery_codes"]
+
+
+def test_two_factor_enrolment_flow(client, admin_token):
+    from app.services import twofactor
+
+    status = client.get("/api/v1/account/2fa/status", headers=auth(admin_token)).json()
+    assert status["enabled"] is False
+
+    # A wrong code must not enrol anything.
+    setup = client.post("/api/v1/account/2fa/setup", headers=auth(admin_token)).json()
+    wrong = client.post(
+        "/api/v1/account/2fa/activate",
+        json={"secret": setup["secret"], "code": "000000"},
+        headers=auth(admin_token),
+    )
+    assert wrong.status_code == 401
+    assert client.get("/api/v1/account/2fa/status", headers=auth(admin_token)).json()["enabled"] is False
+
+    secret, codes = _enrol_two_factor(client, admin_token)
+    assert len(codes) == 8
+
+    after = client.get("/api/v1/account/2fa/status", headers=auth(admin_token)).json()
+    assert after["enabled"] is True
+    assert after["recovery_codes_remaining"] == 8
+    assert after["enrolled_at"] is not None
+
+    # The stored secret is not the plain one.
+    with read_session() as session:
+        from app.models.app_users import AppUser
+
+        user = session.get(AppUser, 1)
+        assert user.totp_secret is not None
+        assert secret not in user.totp_secret
+
+    # A live code is accepted by the verify endpoint.
+    ok = client.post(
+        "/api/v1/account/2fa/verify",
+        json={"code": twofactor.current_code(secret)},
+        headers=auth(admin_token),
+    )
+    assert ok.json()["valid"] is True
+
+    # Tearing it down needs a valid code too.
+    disabled = client.post(
+        "/api/v1/account/2fa/disable",
+        json={"code": twofactor.current_code(secret)},
+        headers=auth(admin_token),
+    )
+    assert disabled.status_code == 200
+    assert client.get("/api/v1/account/2fa/status", headers=auth(admin_token)).json()["enabled"] is False
+
+
+def test_login_requires_the_second_factor_once_enrolled(client):
+    from app.services import twofactor
+
+    secret, codes = _enrol_two_factor(client, ADMIN_TOKEN)
+
+    # Password alone is no longer enough.
+    assert (
+        client.post(
+            "/api/v1/auth/login", json={"email": "admin@example.com", "password": "Admin@12345"}
+        ).status_code
+        == 401
+    )
+
+    # A wrong code is refused.
+    assert (
+        client.post(
+            "/api/v1/auth/login",
+            json={"email": "admin@example.com", "password": "Admin@12345", "totp_code": "111111"},
+        ).status_code
+        == 401
+    )
+
+    # A live code gets in.
+    ok = client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "admin@example.com",
+            "password": "Admin@12345",
+            "totp_code": twofactor.current_code(secret),
+        },
+    )
+    assert ok.status_code == 200
+    assert ok.json()["session_key"]
+
+    # A recovery code also works, and is consumed.
+    recovery = client.post(
+        "/api/v1/auth/login",
+        json={"email": "admin@example.com", "password": "Admin@12345", "recovery_code": codes[0]},
+    )
+    assert recovery.status_code == 200
+    again = client.post(
+        "/api/v1/auth/login",
+        json={"email": "admin@example.com", "password": "Admin@12345", "recovery_code": codes[0]},
+    )
+    assert again.status_code == 401
+
+    client.post(
+        "/api/v1/account/2fa/disable",
+        json={"code": twofactor.current_code(secret)},
+        headers=auth(ADMIN_TOKEN),
+    )
+
+
+def test_two_factor_lockout_is_auditable(client):
+    """Three bad codes lock the second factor; the counter must survive the 401."""
+    from app.services import twofactor
+
+    secret, _codes = _enrol_two_factor(client, ADMIN_TOKEN)
+
+    for _ in range(3):
+        client.post(
+            "/api/v1/auth/login",
+            json={"email": "admin@example.com", "password": "Admin@12345", "totp_code": "111111"},
+        )
+
+    status = client.get("/api/v1/account/2fa/status", headers=auth(ADMIN_TOKEN)).json()
+    assert status["locked"] is True
+    assert status["attempts_remaining"] == 0
+
+    # Even a correct code is refused while locked...
+    locked = client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "admin@example.com",
+            "password": "Admin@12345",
+            "totp_code": twofactor.current_code(secret),
+        },
+    )
+    assert locked.status_code == 401
+    assert locked.json()["details"]["locked"] is True
+
+    client.post(
+        "/api/v1/account/2fa/disable",
+        json={"code": twofactor.current_code(secret)},
+        headers=auth(ADMIN_TOKEN),
+    )
+
+
+def test_sessions_are_listed_and_revoked(client, admin_token):
+    login = client.post(
+        "/api/v1/auth/login", json={"email": "viewer@example.com", "password": "Viewer@12345"}
+    )
+    assert login.status_code == 200
+    session_key = login.json()["session_key"]
+    assert session_key
+
+    payload = client.get("/api/v1/account/sessions", headers=auth(login.json()["access_token"])).json()
+    assert payload["active"] >= 1
+    assert any(row["session_key"] == session_key for row in payload["sessions"])
+
+    revoked = client.post(
+        "/api/v1/account/sessions/revoke",
+        json={"session_key": session_key},
+        headers=auth(login.json()["access_token"]),
+    )
+    assert revoked.status_code == 200
+
+    after = client.get("/api/v1/account/sessions", headers=auth(login.json()["access_token"])).json()
+    revoked_row = next(row for row in after["sessions"] if row["session_key"] == session_key)
+    assert revoked_row["is_active"] is False
+    assert revoked_row["revoked_reason"] == "revoked by user"
+
+    # A revoked session can no longer be refreshed.
+    refresh = client.post(
+        "/api/v1/auth/refresh",
+        json={"refresh_token": login.json()["refresh_token"], "session_key": session_key},
+    )
+    assert refresh.status_code == 401
+
+
+def test_revoke_others_keeps_the_current_session(client, admin_token):
+    first = client.post(
+        "/api/v1/auth/login", json={"email": "viewer@example.com", "password": "Viewer@12345"}
+    ).json()
+    second = client.post(
+        "/api/v1/auth/login", json={"email": "viewer@example.com", "password": "Viewer@12345"}
+    ).json()
+    assert first["session_key"] != second["session_key"]
+
+    result = client.post(
+        f"/api/v1/account/sessions/revoke-others?current={second['session_key']}",
+        headers=auth(second["access_token"]),
+    )
+    assert result.status_code == 200
+
+    rows = client.get("/api/v1/account/sessions", headers=auth(second["access_token"])).json()["sessions"]
+    kept = next(row for row in rows if row["session_key"] == second["session_key"])
+    dropped = next(row for row in rows if row["session_key"] == first["session_key"])
+    assert kept["is_active"] is True
+    assert dropped["is_active"] is False
+
+
+def test_session_refresh_tokens_are_stored_hashed():
+    """A database read must not be enough to replay a session."""
+    import sqlalchemy as sa
+
+    with read_session() as session:
+        rows = session.execute(sa.text("SELECT refresh_hash FROM app_session")).all()
+    assert rows, "expected at least one recorded session"
+    for (digest,) in rows:
+        assert digest and len(digest) == 64
+        assert not digest.startswith("eyJ"), "a JWT must never be stored in the clear"
