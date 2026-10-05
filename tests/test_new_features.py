@@ -927,3 +927,41 @@ def test_initial_migration_creates_every_table_and_the_views():
 
     # And it must apply the views, or the analytics layer has nothing to query.
     assert "apply_views()" in source
+
+
+# --------------------------------------------------------------------------------------
+# Realtime authentication
+# --------------------------------------------------------------------------------------
+def open_stream(client, path: str, params: dict | None = None, headers: dict | None = None):
+    """Open an SSE response and read only its handshake.
+
+    A full `client.get()` would never return: the stream stays open and emits
+    keep-alives for as long as the connection lasts.
+    """
+    with client.stream("GET", path, params=params, headers=headers) as response:
+        opener = next((line for line in response.iter_lines() if line.startswith("event:")), "")
+        return response.status_code, response.headers.get("content-type", ""), opener
+
+
+def test_sse_accepts_the_token_in_the_query_string(client, admin_token):
+    """`EventSource` cannot set headers, so the query credential is the browser path."""
+    status, content_type, opener = open_stream(client, "/api/v1/stream/kpis", {"token": admin_token})
+    assert status == 200
+    assert content_type.startswith("text/event-stream")
+    assert opener == "event: open"
+
+
+def test_sse_still_accepts_the_authorization_header(client, admin_token):
+    status, _, opener = open_stream(client, "/api/v1/stream/kpis", headers=auth(admin_token))
+    assert status == 200
+    assert opener == "event: open"
+
+
+def test_sse_rejects_a_missing_or_bogus_credential(client):
+    assert client.get("/api/v1/stream/kpis").status_code == 401
+    assert client.get("/api/v1/stream/kpis", params={"token": "not-a-token"}).status_code == 401
+
+
+def test_sse_query_token_enforces_role_rights(client, viewer_token):
+    """The query credential widens the transport, never the permissions."""
+    assert client.get("/api/v1/jobs/stream/jobs", params={"token": viewer_token}).status_code in (401, 403)

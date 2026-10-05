@@ -14,10 +14,12 @@ import {
   ShieldCheck,
   Timer,
   TrendingUp,
+  Zap,
 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { BarSeries } from '@/components/charts'
+import JobQueue from '@/components/JobQueue'
 import {
   Badge,
   Button,
@@ -110,6 +112,7 @@ export default function Pipeline() {
           onChange={setTab}
           tabs={[
             { id: 'runs', label: 'Runs', icon: <ListTree className="h-4 w-4" /> },
+            { id: 'jobs', label: 'Jobs', icon: <Zap className="h-4 w-4" /> },
             { id: 'compare', label: 'Compare', icon: <GitCompareArrows className="h-4 w-4" /> },
             { id: 'sources', label: 'Source health', icon: <Boxes className="h-4 w-4" /> },
             { id: 'schedule', label: 'Schedule', icon: <Clock className="h-4 w-4" /> },
@@ -305,6 +308,8 @@ export default function Pipeline() {
           </Card>
         </div>
       ) : null}
+
+      {tab === 'jobs' ? <JobQueue /> : null}
 
       {tab === 'schedule' ? (
         <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
