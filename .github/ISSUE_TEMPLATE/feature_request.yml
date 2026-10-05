@@ -1,0 +1,60 @@
+name: Feature request
+description: Suggest a capability or improvement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Every feature in this project is tracked in `docs/19_feature_list.md`.
+        Please check there first — the capability may already exist, possibly under another name.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is the underlying problem? Describe the situation, not the solution.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What should happen instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternative
+    attributes:
+      label: Alternatives considered
+      description: Including "do nothing" — that is a valid answer.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      multiple: true
+      options:
+        - Ingestion and compliance
+        - Cleaning and normalisation
+        - Deduplication
+        - Warehouse and ETL
+        - Data quality
+        - Analytics and views
+        - REST API
+        - Dashboard UI
+        - Orchestration (Airflow)
+        - CLI and developer experience
+        - Documentation
+        - Deployment and CI
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: The feature respects robots.txt and the documented rate limits.
+        - label: I searched the issue tracker for an existing request.
