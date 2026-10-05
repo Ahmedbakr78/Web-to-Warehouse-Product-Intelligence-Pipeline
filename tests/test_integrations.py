@@ -443,21 +443,34 @@ def test_export_error_is_a_pipeline_error():
 # Run comparison
 # --------------------------------------------------------------------------------------
 def _insert_run(session, run_id: str, **kwargs) -> None:
-    base = {
+    """Insert a minimal etl_run row (the table has many NOT NULL columns)."""
+    values: dict = {
+        "run_id": run_id,
+        "pipeline": "product_intelligence",
         "status": "success",
         "trigger": "manual",
         "target_database": "postgres",
         "started_at": dt.datetime.now(dt.timezone.utc),
+        "created_at": dt.datetime.now(dt.timezone.utc),
         "records_extracted": 10,
         "records_valid": 10,
+        "records_rejected": 0,
+        "records_inserted": 10,
+        "records_updated": 0,
+        "duplicates_merged": 0,
+        "new_products": 0,
+        "price_changes": 0,
+        "removed_products": 0,
+        "catalog_matched": 0,
+        "dq_passed": 12,
+        "dq_failed": 0,
         "dq_score": 100.0,
         "duration_ms": 1000,
     }
-    base.update(kwargs)
-    session.execute(
-        sa.text("INSERT INTO etl_run (run_id, " + ", ".join(base) + ") VALUES (:" + ", :".join(base) + ")"),
-        base,
-    )
+    values.update(kwargs)
+    columns = ", ".join(values)
+    placeholders = ", ".join(f":{name}" for name in values)
+    session.execute(sa.text(f"INSERT INTO etl_run ({columns}) VALUES ({placeholders})"), values)
     session.flush()
 
 
