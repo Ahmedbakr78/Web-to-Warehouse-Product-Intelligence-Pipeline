@@ -694,4 +694,190 @@ __all__ = [
     "http_log",
     "query_explain",
     "list_views",
+    "compare_runs",
 ]
+
+
+# --------------------------------------------------------------------------------------
+# Run comparison (diff two pipeline runs)
+# --------------------------------------------------------------------------------------
+RUN_METRIC_COLUMNS: tuple[str, ...] = (
+    "records_extracted",
+    "records_valid",
+    "records_rejected",
+    "records_inserted",
+    "records_updated",
+    "duplicates_merged",
+    "new_products",
+    "price_changes",
+    "removed_products",
+    "catalog_matched",
+    "dq_passed",
+    "dq_failed",
+)
+
+
+def compare_runs(
+    session: Session,
+    base_run_id: str,
+    target_run_id: str,
+    sample_limit: int = 25,
+) -> dict[str, Any]:
+    """Compare two ETL runs: metric deltas, DQ regressions and record-level movement.
+
+    ``base`` is the earlier reference run, ``target`` the later one being judged.
+    Returns an empty ``{}`` when either run is unknown so callers can surface 404s.
+    """
+    base = _one(session, sa.text("SELECT * FROM etl_run WHERE run_id = :rid"), {"rid": base_run_id})
+    target = _one(session, sa.text("SELECT * FROM etl_run WHERE run_id = :rid"), {"rid": target_run_id})
+    if not base or not target:
+        return {}
+
+    metrics: list[dict[str, Any]] = []
+    for column in RUN_METRIC_COLUMNS:
+        before = base.get(column) or 0
+        after = target.get(column) or 0
+        delta = after - before
+        metrics.append(
+            {
+                "metric": column,
+                "base": before,
+                "target": after,
+                "delta": delta,
+                "delta_pct": round(delta / before * 100, 2) if before else None,
+            }
+        )
+
+    base_score = base.get("dq_score")
+    target_score = target.get("dq_score")
+
+    base_dq = {
+        row["rule_code"]: row["status"]
+        for row in _rows(
+            session,
+            sa.text("SELECT rule_code, status FROM dq_rule_result WHERE run_id = :rid"),
+            {"rid": base_run_id},
+        )
+    }
+    target_dq = {
+        row["rule_code"]: row["status"]
+        for row in _rows(
+            session,
+            sa.text("SELECT rule_code, status FROM dq_rule_result WHERE run_id = :rid"),
+            {"rid": target_run_id},
+        )
+    }
+    regressions = sorted(
+        code for code, status in target_dq.items() if status != "pass" and base_dq.get(code, "pass") == "pass"
+    )
+    fixes = sorted(
+        code
+        for code, status in target_dq.items()
+        if status == "pass" and base_dq.get(code) not in (None, "pass")
+    )
+
+    def _snapshot_rows(run_id: str) -> list[dict[str, Any]]:
+        """One row per product touched by a run: id, display name and USD price."""
+        return _rows(
+            session,
+            sa.text(
+                """
+                SELECT p.product_id, p.canonical_name, f.price_usd
+                FROM fact_price_snapshot f
+                JOIN dim_product p ON p.product_id = f.product_id
+                WHERE f.run_id = :rid
+                """
+            ),
+            {"rid": run_id},
+        )
+
+    base_rows = _snapshot_rows(base_run_id)
+    target_rows = _snapshot_rows(target_run_id)
+
+    def _index(rows: list[dict[str, Any]]) -> tuple[dict[int, str], dict[int, float]]:
+        names = {row["product_id"]: row["canonical_name"] for row in rows}
+        prices = {row["product_id"]: float(row["price_usd"]) for row in rows if row["price_usd"] is not None}
+        return names, prices
+
+    base_names, base_prices = _index(base_rows)
+    target_names, target_prices = _index(target_rows)
+
+    added_ids = sorted(set(target_names) - set(base_names))
+    dropped_ids = sorted(set(base_names) - set(target_names))
+    added = [{"product_id": pid, "canonical_name": target_names[pid]} for pid in added_ids[:sample_limit]]
+    dropped = [{"product_id": pid, "canonical_name": base_names[pid]} for pid in dropped_ids[:sample_limit]]
+
+    price_moves = sorted(
+        (
+            {
+                "product_id": pid,
+                "canonical_name": target_names.get(pid) or base_names.get(pid),
+                "base_price": round(base_prices[pid], 4),
+                "target_price": round(target_prices[pid], 4),
+                "delta": round(target_prices[pid] - base_prices[pid], 4),
+                "delta_pct": (
+                    round((target_prices[pid] - base_prices[pid]) / base_prices[pid] * 100, 2)
+                    if base_prices[pid]
+                    else None
+                ),
+            }
+            for pid in set(base_prices) & set(target_prices)
+            if base_prices[pid] != target_prices[pid]
+        ),
+        key=lambda item: abs(item["delta"]),
+        reverse=True,
+    )
+
+    base_ms = base.get("duration_ms") or 0
+    target_ms = target.get("duration_ms") or 0
+
+    return {
+        "base": _run_head(base),
+        "target": _run_head(target),
+        "metrics": metrics,
+        "dq": {
+            "base_score": base_score,
+            "target_score": target_score,
+            "score_delta": (
+                round(target_score - base_score, 4)
+                if base_score is not None and target_score is not None
+                else None
+            ),
+            "regressions": regressions,
+            "fixed": fixes,
+        },
+        "catalogue": {
+            "added_count": len(added_ids),
+            "dropped_count": len(dropped_ids),
+            "added": added,
+            "dropped": dropped,
+            "truncated": len(added_ids) > sample_limit or len(dropped_ids) > sample_limit,
+        },
+        "prices": {
+            "changed_count": len(price_moves),
+            "moves": price_moves[:sample_limit],
+            "truncated": len(price_moves) > sample_limit,
+        },
+        "performance": {
+            "base_duration_ms": base_ms,
+            "target_duration_ms": target_ms,
+            "delta_ms": target_ms - base_ms,
+            "delta_pct": round((target_ms - base_ms) / base_ms * 100, 2) if base_ms else None,
+        },
+    }
+
+
+def _run_head(run: dict[str, Any]) -> dict[str, Any]:
+    """Compact run header used by the comparison payload."""
+    return {
+        "run_id": run.get("run_id"),
+        "status": run.get("status"),
+        "trigger": run.get("trigger"),
+        "target_database": run.get("target_database"),
+        "dag_id": run.get("dag_id"),
+        "task_id": run.get("task_id"),
+        "started_at": run.get("started_at"),
+        "finished_at": run.get("finished_at"),
+        "duration_ms": run.get("duration_ms"),
+        "dq_score": run.get("dq_score"),
+    }

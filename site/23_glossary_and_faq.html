@@ -161,23 +161,23 @@ docker compose logs postgres | tail -30</code></pre>
 </tr></thead><tbody>
 <tr>
 <th>Dashboard</th>
-<td>&lt;<a href=" "> </a></td>
+<td>&lt;<a href="http://localhost:5173&gt;">http://localhost:5173&gt;</a></td>
 </tr>
 <tr>
 <th>API</th>
-<td>&lt;<a href=" "> </a></td>
+<td>&lt;<a href="http://localhost:8000&gt;">http://localhost:8000&gt;</a></td>
 </tr>
 <tr>
 <th>Interactive API docs</th>
-<td>&lt;<a href=" "> </a></td>
+<td>&lt;<a href="http://localhost:8000/docs&gt;">http://localhost:8000/docs&gt;</a></td>
 </tr>
 <tr>
 <th>ReDoc</th>
-<td>&lt;<a href=" "> </a></td>
+<td>&lt;<a href="http://localhost:8000/redoc&gt;">http://localhost:8000/redoc&gt;</a></td>
 </tr>
 <tr>
 <th>Airflow</th>
-<td>&lt;<a href=" "> </a></td>
+<td>&lt;<a href="http://localhost:8080&gt;">http://localhost:8080&gt;</a></td>
 </tr>
 <tr>
 <th>PostgreSQL</th>
@@ -456,7 +456,7 @@ python3 scripts/build_site.py --serve    # build, then serve on :8001</code></pr
 <h3 id="why-store-every-snapshot-instead-of-just-the-current-price">Why store every snapshot instead of just the current price?</h3>
 <p>Because the product is about <strong>change</strong>. "What was the price last week?" and "which products disappeared?" are only answerable from history. Keeping the FX rate with each snapshot additionally means history is stable even as exchange rates move.</p>
 <h3 id="what-would-you-build-next">What would you build next?</h3>
-<p>In priority order, with the reasoning in <a href="20_literature_feedback_and_improvements.md">20_literature_feedback_and_improvements.md</a>:</p>
+<p>In priority order, with the reasoning in <a href="20_literature_feedback_and_improvements.html">20_literature_feedback_and_improvements.md</a>:</p>
 <ul>
 <li class="depth-0"><strong>Incremental SCD-2 for categories</strong> — so category drift has real history instead of a</li>
 </ul>

@@ -167,6 +167,22 @@ def slugify(text: str) -> str:
     return re.sub(r"[\s_]+", "-", slug).strip("-")
 
 
+def _rewrite_href(url: str) -> str:
+    """Point a Markdown link at the generated HTML page instead of the source file.
+
+    Documents cross-reference each other with ``](01_project_proposal.md)`` links because that is
+    what works on github.com. In the built site the same link must resolve to
+    ``01_project_proposal.html``.
+    """
+    if url.startswith(("http://", "https://", "mailto:", "#", "data:")):
+        return url
+    path, sep, frag = url.partition("#")
+    if not path.endswith(".md"):
+        return url
+    target = path[:-3].lower() + ".html"
+    return target + (sep + frag if sep else "")
+
+
 def _inline(text: str) -> str:
     """Convert the inline Markdown constructs used throughout these documents."""
     out = html.escape(text, quote=False)
@@ -185,7 +201,7 @@ def _inline(text: str) -> str:
     # links
     out = re.sub(
         r"\[([^\]]+)\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)",
-        r'<a href="\2">\1</a>',
+        lambda m: f'<a href="{_rewrite_href(m.group(2))}">{m.group(1)}</a>',
         out,
     )
     # bold, italic (bold first so *** does not collide)
@@ -194,8 +210,12 @@ def _inline(text: str) -> str:
     out = re.sub(r"(?<![\w*])\*([^*\n]+)\*(?!\w)", r"<em>\1</em>", out)
     # strikethrough
     out = re.sub(r"~~([^~]+)~~", r"<del>\1</del>", out)
-    # bare autolinks
-    out = re.sub(r"(?<![\"'=>])\bhttps?://[^\s<)]+", r'<a href="\0">\0</a>', out)
+    # bare autolinks -- a lambda, because \0 in a replacement would emit a NUL byte
+    out = re.sub(
+        r"(?<![\"'=>#])\bhttps?://[^\s<)]+",
+        lambda m: f'<a href="{m.group(0)}">{m.group(0)}</a>',
+        out,
+    )
     return out
 
 

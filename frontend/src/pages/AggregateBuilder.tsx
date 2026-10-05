@@ -10,6 +10,7 @@ import { useMemo, useState } from 'react'
 import { BarChart3, Copy, Download, Layers, Play, Plus, RotateCcw, Terminal, Trash2 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 
+import { useDebounce } from '@/hooks/useDebounce'
 import {
   Badge,
   Button,
@@ -80,6 +81,13 @@ let nextId = 1
 const makeFilter = (): FilterRow => ({ id: nextId++, column: '', operator: 'eq', value: '', value2: '' })
 const makeAgg = (): AggRow => ({ id: nextId++, function: 'count', column: '', alias: '' })
 
+/** Render one aggregate cell: the grouping key as text, measures as numbers. */
+function renderCell(value: unknown) {
+  if (value === null || value === undefined || value === '') return <span className="text-subtle">—</span>
+  if (typeof value === 'number') return <span className="font-medium tabular-nums">{formatNumber(value, 2)}</span>
+  return <span className="block max-w-[18rem] truncate">{String(value)}</span>
+}
+
 export default function AggregateBuilder() {
   const toast = useToast()
   const schemaQuery = useQuery({ queryKey: ['builder-schema'], queryFn: endpoints.builderSchema, staleTime: 900_000 })
@@ -129,10 +137,14 @@ export default function AggregateBuilder() {
     }
   }, [entity, effectiveGroupBy, aggregates, filters, sortColumn, sortDir, limit])
 
+  // Debounced so typing a filter value does not fire a request per keystroke.
+  const debouncedPayload = useDebounce(payload, 320)
+
   const query = useQuery({
-    queryKey: ['builder-aggregate', payload, draft],
-    queryFn: () => endpoints.builderQuery(payload),
-    enabled: Boolean(entity && effectiveGroupBy && hasAgg && !query.error),
+    queryKey: ['builder-aggregate', debouncedPayload],
+    queryFn: () => endpoints.builderQuery(debouncedPayload),
+    enabled: Boolean(entity && effectiveGroupBy && hasAgg),
+    placeholderData: (previous) => previous,
   })
 
   const result = query.data as QueryResult | undefined
@@ -484,9 +496,14 @@ export default function AggregateBuilder() {
               })
               return record
             })}
-            rowKey={(_row: any, index: number) => String(index)}
+            rowKey={(_row: Record<string, unknown>, index: number) => String(index)}
             loading={query.isFetching}
-            columns={result.columns.map((column) => ({ key: column, header: titleCase(column), align: column === effectiveGroupBy ? 'left' : 'right' }))}
+            columns={result.columns.map((column) => ({
+              key: column,
+              header: titleCase(column),
+              align: (column === effectiveGroupBy ? 'left' : 'right') as 'left' | 'right',
+              render: (row: Record<string, unknown>) => renderCell(row[column]),
+            }))}
           />
         ) : (
           <EmptyState
