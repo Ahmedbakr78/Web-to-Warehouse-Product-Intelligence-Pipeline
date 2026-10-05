@@ -254,7 +254,6 @@ def run_full_pipeline(**context: Any) -> dict[str, Any]:
         from app.etl.pipeline import Pipeline, PipelineConfig
 
         params = context.get("params") or {}
-        task = context.get("task")
         config = PipelineConfig(
             sources=params.get("sources") or DEFAULT_SOURCES,
             database=params.get("database") or "postgres",
