@@ -1,16 +1,21 @@
 import { useEffect, useState } from 'react'
 import {
+  Activity,
   Copy,
+  Download,
   Eye,
   EyeOff,
+  FileDown,
   KeyRound,
   LogOut,
   Moon,
   Palette,
+  RefreshCw,
   Save,
   Shield,
   Sun,
   Trash2,
+  TriangleAlert,
   UserCircle,
 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -21,6 +26,7 @@ import {
   Card,
   CardHeader,
   DataTable,
+  EmptyState,
   KeyValue,
   Modal,
   Segmented,
@@ -38,7 +44,7 @@ import { useApiQuery } from '@/hooks/useApi'
 import { useAuth } from '@/hooks/useAuth'
 import { ALL_NAV_ITEMS } from '@/lib/nav'
 import { localStore } from '@/lib/session'
-import { formatDateTime, formatRelative, initials, titleCase } from '@/lib/format'
+import { formatDateTime, formatRelative, initials, titleCase, downloadJson } from '@/lib/format'
 
 const AVATAR_COLORS = [
   '#4f46e5', '#2563eb', '#0891b2', '#059669', '#d97706', '#dc2626',
@@ -75,6 +81,32 @@ export default function Account() {
   const [keyName, setKeyName] = useState('')
   const [issuedKey, setIssuedKey] = useState<string | null>(null)
   const [showKeyModal, setShowKeyModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleteConfirm, setDeleteConfirm] = useState('')
+
+  const activity = useApiQuery(['my-activity'], () => endpoints.myActivity({ page: 1, page_size: 25, days: 90 }), {
+    staleTime: 60_000,
+  })
+
+  const exportData = useMutation({
+    mutationFn: () => endpoints.exportMyData(),
+    onSuccess: (payload: any) => {
+      downloadJson(`account-export-${user?.email ?? 'user'}.json`, payload)
+      toast.success('Export downloaded', 'Your profile, keys, views, alerts and activity were included.')
+    },
+    onError: (error: Error) => toast.error('Could not export the data', error.message),
+  })
+
+  const deleteAccount = useMutation({
+    mutationFn: () => endpoints.deleteMyAccount(deletePassword),
+    onSuccess: () => {
+      toast.success('Account deleted', 'All personal data was removed. Signing out.')
+      setShowDeleteModal(false)
+      logout()
+    },
+    onError: (error: Error) => toast.error('Could not delete the account', error.message),
+  })
 
   useEffect(() => {
     if (!user) return
@@ -227,6 +259,8 @@ export default function Account() {
           { id: 'appearance', label: 'Appearance', icon: <Palette className="h-4 w-4" /> },
           { id: 'security', label: 'Security', icon: <Shield className="h-4 w-4" /> },
           { id: 'api', label: 'API keys', count: apiKeys.data?.length ?? 0, icon: <KeyRound className="h-4 w-4" /> },
+          { id: 'activity', label: 'Activity', icon: <Activity className="h-4 w-4" /> },
+          { id: 'data', label: 'Data & privacy', icon: <Download className="h-4 w-4" /> },
         ]}
       />
 
@@ -576,6 +610,84 @@ export default function Account() {
         </Card>
       ) : null}
 
+      {tab === 'activity' ? (
+        <Card padded={false}>
+          <div className="flex flex-wrap items-center justify-between gap-2 p-4 sm:p-5">
+            <CardHeader
+              title="Recent activity"
+              subtitle="Everything you did in the last 90 days - sign-ins, key changes and settings updates"
+              icon={<Activity className="h-4 w-4" />}
+            />
+            <Button size="sm" variant="secondary" icon={<RefreshCw className="h-3.5 w-3.5" />} onClick={() => void activity.refetch()}>
+              Refresh
+            </Button>
+          </div>
+          {activity.data?.items?.length ? (
+            <DataTable
+              rows={activity.data.items}
+              rowKey={(row: any) => row.audit_id}
+              emptyMessage="No activity in this window"
+              columns={[
+                {
+                  key: 'action',
+                  header: 'Action',
+                  render: (row: any) => <span className="font-medium">{titleCase(row.action.replace(/[._]/g, ' '))}</span>,
+                },
+                { key: 'entity', header: 'Target', render: (row: any) => (row.entity_type ? `${row.entity_type}${row.entity_id ? ` #${row.entity_id}` : ''}` : '—') },
+                { key: 'status', header: 'Status', render: (row: any) => <Badge tone={row.status === 'failure' ? 'danger' : row.status === 'success' ? 'success' : 'neutral'}>{row.status}</Badge> },
+                { key: 'ip', header: 'IP', hideBelow: 'md', render: (row: any) => <span className="font-mono text-xs">{row.ip_address ?? '—'}</span> },
+                { key: 'when', header: 'When', align: 'right', render: (row: any) => formatRelative(row.created_at) },
+              ]}
+            />
+          ) : (
+            <div className="px-4 pb-6">
+              <EmptyState
+                icon={<Activity className="h-6 w-6" />}
+                title="No recent activity"
+                message="Actions you perform are recorded here automatically."
+              />
+            </div>
+          )}
+        </Card>
+      ) : null}
+
+      {tab === 'data' ? (
+        <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+          <Card>
+            <CardHeader title="Export my data" subtitle="A portable JSON snapshot of everything stored about you" icon={<FileDown className="h-4 w-4" />} />
+            <p className="text-xs leading-relaxed text-muted">
+              Downloads your profile, preferences, API-key metadata, saved views, alert rules, notifications and recent
+              activity. Passwords and key secrets are never included.
+            </p>
+            <Button
+              className="mt-4"
+              variant="primary"
+              icon={<Download className="h-4 w-4" />}
+              loading={exportData.isPending}
+              onClick={() => exportData.mutate()}
+            >
+              Download my data
+            </Button>
+          </Card>
+
+          <Card className="border-danger/40">
+            <CardHeader title="Danger zone" subtitle="Irreversible actions" icon={<TriangleAlert className="h-4 w-4" />} />
+            <p className="text-xs leading-relaxed text-muted">
+              Deleting your account revokes every API key, saved view, alert rule and notification. Warehouse data is
+              untouched because it is not owned by your account.
+            </p>
+            <Button
+              className="mt-4"
+              variant="danger"
+              icon={<Trash2 className="h-4 w-4" />}
+              onClick={() => setShowDeleteModal(true)}
+            >
+              Delete my account
+            </Button>
+          </Card>
+        </div>
+      ) : null}
+
       {/* ------------------------------------------------------------- modals */}
       <Modal
         open={showKeyModal}
@@ -616,6 +728,43 @@ export default function Account() {
           >
             Copy key
           </Button>
+        </div>
+      </Modal>
+
+      <Modal
+        open={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        title="Delete your account"
+        description="This permanently removes your account and every personal record attached to it."
+        size="sm"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setShowDeleteModal(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              loading={deleteAccount.isPending}
+              disabled={!deletePassword || deleteConfirm !== 'DELETE'}
+              onClick={() => deleteAccount.mutate()}
+            >
+              Delete permanently
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <div className="rounded-lg border border-danger/40 bg-danger-soft p-3 text-xs text-danger">
+            This cannot be undone. Your API keys stop working immediately and you will be signed out.
+          </div>
+          <div>
+            <p className="stat-label mb-1.5">Confirm your password</p>
+            <TextInput type="password" value={deletePassword} onChange={(event) => setDeletePassword(event.target.value)} autoComplete="current-password" autoFocus />
+          </div>
+          <div>
+            <p className="stat-label mb-1.5">Type DELETE to confirm</p>
+            <TextInput value={deleteConfirm} onChange={(event) => setDeleteConfirm(event.target.value)} placeholder="DELETE" />
+          </div>
         </div>
       </Modal>
     </div>
