@@ -1287,7 +1287,7 @@ natively on GitHub; every structural number is tied to a runnable command.
 | 16 | User Manual | sign-in, every screen, filters, exports, alerts, admin, troubleshooting, FAQ |
 | 17 | Technical Documentation | module map, four key algorithms, every configuration variable |
 | 18 | Presentation Outline | 18-slide defence deck, Q&A preparation, demo script |
-| 19 | Feature Inventory | 234 features in 15 areas with file references |
+| 19 | Feature Inventory | 271 features in 16 areas with file references |
 | 20 | Feedback and Improvements | feedback template, 32 prioritised improvements, self-assessment |
 | 21 | **Architecture Deep Dive** | design drivers, decisions with rejected alternatives, request lifecycle, layering, known limitations |
 | 22 | **Data Dictionary** | every table, column, type and meaning; controlled vocabularies; view catalogue; dialect portability |

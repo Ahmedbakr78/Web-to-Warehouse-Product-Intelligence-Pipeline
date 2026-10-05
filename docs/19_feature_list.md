@@ -400,7 +400,9 @@ decision) rather than individual lines of code.
 | F-233 | Project infographic generator | Reusable script producing the DEPI 16:9 roadmap slide (SVG master, HTML preview, PNG when cairosvg is installed) straight from the documented facts | `scripts/make_infographic.py`, `docs/assets/infographic.svg` |
 | F-234 | Diagram extractor | Extracts every Mermaid block from the documentation set into `docs/diagrams/out/*.mmd` with an index table; optional `mmdc` rendering | `scripts/diagrams.py`, `docs/diagrams/out/index.md` |
 
-**Revised total: 234 features.**
+**Revised total: 271 features across 16 areas** (F-001 to F-271, contiguous, with no duplicate or
+missing identifiers). Each section heading states its own count, and those counts match the rows
+beneath them.
 ---
 
 ## 16. Platform v1.3 additions (37)
