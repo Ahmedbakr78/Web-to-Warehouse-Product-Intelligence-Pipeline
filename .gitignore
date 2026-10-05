@@ -21,6 +21,7 @@ coverage.xml
 *.db
 data/
 var/
+state/
 logs/
 *.log
 !docs/**/*.log
