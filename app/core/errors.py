@@ -52,6 +52,11 @@ class ProductNotFoundError(PipelineError):
     code = "product_not_found"
 
 
+class NotFoundError(PipelineError):
+    status_code = 404
+    code = "not_found"
+
+
 class ValidationError(PipelineError):
     status_code = 422
     code = "validation_error"
@@ -85,6 +90,7 @@ __all__ = [
     "RateLimitError",
     "SourceNotFoundError",
     "ProductNotFoundError",
+    "NotFoundError",
     "ValidationError",
     "IngestionError",
     "AuthenticationError",

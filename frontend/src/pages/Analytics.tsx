@@ -267,7 +267,7 @@ export default function Analytics() {
               rowKey={(row: any, index) => `${row.brand}-${row.category_name ?? index}`}
               loading={brands.isFetching}
               maxHeight={460}
-              onRowClick={(row: any) => row.brand && (window.location.href = `/products?brand=${encodeURIComponent(row.brand)}`)}
+              onRowClick={(row: any) => row.brand && navigate(`/products?brand=${encodeURIComponent(row.brand)}`)}
               columns={[
                 { key: 'brand', header: 'Brand', render: (row: any) => <span className="font-medium">{row.brand}</span> },
                 { key: 'category', header: 'Category', hideBelow: 'sm', render: (row: any) => <span className="text-xs text-muted">{row.category_name ?? '—'}</span> },
@@ -401,5 +401,5 @@ export default function Analytics() {
 }
 
 function navigateToCategory(category: string) {
-  window.location.href = `/products?category=${encodeURIComponent(category)}`
+  navigate(`/products?category=${encodeURIComponent(category)}`)
 }
