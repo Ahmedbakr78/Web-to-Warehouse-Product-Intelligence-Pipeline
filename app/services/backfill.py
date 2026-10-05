@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import datetime as dt
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -125,11 +126,19 @@ def plan_backfill(
     )
 
 
-def execute_backfill(plan: BackfillPlan) -> dict[str, Any]:
+def execute_backfill(
+    plan: BackfillPlan,
+    on_day: Callable[[dt.date, dict[str, Any]], None] | None = None,
+    before_day: Callable[[dt.date], None] | None = None,
+) -> dict[str, Any]:
     """Run the pipeline once per planned day and summarise the outcome.
 
     Each day is independent: a failure is recorded and the job continues, because a
     single bad day must not abandon the rest of the range.
+
+    `on_day` is invoked after each day with the day's date and result entry, and
+    `before_day` before it starts. The job runner uses them to publish progress
+    and to honour a cancellation request at a safe boundary.
     """
     from app.etl.pipeline import Pipeline, PipelineConfig
 
@@ -137,6 +146,8 @@ def execute_backfill(plan: BackfillPlan) -> dict[str, Any]:
     started = utcnow()
 
     for day in plan.days:
+        if before_day is not None:
+            before_day(day)
         config = PipelineConfig(
             sources=list(plan.sources),
             database=plan.database,
@@ -170,6 +181,8 @@ def execute_backfill(plan: BackfillPlan) -> dict[str, Any]:
             entry |= {"status": "failed", "error": f"{type(exc).__name__}: {exc}"}
         runs.append(entry)
         log.info("backfill %s day=%s status=%s", plan.backfill_id, day, entry.get("status"))
+        if on_day is not None:
+            on_day(day, entry)
 
     finished = utcnow()
     succeeded = [run for run in runs if run.get("status") in {"success", "partial"}]

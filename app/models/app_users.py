@@ -244,6 +244,75 @@ class AppSetting(Base):
     )
 
 
+class AppJob(Base, TimestampMixin):
+    """A unit of background work with a durable lease, progress and retry state.
+
+    Replaces in-process ``BackgroundTasks`` for anything that can take longer than
+    a request: the row survives a restart, ``lease_expires_at`` lets another worker
+    reclaim a job whose owner died, and ``attempt``/``max_attempts`` make retries
+    explicit rather than best-effort.
+    """
+
+    __tablename__ = "app_job"
+
+    job_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, autoincrement=True)
+    #: Caller-facing handle: a short opaque id used in URLs and the UI.
+    job_key: Mapped[str] = mapped_column(ShortStr, nullable=False, unique=True)
+    #: What to run: `pipeline_run`, `backfill`, `export`, `forecast` or a webhook delivery series.
+    job_type: Mapped[str] = mapped_column(ShortStr, nullable=False, index=True)
+    #: queued | running | succeeded | failed | cancelled
+    status: Mapped[str] = mapped_column(ShortStr, default="queued", nullable=False, index=True)
+    #: Constructor keyword arguments, replayed by the worker.
+    payload: Mapped[dict | None] = mapped_column(JSONType, default=dict)
+    #: Public progress, 0-100, plus a short human-readable stage label.
+    progress_pct: Mapped[int] = mapped_column(sa.Integer, default=0)
+    stage: Mapped[str | None] = mapped_column(ShortStr)
+    result: Mapped[dict | None] = mapped_column(JSONType, default=dict)
+    error: Mapped[str | None] = mapped_column(sa.Text)
+
+    requested_by: Mapped[int | None] = mapped_column(
+        sa.Integer, sa.ForeignKey("app_user.user_id", ondelete="SET NULL"), index=True
+    )
+    requested_by_email: Mapped[str | None] = mapped_column(ShortStr)
+
+    attempt: Mapped[int] = mapped_column(sa.Integer, default=0)
+    max_attempts: Mapped[int] = mapped_column(sa.Integer, default=3)
+    #: Set while a worker holds the job. A worker that stops heartbeating loses the
+    #: lease and another worker may claim it.
+    lease_owner: Mapped[str | None] = mapped_column(ShortStr, index=True)
+    lease_expires_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
+    heartbeat_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
+
+    queued_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), default=utcnow, nullable=False, index=True)
+    started_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
+    finished_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime(), index=True)
+    cancel_requested: Mapped[bool] = mapped_column(sa.Boolean, default=False)
+
+    __table_args__ = (
+        sa.Index("ix_app_job_status_queued", "status", "queued_at"),
+        sa.Index("ix_app_job_type_requested", "job_type", "requested_by"),
+    )
+
+
+class AppJobEvent(Base):
+    """An append-only progress line for a job, streamed to the UI over SSE."""
+
+    __tablename__ = "app_job_event"
+
+    event_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, autoincrement=True)
+    job_id: Mapped[int] = mapped_column(
+        sa.Integer, sa.ForeignKey("app_job.job_id", ondelete="CASCADE"), index=True
+    )
+    #: info | progress | warning | error
+    level: Mapped[str] = mapped_column(ShortStr, default="info")
+    stage: Mapped[str | None] = mapped_column(ShortStr)
+    message: Mapped[str] = mapped_column(sa.Text, nullable=False)
+    progress_pct: Mapped[int | None] = mapped_column(sa.Integer)
+    created_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), default=utcnow, nullable=False, index=True)
+
+    __table_args__ = (sa.Index("ix_app_job_event_job", "job_id", "event_id"),)
+
+
 __all__ = [
     "AppUser",
     "AppApiKey",
@@ -252,4 +321,8 @@ __all__ = [
     "AppNotification",
     "AppAuditLog",
     "AppSetting",
+    "AppWebhook",
+    "AppWebhookDelivery",
+    "AppJob",
+    "AppJobEvent",
 ]
