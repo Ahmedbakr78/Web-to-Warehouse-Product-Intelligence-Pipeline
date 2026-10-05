@@ -5,6 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 
 from app.api.routers import (
+    account,
     analytics,
     audit,
     auth,
@@ -30,6 +31,7 @@ from app.api.routers import (
 ROUTERS: tuple[APIRouter, ...] = (
     health.router,
     auth.router,
+    account.router,
     users.router,
     products.router,
     changes.router,

@@ -109,8 +109,16 @@ class HealthResponse(BaseModel):
 # --------------------------------------------------------------------------------------
 class LoginRequest(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=6, max_length=256)
-    remember: bool = True
+    password: str = Field(min_length=1, max_length=256)
+    remember: bool = Field(default=False, description="Ask for a longer-lived refresh token (up to 30 days)")
+    totp_code: str | None = Field(
+        default=None,
+        max_length=8,
+        description="Six-digit authenticator code, required when 2FA is enrolled",
+    )
+    recovery_code: str | None = Field(
+        default=None, max_length=16, description="Single-use recovery code, if the device is lost"
+    )
 
 
 class TokenResponse(BaseModel):
@@ -119,11 +127,18 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     expires_in: int
     role: str
+    #: Handle for the browser session just opened, so it can be revoked later.
+    session_key: str | None = None
+    #: True when the account needs a TOTP or recovery code before it can be used.
+    two_factor_required: bool = False
     user: UserRead
 
 
 class RefreshRequest(BaseModel):
     refresh_token: str
+    session_key: str | None = Field(
+        default=None, description="Session handle, so a revoked session cannot be refreshed"
+    )
 
 
 class PasswordChangeRequest(BaseModel):
@@ -165,6 +180,9 @@ class UserRead(ORMModel):
     email_alerts_enabled: bool = False
     weekly_digest_enabled: bool = False
     two_factor_enabled: bool = False
+    two_factor_enrolled_at: dt.datetime | None = None
+    #: Recovery codes left, so the UI can warn before the last one is used.
+    recovery_codes_remaining: int = 0
     login_count: int = 0
     last_login_at: dt.datetime | None = None
     created_at: dt.datetime | None = None

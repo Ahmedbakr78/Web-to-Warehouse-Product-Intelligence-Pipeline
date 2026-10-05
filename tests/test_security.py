@@ -153,3 +153,91 @@ def test_role_levels_are_ordered():
 def test_every_role_has_a_permission_set():
     assert set(ROLE_RIGHTS) == {"admin", "analyst", "viewer"}
     assert all(ROLE_RIGHTS.values())
+
+
+# --------------------------------------------------------------------------------------
+# Two-factor authentication
+# --------------------------------------------------------------------------------------
+def test_totp_codes_verify_within_the_window_and_outside_it():
+    from app.services import twofactor
+
+    secret = twofactor.generate_secret()
+    base = twofactor._now()
+
+    for drift in (-1, 0, 1):
+        assert twofactor.verify_code(secret, twofactor.code_at(secret, base + drift)) is True
+    for drift in (-5, 2, 30):
+        assert twofactor.verify_code(secret, twofactor.code_at(secret, base + drift)) is False
+
+    # Malformed input is rejected rather than raising.
+    for bad in ("", "123", "abcdef", "1234567"):
+        assert twofactor.verify_code(secret, bad) is False
+
+
+def test_totp_secret_round_trips_through_encryption():
+    from app.services.twofactor import decrypt_secret, encrypt_secret, verify_code
+
+    secret = twofactor_secret()
+    stored = encrypt_secret(secret)
+    assert secret not in stored
+    assert decrypt_secret(stored) == secret
+    # And the recovered secret still validates a live code.
+    assert twofactor_verify(decrypt_secret(stored), twofactor_current(secret)) is True
+
+
+def twofactor_secret() -> str:
+    from app.services.twofactor import generate_secret
+
+    return generate_secret()
+
+
+def twofactor_verify(secret: str, code: str) -> bool:
+    from app.services.twofactor import verify_code
+
+    return verify_code(secret, code)
+
+
+def twofactor_current(secret: str) -> str:
+    from app.services.twofactor import current_code
+
+    return current_code(secret)
+
+
+def test_recovery_codes_are_single_use_and_normalised():
+    """A recovery code is compared as the normalised string, not as a hash of itself."""
+    from app.services.twofactor import (
+        generate_recovery_codes,
+        hash_recovery_code,
+        redeem_recovery_code,
+    )
+
+    user = AppUser(user_id=1, email="a@b.c", full_name="A", hashed_password="x")
+    codes = generate_recovery_codes(3)
+    user.recovery_codes = [hash_recovery_code(code) for code in codes]
+
+    assert redeem_recovery_code(None, user, codes[0]) is True
+    assert redeem_recovery_code(None, user, codes[0]) is False  # consumed
+    assert redeem_recovery_code(None, user, codes[1].lower()) is True  # case-insensitive
+    assert redeem_recovery_code(None, user, codes[2]) is True
+    assert len(user.recovery_codes or []) == 0
+
+
+def test_recovery_codes_are_never_stored_in_the_clear():
+    from app.services.twofactor import generate_recovery_codes, hash_recovery_code
+
+    codes = generate_recovery_codes(4)
+    hashed = [hash_recovery_code(code) for code in codes]
+    for code in codes:
+        assert not any(code in stored for stored in hashed)
+
+
+def test_otpauth_uri_carries_the_issuer_and_period():
+    from app.services.twofactor import generate_secret, otpauth_uri
+
+    secret = generate_secret()
+    uri = otpauth_uri(secret, "admin@example.com")
+    assert uri.startswith("otpauth://totp/")
+    assert f"secret={secret}" in uri
+    assert "period=30" in uri
+    assert "digits=6" in uri
+    assert "issuer=" in uri
