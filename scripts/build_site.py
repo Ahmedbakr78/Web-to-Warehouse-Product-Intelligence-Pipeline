@@ -25,6 +25,7 @@ Usage::
 from __future__ import annotations
 
 import argparse
+import contextlib
 import html
 import json
 import re
@@ -1097,10 +1098,8 @@ def serve(out_dir: Path, port: int) -> None:
     httpd = ThreadingHTTPServer(("127.0.0.1", port), handler)
     url = f"http://localhost:{port}/"
     print(f"Serving {out_dir} at {url}  (Ctrl-C to stop)")
-    try:
+    with contextlib.suppress(Exception):
         webbrowser.open(url)
-    except Exception:
-        pass
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

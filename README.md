@@ -30,9 +30,9 @@
 </p>
 
 <p align="center">
-  <b>113 REST operations</b> · <b>23 tables</b> · <b>20 analytical views</b> ·
+  <b>110 REST operations</b> · <b>23 tables</b> · <b>20 analytical views</b> ·
   <b>12 DQ rules</b> · <b>5 compliant sources</b> · <b>255 tests</b> ·
-  <b>78/78 API checks</b> · <b>two SQL dialects, one schema</b>
+  <b>86/86 API checks</b> · <b>two SQL dialects, one schema</b>
 </p>
 
 <p align="center">
@@ -146,18 +146,18 @@ Everything is engineered like a production system, not a demo:
 | **Orchestration** | Apache Airflow 2.10 DAG | 13 tasks, branch-on-changes, alert fan-out, report publication, sync-run API for demos |
 | **Data quality** | 12-rule framework over 6 dimensions | completeness, validity, uniqueness, accuracy, consistency, timeliness, weighted score |
 | **Change detection** | SQL plus an event engine | price changes banded by magnitude, new and removed products, category drift, lifecycle events |
-| **REST API** | FastAPI | **113 operations in 16 routers**, JWT and API-key auth, RBAC (admin / analyst / viewer), OpenAPI docs, gzip, timing headers |
-| **Dashboard** | React 19 + TypeScript + Tailwind + Recharts | 20 screens, light/dark/system themes, 6 accent colours, 3 densities, command palette, installable PWA, responsive from 320 px |
+| **REST API** | FastAPI | **110 operations in 16 routers**, JWT and API-key auth, RBAC (admin / analyst / viewer), OpenAPI docs, gzip, timing headers |
+| **Dashboard** | React 19 + TypeScript + Tailwind + ReCharts | 21 screens, light/dark/system themes, 6 accent colours, 3 densities, command palette, installable PWA, responsive from 320 px |
 | **CLI** | Typer, 12 commands | bootstrap, seed, run, report, verify, quality, sources preview |
 | **Ops** | Docker Compose (6 services), Makefile (30+ targets), GitHub Actions CI | one-command everything |
 
 **Measured facts (every number below is reproducible with the command beside it):**
 
 ```text
-23 physical tables  |  20 analytical views  |  113 REST operations in 16 routers
+23 physical tables  |  20 analytical views  |  110 REST operations in 16 routers
 12 DQ rules across 6 dimensions, weighted score persisted per run
 5 ingestion sources  |  9 pipeline stages  |  13 Airflow tasks
-255 unit tests  |  78/78 API smoke checks  |  mypy clean in 61 files  |  ruff zero warnings
+255 unit tests  |  86/86 API smoke checks  |  mypy clean in 61 files  |  ruff zero warnings
 p95 API latency <= 38.2 ms measured across 12 endpoints
 Catalog reconciliation: 2,975 ms -> 104 ms (29x) with identical results
 ```
@@ -278,12 +278,12 @@ flowchart LR
 
     subgraph Ops["Operations"]
         AF["Airflow DAG<br/>13 tasks"]
-        API["FastAPI REST<br/>113 operations"]
+        API["FastAPI REST<br/>110 operations"]
         DQ["12-rule DQ framework"]
     end
 
     subgraph UI["Delivery"]
-        RE["React 19 dashboard<br/>20 screens"]
+        RE["React 19 dashboard<br/>21 screens"]
         EXP["CSV / JSON exports"]
         QL["Query lab, read-only SQL"]
     end
@@ -321,7 +321,7 @@ flowchart TB
     end
     subgraph Server["FastAPI monolith, modular"]
         MW["CORS - gzip - timing headers"]
-        RT["16 routers, 113 operations"]
+        RT["16 routers, 110 operations"]
         SV["analytics + ETL services"]
         SEC["JWT + API keys - RBAC - audit"]
         MW --> RT --> SV
@@ -618,7 +618,7 @@ The run receives a weighted score; the dashboard charts the 90-day trend.
 
 ### 6 - Serve
 
-The FastAPI app (113 operations) exposes products, changes, analytics, pipeline operations, quality,
+The FastAPI app (110 operations) exposes products, changes, analytics, pipeline operations, quality,
 catalog, sources, the read-only query lab, saved views, notifications, settings and audit. The React
 dashboard consumes it, and both endpoints and UI offer CSV and JSON exports. Airflow triggers the
 whole cycle daily; the API's sync endpoint and the CLI produce the identical `etl_run` record.
@@ -729,12 +729,11 @@ SKUs. Adding blocking indexes, a rare-token fallback and a capped pool brought i
 **29× improvement with identical results**. Because the output is unchanged, the optimisation is
 legitimate rather than a silent loss of accuracy.
 
----
+### Decision register
 
-## Design decisions
-
-Every significant choice below was weighed against at least one credible alternative, and the reason
-is recorded so a reviewer can challenge it rather than guess.
+The full reasoning, the rejected alternatives and the measured consequences live in
+[docs/21_architecture_deep_dive.md](docs/21_architecture_deep_dive.md). Every significant choice is
+recorded below with the alternative it beat, so a reviewer can challenge it rather than guess.
 
 | # | Decision | Alternative rejected | Why this one |
 | --- | --- | --- | --- |
@@ -1018,7 +1017,7 @@ The exhaustive, file-referenced inventory lives in
 
 - JWT access and refresh rotation, API keys (`pip_...`), Argon2id password hashing
 - role-based access control: admin, analyst, viewer, enforced per route server-side
-- 113 operations, OpenAPI and ReDoc documentation, gzip compression, `X-Process-Time-Ms` headers
+- 110 operations, OpenAPI and ReDoc documentation, gzip compression, `X-Process-Time-Ms` headers
 - CSV and JSON exports on the API and in the dashboard
 - one consistent error envelope (`error`, `message`, `details`) with validation detail
 
@@ -1163,7 +1162,7 @@ trigger a pipeline run is denied.
 | Lint and format | `make lint` | ruff: all checks pass, zero warnings |
 | Static types | `make typecheck` | mypy: no issues in 61 source files |
 | Unit tests | `make test` | pytest: 255 passed (SQLite warehouse, no services required) |
-| API regression | `.venv/bin/python scripts/api_smoke.py` | 78/78 checks, including auth, RBAC and 404 paths |
+| API regression | `.venv/bin/python scripts/api_smoke.py` | 86/86 checks, including auth, RBAC and 404 paths |
 | Frontend | `cd frontend && npm run lint && npm run typecheck && npm run build` | ESLint at zero warnings, clean tsc, production build |
 | Cross-dialect | `make verify-dialects` | identical model and DQ score on PostgreSQL and MySQL |
 | Orchestrated | `make airflow-test` | the DAG executes end-to-end for a fixed date |
