@@ -101,7 +101,6 @@ export default function AggregateBuilder() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [limit, setLimit] = useState(25)
   const [showChart, setShowChart] = useState(true)
-  const [draft, setDraft] = useState(0)
 
   const current = useMemo(() => schema?.entities.find((item) => item.entity === entity), [schema, entity])
   const numericColumns = useMemo(() => current?.columns.filter((column) => column.type === 'number') ?? [], [current])

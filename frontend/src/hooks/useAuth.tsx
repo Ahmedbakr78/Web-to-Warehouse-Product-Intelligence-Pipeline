@@ -23,7 +23,7 @@ import {
   THEME_MODES,
   useAppearanceSync,
 } from '@/lib/theme'
-import type { Density, Direction, FontScale, MotionMode, ThemeMode } from '@/lib/theme'
+import type { Density, FontScale, MotionMode, ThemeMode } from '@/lib/theme'
 
 /** Narrow an untrusted string against a list of allowed values. */
 function isOneOf(value: string | null | undefined, allowed: readonly string[]): value is string {

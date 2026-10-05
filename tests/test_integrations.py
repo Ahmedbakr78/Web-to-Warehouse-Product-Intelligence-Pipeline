@@ -520,16 +520,16 @@ def test_compare_runs_reports_dq_regressions(session):
         session.execute(
             sa.text(
                 "INSERT INTO dq_rule_result (run_id, rule_code, dimension, severity, status,"
-                " records_checked, records_failed) VALUES (:r, 'PRICE_POSITIVE', 'validity', 'error', :s, 10, 0)"
+                " records_checked, records_failed, evaluated_at) VALUES (:r, 'PRICE_POSITIVE', 'validity', 'error', :s, 10, 0, :t)"
             ),
-            {"r": run_id, "s": status},
+            {"r": run_id, "s": status, "t": dt.datetime.now(dt.timezone.utc)},
         )
         session.execute(
             sa.text(
                 "INSERT INTO dq_rule_result (run_id, rule_code, dimension, severity, status,"
-                " records_checked, records_failed) VALUES (:r, 'NAME_PRESENT', 'completeness', 'error', 'pass', 10, 0)"
+                " records_checked, records_failed, evaluated_at) VALUES (:r, 'NAME_PRESENT', 'completeness', 'error', 'pass', 10, 0, :t)"
             ),
-            {"r": run_id},
+            {"r": run_id, "t": dt.datetime.now(dt.timezone.utc)},
         )
     session.flush()
 
@@ -545,9 +545,9 @@ def test_compare_runs_reports_dq_fixes(session):
         session.execute(
             sa.text(
                 "INSERT INTO dq_rule_result (run_id, rule_code, dimension, severity, status,"
-                " records_checked, records_failed) VALUES (:r, 'PRICE_POSITIVE', 'validity', 'error', :s, 10, 0)"
+                " records_checked, records_failed, evaluated_at) VALUES (:r, 'PRICE_POSITIVE', 'validity', 'error', :s, 10, 0, :t)"
             ),
-            {"r": run_id, "s": status},
+            {"r": run_id, "s": status, "t": dt.datetime.now(dt.timezone.utc)},
         )
     session.flush()
     assert compare_runs(session, "cmp_fix_a", "cmp_fix_b")["dq"]["fixed"] == ["PRICE_POSITIVE"]

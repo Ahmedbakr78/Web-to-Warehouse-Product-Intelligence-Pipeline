@@ -807,24 +807,23 @@ def compare_runs(
     added = [{"product_id": pid, "canonical_name": target_names[pid]} for pid in added_ids[:sample_limit]]
     dropped = [{"product_id": pid, "canonical_name": base_names[pid]} for pid in dropped_ids[:sample_limit]]
 
-    price_moves = sorted(
+    price_moves: list[dict[str, Any]] = sorted(
         (
             {
                 "product_id": pid,
                 "canonical_name": target_names.get(pid) or base_names.get(pid),
                 "base_price": round(base_prices[pid], 4),
                 "target_price": round(target_prices[pid], 4),
-                "delta": round(target_prices[pid] - base_prices[pid], 4),
-                "delta_pct": (
-                    round((target_prices[pid] - base_prices[pid]) / base_prices[pid] * 100, 2)
-                    if base_prices[pid]
-                    else None
-                ),
+                "delta": round(delta, 4),
+                "delta_pct": (round(delta / base_prices[pid] * 100, 2) if base_prices[pid] else None),
             }
-            for pid in set(base_prices) & set(target_prices)
-            if base_prices[pid] != target_prices[pid]
+            for pid, delta in (
+                (pid, target_prices[pid] - base_prices[pid])
+                for pid in set(base_prices) & set(target_prices)
+                if base_prices[pid] != target_prices[pid]
+            )
         ),
-        key=lambda item: abs(item["delta"]),
+        key=lambda item: abs(float(item["delta"])),
         reverse=True,
     )
 

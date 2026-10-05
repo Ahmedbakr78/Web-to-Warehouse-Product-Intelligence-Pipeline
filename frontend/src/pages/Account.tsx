@@ -45,7 +45,6 @@ import {
   MOTION_MODES,
   THEME_MODES,
   useAccent,
-  useAppearance,
   useDensity,
   useDirection,
   useFontScale,

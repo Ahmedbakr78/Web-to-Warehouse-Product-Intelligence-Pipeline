@@ -234,7 +234,7 @@ sequenceDiagram
         RT-->>MW: response
         MW->>MW: gzip if accepted
         MW-->>FE: 200 + X-Process-Time-Ms
-        FE->>FE: cache; render chart
+        FE->>FE: render chart from cache
     end
     Note over AUD: mutating requests additionally write<br/>user, action, ip, user_agent
 ```

@@ -30,7 +30,7 @@ flowchart TB
         R --> HL["ingestion_http_log"]
         SS["sync_state"]
     end
-    subgraph CORE["Analytical core (10 tables)"]
+subgraph CORE["Analytical core (10 tables)"]
         DP["dim_product"] --> FP["fact_price_snapshot"]
         DC["dim_category"] --> DP
         DS["dim_source"] --> DP
@@ -39,14 +39,13 @@ flowchart TB
         FP --> AG["agg_category_daily"]
         DP --> CP["chg_price_change"]
         DP --> CE["chg_product_event"]
-        CP["catalog_product"] --> FC["fact_catalog_snapshot"]
+        CAT["catalog_product"] --> FC["fact_catalog_snapshot"]
         DP --> FC
     end
     subgraph STG["Staging (1 table)"]
-        STG["stg_raw_observation"]
+        RAW["stg_raw_observation"]
     end
-    STG -.validated and promoted.-> DP
-    R -.one run produces.-> STG
+    RAW -.validated and promoted.-> DP
 ```
 
 **23 tables** in total: 5 dimensions, 2 facts, 1 aggregate, 2 change tables, 1 staging table, 4
