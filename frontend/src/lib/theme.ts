@@ -239,8 +239,18 @@ type Snapshot = {
 
 const listeners = new Set<() => void>()
 
+/**
+ * Cached snapshot.
+ *
+ * `useSyncExternalStore` compares successive snapshots with `Object.is`, so this must
+ * return the *same object* until something actually changes. Returning a fresh
+ * literal every call made every render look like a store change, which put React into
+ * an infinite re-render loop (error #185) on any screen calling `useTheme`.
+ */
+let cached: Snapshot | null = null
+
 function currentSnapshot(): Snapshot {
-  return {
+  const next: Snapshot = {
     theme: getStoredTheme(),
     isDark: document.documentElement.classList.contains('dark'),
     density: read<Density>(KEY.density, DENSITIES.map((d) => d.id), 'comfortable'),
@@ -249,6 +259,21 @@ function currentSnapshot(): Snapshot {
     direction: document.documentElement.dataset.direction === 'rtl' ? 'rtl' : 'ltr',
     fontScale: read<FontScale>(KEY.fontScale, FONT_SCALES.map((f) => f.id), 'md'),
   }
+
+  if (
+    cached &&
+    cached.theme === next.theme &&
+    cached.isDark === next.isDark &&
+    cached.density === next.density &&
+    cached.accent === next.accent &&
+    cached.motion === next.motion &&
+    cached.direction === next.direction &&
+    cached.fontScale === next.fontScale
+  ) {
+    return cached
+  }
+  cached = next
+  return cached
 }
 
 function emit(): void {
@@ -263,6 +288,14 @@ function subscribe(listener: () => void): () => void {
 }
 
 /* ------------------------------------------------------------------ hooks */
+
+/**
+ * Exposed for tests only.
+ *
+ * The reference-stability guarantee is what stops `useSyncExternalStore` from
+ * re-rendering forever, and it cannot be asserted through a hook without a DOM.
+ */
+export const __snapshotForTest = currentSnapshot
 
 export function useAppearance() {
   return useSyncExternalStore(subscribe, currentSnapshot, currentSnapshot)
