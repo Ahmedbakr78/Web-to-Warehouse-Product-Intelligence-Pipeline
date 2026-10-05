@@ -1033,3 +1033,61 @@ def test_a_valid_subset_resolves_to_just_those_topics():
 
     assert _resolve_topics(["job", "kpi"]) == [TOPICS["job"], TOPICS["kpi"]]
     assert _resolve_topics(None) == list(TOPICS.values())
+
+
+def test_progress_is_persisted_while_the_job_is_still_running():
+    """Progress must reach the database mid-job, not only when the handler returns.
+
+    Regression test: progress used to be buffered until the handler returned, so a
+    pipeline run crawling permitted web sources under a rate limit sat at 0% for its
+    whole duration and looked identical to a hung job.
+    """
+    import time as _time
+
+    from app.jobs import handlers, queue
+
+    observed: list[int | None] = []
+
+    @handlers.job_type("pytest_slow_progress")
+    def slow(job_id: int, report) -> dict:
+        """Reports as a throttled crawl does: rarely, and slowly."""
+        report("first item", stage="extract", progress_pct=10)
+        # A long gap between reports, which is exactly when an unflushed buffer would
+        # make the job look hung.
+        _time.sleep(queue.PROGRESS_FLUSH_SECONDS + 0.5)
+        report("second item", stage="extract", progress_pct=40)
+        _time.sleep(queue.PROGRESS_FLUSH_SECONDS + 0.5)
+        with session_scope() as session:
+            observed.append(queue.get_job(session, job_id).progress_pct)
+        return {"ok": True}
+
+    with session_scope() as session:
+        handle = queue.enqueue(session, "pytest_slow_progress", {}, requested_by_email="pytest")
+        key, job_id = handle.job_key, handle.job_id
+
+    with session_scope() as session:
+        job = queue.get_job(session, key)
+        job.status = "running"
+        job.lease_owner = "test"
+        session.flush()
+
+    queue._execute(job_id, slow, None)
+
+    # Read back from the database, not from anything the handler held: at that point
+    # the job had not finished, yet a real percentage was already stored.
+    assert observed == [40], f"progress was not visible mid-job, only at the end: {observed}"
+
+    with session_scope() as session:
+        job = queue.get_job(session, key)
+        assert job.status == "succeeded"
+        assert job.progress_pct == 100
+        stages = [event["stage"] for event in queue.job_events(session, job.job_id)]
+        assert "extract" in stages and "done" in stages
+
+
+def test_progress_flush_is_batched_not_per_event():
+    """One write per event would contend with the handler's own transaction."""
+    from app.jobs import queue
+
+    assert queue.PROGRESS_FLUSH_COUNT >= 2, "flushing every event re-introduces the lock contention"
+    assert queue.PROGRESS_FLUSH_SECONDS <= 5, "progress must be visible within a few seconds"

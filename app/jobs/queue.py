@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import datetime as dt
 import threading
+import time
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -387,21 +388,33 @@ def claim_next(database: str | None, owner: str) -> AppJob | None:
         return job
 
 
-def _execute(job_id: int, handler: Handler, database: str | None) -> None:
-    """Run one handler, streaming progress live and persisting it in one batch.
+#: How long progress may stay unpersisted before a flush, and how many events may
+#: accumulate first. Whichever comes first wins.
+PROGRESS_FLUSH_SECONDS = 2.0
+PROGRESS_FLUSH_COUNT = 5
 
-    Progress is delivered immediately over the in-memory broker, but written to
-    `app_job_event` only when the handler returns. Writing each line as it happens
-    would open a second connection while the handler still holds its own transaction:
-    SQLite refuses that outright ("database is locked"), and on PostgreSQL it costs a
-    round trip per stage for data that is only ever read back as history.
+
+def _execute(job_id: int, handler: Handler, database: str | None) -> None:
+    """Run one handler, streaming progress live and persisting it promptly.
+
+    Progress is delivered over the in-memory broker the moment it happens, and to
+    `app_job_event` at most every few seconds. Batching matters: writing each line as
+    it occurs would open a second connection while the handler still holds its own
+    transaction, which SQLite refuses outright ("database is locked"). But batching
+    only to the end of the job was worse - a run that crawls permitted web sources
+    under a rate limit can take minutes, and `GET /jobs/{key}` reported 0% for that
+    whole time, because the row's `progress_pct` was only written on return. A job
+    that looks hung is indistinguishable from one that is hung, so the flush is
+    time-bounded as well as count-bounded.
     """
     pending: list[dict[str, Any]] = []
+    state = {"last": time.monotonic()}
 
     def flush() -> None:
         if not pending:
             return
         batch, pending[:] = list(pending), []
+        state["last"] = time.monotonic()
         try:
             with session_scope(database) as session:
                 job = session.get(AppJob, job_id)
@@ -428,6 +441,10 @@ def _execute(job_id: int, handler: Handler, database: str | None) -> None:
     ) -> None:
         pending.append({"message": message, "stage": stage, "progress_pct": progress_pct, "level": level})
         _publish_progress(job_id, message, level=level, stage=stage, progress_pct=progress_pct)
+        # Persist promptly so a long-running job reports real progress, but still in
+        # batches: one write per event would contend with the handler's own session.
+        if len(pending) >= PROGRESS_FLUSH_COUNT or time.monotonic() - state["last"] >= PROGRESS_FLUSH_SECONDS:
+            flush()
 
     try:
         report("job started", stage="start", progress_pct=0)
