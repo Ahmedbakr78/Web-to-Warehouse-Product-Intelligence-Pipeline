@@ -4,12 +4,16 @@ import {
   Boxes,
   CheckCircle2,
   Clock,
+  Download,
   Gauge,
+  GitCompareArrows,
   ListTree,
   Play,
   RefreshCw,
   Server,
+  ShieldCheck,
   Timer,
+  TrendingUp,
 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
@@ -20,6 +24,7 @@ import {
   Card,
   CardHeader,
   DataTable,
+  DeltaPill,
   EmptyState,
   ErrorState,
   KeyValue,
@@ -34,7 +39,7 @@ import {
   Toggle,
   useToast,
 } from '@/components/ui'
-import { endpoints } from '@/lib/api'
+import { downloadExport, endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { useAuth } from '@/hooks/useAuth'
 import { formatCompact, formatDateTime, formatDuration, formatNumber, formatRelative, statusTone, titleCase } from '@/lib/format'
@@ -105,6 +110,7 @@ export default function Pipeline() {
           onChange={setTab}
           tabs={[
             { id: 'runs', label: 'Runs', icon: <ListTree className="h-4 w-4" /> },
+            { id: 'compare', label: 'Compare', icon: <GitCompareArrows className="h-4 w-4" /> },
             { id: 'sources', label: 'Source health', icon: <Boxes className="h-4 w-4" /> },
             { id: 'schedule', label: 'Schedule', icon: <Clock className="h-4 w-4" /> },
           ]}
@@ -219,6 +225,10 @@ export default function Pipeline() {
             </>
           )}
         </Card>
+      ) : null}
+
+      {tab === 'compare' ? (
+        <RunCompare runs={(runs.data?.items ?? []) as unknown as RunSummary[]} />
       ) : null}
 
       {tab === 'sources' ? (
@@ -540,3 +550,244 @@ const STAGE_DESCRIPTIONS = [
   'evaluate 12 rules across 6 quality dimensions',
   'refresh the pre-aggregated category/day rollup',
 ]
+
+/* ------------------------------------------------------------------ run comparison */
+type RunSummary = {
+  run_id: string
+  status: string
+  started_at?: string | null
+  dq_score?: number | null
+  records_valid?: number | null
+}
+
+type MetricDelta = { metric: string; base: number; target: number; delta: number; delta_pct: number | null }
+
+type Comparison = {
+  base: RunSummary
+  target: RunSummary
+  metrics: MetricDelta[]
+  dq: {
+    base_score: number | null
+    target_score: number | null
+    score_delta: number | null
+    regressions: string[]
+    fixed: string[]
+  }
+  catalogue: { added_count: number; dropped_count: number; added: Array<{ canonical_name: string }> }
+  prices: { changed_count: number; moves: Array<{ canonical_name: string; delta_pct: number | null }> }
+  performance: { base_duration_ms: number; target_duration_ms: number; delta_pct: number | null }
+}
+
+const METRIC_LABELS: Record<string, string> = {
+  records_extracted: 'Records extracted',
+  records_valid: 'Records loaded',
+  records_rejected: 'Records rejected',
+  records_inserted: 'Records inserted',
+  records_updated: 'Records updated',
+  duplicates_merged: 'Duplicates merged',
+  new_products: 'New products',
+  price_changes: 'Price changes',
+  removed_products: 'Removed products',
+  catalog_matched: 'Catalog matches',
+  dq_passed: 'DQ rules passed',
+  dq_failed: 'DQ rules failed',
+}
+
+function RunCompare({ runs }: { runs: RunSummary[] }) {
+  const toast = useToast()
+  const usable = runs.filter((run) => run.status !== 'running')
+  const [base, setBase] = useState('')
+  const [target, setTarget] = useState('')
+
+  // Default to the two most recent comparable runs so the tab is useful immediately.
+  useMemo(() => {
+    if (!base && usable.length >= 2) setBase(usable[1].run_id)
+    if (!target && usable.length >= 1) setTarget(usable[0].run_id)
+  }, [usable, base, target])
+
+  const comparison = useApiQuery<Comparison>(
+    ['run-compare', base, target],
+    () => endpoints.compareRuns(base, target),
+    { enabled: Boolean(base && target && base !== target) },
+  )
+
+  const diff = comparison.data
+
+  return (
+    <div className="space-y-3">
+      <Card>
+        <CardHeader
+          title="Compare two runs"
+          subtitle="Metric deltas, quality regressions and catalogue movement"
+          icon={<GitCompareArrows className="h-4 w-4" />}
+        />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="block text-sm">
+            <span className="mb-1 block font-medium">Base run (reference)</span>
+            <Select value={base} onChange={(event) => setBase(event.target.value)}>
+              <option value="">Select a run…</option>
+              {usable.map((run) => (
+                <option key={run.run_id} value={run.run_id}>
+                  {run.run_id.slice(0, 12)} · {run.status} · {run.started_at ? formatDateTime(run.started_at) : ''}
+                </option>
+              ))}
+            </Select>
+          </label>
+          <label className="block text-sm">
+            <span className="mb-1 block font-medium">Target run (being judged)</span>
+            <Select value={target} onChange={(event) => setTarget(event.target.value)}>
+              <option value="">Select a run…</option>
+              {usable.map((run) => (
+                <option key={run.run_id} value={run.run_id}>
+                  {run.run_id.slice(0, 12)} · {run.status} · {run.started_at ? formatDateTime(run.started_at) : ''}
+                </option>
+              ))}
+            </Select>
+          </label>
+        </div>
+        {base && target && base === target && (
+          <p className="mt-2 text-xs text-warning">Pick two different runs to see a comparison.</p>
+        )}
+      </Card>
+
+      {comparison.isLoading ? (
+        <LoadingState rows={4} />
+      ) : comparison.isError ? (
+        <ErrorState error={comparison.error} onRetry={() => void comparison.refetch()} />
+      ) : diff ? (
+        <>
+          <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+            <StatTile
+              label="Records loaded"
+              value={formatNumber(diff.target.records_valid ?? 0)}
+              hint={`${diff.metrics.find((m) => m.metric === 'records_valid')?.delta ?? 0} vs base`}
+              icon={<ListTree className="h-4 w-4" />}
+            />
+            <StatTile
+              label="DQ score"
+              value={diff.dq.target_score ?? '—'}
+              hint={diff.dq.score_delta === null ? 'no score' : `${diff.dq.score_delta > 0 ? '+' : ''}${diff.dq.score_delta} vs base`}
+              icon={<CheckCircle2 className="h-4 w-4" />}
+              tone={diff.dq.regressions.length ? 'warning' : 'success'}
+            />
+            <StatTile
+              label="Catalogue movement"
+              value={`+${diff.catalogue.added_count} / -${diff.catalogue.dropped_count}`}
+              hint="added / dropped"
+              icon={<Boxes className="h-4 w-4" />}
+            />
+            <StatTile
+              label="Runtime"
+              value={formatDuration(diff.performance.target_duration_ms)}
+              hint={diff.performance.delta_pct === null ? '' : `${diff.performance.delta_pct > 0 ? '+' : ''}${diff.performance.delta_pct}% vs base`}
+              icon={<Timer className="h-4 w-4" />}
+            />
+          </div>
+
+          <Card>
+            <CardHeader title="Metric deltas" subtitle="Target minus base" icon={<Gauge className="h-4 w-4" />} />
+            <DataTable
+              rows={diff.metrics}
+              rowKey={(row) => row.metric}
+              columns={[
+                { key: 'metric', header: 'Metric', render: (row) => METRIC_LABELS[row.metric] ?? titleCase(row.metric) },
+                { key: 'base', header: 'Base', align: 'right', render: (row) => formatNumber(row.base) },
+                { key: 'target', header: 'Target', align: 'right', render: (row) => formatNumber(row.target) },
+                {
+                  key: 'delta',
+                  header: 'Delta',
+                  align: 'right',
+                  render: (row) => (
+                    <span className={row.delta > 0 ? 'text-success' : row.delta < 0 ? 'text-danger' : 'text-muted'}>
+                      {row.delta > 0 ? '+' : ''}
+                      {formatNumber(row.delta)}
+                    </span>
+                  ),
+                },
+                {
+                  key: 'pct',
+                  header: 'Change',
+                  align: 'right',
+                  render: (row) => (
+                    <DeltaPill value={row.delta_pct} />
+                  ),
+                },
+              ]}
+            />
+          </Card>
+
+          <div className="grid gap-3 lg:grid-cols-2">
+            <Card>
+              <CardHeader title="Quality movement" subtitle="Rules that changed verdict" icon={<ShieldCheck className="h-4 w-4" />} />
+              <div className="space-y-2 text-sm">
+                <div>
+                  <p className="font-medium text-danger">Regressions ({diff.dq.regressions.length})</p>
+                  {diff.dq.regressions.length ? (
+                    <ul className="mt-1 list-inside list-disc font-mono text-xs text-muted">
+                      {diff.dq.regressions.map((code) => (
+                        <li key={code}>{code}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mt-1 text-xs text-muted">No rule turned red since the base run.</p>
+                  )}
+                </div>
+                <div>
+                  <p className="font-medium text-success">Fixed ({diff.dq.fixed.length})</p>
+                  {diff.dq.fixed.length ? (
+                    <ul className="mt-1 list-inside list-disc font-mono text-xs text-muted">
+                      {diff.dq.fixed.map((code) => (
+                        <li key={code}>{code}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mt-1 text-xs text-muted">No rule recovered since the base run.</p>
+                  )}
+                </div>
+              </div>
+            </Card>
+
+            <Card>
+              <CardHeader
+                title="Largest price moves"
+                subtitle={`${diff.prices.changed_count} products repriced`}
+                icon={<TrendingUp className="h-4 w-4" />}
+                action={
+                  <Button
+                    variant="secondary"
+                    icon={<Download className="h-4 w-4" />}
+                    onClick={() =>
+                      void downloadExport('price_changes', 'csv', { limit: 5000 }).catch((error: Error) =>
+                        toast.push({ tone: 'danger', title: 'Export failed', message: error.message }),
+                      )
+                    }
+                  >
+                    Export
+                  </Button>
+                }
+              />
+              {diff.prices.moves.length === 0 ? (
+                <p className="text-sm text-muted">No price changed between these runs.</p>
+              ) : (
+                <ul className="space-y-1 text-sm">
+                  {diff.prices.moves.slice(0, 8).map((move) => (
+                    <li key={move.canonical_name} className="flex items-center justify-between gap-2">
+                      <span className="truncate">{move.canonical_name}</span>
+                      <DeltaPill value={move.delta_pct} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+          </div>
+        </>
+      ) : (
+        <EmptyState
+          icon={<GitCompareArrows className="h-6 w-6" />}
+          title="Choose two runs"
+          description="Pick a base run and a target run to see what changed between them."
+        />
+      )}
+    </div>
+  )
+}

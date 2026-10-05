@@ -203,7 +203,7 @@ export default function LoginPage() {
 
             <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-subtle">
               <span>{meta?.name ?? 'Product Intelligence Pipeline'}</span>
-              <span>· v{meta?.version ?? '1.0.0'}</span>
+              <span>· v{meta?.version ?? '—'}</span>
               <span>· {meta?.database ?? 'warehouse'}</span>
               {meta?.compliance?.respect_robots_txt ? <span>· robots.txt respected</span> : null}
             </div>

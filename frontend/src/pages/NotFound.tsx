@@ -103,7 +103,7 @@ export default function NotFound() {
       {authenticated ? (
         <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-subtle">
           <span>
-            {meta?.name ?? 'Product Intelligence Pipeline'} {'·'} v{meta?.version ?? '1.0.0'} {'·'}{' '}
+            {meta?.name ?? 'Product Intelligence Pipeline'} {'·'} v{meta?.version ?? '—'} {'·'}{' '}
             {meta?.environment ?? 'local'}
           </span>
           <span>{meta?.dialect ?? meta?.active_database ?? 'warehouse'}</span>
