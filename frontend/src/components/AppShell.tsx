@@ -13,23 +13,16 @@ import {
   ChevronDown,
   Command,
   CornerDownLeft,
-  Database,
   Keyboard,
   LogOut,
   Menu,
   Moon,
   Package,
-  PanelLeftClose,
-  PanelLeftOpen,
-  RefreshCw,
   Search,
   Sun,
-  Wifi,
-  WifiOff,
-  X,
 } from 'lucide-react'
 
-import { NAV_GROUPS, PAGE_TITLES, ALL_NAV_ITEMS } from '@/lib/nav'
+import { PAGE_TITLES, ALL_NAV_ITEMS } from '@/lib/nav'
 import { cn } from '@/lib/cn'
 import { useTheme } from '@/lib/theme'
 import { endpoints, searchProducts, tokenStore } from '@/lib/api'
@@ -37,61 +30,60 @@ import { useQuery } from '@tanstack/react-query'
 import { Badge, Button, IconButton } from './ui'
 import { initials, formatRelative, titleCase, formatPrice } from '@/lib/format'
 import { useAuth } from '@/hooks/useAuth'
-
-const SIDEBAR_WIDTH_EXPANDED = '16rem'
-const SIDEBAR_WIDTH_COLLAPSED = '4.5rem'
+import { NavDrawer, PhoneTabBar, Sidebar, usePhoneLayout, useRailState } from './Navigation'
 
 export default function AppShell() {
   const location = useLocation()
-  const { can } = useAuth()
   const { isDark, toggle } = useTheme()
-
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const [collapsed, setCollapsed] = useState(() => localStorage.getItem('pip.sidebar') === 'collapsed')
   const [paletteOpen, setPaletteOpen] = useState(false)
 
-  const { data: health } = useQuery({
-    queryKey: ['health'],
-    queryFn: endpoints.health,
-    refetchInterval: 60_000,
-    retry: 1,
-  })
+  const { collapsed, toggleRail, overlay, drawerOpen, setDrawerOpen, closeDrawer, drawerRef, edgeSwipe } =
+    useRailState()
+  const isPhone = usePhoneLayout()
 
-  useEffect(() => {
-    localStorage.setItem('pip.sidebar', collapsed ? 'collapsed' : 'expanded')
-  }, [collapsed])
-
-  // Close the mobile drawer on navigation (silent, instant).
-  useEffect(() => setMobileOpen(false), [location.pathname])
-
-  // While the off-canvas drawer is open the page behind it must not scroll, and
-  // the drawer itself should behave like a dialog on small screens.
-  useEffect(() => {
-    if (!mobileOpen) return
-    const previous = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = previous
-    }
-  }, [mobileOpen])
-
-  // Global shortcuts: Ctrl/Cmd-K or "/" opens the palette, Escape closes overlays.
+  // Global shortcuts: Ctrl/Cmd-K or "/" opens the palette, Ctrl/Cmd-B toggles the
+  // sidebar, "[" and "]" collapse or expand it, Escape closes any overlay.
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement
       const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(target?.tagName) || target?.isContentEditable
-      if (((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') || (event.key === '/' && !typing)) {
+      const mod = event.ctrlKey || event.metaKey
+
+      if (mod && event.key.toLowerCase() === 'k') {
         event.preventDefault()
         setPaletteOpen((value) => !value)
+        return
+      }
+      if (event.key === '/' && !typing && !mod) {
+        event.preventDefault()
+        setPaletteOpen(true)
+        return
+      }
+      if (mod && event.key.toLowerCase() === 'b') {
+        event.preventDefault()
+        if (overlay) setDrawerOpen((value) => !value)
+        else toggleRail()
+        return
+      }
+      if (event.key === '[' && !typing) {
+        event.preventDefault()
+        if (overlay) setDrawerOpen(false)
+        else toggleRail()
+        return
+      }
+      if (event.key === '] ' .trim() && !typing) {
+        event.preventDefault()
+        if (overlay) setDrawerOpen(false)
+        else toggleRail()
       }
       if (event.key === 'Escape') {
         setPaletteOpen(false)
-        setMobileOpen(false)
+        setDrawerOpen(false)
       }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [])
+  }, [overlay, toggleRail, setDrawerOpen])
 
   const page = useMemo(() => {
     if (PAGE_TITLES[location.pathname]) return PAGE_TITLES[location.pathname]
