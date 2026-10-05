@@ -319,6 +319,52 @@ export const endpoints = {
   backfills: (limit = 25) => api.get<any[]>('/pipeline/backfills', { limit }),
   runBackfill: (payload: Record<string, unknown>) => api.post<any>('/pipeline/backfill', payload),
   backfill: (id: string) => api.get<any>(`/pipeline/backfill/${id}`),
+
+  // ---------------------------------------------------------------- background jobs
+  jobs: (params: Record<string, QueryValue> = {}) => api.get<any>('/jobs', params),
+  job: (reference: string) => api.get<any>(`/jobs/${reference}`),
+  jobEvents: (reference: string, afterId = 0) =>
+    api.get<any>(`/jobs/${reference}/events`, { after_id: afterId }),
+  jobTypes: () => api.get<any>('/jobs/types'),
+  jobWorker: () => api.get<any>('/jobs/worker'),
+  enqueuePipelineRun: (params: Record<string, QueryValue> = {}) =>
+    api.post<any>('/jobs/pipeline-run', undefined, params),
+  enqueueExport: (params: Record<string, QueryValue> = {}) => api.post<any>('/jobs/export', undefined, params),
+  cancelJob: (reference: string) => api.post<any>(`/jobs/${reference}/cancel`),
+  retryJob: (reference: string) => api.post<any>(`/jobs/${reference}/retry`),
+  deleteJob: (reference: string) => api.del<any>(`/jobs/${reference}`),
+
+  // ---------------------------------------------------------------- two-factor auth
+  twoFactorStatus: () => api.get<any>('/account/2fa/status'),
+  twoFactorSetup: () => api.post<any>('/account/2fa/setup'),
+  twoFactorActivate: (secret: string, code: string) =>
+    api.post<any>('/account/2fa/activate', { secret, code }),
+  twoFactorDisable: (code: string) => api.post<any>('/account/2fa/disable', { code }),
+  twoFactorCodes: (code: string) => api.post<any>('/account/2fa/recovery-codes', { code }),
+  twoFactorVerify: (code: string) => api.post<any>('/account/2fa/verify', { code }),
+  sessions: (current?: string) => api.get<any>('/account/sessions', current ? { current } : undefined),
+  revokeSession: (sessionKey?: string) => api.post<any>('/account/sessions/revoke', { session_key: sessionKey }),
+  revokeOtherSessions: (current: string) =>
+    api.post<any>(`/account/sessions/revoke-others?current=${encodeURIComponent(current)}`),
+
+  // ---------------------------------------------------------------- forecasting
+  forecast: (productId: number, horizon = 14, days = 120) =>
+    api.get<any>(`/forecast/${productId}`, { horizon, days }),
+  forecastAnomalies: (productId: number, params: Record<string, QueryValue> = {}) =>
+    api.get<any>(`/forecast/${productId}/anomalies`, params),
+  allAnomalies: (params: Record<string, QueryValue> = {}) => api.get<any>('/forecast/products/anomalies', params),
+  predictPrice: (productId: number, horizon = 14, days = 120) =>
+    api.get<any>(`/forecast/${productId}/predict-price`, { horizon, days }),
+  seasonality: (productId: number, days = 120) => api.get<any>(`/forecast/${productId}/seasonality`, { days }),
+  forecastBacktest: (params: Record<string, QueryValue> = {}) => api.get<any>('/forecast/backtest', params),
+  categoryElasticity: (category: string) =>
+    api.get<any>(`/forecast/category/${encodeURIComponent(category)}/elasticity`),
+  rebuildForecasts: (horizon = 14) => api.post<any>('/forecast/rebuild', undefined, { horizon }),
+
+  // ---------------------------------------------------------------- reports
+  reportTemplates: () => api.get<any>('/reports/templates'),
+  reportData: (template: string, params: Record<string, QueryValue> = {}) =>
+    api.get<any>(`/reports/${template}/data`, params),
 }
 
 /**
