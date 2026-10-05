@@ -11,9 +11,14 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /srv/app
 
-# curl is used by the container health check, the rest keeps the image small.
+# curl backs the container health check; the rest is what WeasyPrint needs to lay out
+# text. pango/cairo/gdk-pixbuf are the native stack WeasyPrint draws through - without
+# them the import fails at runtime and /reports/*/pdf has to return 501.
 RUN apt-get update \
- && apt-get install -y --no-install-recommends curl ca-certificates build-essential libpq-dev \
+ && apt-get install -y --no-install-recommends \
+      curl ca-certificates build-essential libpq-dev \
+      libpango-1.0-0 libpangoft2-1.0-0 \
+      libcairo2 libgdk-pixbuf-2.0-0 libffi-dev shared-mime-info fonts-dejavu-core \
  && rm -rf /var/lib/apt/lists/*
 
 # ---- dependency layer (cached until pyproject.toml changes) --------------------------
@@ -25,7 +30,8 @@ RUN python -m venv /opt/venv \
  && /opt/venv/bin/pip install "psycopg2-binary>=2.9" "PyMySQL>=1.1" "cryptography>=42.0" \
  && /opt/venv/bin/pip install "fastapi>=0.115" "uvicorn[standard]" "sqlalchemy>=2.0.30" pydantic pydantic-settings \
       httpx beautifulsoup4 lxml lxml-html-clean pandas numpy plotly python-dateutil python-multipart \
-      PyJWT argon2-cffi email-validator orjson tenacity structlog typer rich
+      PyJWT argon2-cffi email-validator orjson tenacity structlog typer rich \
+      weasyprint pyotp alembic
 
 # ---- runtime ------------------------------------------------------------------------
 FROM base AS runtime

@@ -40,7 +40,8 @@ The API exposes the analytical warehouse built from permitted public web sources
 * `catalog` - reconciliation against the retailer's internal catalog (price gaps)
 * `queries` - read-only SQL console plus the list of analytical views
 * `builder` - compose, aggregate and save custom views without writing SQL
-* `exports` - CSV/JSON datasets and PDF-ready report rendering
+* `exports` - CSV/JSON dataset exports
+* `reports` - executive, price, quality, catalog and product reports as HTML or PDF
 * `webhooks` - signed outbound notifications for pipeline and data events
 * `jobs` - durable background queue with progress, cancellation and live streaming
 * `stream` - Server-Sent Events and a WebSocket for live run and KPI updates

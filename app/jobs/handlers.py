@@ -242,6 +242,44 @@ def run_forecast(job_id: int, report: Report) -> dict[str, Any]:
     return {"computed": len(forecasts), "horizon": horizon, "path": str(path)}
 
 
+@job_type("report_pdf")
+def run_report_pdf(job_id: int, report: Report) -> dict[str, Any]:
+    """Render a PDF report to disk, so a slow pass never blocks a request."""
+    from app.services import report as reports
+    from app.services.pdf import to_pdf
+
+    payload = _payload(job_id)
+    template = payload.get("template", "executive_summary")
+    report(f"building the '{template}' report", stage="assemble", progress_pct=20)
+
+    with session_scope() as session:
+        built = reports.build_report(
+            session,
+            template,
+            days=int(payload.get("days", 30)),
+            horizon=int(payload.get("horizon", 14)),
+            product_id=payload.get("product_id"),
+        )
+
+    report("rendering to PDF", stage="render", progress_pct=70)
+    body = to_pdf(reports.render_report(built))
+
+    from app.core.config import settings
+
+    target = settings.artifacts_dir / "reports"
+    target.mkdir(parents=True, exist_ok=True)
+    path = target / f"{template}-{dt.datetime.now(dt.timezone.utc):%Y%m%dT%H%M%S}.pdf"
+    path.write_bytes(body)
+
+    report("report written", stage="done", progress_pct=100)
+    return {
+        "template": template,
+        "bytes": len(body),
+        "path": str(path),
+        "filename": path.name,
+    }
+
+
 @job_type("rebuild_aggregates")
 def run_rebuild_aggregates(job_id: int, report: Report) -> dict[str, Any]:
     """Refresh the category/day rollup for the latest run."""

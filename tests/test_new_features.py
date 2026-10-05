@@ -673,13 +673,10 @@ def test_forecast_endpoints_respond(client, admin_token):
     import datetime as dt
 
     # `last_seen_at` is a datetime, not a date, so the query needs the right type.
-    product = (
-        client.get(
-            "/api/v1/products?page_size=1&sort_by=last_seen_at&sort_dir=desc",
-            headers=auth(admin_token),
-        )
-        .json()["items"][0]
-    )
+    product = client.get(
+        "/api/v1/products?page_size=1&sort_by=last_seen_at&sort_dir=desc",
+        headers=auth(admin_token),
+    ).json()["items"][0]
     product_id = product["product_id"]
     assert isinstance(dt.date.today(), dt.date)
 
@@ -714,3 +711,149 @@ def test_forecast_backtest_summary_is_honest(client, admin_token):
         assert payload["median_mape_pct"] is not None
         assert len(payload["best"]) <= 5
         assert "holdout backtest" in payload["note"]
+
+
+# --------------------------------------------------------------------------------------
+# Reports and PDF rendering
+# --------------------------------------------------------------------------------------
+ALL_TEMPLATES = ("executive_summary", "price_movements", "data_quality", "catalog_gaps")
+
+
+def test_report_templates_are_declared_consistently():
+    from app.services.report import TEMPLATE_KEYS, TEMPLATES
+
+    assert set(TEMPLATE_KEYS) == set(TEMPLATES)
+    for key, spec in TEMPLATES.items():
+        assert spec["title"], f"{key} has no title"
+        assert spec["sections"], f"{key} has no sections"
+
+
+@pytest.mark.parametrize("template", ALL_TEMPLATES)
+def test_every_template_renders_without_a_failed_section(session, template):
+    """No section may silently degrade to a placeholder callout."""
+    from app.services.report import build_report
+
+    report = build_report(session, template, days=30)
+    assert report["blocks"], f"{template} produced no blocks"
+    broken = [
+        block
+        for block in report["blocks"]
+        if block.get("type") == "callout" and str(block.get("title", "")).startswith("Section unavailable")
+    ]
+    assert not broken, f"{template} failed sections: {[b['title'] for b in broken]}"
+
+
+def test_report_html_is_a_complete_document():
+    from app.services.pdf import render_blocks
+
+    document = render_blocks(
+        "Test report",
+        "A subtitle",
+        [
+            {"type": "tiles", "tiles": [{"label": "Products", "value": 100, "hint": "deduplicated"}]},
+            {
+                "type": "table",
+                "columns": [{"key": "name", "label": "Name"}, {"key": "n", "label": "N", "align": "right"}],
+                "rows": [{"name": "Widget", "n": 5}],
+            },
+            {"type": "callout", "title": "Note", "body": "Something worth reading."},
+        ],
+        footer="Footer text",
+    )
+    assert document.startswith("<!doctype html>")
+    assert "</html>" in document
+    assert "<style>" in document
+    # The stamp placeholder must be substituted, not shipped to the renderer.
+    assert "__STAMP__" not in document
+    assert "Page " in document  # page-number margin box
+
+
+def test_report_html_escapes_untrusted_content():
+    from app.services.pdf import render_blocks
+
+    document = render_blocks(
+        "T",
+        "",
+        [
+            {
+                "type": "table",
+                "columns": [{"key": "label", "label": "L"}],
+                "rows": [{"label": "<script>alert(1)</script>"}],
+            }
+        ],
+    )
+    assert "<script>alert(1)</script>" not in document
+    assert "&lt;script&gt;" in document
+
+
+def test_report_bars_take_numbers_not_formatted_strings():
+    """`_bars` divides by the peak, so a string value would raise."""
+    from app.services.pdf import _bars
+
+    chart = _bars(
+        [
+            {"label": "A", "value": -98.0, "suffix": "%"},
+            {"label": "B", "value": 4.0, "suffix": "%"},
+        ]
+    )
+    assert "bar-fill" in chart
+    assert "%" in chart
+    # The near-100% bar must be wider than the 4% one.
+    widths = [float(fragment.split("%")[0].rstrip('";')) for fragment in chart.split("width:")[1:]]
+    assert len(widths) == 2
+    assert widths[0] == 100.0, "the largest value should fill the track"
+    assert widths[0] > widths[1]
+
+    assert "Nothing to plot" in _bars([])
+    assert "Nothing to plot" in _bars([{"label": "x", "value": None}])
+
+
+def test_pdf_backend_is_detected_not_assumed(client, admin_token):
+    """The templates endpoint must say whether PDFs can actually be rendered here."""
+    payload = client.get("/api/v1/reports/templates", headers=auth(admin_token)).json()
+    assert {item["key"] for item in payload["templates"]} == set(ALL_TEMPLATES) | {"product"}
+    assert isinstance(payload["pdf_available"], bool)
+    if not payload["pdf_available"]:
+        # A missing backend must come with an actionable reason, not a bare False.
+        assert "WeasyPrint" in payload["pdf_unavailable_reason"]
+
+
+@pytest.mark.parametrize("template", ALL_TEMPLATES)
+def test_report_endpoints_return_html_and_blocks(client, admin_token, template):
+    html = client.get(f"/api/v1/reports/{template}?days=30", headers=auth(admin_token))
+    assert html.status_code == 200
+    assert html.headers["content-type"].startswith("text/html")
+    assert "<!doctype html>" in html.text
+
+    blocks = client.get(f"/api/v1/reports/{template}/data?days=30", headers=auth(admin_token))
+    assert blocks.status_code == 200
+    payload = blocks.json()
+    assert payload["template"] == template
+    assert payload["blocks"]
+
+
+def test_unknown_report_template_is_rejected(client, admin_token):
+    response = client.get("/api/v1/reports/no_such_template", headers=auth(admin_token))
+    assert response.status_code == 422
+    assert "available" in response.text
+
+
+def test_product_template_requires_a_product(client, admin_token):
+    response = client.get("/api/v1/reports/product", headers=auth(admin_token))
+    assert response.status_code == 422
+    assert "product_id" in response.text
+
+
+def test_report_pdf_endpoint_answers_on_either_outcome(client, admin_token):
+    """200 with real PDF bytes, or 501 with a reason - never a 500."""
+    from app.services.pdf import available
+
+    response = client.get("/api/v1/reports/executive_summary/pdf?days=30", headers=auth(admin_token))
+    if available():
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/pdf"
+        assert response.content.startswith(b"%PDF-")
+        assert "attachment" in response.headers.get("content-disposition", "")
+    else:
+        assert response.status_code == 501
+        assert "WeasyPrint" in response.text
