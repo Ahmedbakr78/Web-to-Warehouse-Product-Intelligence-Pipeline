@@ -169,7 +169,6 @@ export default function AggregateBuilder() {
     setSortColumn('')
     setSortDir('desc')
     setLimit(25)
-    setDraft((value) => value + 1)
   }
 
   function exportResult(format: 'csv' | 'json') {
@@ -237,7 +236,6 @@ export default function AggregateBuilder() {
                   setGroupBy('')
                   setSortColumn('')
                   setAggregates([makeAgg()])
-                  setDraft((value) => value + 1)
                 }}
               >
                 {schema?.entities.map((item) => (
