@@ -622,6 +622,112 @@ catalog, sources, the read-only query lab, saved views, notifications, settings 
 dashboard consumes it, and both endpoints and UI offer CSV and JSON exports. Airflow triggers the
 whole cycle daily; the API's sync endpoint and the CLI produce the identical `etl_run` record.
 
+### The nine stages
+
+```mermaid
+flowchart LR
+    subgraph Run["One etl_run, nine stages"]
+        direction LR
+        S1["1 retrieve"] --> S2["2 validate"] --> S3["3 clean"] --> S4["4 stage"]
+        S4 --> S5["5 load dims"] --> S6["6 load facts"] --> S7["7 dedupe"]
+        S7 --> S8["8 detect"] --> S9["9 quality"]
+    end
+    S1 -.records_extracted.-> RC[("etl_run counters")]
+    S4 -.records_rejected.-> RC
+    S6 -.records_inserted.-> RC
+    S7 -.duplicates_merged.-> RC
+    S8 -.price_changes.-> RC
+    S9 -.dq_score.-> RC
+```
+
+Each stage appends counters and its own duration to the run record, so
+`GET /pipeline/runs/{run_id}` reconstructs exactly what happened — including which source failed and
+why.
+
+---
+
+## Design decisions
+
+The reasoning, the rejected alternatives and the measured consequences are documented in full in
+[docs/21_architecture_deep_dive.md](docs/21_architecture_deep_dive.md). The five that shaped
+everything else:
+
+### Compliance lives in the transport layer
+
+`app/ingestion/http_client.py` is the only place in the codebase that performs an outbound HTTP
+request, and every call passes the robots gate first. Compliance therefore cannot be forgotten by a
+new adapter — it is inherited. Checking robots per adapter would put the responsibility in the place
+most likely to skip it.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant SRC as Source adapter
+    participant HC as HTTP client (the only egress point)
+    participant CB as Circuit breaker
+    participant RB as robots cache
+    participant RL as Rate limiter
+    participant NET as The web
+    participant LOG as ingestion_http_log
+
+    SRC->>HC: get(url)
+    HC->>CB: is this host open?
+    alt breaker open after 5 failures
+        CB-->>HC: skip — zero network I/O
+        HC->>LOG: record circuit_open
+        HC-->>SRC: SkipRequest
+    else closed
+        HC->>RB: allowed(host, path)?
+        RB-->>HC: decision + crawl_delay
+        HC->>LOG: record robots decision
+        alt disallowed by robots.txt
+            HC-->>SRC: ComplianceError — nothing fetched
+        else allowed
+            HC->>RL: acquire delay
+            RL-->>HC: slowest of global, budget and Crawl-delay
+            HC->>NET: the actual request
+            NET-->>HC: response
+            HC->>LOG: status, latency, bytes, retries
+            HC-->>SRC: FetchResult
+        end
+    end
+```
+
+A row in `ingestion_http_log` with `robots_allowed = false` and `status_code IS NULL` is the proof
+that the crawler **declined to make a request**. That is a query, not a promise:
+
+```sql
+SELECT status_code, robots_allowed, robots_rule, COUNT(*)
+FROM ingestion_http_log
+GROUP BY status_code, robots_allowed, robots_rule;
+```
+
+### Snapshots, not overwritten rows
+
+`fact_price_snapshot` is append-only — one row per product × source × capture. Overwriting
+`dim_product.price` would be cheaper to query and would destroy the only thing a price-intelligence
+product exists to provide. Each snapshot also stores the **FX rate actually used**, so re-converting
+history with today's rates can never silently rewrite it.
+
+### A Kimball star, not 3NF
+
+Analytical workloads read broadly and write rarely. "Average price per category per day" is a single
+indexed scan in a star and a multi-hop join in 3NF. Full normalisation optimises the opposite
+profile.
+
+### Roles enforced server-side
+
+Every route declares its permission through a dependency. Hiding a button is a usability feature,
+not a security control — anyone holding a token could call the endpoint directly. The smoke suite
+asserts that a `viewer` is refused when attempting to trigger a pipeline run.
+
+### A measured optimisation, not a trade
+
+Catalog reconciliation initially compared every catalog SKU against every product: 2,975 ms for 57
+SKUs. Adding blocking indexes, a rare-token fallback and a capped pool brought it to 104 ms — a
+**29× improvement with identical results**. Because the output is unchanged, the optimisation is
+legitimate rather than a silent loss of accuracy.
+
 ---
 
 ## Data model

@@ -303,11 +303,8 @@ export function Toggle({
         )}
       >
         <span
-          className={cn(
-            'absolute top-0.5 h-3.5 w-3.5 rounded-full bg-white shadow transition-all',
-            checked ? 'left-4.5' : 'left-0.5',
-          )}
-          style={{ left: checked ? '1.125rem' : '0.125rem' }}
+          className="absolute top-0.5 h-3.5 w-3.5 rounded-full bg-white shadow transition-all"
+          style={{ insetInlineStart: checked ? '1.125rem' : '0.125rem' }}
         />
       </button>
       {label || description ? (
