@@ -494,8 +494,50 @@ export function DataTable<T>({
     )
   }
 
+  // Below `sm` a wide data table is unusable, so each row is rendered as a
+  // stacked card instead of a horizontal-scrolling grid.
+  const cards = columns.filter((column) => !column.hideBelow).slice(0, 6)
+  const primary = columns.find((column) => !column.hideBelow) ?? columns[0]
+
   return (
-    <div className="table-wrap" style={{ maxHeight }}>
+    <>
+      {/* Card layout for phones. `sm:hidden` so the table wins from 640px up. */}
+      <div className="space-y-2 sm:hidden">
+        {rows.map((row, index) => (
+          <div
+            key={rowKey(row, index)}
+            role={onRowClick ? 'button' : undefined}
+            tabIndex={onRowClick ? 0 : undefined}
+            onClick={onRowClick ? () => onRowClick(row) : undefined}
+            onKeyDown={
+              onRowClick
+                ? (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault()
+                      onRowClick(row)
+                    }
+                  }
+                : undefined
+            }
+            className={cn(
+              'rounded-xl border border-line bg-surface-2 p-3',
+              onRowClick && 'cursor-pointer active:bg-surface-3',
+            )}
+          >
+            <div className="mb-2 font-medium text-ink">{primary.render(row, index)}</div>
+            <dl className="space-y-1">
+              {cards.slice(1).map((column) => (
+                <div key={column.key} className="flex items-baseline justify-between gap-3">
+                  <dt className="shrink-0 text-[11px] text-subtle">{column.header}</dt>
+                  <dd className="min-w-0 truncate text-right text-xs text-muted">{column.render(row, index)}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        ))}
+      </div>
+
+      <div className="table-wrap hidden sm:block" style={{ maxHeight }}>
       <table className="w-full">
         <thead>
           <tr>
@@ -545,7 +587,8 @@ export function DataTable<T>({
           ))}
         </tbody>
       </table>
-    </div>
+      </div>
+    </>
   )
 }
 

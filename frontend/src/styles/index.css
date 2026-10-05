@@ -357,6 +357,31 @@
     overscroll-behavior: contain;
   }
 
+  /* Scroll shadows: a soft fade at the top/bottom edge of a scroll container
+     that still has content in that direction. Set by `data-scroll-shadow`,
+     which is toggled from JS by measuring scrollTop against scrollHeight. */
+  [data-scroll-shadow] {
+    background-image:
+      linear-gradient(to bottom, var(--surface), transparent),
+      linear-gradient(to top, var(--surface), transparent),
+      linear-gradient(to right, var(--surface), transparent),
+      linear-gradient(to left, var(--surface), transparent);
+    background-position: top, bottom, left, right;
+    background-repeat: no-repeat;
+    background-size:
+      100% 12px,
+      100% 12px,
+      12px 100%,
+      12px 100%;
+    background-attachment: local, local, scroll, scroll;
+  }
+
+  /* Never let a long unbroken token (URL, fingerprint, SQL) blow out a card. */
+  .break-anywhere {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
   /* Slimmer scrollbars inside dense UI (sidebar, palettes, code blocks). */
   aside ::-webkit-scrollbar,
   .shadow-pop ::-webkit-scrollbar,
