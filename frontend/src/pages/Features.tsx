@@ -4,55 +4,30 @@
  * The data comes from `GET /meta/features` (app/core/features.py), which is also the
  * source used by the README and the website, so the UI can never drift from reality.
  * Search matches feature names, details and group titles; group chips filter instantly.
+ * Every count on this screen is read from the API rather than hard-coded, so the numbers
+ * cannot go stale when a feature is added.
  */
 
 import { useMemo, useState } from 'react'
-import {
-  Activity,
-  BarChart3,
-  Check,
-  Copy,
-  Database,
-  GitCompare,
-  Globe,
-  LayoutDashboard,
-  ListChecks,
-  Lock,
-  Plug,
-  Search,
-  Settings,
-  ShieldCheck,
-  Sparkles,
-  TrendingUp,
-  Workflow,
-  Copy as CopyIcon,
-} from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { Check, Download, FileText, ListChecks, Search } from 'lucide-react'
 
-import { Badge, Card, CardHeader, ChipGroup, EmptyState, LoadingState, SearchInput, StatTile, useToast } from '@/components/ui'
+import {
+  Badge,
+  Button,
+  Card,
+  CardHeader,
+  ChipGroup,
+  EmptyState,
+  LoadingState,
+  SearchInput,
+  StatTile,
+  useToast,
+} from '@/components/ui'
+import { iconFor } from '@/lib/nav-icons'
 import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
-
-const ICONS: Record<string, LucideIcon> = {
-  activity: Activity,
-  'bar-chart-3': BarChart3,
-  copy: Copy,
-  database: Database,
-  'git-compare': GitCompare,
-  globe: Globe,
-  'layout-dashboard': LayoutDashboard,
-  lock: Lock,
-  plug: Plug,
-  settings: Settings,
-  'shield-check': ShieldCheck,
-  sparkles: Sparkles,
-  'trending-up': TrendingUp,
-  workflow: Workflow,
-}
-
-function iconFor(name: string): LucideIcon {
-  return ICONS[name] ?? ListChecks
-}
+import { useAuth } from '@/hooks/useAuth'
+import { downloadJson, titleCase } from '@/lib/format'
 
 type Feature = { name: string; detail?: string }
 type Group = {
@@ -69,9 +44,12 @@ export default function Features() {
   const [term, setTerm] = useState('')
   const [groupKey, setGroupKey] = useState<string>('all')
   const toast = useToast()
+  const { user } = useAuth()
   const catalogue = useApiQuery(['meta-features'], endpoints.metaFeatures, { staleTime: 900_000 })
+  const metaQuery = useApiQuery(['meta'], endpoints.meta, { staleTime: 900_000 })
 
   const data = catalogue.data as Catalogue | undefined
+  const meta = metaQuery.data as { operations?: number; tables?: number; views?: number } | undefined
 
   const groups = useMemo(() => {
     if (!data) return []
@@ -93,11 +71,23 @@ export default function Features() {
 
   const visibleFeatures = groups.reduce((total, group) => total + group.matches, 0)
 
-  function copyFeature(name: string) {
-    navigator.clipboard?.writeText(name).then(
-      () => toast.success('Copied', name),
+  /** Copy the whole search result as a Markdown bullet list. */
+  function copyResult() {
+    const lines = groups.flatMap((group) => [
+      `### ${group.title}`,
+      ...group.features.map((feature) => `- **${feature.name}**${feature.detail ? ` — ${feature.detail}` : ''}`),
+      '',
+    ])
+    navigator.clipboard?.writeText(lines.join('\n')).then(
+      () => toast.success('Copied', `${visibleFeatures} features as Markdown`),
       () => toast.error('Clipboard unavailable'),
     )
+  }
+
+  function exportJson() {
+    if (!data) return
+    downloadJson('feature-catalogue.json', { search: term, area: groupKey, ...data })
+    toast.success('Exported', 'feature-catalogue.json')
   }
 
   if (catalogue.isLoading) return <LoadingState label="Loading the feature catalogue…" rows={6} />
@@ -114,29 +104,73 @@ export default function Features() {
               icon={<ListChecks className="h-4 w-4" />}
             />
             <div className="mt-3 max-w-xl">
-              <SearchInput value={term} onChange={setTerm} placeholder="Search features, e.g. robots, dedupe, dark mode…" />
+              <SearchInput
+                value={term}
+                onChange={setTerm}
+                placeholder="Search features, e.g. robots, dedupe, theme, export…"
+              />
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <ChipGroup
-              options={[{ id: 'all', label: 'All areas' }, ...(data?.groups ?? []).map((group) => ({ id: group.key, label: group.title.split(' ')[0] }))]}
+              options={[
+                { id: 'all', label: 'All areas' },
+                ...(data?.groups ?? []).map((group) => ({ id: group.key, label: group.title.split(' ')[0] })),
+              ]}
               value={groupKey}
               onChange={setGroupKey}
             />
           </div>
         </div>
-        <p className="mt-3 text-xs text-subtle">
-          Showing <span className="font-semibold text-ink">{visibleFeatures}</span> of {data?.total_features} features
-          across {data?.total_groups} areas.
-        </p>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-subtle">
+            Showing <span className="font-semibold text-ink">{visibleFeatures}</span> of {data?.total_features}{' '}
+            features across {data?.total_groups} areas.
+          </p>
+          <div className="flex gap-2">
+            <Button size="sm" variant="secondary" icon={<FileText className="h-3.5 w-3.5" />} onClick={copyResult}>
+              Copy as Markdown
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              icon={<Download className="h-3.5 w-3.5" />}
+              onClick={exportJson}
+            >
+              Export JSON
+            </Button>
+          </div>
+        </div>
       </Card>
 
       {/* ------------------------------------------------------------- tiles */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatTile label="Features shipped" value={data?.total_features ?? 0} hint="Implemented and tested" icon={<ListChecks className="h-4 w-4" />} />
-        <StatTile label="Capability areas" value={data?.total_groups ?? 0} hint="From ingestion to UX" tone="info" />
-        <StatTile label="REST operations" value="110+" hint="Documented in OpenAPI" tone="success" />
-        <StatTile label="Warehouse objects" value="43" hint="23 tables + 20 views" tone="neutral" />
+        <StatTile
+          label="Features shipped"
+          value={data?.total_features ?? 0}
+          hint="Implemented and tested"
+          icon={<ListChecks className="h-4 w-4" />}
+        />
+        <StatTile
+          label="Capability areas"
+          value={data?.total_groups ?? 0}
+          hint="From ingestion to UX"
+          tone="info"
+        />
+        <StatTile
+          label="REST operations"
+          value={meta?.operations ?? '—'}
+          hint="Reported by the API"
+          tone="success"
+        />
+        <StatTile
+          label="Warehouse objects"
+          value={
+            meta?.tables ? `${meta.tables} + ${meta.views ?? 20}` : '—'
+          }
+          hint="Tables + analytical views"
+          tone="neutral"
+        />
       </div>
 
       {/* ------------------------------------------------------------- groups */}
@@ -160,19 +194,20 @@ export default function Features() {
                 </div>
                 <ul className="flex-1 space-y-1.5 p-3">
                   {group.features.map((feature) => (
-                    <li key={feature.name} className="group/feature flex items-start gap-2 rounded-lg px-2 py-1.5 hover:bg-surface-2">
+                    <li
+                      key={feature.name}
+                      className="group/feature flex items-start gap-2 rounded-lg px-2 py-1.5 hover:bg-surface-2"
+                    >
                       <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" aria-hidden />
                       <div className="min-w-0 flex-1">
                         <p className="text-[13px] font-medium leading-tight text-ink">{feature.name}</p>
-                        {feature.detail ? <p className="mt-0.5 text-[11px] leading-snug text-subtle">{feature.detail}</p> : null}
+                        {feature.detail ? (
+                          <p className="mt-0.5 text-[11px] leading-snug text-subtle">{feature.detail}</p>
+                        ) : null}
                       </div>
-                      <button
-                        onClick={() => copyFeature(feature.name)}
-                        aria-label={`Copy “${feature.name}”`}
-                        className="mt-0.5 shrink-0 rounded p-1 text-subtle opacity-0 hover:bg-surface-3 hover:text-ink focus-visible:opacity-100 group-hover/feature:opacity-100"
-                      >
-                        <CopyIcon className="h-3 w-3" />
-                      </button>
+                      <span className="mt-0.5 shrink-0 font-mono text-[9px] uppercase tracking-wide text-subtle">
+                        {titleCase(group.key)}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -185,7 +220,7 @@ export default function Features() {
           <EmptyState
             icon={<Search className="h-5 w-5" />}
             title="No feature matches that search"
-            message="Try a broader term such as price, robots, export, auth or dark mode."
+            message="Try a broader term such as price, robots, export, auth or theme."
           />
         </Card>
       )}
@@ -196,8 +231,10 @@ export default function Features() {
           <div className="min-w-0">
             <p className="text-sm font-semibold text-ink">Catalogue source of truth</p>
             <p className="mt-0.5 text-xs text-muted">
-              Served by <code className="rounded bg-surface-3 px-1 font-mono text-[11px]">GET /api/v1/meta/features</code> and
-              generated from <code className="rounded bg-surface-3 px-1 font-mono text-[11px]">app/core/features.py</code>.
+              Served by{' '}
+              <code className="rounded bg-surface-3 px-1 font-mono text-[11px]">GET /api/v1/meta/features</code> and
+              generated from <code className="rounded bg-surface-3 px-1 font-mono text-[11px]">app/core/features.py</code>
+              {user ? ` · signed in as ${user.role}` : ''}.
             </p>
           </div>
           <a className="btn btn-secondary" href="/docs/19_feature_list.md" target="_blank" rel="noreferrer">

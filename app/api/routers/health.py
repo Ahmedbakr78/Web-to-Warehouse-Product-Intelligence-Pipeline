@@ -24,6 +24,19 @@ log = get_logger(__name__)
 router = APIRouter(tags=["system"])
 
 
+def operation_count() -> int:
+    """How many HTTP operations the API exposes.
+
+    Imported lazily from `app.api.routers` rather than from `app.api.main`, because
+    `main` imports the routers that import this module.
+    """
+    from app.api.routers import ROUTERS
+
+    return sum(
+        len(getattr(route, "methods", ()) or ()) for api_router in ROUTERS for route in api_router.routes
+    )
+
+
 @router.get("/health", response_model=HealthResponse, summary="Liveness + dependency health")
 def health() -> HealthResponse:
     database = ping()
@@ -105,6 +118,11 @@ def meta() -> dict[str, Any]:
         "active_database": settings.active_database,
         "dialect": settings.dialect_name,
         "tables": table_count(),
+        # Measured, not asserted: the dashboard reads these instead of hard-coding
+        # marketing numbers that silently go stale.
+        "views": len(expected_view_names()),
+        "operations": operation_count(),
+        "sources": len(list_sources()),
         "limits": {
             "max_page_size": 200,
             "default_page_size": 25,

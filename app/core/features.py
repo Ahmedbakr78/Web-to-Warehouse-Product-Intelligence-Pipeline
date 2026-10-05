@@ -393,7 +393,10 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "detail": "No smooth scroll, no page transition, scroll position restored on back, "
                 "focus moved to the page heading",
             },
-            {"name": "Modern scrollbars", "detail": "Custom thin scrollbars with scroll shadows and no scroll chaining"},
+            {
+                "name": "Modern scrollbars",
+                "detail": "Custom thin scrollbars with scroll shadows and no scroll chaining",
+            },
             {"name": "PWA", "detail": "Installable, maskable icons, offline fallback"},
             {"name": "Accessibility", "detail": "WCAG 2.1 AA: focus rings, ARIA, reduced motion"},
             {"name": "Notification centre", "detail": "Bell, unread badge, mark read, alert rules"},
@@ -424,10 +427,72 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "detail": "4 jobs: backend, databases (PG+MySQL), api-smoke, frontend",
             },
             {"name": "44 Make targets", "detail": "make everything / make check one-command verification"},
-            {"name": "78-check API smoke suite"},
+            {"name": "86-check API smoke suite"},
             {
                 "name": "Static project website",
-                "detail": "website/index.html - one-file premium landing page",
+                "detail": "website/ - a multi-page site generated from the live OpenAPI document",
+            },
+            {
+                "name": "Single canonical version",
+                "detail": "The VERSION file feeds the API, the CLI, pyproject.toml and the dashboard, "
+                "so the four can never disagree (scripts/sync_version.py enforces it)",
+            },
+            {
+                "name": "Documentation drift gate",
+                "detail": "CI fails when a measured count in the docs no longer matches the code",
+            },
+            {
+                "name": "Rendered Mermaid diagrams",
+                "detail": "Every diagram in docs/ is rendered to SVG and embedded",
+            },
+        ],
+    },
+    {
+        "key": "appearance",
+        "title": "Appearance & personalisation",
+        "icon": "palette",
+        "summary": "Six independent axes of personalisation, applied before the first paint.",
+        "features": [
+            {
+                "name": "Five palettes",
+                "detail": "Light, dark, midnight for OLED screens, a high-contrast WCAG mode and "
+                "system-follows-OS",
+            },
+            {"name": "Twelve accent colours", "detail": "Any colour can be applied without a rebuild"},
+            {
+                "name": "No flash on reload",
+                "detail": "An inline pre-paint script resolves the stored preference before React mounts",
+            },
+            {
+                "name": "System mode actually works",
+                "detail": "OS dark mode is resolved through the same code path, so a server profile "
+                "of `system` no longer forces light",
+            },
+            {
+                "name": "Server-persisted profile",
+                "detail": "Every appearance choice is saved to the user record, so a new device or "
+                "browser inherits it",
+            },
+            {
+                "name": "Cross-tab synchronisation",
+                "detail": "Two open tabs stay visually identical via the storage event",
+            },
+            {
+                "name": "Silent navigation",
+                "detail": "Scroll is never animated; back restores the previous offset and forward "
+                "starts at the top",
+            },
+            {
+                "name": "Live dual preview",
+                "detail": "The theme picker renders miniature versions of the real palettes",
+            },
+            {
+                "name": "Font scaling",
+                "detail": "Five steps from 13px to 19px, applied independently of density",
+            },
+            {
+                "name": "RTL mirroring",
+                "detail": "Logical properties flip the layout without a second stylesheet",
             },
         ],
     },
@@ -459,4 +524,9 @@ def feature_names() -> list[str]:
     return [feature["name"] for group in FEATURE_GROUPS for feature in group["features"]]
 
 
-__all__ = ["FEATURE_GROUPS", "feature_catalogue", "feature_names"]
+def feature_groups() -> list[tuple[str, str]]:
+    """``(key, title)`` pairs, used to build the features screen's filter chips."""
+    return [(group["key"], group["title"]) for group in FEATURE_GROUPS]
+
+
+__all__ = ["FEATURE_GROUPS", "feature_catalogue", "feature_groups", "feature_names"]
