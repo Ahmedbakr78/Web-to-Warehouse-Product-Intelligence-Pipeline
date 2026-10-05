@@ -25,9 +25,7 @@ def my_activity(
     params: dict[str, Any] = {"user_id": user.user_id, "since": since}
     total = (
         session.execute(
-            sa.text(
-                "SELECT COUNT(*) FROM app_audit_log WHERE user_id = :user_id AND created_at >= :since"
-            ),
+            sa.text("SELECT COUNT(*) FROM app_audit_log WHERE user_id = :user_id AND created_at >= :since"),
             params,
         ).scalar()
         or 0

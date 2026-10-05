@@ -20,15 +20,42 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "icon": "globe",
         "summary": "Permitted public sources collected politely: robots.txt, rate limits, retries, cache.",
         "features": [
-            {"name": "5 bundled sources", "detail": "3 JSON APIs, 1 BeautifulSoup/LXML HTML scraper, 1 offline fixture"},
-            {"name": "robots.txt gate (RFC 9309)", "detail": "Parsed once per host, cached, honoured per request"},
-            {"name": "Token-bucket rate limiter", "detail": "Per-source requests/second, requests/minute and crawl-delay floors"},
-            {"name": "Circuit breaker", "detail": "Opens after repeated failures, half-open probes, auto reset"},
-            {"name": "Response cache", "detail": "Content-addressed JSON cache with TTL - demo-friendly and fast"},
-            {"name": "Retry with backoff", "detail": "Exponential backoff, capped retries, per-request audit"},
-            {"name": "Terms allow-list", "detail": "Only sources whose terms permit automated access are ever fetched"},
-            {"name": "HTTP audit log", "detail": "Every outbound request recorded with robots decision and timing"},
-            {"name": "Source health checks", "detail": "Registry metadata, rate limits, paging capability, live preview"},
+            {
+                "name": "5 bundled sources",
+                "detail": "3 JSON APIs, 1 BeautifulSoup/LXML HTML scraper, 1 offline fixture",
+            },
+            {
+                "name": "robots.txt gate (RFC 9309)",
+                "detail": "Parsed once per host, cached, honoured per request",
+            },
+            {
+                "name": "Token-bucket rate limiter",
+                "detail": "Per-source requests/second, requests/minute and crawl-delay floors",
+            },
+            {
+                "name": "Circuit breaker",
+                "detail": "Opens after repeated failures, half-open probes, auto reset",
+            },
+            {
+                "name": "Response cache",
+                "detail": "Content-addressed JSON cache with TTL - demo-friendly and fast",
+            },
+            {
+                "name": "Retry with backoff",
+                "detail": "Exponential backoff, capped retries, per-request audit",
+            },
+            {
+                "name": "Terms allow-list",
+                "detail": "Only sources whose terms permit automated access are ever fetched",
+            },
+            {
+                "name": "HTTP audit log",
+                "detail": "Every outbound request recorded with robots decision and timing",
+            },
+            {
+                "name": "Source health checks",
+                "detail": "Registry metadata, rate limits, paging capability, live preview",
+            },
         ],
     },
     {
@@ -39,7 +66,10 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "features": [
             {"name": "Product-name cleaner", "detail": "Case, punctuation, volume suffixes, marketing noise"},
             {"name": "Category normaliser", "detail": "Levels, slugs, taxonomy tree derivation"},
-            {"name": "Price parser", "detail": "Ranges, was/pricing text, thousands separators, 18+ currency symbols"},
+            {
+                "name": "Price parser",
+                "detail": "Ranges, was/pricing text, thousands separators, 18+ currency symbols",
+            },
             {"name": "Currency conversion", "detail": "Offline FX table to USD - no external dependency"},
             {"name": "Rating parser", "detail": "Stars, counts, 0-5 scaling"},
             {"name": "Availability normaliser", "detail": "in_stock / out_of_stock / pre_order / unknown"},
@@ -61,7 +91,10 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             {"name": "Token-set similarity"},
             {"name": "Trigram similarity"},
             {"name": "Digit signature match", "detail": "Model numbers survive textual noise"},
-            {"name": "Combined strategy + score", "detail": "Best-of similarity with 0.90 threshold (configurable)"},
+            {
+                "name": "Combined strategy + score",
+                "detail": "Best-of similarity with 0.90 threshold (configurable)",
+            },
         ],
     },
     {
@@ -72,7 +105,10 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "features": [
             {"name": "Star schema", "detail": "5 dimensions, 5 fact/change tables, aggregates"},
             {"name": "Cross-dialect DDL", "detail": "One SQLAlchemy 2.0 model set, three databases"},
-            {"name": "20 analytical views", "detail": "KPI, price history, movers, coverage, reconciliation..."},
+            {
+                "name": "20 analytical views",
+                "detail": "KPI, price history, movers, coverage, reconciliation...",
+            },
             {"name": "Staging zone", "detail": "Raw observations kept verbatim with reject reasons"},
             {"name": "Historical snapshots", "detail": "fact_price_snapshot keyed by (product, run)"},
             {"name": "Slow-changing dimensions", "detail": "Category assignments tracked over time"},
@@ -85,8 +121,13 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "icon": "workflow",
         "summary": "9 instrumented stages with per-stage timings and counters.",
         "features": [
-            {"name": "extract -> stage -> transform -> resolve -> load -> detect -> reconcile -> quality -> aggregate"},
-            {"name": "Per-stage timings", "detail": "Every run records stage durations for the Pipeline screen"},
+            {
+                "name": "extract -> stage -> transform -> resolve -> load -> detect -> reconcile -> quality -> aggregate"
+            },
+            {
+                "name": "Per-stage timings",
+                "detail": "Every run records stage durations for the Pipeline screen",
+            },
             {"name": "Run history", "detail": "Status, counters, sources, trigger, actor"},
             {"name": "Failure isolation", "detail": "One dead source never kills the run"},
             {"name": "Manual trigger API", "detail": "Async or sync, any source mix, any dialect"},
@@ -126,7 +167,10 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "icon": "shield-check",
         "summary": "12 rules across 6 dimensions with a 0-100 score and a blocking gate.",
         "features": [
-            {"name": "12 DQ rules", "detail": "Uniqueness, completeness, validity, consistency, timeliness, accuracy"},
+            {
+                "name": "12 DQ rules",
+                "detail": "Uniqueness, completeness, validity, consistency, timeliness, accuracy",
+            },
             {"name": "Quality score", "detail": "Weighted 0-100 score per run"},
             {"name": "Pass/warn/fail severities", "detail": "Only critical failures block the DAG"},
             {"name": "History & trend", "detail": "90-day score trend on the Quality screen"},
@@ -145,7 +189,10 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             {"name": "Source coverage matrix", "detail": "Products, observations, success rate per source"},
             {"name": "Category & brand leaderboards"},
             {"name": "Availability analysis"},
-            {"name": "CSV exports", "detail": "Products, price-change report, catalog report, compliance report"},
+            {
+                "name": "CSV exports",
+                "detail": "Products, price-change report, catalog report, compliance report",
+            },
             {"name": "Read-only query lab", "detail": "SELECT/WITH/EXPLAIN console over all views"},
         ],
     },
@@ -160,8 +207,14 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             {"name": "Pagination + facets", "detail": "Cursor-free paging, filter facets, suggestions"},
             {"name": "GZip + timing headers", "detail": "X-Process-Time-Ms, X-Database on every response"},
             {"name": "Rate limiting", "detail": "Per-key and per-user request budgets"},
-            {"name": "Service metadata", "detail": "/meta, /meta/tables, /meta/features, /version, /stats/tables"},
-            {"name": "View builder API", "detail": "POST /builder/query: server-side group-by + aggregate + filter"},
+            {
+                "name": "Service metadata",
+                "detail": "/meta, /meta/tables, /meta/features, /version, /stats/tables",
+            },
+            {
+                "name": "View builder API",
+                "detail": "POST /builder/query: server-side group-by + aggregate + filter",
+            },
         ],
     },
     {
@@ -177,7 +230,10 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             {"name": "Brute-force lockout", "detail": "5 attempts -> 15-minute lock, audited"},
             {"name": "Full audit trail", "detail": "Every mutating action logged with IP and user agent"},
             {"name": "Own-activity feed", "detail": "GET /audit/me for the Account screen"},
-            {"name": "Account self-service", "detail": "Profile, password, preferences, data export, account deletion"},
+            {
+                "name": "Account self-service",
+                "detail": "Profile, password, preferences, data export, account deletion",
+            },
         ],
     },
     {
@@ -186,15 +242,24 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "icon": "layout-dashboard",
         "summary": "19 screens, light/dark/system themes, PWA, command palette.",
         "features": [
-            {"name": "17 analytic screens", "detail": "Dashboard, Analytics, Changes, Products, Catalog, Quality, Sources..."},
-            {"name": "Light + dark + system themes", "detail": "Instant CSS-variable switch, no flash, OS-synced"},
+            {
+                "name": "17 analytic screens",
+                "detail": "Dashboard, Analytics, Changes, Products, Catalog, Quality, Sources...",
+            },
+            {
+                "name": "Light + dark + system themes",
+                "detail": "Instant CSS-variable switch, no flash, OS-synced",
+            },
             {"name": "6 accent colours x 3 densities"},
             {"name": "Command palette", "detail": "Ctrl/Cmd-K or / - screens, products, actions"},
             {"name": "Mobile-first responsive shell", "detail": "Off-canvas drawer sidebar, 320px and up"},
             {"name": "PWA", "detail": "Installable, maskable icons, offline fallback"},
             {"name": "Accessibility", "detail": "WCAG 2.1 AA: focus rings, ARIA, reduced motion"},
             {"name": "Notification centre", "detail": "Bell, unread badge, mark read, alert rules"},
-            {"name": "Feature catalogue screen", "detail": "Searchable list of everything the platform ships"},
+            {
+                "name": "Feature catalogue screen",
+                "detail": "Searchable list of everything the platform ships",
+            },
         ],
     },
     {
@@ -204,13 +269,25 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "summary": "Airflow DAG, Docker Compose stack, CI, 44 make targets.",
         "features": [
             {"name": "Airflow 2.10 DAG", "detail": "14 tasks, guards, branching, pool, retries with backoff"},
-            {"name": "REST-transport fallback", "detail": "DAG drives the pipeline via API when SQLAlchemy pins conflict"},
+            {
+                "name": "REST-transport fallback",
+                "detail": "DAG drives the pipeline via API when SQLAlchemy pins conflict",
+            },
             {"name": "Report artifacts", "detail": "Every run publishes a JSON KPI artifact"},
-            {"name": "Docker Compose stack", "detail": "api, postgres, mysql, airflow-webserver, airflow-scheduler, frontend"},
-            {"name": "GitHub Actions CI", "detail": "4 jobs: backend, databases (PG+MySQL), api-smoke, frontend"},
+            {
+                "name": "Docker Compose stack",
+                "detail": "api, postgres, mysql, airflow-webserver, airflow-scheduler, frontend",
+            },
+            {
+                "name": "GitHub Actions CI",
+                "detail": "4 jobs: backend, databases (PG+MySQL), api-smoke, frontend",
+            },
             {"name": "44 Make targets", "detail": "make everything / make check one-command verification"},
             {"name": "78-check API smoke suite"},
-            {"name": "Static project website", "detail": "website/index.html - one-file premium landing page"},
+            {
+                "name": "Static project website",
+                "detail": "website/index.html - one-file premium landing page",
+            },
         ],
     },
 ]

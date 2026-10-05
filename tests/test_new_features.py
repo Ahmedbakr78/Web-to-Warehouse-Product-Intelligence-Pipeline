@@ -83,9 +83,7 @@ def test_audit_me_returns_own_activity_only(client, admin_token):
 
 
 def test_audit_me_pagination_and_window(client, admin_token):
-    response = client.get(
-        "/api/v1/audit/me?page=1&page_size=2&days=3650", headers=auth(admin_token)
-    )
+    response = client.get("/api/v1/audit/me?page=1&page_size=2&days=3650", headers=auth(admin_token))
     assert response.status_code == 200
     payload = response.json()
     assert payload["page_size"] == 2
@@ -114,7 +112,12 @@ def _disposable_user(client, admin_token, email: str) -> None:
     created = client.post(
         "/api/v1/users",
         headers=auth(admin_token),
-        json={"email": email, "full_name": "Disposable User", "password": "Disposable@12345", "role": "viewer"},
+        json={
+            "email": email,
+            "full_name": "Disposable User",
+            "password": "Disposable@12345",
+            "role": "viewer",
+        },
     )
     assert created.status_code == 201, created.text
 
@@ -125,13 +128,9 @@ def test_delete_my_account_requires_password(client, admin_token):
         "/api/v1/auth/login", json={"email": "disposable-a@example.com", "password": "Disposable@12345"}
     ).json()
     token = {"Authorization": f"Bearer {login['access_token']}"}
-    wrong = client.request(
-        "DELETE", "/api/v1/users/me", headers=token, json={"password": "Wrong@123456"}
-    )
+    wrong = client.request("DELETE", "/api/v1/users/me", headers=token, json={"password": "Wrong@123456"})
     assert wrong.status_code == 401
-    gone = client.request(
-        "DELETE", "/api/v1/users/me", headers=token, json={"password": "Disposable@12345"}
-    )
+    gone = client.request("DELETE", "/api/v1/users/me", headers=token, json={"password": "Disposable@12345"})
     assert gone.status_code == 200
     assert "deleted" in gone.json()["message"].lower()
     # The account can no longer authenticate.
@@ -160,7 +159,13 @@ def test_builder_schema_lists_entities(client, admin_token):
     payload = response.json()
     keys = {entity["entity"] for entity in payload["entities"]}
     assert {"products", "price_changes", "new_products", "removed_products"} <= keys
-    assert {operator["operator"] for operator in payload["operators"]} >= {"eq", "contains", "between", "in", "empty"}
+    assert {operator["operator"] for operator in payload["operators"]} >= {
+        "eq",
+        "contains",
+        "between",
+        "in",
+        "empty",
+    }
     assert "avg" in payload["aggregates"]
 
 

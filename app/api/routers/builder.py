@@ -1,10 +1,10 @@
 """Structured read-only view-builder API powering the dashboard Builder screen.
 
-    Unlike the free-form query lab (``/queries/execute``), this endpoint never
-    accepts raw SQL: the client picks a whitelisted entity, columns, operators
-    and aggregate functions, and the server assembles a parameterised SELECT.
-    Injection is structurally impossible because every identifier comes from
-    the ``ENTITIES`` whitelist and every value arrives as a bind parameter.
+Unlike the free-form query lab (``/queries/execute``), this endpoint never
+accepts raw SQL: the client picks a whitelisted entity, columns, operators
+and aggregate functions, and the server assembles a parameterised SELECT.
+Injection is structurally impossible because every identifier comes from
+the ``ENTITIES`` whitelist and every value arrives as a bind parameter.
 """
 
 from __future__ import annotations
@@ -407,13 +407,17 @@ def _build_sql(query: BuilderQuery) -> tuple[str, dict[str, Any], dict[str, Any]
         if operator in ("in", "not_in"):
             if not isinstance(flt.value, list) or not flt.value:
                 raise ValidationError(f"operator '{operator}' requires a non-empty list value")
-            where_parts.append(f"{flt.column} {OPERATORS[operator]} ({', '.join(bind(v) for v in flt.value)})")
+            where_parts.append(
+                f"{flt.column} {OPERATORS[operator]} ({', '.join(bind(v) for v in flt.value)})"
+            )
         elif operator == "between":
             if flt.value2 is None:
                 raise ValidationError("operator 'between' requires value and value2")
             where_parts.append(f"{flt.column} BETWEEN {bind(flt.value)} AND {bind(flt.value2)}")
         elif operator in ("contains", "not_contains", "starts_with", "ends_with"):
-            where_parts.append(f"{flt.column} {OPERATORS[operator]} {bind(_like_pattern(operator, flt.value))}")
+            where_parts.append(
+                f"{flt.column} {OPERATORS[operator]} {bind(_like_pattern(operator, flt.value))}"
+            )
         else:
             where_parts.append(f"{flt.column} {OPERATORS[operator]} {bind(flt.value)}")
     where_clause = f" WHERE {' AND '.join(where_parts)}" if where_parts else ""
@@ -432,7 +436,8 @@ def _build_sql(query: BuilderQuery) -> tuple[str, dict[str, Any], dict[str, Any]
 def _validate_sort(query: BuilderQuery, entity: dict[str, Any]) -> None:
     """Sort columns must be entity columns - or grouping columns/aggregate aliases when grouped."""
     aliases = {
-        aggregate.alias or f"{aggregate.function}_{aggregate.column or 'all'}" for aggregate in query.aggregates
+        aggregate.alias or f"{aggregate.function}_{aggregate.column or 'all'}"
+        for aggregate in query.aggregates
     }
     if query.group_by or query.aggregates:
         allowed = set(query.group_by) | aliases
@@ -472,7 +477,15 @@ def schema(_user: QueryUser) -> dict[str, Any]:
     return {
         "entities": entities,
         "operators": [
-            {"operator": key, "sql": value, "value_type": "list" if key in ("in", "not_in") else ("range" if key == "between" else ("none" if key in ("empty", "not_empty") else "scalar"))}
+            {
+                "operator": key,
+                "sql": value,
+                "value_type": "list"
+                if key in ("in", "not_in")
+                else (
+                    "range" if key == "between" else ("none" if key in ("empty", "not_empty") else "scalar")
+                ),
+            }
             for key, value in OPERATORS.items()
         ],
         "aggregates": list(AGGREGATES),
@@ -516,7 +529,7 @@ def _jsonify_row(row: Any) -> list[Any]:
     import datetime as dt
     import decimal
 
-    values = []
+    values: list[Any] = []
     for value in row:
         if isinstance(value, (dt.datetime, dt.date, dt.time)):
             values.append(value.isoformat())

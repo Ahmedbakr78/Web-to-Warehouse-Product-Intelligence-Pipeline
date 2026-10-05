@@ -72,8 +72,12 @@ def export_me(session: DbSession, user: CurrentUser) -> dict[str, Any]:
 
     since = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=90)
     keys = session.execute(sa.select(AppApiKey).where(AppApiKey.user_id == user.user_id)).scalars().all()
-    views = session.execute(sa.select(AppSavedView).where(AppSavedView.user_id == user.user_id)).scalars().all()
-    alerts = session.execute(sa.select(AppAlertRule).where(AppAlertRule.user_id == user.user_id)).scalars().all()
+    views = (
+        session.execute(sa.select(AppSavedView).where(AppSavedView.user_id == user.user_id)).scalars().all()
+    )
+    alerts = (
+        session.execute(sa.select(AppAlertRule).where(AppAlertRule.user_id == user.user_id)).scalars().all()
+    )
     notifications = (
         session.execute(
             sa.select(AppNotification)
