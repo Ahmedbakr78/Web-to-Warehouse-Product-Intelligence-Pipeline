@@ -185,7 +185,7 @@ export default function Features() {
           <EmptyState
             icon={<Search className="h-5 w-5" />}
             title="No feature matches that search"
-            description="Try a broader term such as price, robots, export, auth or dark mode."
+            message="Try a broader term such as price, robots, export, auth or dark mode."
           />
         </Card>
       )}
