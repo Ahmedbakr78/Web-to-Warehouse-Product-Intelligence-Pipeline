@@ -37,7 +37,21 @@ import {
   Toggle,
   useToast,
 } from '@/components/ui'
-import { ACCENTS, useAccent, useDensity, useMotion, useTheme } from '@/lib/theme'
+import {
+  ACCENTS,
+  DENSITIES,
+  FONT_SCALES,
+  MOTION_MODES,
+  THEME_MODES,
+  useAccent,
+  useAppearance,
+  useDensity,
+  useDirection,
+  useFontScale,
+  useMotion,
+  useTheme,
+} from '@/lib/theme'
+import type { Density, Direction, FontScale, MotionMode, ThemeMode } from '@/lib/theme'
 import { cn } from '@/lib/cn'
 import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
@@ -51,13 +65,36 @@ const AVATAR_COLORS = [
   '#7c3aed', '#db2777', '#334155', '#65a30d', '#b45309', '#be123c',
 ]
 
+/** Representative colours used by the theme picker swatches. */
+const THEME_SWATCH: Record<ThemeMode, { bg: string; surface: string; text: string; muted: string }> = {
+  light: { bg: '#f6f7fb', surface: '#ffffff', text: '#0f172a', muted: '#64748b' },
+  dark: { bg: '#070b18', surface: '#0f1629', text: '#e8eefc', muted: '#9aa8c7' },
+  midnight: { bg: '#010409', surface: '#070d1a', text: '#dbe7ff', muted: '#93a6c8' },
+  'high-contrast': { bg: '#ffffff', surface: '#ffffff', text: '#000000', muted: '#334155' },
+  system: { bg: '#f6f7fb', surface: '#ffffff', text: '#0f172a', muted: '#64748b' },
+}
+
 export default function Account() {
   const [tab, setTab] = useState('profile')
-  const { user, logout, refresh } = useAuth()
-  const { mode, setMode, isDark } = useTheme()
-  const { density, setDensity } = useDensity()
-  const { accent, setAccent } = useAccent()
-  const { motion, setMotion } = useMotion()
+  const { user, logout, refresh, saveAppearance } = useAuth()
+  const { mode, isDark } = useTheme()
+  const { density } = useDensity()
+  const { accent } = useAccent()
+  const { motion } = useMotion()
+  const { direction } = useDirection()
+  const { fontScale } = useFontScale()
+
+  /**
+   * Appearance controls apply instantly (so the preview is live) and then persist
+   * to the profile, so the choice follows the user to another device or tab.
+   */
+  const applyThemeOption = (next: ThemeMode) => saveAppearance({ theme: next })
+  const applyAccentOption = (next: string) => saveAppearance({ accent: next })
+  const applyDensityOption = (next: Density) => saveAppearance({ density: next })
+  const applyFontScaleOption = (next: FontScale) => saveAppearance({ font_scale: next })
+  const applyMotionOption = (next: MotionMode) => saveAppearance({ motion: next })
+  const applyDirectionOption = (next: Direction) => saveAppearance({ direction: next })
+
   const toast = useToast()
   const queryClient = useQueryClient()
   const [startPage, setStartPage] = useState(() => localStore.get('account.startPage', '/'))
@@ -383,87 +420,131 @@ export default function Account() {
       {tab === 'appearance' ? (
         <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
           <Card>
-            <CardHeader title="Theme" subtitle="system follows the operating system setting" icon={isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />} />
-            <Segmented
-              options={[
-                { id: 'light', label: 'Light' },
-                { id: 'dark', label: 'Dark' },
-                { id: 'system', label: 'System' },
-              ]}
-              value={mode}
-              onChange={(value) => setMode(value as 'light' | 'dark' | 'system')}
+            <CardHeader
+              title="Theme"
+              subtitle="Five palettes - system follows the operating system setting"
+              icon={isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             />
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <div className="rounded-xl border border-line bg-surface p-3">
-                <p className="stat-label mb-2">Light</p>
-                <div className="space-y-1.5">
-                  <div className="h-4 w-3/4 rounded bg-surface-3" />
-                  <div className="h-4 w-1/2 rounded bg-surface-3" />
-                  <div className="h-6 w-20 rounded bg-brand-600" />
-                </div>
-              </div>
-              <div className="rounded-xl border border-line bg-[#070b18] p-3">
-                <p className="stat-label mb-2 text-[#e8eefc]">Dark</p>
-                <div className="space-y-1.5">
-                  <div className="h-4 w-3/4 rounded bg-[#1b2540]" />
-                  <div className="h-4 w-1/2 rounded bg-[#1b2540]" />
-                  <div className="h-6 w-20 rounded bg-brand-500" />
-                </div>
-              </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {THEME_MODES.map((option) => (
+                <button
+                  key={option.id}
+                  onClick={() => applyThemeOption(option.id)}
+                  title={option.hint}
+                  aria-pressed={mode === option.id}
+                  className={cn(
+                    'group flex flex-col items-start gap-2 rounded-xl border-2 p-2 text-left',
+                    mode === option.id ? 'border-brand-500 bg-brand-500/5' : 'border-line hover:border-line-strong',
+                  )}
+                >
+                  {/* Miniature of the real palette so the choice is visual, not textual. */}
+                  <span className="flex h-12 w-full overflow-hidden rounded-lg border border-line">
+                    <span
+                      className="w-1/3"
+                      style={{ backgroundColor: THEME_SWATCH[option.id].bg }}
+                    />
+                    <span
+                      className="w-1/3"
+                      style={{ backgroundColor: THEME_SWATCH[option.id].surface }}
+                    />
+                    <span className="flex w-1/3 flex-col justify-center gap-1 p-1" style={{ backgroundColor: THEME_SWATCH[option.id].surface }}>
+                      <span className="h-1 w-3/4 rounded" style={{ backgroundColor: THEME_SWATCH[option.id].text }} />
+                      <span className="h-1 w-1/2 rounded" style={{ backgroundColor: THEME_SWATCH[option.id].muted }} />
+                      <span className="h-1.5 w-1/3 rounded" style={{ backgroundColor: '#4f46e5' }} />
+                    </span>
+                  </span>
+                  <span>
+                    <span className="block text-xs font-medium text-ink">{option.label}</span>
+                    <span className="block text-[10px] leading-tight text-subtle">{option.hint}</span>
+                  </span>
+                </button>
+              ))}
             </div>
+            <p className="mt-3 text-[11px] text-subtle">
+              Active palette: <code className="rounded bg-surface-3 px-1 font-mono">{mode}</code>
+              {mode === 'system' ? ` → ${isDark ? 'dark' : 'light'} (from your operating system)` : ''}
+            </p>
           </Card>
 
           <Card>
-            <CardHeader title="Density and accent" subtitle="Comfortable spacing, custom brand colour" icon={<Palette className="h-4 w-4" />} />
+            <CardHeader title="Accent, density and motion" subtitle="Brand colour, spacing and animation policy" icon={<Palette className="h-4 w-4" />} />
             <div className="space-y-4">
               <div>
-                <p className="stat-label mb-1.5">Density</p>
-                <Segmented
-                  options={[
-                    { id: 'compact', label: 'Compact' },
-                    { id: 'comfortable', label: 'Comfortable' },
-                    { id: 'spacious', label: 'Spacious' },
-                  ]}
-                  value={density}
-                  onChange={(value) => setDensity(value as 'compact' | 'comfortable' | 'spacious')}
-                />
-              </div>
-              <div>
-                <p className="stat-label mb-2">Accent colour</p>
+                <p className="stat-label mb-1.5">Accent colour ({ACCENTS.length} presets)</p>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(ACCENTS).map(([key, entry]) => (
                     <button
                       key={key}
-                      onClick={() => setAccent(key)}
+                      onClick={() => applyAccentOption(key)}
                       aria-label={entry.name}
                       title={entry.name}
+                      aria-pressed={accent === key}
                       className={cn(
                         'h-8 w-8 rounded-lg border-2',
-                        accent === key ? 'border-ink' : 'border-transparent',
+                        accent === key ? 'border-ink ring-2 ring-brand-500/40' : 'border-transparent',
                       )}
                       style={{ backgroundColor: entry.base }}
                     />
                   ))}
                 </div>
               </div>
+
+              <div>
+                <p className="stat-label mb-1.5">Density</p>
+                <Segmented
+                  options={DENSITIES.map((option) => ({ id: option.id, label: option.label }))}
+                  value={density}
+                  onChange={(value) => applyDensityOption(value as Density)}
+                />
+                <p className="mt-1.5 text-[11px] text-subtle">
+                  {DENSITIES.find((option) => option.id === density)?.hint}
+                </p>
+              </div>
+
+              <div>
+                <p className="stat-label mb-1.5">Text size</p>
+                <Segmented
+                  options={FONT_SCALES.map((option) => ({ id: option.id, label: option.label }))}
+                  value={fontScale}
+                  onChange={(value) => applyFontScaleOption(value as FontScale)}
+                />
+                <p className="mt-1.5 text-[11px] text-subtle">
+                  Independent of density, so you can have dense rows and large text at once.
+                </p>
+              </div>
+
               <div>
                 <p className="stat-label mb-1.5">Motion</p>
                 <Segmented
-                  options={[
-                    { id: 'auto', label: 'System' },
-                    { id: 'reduced', label: 'Reduce motion' },
-                  ]}
+                  options={MOTION_MODES.map((option) => ({ id: option.id, label: option.label }))}
                   value={motion}
-                  onChange={(value) => setMotion(value as 'auto' | 'reduced')}
+                  onChange={(value) => applyMotionOption(value as MotionMode)}
                 />
                 <p className="mt-1.5 text-[11px] text-subtle">
-                  Reduced keeps every transition instant, regardless of the operating system setting.
+                  {MOTION_MODES.find((option) => option.id === motion)?.hint}. Navigation never animates
+                  regardless of this setting - there is no page transition and no smooth scroll.
                 </p>
               </div>
+
+              <div>
+                <p className="stat-label mb-1.5">Reading direction</p>
+                <Segmented
+                  options={[
+                    { id: 'ltr', label: 'Left to right' },
+                    { id: 'rtl', label: 'Right to left' },
+                  ]}
+                  value={direction}
+                  onChange={(value) => applyDirectionOption(value as Direction)}
+                />
+                <p className="mt-1.5 text-[11px] text-subtle">
+                  The whole layout mirrors using CSS logical properties.
+                </p>
+              </div>
+
               <div className="rounded-lg bg-surface-2 p-3 text-[11px] leading-relaxed text-muted">
-                Appearance is stored locally in <code className="rounded bg-surface-3 px-1">localStorage</code> and applied
-                before the first paint, so there is no flash of the wrong theme on reload. Saving the profile also
-                syncs the server-side preference so a new device inherits it.
+                Appearance is applied before the first paint, so reloading never flashes the wrong theme. Every
+                choice is saved to your profile as well as this browser, so a new device or a new tab inherits it
+                immediately.
               </div>
             </div>
           </Card>

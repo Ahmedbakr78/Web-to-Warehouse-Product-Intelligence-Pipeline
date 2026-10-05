@@ -1133,7 +1133,7 @@ menu. Nothing depends on hover, and every icon-only control carries an accessibl
 ## Security
 
 The full threat model, boundary-by-boundary control table and disclosure process are in
-[.github/SECURITY.md](.github/SECURITY.md).
+[SECURITY.md](SECURITY.md).
 
 | Boundary | Threat | Control |
 | --- | --- | --- |
@@ -1313,7 +1313,7 @@ is a plain directory of static files that can be served locally or dropped on an
 | --- | --- |
 | [CHANGELOG.md](CHANGELOG.md) | Every release, following Keep a Changelog |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How to set up, test and propose changes |
-| [.github/SECURITY.md](.github/SECURITY.md) | Threat model, boundary controls, disclosure process |
+| [SECURITY.md](SECURITY.md) | Threat model, boundary controls, disclosure process |
 | [CODE_OF_CONDUCT.md](.github/CODE_OF_CONDUCT.md) | Contributor Covenant 2.1 |
 | [.github/ISSUE_TEMPLATE](.github/ISSUE_TEMPLATE) | Bug, feature and documentation forms |
 | [.github/pull_request_template.md](.github/pull_request_template.md) | PR checklist and verification expectations |

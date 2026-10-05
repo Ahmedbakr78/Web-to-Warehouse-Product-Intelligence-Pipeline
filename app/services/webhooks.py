@@ -25,6 +25,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from dataclasses import dataclass
 from typing import Any
 
 import sqlalchemy as sa
@@ -57,6 +58,25 @@ SIGNATURE_HEADER = "X-Webhook-Signature"
 EVENT_HEADER = "X-Webhook-Event"
 DELIVERY_HEADER = "X-Webhook-Delivery"
 TIMESTAMP_HEADER = "X-Webhook-Timestamp"
+
+
+@dataclass
+class DeliveryOutcome:
+    """Result of one delivery attempt.
+
+    ``delivery`` is the persisted row when the attempt was recorded (``record=True``);
+    retries reuse an existing row, so the status fields are reported separately.
+    """
+
+    status: str
+    status_code: int | None = None
+    error: str | None = None
+    duration_ms: int | None = None
+    delivery: AppWebhookDelivery | None = None
+
+    @property
+    def ok(self) -> bool:
+        return self.status == "success"
 
 
 class WebhookError(PipelineError):
@@ -190,7 +210,7 @@ def deliver(
     payload: dict[str, Any],
     *,
     record: bool = True,
-) -> AppWebhookDelivery | None:
+) -> DeliveryOutcome:
     """Attempt one delivery, record the outcome and schedule a retry if it failed."""
     row: AppWebhookDelivery | None = None
     if record:
@@ -260,7 +280,13 @@ def deliver(
             row.delivered_at = utcnow()
         else:
             row.next_retry_at = utcnow() + dt.timedelta(seconds=RETRY_BACKOFF_SECONDS[0])
-    return row
+    return DeliveryOutcome(
+        status="success" if success else "failed",
+        status_code=status_code,
+        error=error,
+        duration_ms=duration_ms,
+        delivery=row,
+    )
 
 
 def emit(session: Session, event: str, payload: dict[str, Any]) -> list[AppWebhookDelivery]:
@@ -271,9 +297,9 @@ def emit(session: Session, event: str, payload: dict[str, Any]) -> list[AppWebho
     deliveries: list[AppWebhookDelivery] = []
     for hook in subscriptions_for_event(session, event):
         try:
-            delivery = deliver(session, hook, event, payload)
-            if delivery is not None:
-                deliveries.append(delivery)
+            outcome = deliver(session, hook, event, payload)
+            if outcome.delivery is not None:
+                deliveries.append(outcome.delivery)
         except Exception:  # noqa: BLE001 - integrations must not break the pipeline
             log.exception("webhook delivery failed for subscription %s", hook.webhook_id)
         session.flush()
@@ -302,13 +328,15 @@ def retry_due(session: Session, limit: int = 50) -> int:
         hook = session.get(AppWebhook, delivery.webhook_id)
         if hook is None or not hook.is_active:
             continue
-        row = deliver(session, hook, delivery.event, delivery.payload or {}, record=False)
+        outcome = deliver(session, hook, delivery.event, delivery.payload or {}, record=False)
         delivery.attempts = (delivery.attempts or 0) + 1
         delivery.next_retry_at = None
-        if row is not None and row.status == "success":
+        delivery.duration_ms = outcome.duration_ms
+        if outcome.ok:
             delivery.status = "success"
             delivery.delivered_at = utcnow()
-            delivery.status_code = row.status_code
+            delivery.status_code = outcome.status_code
+            delivery.response_excerpt = None
             delivery.error = None
         elif delivery.attempts >= (hook.max_attempts or 3):
             delivery.status = "failed"
@@ -322,6 +350,7 @@ def retry_due(session: Session, limit: int = 50) -> int:
 
 __all__ = [
     "EVENT_HEADER",
+    "DeliveryOutcome",
     "MAX_FAILURES_BEFORE_DISABLE",
     "RETRY_BACKOFF_SECONDS",
     "SIGNATURE_HEADER",

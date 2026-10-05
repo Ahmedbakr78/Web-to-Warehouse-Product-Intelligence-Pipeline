@@ -345,8 +345,10 @@ def _build_where(dataset: Dataset, filters: dict[str, Any]) -> tuple[str, dict[s
                 "price_changes": "canonical_name",
                 "movers": "canonical_name",
             }.get(dataset.key, "canonical_name")
-            clauses.append(f"{search_cols} ILIKE :search")
-            params["search"] = f"%{raw}%"
+            # LOWER(...) LIKE is portable across SQLite, PostgreSQL and MySQL
+            # (ILIKE would fail on SQLite, which the test suite runs on).
+            clauses.append(f"LOWER({search_cols}) LIKE :search")
+            params["search"] = f"%{str(raw).lower()}%"
             continue
         if name == "direction":
             direction = str(raw).lower()

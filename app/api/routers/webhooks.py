@@ -195,17 +195,18 @@ def test_webhook(
         "message": "Test delivery from the Product Intelligence dashboard",
         "webhook_id": hook.webhook_id,
     }
-    delivery = webhooks.deliver(session, hook, event, body)
+    outcome = webhooks.deliver(session, hook, event, body)
     session.flush()
-    result: dict[str, Any] = {"event": event, "delivered": bool(delivery and delivery.status == "success")}
-    if delivery is not None:
+    result: dict[str, Any] = {"event": event, "delivered": outcome.ok, "status": outcome.status}
+    result |= {
+        "status_code": outcome.status_code,
+        "duration_ms": outcome.duration_ms,
+        "error": outcome.error,
+    }
+    if outcome.delivery is not None:
         result |= {
-            "delivery_id": delivery.delivery_id,
-            "status": delivery.status,
-            "status_code": delivery.status_code,
-            "duration_ms": delivery.duration_ms,
-            "error": delivery.error,
-            "response_excerpt": delivery.response_excerpt,
+            "delivery_id": outcome.delivery.delivery_id,
+            "response_excerpt": outcome.delivery.response_excerpt,
         }
     return result
 
