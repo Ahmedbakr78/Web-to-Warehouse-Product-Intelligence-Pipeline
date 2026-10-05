@@ -21,6 +21,7 @@ import ast
 import json
 import re
 import subprocess
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -49,7 +50,11 @@ def tables() -> int:
         "print(len(Base.metadata.tables))\n"
     )
     result = subprocess.run(
-        ["python", "-c", script], cwd=ROOT, capture_output=True, text=True, timeout=120
+        [sys.executable, "-c", script],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=180,
     )
     if result.returncode != 0:
         return -1
@@ -85,7 +90,7 @@ def test_functions() -> int:
 def test_cases() -> int:
     """Actual collected test count, via pytest --collect-only."""
     result = subprocess.run(
-        ["python", "-m", "pytest", "--collect-only", "-q"],
+        [sys.executable, "-m", "pytest", "--collect-only", "-q"],
         cwd=ROOT,
         capture_output=True,
         text=True,
