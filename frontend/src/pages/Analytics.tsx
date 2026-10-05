@@ -213,7 +213,7 @@ export default function Analytics() {
                 horizontal
                 height={320}
                 formatY="currency"
-                onBarClick={(row) => row?.name && navigateToCategory(row.name)}
+                onBarClick={(row) => row?.name && navigateToCategory(navigate, row.name)}
               />
             ) : (
               <LoadingState label="Loading categories…" rows={4} />
@@ -229,7 +229,7 @@ export default function Analytics() {
               rowKey={(row: any) => row.category_name}
               loading={categories.isFetching}
               maxHeight={420}
-              onRowClick={(row: any) => navigateToCategory(row.category_name)}
+              onRowClick={(row: any) => navigateToCategory(navigate, row.category_name)}
               columns={[
                 { key: 'name', header: 'Category', render: (row: any) => <span className="font-medium">{row.category_name}</span> },
                 { key: 'obs', header: 'Obs', align: 'right', sortValue: (row: any) => row.observations, render: (row: any) => formatCompact(row.observations) },
@@ -401,6 +401,6 @@ export default function Analytics() {
   )
 }
 
-function navigateToCategory(category: string) {
+function navigateToCategory(navigate: (path: string) => void, category: string) {
   navigate(`/products?category=${encodeURIComponent(category)}`)
 }

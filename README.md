@@ -48,8 +48,14 @@
   <a href="#security">Security</a> ·
   <a href="#testing-and-verification">Testing</a> ·
   <a href="#documentation">Docs</a> ·
+  <a href="#releases">Releases</a> ·
   <a href="#faq-and-troubleshooting">FAQ</a> ·
   <a href="#license">License</a>
+</p>
+
+<p align="center">
+  <b>Project website:</b> <a href="website/index.html">website/index.html</a> — a single-file,
+  dependency-free landing page with light/dark/system themes.
 </p>
 
 <p align="center">
@@ -89,6 +95,10 @@
    - [5 - Quality](#5---quality)
    - [6 - Serve](#6---serve)
 6. [Design decisions](#design-decisions)
+   - [Decision register](#decision-register)
+   - [Component view](#component-view)
+   - [Class view](#class-view-of-the-ingestion-contract)
+   - [Run state diagram](#state-of-a-pipeline-run)
 7. [Data model](#data-model)
 8. [Data quality](#data-quality)
 9. [Feature catalogue](#feature-catalogue)
@@ -100,9 +110,10 @@
 15. [Repository layout](#repository-layout)
 16. [Documentation](#documentation)
 17. [FAQ and troubleshooting](#faq-and-troubleshooting)
-18. [Roadmap](#roadmap)
-19. [Team](#team)
-20. [License](#license)
+18. [Releases](#releases)
+19. [Roadmap](#roadmap)
+20. [Team](#team)
+21. [License](#license)
 
 ---
 
@@ -1093,18 +1104,23 @@ All configuration arrives through environment variables (`.env.example` document
 | **Catalog** | internal SKUs versus scraped market prices, reconciliation summary, pricing opportunities |
 | **Sources** | registry cards with compliance metadata, robots.txt statistics, raw-versus-cleaned preview |
 | **Query Lab** | read-only SQL console over the 20 views, table inventory, starter examples, CSV export |
-| **Builder** | live custom-view composer: entity, filters, sort order, column selection, saved presets |
+| **Builder** | two modes: *filter & customise* (facets, columns, order, saved presets) and *group & aggregate* (11 entities, six measures, fifteen operators, bar chart, generated SQL, cURL copy, exports) |
+| **Features** | searchable, filterable catalogue of all 95 shipped features in 13 areas, each with an icon and copy-to-clipboard |
 | **Alerts** | alert rules with thresholds and channels, notification feed, evaluate action |
-| **Account** | profile, appearance (theme, accent, density), password change, API keys |
+| **Account** | profile, preferences, appearance (theme, accent, density, motion), password change, API keys, **personal activity feed**, **data export**, **account deletion** |
 | **Settings / Users / Audit** | admin-only: global settings, role management, audit trail and HTTP evidence |
 | **Login / 404** | brand panel, demo-account picker, theme switch, friendly not-found screen |
+
+Every screen is reachable from the sidebar (which becomes an off-canvas drawer on small screens), from
+the command palette (<kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>K</kbd> or <kbd>/</kbd>), and from the mobile
+menu. Nothing depends on hover, and every icon-only control carries an accessible label.
 
 ---
 
 ## Security
 
 The full threat model, boundary-by-boundary control table and disclosure process are in
-[SECURITY.md](SECURITY.md).
+[.github/SECURITY.md](.github/SECURITY.md).
 
 | Boundary | Threat | Control |
 | --- | --- | --- |
@@ -1251,7 +1267,7 @@ natively on GitHub; every structural number is tied to a runnable command.
 | 11 | Behaviour Diagrams | sequence, activity, three state diagrams, class diagram |
 | 12 | UI/UX Design | 12 screen wireframes, design system with contrast ratios, WCAG 2.1 AA |
 | 13 | Deployment | stack, deployment and component diagrams, environment matrix, CI/CD, backups |
-| 14 | API Documentation | auth flow, role matrix, all 113 operations, worked examples |
+| 14 | API Documentation | auth flow, role matrix, all 110 operations, worked examples |
 | 15 | Testing Strategy | test pyramid, 100-case plan, UAT, coverage targets, quality gates |
 | 16 | User Manual | sign-in, every screen, filters, exports, alerts, admin, troubleshooting, FAQ |
 | 17 | Technical Documentation | module map, four key algorithms, every configuration variable |
@@ -1282,7 +1298,7 @@ is a plain directory of static files that can be served locally or dropped on an
 | --- | --- |
 | [CHANGELOG.md](CHANGELOG.md) | Every release, following Keep a Changelog |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How to set up, test and propose changes |
-| [SECURITY.md](SECURITY.md) | Threat model, boundary controls, disclosure process |
+| [.github/SECURITY.md](.github/SECURITY.md) | Threat model, boundary controls, disclosure process |
 | [CODE_OF_CONDUCT.md](.github/CODE_OF_CONDUCT.md) | Contributor Covenant 2.1 |
 | [.github/ISSUE_TEMPLATE](.github/ISSUE_TEMPLATE) | Bug, feature and documentation forms |
 | [.github/pull_request_template.md](.github/pull_request_template.md) | PR checklist and verification expectations |
@@ -1322,17 +1338,44 @@ six-step guide with code is in docs/17.
 
 ---
 
+## Releases
+
+| Version | Theme | Highlights |
+| --- | --- | --- |
+| **v1.3.0** | Discovery and self-service | Feature-catalogue API and screen, aggregate builder (`POST /builder/query` over 11 entities), account data export and deletion, personal activity feed, refined scrollbars, mobile drawer polish, container healthcheck fix, secret removed from the template |
+| **v1.2.0** | Platform | Command palette, PWA install, saved views, alert rules, notification centre, Settings and Users administration, audit trail |
+| **v1.1.0** | Dashboard experience | Light/dark/system themes, 6 accents, 3 densities, responsive shell, builder, query lab |
+
+The full history, including every fix, is in [CHANGELOG.md](CHANGELOG.md); the releases themselves are
+published on GitHub.
+
+### What's new in v1.3
+
+- **Feature catalogue** — `GET /meta/features` plus a `/features` screen render all 95 shipped
+  capabilities from `app/core/features.py`, so the API, the UI and the documentation describe exactly
+  the same system.
+- **Aggregate builder** — a structured query surface with group-by, six aggregate functions and
+  fifteen filter operators over eleven entities, assembled from a server-side whitelist into a
+  parameterised `SELECT`. Results render as a table or a bar chart, with the generated SQL and a
+  copyable `curl` command.
+- **Account self-service** — export everything stored about you as JSON, or delete the account behind a
+  password confirmation; a personal activity feed shows what you did without needing admin rights.
+- **Interface polish** — stable scrollbar gutter (no sideways jumps), translucent rounded scrollbars
+  that follow the theme, scroll containment inside panels, background scroll lock and proper dialog
+  semantics for the mobile drawer, safe-area insets.
+
 ## Roadmap
 
-Delivered in this release:
+Delivered across the three releases:
 
 - compliance-first ingestion: robots.txt, rate limits, circuit breaker, cache, audit
 - Kimball warehouse on two SQL dialects with 20 views
 - 12-rule data-quality framework with historical trend
 - change detection: price, new, removed, category
-- Airflow orchestration, API sync triggers and CLI
-- REST API with JWT, API keys and RBAC
-- React dashboard: command palette, PWA install, light and dark modes, exports
+- catalog reconciliation with price-gap analysis and pricing opportunities
+- Airflow orchestration with an API transport layer, sync triggers and CLI
+- REST API with JWT, API keys and RBAC, plus two query surfaces
+- React dashboard: command palette, PWA install, light and dark modes, feature catalogue, exports
 
 Next (full prioritised list in docs/20):
 
