@@ -20,7 +20,7 @@ the command cited beside it.
 | 11 | [Behaviour Diagrams](11_behaviour_diagrams.md) | Sequence, activity, three state diagrams, class diagram |
 | 12 | [UI/UX Design](12_ui_ux_design.md) | 12 screen wireframes, design system with contrast ratios, WCAG 2.1 AA, breakpoints, motion policy |
 | 13 | [Deployment](13_deployment.md) | Stack, deployment and component diagrams, environment matrix, Compose services, ports, secrets, backup, scaling, CI/CD |
-| 14 | [API Documentation](14_api_documentation.md) | Auth flow, role matrix, all 104 operations, worked examples in curl/Python/JS, errors, versioning |
+| 14 | [API Documentation](14_api_documentation.md) | Auth flow, role matrix, all 113 operations, worked examples in curl/Python/JS, errors, versioning |
 | 15 | [Testing Strategy](15_testing_strategy.md) | Test pyramid, 100-case plan, UAT scenarios, coverage targets, quality gates, defect management |
 | 16 | [User Manual](16_user_manual.md) | Sign-in, every screen, filters, exports, saved views, alerts, admin, troubleshooting, FAQ |
 | 17 | [Technical Documentation](17_technical_documentation.md) | Module map, four key algorithms, every configuration variable, six-step source extension, performance and security |
@@ -33,7 +33,7 @@ the command cited beside it.
 | Fact | Value |
 | --- | --- |
 | Physical tables / analytical views | 23 / 20 (on PostgreSQL 16.15 and MySQL 8.4.11) |
-| REST operations | 104 documented in 15 routers |
+| REST operations | 113 documented in 16 routers |
 | Data-quality rules / dimensions | 12 / 6, score 98.26 on both engines |
 | Ingestion sources | 5 (3 APIs, 1 HTML scraper, 1 offline synthetic) |
 | Demo dataset | 60 products, 8,182 price snapshots, 8,047 price changes, 8,199 lifecycle events over 150 days |

@@ -135,7 +135,7 @@ report (98.26, 22 pass / 2 warn / 0 fail).
 
 **On screen:** Router table with counts; the role matrix; the token and API-key flows.
 
-**Message:** 104 documented operations behind JWT + RBAC; 78 automated regression checks.
+**Message:** 113 documented operations behind JWT + RBAC; 78 automated regression checks.
 
 ### Slide 12 — Live demo (3 minutes)
 
@@ -272,7 +272,7 @@ outbound request is logged with its robots decision — zero unlogged requests."
 
 **2:50–3:00 — The API (browser: `http://localhost:8000/docs`)**
 
-Say: "104 documented operations, JWT plus role-based access, and 78 automated checks that exercise all
+Say: "113 documented operations, JWT plus role-based access, and 78 automated checks that exercise all
 of it — including the 401 and the 403."
 
 ### 4.3 Optional 20-second flourish: cross-dialect parity

@@ -61,7 +61,7 @@ flowchart LR
         P2["deps<br/>session, paging, auth, RBAC"]
         P3["security<br/>Argon2id, JWT, API keys, rights"]
         P4["schemas<br/>Pydantic contracts"]
-        P5["routers/*<br/>15 routers"]
+        P5["routers/*<br/>16 routers"]
     end
     subgraph OPS["Operations"]
         O1["app.cli.main<br/>12 commands"]

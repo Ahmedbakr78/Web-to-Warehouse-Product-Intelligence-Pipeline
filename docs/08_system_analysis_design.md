@@ -46,7 +46,7 @@ architecture style (layered batch ETL with a read-only serving API and an MVC-li
 | O5 | Reconcile with the internal catalog and quantify the price gap | `fact_catalog_snapshot` (39/57 matched) |
 | O6 | Measure data quality on six dimensions and fail only on critical rules | 12 rules, score 98.26 |
 | O7 | Run identically on PostgreSQL and MySQL | `make verify-dialects` |
-| O8 | Serve the warehouse read-only over a secure, role-gated API | 104 operations, 78/78 smoke checks |
+| O8 | Serve the warehouse read-only over a secure, role-gated API | 113 operations, 78/78 smoke checks |
 | O9 | Be orchestrated on a schedule with recoverable tasks | Airflow DAG, 13 tasks, 2 retries each |
 | O10 | Be operable without the UI | CLI with 12 commands, Makefile with 30+ targets |
 
@@ -229,7 +229,7 @@ flowchart TB
 | Reconciliation | 3-stage match cascade, price gap, market position | 4 | FR-032 … FR-035 |
 | Quality | 12 rules, 6 dimensions, weighted score, blocking semantics | 4 | FR-036 … FR-039 |
 | Analytics | KPI cards, trends, leaderboards, reports, CSV export | 4 | FR-040, FR-048, FR-026 |
-| Serving | 104 REST operations, paging, OpenAPI | 3 | FR-020 … FR-025 |
+| Serving | 113 REST operations, paging, OpenAPI | 3 | FR-020 … FR-025 |
 | Security | Argon2id, JWT, 3 roles, API keys, audit | 7 | FR-041 … FR-044, FR-049 |
 | Operations | CLI, Makefile, Airflow, demo seed, cross-dialect verification | 6 | FR-018, FR-019, FR-054 … FR-057 |
 
@@ -294,7 +294,7 @@ flowchart LR
     end
 
     subgraph API["Serving - app/api"]
-        FAPI["FastAPI routers<br/>15 routers, 104 operations"]
+        FAPI["FastAPI routers<br/>16 routers, 113 operations"]
         SEC["Security<br/>JWT HS256, Argon2id, RBAC"]
         DSH["React dashboard<br/>Vite + TypeScript + Tailwind"]
     end

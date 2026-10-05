@@ -4,7 +4,7 @@
 
 This document is the complete reference for the REST API of the Web-to-Warehouse Product Intelligence
 Pipeline: the authentication flow, the role matrix, an operation-by-operation catalogue of all
-**104 documented operations** across 15 routers, the error catalogue, the pagination convention, the
+**113 documented operations** across 16 routers, the error catalogue, the pagination convention, the
 versioning policy, instructions for the interactive OpenAPI documentation, and worked examples in
 `curl`, Python and JavaScript.
 
@@ -179,7 +179,7 @@ Verified behaviour (from `scripts/api_smoke.py`): `GET /api/v1/products` without
 
 ## 5. Operation catalogue
 
-Generated from the live OpenAPI document: **104 documented operations in 15 routers** (107 routes in
+Generated from the live OpenAPI document: **113 documented operations in 16 routers** (118 routes in
 total; three are hidden from the schema — see §5.2).
 
 

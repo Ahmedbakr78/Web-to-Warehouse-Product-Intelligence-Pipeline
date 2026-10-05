@@ -170,7 +170,7 @@ flowchart TB
         ING["app.ingestion<br/>base, cleaning, dedupe,<br/>robots, ratelimit, http_client, sources"]
         ETL["app.etl<br/>pipeline, loader, dq,<br/>catalog_reconcile, bootstrap, seed"]
         ANA["app.analytics<br/>service"]
-        API["app.api<br/>main, deps, security,<br/>schemas, 15 routers"]
+        API["app.api<br/>main, deps, security,<br/>schemas, 16 routers"]
         MODELS["app.models<br/>base, dimensions, facts,<br/>operations, catalog, app_users"]
         CLIM["app.cli<br/>main"]
     end
@@ -319,7 +319,7 @@ named volumes.
 | 5173 | Frontend (nginx in Compose, Vite in dev) | HTTP | Public | `FRONTEND_PORT` |
 | 8000 | FastAPI / uvicorn | HTTP | Public behind a proxy | `APP_PORT` |
 | 8000 | `/docs`, `/redoc`, `/openapi.json` | HTTP | Public | Interactive API documentation |
-| 8000 | `/api/v1/*` | HTTP | Public | All 104 operations |
+| 8000 | `/api/v1/*` | HTTP | Public | All 113 operations |
 | 5432 | PostgreSQL | TCP | Internal only | `POSTGRES_PORT`; Airflow metadata too |
 | 3306 | MySQL | TCP | Internal only | `MYSQL_PORT` |
 | 33060 | MySQL X protocol | TCP | Internal only | Container-internal, not published |

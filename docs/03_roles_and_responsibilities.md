@@ -264,7 +264,7 @@ audited. The log is maintained in the repository as `docs/assets/hours-log.csv`.
 | 2026-01-07 | W1 | WP1 | T-004 | Docker Compose bring-up | lead | 1.5 | build | `docker-compose.yml` | both DBs healthy |
 | 2026-02-18 | W7 | WP7 | T-118 | Blocking index for the candidate pool | lead | 3.5 | build | `app/ingestion/dedupe.py` | naive scan 2975 ms → 104 ms |
 | 2026-03-19 | W11 | WP16 | T-204 | Cross-dialect verification run | lead | 2.0 | test | `docs/05` | identical structural counts |
-| 2026-03-24 | W11 | WP18 | T-231 | API endpoint inventory reconciled with OpenAPI | lead | 2.0 | doc | `docs/14` | measured 104 operations |
+| 2026-03-24 | W11 | WP18 | T-231 | API endpoint inventory reconciled with OpenAPI | lead | 2.0 | doc | `docs/14` | measured 113 operations |
 
 ### 7.3 Weekly roll-up template
 

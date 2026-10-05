@@ -136,7 +136,7 @@ gantt
 | **M2 — Design frozen** | End W4 | Logical schema drafted | ERD, use cases, architecture and DFD approved; no schema change after this date without a design note | `docs/08` … `docs/11` reviewed |
 | **M3 — Ingestion demo** | End W6 | Compliance layer complete | 5 sources registered, records extracted, cleaning applied, `robots.txt` respected | `make sources` + `make sources preview` |
 | **M4 — Warehouse load demo** | End W8 | Dedupe engine complete | Snapshots, changes, events and aggregates loaded; 20 views created | `make run-pipeline`, `GET /api/v1/analytics/kpi` |
-| **M5 — API and dashboard usable** | End W10 | Views stable | 104 operations documented, RBAC enforced, dashboard screens functional | `scripts/api_smoke.py` 78/78 |
+| **M5 — API and dashboard usable** | End W10 | Views stable | 113 operations documented, RBAC enforced, dashboard screens functional | `scripts/api_smoke.py` 78/78 |
 | **M6 — Verified on two databases** | End W11 | MySQL target provisioned | Identical structural row counts and identical DQ score on PostgreSQL and MySQL | `make verify-dialects` |
 | **M7 — Documentation complete** | End W11 | All measurements reproducible | 20 documents present, each with a purpose paragraph and diagram | `ls -l docs/` |
 | **M8 — Final defence** | End W12 | Rehearsal passed | Live demo + Q&A | `docs/18_presentation_outline.md` |
@@ -248,7 +248,7 @@ effort, which is the intended buffer (2–10 hours per week depending on the pha
 | S2 | W3 – W4 | Design frozen | ERD, use cases, DFD, architecture, behaviour diagrams reviewed |
 | S3 | W5 – W6 | Compliant extraction | 5 sources return records; robots gate and rate limiter enforced; cleaning applied |
 | S4 | W7 – W8 | Warehouse loaded | Dedupe, loader, change detection, aggregates and 20 views working |
-| S5 | W9 – W10 | Measurable and served | DQ framework, reconciliation, 104 API operations, dashboard screens |
+| S5 | W9 – W10 | Measurable and served | DQ framework, reconciliation, 113 API operations, dashboard screens |
 | S6 | W11 – W12 | Verified and defended | Two-dialect verification, smoke test 78/78, documentation complete, rehearsal passed |
 
 ### 6.1 Sprint ceremony agenda (45 minutes)

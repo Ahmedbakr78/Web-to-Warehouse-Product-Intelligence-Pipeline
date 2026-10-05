@@ -293,7 +293,7 @@ flowchart TB
         AU["Authenticate<br/>JWT or API key"]
         RB["Authorise<br/>role to rights"]
         VAL["Validate<br/>Pydantic models"]
-        EP["104 REST operations<br/>15 routers"]
+        EP["113 REST operations<br/>16 routers"]
         CSV["CSV export"]
     end
 

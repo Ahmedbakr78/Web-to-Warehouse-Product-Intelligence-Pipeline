@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/MySQL-8.4-4479A1?logo=mysql&logoColor=white" alt="MySQL 8.4"/>
   <img src="https://img.shields.io/badge/Airflow-2.10-017CEE?logo=apacheairflow&logoColor=white" alt="Airflow"/>
   <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker Compose"/>
-  <img src="https://img.shields.io/badge/unit%20tests-236%20passing-brightgreen" alt="Tests"/>
+  <img src="https://img.shields.io/badge/unit%20tests-255%20passing-brightgreen" alt="Tests"/>
   <img src="https://img.shields.io/badge/API%20smoke-78%2F78-brightgreen" alt="API smoke"/>
   <img src="https://img.shields.io/badge/DQ%20score-98.26-brightgreen" alt="DQ"/>
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT"/>
@@ -112,18 +112,18 @@ Everything is engineered like a production system, not a demo:
 | **Orchestration** | Apache Airflow 2.10 DAG | 13 tasks, branch-on-changes, alert fan-out, report publication, sync-run API for demos |
 | **Data quality** | 12-rule framework over 6 dimensions | completeness, validity, uniqueness, accuracy, consistency, timeliness, weighted score |
 | **Change detection** | SQL plus an event engine | price changes banded by magnitude, new and removed products, category drift, lifecycle events |
-| **REST API** | FastAPI | **104 operations in 15 routers**, JWT and API-key auth, RBAC (admin / analyst / viewer), OpenAPI docs, gzip, timing headers |
-| **Dashboard** | React 19 + TypeScript + Tailwind + Recharts | 17 screens, light/dark/system themes, 6 accent colours, 3 densities, command palette, installable PWA, responsive from 320 px |
+| **REST API** | FastAPI | **113 operations in 16 routers**, JWT and API-key auth, RBAC (admin / analyst / viewer), OpenAPI docs, gzip, timing headers |
+| **Dashboard** | React 19 + TypeScript + Tailwind + Recharts | 20 screens, light/dark/system themes, 6 accent colours, 3 densities, command palette, installable PWA, responsive from 320 px |
 | **CLI** | Typer, 12 commands | bootstrap, seed, run, report, verify, quality, sources preview |
 | **Ops** | Docker Compose (6 services), Makefile (30+ targets), GitHub Actions CI | one-command everything |
 
 **Measured facts (every number reproducible — see [docs/19_feature_list.md](docs/19_feature_list.md)):**
 
 ```text
-23 physical tables  |  20 analytical views  |  104 REST operations in 15 routers
+23 physical tables  |  20 analytical views  |  113 REST operations in 16 routers
 12 DQ rules across 6 dimensions, score 98.26 on BOTH engines
 5 ingestion sources  |  9 pipeline stages  |  13 Airflow tasks
-236 unit tests  |  78/78 API smoke checks  |  mypy clean in 59 files  |  ruff zero warnings
+255 unit tests  |  78/78 API smoke checks  |  mypy clean in 61 files  |  ruff zero warnings
 p95 API latency <= 38.2 ms measured across 12 endpoints
 Demo dataset: 130 products, 8,452 price snapshots, 8,062 price changes, 8,476 lifecycle events
 ```
@@ -230,12 +230,12 @@ flowchart LR
 
     subgraph Ops["Operations"]
         AF["Airflow DAG<br/>13 tasks"]
-        API["FastAPI REST<br/>104 operations"]
+        API["FastAPI REST<br/>113 operations"]
         DQ["12-rule DQ framework"]
     end
 
     subgraph UI["Delivery"]
-        RE["React 19 dashboard<br/>17 screens"]
+        RE["React 19 dashboard<br/>20 screens"]
         EXP["CSV / JSON exports"]
         QL["Query lab, read-only SQL"]
     end
@@ -273,7 +273,7 @@ flowchart TB
     end
     subgraph Server["FastAPI monolith, modular"]
         MW["CORS - gzip - timing headers"]
-        RT["15 routers, 104 operations"]
+        RT["16 routers, 113 operations"]
         SV["analytics + ETL services"]
         SEC["JWT + API keys - RBAC - audit"]
         MW --> RT --> SV
@@ -570,7 +570,7 @@ The run receives a weighted score; the dashboard charts the 90-day trend.
 
 ### 6 - Serve
 
-The FastAPI app (104 operations) exposes products, changes, analytics, pipeline operations, quality,
+The FastAPI app (113 operations) exposes products, changes, analytics, pipeline operations, quality,
 catalog, sources, the read-only query lab, saved views, notifications, settings and audit. The React
 dashboard consumes it, and both endpoints and UI offer CSV and JSON exports. Airflow triggers the
 whole cycle daily; the API's sync endpoint and the CLI produce the identical `etl_run` record.
@@ -681,7 +681,7 @@ The exhaustive, file-referenced inventory lives in
 
 - JWT access and refresh rotation, API keys (`pip_...`), Argon2id password hashing
 - role-based access control: admin, analyst, viewer, enforced per route server-side
-- 104 operations, OpenAPI and ReDoc documentation, gzip compression, `X-Process-Time-Ms` headers
+- 113 operations, OpenAPI and ReDoc documentation, gzip compression, `X-Process-Time-Ms` headers
 - CSV and JSON exports on the API and in the dashboard
 - one consistent error envelope (`error`, `message`, `details`) with validation detail
 
@@ -788,8 +788,8 @@ All configuration arrives through environment variables (`.env.example` document
 | Layer | Command | Evidence in this repository |
 | --- | --- | --- |
 | Lint and format | `make lint` | ruff: all checks pass, zero warnings |
-| Static types | `make typecheck` | mypy: no issues in 59 source files |
-| Unit tests | `make test` | pytest: 236 passed (SQLite warehouse, no services required) |
+| Static types | `make typecheck` | mypy: no issues in 61 source files |
+| Unit tests | `make test` | pytest: 255 passed (SQLite warehouse, no services required) |
 | API regression | `.venv/bin/python scripts/api_smoke.py` | 78/78 checks, including auth, RBAC and 404 paths |
 | Frontend | `cd frontend && npm run lint && npm run typecheck && npm run build` | ESLint at zero warnings, clean tsc, production build |
 | Cross-dialect | `make verify-dialects` | identical model and DQ score on PostgreSQL and MySQL |
@@ -819,7 +819,7 @@ Measured on a laptop container stack (the harness is in docs/05):
 
 ```text
 app/
-  api/            FastAPI app factory, 15 routers, schemas, security
+  api/            FastAPI app factory, 16 routers, schemas, security
   analytics/      SQL analytics service: KPIs, trends, reports, views
   cli/            Typer CLI: bootstrap, seed, run, report, verify
   core/           settings, engines, logging, error envelope
@@ -831,12 +831,12 @@ dags/             Airflow DAG: product_intelligence_pipeline
 db/
   views.sql       20 analytical views (PostgreSQL and MySQL)
   analysis/       8 standalone SQL analyses + README (price, new, removed, drift, ...)
-frontend/         React 19 dashboard: 17 screens, PWA, design system
+frontend/         React 19 dashboard: 20 screens, PWA, design system
   public/         manifest, icons
   src/            pages, components, hooks, libs
 docs/             20 numbered documents plus an index with diagrams
 scripts/          api_smoke.py regression suite (78 checks), run_analysis.py, make_infographic.py
-tests/            pytest unit + integration suite (236 tests)
+tests/            pytest unit + integration suite (255 tests)
 .github/workflows ci.yml: ruff, mypy, pytest, eslint, tsc, vite build
 docker-compose.yml            postgres, mysql, api, airflow, scheduler, frontend
 Makefile                      30+ targets
@@ -865,7 +865,7 @@ on GitHub; every number is tied to a runnable command.
 | 11 | Behaviour Diagrams | sequence, activity, three state diagrams, class diagram |
 | 12 | UI/UX Design | 12 screen wireframes, design system with contrast ratios, WCAG 2.1 AA |
 | 13 | Deployment | stack, deployment and component diagrams, environment matrix, CI/CD, backups |
-| 14 | API Documentation | auth flow, role matrix, all 104 operations, worked examples |
+| 14 | API Documentation | auth flow, role matrix, all 113 operations, worked examples |
 | 15 | Testing Strategy | test pyramid, 100-case plan, UAT, coverage targets, quality gates |
 | 16 | User Manual | sign-in, every screen, filters, exports, alerts, admin, troubleshooting, FAQ |
 | 17 | Technical Documentation | module map, four key algorithms, every configuration variable |

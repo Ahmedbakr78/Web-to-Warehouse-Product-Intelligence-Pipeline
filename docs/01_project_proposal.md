@@ -75,7 +75,7 @@ resolution, change detection, catalog reconciliation and a measured data-quality
 | Orchestrate with Airflow | `dags/product_intelligence_pipeline.py` |
 | Data-quality checks | `app/etl/dq.py` (12 rules, 6 dimensions) |
 | SQL analysis and visualisation | `db/views.sql` (20 views), `app/analytics/service.py`, `app/api/routers/analytics.py` |
-| Optional extension: REST API | `app/api/` (15 routers, 104 documented operations) |
+| Optional extension: REST API | `app/api/` (16 routers, 113 documented operations) |
 
 ---
 
@@ -92,7 +92,7 @@ Objectives are written as SMART goals so that success can be measured rather tha
 | O5 | Enforce web-compliance by construction | Sources with `terms_allowed` and a robots gate in front of every request | 100 % | 100 %; every request logged in `ingestion_http_log` |
 | O6 | Measure data quality, not assume it | Number of executable rules across the six dimensions | ≥ 10 rules / 6 dimensions | 12 rules / 6 dimensions |
 | O7 | Run on more than one analytical database | Dialects with an identical structural model and identical DQ score | 2 (PostgreSQL, MySQL) | 2 — PostgreSQL 16.15 and MySQL 8.4.11, both DQ score 98.26 |
-| O8 | Expose the warehouse over an API | Documented REST operations behind authentication and RBAC | ≥ 50 | 104 operations / 15 routers |
+| O8 | Expose the warehouse over an API | Documented REST operations behind authentication and RBAC | ≥ 50 | 113 operations / 16 routers |
 | O9 | Orchestrate with Airflow | DAG with guard, extract, load, quality, aggregate, reconcile, notify, report tasks | 1 DAG, ≥ 8 tasks | 13 tasks in `product_intelligence_pipeline` |
 | O10 | Keep the run fast enough for a daily schedule | End-to-end pipeline duration for a full multi-source run | < 10 minutes | ≈ 3.5 s for the measured live run (60 records extracted, 57 loaded) |
 
@@ -124,7 +124,7 @@ Objectives are written as SMART goals so that success can be measured rather tha
 | Catalog reconciliation | 3-stage match cascade (SKU → normalised name → fuzzy), price-gap analysis | `app/etl/catalog_reconcile.py` |
 | Data quality | 12 rules, 6 dimensions, weighted score, persistence of every outcome | `app/etl/dq.py` |
 | Orchestration | Airflow DAG with 2 short-circuit guards, branching notification path, report artifact | `dags/product_intelligence_pipeline.py` |
-| API | 15 routers, 104 documented operations, JWT + API key auth, 3 roles, pagination, OpenAPI | `app/api/` |
+| API | 16 routers, 113 documented operations, JWT + API key auth, 3 roles, pagination, OpenAPI | `app/api/` |
 | Operations | Typer/rich CLI (12 commands), Makefile (30+ targets), Docker Compose (6 services) | `app/cli/main.py`, `Makefile`, `docker-compose.yml` |
 | Documentation | The 20 documents in `docs/` | `docs/` |
 
@@ -159,7 +159,7 @@ flowchart LR
         I4["23 tables and 20 views"]
         I5["12 DQ rules"]
         I6["Airflow orchestration"]
-        I7["104 REST operations"]
+        I7["113 REST operations"]
         I8["CLI and Docker Compose"]
     end
     OUT -.->|"explicitly refused"| IN
@@ -221,7 +221,7 @@ Manage `HI` closely, keep `HI2` informed through read-only compliance endpoints,
 | D7 | SQL analysis | `db/views.sql` (20 views) + `app/analytics/service.py` | Complete |
 | D8 | Visualisation | Analytics REST layer consumed by the React dashboard | Complete |
 | D9 | Documentation | `docs/01` … `docs/20` | Complete |
-| D10 | Optional extension — REST API | `app/api/` — 104 operations | Complete |
+| D10 | Optional extension — REST API | `app/api/` — 113 operations | Complete |
 | D11 | Cross-dialect verification | `make verify-dialects` (`app/cli/main.py verify`) | Complete |
 | D12 | API smoke test | `scripts/api_smoke.py` — 78 checks | Complete |
 
@@ -351,7 +351,7 @@ Argon2id password hashes; `hashed_password` is never returned by any endpoint (`
 | A2 | FX rates come from an offline static table (`STATIC_FX_RATES`, 25 currencies, `rate_source='static_reference_table'`) | Constraint | USD-normalised analytics drift; swap the table for a live provider in `convert_to_usd()` |
 | A3 | The 14-case deduplication evaluation set lives in the project's test suite; the suite modules are not committed in this repository snapshot | Assumption | The 14/14 figure cannot be reproduced from this snapshot alone; the algorithm itself is fully documented in doc 17 |
 | A4 | The dashboard front end (`frontend/`) is built as a React + Vite + TypeScript application per the Makefile and Compose service; its source files are not committed in this snapshot | Assumption | Screens in doc 12 are the authoritative UI specification; each screen is mapped to the API calls that back it |
-| A5 | The documented API size is 104 OpenAPI operations (measured on the current code base); an earlier revision of the project brief cited 74 | Measured | Documentation uses the measured value; see `docs/14_api_documentation.md` |
+| A5 | The documented API size is 113 OpenAPI operations (measured on the current code base); an earlier revision of the project brief cited 74 | Measured | Documentation uses the measured value; see `docs/14_api_documentation.md` |
 | A6 | `MySQL 8.4` treats `TRIGGER` as a reserved word, so `SELECT trigger …` from `vw_pipeline_health` fails on MySQL while `SELECT dag_id …` works | Known defect | Only affects the MySQL profile of the pipeline-runs screen; documented in doc 20 with the exact fix |
 | C1 | Single-node batch execution is sufficient (≤ 5,000 products per source) | Constraint | Horizontal scaling options are documented in doc 13 |
 | C2 | One organisation, one warehouse, no tenant isolation | Constraint | Multi-tenancy would require a tenant key on every dimension |

@@ -8,7 +8,7 @@ to the file that implements it. Every entry corresponds to shipped behaviour —
 endpoint, a CLI command or a documented design decision. Nothing here is aspirational.
 
 **Scale of the system, measured:** 5 ingestion sources · 23 physical tables · 20 analytical views ·
-12 data-quality rules across 6 dimensions · 104 documented REST operations in 15 routers · 9 pipeline
+12 data-quality rules across 6 dimensions · 113 documented REST operations in 16 routers · 9 pipeline
 stages · 13 Airflow tasks · 12 CLI commands · 30+ Makefile targets · 6 Docker Compose services ·
 20 documentation documents.
 
@@ -245,7 +245,7 @@ stages · 13 Airflow tasks · 12 CLI commands · 30+ Makefile targets · 6 Docke
 
 | ID | Feature | Description | Where |
 | --- | --- | --- | --- |
-| F-147 | Fifteen routers, 104 operations | Every analytical and operational capability exposed and documented | `app/api/routers/` |
+| F-147 | Sixteen routers, 113 operations | Every analytical and operational capability exposed and documented | `app/api/routers/` |
 | F-148 | Health, readiness and metadata | Liveness with the database probe, readiness with a schema check, `/meta`, `/version`, `/stats/tables` | `app/api/routers/health.py` |
 | F-149 | Login, refresh, logout | Credential exchange with lockout handling and an audit row | `app/api/routers/auth.py` |
 | F-150 | Session introspection | The shell reads role, permissions, theme, accent, density, rows per page and token lifetime | `GET /api/v1/auth/session` |

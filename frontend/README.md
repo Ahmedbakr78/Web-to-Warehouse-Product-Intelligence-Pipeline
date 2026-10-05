@@ -1,7 +1,7 @@
 # Product Intelligence Dashboard
 
 The React 19 + TypeScript analytics front-end for the Web-to-Warehouse Product Intelligence
-Pipeline: 17 screens over a FastAPI REST API, with a light and dark design system, a command
+Pipeline: 20 screens over a FastAPI REST API, with a light and dark design system, a command
 palette, CSV/JSON exports and an installable PWA shell.
 
 ## Stack

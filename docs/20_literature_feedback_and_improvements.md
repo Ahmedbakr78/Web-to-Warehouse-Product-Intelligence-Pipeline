@@ -189,7 +189,7 @@ flowchart LR
 | Catalog reconciliation | Yes | 39/57 matched (68.42 %), 36 price gaps | The unmatched 30 % are internal-only SKUs by design |
 | Measured data quality | Yes | 12 rules, 6 dimensions, score 98.26 persisted per run | Rules are production code, not a test artefact |
 | Two SQL engines | Yes | 0 structural drift, identical DQ score | One known reserved-word defect remains (A1) |
-| Secure API | Yes | 104 operations, 3 roles, 78/78 checks | API keys and audit are implemented, not stubbed |
+| Secure API | Yes | 113 operations, 3 roles, 78/78 checks | API keys and audit are implemented, not stubbed |
 | Airflow orchestration | Yes | 13 tasks, guards, branch, retries | Optional import keeps the CLI usable without Airflow |
 | Operable without the UI | Yes | 11 CLI commands, 30+ Make targets | Demonstrations never depend on the browser |
 
@@ -289,7 +289,7 @@ official rubric. Each row cites the artefact that supports the claim.
 | Class diagram | `11_behaviour_diagrams.md` §7 | Complete |
 | UI design | `12_ui_ux_design.md` | Complete (12 screens, design system, WCAG) |
 | Deployment plan | `13_deployment.md` | Complete |
-| API documentation | `14_api_documentation.md` | Complete (104 operations) |
+| API documentation | `14_api_documentation.md` | Complete (113 operations) |
 | Testing documents | `15_testing_strategy.md` | Complete |
 | User manual | `16_user_manual.md` | Complete |
 | Feature list | `19_feature_list.md` | Complete (218 features) |
