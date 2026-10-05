@@ -289,6 +289,13 @@ def main() -> int:
         )
         if viewer.status_code == 200:
             role_tokens["viewer"] = viewer.json().get("access_token", "")
+        analyst = httpx.post(
+            f"{base_url}/api/v1/auth/login",
+            json={"email": "analyst@example.com", "password": "Analyst@12345"},
+            timeout=30.0,
+        )
+        if analyst.status_code == 200:
+            role_tokens["analyst"] = analyst.json().get("access_token", "")
         _passed, failed, _skipped = run_checks(base_url, token, role_tokens)
     finally:
         if process is not None:
