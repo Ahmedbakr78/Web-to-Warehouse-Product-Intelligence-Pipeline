@@ -38,16 +38,22 @@ export default {
       borderRadius: { xl: '0.875rem', '2xl': '1.125rem' },
       boxShadow: {
         card: 'var(--shadow-card)',
+        'card-hover': 'var(--shadow-card-hover)',
         pop: 'var(--shadow-pop)',
       },
+      spacing: {
+        sidebar: 'var(--sidebar-w)',
+        rail: 'var(--sidebar-w-collapsed)',
+      },
+      /* The app has no decorative animation on purpose: only the loading
+         spinners below exist, and `html[data-motion='none']` disables even
+         those. Keyframes for fade/slide were removed because they were
+         defined but never referenced, and a reload should feel instant. */
       keyframes: {
-        'fade-in': { from: { opacity: '0' }, to: { opacity: '1' } },
-        'slide-in': { from: { transform: 'translateX(-8px)', opacity: '0' }, to: { transform: 'translateX(0)', opacity: '1' } },
-        shimmer: { '100%': { transform: 'translateX(100%)' } },
+        spin: { to: { transform: 'rotate(360deg)' } },
       },
       animation: {
-        'fade-in': 'fade-in 0.12s ease-out',
-        'slide-in': 'slide-in 0.12s ease-out',
+        spin: 'spin 0.7s linear infinite',
       },
     },
   },
