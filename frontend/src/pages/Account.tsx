@@ -38,6 +38,7 @@ import {
   useToast,
 } from '@/components/ui'
 import {
+  ACCENT_KEYS,
   ACCENTS,
   DENSITIES,
   FONT_SCALES,
@@ -470,7 +471,7 @@ export default function Account() {
             <CardHeader title="Accent, density and motion" subtitle="Brand colour, spacing and animation policy" icon={<Palette className="h-4 w-4" />} />
             <div className="space-y-4">
               <div>
-                <p className="stat-label mb-1.5">Accent colour ({ACCENTS.length} presets)</p>
+                <p className="stat-label mb-1.5">Accent colour ({ACCENT_KEYS.length} presets)</p>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(ACCENTS).map(([key, entry]) => (
                     <button

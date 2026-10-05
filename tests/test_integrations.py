@@ -188,11 +188,14 @@ def test_subscriptions_for_event_filters_by_name_and_wildcard(session, admin, re
 # --------------------------------------------------------------------------------------
 def test_deliver_success_records_delivery_and_headers(session, admin, receiver):
     hook = _hook(session, admin, receiver.url)
-    delivery = webhooks.deliver(session, hook, "run.completed", {"run_id": "abc"})
+    outcome = webhooks.deliver(session, hook, "run.completed", {"run_id": "abc"})
     session.flush()
-
+    delivery = outcome.delivery
     assert delivery is not None
-    assert delivery.status == "success"
+
+    assert outcome.ok is True
+    assert outcome.status == "success"
+    assert outcome.delivery is delivery
     assert delivery.status_code == 200
     assert delivery.delivered_at is not None
     assert hook.success_count == 1
@@ -217,9 +220,12 @@ def test_deliver_success_records_delivery_and_headers(session, admin, receiver):
 
 def test_deliver_failure_is_recorded_with_backoff(session, admin):
     hook = _hook(session, admin, "http://127.0.0.1:9/unreachable")
-    delivery = webhooks.deliver(session, hook, "run.completed", {})
+    outcome = webhooks.deliver(session, hook, "run.completed", {})
     session.flush()
+    delivery = outcome.delivery
 
+    assert delivery is not None
+    assert outcome.ok is False
     assert delivery.status == "failed"
     assert delivery.error
     assert delivery.next_retry_at is not None
@@ -231,10 +237,10 @@ def test_deliver_http_error_status_is_reported(session, admin):
     failing = _Receiver(status=500)
     try:
         hook = _hook(session, admin, failing.url)
-        delivery = webhooks.deliver(session, hook, "run.completed", {})
+        outcome = webhooks.deliver(session, hook, "run.completed", {})
         session.flush()
-        assert delivery.status == "failed"
-        assert delivery.status_code == 500
+        assert outcome.delivery.status == "failed"
+        assert outcome.status_code == 500
     finally:
         failing.close()
 
@@ -513,15 +519,15 @@ def test_compare_runs_reports_dq_regressions(session):
     for run_id, status in (("cmp_dq_a", "pass"), ("cmp_dq_b", "fail")):
         session.execute(
             sa.text(
-                "INSERT INTO dq_rule_result (run_id, rule_code, dimension, severity, status)"
-                " VALUES (:r, 'PRICE_POSITIVE', 'validity', 'error', :s)"
+                "INSERT INTO dq_rule_result (run_id, rule_code, dimension, severity, status,"
+                " records_checked, records_failed) VALUES (:r, 'PRICE_POSITIVE', 'validity', 'error', :s, 10, 0)"
             ),
             {"r": run_id, "s": status},
         )
         session.execute(
             sa.text(
-                "INSERT INTO dq_rule_result (run_id, rule_code, dimension, severity, status)"
-                " VALUES (:r, 'NAME_PRESENT', 'completeness', 'error', 'pass')"
+                "INSERT INTO dq_rule_result (run_id, rule_code, dimension, severity, status,"
+                " records_checked, records_failed) VALUES (:r, 'NAME_PRESENT', 'completeness', 'error', 'pass', 10, 0)"
             ),
             {"r": run_id},
         )
@@ -538,8 +544,8 @@ def test_compare_runs_reports_dq_fixes(session):
     for run_id, status in (("cmp_fix_a", "fail"), ("cmp_fix_b", "pass")):
         session.execute(
             sa.text(
-                "INSERT INTO dq_rule_result (run_id, rule_code, dimension, severity, status)"
-                " VALUES (:r, 'PRICE_POSITIVE', 'validity', 'error', :s)"
+                "INSERT INTO dq_rule_result (run_id, rule_code, dimension, severity, status,"
+                " records_checked, records_failed) VALUES (:r, 'PRICE_POSITIVE', 'validity', 'error', :s, 10, 0)"
             ),
             {"r": run_id, "s": status},
         )
