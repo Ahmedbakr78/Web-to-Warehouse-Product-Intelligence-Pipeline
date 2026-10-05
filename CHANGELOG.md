@@ -14,29 +14,61 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- **Aggregate Query Builder** — a server-side aggregate analysis endpoint plus a dedicated
-  dashboard screen: group any dataset by one or more dimensions, apply measures and aggregate
-  functions, add advanced filters, sort, and read the live result as a table or a chart, with a
-  generated SQL preview and CSV/JSON export.
-- **Aggregate DSL** on the API — whitelisted operators, functions and directions validated before
-  any SQL is composed, so the builder cannot emit anything the read-only guard would reject.
+- **Feature catalogue API + screen** — `GET /api/v1/meta/features` serves a structured catalogue
+  (13 areas, 95 shipped features, each with a Lucide icon name) from the new single source of truth
+  `app/core/features.py`. The new `/features` dashboard screen renders it as searchable, filterable
+  cards; `GET /meta` now derives its `features` list and `feature_groups` count from the same module,
+  so the UI, the API and the documentation can never drift apart.
+- **Aggregate Query Builder** — `POST /api/v1/builder/query` and `GET /api/v1/builder/schema` expose a
+  structured, read-only query surface over 11 analytical entities: group by any whitelisted column,
+  apply six aggregate functions (`count`, `count_distinct`, `sum`, `avg`, `min`, `max`), filter with
+  fifteen operators (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`, `contains`, `not_contains`, `starts_with`,
+  `ends_with`, `in`, `not_in`, `between`, `empty`, `not_empty`), sort by group columns or aggregate
+  aliases, and receive rows, totals, duration and a generated SQL preview. Every identifier comes from
+  a server-side whitelist and every value is a bind parameter, so injection is structurally impossible.
+  The Builder screen gains a "Group & aggregate" mode with measure rows, advanced filters, a live bar
+  chart, cURL copy and CSV/JSON export.
+- **Account self-service** — `GET /api/v1/users/me/export` returns a portable JSON snapshot (profile,
+  API-key metadata, saved views, alert rules, notifications, recent activity), and
+  `DELETE /api/v1/users/me` deletes the account after password confirmation (personal rows cascade,
+  audit history is preserved). The Account screen gains **Activity** and **Data & privacy** tabs.
+- **Personal activity feed** — `GET /api/v1/audit/me` returns the caller's own audited actions, so users
+  can review what they did without needing the admin-only audit screen.
+- **Aggregate DSL validation** on the API — unknown operators, columns, entities, sorts and malformed
+  `in`/`between` arguments are rejected before any SQL is composed.
+- 19 new automated tests (`tests/test_new_features.py`) and 8 new end-to-end API smoke checks covering
+  the catalogue, builder, export, activity and role boundaries.
 - Mobile navigation and scrolling polish: the off-canvas drawer now locks background scroll, is
-  announced as a modal dialog with an accessible name, respects the safe-area inset, and the
-  document reserves a scrollbar gutter so content never jumps sideways as a page grows.
+  announced as a modal dialog with an accessible name, respects the safe-area inset, and the document
+  reserves a scrollbar gutter so content never jumps sideways as a page grows.
+- Modern scrollbars across the app: translucent rounded thumbs, a brand-coloured thumb while
+  dragging, slimmer 8px rails inside the sidebar/popovers/code blocks, and `overscroll-behavior:
+  contain` so scrolling a panel or table never drags the page behind it.
 - `SECURITY.md` with the threat model, the boundary-by-boundary control table, and disclosure
   instructions.
 - `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1).
 - GitHub issue forms for bugs, features and documentation, plus a pull request template.
 - `dependabot.yml` for weekly checks of pip, npm and GitHub Actions.
+- A premium single-file project website (`website/index.html`) with light/dark/system themes.
 
 ### Changed
 
 - `docs/` and `README.md` figures re-measured against the current code base and corrected: 255
-  unit tests (was 236), 61 files clean under mypy (was 59), 113 REST operations in 16 routers
-  (was 104 in 15), and 20 dashboard screens (was 17).
+  unit tests (was 236), 61 files clean under mypy (was 59), 113 REST route decorators — 110
+  documented in OpenAPI plus 3 internal probes — across 16 routers (was 104 in 15), and 21 dashboard
+  screens (was 17).
+- Airflow DAG: `build_aggregates` and `reconcile_catalog` again perform real work in-process instead of
+  only reporting, `publish_report` persists a JSON KPI artifact under `var/reports/`, and the source
+  compliance guard once again honours per-source `enabled`/`terms_allowed` flags.
 
 ### Fixed
 
+- **Secret leak**: a live service API key was committed in `.env.example`; it is now a placeholder and
+  `.env.example` documents how to mint a key.
+- **Docker healthcheck**: the API container probed `/health`, which is served under `/api/v1/health`,
+  so `docker compose` permanently reported the service as *unhealthy* even while it served traffic.
+- Removed a duplicate `_notify_local` definition in the Airflow DAG (the second copy silently shadowed
+  the first).
 - Removed an unused context lookup in the Airflow DAG that failed the ruff check.
 - Consistent Python formatting applied across the backend.
 

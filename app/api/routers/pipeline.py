@@ -11,7 +11,7 @@ from fastapi import APIRouter, BackgroundTasks, Query, Request
 from app.analytics import service as analytics
 from app.api.deps import DbSession, OptionalUser, PaginationDep, PipelineUser, ReadUser, request_meta
 from app.api.schemas import Message, Page, PipelineRunRead, PipelineTriggerRequest
-from app.core.errors import PipelineError
+from app.core.errors import NotFoundError, PipelineError
 from app.core.logging import get_logger
 from app.models.app_users import AppAuditLog, AppNotification
 from app.models.operations import DqRuleResult, EtlRun
@@ -67,6 +67,23 @@ def run_detail(run_id: str, session: DbSession, _user: ReadUser) -> dict[str, An
     if not detail:
         return {}
     return detail
+
+
+@router.get(
+    "/runs/compare",
+    summary="Compare two runs (metric deltas, DQ regressions, catalogue and price movement)",
+)
+def compare_runs(
+    session: DbSession,
+    _user: ReadUser,
+    base: str = Query(..., description="Reference (earlier) run id"),
+    target: str = Query(..., description="Run being judged (usually the newer one)"),
+    sample_limit: int = Query(25, ge=1, le=200),
+) -> dict[str, Any]:
+    diff = analytics.compare_runs(session, base, target, sample_limit=sample_limit)
+    if not diff:
+        raise NotFoundError("one or both runs were not found", details={"base": base, "target": target})
+    return diff
 
 
 @router.get("/runs/{run_id}/dq", summary="DQ rule results for one run")
