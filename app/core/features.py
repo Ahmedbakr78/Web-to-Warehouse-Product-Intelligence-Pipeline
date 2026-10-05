@@ -15,6 +15,114 @@ from typing import Any
 
 FEATURE_GROUPS: list[dict[str, Any]] = [
     {
+        "key": "integrations",
+        "title": "Integrations: export, webhooks & backfill",
+        "icon": "plug-zap",
+        "summary": "Get data out and events in: signed webhooks with retries, CSV/JSON export of every dataset, and historical backfill.",
+        "features": [
+            {
+                "name": "12 exportable datasets",
+                "detail": "Products, price changes, new/removed, runs, DQ, catalog, categories, movers, sources, alerts, audit, HTTP audit",
+            },
+            {
+                "name": "CSV and JSON downloads",
+                "detail": "GET /export/{dataset}.csv|.json with a date-stamped filename and a JSON envelope",
+            },
+            {
+                "name": "Filter-aware exports",
+                "detail": "Every dataset declares its filters (source, status, severity, search) and they are bound, never interpolated",
+            },
+            {
+                "name": "Bounded exports",
+                "detail": "Row cap enforced in SQL (50k) so a download can never exhaust memory",
+            },
+            {
+                "name": "Export preview endpoint",
+                "detail": "GET /export/{dataset} returns the first rows as JSON for in-app previews",
+            },
+            {
+                "name": "Outbound webhooks",
+                "detail": "Per-user subscriptions filtered by event, with in-app test delivery",
+            },
+            {
+                "name": "HMAC-SHA256 signing",
+                "detail": "X-Webhook-Signature over timestamp+body, so receivers can verify authenticity and detect replays",
+            },
+            {
+                "name": "10 pipeline events",
+                "detail": "run.completed/failed/started, dq.failed, price.spike, product.new/removed, catalog.mismatch, alert.triggered, backfill.completed",
+            },
+            {
+                "name": "Delivery retries",
+                "detail": "Exponential backoff (30s, 5m, 30m) up to a per-subscription attempt limit",
+            },
+            {
+                "name": "Delivery log",
+                "detail": "Status code, duration, response excerpt and error stored per attempt",
+            },
+            {
+                "name": "Secret rotation",
+                "detail": "Per-subscription signing secret, shown once and rotatable without recreating the hook",
+            },
+            {
+                "name": "SSRF-safe targets",
+                "detail": "Only public http(s) URLs accepted; loopback, private, link-local and metadata endpoints are blocked",
+            },
+            {
+                "name": "Auto-disable on failure",
+                "detail": "A subscription is disabled after repeated consecutive failures so it cannot slow the pipeline",
+            },
+            {
+                "name": "Historical backfill",
+                "detail": "Replay any date range, one run per day, up to 31 days per job",
+            },
+            {
+                "name": "Backfill job tracking",
+                "detail": "Every day tagged with the job id, with progress, per-day results and roll-up counts",
+            },
+            {
+                "name": "Fault-isolated backfill",
+                "detail": "A failing day is recorded and the job continues, so one bad source cannot abandon the range",
+            },
+        ],
+    },
+    {
+        "key": "observability",
+        "title": "Run comparison & observability",
+        "icon": "git-compare-arrows",
+        "summary": "Judge every run against any other: metric deltas, DQ regressions, catalogue movement and price drift.",
+        "features": [
+            {
+                "name": "Compare any two runs",
+                "detail": "GET /pipeline/runs/compare?base=&target= diffs a reference run against the current one",
+            },
+            {
+                "name": "12 metric deltas",
+                "detail": "Records, duplicates, new/removed products, catalog matches and DQ counts with absolute and percentage change",
+            },
+            {
+                "name": "DQ regression detection",
+                "detail": "Rules that turned red since the base run, and rules that were fixed",
+            },
+            {
+                "name": "Catalogue movement",
+                "detail": "Products added and dropped between the two runs, with display names",
+            },
+            {
+                "name": "Price movement ranking",
+                "detail": "Largest price moves between runs, sorted by absolute delta",
+            },
+            {
+                "name": "Performance comparison",
+                "detail": "Duration delta and percentage, so regressions in runtime are visible",
+            },
+            {
+                "name": "Safe on empty baseline",
+                "detail": "Zero baselines report a null percentage instead of dividing by zero",
+            },
+        ],
+    },
+    {
         "key": "ingestion",
         "title": "Ingestion & web compliance",
         "icon": "globe",
