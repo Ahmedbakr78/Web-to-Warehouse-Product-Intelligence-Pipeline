@@ -7,8 +7,15 @@ from typing import Annotated, Any
 import sqlalchemy as sa
 from fastapi import APIRouter, Query, Request
 
-from app.api.deps import CurrentUser, DbSession, Page, PaginationDep, request_meta
-from app.api.schemas import Message
+from app.api.deps import CurrentUser, DbSession, PaginationDep, request_meta
+from app.api.schemas import (
+    Message,
+    Page,
+    WebhookCreate,
+    WebhookDeliveryRead,
+    WebhookRead,
+    WebhookUpdate,
+)
 from app.core.errors import ConflictError, NotFoundError, PermissionDeniedError
 from app.models.app_users import AppAuditLog, AppWebhook, AppWebhookDelivery
 from app.models.base import utcnow
@@ -17,7 +24,7 @@ from app.services import webhooks
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 
 
-def _serialise(hook: AppWebhook, include_secret: bool = False) -> dict[str, Any]:
+def _serialise(hook: AppWebhook, include_secret: bool = False) -> WebhookRead:
     data: dict[str, Any] = {
         "webhook_id": hook.webhook_id,
         "user_id": hook.user_id,
@@ -38,9 +45,8 @@ def _serialise(hook: AppWebhook, include_secret: bool = False) -> dict[str, Any]
         "disabled_reason": hook.disabled_reason,
         "created_at": hook.created_at,
     }
-    if include_secret:
-        data["secret"] = hook.secret
-    return data
+    data["secret"] = hook.secret if include_secret else None
+    return WebhookRead.model_validate(data)
 
 
 def _owned(session: DbSession, webhook_id: int, user: Any, *, admin: bool = False) -> AppWebhook:
@@ -65,8 +71,8 @@ def events(_user: CurrentUser) -> dict[str, Any]:
     }
 
 
-@router.get("", summary="List my webhook subscriptions")
-def list_webhooks(session: DbSession, user: CurrentUser) -> list[dict[str, Any]]:
+@router.get("", response_model=list[WebhookRead], summary="List my webhook subscriptions")
+def list_webhooks(session: DbSession, user: CurrentUser) -> list[WebhookRead]:
     hooks = (
         session.execute(
             sa.select(AppWebhook)
@@ -79,29 +85,29 @@ def list_webhooks(session: DbSession, user: CurrentUser) -> list[dict[str, Any]]
     return [_serialise(hook) for hook in hooks]
 
 
-@router.post("", status_code=201, summary="Create a webhook subscription")
+@router.post(
+    "",
+    status_code=201,
+    response_model=WebhookRead,
+    summary="Create a webhook subscription",
+)
 def create_webhook(
     request: Request,
     session: DbSession,
     user: CurrentUser,
-    payload: dict[str, Any],
-) -> dict[str, Any]:
-    name = str(payload.get("name") or "").strip()
-    if not name:
-        raise ConflictError("name is required")
-    target_url = webhooks.validate_target_url(str(payload.get("target_url") or ""))
-
+    payload: WebhookCreate,
+) -> WebhookRead:
     hook = AppWebhook(
         user_id=user.user_id,
-        name=name,
-        target_url=target_url,
+        name=payload.name.strip(),
+        target_url=webhooks.validate_target_url(payload.target_url),
         secret=webhooks.generate_secret(),
-        events=webhooks.normalise_events(payload.get("events")),
-        description=payload.get("description"),
-        headers=payload.get("headers") or {},
-        timeout_seconds=int(payload.get("timeout_seconds") or 10),
-        max_attempts=int(payload.get("max_attempts") or 3),
-        is_active=bool(payload.get("is_active", True)),
+        events=webhooks.normalise_events(payload.events),
+        description=payload.description,
+        headers=payload.headers or {},
+        timeout_seconds=payload.timeout_seconds,
+        max_attempts=payload.max_attempts,
+        is_active=payload.is_active,
     )
     session.add(hook)
     session.flush()
@@ -123,31 +129,32 @@ def create_webhook(
     return _serialise(hook, include_secret=True)
 
 
-@router.get("/{webhook_id}", summary="Webhook detail")
-def get_webhook(session: DbSession, user: CurrentUser, webhook_id: int) -> dict[str, Any]:
+@router.get("/{webhook_id}", response_model=WebhookRead, summary="Webhook detail")
+def get_webhook(session: DbSession, user: CurrentUser, webhook_id: int) -> WebhookRead:
     return _serialise(_owned(session, webhook_id, user))
 
 
-@router.patch("/{webhook_id}", summary="Update a webhook subscription")
+@router.patch("/{webhook_id}", response_model=WebhookRead, summary="Update a webhook subscription")
 def update_webhook(
     request: Request,
     session: DbSession,
     user: CurrentUser,
     webhook_id: int,
-    payload: dict[str, Any],
-) -> dict[str, Any]:
+    payload: WebhookUpdate,
+) -> WebhookRead:
     hook = _owned(session, webhook_id, user)
-    if "target_url" in payload:
-        hook.target_url = webhooks.validate_target_url(str(payload["target_url"]))
-    if "events" in payload:
-        hook.events = webhooks.normalise_events(payload["events"])
+    changes = payload.model_dump(exclude_unset=True)
+    if changes.get("target_url"):
+        hook.target_url = webhooks.validate_target_url(str(changes["target_url"]))
+    if "events" in changes:
+        hook.events = webhooks.normalise_events(changes["events"])
     for field in ("name", "description", "headers", "is_active"):
-        if field in payload:
-            setattr(hook, field, payload[field])
+        if field in changes:
+            setattr(hook, field, changes[field])
     for field in ("timeout_seconds", "max_attempts"):
-        if field in payload:
-            setattr(hook, field, int(payload[field]))
-    if payload.get("is_active"):
+        if field in changes:
+            setattr(hook, field, int(changes[field]))
+    if changes.get("is_active"):
         hook.consecutive_failures = 0
         hook.disabled_reason = None
     meta = request_meta(request)
@@ -160,7 +167,7 @@ def update_webhook(
             entity_id=str(hook.webhook_id),
             ip_address=meta["ip_address"],
             user_agent=meta["user_agent"],
-            details={"fields": sorted(payload)},
+            details={"fields": sorted(changes)},
         )
     )
     return _serialise(hook)
@@ -205,6 +212,7 @@ def test_webhook(
 
 @router.get(
     "/{webhook_id}/deliveries",
+    response_model=Page[WebhookDeliveryRead],
     summary="Delivery history for a webhook",
 )
 def deliveries(
@@ -213,7 +221,7 @@ def deliveries(
     webhook_id: int,
     pagination: PaginationDep,
     status: Annotated[str | None, Query()] = None,
-) -> Page[dict[str, Any]]:
+) -> Page[WebhookDeliveryRead]:
     hook = _owned(session, webhook_id, user)
     conditions = [AppWebhookDelivery.webhook_id == hook.webhook_id]
     if status:
@@ -261,8 +269,8 @@ def retry_due(session: DbSession, user: CurrentUser) -> dict[str, Any]:
     return {"attempted": attempted, "checked_at": utcnow().isoformat()}
 
 
-@router.post("/{webhook_id}/rotate-secret", summary="Rotate the signing secret")
-def rotate_secret(session: DbSession, user: CurrentUser, webhook_id: int) -> dict[str, Any]:
+@router.post("/{webhook_id}/rotate-secret", response_model=WebhookRead, summary="Rotate the signing secret")
+def rotate_secret(session: DbSession, user: CurrentUser, webhook_id: int) -> WebhookRead:
     hook = _owned(session, webhook_id, user)
     hook.secret = webhooks.generate_secret()
     hook.consecutive_failures = 0

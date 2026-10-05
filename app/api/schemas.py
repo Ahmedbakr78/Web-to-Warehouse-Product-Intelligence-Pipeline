@@ -437,6 +437,70 @@ class AlertRuleRead(ORMModel):
     user_id: int | None = None
 
 
+class WebhookRead(ORMModel):
+    webhook_id: int
+    user_id: int
+    name: str
+    target_url: str
+    description: str | None = None
+    events: list[str] = []
+    is_active: bool = True
+    headers: dict[str, str] = {}
+    timeout_seconds: int = 10
+    max_attempts: int = 3
+    success_count: int = 0
+    failure_count: int = 0
+    consecutive_failures: int = 0
+    last_status_code: int | None = None
+    last_error: str | None = None
+    last_triggered_at: dt.datetime | None = None
+    disabled_reason: str | None = None
+    created_at: dt.datetime | None = None
+    secret: str | None = None
+
+
+class WebhookCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    target_url: str = Field(min_length=8, max_length=512)
+    description: str | None = Field(default=None, max_length=500)
+    events: list[str] | None = None
+    headers: dict[str, str] | None = None
+    timeout_seconds: int = Field(default=10, ge=1, le=60)
+    max_attempts: int = Field(default=3, ge=1, le=10)
+    is_active: bool = True
+
+
+class WebhookUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    target_url: str | None = Field(default=None, max_length=512)
+    description: str | None = Field(default=None, max_length=500)
+    events: list[str] | None = None
+    headers: dict[str, str] | None = None
+    timeout_seconds: int | None = Field(default=None, ge=1, le=60)
+    max_attempts: int | None = Field(default=None, ge=1, le=10)
+    is_active: bool | None = None
+
+
+class WebhookTestRequest(BaseModel):
+    event: str = "run.completed"
+    data: dict[str, Any] | None = None
+
+
+class WebhookDeliveryRead(ORMModel):
+    delivery_id: int
+    event: str
+    status: str
+    attempts: int = 0
+    status_code: int | None = None
+    response_excerpt: str | None = None
+    error: str | None = None
+    duration_ms: int | None = None
+    next_retry_at: dt.datetime | None = None
+    delivered_at: dt.datetime | None = None
+    created_at: dt.datetime | None = None
+    payload: dict[str, Any] | None = None
+
+
 class AlertRuleCreate(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     metric: Literal["price_change_pct", "rating", "new_product", "dq_failure", "stock_out"]
@@ -580,6 +644,11 @@ __all__ = [name for name in dir() if name[0].isupper()] + [
     "SavedViewCreate",
     "AlertRuleRead",
     "AlertRuleCreate",
+    "WebhookRead",
+    "WebhookCreate",
+    "WebhookUpdate",
+    "WebhookTestRequest",
+    "WebhookDeliveryRead",
     "NotificationRead",
     "SettingRead",
     "SettingUpdate",

@@ -10,16 +10,21 @@ import { useAuth } from '@/hooks/useAuth'
 
 export default function NotFound() {
   const location = useLocation()
-  const { can } = useAuth()
-  const { data: meta } = useApiQuery(['meta'], endpoints.meta, { staleTime: 900_000 })
+  const { can, authenticated } = useAuth()
+  const { data: meta } = useApiQuery(['meta'], endpoints.meta, {
+    staleTime: 900_000,
+    enabled: authenticated,
+  })
 
   const groups = useMemo(
     () =>
-      NAV_GROUPS.map((group) => ({
-        title: group.title,
-        items: group.items.filter((item) => !item.permission || can(item.permission)),
-      })).filter((group) => group.items.length > 0),
-    [can],
+      authenticated
+        ? NAV_GROUPS.map((group) => ({
+            title: group.title,
+            items: group.items.filter((item) => !item.permission || can(item.permission)),
+          })).filter((group) => group.items.length > 0)
+        : [],
+    [can, authenticated],
   )
 
   return (
@@ -50,10 +55,17 @@ export default function NotFound() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Link to="/" className="btn btn-primary">
-              <House className="h-4 w-4" aria-hidden />
-              Back to the dashboard
-            </Link>
+            {authenticated ? (
+              <Link to="/" className="btn btn-primary">
+                <House className="h-4 w-4" aria-hidden />
+                Back to the dashboard
+              </Link>
+            ) : (
+              <Link to="/login" className="btn btn-primary">
+                <House className="h-4 w-4" aria-hidden />
+                Go to sign in
+              </Link>
+            )}
             <Link to="/products" className="btn btn-secondary">
               <Database className="h-4 w-4" aria-hidden />
               Browse products
@@ -62,9 +74,10 @@ export default function NotFound() {
         </div>
       </Card>
 
-      <Card>
-        <p className="section-title mb-3">Jump back in</p>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {groups.length > 0 ? (
+        <Card>
+          <p className="section-title mb-3">Jump back in</p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {groups.map((group) => (
             <div key={group.title}>
               <p className="stat-label mb-1.5">{group.title}</p>

@@ -731,6 +731,189 @@ legitimate rather than a silent loss of accuracy.
 
 ---
 
+## Design decisions
+
+Every significant choice below was weighed against at least one credible alternative, and the reason
+is recorded so a reviewer can challenge it rather than guess.
+
+| # | Decision | Alternative rejected | Why this one |
+| --- | --- | --- | --- |
+| 1 | **Scraping only terms-allow-listed sources** | Scrape freely and filter later | Legality is a precondition, not a filter. The registry refuses to construct a source whose terms forbid automated access, and `robots.txt` is re-checked per request. |
+| 2 | **Star schema, not a flat table** | One wide denormalised table | The retailer asks two different questions: *what does the market look like now* and *what changed*. A conformed dimension set answers both without duplicating product attributes per observation. |
+| 3 | **Fuzzy dedupe on top of fingerprints** | Exact match on source IDs | Source IDs are not stable across sites and re-listings. Fingerprints handle the easy 95 %, similarity catches the rest; every match stores its strategy and score so it can be audited. |
+| 4 | **Offline FX table** | Live currency API | Analysis must stay reproducible and runnable offline. A static table keeps every conversion deterministic and removes a network dependency from the critical path. |
+| 5 | **Blocking before fuzzy comparison** | Compare every pair | All-pairs reconciliation cost 2,975 ms; blocking plus a capped pool cost 104 ms for identical output. Complexity only pays when the result is unchanged. |
+| 6 | **Airflow drives the pipeline through its REST API** | Import the pipeline package inside the DAG | Airflow 2.10 pins SQLAlchemy 1.4 while the app needs 2.0, so one interpreter cannot host both. A transport layer prefers the in-process call and falls back to the API, so `make airflow-test` on a laptop and the containerised DAG run identical logic. |
+| 7 | **Two query surfaces, not one** | Free-form SQL only | Analysts need real SQL; the rest of the organisation needs safety. The query lab is permission-gated and rejects writes; the builder assembles SQL from a server-side whitelist, so it is structurally incapable of injection. |
+| 8 | **JWT plus revocable API keys** | Sessions or keys only | Browser sessions need stateless scale; integrations need revocation and per-key limits. Both are supported, and API keys are stored as peppered SHA-256 hashes. |
+| 9 | **12 blocking *critical* rules only** | Block the DAG on any failure | A hard gate on every warning makes the pipeline brittle. Critical failures stop the run; everything else is recorded, scored and trended. |
+| 10 | **Reject records, never crash** | Fail the run on bad input | Dirty web data is expected. The staging zone keeps every rejected record with its reason, so a cleaning regression is diagnosable instead of silent. |
+| 11 | **CSS custom properties for theming** | Two stylesheets or a runtime theme engine | A single `.dark` class on `<html>` switches the entire palette instantly with no re-render and no flash of the wrong theme, and the preference is stored server-side so a new device inherits it. |
+| 12 | **Identity preservation in the catalogue** | Aggregate over source listings | The retailer's question is "what is the price of *this* product", not "what does source X say today". Keeping one identity and many observations is what makes price history possible. |
+| 13 | **Fact tables keyed by run** | Upsert the latest value only | History is the product. Keying snapshots by `(product, run)` keeps every observation queryable and makes re-runs idempotent. |
+| 14 | **One feature catalogue as the source of truth** | Maintain features in docs and UI separately | `app/core/features.py` feeds the API, the dashboard screen and the website, so the marketing surface cannot drift from the shipped code. |
+
+### Component view
+
+```mermaid
+graph TB
+    subgraph Client["Browser / PWA"]
+        DASH["React 19 dashboard<br/>21 screens, light & dark"]
+        PAL["Command palette<br/>Ctrl/Cmd-K"]
+    end
+    subgraph Edge["FastAPI application"]
+        ROUTES["16 routers<br/>110 operations"]
+        AUTH["Security layer<br/>Argon2id · JWT · API keys · RBAC"]
+        GUARD["Guards<br/>error envelope · GZip · timing · rate limit"]
+        BUILDER["Builder DSL<br/>whitelist → parameterised SELECT"]
+        QLAB["Query lab<br/>SELECT / WITH / EXPLAIN only"]
+    end
+    subgraph Domain["Domain services"]
+        ING["Ingestion<br/>robots · rate limit · cache"]
+        ETL["ETL pipeline<br/>9 stages"]
+        DQ["Data quality<br/>12 rules / 6 dimensions"]
+        AN["Analytics<br/>20 views + reports"]
+        REC["Catalog reconciler"]
+    end
+    subgraph Store["Warehouse"]
+        PG[("PostgreSQL 16<br/>23 tables · 20 views")]
+        MY[("MySQL 8.4<br/>same schema")]
+    end
+    subgraph Sources["Permitted sources"]
+        S1["JSON APIs"]
+        S2["HTML scrape<br/>BeautifulSoup + lxml"]
+        S3["Offline fixture"]
+    end
+    AF["Apache Airflow 2.10<br/>14 tasks, daily 03:00"]
+
+    DASH --> ROUTES
+    PAL --> ROUTES
+    ROUTES --> AUTH --> GUARD
+    ROUTES --> BUILDER
+    ROUTES --> QLAB
+    ROUTES --> AN
+    ROUTES --> DQ
+    ROUTES --> REC
+    ETL --> ING --> Sources
+    ETL --> DQ
+    ETL --> REC
+    ETL --> Store
+    AN --> Store
+    DQ --> Store
+    REC --> Store
+    AN -.SQL.-> QLAB
+    AF -->|"REST transport"| ROUTES
+    AF --> ETL
+```
+
+### Class view of the ingestion contract
+
+```mermaid
+classDiagram
+    class ProductSource {
+        <<abstract>>
+        +code: str
+        +name: str
+        +kind: str
+        +base_url: str
+        +terms_allowed: bool
+        +rate_limit_per_minute: int
+        +fetch(limit) Iterator~RawProduct~
+        +health_check() dict
+        +close() None
+    }
+    class RawProduct {
+        +source_code: str
+        +source_product_id: str
+        +name: str
+        +price_text: str
+        +currency_hint: str
+        +rating_text: str
+        +availability_text: str
+        +url: str
+        +payload: dict
+        +content_hash: str
+    }
+    class NormalizedProduct {
+        +canonical_name: str
+        +normalized_name: str
+        +fingerprint: str
+        +blocking_key: str
+        +category: str
+        +price_usd: float
+        +rating: float
+        +availability: str
+        +quality_flags: list
+        +is_valid: bool
+        +reject_reason: str
+        +flag(code)
+    }
+    class CompliantHttpClient {
+        +requests_per_second: float
+        +requests_per_minute: int
+        +get(url) Response
+        +request(method, url) Response
+    }
+    class RobotsCache {
+        +can_fetch(url) Decision
+        +stats() dict
+    }
+    class CatalogReconciler {
+        +run(persist) list
+        +match_one(row, candidates, prices)
+    }
+    class WarehouseLoader {
+        +stage(records) int
+        +upsert_product(record, match) tuple
+        +insert_snapshot(...) int
+        +detect_removed(...) int
+        +refresh_category_daily(...) int
+    }
+    class DedupeEngine {
+        +fingerprint(name, brand) str
+        +similarity(a, b) float
+        +match(record, candidates) Match
+    }
+    class Pipeline {
+        +run() PipelineResult
+    }
+
+    ProductSource <|-- BooksToScrape : kind = scrape
+    ProductSource <|-- DummyJsonProducts : kind = api
+    ProductSource <|-- FakesStoreProducts : kind = api
+    ProductSource <|-- OpenLibraryBooks : kind = api
+    ProductSource <|-- LocalDemoSource : offline
+    ProductSource --> CompliantHttpClient : polite I/O
+    CompliantHttpClient --> RobotsCache : consults
+    ProductSource ..> RawProduct : yields
+    RawProduct ..> NormalizedProduct : transform_product
+    Pipeline --> ProductSource : fetch
+    Pipeline --> WarehouseLoader : stage + load
+    Pipeline --> DedupeEngine : resolve identity
+    Pipeline --> CatalogReconciler : reconcile
+    NormalizedProduct --> DedupeEngine
+```
+
+### State of a pipeline run
+
+```mermaid
+stateDiagram-v2
+    [*] --> Pending: schedule 03:00 or manual trigger
+    Pending --> Running: pre-flight guards pass
+    Pending --> Skipped: database unreachable
+    Pending --> Skipped: robots.txt forbids every source
+    Running --> Running: extract → clean → stage → load
+    Running --> Validating: 9 stages finished
+    Validating --> Succeeded: 12 DQ rules, no critical failure
+    Validating --> Failed: critical rule failed
+    Running --> Failed: unexpected exception after retries
+    Succeeded --> [*]: etl_run closed, notifications raised
+    Failed --> [*]: etl_run stores the error message
+    Skipped --> [*]: guards short-circuit the branch
+```
+
+---
+
 ## Data model
 
 Kimball-style star schema, dialect-portable between PostgreSQL and MySQL (`make verify-dialects`
@@ -921,6 +1104,38 @@ All configuration arrives through environment variables (`.env.example` document
 
 ## Security
 
+The full threat model, boundary-by-boundary control table and disclosure process are in
+[SECURITY.md](SECURITY.md).
+
+| Boundary | Threat | Control |
+| --- | --- | --- |
+| Web → ingestion | Hostile HTML or JSON payloads | Schema validation, length caps, HTML stripping in the 29-step cleaner |
+| Web → ingestion | Unauthorised crawling | robots.txt enforced in the transport layer before the socket opens |
+| Web → ingestion | Over-fetching a fragile host | Rate limits, circuit breaker, honest `User-Agent`, cached responses |
+| User → API | Credential theft | Argon2id hashing, JWT rotation, API keys hashed at rest, 5-attempt lockout |
+| User → API | Privilege escalation | RBAC enforced server-side per route, not by hiding UI |
+| User → API | SQL injection | Parameterised SQL; the Query Lab is `SELECT`-only with whitelisted identifiers |
+| Any → data | Data exposure | Secrets from environment only, CORS allow-list, gzip, full audit log |
+
+```mermaid
+flowchart LR
+    subgraph Untrusted["Untrusted — the public web"]
+        W["Third-party sites"]
+    end
+    subgraph Semi["Semi-trusted — authenticated users"]
+        U["viewer · analyst · admin"]
+    end
+    subgraph Trusted["Trusted — our infrastructure"]
+        API["FastAPI<br/>auth · RBAC · audit"]
+        WH[("PostgreSQL / MySQL")]
+    end
+    W -->|"robots-gated, rate-limited,<br/>audited, cached HTTP"| API
+    U -->|"JWT or API key,<br/>permission per route"| API
+    API -->|"parameterised SQL only"| WH
+```
+
+In detail:
+
 - **Passwords** are Argon2id hashed (memory-hard), never stored or logged in plain text
 - **Tokens**: HS256 JWT access (12 h) plus refresh (30 d) with rotation; the client refreshes in
   single flight on 401 with no request storms
@@ -934,6 +1149,10 @@ All configuration arrives through environment variables (`.env.example` document
 - **Query lab** is read-only: UPDATE, DELETE and DDL are refused server-side, and LIMIT is clamped
 - **Secrets** come from environment variables only; `.env` is git-ignored and `.env.example` documents
   every variable without real values
+
+These claims are testable rather than decorative. `scripts/api_smoke.py` asserts that an
+unauthenticated request to `/api/v1/products` returns `401`, and that a `viewer` attempting to
+trigger a pipeline run is denied.
 
 ---
 
