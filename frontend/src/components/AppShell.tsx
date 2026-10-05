@@ -31,6 +31,7 @@ import { Badge, IconButton } from './ui'
 import { initials, formatRelative, titleCase, formatPrice } from '@/lib/format'
 import { useAuth } from '@/hooks/useAuth'
 import { NavDrawer, PhoneTabBar, Sidebar, usePhoneLayout, useRailState } from './Navigation'
+import { useFocusHeading, useScrollRestoration } from '@/hooks/useScrollRestoration'
 
 export default function AppShell() {
   const location = useLocation()
@@ -40,6 +41,8 @@ export default function AppShell() {
   const { collapsed, toggleRail, overlay, drawerOpen, setDrawerOpen, closeDrawer, drawerRef, edgeSwipe } =
     useRailState()
   const isPhone = usePhoneLayout()
+  useScrollRestoration()
+  useFocusHeading()
 
   // Global shortcuts: Ctrl/Cmd-K or "/" opens the palette, Ctrl/Cmd-B toggles the
   // sidebar, "[" and "]" collapse or expand it, Escape closes any overlay.
@@ -114,7 +117,13 @@ export default function AppShell() {
             className="lg:hidden"
           />
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-sm font-semibold text-ink sm:text-base">{page.title}</h1>
+            <h1
+              data-page-heading
+              tabIndex={-1}
+              className="truncate text-sm font-semibold text-ink outline-none sm:text-base"
+            >
+              {page.title}
+            </h1>
             {page.subtitle ? <p className="hidden truncate text-xs text-subtle sm:block">{page.subtitle}</p> : null}
           </div>
 

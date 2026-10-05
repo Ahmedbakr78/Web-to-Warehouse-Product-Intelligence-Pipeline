@@ -23,7 +23,7 @@ TMP="$(mktemp -d)"
 RENDER=0
 [[ "${1:-}" == "--render" ]] && RENDER=1
 
-trap 'rm -rf "$TMP"' EXIT
+# trap removed for debug
 
 if ! command -v mmdc >/dev/null 2>&1; then
   cat >&2 <<'EOF'
@@ -82,6 +82,7 @@ EOF
 mkdir -p "$OUT"
 
 while IFS=$'\t' read -r number source position first; do
+  echo "DEBUG num=[$number] src=[$source]"
   target="$TMP/$number.svg"
   if [[ $RENDER -eq 1 ]]; then
     destination="$OUT/$(basename "${source%.md}")-$number.svg"
