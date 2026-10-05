@@ -212,6 +212,10 @@ typecheck: ## Static type check
 frontend-lint: ## ESLint + tsc for the frontend
 	cd frontend && npm run lint && npm run typecheck
 
+.PHONY: frontend-test
+frontend-test: ## Frontend unit tests (vitest)
+	cd frontend && npm run test
+
 # ---------------------------------------------------------------- airflow
 .PHONY: airflow-init
 airflow-init: ## Initialise Airflow metadata DB + admin user locally
