@@ -1232,28 +1232,30 @@ dags/             Airflow DAG: product_intelligence_pipeline
 db/
   views.sql       20 analytical views (PostgreSQL and MySQL)
   analysis/       8 standalone SQL analyses + README (price, new, removed, drift, ...)
-frontend/         React 19 dashboard: 20 screens, PWA, design system
+frontend/         React 19 dashboard: 21 screens, PWA, design system
   public/         manifest, icons
   src/            pages, components, hooks, libs
 docs/             23 numbered documents plus an index with diagrams
   diagrams/out/   Mermaid sources extracted for SVG rendering
   assets/         generated infographic (SVG master + PNG + HTML preview)
 scripts/
-  api_smoke.py            regression suite (78 checks)
+  api_smoke.py            regression suite (86 checks)
   build_site.py           dependency-free documentation website builder
   run_analysis.py         runs the standalone SQL analyses
   make_infographic.py     generates the roadmap infographic
   render_diagrams.sh      extracts every Mermaid block for SVG export
 tests/            pytest unit + integration suite (255 tests)
+website/          single-file project landing page (index.html) with light/dark themes
 .github/
   workflows/ci.yml        ruff, mypy, pytest, eslint, tsc, vite build
   ISSUE_TEMPLATE/         bug, feature and documentation forms
   CODE_OF_CONDUCT.md      Contributor Covenant 2.1
+  SECURITY.md             threat model, boundary controls, disclosure process
   dependabot.yml          weekly pip / npm / actions updates
   CODEOWNERS              review ownership
-SECURITY.md       threat model, boundary controls, disclosure process
 site/             generated documentation website (make site; not committed)
 docker-compose.yml            postgres, mysql, api, airflow, scheduler, frontend
+docker/                     api.Dockerfile + airflow.Dockerfile
 Makefile                      30+ targets
 pyproject.toml                package configuration and tool settings
 ```
