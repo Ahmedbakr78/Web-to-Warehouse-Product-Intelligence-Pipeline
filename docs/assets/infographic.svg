@@ -61,213 +61,210 @@
 <path d="M1994 673 l-12 -7 v14 z" fill="#E2E8F0"/>
 <rect x="124" y="342" width="424" height="199" rx="22" ry="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
 <path d="M124 342 h424 a22 22 0 0 1 22 22 v36 h-468 v-36 a22 22 0 0 1 22 -22 z" fill="url(#band)" opacity="0.97"/>
-<text x="336" y="382" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="23" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0">01  Overview</text>
-<text x="336" y="410" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="15" font-weight="400" fill="#D6DEF5" text-anchor="middle" letter-spacing="0">Web-to-Warehouse product intelligence</text>
-<rect x="146" y="442" width="56" height="56" rx="15" ry="15" fill="#EEF2FF"/>
-<g transform="translate(174,470) scale(1.05)" transform-origin="0 0" stroke="#1B3A8A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path transform="translate(-14,-14)" d="M4 8l8-4 8 4-8 4-8-4zm0 0v8l8 4 8-4V8"/></g>
-<circle cx="234" cy="452" r="5" fill="#06B6D4"/>
-<text x="250" y="458" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">permitted web sources</text>
-<circle cx="234" cy="484" r="5" fill="#06B6D4"/>
-<text x="250" y="490" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">retailer catalog</text>
+<text x="336" y="374" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0">01  Overview</text>
+<text x="336" y="394" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="14" font-weight="400" fill="#E6EBFB" text-anchor="middle" letter-spacing="0">Web-to-Warehouse product intelligence</text>
+<rect x="146" y="434" width="56" height="56" rx="15" ry="15" fill="#EEF2FF"/>
+<g transform="translate(174,462) scale(1.05)" transform-origin="0 0" stroke="#1B3A8A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path transform="translate(-14,-14)" d="M4 8l8-4 8 4-8 4-8-4zm0 0v8l8 4 8-4V8"/></g>
+<circle cx="234" cy="444" r="5" fill="#06B6D4"/>
+<text x="250" y="450" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">permitted web sources</text>
+<circle cx="234" cy="476" r="5" fill="#06B6D4"/>
+<text x="250" y="482" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">retailer catalog</text>
 <rect x="596" y="342" width="424" height="199" rx="22" ry="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
 <path d="M596 342 h424 a22 22 0 0 1 22 22 v36 h-468 v-36 a22 22 0 0 1 22 -22 z" fill="url(#band)" opacity="0.97"/>
-<text x="808" y="382" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="23" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0">02  Problem</text>
-<text x="808" y="410" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="15" font-weight="400" fill="#D6DEF5" text-anchor="middle" letter-spacing="0">Manual collection is slow and inconsistent</text>
-<rect x="618" y="442" width="56" height="56" rx="15" ry="15" fill="#EEF2FF"/>
-<g transform="translate(646,470) scale(1.05)" transform-origin="0 0" stroke="#1B3A8A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path transform="translate(-14,-14)" d="M12 4l9 16H3l9-16zm0 6v4m0 3v.5"/></g>
-<circle cx="706" cy="452" r="5" fill="#06B6D4"/>
-<text x="722" y="458" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">stale spreadsheets</text>
-<circle cx="706" cy="484" r="5" fill="#06B6D4"/>
-<text x="722" y="490" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">no history</text>
+<text x="808" y="374" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0">02  Problem</text>
+<text x="808" y="394" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="14" font-weight="400" fill="#E6EBFB" text-anchor="middle" letter-spacing="0">Manual collection is slow and inconsistent</text>
+<rect x="618" y="434" width="56" height="56" rx="15" ry="15" fill="#EEF2FF"/>
+<g transform="translate(646,462) scale(1.05)" transform-origin="0 0" stroke="#1B3A8A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path transform="translate(-14,-14)" d="M12 4l9 16H3l9-16zm0 6v4m0 3v.5"/></g>
+<circle cx="706" cy="444" r="5" fill="#06B6D4"/>
+<text x="722" y="450" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">stale spreadsheets</text>
+<circle cx="706" cy="476" r="5" fill="#06B6D4"/>
+<text x="722" y="482" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">no history</text>
 <rect x="1068" y="342" width="424" height="199" rx="22" ry="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
 <path d="M1068 342 h424 a22 22 0 0 1 22 22 v36 h-468 v-36 a22 22 0 0 1 22 -22 z" fill="url(#band)" opacity="0.97"/>
-<text x="1280" y="382" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="23" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0">03  Solution</text>
-<text x="1280" y="410" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="15" font-weight="400" fill="#D6DEF5" text-anchor="middle" letter-spacing="0">Compliance-first ETL pipeline</text>
-<rect x="1090" y="442" width="56" height="56" rx="15" ry="15" fill="#EEF2FF"/>
-<g transform="translate(1118,470) scale(1.05)" transform-origin="0 0" stroke="#1B3A8A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path transform="translate(-14,-14)" d="M4 16a8 8 0 1116 0M12 16l4-5"/></g>
-<circle cx="1178" cy="452" r="5" fill="#06B6D4"/>
-<text x="1194" y="458" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">robots.txt aware</text>
-<circle cx="1178" cy="484" r="5" fill="#06B6D4"/>
-<text x="1194" y="490" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">deduplicated</text>
+<text x="1280" y="374" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0">03  Solution</text>
+<text x="1280" y="394" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="14" font-weight="400" fill="#E6EBFB" text-anchor="middle" letter-spacing="0">Compliance-first ETL pipeline</text>
+<rect x="1090" y="434" width="56" height="56" rx="15" ry="15" fill="#EEF2FF"/>
+<g transform="translate(1118,462) scale(1.05)" transform-origin="0 0" stroke="#1B3A8A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path transform="translate(-14,-14)" d="M4 16a8 8 0 1116 0M12 16l4-5"/></g>
+<circle cx="1178" cy="444" r="5" fill="#06B6D4"/>
+<text x="1194" y="450" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">robots.txt aware</text>
+<circle cx="1178" cy="476" r="5" fill="#06B6D4"/>
+<text x="1194" y="482" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">deduplicated</text>
 <rect x="1540" y="342" width="424" height="199" rx="22" ry="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
 <path d="M1540 342 h424 a22 22 0 0 1 22 22 v36 h-468 v-36 a22 22 0 0 1 22 -22 z" fill="url(#band)" opacity="0.97"/>
-<text x="1752" y="382" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="23" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0">04  Architecture</text>
-<text x="1752" y="410" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="15" font-weight="400" fill="#D6DEF5" text-anchor="middle" letter-spacing="0">Airflow orchestrates 9 stages</text>
-<rect x="1562" y="442" width="56" height="56" rx="15" ry="15" fill="#EEF2FF"/>
-<g transform="translate(1590,470) scale(1.05)" transform-origin="0 0" stroke="#1B3A8A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path transform="translate(-14,-14)" d="M5 6h6M5 12h9M5 18h6M15 6a3 3 0 110 6M17 12a3 3 0 110 6"/></g>
-<circle cx="1650" cy="452" r="5" fill="#06B6D4"/>
-<text x="1666" y="458" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">ingest, clean, load</text>
-<circle cx="1650" cy="484" r="5" fill="#06B6D4"/>
-<text x="1666" y="490" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">detect, reconcile</text>
+<text x="1752" y="374" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0">04  Architecture</text>
+<text x="1752" y="394" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="14" font-weight="400" fill="#E6EBFB" text-anchor="middle" letter-spacing="0">Airflow orchestrates 9 stages</text>
+<rect x="1562" y="434" width="56" height="56" rx="15" ry="15" fill="#EEF2FF"/>
+<g transform="translate(1590,462) scale(1.05)" transform-origin="0 0" stroke="#1B3A8A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path transform="translate(-14,-14)" d="M5 6h6M5 12h9M5 18h6M15 6a3 3 0 110 6M17 12a3 3 0 110 6"/></g>
+<circle cx="1650" cy="444" r="5" fill="#06B6D4"/>
+<text x="1666" y="450" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">ingest, clean, load</text>
+<circle cx="1650" cy="476" r="5" fill="#06B6D4"/>
+<text x="1666" y="482" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">detect, reconcile</text>
 <rect x="2012" y="342" width="424" height="199" rx="22" ry="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
 <path d="M2012 342 h424 a22 22 0 0 1 22 22 v36 h-468 v-36 a22 22 0 0 1 22 -22 z" fill="url(#band)" opacity="0.97"/>
-<text x="2224" y="382" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="23" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0">05  Warehouse</text>
-<text x="2224" y="410" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="15" font-weight="400" fill="#D6DEF5" text-anchor="middle" letter-spacing="0">28 tables, 20 analytical views</text>
-<rect x="2034" y="442" width="56" height="56" rx="15" ry="15" fill="#EEF2FF"/>
-<g transform="translate(2062,470) scale(1.05)" transform-origin="0 0" stroke="#1B3A8A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path transform="translate(-14,-14)" d="M5 7c0-1.7 3.1-3 7-3s7 1.3 7 3-3.1 3-7 3-7-1.3-7-3zm0 0v10c0 1.7 3.1 3 7 3s7-1.3 7-3V7M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></g>
-<circle cx="2122" cy="452" r="5" fill="#06B6D4"/>
-<text x="2138" y="458" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">Alembic-managed schema</text>
-<circle cx="2122" cy="484" r="5" fill="#06B6D4"/>
-<text x="2138" y="490" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">PostgreSQL and MySQL twins</text>
+<text x="2224" y="374" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0">05  Warehouse</text>
+<text x="2224" y="394" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="14" font-weight="400" fill="#E6EBFB" text-anchor="middle" letter-spacing="0">28 tables, 20 analytical views</text>
+<rect x="2034" y="434" width="56" height="56" rx="15" ry="15" fill="#EEF2FF"/>
+<g transform="translate(2062,462) scale(1.05)" transform-origin="0 0" stroke="#1B3A8A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path transform="translate(-14,-14)" d="M5 7c0-1.7 3.1-3 7-3s7 1.3 7 3-3.1 3-7 3-7-1.3-7-3zm0 0v10c0 1.7 3.1 3 7 3s7-1.3 7-3V7M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></g>
+<circle cx="2122" cy="444" r="5" fill="#06B6D4"/>
+<text x="2138" y="450" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">Alembic-managed schema</text>
+<circle cx="2122" cy="476" r="5" fill="#06B6D4"/>
+<text x="2138" y="482" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">PostgreSQL and MySQL twins</text>
 <rect x="124" y="577" width="424" height="199" rx="22" ry="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
 <path d="M124 577 h424 a22 22 0 0 1 22 22 v36 h-468 v-36 a22 22 0 0 1 22 -22 z" fill="url(#band)" opacity="0.97"/>
-<text x="336" y="617" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="23" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0">06  Data Quality</text>
-<text x="336" y="645" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="15" font-weight="400" fill="#D6DEF5" text-anchor="middle" letter-spacing="0">12 rules across 6 dimensions</text>
-<rect x="146" y="677" width="56" height="56" rx="15" ry="15" fill="#EEF2FF"/>
-<g transform="translate(174,705) scale(1.05)" transform-origin="0 0" stroke="#1B3A8A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path transform="translate(-14,-14)" d="M5 5h14v7c0 4.4-3 7.4-7 8-4-.6-7-3.6-7-8V5zm7 3v5m0 3v-1"/></g>
-<circle cx="234" cy="687" r="5" fill="#06B6D4"/>
-<text x="250" y="693" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">score persisted per run</text>
-<circle cx="234" cy="719" r="5" fill="#06B6D4"/>
-<text x="250" y="725" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">98.26 measured</text>
+<text x="336" y="609" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0">06  Data Quality</text>
+<text x="336" y="629" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="14" font-weight="400" fill="#E6EBFB" text-anchor="middle" letter-spacing="0">12 rules across 6 dimensions</text>
+<rect x="146" y="669" width="56" height="56" rx="15" ry="15" fill="#EEF2FF"/>
+<g transform="translate(174,697) scale(1.05)" transform-origin="0 0" stroke="#1B3A8A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path transform="translate(-14,-14)" d="M5 5h14v7c0 4.4-3 7.4-7 8-4-.6-7-3.6-7-8V5zm7 3v5m0 3v-1"/></g>
+<circle cx="234" cy="679" r="5" fill="#06B6D4"/>
+<text x="250" y="685" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">score persisted per run</text>
+<circle cx="234" cy="711" r="5" fill="#06B6D4"/>
+<text x="250" y="717" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">98.26 measured</text>
 <rect x="596" y="577" width="424" height="199" rx="22" ry="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
 <path d="M596 577 h424 a22 22 0 0 1 22 22 v36 h-468 v-36 a22 22 0 0 1 22 -22 z" fill="url(#band)" opacity="0.97"/>
-<text x="808" y="617" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="23" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0">07  Forecasting</text>
-<text x="808" y="645" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="15" font-weight="400" fill="#D6DEF5" text-anchor="middle" letter-spacing="0">Prices, anomalies, advice</text>
-<rect x="618" y="677" width="56" height="56" rx="15" ry="15" fill="#EEF2FF"/>
-<g transform="translate(646,705) scale(1.05)" transform-origin="0 0" stroke="#1B3A8A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path transform="translate(-14,-14)" d="M5 6h6M5 12h9M5 18h6M15 6a3 3 0 110 6M17 12a3 3 0 110 6"/></g>
-<circle cx="706" cy="687" r="5" fill="#06B6D4"/>
-<text x="722" y="693" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">damped Holt-Winters</text>
-<circle cx="706" cy="719" r="5" fill="#06B6D4"/>
-<text x="722" y="725" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">MAD, sigma and IQR detectors</text>
+<text x="808" y="609" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0">07  Forecasting</text>
+<text x="808" y="629" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="14" font-weight="400" fill="#E6EBFB" text-anchor="middle" letter-spacing="0">Prices, anomalies, advice</text>
+<rect x="618" y="669" width="56" height="56" rx="15" ry="15" fill="#EEF2FF"/>
+<g transform="translate(646,697) scale(1.05)" transform-origin="0 0" stroke="#1B3A8A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path transform="translate(-14,-14)" d="M5 6h6M5 12h9M5 18h6M15 6a3 3 0 110 6M17 12a3 3 0 110 6"/></g>
+<circle cx="706" cy="679" r="5" fill="#06B6D4"/>
+<text x="722" y="685" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">damped Holt-Winters</text>
+<circle cx="706" cy="711" r="5" fill="#06B6D4"/>
+<text x="722" y="717" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">MAD, sigma and IQR detectors</text>
 <rect x="1068" y="577" width="424" height="199" rx="22" ry="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
 <path d="M1068 577 h424 a22 22 0 0 1 22 22 v36 h-468 v-36 a22 22 0 0 1 22 -22 z" fill="url(#band)" opacity="0.97"/>
-<text x="1280" y="617" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="23" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0">08  Operations</text>
-<text x="1280" y="645" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="15" font-weight="400" fill="#D6DEF5" text-anchor="middle" letter-spacing="0">173 REST operations, 23 routers</text>
-<rect x="1090" y="677" width="56" height="56" rx="15" ry="15" fill="#EEF2FF"/>
-<g transform="translate(1118,705) scale(1.05)" transform-origin="0 0" stroke="#1B3A8A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path transform="translate(-14,-14)" d="M8 5l-5 7 5 7m8-14l5 7-5 7M13 6l-2 12"/></g>
-<circle cx="1178" cy="687" r="5" fill="#06B6D4"/>
-<text x="1194" y="693" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">JWT, TOTP and scoped keys</text>
-<circle cx="1178" cy="719" r="5" fill="#06B6D4"/>
-<text x="1194" y="725" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">leased jobs and SSE</text>
+<text x="1280" y="609" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0">08  Operations</text>
+<text x="1280" y="629" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="14" font-weight="400" fill="#E6EBFB" text-anchor="middle" letter-spacing="0">173 REST operations, 23 routers</text>
+<rect x="1090" y="669" width="56" height="56" rx="15" ry="15" fill="#EEF2FF"/>
+<g transform="translate(1118,697) scale(1.05)" transform-origin="0 0" stroke="#1B3A8A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path transform="translate(-14,-14)" d="M8 5l-5 7 5 7m8-14l5 7-5 7M13 6l-2 12"/></g>
+<circle cx="1178" cy="679" r="5" fill="#06B6D4"/>
+<text x="1194" y="685" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">JWT, TOTP and scoped keys</text>
+<circle cx="1178" cy="711" r="5" fill="#06B6D4"/>
+<text x="1194" y="717" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">leased jobs and SSE</text>
 <rect x="1540" y="577" width="424" height="199" rx="22" ry="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
 <path d="M1540 577 h424 a22 22 0 0 1 22 22 v36 h-468 v-36 a22 22 0 0 1 22 -22 z" fill="url(#band)" opacity="0.97"/>
-<text x="1752" y="617" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="23" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0">09  Dashboard</text>
-<text x="1752" y="645" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="15" font-weight="400" fill="#D6DEF5" text-anchor="middle" letter-spacing="0">20 screens, 5 themes, 4 report formats</text>
-<rect x="1562" y="677" width="56" height="56" rx="15" ry="15" fill="#EEF2FF"/>
-<g transform="translate(1590,705) scale(1.05)" transform-origin="0 0" stroke="#1B3A8A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path transform="translate(-14,-14)" d="M4 6h16v10H4V6zm5 14h6m-3-4v4"/></g>
-<circle cx="1650" cy="687" r="5" fill="#06B6D4"/>
-<text x="1666" y="693" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">command palette, installable PWA</text>
-<circle cx="1650" cy="719" r="5" fill="#06B6D4"/>
-<text x="1666" y="725" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">HTML, JSON, CSV and PDF</text>
+<text x="1752" y="609" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0">09  Dashboard</text>
+<text x="1752" y="629" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="14" font-weight="400" fill="#E6EBFB" text-anchor="middle" letter-spacing="0">20 screens, 5 themes, 4 report formats</text>
+<rect x="1562" y="669" width="56" height="56" rx="15" ry="15" fill="#EEF2FF"/>
+<g transform="translate(1590,697) scale(1.05)" transform-origin="0 0" stroke="#1B3A8A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path transform="translate(-14,-14)" d="M4 6h16v10H4V6zm5 14h6m-3-4v4"/></g>
+<circle cx="1650" cy="679" r="5" fill="#06B6D4"/>
+<text x="1666" y="685" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">command palette, installable PWA</text>
+<circle cx="1650" cy="711" r="5" fill="#06B6D4"/>
+<text x="1666" y="717" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">HTML, JSON, CSV and PDF</text>
 <rect x="2012" y="577" width="424" height="199" rx="22" ry="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
 <path d="M2012 577 h424 a22 22 0 0 1 22 22 v36 h-468 v-36 a22 22 0 0 1 22 -22 z" fill="url(#band)" opacity="0.97"/>
-<text x="2224" y="617" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="23" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0">10  Evidence</text>
-<text x="2224" y="645" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="15" font-weight="400" fill="#D6DEF5" text-anchor="middle" letter-spacing="0">397 tests, 104 smoke checks, CI green</text>
-<rect x="2034" y="677" width="56" height="56" rx="15" ry="15" fill="#EEF2FF"/>
-<g transform="translate(2062,705) scale(1.05)" transform-origin="0 0" stroke="#1B3A8A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path transform="translate(-14,-14)" d="M7 17a4 4 0 010-8 5.5 5.5 0 0110.6 1.5A3.6 3.6 0 0117 17H7z"/></g>
-<circle cx="2122" cy="687" r="5" fill="#06B6D4"/>
-<text x="2138" y="693" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">mypy and Ruff clean</text>
-<circle cx="2122" cy="719" r="5" fill="#06B6D4"/>
-<text x="2138" y="725" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">30 documents, 80 diagrams</text>
+<text x="2224" y="609" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0">10  Evidence</text>
+<text x="2224" y="629" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="14" font-weight="400" fill="#E6EBFB" text-anchor="middle" letter-spacing="0">397 tests, 104 smoke checks, CI green</text>
+<rect x="2034" y="669" width="56" height="56" rx="15" ry="15" fill="#EEF2FF"/>
+<g transform="translate(2062,697) scale(1.05)" transform-origin="0 0" stroke="#1B3A8A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path transform="translate(-14,-14)" d="M7 17a4 4 0 010-8 5.5 5.5 0 0110.6 1.5A3.6 3.6 0 0117 17H7z"/></g>
+<circle cx="2122" cy="679" r="5" fill="#06B6D4"/>
+<text x="2138" y="685" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">mypy and Ruff clean</text>
+<circle cx="2122" cy="711" r="5" fill="#06B6D4"/>
+<text x="2138" y="717" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#0F172A" text-anchor="start" letter-spacing="0">30 documents, 80 diagrams</text>
 <text x="130" y="872" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="700" fill="#64748B" text-anchor="start" letter-spacing="2">TECH STACK</text>
-<rect x="318" y="846" width="101" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<rect x="318" y="846" width="141" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
 <circle cx="334" cy="868" r="5" fill="#7C3AED"/>
 <text x="348" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">Python 3.12</text>
-<rect x="433" y="846" width="68" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="449" cy="868" r="5" fill="#7C3AED"/>
-<text x="463" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">FastAPI</text>
-<rect x="515" y="846" width="110" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="531" cy="868" r="5" fill="#7C3AED"/>
-<text x="545" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">Airflow 2.10</text>
-<rect x="639" y="846" width="93" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="655" cy="868" r="5" fill="#7C3AED"/>
-<text x="669" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">SQLAlchemy</text>
-<rect x="746" y="846" width="51" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="762" cy="868" r="5" fill="#7C3AED"/>
-<text x="776" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">NumPy</text>
-<rect x="811" y="846" width="68" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="827" cy="868" r="5" fill="#7C3AED"/>
-<text x="841" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">Alembic</text>
-<rect x="893" y="846" width="93" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="909" cy="868" r="5" fill="#7C3AED"/>
-<text x="923" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">WeasyPrint</text>
-<rect x="1000" y="846" width="76" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="1016" cy="868" r="5" fill="#7C3AED"/>
-<text x="1030" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">React 19</text>
-<rect x="1090" y="846" width="93" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="1106" cy="868" r="5" fill="#7C3AED"/>
-<text x="1120" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">TypeScript</text>
-<rect x="1197" y="846" width="76" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="1213" cy="868" r="5" fill="#7C3AED"/>
-<text x="1227" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">Tailwind</text>
-<rect x="1287" y="846" width="76" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="1303" cy="868" r="5" fill="#7C3AED"/>
-<text x="1317" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">Recharts</text>
-<rect x="1377" y="846" width="118" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="1393" cy="868" r="5" fill="#7C3AED"/>
-<text x="1407" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">PostgreSQL 16</text>
-<rect x="1510" y="846" width="85" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="1526" cy="868" r="5" fill="#7C3AED"/>
-<text x="1540" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">MySQL 8.4</text>
-<rect x="1608" y="846" width="135" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="1624" cy="868" r="5" fill="#7C3AED"/>
-<text x="1638" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">Argon2id + TOTP</text>
-<rect x="1757" y="846" width="160" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="1773" cy="868" r="5" fill="#7C3AED"/>
-<text x="1787" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">Server-Sent Events</text>
-<rect x="1931" y="846" width="127" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="1947" cy="868" r="5" fill="#7C3AED"/>
-<text x="1961" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">Docker Compose</text>
-<rect x="2072" y="846" width="127" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="2088" cy="868" r="5" fill="#7C3AED"/>
-<text x="2102" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">GitHub Actions</text>
-<rect x="2213" y="846" width="177" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="2229" cy="868" r="5" fill="#7C3AED"/>
-<text x="2243" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">pytest + mypy + Ruff</text>
-<text x="130" y="970" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="700" fill="#64748B" text-anchor="start" letter-spacing="2">DEVELOPMENT TIMELINE</text>
-<path d="M130 1028 H2430" stroke="#E2E8F0" stroke-width="4" fill="none"/>
-<circle cx="130" cy="1028" r="12" fill="#1B3A8A"/>
-<circle cx="130" cy="1028" r="20" fill="none" stroke="#1B3A8A" stroke-opacity="0.28" stroke-width="3"/>
-<text x="130" y="1080" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="20" font-weight="600" fill="#0F172A" text-anchor="middle" letter-spacing="0">Plan</text>
-<circle cx="590" cy="1028" r="12" fill="#1B3A8A"/>
-<circle cx="590" cy="1028" r="20" fill="none" stroke="#1B3A8A" stroke-opacity="0.28" stroke-width="3"/>
-<text x="590" y="1080" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="20" font-weight="600" fill="#0F172A" text-anchor="middle" letter-spacing="0">Design</text>
-<circle cx="1050" cy="1028" r="12" fill="#1B3A8A"/>
-<circle cx="1050" cy="1028" r="20" fill="none" stroke="#1B3A8A" stroke-opacity="0.28" stroke-width="3"/>
-<text x="1050" y="1080" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="20" font-weight="600" fill="#0F172A" text-anchor="middle" letter-spacing="0">Build</text>
-<circle cx="1510" cy="1028" r="12" fill="#06B6D4"/>
-<circle cx="1510" cy="1028" r="20" fill="none" stroke="#06B6D4" stroke-opacity="0.28" stroke-width="3"/>
-<text x="1510" y="1080" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="20" font-weight="600" fill="#0F172A" text-anchor="middle" letter-spacing="0">Test</text>
-<circle cx="1970" cy="1028" r="12" fill="#7C3AED"/>
-<circle cx="1970" cy="1028" r="20" fill="none" stroke="#7C3AED" stroke-opacity="0.28" stroke-width="3"/>
-<text x="1970" y="1080" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="20" font-weight="600" fill="#0F172A" text-anchor="middle" letter-spacing="0">Deploy</text>
-<circle cx="2430" cy="1028" r="12" fill="#7C3AED"/>
-<circle cx="2430" cy="1028" r="20" fill="none" stroke="#7C3AED" stroke-opacity="0.28" stroke-width="3"/>
-<text x="2430" y="1080" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="20" font-weight="600" fill="#0F172A" text-anchor="middle" letter-spacing="0">Maintain</text>
-<text x="130" y="1110" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="700" fill="#64748B" text-anchor="start" letter-spacing="2">PROJECT OUTCOMES</text>
-<rect x="124" y="1146" width="436" height="62" rx="14" ry="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="154" cy="1177" r="6" fill="#10B981"/>
-<text x="174" y="1184" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">Working pipeline</text>
-<rect x="586" y="1146" width="436" height="62" rx="14" ry="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="616" cy="1177" r="6" fill="#10B981"/>
-<text x="636" y="1184" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">28-table warehouse, 20 views</text>
-<rect x="1048" y="1146" width="436" height="62" rx="14" ry="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="1078" cy="1177" r="6" fill="#10B981"/>
-<text x="1098" y="1184" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">12-rule DQ gate</text>
-<rect x="1510" y="1146" width="436" height="62" rx="14" ry="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="1540" cy="1177" r="6" fill="#10B981"/>
-<text x="1560" y="1184" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">REST API, 173 operations</text>
-<rect x="1972" y="1146" width="436" height="62" rx="14" ry="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="2002" cy="1177" r="6" fill="#10B981"/>
-<text x="2022" y="1184" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">397 automated tests</text>
-<rect x="124" y="1224" width="436" height="62" rx="14" ry="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="154" cy="1255" r="6" fill="#10B981"/>
-<text x="174" y="1262" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">104 API smoke checks</text>
-<rect x="586" y="1224" width="436" height="62" rx="14" ry="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="616" cy="1255" r="6" fill="#10B981"/>
-<text x="636" y="1262" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">React dashboard, 20 screens</text>
-<rect x="1048" y="1224" width="436" height="62" rx="14" ry="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="1078" cy="1255" r="6" fill="#10B981"/>
-<text x="1098" y="1262" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">Alembic-managed schema</text>
-<rect x="1510" y="1224" width="436" height="62" rx="14" ry="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="1540" cy="1255" r="6" fill="#10B981"/>
-<text x="1560" y="1262" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">30 documents, 80 diagrams</text>
-<rect x="1972" y="1224" width="436" height="62" rx="14" ry="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="2002" cy="1255" r="6" fill="#10B981"/>
-<text x="2022" y="1262" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">PDF and CSV reports</text>
-<rect x="124" y="1302" width="436" height="62" rx="14" ry="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
-<circle cx="154" cy="1333" r="6" fill="#10B981"/>
-<text x="174" y="1340" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">Private repo released</text>
+<rect x="473" y="846" width="106" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="489" cy="868" r="5" fill="#7C3AED"/>
+<text x="503" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">FastAPI</text>
+<rect x="593" y="846" width="149" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="609" cy="868" r="5" fill="#7C3AED"/>
+<text x="623" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">Airflow 2.10</text>
+<rect x="756" y="846" width="132" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="772" cy="868" r="5" fill="#7C3AED"/>
+<text x="786" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">SQLAlchemy</text>
+<rect x="902" y="846" width="89" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="918" cy="868" r="5" fill="#7C3AED"/>
+<text x="932" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">NumPy</text>
+<rect x="1005" y="846" width="106" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="1021" cy="868" r="5" fill="#7C3AED"/>
+<text x="1035" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">Alembic</text>
+<rect x="1125" y="846" width="132" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="1141" cy="868" r="5" fill="#7C3AED"/>
+<text x="1155" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">WeasyPrint</text>
+<rect x="1271" y="846" width="115" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="1287" cy="868" r="5" fill="#7C3AED"/>
+<text x="1301" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">React 19</text>
+<rect x="1400" y="846" width="132" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="1416" cy="868" r="5" fill="#7C3AED"/>
+<text x="1430" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">TypeScript</text>
+<rect x="1546" y="846" width="115" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="1562" cy="868" r="5" fill="#7C3AED"/>
+<text x="1576" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">Tailwind</text>
+<rect x="1675" y="846" width="115" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="1691" cy="868" r="5" fill="#7C3AED"/>
+<text x="1705" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">Recharts</text>
+<rect x="1804" y="846" width="158" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="1820" cy="868" r="5" fill="#7C3AED"/>
+<text x="1834" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">PostgreSQL 16</text>
+<rect x="1975" y="846" width="123" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="1991" cy="868" r="5" fill="#7C3AED"/>
+<text x="2005" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">MySQL 8.4</text>
+<rect x="2113" y="846" width="175" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="2129" cy="868" r="5" fill="#7C3AED"/>
+<text x="2143" y="875" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">Argon2id + TOTP</text>
+<rect x="318" y="902" width="201" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="334" cy="924" r="5" fill="#7C3AED"/>
+<text x="348" y="931" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">Server-Sent Events</text>
+<rect x="533" y="902" width="166" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="549" cy="924" r="5" fill="#7C3AED"/>
+<text x="563" y="931" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">Docker Compose</text>
+<rect x="713" y="902" width="166" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="729" cy="924" r="5" fill="#7C3AED"/>
+<text x="743" y="931" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">GitHub Actions</text>
+<rect x="894" y="902" width="218" height="44" rx="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="910" cy="924" r="5" fill="#7C3AED"/>
+<text x="924" y="931" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">pytest + mypy + Ruff</text>
+<text x="130" y="1026" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="700" fill="#64748B" text-anchor="start" letter-spacing="2">DEVELOPMENT TIMELINE</text>
+<path d="M130 1084 H2430" stroke="#E2E8F0" stroke-width="4" fill="none"/>
+<circle cx="130" cy="1084" r="12" fill="#1B3A8A"/>
+<circle cx="130" cy="1084" r="20" fill="none" stroke="#1B3A8A" stroke-opacity="0.28" stroke-width="3"/>
+<text x="130" y="1136" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="20" font-weight="600" fill="#0F172A" text-anchor="middle" letter-spacing="0">Plan</text>
+<circle cx="590" cy="1084" r="12" fill="#1B3A8A"/>
+<circle cx="590" cy="1084" r="20" fill="none" stroke="#1B3A8A" stroke-opacity="0.28" stroke-width="3"/>
+<text x="590" y="1136" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="20" font-weight="600" fill="#0F172A" text-anchor="middle" letter-spacing="0">Design</text>
+<circle cx="1050" cy="1084" r="12" fill="#1B3A8A"/>
+<circle cx="1050" cy="1084" r="20" fill="none" stroke="#1B3A8A" stroke-opacity="0.28" stroke-width="3"/>
+<text x="1050" y="1136" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="20" font-weight="600" fill="#0F172A" text-anchor="middle" letter-spacing="0">Build</text>
+<circle cx="1510" cy="1084" r="12" fill="#06B6D4"/>
+<circle cx="1510" cy="1084" r="20" fill="none" stroke="#06B6D4" stroke-opacity="0.28" stroke-width="3"/>
+<text x="1510" y="1136" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="20" font-weight="600" fill="#0F172A" text-anchor="middle" letter-spacing="0">Test</text>
+<circle cx="1970" cy="1084" r="12" fill="#7C3AED"/>
+<circle cx="1970" cy="1084" r="20" fill="none" stroke="#7C3AED" stroke-opacity="0.28" stroke-width="3"/>
+<text x="1970" y="1136" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="20" font-weight="600" fill="#0F172A" text-anchor="middle" letter-spacing="0">Deploy</text>
+<circle cx="2430" cy="1084" r="12" fill="#7C3AED"/>
+<circle cx="2430" cy="1084" r="20" fill="none" stroke="#7C3AED" stroke-opacity="0.28" stroke-width="3"/>
+<text x="2430" y="1136" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="20" font-weight="600" fill="#0F172A" text-anchor="middle" letter-spacing="0">Maintain</text>
+<text x="130" y="1166" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="700" fill="#64748B" text-anchor="start" letter-spacing="2">PROJECT OUTCOMES</text>
+<rect x="124" y="1202" width="436" height="62" rx="14" ry="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="154" cy="1233" r="6" fill="#10B981"/>
+<text x="174" y="1240" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">Working pipeline</text>
+<rect x="586" y="1202" width="436" height="62" rx="14" ry="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="616" cy="1233" r="6" fill="#10B981"/>
+<text x="636" y="1240" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">28-table warehouse, 20 views</text>
+<rect x="1048" y="1202" width="436" height="62" rx="14" ry="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="1078" cy="1233" r="6" fill="#10B981"/>
+<text x="1098" y="1240" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">12-rule DQ gate</text>
+<rect x="1510" y="1202" width="436" height="62" rx="14" ry="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="1540" cy="1233" r="6" fill="#10B981"/>
+<text x="1560" y="1240" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">REST API, 173 operations</text>
+<rect x="1972" y="1202" width="436" height="62" rx="14" ry="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="2002" cy="1233" r="6" fill="#10B981"/>
+<text x="2022" y="1240" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">397 automated tests</text>
+<rect x="124" y="1280" width="436" height="62" rx="14" ry="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="154" cy="1311" r="6" fill="#10B981"/>
+<text x="174" y="1318" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">104 API smoke checks</text>
+<rect x="586" y="1280" width="436" height="62" rx="14" ry="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="616" cy="1311" r="6" fill="#10B981"/>
+<text x="636" y="1318" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">React dashboard, 20 screens</text>
+<rect x="1048" y="1280" width="436" height="62" rx="14" ry="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="1078" cy="1311" r="6" fill="#10B981"/>
+<text x="1098" y="1318" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">Alembic-managed schema</text>
+<rect x="1510" y="1280" width="436" height="62" rx="14" ry="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="1540" cy="1311" r="6" fill="#10B981"/>
+<text x="1560" y="1318" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">30 documents, 80 diagrams</text>
+<rect x="1972" y="1280" width="436" height="62" rx="14" ry="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+<circle cx="2002" cy="1311" r="6" fill="#10B981"/>
+<text x="2022" y="1318" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">PDF and CSV reports</text>
 <rect x="0" y="1376" width="2560" height="64" fill="url(#band)"/>
 <text x="70" y="1415" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="18" font-weight="500" fill="#FFFFFF" text-anchor="start" letter-spacing="0">DEPI - Digital Egypt Pioneers Initiative  |  Graduation Project</text>
 <text x="2490" y="1415" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#D6DEF5" text-anchor="end" letter-spacing="0">github.com/Ahmedbakr78/Web-to-Warehouse-Product-Intelligence-Pipeline</text>

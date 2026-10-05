@@ -106,7 +106,6 @@ OUTCOMES = [
     "Alembic-managed schema",
     "30 documents, 80 diagrams",
     "PDF and CSV reports",
-    "Private repo released",
 ]
 
 ICON_PATHS = {
@@ -257,11 +256,11 @@ def build_svg() -> str:
             f'fill="url(#band)" opacity="0.97"/>'
         )
         parts.append(
-            text(x + card_w / 2, y + 40, f"{step:02d}  {title}", 23, 700, "#FFFFFF", anchor="middle")
+            text(x + card_w / 2, y + 32, f"{step:02d}  {title}", 22, 700, "#FFFFFF", anchor="middle")
         )
-        parts.append(text(x + card_w / 2, y + 68, subtitle, 15, 400, "#D6DEF5", anchor="middle"))
+        parts.append(text(x + card_w / 2, y + 52, subtitle, 14, 400, "#E6EBFB", anchor="middle"))
         icon_cx = x + 50
-        icon_cy = y + 128
+        icon_cy = y + 120
         parts.append(rounded(icon_cx - 28, icon_cy - 28, 56, 56, 15, "#EEF2FF"))
         parts.append(icon_icon(icon, icon_cx, icon_cy, PRIMARY))
         for k, keyword in enumerate(keywords):
@@ -278,7 +277,7 @@ def build_svg() -> str:
     bh = 44
     badge_widths = []
     for badge in TECH_BADGES:
-        size = 9 + 8.4 * len(badge)
+        size = 46 + 8.6 * len(badge)
         badge_widths.append(size)
     # Wrap by accumulated width: guessing a per-row count overflows as soon as one
     # badge is longer than average.
