@@ -42,6 +42,11 @@ def _set_sqlite_pragmas(dbapi_connection: Any, connection_record: Any) -> None:
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.execute("PRAGMA journal_mode=WAL")
         cursor.execute("PRAGMA synchronous=NORMAL")
+        # WAL still allows only one writer at a time. Without a busy timeout SQLite
+        # raises "database is locked" the instant a second connection writes, which
+        # the background job worker does routinely while the pipeline holds a
+        # transaction. Waiting is always better than failing the job.
+        cursor.execute("PRAGMA busy_timeout=30000")
     finally:
         cursor.close()
 

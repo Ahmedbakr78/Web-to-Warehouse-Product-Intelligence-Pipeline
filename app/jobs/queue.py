@@ -86,6 +86,27 @@ class JobHandle:
     status: str
 
 
+def _publish_progress(
+    job_id: int,
+    message: str,
+    *,
+    level: str,
+    stage: str | None,
+    progress_pct: int | None,
+) -> None:
+    """Push a progress line over the broker only, with no database write."""
+    _publish(
+        {
+            "kind": "job_progress",
+            "job_id": job_id,
+            "message": message,
+            "level": level,
+            "stage": stage,
+            "progress_pct": progress_pct,
+        },
+    )
+
+
 def _utcnow() -> dt.datetime:
     return dt.datetime.now(dt.timezone.utc)
 

@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 
 from app.api.main import app
 from app.api.security import create_access_token
+from app.core.db import session_scope
+from app.core.errors import PipelineError
 
 pytestmark = pytest.mark.integration
 
@@ -300,3 +304,213 @@ def test_builder_query_viewer_can_read(client, viewer_token):
     )
     assert response.status_code == 200
     assert response.json()["row_count"] >= 1
+
+
+# --------------------------------------------------------------------------------------
+# Rate limiting and API-key scopes
+# --------------------------------------------------------------------------------------
+def test_api_key_scopes_are_enforced(client, admin_token):
+    """A read-only key must be refused by a route needing another scope."""
+    from app.api.security import generate_api_key
+    from app.models.app_users import AppApiKey
+
+    with session_scope() as session:
+        plain, prefix, hashed = generate_api_key()
+        session.add(
+            AppApiKey(
+                user_id=1,
+                name="test-read-only",
+                prefix=prefix,
+                hashed_key=hashed,
+                scopes=["read"],
+                is_active=True,
+                rate_limit_per_minute=600,
+            )
+        )
+
+    headers = {"Authorization": f"Bearer {plain}"}
+
+    # `read` is granted.
+    assert client.get("/api/v1/products", headers=headers).status_code == 200
+
+    # `run_pipeline` is not, even though the owner is an admin.
+    denied = client.post("/api/v1/pipeline/run/sync", json={}, headers=headers)
+    assert denied.status_code == 403
+    assert "run_pipeline" in denied.text
+
+    # `manage_users` is not either.
+    assert client.get("/api/v1/users", headers=headers).status_code == 403
+
+
+def test_api_key_cannot_be_granted_more_than_its_owner(client, admin_token):
+    """A key may never exceed the rights of the user it belongs to."""
+    overreach = client.post(
+        "/api/v1/users/3/api-keys",
+        json={"name": "too-powerful", "scopes": ["read", "manage_users"]},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    # user 3 is a viewer, so manage_users is refused.
+    assert overreach.status_code == 403
+    assert "manage_users" in overreach.text
+
+
+def test_unknown_scope_is_rejected(client, admin_token):
+    response = client.post(
+        "/api/v1/users/1/api-keys",
+        json={"name": "bad-scope", "scopes": ["read", "teleport"]},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert response.status_code == 422
+    assert "teleport" in response.text
+
+
+def test_rate_limiter_returns_429_with_retry_after():
+    """The limiter must reject rather than silently allow, and say when to retry."""
+    from app.api.ratelimit import Bucket, RateLimiter
+
+    limiter = RateLimiter()
+    for _ in range(3):
+        allowed, remaining, _retry = limiter.check("k", limit=3)
+        assert allowed
+        assert remaining >= 0
+
+    allowed, remaining, retry_after = limiter.check("k", limit=3)
+    assert allowed is False
+    assert remaining == 0
+    assert 0 < retry_after <= 60
+
+    # A different key has its own budget.
+    assert limiter.check("other", limit=3)[0] is True
+
+    # And the window is enforced, not just counted.
+    bucket = Bucket(limit=2, window_seconds=60)
+    assert bucket.allow(0.0)[0] is True
+    assert bucket.allow(0.0)[0] is True
+    assert bucket.allow(0.0)[0] is False
+    assert bucket.allow(61.0)[0] is True
+
+
+def test_rate_limit_exempts_health_endpoints():
+    """Health and login must answer even when the caller is over budget."""
+    from app.api.ratelimit import EXEMPT_PATHS
+
+    for path in ("/api/v1/health", "/api/v1/health/ready", "/api/v1/meta", "/api/v1/auth/login"):
+        assert path in EXEMPT_PATHS
+    assert "/api/v1/products" not in EXEMPT_PATHS
+
+
+def test_effective_scopes_are_capped_by_the_owner_role():
+    from app.api.ratelimit import effective_scopes
+    from app.models.app_users import AppApiKey, AppUser
+
+    key = AppApiKey(scopes=["read", "manage_users"])
+    viewer = AppUser(role="viewer")
+    assert effective_scopes(key, viewer) == {"read"}
+
+    admin = AppUser(role="admin")
+    assert effective_scopes(key, admin) == {"read", "manage_users"}
+
+    # A key with no explicit scopes inherits everything its owner can do.
+    unrestricted = AppApiKey(scopes=None)
+    assert effective_scopes(unrestricted, viewer) == {"read", "query", "export"}
+
+
+def test_job_jsonable_serialises_pipeline_results():
+    """Handler results contain datetimes and Decimals; the JSON column cannot take them."""
+    import datetime as dt
+    from decimal import Decimal
+
+    from app.jobs.queue import jsonable
+
+    payload = jsonable(
+        {
+            "started_at": dt.datetime(2026, 1, 1, tzinfo=dt.timezone.utc),
+            "day": dt.date(2026, 1, 1),
+            "elapsed": dt.timedelta(seconds=90),
+            "amount": Decimal("12.34"),
+            "rows": [{"price": Decimal("1.5")}],
+            "keys": {1: "int key"},
+        }
+    )
+    json.dumps(payload)  # must not raise
+    assert payload["started_at"].startswith("2026-01-01")
+    assert payload["elapsed"] == 90.0
+    assert payload["amount"] == 12.34
+    assert payload["rows"][0]["price"] == 1.5
+    assert payload["keys"] == {"1": "int key"}
+
+
+def test_job_queue_runs_a_pipeline_job():
+    """A queued job is claimed, executed and stored with real progress events."""
+    from app.jobs import queue
+
+    with session_scope() as session:
+        handle = queue.enqueue(
+            session,
+            "pipeline_run",
+            {"sources": ["local_demo"], "limit_per_source": 5},
+            requested_by_email="pytest",
+        )
+        key = handle.job_key
+
+    assert queue.drain(limit=1) >= 1
+
+    with session_scope() as session:
+        job = queue.get_job(session, key)
+        assert job.status == "succeeded", job.error
+        assert job.progress_pct == 100
+        assert (job.result or {}).get("status") == "success"
+        events = queue.job_events(session, job.job_id)
+        assert any(event["stage"] == "extract" for event in events)
+        assert any(event["stage"] == "done" for event in events)
+
+
+def test_job_cancellation_and_retry():
+    from app.jobs import queue
+
+    with session_scope() as session:
+        handle = queue.enqueue(session, "export", {"dataset": "products", "format": "csv", "row_limit": 25})
+        key = handle.job_key
+
+    with session_scope() as session:
+        cancelled = queue.cancel_job(session, key)
+        assert cancelled["status"] == "cancelled"
+
+        # Cancelling twice is a conflict, not a silent no-op.
+        with pytest.raises(PipelineError) as excinfo:
+            queue.cancel_job(session, key)
+        assert excinfo.value.status_code == 409
+
+        requeued = queue.retry_job(session, key)
+        assert requeued["status"] == "queued"
+        assert requeued["cancel_requested"] is False
+
+    assert queue.drain(limit=1) >= 1
+    with session_scope() as session:
+        job = queue.get_job(session, key)
+        assert job.status == "succeeded", job.error
+        assert job.result["rows"] == 25
+        assert job.result["filename"].endswith(".csv")
+
+
+def test_job_lease_is_reclaimed_when_a_worker_dies():
+    """A running job whose lease expired must become claimable again."""
+    import datetime as dt
+
+    from app.jobs import queue
+
+    with session_scope() as session:
+        handle = queue.enqueue(session, "pipeline_run", {"sources": ["local_demo"], "limit_per_source": 5})
+        key = handle.job_key
+        job = queue.get_job(session, key)
+        # Simulate a worker that claimed the job and then died.
+        job.status = "running"
+        job.lease_owner = "dead-worker"
+        job.lease_expires_at = dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=5)
+        session.flush()
+
+    claimed = queue.claim_next(None, "live-worker")
+    assert claimed is not None
+    assert claimed.job_key == key
+    assert claimed.lease_owner == "live-worker"
+    assert claimed.attempt == 1
