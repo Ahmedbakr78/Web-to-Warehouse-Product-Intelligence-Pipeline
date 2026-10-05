@@ -202,6 +202,20 @@ h2:hover .anchor-link, h3:hover .anchor-link, h4:hover .anchor-link { opacity: 1
 .doc-card:hover { border-color: var(--brand); text-decoration: none; transform: translateY(-2px); box-shadow: var(--shadow); }
 .doc-card b { display: block; font-size: 14px; margin-bottom: 3px; }
 .doc-card small { color: var(--muted); font-size: 12.5px; line-height: 1.5; display: block; }
+/* ------------------------------------------------------------------ gallery */
+.gallery {
+  display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+}
+.gallery figure {
+  margin: 0; padding: 12px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
+}
+.gallery img { display: block; width: 100%; height: auto; background: #fff; border-radius: 6px; }
+.gallery figcaption {
+  margin-top: 8px; font-size: 12px; color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere;
+}
+
 .notfound { text-align: center; padding: 80px 20px; }
 .notfound h1 { font-size: 62px; margin: 0; color: var(--brand); letter-spacing: -.04em; }
 

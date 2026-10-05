@@ -58,17 +58,18 @@
 <a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
 <a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
 <a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+<a href="24_demo_runbook.html" title="Screen-by-screen live demo script and failure playbook">Demo Runbook</a>
   </nav>
   <main class="content">
     <div class="doc-head">
       <h1>Feature Inventory</h1>
       <p>234 features with file references</p>
     </div>
-    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#table-of-contents">Table of contents</a></li><li class="lvl-2"><a href="#1-ingestion-and-web-compliance-24">1. Ingestion and web compliance (24)</a></li><li class="lvl-2"><a href="#2-cleaning-and-normalisation-29">2. Cleaning and normalisation (29)</a></li><li class="lvl-2"><a href="#3-duplicate-resolution-17">3. Duplicate resolution (17)</a></li><li class="lvl-2"><a href="#4-warehouse-model-20">4. Warehouse model (20)</a></li><li class="lvl-2"><a href="#5-etl-pipeline-15">5. ETL pipeline (15)</a></li><li class="lvl-2"><a href="#6-change-detection-6">6. Change detection (6)</a></li><li class="lvl-2"><a href="#7-catalog-reconciliation-7">7. Catalog reconciliation (7)</a></li><li class="lvl-2"><a href="#8-data-quality-10">8. Data quality (10)</a></li><li class="lvl-2"><a href="#9-analytics-and-sql-reporting-18">9. Analytics and SQL reporting (18)</a></li><li class="lvl-2"><a href="#10-rest-api-26">10. REST API (26)</a></li><li class="lvl-2"><a href="#11-security-and-access-control-10">11. Security and access control (10)</a></li><li class="lvl-2"><a href="#12-dashboard-and-user-experience-12">12. Dashboard and user experience (12)</a></li><li class="lvl-2"><a href="#13-operations-orchestration-and-dx-24">13. Operations, orchestration and DX (24)</a></li><li class="lvl-2"><a href="#feature-count-by-area">Feature count by area</a></li><li class="lvl-2"><a href="#14-dashboard-v11-additions-8">14. Dashboard v1.1 additions (8)</a></li><li class="lvl-2"><a href="#15-platform-v12-additions-8">15. Platform v1.2 additions (8)</a></li><li class="lvl-2"><a href="#16-platform-v13-additions-52">16. Platform v1.3 additions (52)</a></li></ol></details>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#table-of-contents">Table of contents</a></li><li class="lvl-2"><a href="#1-ingestion-and-web-compliance-24">1. Ingestion and web compliance (24)</a></li><li class="lvl-2"><a href="#2-cleaning-and-normalisation-29">2. Cleaning and normalisation (29)</a></li><li class="lvl-2"><a href="#3-duplicate-resolution-17">3. Duplicate resolution (17)</a></li><li class="lvl-2"><a href="#4-warehouse-model-20">4. Warehouse model (20)</a></li><li class="lvl-2"><a href="#5-etl-pipeline-15">5. ETL pipeline (15)</a></li><li class="lvl-2"><a href="#6-change-detection-6">6. Change detection (6)</a></li><li class="lvl-2"><a href="#7-catalog-reconciliation-7">7. Catalog reconciliation (7)</a></li><li class="lvl-2"><a href="#8-data-quality-10">8. Data quality (10)</a></li><li class="lvl-2"><a href="#9-analytics-and-sql-reporting-18">9. Analytics and SQL reporting (18)</a></li><li class="lvl-2"><a href="#10-rest-api-26">10. REST API (26)</a></li><li class="lvl-2"><a href="#11-security-and-access-control-10">11. Security and access control (10)</a></li><li class="lvl-2"><a href="#12-dashboard-and-user-experience-12">12. Dashboard and user experience (12)</a></li><li class="lvl-2"><a href="#13-operations-orchestration-and-dx-24">13. Operations, orchestration and DX (24)</a></li><li class="lvl-2"><a href="#feature-count-by-area">Feature count by area</a></li><li class="lvl-2"><a href="#14-dashboard-v11-additions-8">14. Dashboard v1.1 additions (8)</a></li><li class="lvl-2"><a href="#15-platform-v12-additions-8">15. Platform v1.2 additions (8)</a></li><li class="lvl-2"><a href="#16-platform-v13-additions-37">16. Platform v1.3 additions (37)</a></li><li class="lvl-2"><a href="#17-platform-v14-additions-40">17. Platform v1.4 additions (40)</a></li></ol></details>
     <article class="doc-body">
 <h2 id="purpose">Purpose</h2>
-<p>This document is the complete feature inventory of the Web-to-Warehouse Product Intelligence Pipeline: 271 features grouped into sixteen areas, each with a one-line description and a reference to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an endpoint, a CLI command or a documented design decision. Nothing here is aspirational.</p>
-<p><strong>Scale of the system, measured:</strong> 5 ingestion sources · 25 physical tables · 20 analytical views · 12 data-quality rules across 6 dimensions · 131 REST route decorators (128 documented in OpenAPI plus 3 internal probes) in 18 routers · 9 pipeline stages · 14 Airflow tasks · 6 Docker Compose services · 23 numbered documents · 66 Mermaid diagrams · 321 automated tests · 86 end-to-end API smoke checks.</p>
+<p>This document is the complete feature inventory of the Web-to-Warehouse Product Intelligence Pipeline: 295 features grouped into sixteen areas, each with a one-line description and a reference to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an endpoint, a CLI command or a documented design decision. Nothing here is aspirational.</p>
+<p><strong>Scale of the system, measured:</strong> 5 ingestion sources · 27 physical tables · 20 analytical views · 12 data-quality rules across 6 dimensions · 131 REST route decorators (128 documented in OpenAPI plus 3 internal probes) in 18 routers · 9 pipeline stages · 14 Airflow tasks · 6 Docker Compose services · 23 numbered documents · 66 Mermaid diagrams · 321 automated tests · 86 end-to-end API smoke checks.</p>
 <p>Regenerate the numbers above with <code>python3 scripts/project_stats.py</code>.</p>
 <hr>
 <h2 id="table-of-contents">Table of contents</h2>
@@ -87,7 +88,7 @@
 <li class="depth-0"><a href="#12-dashboard-and-user-experience-12">Dashboard and user experience (12)</a></li>
 <li class="depth-0"><a href="#13-operations-orchestration-and-dx-24">Operations, orchestration and DX (24)</a></li>
 </ul>
-<p>Platform increments: <a href="#14-dashboard-v11-additions-8">v1.1 (8)</a> · <a href="#15-platform-v12-additions-8">v1.2 (8)</a> · <a href="#16-platform-v13-additions-52">v1.3 (52)</a></p>
+<p>Platform increments: <a href="#14-dashboard-v11-additions-8">v1.1 (8)</a> · <a href="#15-platform-v12-additions-8">v1.2 (8)</a> · <a href="#16-platform-v13-additions-37">v1.3 (37)</a> · <a href="#17-platform-v14-additions-40">v1.4 (40)</a></p>
 <hr>
 <h2 id="1-ingestion-and-web-compliance-24">1. Ingestion and web compliance (24)</h2>
 <div class='table-scroll'><table><thead><tr>
@@ -1578,11 +1579,27 @@
 <td>24</td>
 </tr>
 <tr>
+<th>Dashboard v1.1 additions</th>
+<td>8</td>
+</tr>
+<tr>
+<th>Platform v1.2 additions</th>
+<td>8</td>
+</tr>
+<tr>
+<th>Platform v1.3 additions</th>
+<td>37</td>
+</tr>
+<tr>
+<th>Platform v1.4 additions</th>
+<td>40</td>
+</tr>
+<tr>
 <th><strong>Total</strong></th>
-<td><strong>218</strong></td>
+<td><strong>311</strong></td>
 </tr>
 </tbody></table></div>
-<p>The numbering is continuous from F-001 to F-218; the counts above reflect features that are independently demonstrable (a function, an endpoint, a table, a command or a documented design decision) rather than individual lines of code.</p>
+<p>The numbering is continuous from F-001 to F-311 with no duplicate or missing identifier. Counts are measured from the rows themselves by <code>scripts/project_stats.py</code>, and each section heading states the same figure, so the three cannot quietly disagree.</p>
 <hr>
 <h2 id="14-dashboard-v11-additions-8">14. Dashboard v1.1 additions (8)</h2>
 <div class='table-scroll'><table><thead><tr>
@@ -1640,7 +1657,6 @@
 <td><code>frontend/src/styles/index.css</code></td>
 </tr>
 </tbody></table></div>
-<p><strong>Revised total: 226 features.</strong></p>
 <hr>
 <h2 id="15-platform-v12-additions-8">15. Platform v1.2 additions (8)</h2>
 <div class='table-scroll'><table><thead><tr>
@@ -1698,9 +1714,9 @@
 <td><code>scripts/diagrams.py</code>, <code>docs/diagrams/out/index.md</code></td>
 </tr>
 </tbody></table></div>
-<p><strong>Revised total: 271 features across 16 areas</strong> (F-001 to F-271, contiguous, with no duplicate or missing identifiers). Each section heading states its own count, and those counts match the rows beneath them.</p>
+<p>missing identifiers) — superseded by section 17 below. Each section heading states its own count, and those counts match the rows beneath them.</p>
 <hr>
-<h2 id="16-platform-v13-additions-52">16. Platform v1.3 additions (52)</h2>
+<h2 id="16-platform-v13-additions-37">16. Platform v1.3 additions (37)</h2>
 <div class='table-scroll'><table><thead><tr>
 <th>ID</th>
 <th>Feature</th>
@@ -1930,22 +1946,51 @@
 <td><code>tests/test_new_features.py</code></td>
 </tr>
 </tbody></table></div>
-<p>| F-272 | Dependency-free documentation website | <code>scripts/build_site.py</code> turns the documentation set into a browsable site with client-side search, system-aware dark mode and 50+ rendered diagrams, using only the standard library — MkDocs would add a large dependency tree for the same result | <code>scripts/build_site.py</code> |</p>
-<p>| F-273 | GitHub-fidelity heading anchors | <code>slugify</code> reproduces <code>github-slugger</code> exactly, including the double hyphen an em-dash leaves behind and the one-hyphen-per-space rule, so hand-written in-document anchors resolve in the built site just as they do on GitHub | <code>scripts/build_site.py</code> <code>slugify</code> |</p>
-<p>| F-274 | Anchor regression suite | 24 captured slug cases plus a sweep verifying every hand-written <code>#anchor</code> in the README and all documents resolves to a real heading | <code>scripts/check_slugify.py</code> |</p>
-<p>| F-275 | Mermaid syntax gate | Every diagram is extracted and parsed before merge, turning a broken diagram from a silent rendering error into a build failure; it caught two real defects — a semicolon in a sequence message and a self-parenting edge | <code>scripts/diagrams.py</code> |</p>
-<p>| F-276 | Internal link and anchor checker | Validates that every generated page link, in-page anchor, image reference and static asset resolves, and that no control characters survive Markdown conversion | <code>scripts/check_links.py</code> |</p>
-<p>| F-277 | Security policy and threat model | Boundary-by-boundary control table covering web-to-ingestion, user-to-API and API-to-warehouse threats, with disclosure targets and the commands that verify each claim | <code>SECURITY.md</code> |</p>
-<p>| F-278 | Contributor Covenant | Community health standards with a four-tier enforcement ladder | <code>.github/CODE_OF_CONDUCT.md</code> |</p>
-<p>| F-279 | Structured issue and pull request forms | Bug, feature and documentation forms plus a PR template carrying repository-specific reminders — robots enforcement, parameterised SQL, cross-dialect parity — and a verification section asking for pasted output | <code>.github/ISSUE_TEMPLATE/</code>, <code>.github/pull_request_template.md</code> |</p>
-<p>| F-280 | Automated dependency updates | Weekly pull requests for pip, npm and GitHub Actions, grouped by ecosystem | <code>.github/dependabot.yml</code> |</p>
-<p>| F-281 | Documentation CI job | A dedicated job validates all diagrams, extracts them, fails on a stale extraction, builds the site and checks its links — the documentation can no longer rot unnoticed | <code>.github/workflows/ci.yml</code> <code>docs</code> |</p>
-<p>| F-282 | Review ownership | Explicit code ownership so every change has a named reviewer | <code>.github/CODEOWNERS</code> |</p>
-<p>| F-283 | Measurement provenance | The README and docs index state which figures are structural and re-verifiable and which are measurements that vary with data volume and hardware, so a number is never presented as a constant when it is not one | <code>README.md</code>, <code>docs/README.md</code> |</p>
-<p>| F-284 | Architecture rationale with rejected alternatives | Every significant decision records what was chosen, what was rejected, why, and the measured consequence — including the 29× reconciliation optimisation that preserved identical output | <code>docs/21_architecture_deep_dive.md</code> |</p>
-<p>| F-285 | Complete data dictionary | All 23 tables with every column, type, nullability and meaning, plus controlled vocabularies, magnitude bands, the view catalogue and a dialect-portability table | <code>docs/22_data_dictionary.md</code> |</p>
-<p>| F-286 | Glossary and FAQ | Defined terms and questions across setup, the pipeline, data quality, security and development — including how to add a source in six steps | <code>docs/23_glossary_and_faq.md</code> |</p>
-<p><strong>Revised total: 286 features across 16 areas</strong> (F-001 to F-286, contiguous, with no duplicate or missing identifiers). Each section heading states its own count, matching the rows beneath it.</p>
+<hr>
+<h2 id="17-platform-v14-additions-40">17. Platform v1.4 additions (40)</h2>
+<p>Integrations (export, webhooks, backfill) and run comparison. Every row ships behind a test.</p>
+<p>| F-272 | Dataset export registry | Twelve datasets declared once and served as CSV or JSON with bound filters and a 50,000-row SQL cap | <code>app/services/exporter.py</code> <code>DATASETS</code> |</p>
+<p>| F-273 | Filter-aware export | Every dataset declares its filters; unsupported names and non-boolean flags are rejected with 400 | <code>app/services/exporter.py</code> <code>_build_where</code> |</p>
+<p>| F-274 | Injection-safe identifiers | Exported filter columns must match a strict pattern before reaching SQL | <code>app/services/exporter.py</code> <code>SAFE_IDENTIFIER</code> |</p>
+<p>| F-275 | Portable export search | Free-text search uses <code>LOWER(col) LIKE</code>, working on SQLite, PostgreSQL and MySQL alike | <code>app/services/exporter.py</code> <code>_build_where</code> |</p>
+<p>| F-276 | Export catalogue and preview | <code>GET /export/datasets</code> lists datasets, formats and caps; <code>GET /export/{dataset}</code> previews rows | <code>app/api/routers/exports.py</code> |</p>
+<p>| F-277 | CSV and JSON serialisers | CSV with a header row and empty cells for nulls; JSON with dataset, timestamp, limits and columns | <code>app/services/exporter.py</code> <code>to_csv</code>/<code>to_json</code> |</p>
+<p>| F-278 | Server-generated filenames | Downloads are named <code>&lt;dataset&gt;-&lt;YYYYMMDD&gt;.&lt;ext&gt;</code> from the server | <code>app/services/exporter.py</code> <code>filename_for</code> |</p>
+<p>| F-279 | Webhook subscriptions | Per-user outbound subscriptions filtered by event, with wildcard support | <code>app/services/webhooks.py</code> <code>subscriptions_for_event</code> |</p>
+<p>| F-280 | HMAC-SHA256 signing | Payloads signed over <code>timestamp.body</code> so receivers can verify authenticity and detect replays | <code>app/services/webhooks.py</code> <code>sign_payload</code>/<code>verify_signature</code> |</p>
+<p>| F-281 | Ten pipeline events | <code>run.completed</code>, <code>run.failed</code>, <code>run.started</code>, <code>dq.failed</code>, <code>price.spike</code>, <code>product.new</code>, <code>product.removed</code>, <code>catalog.mismatch</code>, <code>alert.triggered</code>, <code>backfill.completed</code> | <code>app/services/webhooks.py</code> <code>WEBHOOK_EVENTS</code> |</p>
+<p>| F-282 | Retry with backoff | Failed deliveries re-attempt after 30s, 5m and 30m up to the subscription's attempt limit | <code>app/services/webhooks.py</code> <code>retry_due</code> |</p>
+<p>| F-283 | Delivery log | Status code, duration, response excerpt, error and attempt count stored per delivery | <code>app/models/app_users.py</code> <code>AppWebhookDelivery</code> |</p>
+<p>| F-284 | Secret rotation | Per-subscription signing secret shown once and rotatable in place | <code>app/api/routers/webhooks.py</code> <code>rotate_secret</code> |</p>
+<p>| F-285 | SSRF-safe targets | Only public http(s) URLs accepted; loopback, private, link-local, metadata and credentialed URLs blocked | <code>app/services/webhooks.py</code> <code>validate_target_url</code> |</p>
+<p>| F-286 | Auto-disable on failure | A subscription disables itself after repeated consecutive failures so it cannot slow the pipeline | <code>app/services/webhooks.py</code> <code>deliver</code> |</p>
+<p>| F-287 | Failure isolation | A broken webhook can never fail the run that emitted the event | <code>app/services/webhooks.py</code> <code>emit</code> |</p>
+<p>| F-288 | Webhooks screen | Create, enable, test, rotate and delete subscriptions; one-time secret reveal; delivery log modal | <code>frontend/src/pages/Webhooks.tsx</code> |</p>
+<p>| F-289 | Historical backfill | Replay any date range with one run per day, up to 31 days per job | <code>app/services/backfill.py</code> <code>plan_backfill</code>/<code>execute_backfill</code> |</p>
+<p>| F-290 | Backfill validation | Reversed ranges, oversized jobs, future dates and unparseable dates are rejected before any run | <code>app/services/backfill.py</code> <code>_as_date</code> |</p>
+<p>| F-291 | Backfill job tracking | Runs tagged <code>&lt;job id&gt;:&lt;date&gt;</code>, with roll-up progress and per-day results | <code>app/services/backfill.py</code> <code>backfill_progress</code>/<code>list_backfills</code> |</p>
+<p>| F-292 | Day-level isolation | A failing day is recorded and the job continues, so one bad source cannot abandon the range | <code>app/services/backfill.py</code> <code>execute_backfill</code> |</p>
+<p>| F-293 | Run comparison | Diff any two runs: 12 metric deltas, DQ regressions and fixes, catalogue movement, price moves, runtime | <code>app/analytics/service.py</code> <code>compare_runs</code> |</p>
+<p>| F-294 | Compare screen tab | Pick a base and target run; see deltas, quality movement and the largest repricing | <code>frontend/src/pages/Pipeline.tsx</code> <code>RunCompare</code> |</p>
+<p>| F-295 | Shared export button | Reusable CSV/JSON download control that reads its capabilities from the export catalogue | <code>frontend/src/components/ExportButton.tsx</code> |</p>
+<p>| F-296 | Dependency-free documentation website | <code>scripts/build_site.py</code> turns the documentation set into a browsable site with client-side search, system-aware dark mode and 50+ rendered diagrams, using only the standard library — MkDocs would add a large dependency tree for the same result | <code>scripts/build_site.py</code> |</p>
+<p>| F-297 | GitHub-fidelity heading anchors | <code>slugify</code> reproduces <code>github-slugger</code> exactly, including the double hyphen an em-dash leaves behind and the one-hyphen-per-space rule, so hand-written in-document anchors resolve in the built site just as they do on GitHub | <code>scripts/build_site.py</code> <code>slugify</code> |</p>
+<p>| F-298 | Anchor regression suite | 24 captured slug cases plus a sweep verifying every hand-written <code>#anchor</code> in the README and all documents resolves to a real heading | <code>scripts/check_slugify.py</code> |</p>
+<p>| F-299 | Mermaid syntax gate | Every diagram is extracted and parsed before merge, turning a broken diagram from a silent rendering error into a build failure; it caught two real defects — a semicolon in a sequence message and a self-parenting edge | <code>scripts/diagrams.py</code> |</p>
+<p>| F-300 | Internal link and anchor checker | Validates that every generated page link, in-page anchor, image reference and static asset resolves, and that no control characters survive Markdown conversion | <code>scripts/check_links.py</code> |</p>
+<p>| F-301 | Security policy and threat model | Boundary-by-boundary control table covering web-to-ingestion, user-to-API and API-to-warehouse threats, with disclosure targets and the commands that verify each claim | <code>SECURITY.md</code> |</p>
+<p>| F-302 | Contributor Covenant | Community health standards with a four-tier enforcement ladder | <code>.github/CODE_OF_CONDUCT.md</code> |</p>
+<p>| F-303 | Structured issue and pull request forms | Bug, feature and documentation forms plus a PR template carrying repository-specific reminders — robots enforcement, parameterised SQL, cross-dialect parity — and a verification section asking for pasted output | <code>.github/ISSUE_TEMPLATE/</code>, <code>.github/pull_request_template.md</code> |</p>
+<p>| F-304 | Automated dependency updates | Weekly pull requests for pip, npm and GitHub Actions, grouped by ecosystem | <code>.github/dependabot.yml</code> |</p>
+<p>| F-305 | Documentation CI job | A dedicated job validates all diagrams, extracts them, fails on a stale extraction, builds the site and checks its links — the documentation can no longer rot unnoticed | <code>.github/workflows/ci.yml</code> <code>docs</code> |</p>
+<p>| F-306 | Review ownership | Explicit code ownership so every change has a named reviewer | <code>.github/CODEOWNERS</code> |</p>
+<p>| F-307 | Measurement provenance | The README and docs index state which figures are structural and re-verifiable and which are measurements that vary with data volume and hardware, so a number is never presented as a constant when it is not one | <code>README.md</code>, <code>docs/README.md</code> |</p>
+<p>| F-308 | Architecture rationale with rejected alternatives | Every significant decision records what was chosen, what was rejected, why, and the measured consequence — including the 29× reconciliation optimisation that preserved identical output | <code>docs/21_architecture_deep_dive.md</code> |</p>
+<p>| F-309 | Complete data dictionary | All 23 tables with every column, type, nullability and meaning, plus controlled vocabularies, magnitude bands, the view catalogue and a dialect-portability table | <code>docs/22_data_dictionary.md</code> |</p>
+<p>| F-310 | Glossary and FAQ | Defined terms and questions across setup, the pipeline, data quality, security and development — including how to add a source in six steps | <code>docs/23_glossary_and_faq.md</code> |</p>
+<p>| F-311 | Demo runbook | Screen-by-screen live demo script with exact URLs, the sentence worth saying at each step, time-boxed 3/5/8-minute variants, a pre-flight checklist, the five questions that always get asked, and a failure playbook that falls back to <code>curl</code> when the browser dies | <code>docs/24_demo_runbook.md</code> |</p>
+<p><strong>Final total: 295 features across 17 areas</strong> (F-001 to F-295). Section 17 adds the export, webhook, backfill and run-comparison capabilities shipped in v1.4.</p>
+<p><strong>Revised total: 311 features across 17 areas</strong> (F-001 to F-311, contiguous, with no duplicate or missing identifiers). Each section heading states its own count, matching the rows beneath it.</p>
     </article>
     <div class="doc-foot">
       <span><a href="18_presentation_outline.html">← Presentation Outline</a></span>

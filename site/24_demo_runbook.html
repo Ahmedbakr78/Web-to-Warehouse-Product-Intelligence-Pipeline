@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Screen-by-screen live demo script and failure playbook">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Demo Runbook — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Screen-by-screen live demo script and failure playbook">
+<title>Demo Runbook — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="23-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, all 113 operations, examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, 100-case plan, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="234 features with file references">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+<a href="24_demo_runbook.html" class="active" title="Screen-by-screen live demo script and failure playbook">Demo Runbook</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Demo Runbook</h1>
+      <p>Screen-by-screen live demo script and failure playbook</p>
+    </div>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#before-you-start">Before you start</a></li><li class="lvl-3"><a href="#the-one-rule-that-makes-a-demo-reliable">The one rule that makes a demo reliable</a></li><li class="lvl-3"><a href="#pre-flight-checklist">Pre-flight checklist</a></li><li class="lvl-2"><a href="#the-eight-minute-walkthrough">The eight-minute walkthrough</a></li><li class="lvl-3"><a href="#000--dashboard-the-whole-system-in-one-screen">0:00 — Dashboard: the whole system in one screen</a></li><li class="lvl-3"><a href="#045--products-search-then-one-products-history">0:45 — Products: search, then one product&#x27;s history</a></li><li class="lvl-3"><a href="#200--changes-the-business-question">2:00 — Changes: the business question</a></li><li class="lvl-3"><a href="#300--catalog-match-where-the-project-pays-for-itself">3:00 — Catalog match: where the project pays for itself</a></li><li class="lvl-3"><a href="#400--runs-orchestration-and-idempotency">4:00 — Runs: orchestration and idempotency</a></li><li class="lvl-3"><a href="#445--data-quality-measured-not-assumed">4:45 — Data quality: measured, not assumed</a></li><li class="lvl-3"><a href="#530--query-lab-self-service-without-a-data-team">5:30 — Query lab: self-service without a data team</a></li><li class="lvl-3"><a href="#600--audit-the-compliance-proof">6:00 — Audit: the compliance proof</a></li><li class="lvl-3"><a href="#700--your-turn">7:00 — Your turn</a></li><li class="lvl-2"><a href="#time-boxed-variants">Time-boxed variants</a></li><li class="lvl-2"><a href="#proving-the-compliance-layer-on-demand">Proving the compliance layer on demand</a></li><li class="lvl-2"><a href="#failure-playbook">Failure playbook</a></li><li class="lvl-3"><a href="#the-full-fallback-which-always-works">The full fallback, which always works</a></li><li class="lvl-2"><a href="#answers-to-the-five-questions-you-will-be-asked">Answers to the five questions you will be asked</a></li><li class="lvl-2"><a href="#post-demo">Post-demo</a></li></ol></details>
+    <article class="doc-body">
+<p>A screen-by-screen script for demonstrating the system live, with exact URLs, exact clicks, and the one sentence to say at each step. Companion to <a href="18_presentation_outline.html">18_presentation_outline.md</a>, which covers the slide deck and the examiner Q&amp;A; this document is the operational version.</p>
+<hr>
+<h2 id="before-you-start">Before you start</h2>
+<h3 id="the-one-rule-that-makes-a-demo-reliable">The one rule that makes a demo reliable</h3>
+<p><strong>Never demonstrate against live web sources.</strong> Real HTTP responses change between rehearsal and delivery, and a source that worked yesterday may rate-limit you today. Demonstrate against the seeded dataset, which is byte-for-byte identical on every run, and keep live ingestion for the single moment you are asked to prove the compliance layer works.</p>
+<pre class="code" data-lang="bash"><code>make up &amp;&amp; make db-wait          # 6 services healthy
+make bootstrap                   # 25 tables, 20 views, demo users
+make demo-postgres               # deterministic 120-day dataset
+make run-pipeline                # one live pipeline run, ~3.5 s</code></pre>
+<p>Then open three tabs and leave them open:</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Tab</th>
+<th>URL</th>
+<th>Why</th>
+</tr></thead><tbody>
+<tr>
+<th>Dashboard</th>
+<td><code>http://localhost:5173</code></td>
+<td>The 60-second overview</td>
+</tr>
+<tr>
+<th>Audit</th>
+<td><code>http://localhost:5173/audit</code></td>
+<td>The compliance evidence</td>
+</tr>
+<tr>
+<th>API docs</th>
+<td><code>http://localhost:8000/docs</code></td>
+<td>The fallback if the UI stalls</td>
+</tr>
+</tbody></table></div>
+<p>The order below is deliberate — it moves from the whole system, to the data, to the business answer, to the engineering evidence, and ends on compliance so the ethics question is pre-empted rather than raised.</p>
+<pre class="mermaid">flowchart LR
+    A[&quot;0:00 Dashboard&lt;br/&gt;scope in 10 seconds&quot;] --&gt; B[&quot;0:45 Products&lt;br/&gt;dedupe + snapshot history&quot;]
+    B --&gt; C[&quot;2:00 Changes&lt;br/&gt;the business question&quot;]
+    C --&gt; D[&quot;3:00 Catalog match&lt;br/&gt;where it pays for itself&quot;]
+    D --&gt; E[&quot;4:00 Runs&lt;br/&gt;orchestration + idempotency&quot;]
+    E --&gt; F[&quot;4:45 Data quality&lt;br/&gt;measured, not assumed&quot;]
+    F --&gt; G[&quot;5:30 Query lab&lt;br/&gt;self-service, read-only&quot;]
+    G --&gt; H[&quot;6:00 Audit&lt;br/&gt;the compliance proof&quot;]
+    H --&gt; I[&quot;7:00 Questions&quot;]
+
+    style A fill:#e7ecff,stroke:#3b5bdb
+    style D fill:#e7ecff,stroke:#3b5bdb
+    style H fill:#e7ecff,stroke:#3b5bdb</pre>
+<p>Sign in as <strong><code>admin@example.com</code> / <code>Admin@12345</code></strong>. The demo-credentials picker on the login screen fills them for you, which saves typing under pressure.</p>
+<h3 id="pre-flight-checklist">Pre-flight checklist</h3>
+<p>Run this the day before. It catches the failures that actually happen.</p>
+<pre class="code" data-lang="bash"><code>make check                        # ruff, mypy, 338 tests — no services needed
+.venv/bin/python scripts/api_smoke.py   # 86/86 API checks
+make frontend-build               # production bundle compiles</code></pre>
+<div class='table-scroll'><table><thead><tr>
+<th>Check</th>
+<th>Pass signal</th>
+<th>If it fails</th>
+</tr></thead><tbody>
+<tr>
+<th>Containers healthy</th>
+<td><code>make ps</code> shows all six <code>healthy</code></td>
+<td><code>make down &amp;&amp; make up-db &amp;&amp; make db-wait</code></td>
+</tr>
+<tr>
+<th>Demo data present</th>
+<td>Dashboard shows 8 KPI tiles with values</td>
+<td><code>make demo-postgres</code></td>
+</tr>
+<tr>
+<th>Pipeline run succeeded</th>
+<td>Runs screen shows <code>success</code></td>
+<td><code>make run-pipeline</code>, read the warning banner</td>
+</tr>
+<tr>
+<th>Login works</th>
+<td>Dashboard loads after sign-in</td>
+<td><code>make bootstrap</code> reseeds the admin account</td>
+</tr>
+<tr>
+<th>Reduced motion off</th>
+<td>No animation on navigation</td>
+<td>Account → Appearance → reduce motion</td>
+</tr>
+<tr>
+<th>Browser zoom</th>
+<td>Set to 100 %</td>
+<td>A zoomed browser breaks the layout on a projector</td>
+</tr>
+</tbody></table></div>
+<p><strong>Close everything else.</strong> Notifications, a running IDE and a half-used terminal window all steal focus at the worst moment.</p>
+<hr>
+<h2 id="the-eight-minute-walkthrough">The eight-minute walkthrough</h2>
+<p>Each step gives the action, then the single sentence worth saying. Do not narrate the interface — examiners can read labels. Narrate the <em>decision</em> behind what they are seeing.</p>
+<h3 id="000--dashboard-the-whole-system-in-one-screen">0:00 — Dashboard: the whole system in one screen</h3>
+<p><strong>Do:</strong> Open the Dashboard. Point at the KPI row, then the trend chart.</p>
+<blockquote><p>"Everything on this screen came from a scheduled crawl. Eight tiles, each backed by a SQL view — not a hard-coded number. In a moment I'll show you where each one comes from."</p></blockquote>
+<p><strong>Why this screen:</strong> it establishes scope in ten seconds. A wall of charts on the first slide is overwhelming; eight labelled numbers is a story.</p>
+<h3 id="045--products-search-then-one-products-history">0:45 — Products: search, then one product's history</h3>
+<p><strong>Do:</strong> Click <strong>Products</strong>. Search <code>phone</code>. Open any result.</p>
+<blockquote><p>"This is the deduplicated catalogue. The same product listed on three different sites is one row here, because four similarity signals agreed it was the same thing."</p></blockquote>
+<p>Then, on the detail page, scroll to the price history chart.</p>
+<blockquote><p>"Every observation is kept, not just the latest. This is the only reason 'what was the price last Tuesday?' is answerable at all. Note the stored FX rate — history cannot be silently rewritten when exchange rates move."</p></blockquote>
+<p><strong>Why this screen:</strong> it demonstrates deduplication <em>and</em> the snapshot design, which are the two most-motivated design decisions in the project.</p>
+<h3 id="200--changes-the-business-question">2:00 — Changes: the business question</h3>
+<p><strong>Do:</strong> Click <strong>Changes</strong>. Open the <strong>Price changes</strong> tab. Sort by change %.</p>
+<blockquote><p>"These are the price movements detected by comparing consecutive snapshots. They're banded by magnitude — a flash sale above 30 % is a promotion, not a market move, and lumping the two together would make the alert useless."</p></blockquote>
+<p>Switch to <strong>Removed</strong> and <strong>Recategorised</strong>.</p>
+<blockquote><p>"Products that disappeared, and products that moved between categories. Both come free from having kept the history."</p></blockquote>
+<h3 id="300--catalog-match-where-the-project-pays-for-itself">3:00 — Catalog match: where the project pays for itself</h3>
+<p><strong>Do:</strong> Click <strong>Catalog match</strong>.</p>
+<blockquote><p>"This compares our internal SKUs against the scraped market. This row is 8 % cheaper at the competitor — that's a pricing decision we can make today, and last month we had no way to know."</p></blockquote>
+<p><strong>Why this screen:</strong> it is the only screen that connects the engineering to a business outcome. If an examiner is unconvinced by any single component, this is the one that matters.</p>
+<h3 id="400--runs-orchestration-and-idempotency">4:00 — Runs: orchestration and idempotency</h3>
+<p><strong>Do:</strong> Click <strong>Runs</strong>. Open the most recent run.</p>
+<blockquote><p>"Fourteen Airflow tasks, and every stage recorded its own counters and duration. The same pipeline can be triggered from Airflow, the CLI or the API, and all three produce an identical run record — which is what makes the demo reproducible."</p></blockquote>
+<p><strong>Optional 20-second flourish,</strong> if the examiner is technical:</p>
+<pre class="code" data-lang="bash"><code>make verify-dialects</code></pre>
+<blockquote><p>"Same model, same data-quality score, loaded independently on PostgreSQL and MySQL."</p></blockquote>
+<h3 id="445--data-quality-measured-not-assumed">4:45 — Data quality: measured, not assumed</h3>
+<p><strong>Do:</strong> Click <strong>Data quality</strong>.</p>
+<blockquote><p>"Twelve rules across six dimensions, re-evaluated on every load, with the verdict for each rule persisted against the run — which is what makes the 90-day trend chart possible. The score is weighted, and a rule that returns a warning lowers it rather than being rounded away. On this dataset all twelve pass, but the framework will tell you when one doesn't."</p></blockquote>
+<p><strong>Why this screen:</strong> a system that measures its own quality is the difference between a script that worked once and a pipeline someone can operate.</p>
+<h3 id="530--query-lab-self-service-without-a-data-team">5:30 — Query lab: self-service without a data team</h3>
+<p><strong>Do:</strong> Click <strong>Query lab</strong>. Run one of the starter examples.</p>
+<blockquote><p>"Read-only by construction. It accepts a single SELECT, validates every identifier against a whitelist, and clamps the LIMIT — because a general SQL console is a data-exfiltration primitive no matter how carefully it's guarded."</p></blockquote>
+<p><strong>Do, briefly:</strong> try to paste an <code>UPDATE</code> and show it refused.</p>
+<blockquote><p>"Rejected server-side, not hidden in the UI."</p></blockquote>
+<h3 id="600--audit-the-compliance-proof">6:00 — Audit: the compliance proof</h3>
+<p><strong>Do:</strong> Click <strong>Audit</strong>, then the <strong>HTTP compliance log</strong> tab.</p>
+<blockquote><p>"This is the table I'd point at if someone asked whether we respected the sites we crawled. Every outbound request is recorded with its robots decision — including the ones we decided <em>not</em> to make. A row with no status code and robots_allowed false is a request the crawler declined to send."</p></blockquote>
+<p><strong>Why this screen last:</strong> it pre-empts the ethics question before it is asked, and it is the strongest single answer to "is this scraping defensible?"</p>
+<h3 id="700--your-turn">7:00 — Your turn</h3>
+<blockquote><p>"That's the system. Happy to take questions, or to go deeper on any part of it."</p></blockquote>
+<hr>
+<h2 id="time-boxed-variants">Time-boxed variants</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Situation</th>
+<th>Plan</th>
+<th>Cut</th>
+</tr></thead><tbody>
+<tr>
+<th>3 minutes</th>
+<td>Dashboard → Products (one detail) → Catalog match → Audit</td>
+<td>Analytics, Changes, Runs, DQ, Query lab</td>
+</tr>
+<tr>
+<th>5 minutes</th>
+<td>Dashboard → Products → Changes → Catalog match → Runs → Audit</td>
+<td>Analytics, Categories, DQ, Query lab</td>
+</tr>
+<tr>
+<th>15 minutes</th>
+<td>Full walkthrough, then open the floor</td>
+<td>Nothing</td>
+</tr>
+</tbody></table></div>
+<p><strong>If you are running long,</strong> cut in this order: Analytics, Categories, Builder, Features, Alerts, Webhooks. Those are the most impressive and the least load-bearing. Never cut Audit — it carries the ethics position.</p>
+<hr>
+<h2 id="proving-the-compliance-layer-on-demand">Proving the compliance layer on demand</h2>
+<p>If asked <em>"but can it actually crawl something?"</em>, do this rather than promising it earlier. It is a 30-second demonstration and it makes the point far better than a screenshot.</p>
+<pre class="code" data-lang="bash"><code>make sources                     # the registry, with robots URL and rate limits
+make run-pipeline                # a live, rules-compliant crawl of the permitted sources</code></pre>
+<p>Then show the Audit screen again and point at the new rows.</p>
+<p><strong>Expect a <code>partial</code> run, and say so before anyone asks.</strong> Open Library's robots.txt forbids our request patterns, so that source is skipped. That is the system working:</p>
+<blockquote><p>"Open Library disallows those paths in its robots.txt, so we skipped it and the run completed as partial rather than failing. One unavailable source shouldn't discard the work of four working ones — and skipping a disallowed source is the correct behaviour, not a bug."</p></blockquote>
+<hr>
+<h2 id="failure-playbook">Failure playbook</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Symptom</th>
+<th>Cause</th>
+<th>Recovery</th>
+</tr></thead><tbody>
+<tr>
+<td>Dashboard spins, then errors</td>
+<td>API not started</td>
+<td><code>curl localhost:8000/api/v1/health</code>, then <code>make serve</code></td>
+</tr>
+<tr>
+<th>Empty tables, no errors</th>
+<td>Schema missing or demo data not seeded</td>
+<td><code>make bootstrap &amp;&amp; make demo-postgres</code></td>
+</tr>
+<tr>
+<th>"Sign in failed"</th>
+<td>Wrong database active</td>
+<td>Check <code>ACTIVE_DATABASE</code> in <code>.env</code>, then <code>make bootstrap</code></td>
+</tr>
+<tr>
+<td>Numbers differ from rehearsal</td>
+<td>Wrong <code>--days</code> on the seed</td>
+<td><code>make demo-postgres</code> reseeds deterministically</td>
+</tr>
+<tr>
+<td>Slides render but charts don't</td>
+<td>WebSocket/HMR stall</td>
+<td>Reload once; fall back to the API tabs</td>
+</tr>
+<tr>
+<th>Everything is broken</th>
+<td>—</td>
+<td>Go to the fallback below</td>
+</tr>
+</tbody></table></div>
+<h3 id="the-full-fallback-which-always-works">The full fallback, which always works</h3>
+<p>The API is the source of truth; the dashboard is a consumer of it. If the UI dies entirely, the demo continues from a terminal:</p>
+<pre class="code" data-lang="bash"><code># Every claim, verifiable, without a browser
+make analytics                   # the SQL report to stdout
+make analysis                    # the four standalone analyses
+make verify-dialects             # cross-dialect parity
+
+TOKEN=$(curl -s -X POST localhost:8000/api/v1/auth/login \
+  -H &#x27;Content-Type: application/json&#x27; \
+  -d &#x27;{&quot;email&quot;:&quot;admin@example.com&quot;,&quot;password&quot;:&quot;Admin@12345&quot;}&#x27; \
+  | python3 -c &#x27;import sys,json; print(json.load(sys.stdin)[&quot;access_token&quot;])&#x27;)
+
+curl -s -H &quot;Authorization: Bearer $TOKEN&quot; localhost:8000/api/v1/quality/latest
+curl -s -H &quot;Authorization: Bearer $TOKEN&quot; &quot;localhost:8000/api/v1/products?q=phone&amp;limit=5&quot;
+curl -s -H &quot;Authorization: Bearer $TOKEN&quot; localhost:8000/api/v1/catalog/reconciliation</code></pre>
+<blockquote><p>"The dashboard is a view over the API. If the browser fails, the evidence doesn't — here it is from the terminal."</p></blockquote>
+<p>This is not a consolation prize. Being able to drop to <code>curl</code> on demand is itself a demonstration of the API design.</p>
+<hr>
+<h2 id="answers-to-the-five-questions-you-will-be-asked">Answers to the five questions you will be asked</h2>
+<p>Keep these short. The full bank is in <a href="18_presentation_outline.html">18_presentation_outline.md</a>.</p>
+<p><strong>"Is scraping these sites ethical?"</strong></p>
+<blockquote><p>"Each source records its terms URL and a licence note. robots.txt is enforced in the transport layer, before the request is made, so no adapter can bypass it. Rate limits, a floor delay even where a site declares none, a circuit breaker after repeated failures, and an honest User-Agent with a contact address. We collect permitted public data politely and leave an audit trail. Scraping that evades access controls isn't something this system can do — there's no code path for it."</p></blockquote>
+<p><strong>"Why two databases?"</strong></p>
+<blockquote><p>"The brief requires it, and it's a genuine portability constraint rather than a formality. The same model has to load on both, which rules out <code>JSONB</code>, rules out <code>DISTINCT ON</code>, and forces portable booleans and timestamps. <code>make verify-dialects</code> proves there's no structural drift."</p></blockquote>
+<p><strong>"Why store every snapshot instead of just the current price?"</strong></p>
+<blockquote><p>"Because the product is about change. Price history, disappeared products and category drift are all only answerable from retained history, and retaining the FX rate with each snapshot keeps history stable as exchange rates move."</p></blockquote>
+<p><strong>"What was the hardest part?"</strong></p>
+<blockquote><p>"Reconciliation performance. Comparing every internal SKU against every product took 2,975 ms. Blocking indexes, a rare-token fallback and a capped pool brought it to 104 ms — 29× faster with identical output, which is what makes it a legitimate optimisation rather than a silent accuracy trade."</p></blockquote>
+<p><strong>"What would you do next?"</strong></p>
+<blockquote><p>"Incremental SCD-2 for category history, a Playwright suite for the frontend, and Redis-backed caching for runs large enough that in-process parallelism stops being enough. All three are in the roadmap with reasoning."</p></blockquote>
+<hr>
+<h2 id="post-demo">Post-demo</h2>
+<pre class="code" data-lang="bash"><code>make down          # stop containers, keep volumes</code></pre>
+<p>Leaving the stack running is fine locally, but do <strong>not</strong> leave <code>.env</code> with real secrets or a non-demo <code>SECRET_KEY</code> in a committed state. The demo credentials are public by design — they are printed in this repository's own documentation — so the only thing protecting a deployed instance is <code>SECRET_KEY</code> and the database password.</p>
+<p>If you recorded the demo, check the recording for credentials before sharing it. <code>make down</code> does not remove the database volume.</p>
+    </article>
+    <div class="doc-foot">
+      <span><a href="23_glossary_and_faq.html">← Glossary and FAQ</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

@@ -58,13 +58,14 @@
 <a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
 <a href="22_data_dictionary.html" class="active" title="Every table, column, type and meaning">Data Dictionary</a>
 <a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+<a href="24_demo_runbook.html" title="Screen-by-screen live demo script and failure playbook">Demo Runbook</a>
   </nav>
   <main class="content">
     <div class="doc-head">
       <h1>Data Dictionary</h1>
       <p>Every table, column, type and meaning</p>
     </div>
-    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#1-how-the-schema-is-organised">1. How the schema is organised</a></li><li class="lvl-2"><a href="#2-dimensions">2. Dimensions</a></li><li class="lvl-3"><a href="#21-dim_product--product-identity">2.1 dim_product — product identity</a></li><li class="lvl-3"><a href="#22-dim_category--taxonomy">2.2 dim_category — taxonomy</a></li><li class="lvl-3"><a href="#23-dim_source--the-ingestion-registry">2.3 dim_source — the ingestion registry</a></li><li class="lvl-3"><a href="#24-dim_currency">2.4 dim_currency</a></li><li class="lvl-3"><a href="#25-dim_date">2.5 dim_date</a></li><li class="lvl-2"><a href="#3-facts">3. Facts</a></li><li class="lvl-3"><a href="#31-fact_price_snapshot">3.1 fact_price_snapshot</a></li><li class="lvl-3"><a href="#32-fact_catalog_snapshot">3.2 fact_catalog_snapshot</a></li><li class="lvl-2"><a href="#4-aggregate">4. Aggregate</a></li><li class="lvl-3"><a href="#agg_category_daily">agg_category_daily</a></li><li class="lvl-2"><a href="#5-change-capture">5. Change capture</a></li><li class="lvl-3"><a href="#51-chg_price_change">5.1 chg_price_change</a></li><li class="lvl-3"><a href="#52-chg_product_event">5.2 chg_product_event</a></li><li class="lvl-2"><a href="#6-operational-tables">6. Operational tables</a></li><li class="lvl-3"><a href="#61-etl_run--the-run-record">6.1 etl_run — the run record</a></li><li class="lvl-3"><a href="#62-dq_rule_result--the-verdicts">6.2 dq_rule_result — the verdicts</a></li><li class="lvl-3"><a href="#63-ingestion_http_log--the-crawler-evidence">6.3 ingestion_http_log — the crawler evidence</a></li><li class="lvl-3"><a href="#64-sync_state">6.4 sync_state</a></li><li class="lvl-2"><a href="#7-staging">7. Staging</a></li><li class="lvl-3"><a href="#stg_raw_observation">stg_raw_observation</a></li><li class="lvl-2"><a href="#8-application-and-access-tables">8. Application and access tables</a></li><li class="lvl-3"><a href="#81-app_user">8.1 app_user</a></li><li class="lvl-3"><a href="#82-app_api_key">8.2 app_api_key</a></li><li class="lvl-3"><a href="#83-app_audit_log">8.3 app_audit_log</a></li><li class="lvl-3"><a href="#84-app_saved_view-app_alert_rule-app_notification-app_setting">8.4 app_saved_view, app_alert_rule, app_notification, app_setting</a></li><li class="lvl-3"><a href="#85-catalog_product">8.5 catalog_product</a></li><li class="lvl-2"><a href="#9-controlled-vocabularies">9. Controlled vocabularies</a></li><li class="lvl-3"><a href="#magnitude-bands">Magnitude bands</a></li><li class="lvl-2"><a href="#10-views">10. Views</a></li><li class="lvl-2"><a href="#11-dialect-portability">11. Dialect portability</a></li></ol></details>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#1-how-the-schema-is-organised">1. How the schema is organised</a></li><li class="lvl-2"><a href="#2-dimensions">2. Dimensions</a></li><li class="lvl-3"><a href="#21-dim_product--product-identity">2.1 dim_product — product identity</a></li><li class="lvl-3"><a href="#22-dim_category--taxonomy">2.2 dim_category — taxonomy</a></li><li class="lvl-3"><a href="#23-dim_source--the-ingestion-registry">2.3 dim_source — the ingestion registry</a></li><li class="lvl-3"><a href="#24-dim_currency">2.4 dim_currency</a></li><li class="lvl-3"><a href="#25-dim_date">2.5 dim_date</a></li><li class="lvl-2"><a href="#3-facts">3. Facts</a></li><li class="lvl-3"><a href="#31-fact_price_snapshot">3.1 fact_price_snapshot</a></li><li class="lvl-3"><a href="#32-fact_catalog_snapshot">3.2 fact_catalog_snapshot</a></li><li class="lvl-2"><a href="#4-aggregate">4. Aggregate</a></li><li class="lvl-3"><a href="#agg_category_daily">agg_category_daily</a></li><li class="lvl-2"><a href="#5-change-capture">5. Change capture</a></li><li class="lvl-3"><a href="#51-chg_price_change">5.1 chg_price_change</a></li><li class="lvl-3"><a href="#52-chg_product_event">5.2 chg_product_event</a></li><li class="lvl-2"><a href="#6-operational-tables">6. Operational tables</a></li><li class="lvl-3"><a href="#61-etl_run--the-run-record">6.1 etl_run — the run record</a></li><li class="lvl-3"><a href="#62-dq_rule_result--the-verdicts">6.2 dq_rule_result — the verdicts</a></li><li class="lvl-3"><a href="#63-ingestion_http_log--the-crawler-evidence">6.3 ingestion_http_log — the crawler evidence</a></li><li class="lvl-3"><a href="#64-sync_state">6.4 sync_state</a></li><li class="lvl-2"><a href="#7-staging">7. Staging</a></li><li class="lvl-3"><a href="#stg_raw_observation">stg_raw_observation</a></li><li class="lvl-2"><a href="#8-application-and-access-tables">8. Application and access tables</a></li><li class="lvl-3"><a href="#81-app_user">8.1 app_user</a></li><li class="lvl-3"><a href="#82-app_api_key">8.2 app_api_key</a></li><li class="lvl-3"><a href="#83-app_audit_log">8.3 app_audit_log</a></li><li class="lvl-3"><a href="#84-app_saved_view-app_alert_rule-app_notification-app_setting">8.4 app_saved_view, app_alert_rule, app_notification, app_setting</a></li><li class="lvl-3"><a href="#85-app_webhook--outbound-event-subscriptions">8.5 app_webhook — outbound event subscriptions</a></li><li class="lvl-3"><a href="#86-app_webhook_delivery--the-delivery-log">8.6 app_webhook_delivery — the delivery log</a></li><li class="lvl-3"><a href="#87-catalog_product">8.7 catalog_product</a></li><li class="lvl-2"><a href="#9-controlled-vocabularies">9. Controlled vocabularies</a></li><li class="lvl-3"><a href="#magnitude-bands">Magnitude bands</a></li><li class="lvl-2"><a href="#10-views">10. Views</a></li><li class="lvl-2"><a href="#11-dialect-portability">11. Dialect portability</a></li></ol></details>
     <article class="doc-body">
 <p>Every table in the warehouse, every column, and what it means. Generated against the live SQLAlchemy metadata, so it matches the code rather than a design intention.</p>
 <p>Conventions used below:</p>
@@ -79,12 +80,13 @@
 <hr>
 <h2 id="1-how-the-schema-is-organised">1. How the schema is organised</h2>
 <pre class="mermaid">flowchart TB
-    subgraph APP[&quot;Application and access (7 tables)&quot;]
+    subgraph APP[&quot;Application and access (9 tables)&quot;]
         U[&quot;app_user&quot;] --&gt; AK[&quot;app_api_key&quot;]
         U --&gt; SV[&quot;app_saved_view&quot;]
         U --&gt; AR[&quot;app_alert_rule&quot;] --&gt; N[&quot;app_notification&quot;]
         U --&gt; AL[&quot;app_audit_log&quot;]
         ST[&quot;app_setting&quot;]
+        U --&gt; WH[&quot;app_webhook&quot;] --&gt; WD[&quot;app_webhook_delivery&quot;]
     end
     subgraph OPS[&quot;Operational (5 tables)&quot;]
         R[&quot;etl_run&quot;] --&gt; DQ[&quot;dq_rule_result&quot;]
@@ -107,7 +109,7 @@ subgraph CORE[&quot;Analytical core (10 tables)&quot;]
         RAW[&quot;stg_raw_observation&quot;]
     end
     RAW -.validated and promoted.-&gt; DP</pre>
-<p><strong>23 tables</strong> in total: 5 dimensions, 2 facts, 1 aggregate, 2 change tables, 1 staging table, 4 operational tables, 7 application tables, 1 catalog table. Plus <strong>20 analytical views</strong> in <a href="../db/views.sql">db/views.sql</a>.</p>
+<p><strong>25 tables</strong> in total: 5 dimensions, 2 facts, 1 aggregate, 2 change tables, 1 staging table, 4 operational tables, 9 application tables (including the two webhook tables added in v1.3), 1 catalog table. Plus <strong>20 analytical views</strong> in <a href="../db/views.sql">db/views.sql</a>.</p>
 <hr>
 <h2 id="2-dimensions">2. Dimensions</h2>
 <h3 id="21-dim_product--product-identity">2.1 <code>dim_product</code> — product identity</h3>
@@ -1931,7 +1933,212 @@ subgraph CORE[&quot;Analytical core (10 tables)&quot;]
 </tr>
 </tbody></table></div>
 <p><code>app_setting.is_public</code> is the single flag that decides whether a setting reaches the browser — anything sensitive stays server-side by default.</p>
-<h3 id="85-catalog_product">8.5 <code>catalog_product</code></h3>
+<h3 id="85-app_webhook--outbound-event-subscriptions">8.5 <code>app_webhook</code> — outbound event subscriptions</h3>
+<p>Added in v1.3. One row per webhook a user has registered to receive pipeline and quality events.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>webhook_id</code></th>
+<td>INTEGER</td>
+<td><strong>PK</strong></td>
+<td>Surrogate key</td>
+</tr>
+<tr>
+<th><code>user_id</code></th>
+<td>INTEGER</td>
+<td>FK</td>
+<td>Owner</td>
+</tr>
+<tr>
+<th><code>name</code></th>
+<td>VARCHAR(512)</td>
+<td>no</td>
+<td>Human label</td>
+</tr>
+<tr>
+<th><code>target_url</code></th>
+<td>VARCHAR(512)</td>
+<td>no</td>
+<td>Endpoint that receives the POST</td>
+</tr>
+<tr>
+<th><code>secret</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td>Shared secret used to sign the payload</td>
+</tr>
+<tr>
+<th><code>events</code></th>
+<td>JSON</td>
+<td>yes</td>
+<td>Subscribed event names</td>
+</tr>
+<tr>
+<th><code>is_active</code></th>
+<td>BOOLEAN</td>
+<td>no</td>
+<td>Delivery switch</td>
+</tr>
+<tr>
+<th><code>description</code></th>
+<td>TEXT</td>
+<td>yes</td>
+<td>Free-text note</td>
+</tr>
+<tr>
+<th><code>headers</code></th>
+<td>JSON</td>
+<td>yes</td>
+<td>Extra headers sent with each delivery</td>
+</tr>
+<tr>
+<th><code>timeout_seconds</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Per-attempt timeout</td>
+</tr>
+<tr>
+<th><code>max_attempts</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Retry ceiling before disabling</td>
+</tr>
+<tr>
+<td><code>success_count</code> / <code>failure_count</code></td>
+<td>INTEGER</td>
+<td>no</td>
+<td>Lifetime counters</td>
+</tr>
+<tr>
+<th><code>consecutive_failures</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Drives automatic disabling</td>
+</tr>
+<tr>
+<th><code>last_status_code</code></th>
+<td>INTEGER</td>
+<td>yes</td>
+<td>Most recent response status</td>
+</tr>
+<tr>
+<th><code>last_error</code></th>
+<td>TEXT</td>
+<td>yes</td>
+<td>Most recent failure detail</td>
+</tr>
+<tr>
+<th><code>last_triggered_at</code></th>
+<td>DATETIME</td>
+<td>yes</td>
+<td>Most recent attempt</td>
+</tr>
+<tr>
+<th><code>disabled_reason</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Why it was switched off</td>
+</tr>
+<tr>
+<td><code>created_at</code> / <code>updated_at</code></td>
+<td>DATETIME</td>
+<td>no</td>
+<td>Audit timestamps</td>
+</tr>
+</tbody></table></div>
+<p><code>consecutive_failures</code> combined with <code>disabled_reason</code> means a webhook that keeps failing stops being called rather than hammering an unhealthy endpoint — the same circuit-breaker principle applied to outbound webhooks.</p>
+<h3 id="86-app_webhook_delivery--the-delivery-log">8.6 <code>app_webhook_delivery</code> — the delivery log</h3>
+<p>One row per delivery attempt, so a failing integration is diagnosable rather than mysterious.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>delivery_id</code></th>
+<td>INTEGER</td>
+<td><strong>PK</strong></td>
+<td>Surrogate key</td>
+</tr>
+<tr>
+<th><code>webhook_id</code></th>
+<td>INTEGER</td>
+<td>FK</td>
+<td>Target webhook</td>
+</tr>
+<tr>
+<th><code>event</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td>Event name delivered</td>
+</tr>
+<tr>
+<th><code>payload</code></th>
+<td>JSON</td>
+<td>yes</td>
+<td>Body sent</td>
+</tr>
+<tr>
+<th><code>status</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td><code>pending</code>, <code>delivered</code>, <code>failed</code></td>
+</tr>
+<tr>
+<th><code>attempts</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Attempts made so far</td>
+</tr>
+<tr>
+<th><code>status_code</code></th>
+<td>INTEGER</td>
+<td>yes</td>
+<td>Response status</td>
+</tr>
+<tr>
+<th><code>response_excerpt</code></th>
+<td>TEXT</td>
+<td>yes</td>
+<td>Truncated response body</td>
+</tr>
+<tr>
+<th><code>error</code></th>
+<td>TEXT</td>
+<td>yes</td>
+<td>Failure detail</td>
+</tr>
+<tr>
+<th><code>duration_ms</code></th>
+<td>INTEGER</td>
+<td>yes</td>
+<td>Latency</td>
+</tr>
+<tr>
+<th><code>next_retry_at</code></th>
+<td>DATETIME</td>
+<td>yes</td>
+<td>Scheduled retry</td>
+</tr>
+<tr>
+<th><code>delivered_at</code></th>
+<td>DATETIME</td>
+<td>yes</td>
+<td>Successful delivery time</td>
+</tr>
+<tr>
+<th><code>created_at</code></th>
+<td>DATETIME</td>
+<td>no</td>
+<td>When the attempt was queued</td>
+</tr>
+</tbody></table></div>
+<h3 id="87-catalog_product">8.7 <code>catalog_product</code></h3>
 <p>The retailer's own catalog — the left-hand side of every price-gap comparison.</p>
 <div class='table-scroll'><table><thead><tr>
 <th>Column</th>
