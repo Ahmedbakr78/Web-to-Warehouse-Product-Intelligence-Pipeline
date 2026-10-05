@@ -96,7 +96,7 @@ def test_real_document_headings_resolve() -> None:
         text = source.read_text(encoding="utf-8")
 
         anchors: dict[str, int] = {}
-        for level, raw in re.findall(r"^(#{1,6})\s+(.*)$", text, re.M):
+        for _level, raw in re.findall(r"^(#{1,6})\s+(.*)$", text, re.M):
             base = builder.slugify(re.sub(r"[#*`]", "", raw).strip())
             anchors[base] = anchors.get(base, 0) + 1
 

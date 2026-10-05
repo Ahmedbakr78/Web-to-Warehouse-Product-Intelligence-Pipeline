@@ -405,7 +405,7 @@ missing identifiers). Each section heading states its own count, and those count
 beneath them.
 ---
 
-## 16. Platform v1.3 additions (37)
+## 16. Platform v1.3 additions (52)
 
 | ID | Feature | Description | Where |
 | --- | --- | --- | --- |
@@ -447,4 +447,21 @@ beneath them.
 | F-270 | DAG report artifacts | `publish_report` writes a timestamped JSON KPI artifact to `var/reports/`, falling back to the repository root when the Airflow home is read-only | `dags/product_intelligence_pipeline.py` `_write_report_artifact` |
 | F-271 | v1.3 regression tests | 19 new tests covering the catalogue, the personal activity feed, account export and deletion, and every builder code path including validation failures | `tests/test_new_features.py` |
 
-**Revised total: 271 features.**
+| F-272 | Dependency-free documentation website | `scripts/build_site.py` turns the documentation set into a browsable site with client-side search, system-aware dark mode and 50+ rendered diagrams, using only the standard library — MkDocs would add a large dependency tree for the same result | `scripts/build_site.py` |
+| F-273 | GitHub-fidelity heading anchors | `slugify` reproduces `github-slugger` exactly, including the double hyphen an em-dash leaves behind and the one-hyphen-per-space rule, so hand-written in-document anchors resolve in the built site just as they do on GitHub | `scripts/build_site.py` `slugify` |
+| F-274 | Anchor regression suite | 24 captured slug cases plus a sweep verifying every hand-written `](#anchor)` in the README and all documents resolves to a real heading | `scripts/check_slugify.py` |
+| F-275 | Mermaid syntax gate | Every diagram is extracted and parsed before merge, turning a broken diagram from a silent rendering error into a build failure; it caught two real defects — a semicolon in a sequence message and a self-parenting edge | `scripts/diagrams.py` |
+| F-276 | Internal link and anchor checker | Validates that every generated page link, in-page anchor, image reference and static asset resolves, and that no control characters survive Markdown conversion | `scripts/check_links.py` |
+| F-277 | Security policy and threat model | Boundary-by-boundary control table covering web-to-ingestion, user-to-API and API-to-warehouse threats, with disclosure targets and the commands that verify each claim | `SECURITY.md` |
+| F-278 | Contributor Covenant | Community health standards with a four-tier enforcement ladder | `.github/CODE_OF_CONDUCT.md` |
+| F-279 | Structured issue and pull request forms | Bug, feature and documentation forms plus a PR template carrying repository-specific reminders — robots enforcement, parameterised SQL, cross-dialect parity — and a verification section asking for pasted output | `.github/ISSUE_TEMPLATE/`, `.github/pull_request_template.md` |
+| F-280 | Automated dependency updates | Weekly pull requests for pip, npm and GitHub Actions, grouped by ecosystem | `.github/dependabot.yml` |
+| F-281 | Documentation CI job | A dedicated job validates all diagrams, extracts them, fails on a stale extraction, builds the site and checks its links — the documentation can no longer rot unnoticed | `.github/workflows/ci.yml` `docs` |
+| F-282 | Review ownership | Explicit code ownership so every change has a named reviewer | `.github/CODEOWNERS` |
+| F-283 | Measurement provenance | The README and docs index state which figures are structural and re-verifiable and which are measurements that vary with data volume and hardware, so a number is never presented as a constant when it is not one | `README.md`, `docs/README.md` |
+| F-284 | Architecture rationale with rejected alternatives | Every significant decision records what was chosen, what was rejected, why, and the measured consequence — including the 29× reconciliation optimisation that preserved identical output | `docs/21_architecture_deep_dive.md` |
+| F-285 | Complete data dictionary | All 23 tables with every column, type, nullability and meaning, plus controlled vocabularies, magnitude bands, the view catalogue and a dialect-portability table | `docs/22_data_dictionary.md` |
+| F-286 | Glossary and FAQ | Defined terms and questions across setup, the pipeline, data quality, security and development — including how to add a source in six steps | `docs/23_glossary_and_faq.md` |
+
+**Revised total: 286 features across 16 areas** (F-001 to F-286, contiguous, with no duplicate or
+missing identifiers). Each section heading states its own count, matching the rows beneath it.
