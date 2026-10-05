@@ -248,9 +248,89 @@ LABELS = {
 }
 
 
+README_BEGIN = "<!-- BEGIN:STATS -->"
+README_END = "<!-- END:STATS -->"
+
+
+def stats_block(stats: dict[str, int]) -> str:
+    """The generated block that sits between the README markers.
+
+    Written as a table rather than prose so a reviewer reading the diff can see
+    exactly which figure moved, without reading a sentence to find the number.
+    """
+    rows = [
+        (label, stats.get(key, -1))
+        for key, label in LABELS.items()
+        if key not in {"test_functions"}
+    ]
+    width = max(len(label) for label, _ in rows)
+
+    lines = [
+        README_BEGIN,
+        "",
+        "```text",
+        f"{stats['physical_tables']} physical tables"
+        f"  |  {stats['analytical_views']} analytical views"
+        f"  |  {stats['rest_route_decorators']} REST route decorators"
+        f" in {stats['rest_routers']} routers",
+        f"{stats['data_quality_rules']} data-quality rules across 6 dimensions,"
+        f" weighted score persisted per run",
+        f"{stats['ingestion_sources']} ingestion sources"
+        f"  |  {stats['pipeline_stages']} pipeline stages"
+        f"  |  {stats['airflow_tasks']} Airflow task callables",
+        f"{stats['cli_commands']} CLI commands"
+        f"  |  {stats['compose_services']} Docker Compose services"
+        f"  |  {stats['documentation_documents']} documents"
+        f"  |  {stats['mermaid_diagrams']} Mermaid diagrams",
+        f"{stats['test_cases']} tests"
+        f"  |  {stats['api_smoke_checks']}/{stats['api_smoke_checks']} API smoke checks"
+        f"  |  {stats['catalogued_features']} catalogued features",
+        "```",
+        "",
+        "| Metric | Count |",
+        "| --- | ---: |",
+    ]
+    lines += [
+        f"| {label.ljust(width)} | {value if value >= 0 else 'n/a'} |"
+        for label, value in rows
+    ]
+    lines += ["", README_END]
+    return "\n".join(lines)
+
+
+def sync_readme(stats: dict[str, int]) -> int:
+    """Replace the generated block in README.md between the markers."""
+    readme = ROOT / "README.md"
+    text = readme.read_text(encoding="utf-8")
+
+    if README_BEGIN not in text or README_END not in text:
+        print(
+            f"error: {readme.name} is missing the {README_BEGIN} / {README_END} markers.",
+            file=sys.stderr,
+        )
+        return 2
+
+    head, _, rest = text.partition(README_BEGIN)
+    _, _, tail = rest.partition(README_END)
+
+    updated = f"{head}{stats_block(stats)}\n{tail}"
+    if updated == text:
+        print("README.md is already up to date.")
+        return 0
+
+    readme.write_text(updated, encoding="utf-8")
+    print(f"Updated the generated statistics block in {readme.name}.")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     parser.add_argument("--json", action="store_true", help="emit JSON instead of a table")
+    parser.add_argument(
+        "--sync-readme",
+        action="store_true",
+        help="rewrite the generated statistics block in README.md",
+    )
     args = parser.parse_args()
 
     stats = gather()
@@ -258,6 +338,9 @@ def main() -> int:
     if args.json:
         print(json.dumps(stats, indent=2, sort_keys=True))
         return 0
+
+    if args.sync_readme:
+        return sync_readme(stats)
 
     width = max(len(label) for label in LABELS.values())
     print("| Metric | Count |")
