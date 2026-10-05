@@ -980,7 +980,7 @@ are persisted per run in `dq_rule_result`, and the dashboard charts the score tr
 ## Feature catalogue
 
 The exhaustive, file-referenced inventory lives in
-[docs/19_feature_list.md](docs/19_feature_list.md) — 271 features in 16 areas. It is also served as
+[docs/19_feature_list.md](docs/19_feature_list.md) — 295 features in 17 areas. It is also served as
 structured JSON by `GET /api/v1/meta/features` and rendered by the **Features** screen, both generated
 from `app/core/features.py`, so this section can never describe something the code does not do.
 Highlights by area:
@@ -1371,7 +1371,7 @@ natively on GitHub; every structural number is tied to a runnable command.
 | 16 | User Manual | sign-in, every screen, filters, exports, alerts, admin, troubleshooting, FAQ |
 | 17 | Technical Documentation | module map, four key algorithms, every configuration variable |
 | 18 | Presentation Outline | 18-slide defence deck, Q&A preparation, demo script |
-| 19 | Feature Inventory | 271 features in 16 areas with file references |
+| 19 | Feature Inventory | 295 features in 17 areas with file references |
 | 20 | Feedback and Improvements | feedback template, 32 prioritised improvements, self-assessment |
 | 21 | **Architecture Deep Dive** | design drivers, decisions with rejected alternatives, request lifecycle, layering, known limitations |
 | 22 | **Data Dictionary** | every table, column, type and meaning; controlled vocabularies; view catalogue; dialect portability |

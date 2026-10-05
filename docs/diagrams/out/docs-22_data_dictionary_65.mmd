@@ -1,11 +1,12 @@
 
 flowchart TB
-    subgraph APP["Application and access (7 tables)"]
+    subgraph APP["Application and access (9 tables)"]
         U["app_user"] --> AK["app_api_key"]
         U --> SV["app_saved_view"]
         U --> AR["app_alert_rule"] --> N["app_notification"]
         U --> AL["app_audit_log"]
         ST["app_setting"]
+        U --> WH["app_webhook"] --> WD["app_webhook_delivery"]
     end
     subgraph OPS["Operational (5 tables)"]
         R["etl_run"] --> DQ["dq_rule_result"]

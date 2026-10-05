@@ -3,11 +3,11 @@
 ## Purpose
 
 This document is the complete feature inventory of the Web-to-Warehouse Product Intelligence
-Pipeline: 271 features grouped into sixteen areas, each with a one-line description and a reference
+Pipeline: 295 features grouped into sixteen areas, each with a one-line description and a reference
 to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an
 endpoint, a CLI command or a documented design decision. Nothing here is aspirational.
 
-**Scale of the system, measured:** 5 ingestion sources · 25 physical tables · 20 analytical views ·
+**Scale of the system, measured:** 5 ingestion sources · 27 physical tables · 20 analytical views ·
 12 data-quality rules across 6 dimensions · 131 REST route decorators (128 documented in OpenAPI plus
 3 internal probes) in 18 routers · 9 pipeline stages · 14 Airflow tasks · 6 Docker Compose services ·
 23 numbered documents · 66 Mermaid diagrams · 321 automated tests · 86 end-to-end API smoke checks.
@@ -402,7 +402,7 @@ decision) rather than individual lines of code.
 | F-234 | Diagram extractor | Extracts every Mermaid block from the documentation set into `docs/diagrams/out/*.mmd` with an index table; optional `mmdc` rendering | `scripts/diagrams.py`, `docs/diagrams/out/index.md` |
 
 **Revised total: 271 features across 16 areas** (F-001 to F-271, contiguous, with no duplicate or
-missing identifiers). Each section heading states its own count, and those counts match the rows
+missing identifiers) — superseded by section 17 below. Each section heading states its own count, and those counts match the rows
 beneath them.
 ---
 
@@ -463,6 +463,36 @@ beneath them.
 | F-284 | Architecture rationale with rejected alternatives | Every significant decision records what was chosen, what was rejected, why, and the measured consequence — including the 29× reconciliation optimisation that preserved identical output | `docs/21_architecture_deep_dive.md` |
 | F-285 | Complete data dictionary | All 23 tables with every column, type, nullability and meaning, plus controlled vocabularies, magnitude bands, the view catalogue and a dialect-portability table | `docs/22_data_dictionary.md` |
 | F-286 | Glossary and FAQ | Defined terms and questions across setup, the pipeline, data quality, security and development — including how to add a source in six steps | `docs/23_glossary_and_faq.md` |
+---
 
-**Revised total: 286 features across 16 areas** (F-001 to F-286, contiguous, with no duplicate or
-missing identifiers). Each section heading states its own count, matching the rows beneath it.
+## 17. Platform v1.4 additions (24)
+
+Integrations (export, webhooks, backfill) and run comparison. Every row ships behind a test.
+
+| F-272 | Dataset export registry | Twelve datasets declared once and served as CSV or JSON with bound filters and a 50,000-row SQL cap | `app/services/exporter.py` `DATASETS` |
+| F-273 | Filter-aware export | Every dataset declares its filters; unsupported names and non-boolean flags are rejected with 400 | `app/services/exporter.py` `_build_where` |
+| F-274 | Injection-safe identifiers | Exported filter columns must match a strict pattern before reaching SQL | `app/services/exporter.py` `SAFE_IDENTIFIER` |
+| F-275 | Portable export search | Free-text search uses `LOWER(col) LIKE`, working on SQLite, PostgreSQL and MySQL alike | `app/services/exporter.py` `_build_where` |
+| F-276 | Export catalogue and preview | `GET /export/datasets` lists datasets, formats and caps; `GET /export/{dataset}` previews rows | `app/api/routers/exports.py` |
+| F-277 | CSV and JSON serialisers | CSV with a header row and empty cells for nulls; JSON with dataset, timestamp, limits and columns | `app/services/exporter.py` `to_csv`/`to_json` |
+| F-278 | Server-generated filenames | Downloads are named `<dataset>-<YYYYMMDD>.<ext>` from the server | `app/services/exporter.py` `filename_for` |
+| F-279 | Webhook subscriptions | Per-user outbound subscriptions filtered by event, with wildcard support | `app/services/webhooks.py` `subscriptions_for_event` |
+| F-280 | HMAC-SHA256 signing | Payloads signed over `timestamp.body` so receivers can verify authenticity and detect replays | `app/services/webhooks.py` `sign_payload`/`verify_signature` |
+| F-281 | Ten pipeline events | `run.completed`, `run.failed`, `run.started`, `dq.failed`, `price.spike`, `product.new`, `product.removed`, `catalog.mismatch`, `alert.triggered`, `backfill.completed` | `app/services/webhooks.py` `WEBHOOK_EVENTS` |
+| F-282 | Retry with backoff | Failed deliveries re-attempt after 30s, 5m and 30m up to the subscription's attempt limit | `app/services/webhooks.py` `retry_due` |
+| F-283 | Delivery log | Status code, duration, response excerpt, error and attempt count stored per delivery | `app/models/app_users.py` `AppWebhookDelivery` |
+| F-284 | Secret rotation | Per-subscription signing secret shown once and rotatable in place | `app/api/routers/webhooks.py` `rotate_secret` |
+| F-285 | SSRF-safe targets | Only public http(s) URLs accepted; loopback, private, link-local, metadata and credentialed URLs blocked | `app/services/webhooks.py` `validate_target_url` |
+| F-286 | Auto-disable on failure | A subscription disables itself after repeated consecutive failures so it cannot slow the pipeline | `app/services/webhooks.py` `deliver` |
+| F-287 | Failure isolation | A broken webhook can never fail the run that emitted the event | `app/services/webhooks.py` `emit` |
+| F-288 | Webhooks screen | Create, enable, test, rotate and delete subscriptions; one-time secret reveal; delivery log modal | `frontend/src/pages/Webhooks.tsx` |
+| F-289 | Historical backfill | Replay any date range with one run per day, up to 31 days per job | `app/services/backfill.py` `plan_backfill`/`execute_backfill` |
+| F-290 | Backfill validation | Reversed ranges, oversized jobs, future dates and unparseable dates are rejected before any run | `app/services/backfill.py` `_as_date` |
+| F-291 | Backfill job tracking | Runs tagged `<job id>:<date>`, with roll-up progress and per-day results | `app/services/backfill.py` `backfill_progress`/`list_backfills` |
+| F-292 | Day-level isolation | A failing day is recorded and the job continues, so one bad source cannot abandon the range | `app/services/backfill.py` `execute_backfill` |
+| F-293 | Run comparison | Diff any two runs: 12 metric deltas, DQ regressions and fixes, catalogue movement, price moves, runtime | `app/analytics/service.py` `compare_runs` |
+| F-294 | Compare screen tab | Pick a base and target run; see deltas, quality movement and the largest repricing | `frontend/src/pages/Pipeline.tsx` `RunCompare` |
+| F-295 | Shared export button | Reusable CSV/JSON download control that reads its capabilities from the export catalogue | `frontend/src/components/ExportButton.tsx` |
+
+**Final total: 295 features across 17 areas** (F-001 to F-295). Section 17 adds the
+export, webhook, backfill and run-comparison capabilities shipped in v1.4.

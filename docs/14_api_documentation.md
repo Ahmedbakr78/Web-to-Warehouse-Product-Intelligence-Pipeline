@@ -179,7 +179,7 @@ Verified behaviour (from `scripts/api_smoke.py`): `GET /api/v1/products` without
 
 ## 5. Operation catalogue
 
-Generated from the live OpenAPI document: **110 documented operations in 16 routers** (113 route
+Generated from the live OpenAPI document: **125 documented operations in 18 routers** (128 route
 decorators in total; three are internal probes hidden from the schema — see §5.2).
 
 
@@ -388,6 +388,30 @@ TOTAL 107
 | GET | `/` (outside the prefix) | Service descriptor with links to `/docs`, `/redoc`, `/openapi.json`, `/api/v1/health` |
 
 ---
+
+## export  (4 operations)
+| GET | `/api/v1/export/datasets` | read (viewer+) | Exportable datasets, supported filters, formats and row caps |  |
+| GET | `/api/v1/export/{dataset}.csv` | read (viewer+) | Download a dataset as CSV (date-stamped filename) | limit?, per-dataset filters |
+| GET | `/api/v1/export/{dataset}.json` | read (viewer+) | Download a dataset as JSON with an export envelope | limit?, per-dataset filters |
+| GET | `/api/v1/export/{dataset}` | read (viewer+) | Preview a dataset as JSON without downloading | limit?, per-dataset filters |
+
+## webhooks  (8 operations)
+| GET | `/api/v1/webhooks/events` | authenticated | Subscribable events, signature headers, retry policy |  |
+| GET | `/api/v1/webhooks` | authenticated | My subscriptions (secrets withheld) |  |
+| POST | `/api/v1/webhooks` | authenticated | Create a subscription; returns the signing secret once | name, target_url, events? |
+| GET | `/api/v1/webhooks/{webhook_id}` | owner | Subscription detail |  |
+| PATCH | `/api/v1/webhooks/{webhook_id}` | owner | Update target, events, timeout, attempts or active flag | partial body |
+| DELETE | `/api/v1/webhooks/{webhook_id}` | owner | Delete a subscription and its delivery log |  |
+| POST | `/api/v1/webhooks/{webhook_id}/test` | owner | Send a test event and return the delivery outcome | event?, data? |
+| POST | `/api/v1/webhooks/{webhook_id}/rotate-secret` | owner | Rotate the signing secret (returned once) |  |
+| GET | `/api/v1/webhooks/{webhook_id}/deliveries` | owner | Delivery history with status, attempts and errors | page?, page_size?, status? |
+| POST | `/api/v1/webhooks/retry-due` | authenticated | Re-attempt failed deliveries whose backoff has elapsed |  |
+
+## backfill additions to pipeline  (3 operations)
+| GET | `/api/v1/pipeline/backfills` | read (viewer+) | Recent backfill jobs with rolled-up counts | limit? |
+| POST | `/api/v1/pipeline/backfill` | run_pipeline | Replay a date range, one run per day (max 31 days) | start_date, end_date, sources? |
+| GET | `/api/v1/pipeline/backfill/{id}` | read (viewer+) | Backfill progress and per-day results |  |
+| GET | `/api/v1/pipeline/runs/compare` | read (viewer+) | Diff two runs: metric deltas, DQ regressions, catalogue and price movement | base, target, sample_limit? |
 
 ## 6. Worked examples
 
