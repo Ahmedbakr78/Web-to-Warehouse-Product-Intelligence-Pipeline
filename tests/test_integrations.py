@@ -575,3 +575,198 @@ def test_compare_runs_on_seeded_data(db):
     assert len(diff["metrics"]) == 12
     for metric in diff["metrics"]:
         assert {"metric", "base", "target", "delta"} <= set(metric)
+
+
+# --------------------------------------------------------------------------------------
+# Backfill planning and progress
+# --------------------------------------------------------------------------------------
+def _days_ago(count: int) -> str:
+    return (dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=count)).date().isoformat()
+
+
+def test_plan_backfill_expands_one_day_per_date():
+    from app.services.backfill import plan_backfill
+
+    plan = plan_backfill(
+        start_date=_days_ago(3), end_date=_days_ago(1), sources=["local_demo"], created_by="t@example.com"
+    )
+    assert len(plan.days) == 3
+    assert plan.backfill_id.startswith("bf_")
+    assert plan.days == sorted(plan.days)
+    assert plan.created_by == "t@example.com"
+    assert plan.as_dict()["total_days"] == 3
+    assert plan.as_dict()["sources"] == ["local_demo"]
+
+
+def test_plan_backfill_accepts_single_day():
+    from app.services.backfill import plan_backfill
+
+    today = dt.datetime.now(dt.timezone.utc).date().isoformat()
+    assert len(plan_backfill(start_date=today, end_date=today).days) == 1
+
+
+@pytest.mark.parametrize(
+    "start,end,label",
+    [
+        (_days_ago(1), _days_ago(5), "reversed range"),
+        (_days_ago(60), _days_ago(1), "more than the maximum span"),
+        (_days_ago(1), _days_ago(-1), "end date in the future"),
+        ("nonsense", _days_ago(1), "unparseable date"),
+    ],
+)
+def test_plan_backfill_rejects_bad_ranges(start, end, label):
+    from app.core.errors import ValidationError
+    from app.services.backfill import plan_backfill
+
+    with pytest.raises(ValidationError):
+        plan_backfill(start_date=start, end_date=end)
+
+
+def test_plan_backfill_rejects_missing_dates():
+    from app.core.errors import ValidationError
+    from app.services.backfill import plan_backfill
+
+    with pytest.raises(ValidationError):
+        plan_backfill(start_date=None, end_date=_days_ago(1))
+
+
+def test_execute_backfill_isolates_a_failing_day(monkeypatch):
+    """One bad day must not abandon the rest of the range."""
+    from app.services import backfill as backfill_mod
+
+    plan = backfill_mod.plan_backfill(start_date=_days_ago(2), end_date=_days_ago(1), sources=["local_demo"])
+    calls: list[str] = []
+
+    class FakeResult:
+        def __init__(self, day: str) -> None:
+            self.run_id = f"run_{day}"
+            self.status = "success"
+            self.counters = {"staged": 5, "snapshots_inserted": 4}
+            self.quality = {"score": 99.5}
+
+    class FakePipeline:
+        def __init__(self, config) -> None:
+            self.config = config
+
+        def run(self):
+            day = self.config.run_key.split(":")[1]
+            calls.append(day)
+            if len(calls) == 1:
+                raise RuntimeError("source unavailable")
+            return FakeResult(day)
+
+    monkeypatch.setattr("app.etl.pipeline.Pipeline", FakePipeline)
+    summary = backfill_mod.execute_backfill(plan)
+
+    assert len(calls) == 2
+    assert summary["planned_days"] == 2
+    assert summary["failed_days"] == 1
+    assert summary["succeeded_days"] == 1
+    assert summary["status"] == "partial"
+    assert summary["runs"][0]["error"].startswith("RuntimeError")
+    assert summary["runs"][1]["records_extracted"] == 5
+    assert summary["runs"][1]["dq_score"] == 99.5
+
+
+def test_execute_backfill_dry_run_tags_every_day(monkeypatch):
+    from app.etl.pipeline import PipelineConfig
+    from app.services import backfill as backfill_mod
+
+    seen: list[PipelineConfig] = []
+
+    class FakeResult:
+        run_id = "r1"
+        status = "success"
+        counters: dict = {}
+        quality: dict = {}
+
+    class FakePipeline:
+        def __init__(self, config) -> None:
+            seen.append(config)
+
+        def run(self):
+            return FakeResult()
+
+    monkeypatch.setattr("app.etl.pipeline.Pipeline", FakePipeline)
+    plan = backfill_mod.plan_backfill(start_date=_days_ago(1), end_date=_days_ago(1), sources=["local_demo"])
+    backfill_mod.execute_backfill(plan)
+
+    assert len(seen) == 1
+    assert seen[0].trigger == "backfill"
+    assert seen[0].run_key.startswith(f"{plan.backfill_id}:")
+    assert seen[0].created_by == "backfill"
+
+
+def test_backfill_progress_rolls_up_runs(session):
+    from app.services.backfill import backfill_progress
+
+    job = "bf_testrollup"
+    _insert_run(
+        session,
+        f"{job}-r1",
+        run_key=f"{job}:2026-01-01",
+        trigger="backfill",
+        records_extracted=10,
+        new_products=2,
+        dq_score=90.0,
+    )
+    _insert_run(
+        session,
+        f"{job}-r2",
+        run_key=f"{job}:2026-01-02",
+        trigger="backfill",
+        records_extracted=15,
+        new_products=3,
+        dq_score=100.0,
+    )
+    _insert_run(
+        session,
+        f"{job}-r3",
+        run_key=f"{job}:2026-01-03",
+        trigger="backfill",
+        status="failed",
+        records_extracted=0,
+        dq_score=None,
+    )
+    session.flush()
+
+    progress = backfill_progress(session, job)
+    assert progress["found"] is True
+    assert progress["total_runs"] == 3
+    assert progress["succeeded_runs"] == 2
+    assert progress["failed_runs"] == 1
+    assert progress["records_extracted"] == 25
+    assert progress["new_products"] == 5
+    assert progress["average_dq_score"] == 95.0
+    assert progress["status"] == "partial"
+    assert len(progress["runs"]) == 3
+
+
+def test_backfill_progress_unknown_job(session):
+    from app.services.backfill import backfill_progress
+
+    assert backfill_progress(session, "bf_missing")["found"] is False
+
+
+def test_list_backfills_groups_days_into_one_job(session):
+    from app.services.backfill import list_backfills
+
+    job = "bf_grouped"
+    _insert_run(session, f"{job}-a", run_key=f"{job}:2026-01-01", trigger="backfill", records_extracted=4)
+    _insert_run(session, f"{job}-b", run_key=f"{job}:2026-01-02", trigger="backfill", records_extracted=6)
+    session.flush()
+
+    jobs = list_backfills(session, limit=10)
+    mine = [j for j in jobs if j["backfill_id"] == job]
+    assert len(mine) == 1, "days must roll up into a single job entry"
+    assert mine[0]["total_runs"] == 2
+    assert mine[0]["records_extracted"] == 10
+    assert mine[0]["status"] == "success"
+
+
+def test_list_backfills_ignores_normal_runs(session):
+    from app.services.backfill import list_backfills
+
+    _insert_run(session, "ordinary-run", trigger="manual", records_extracted=99)
+    session.flush()
+    assert list_backfills(session, limit=10) == []
