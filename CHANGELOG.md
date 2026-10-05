@@ -1,8 +1,52 @@
 # Changelog
 
-All notable changes to the Web-to-Warehouse Product Intelligence Pipeline are documented here.
-The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions adhere to
-[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+All notable changes to this project are documented here.
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
+versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+- Nothing yet.
+
+## [1.3.0] - 2026-10-05
+
+### Added
+
+- **Aggregate Query Builder** — a server-side aggregate analysis endpoint plus a dedicated
+  dashboard screen: group any dataset by one or more dimensions, apply measures and aggregate
+  functions, add advanced filters, sort, and read the live result as a table or a chart, with a
+  generated SQL preview and CSV/JSON export.
+- **Aggregate DSL** on the API — whitelisted operators, functions and directions validated before
+  any SQL is composed, so the builder cannot emit anything the read-only guard would reject.
+- Mobile navigation and scrolling polish: the off-canvas drawer now locks background scroll, is
+  announced as a modal dialog with an accessible name, respects the safe-area inset, and the
+  document reserves a scrollbar gutter so content never jumps sideways as a page grows.
+- `SECURITY.md` with the threat model, the boundary-by-boundary control table, and disclosure
+  instructions.
+- `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1).
+- GitHub issue forms for bugs, features and documentation, plus a pull request template.
+- `dependabot.yml` for weekly checks of pip, npm and GitHub Actions.
+
+### Changed
+
+- `docs/` and `README.md` figures re-measured against the current code base and corrected: 255
+  unit tests (was 236), 61 files clean under mypy (was 59), 113 REST operations in 16 routers
+  (was 104 in 15), and 20 dashboard screens (was 17).
+
+### Fixed
+
+- Removed an unused context lookup in the Airflow DAG that failed the ruff check.
+- Consistent Python formatting applied across the backend.
+
+### Verified
+
+```text
+ruff: all checks pass            mypy: no issues in 61 source files
+pytest: 255 passed               API smoke: 78/78 checks
+frontend: eslint clean, tsc clean, production build ok
+```
 
 ## [1.2.0] - 2026-10-04
 
