@@ -498,5 +498,3 @@ export default function Webhooks() {
     </div>
   )
 }
-
-export { titleCase }
