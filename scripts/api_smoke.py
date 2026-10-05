@@ -92,10 +92,18 @@ CHECKS: list[tuple[str, str, int, bool, str]] = [
     ("GET", "/api/v1/queries/views", 200, True, "analytical views"),
     ("GET", "/api/v1/queries/tables", 200, True, "queryable tables"),
     ("GET", "/api/v1/queries/examples", 200, True, "starter queries"),
+    ("GET", "/api/v1/meta/features", 200, False, "structured feature catalogue"),
+    ("GET", "/api/v1/builder/schema", 200, True, "builder entities + operators"),
+    ("POST", "/api/v1/builder/query", 200, True, "group-by + aggregate query"),
+    ("POST", "/api/v1/builder/query", 422, True, "unknown entity rejected"),
+    ("GET", "/api/v1/builder/schema", 200, True, "viewer may read the builder", False, "viewer"),
+    ("GET", "/api/v1/builder/schema", 200, True, "analyst may read the builder", False, "analyst"),
     ("POST", "/api/v1/queries/execute", 200, True, "read-only SQL"),
     ("POST", "/api/v1/queries/execute", 422, True, "write SQL rejected"),
     ("GET", "/api/v1/users/me", 200, True, "my profile"),
     ("PATCH", "/api/v1/users/me", 200, True, "update preferences"),
+    ("GET", "/api/v1/users/me/export", 200, True, "export my account data"),
+    ("GET", "/api/v1/audit/me?page_size=5", 200, True, "my audited activity"),
     ("GET", "/api/v1/users", 200, True, "user admin"),
     ("GET", "/api/v1/users/stats", 200, True, "usage statistics"),
     ("GET", "/api/v1/saved-views", 200, True, "saved views"),
@@ -149,6 +157,21 @@ def run_checks(base_url: str, token: str, role_tokens: dict[str, str] | None = N
             }
         elif method == "POST" and path.endswith("/queries/execute"):
             payload = {"sql": "SELECT 1 AS ok"} if expected == 200 else {"sql": "DELETE FROM dim_product"}
+        elif method == "POST" and path.endswith("/builder/query"):
+            payload = (
+                {
+                    "entity": "products",
+                    "group_by": ["category_name"],
+                    "aggregates": [
+                        {"function": "count"},
+                        {"function": "avg", "column": "price_usd", "alias": "avg_price"},
+                    ],
+                    "sort": [{"column": "avg_price", "direction": "desc"}],
+                    "limit": 5,
+                }
+                if expected == 200
+                else {"entity": "not_a_real_entity", "limit": 5}
+            )
         elif method == "POST" and path.endswith("/saved-views"):
             payload = {
                 "name": f"smoke-test-view-{int(time.time())}",
