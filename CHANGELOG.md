@@ -41,8 +41,60 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Expanded feature catalogue** — now 118 features in 15 groups, including new *Integrations* and
   *Run comparison & observability* groups, surfaced by `GET /api/v1/meta/features` and the Features screen.
 
+### Documentation
+
+- **Three new reference documents** bring the set from twenty to twenty-three:
+  - [docs/21_architecture_deep_dive.md](docs/21_architecture_deep_dive.md) — the design drivers, and
+    for each significant decision what was chosen, what was *rejected*, why, and the measured
+    consequence; the full request lifecycle; warehouse layering; and a stated list of known
+    limitations rather than an implied absence of them.
+  - [docs/22_data_dictionary.md](docs/22_data_dictionary.md) — every table with every column, type,
+    nullability and meaning, the controlled vocabularies and magnitude bands, the view catalogue, and
+    the dialect-portability rules the schema obeys to load on both engines.
+  - [docs/23_glossary_and_faq.md](docs/23_glossary_and_faq.md) — the vocabulary defined, then the
+    questions that actually come up across setup, the pipeline, data quality, security and
+    development, including a six-step recipe for adding a source.
+- **A documentation website**, built by `scripts/build_site.py` using only the standard library:
+  one page per document, client-side search over a generated index, a dark mode that follows the
+  system preference, and all diagrams rendered. It is dependency-free by design — GitHub Pages does
+  not serve private repositories on the free plan, so a Pages workflow could never deploy here, while
+  a static directory works anywhere. Build with `make site`, preview with `make site-serve`.
+- **`SECURITY.md`** — a threat model with a control table for each trust boundary (web to ingestion,
+  user to API, API to warehouse), what is implemented today, and how to verify each claim yourself.
+- **`.github/CODE_OF_CONDUCT.md`** — Contributor Covenant 2.1 with a four-tier enforcement ladder.
+- **Issue and pull request templates** — bug, feature and documentation forms plus a PR template
+  carrying the reminders that actually matter here: keep robots enforcement in the transport layer,
+  keep SQL parameterised, and prove cross-dialect parity.
+- **`.github/dependabot.yml`** for pip, npm and GitHub Actions, and **`.github/CODEOWNERS`**.
+
+### Tooling
+
+Counts quoted in documentation used to be maintained by hand, which is how they drift. They are now
+measured from the code:
+
+- **`scripts/project_stats.py`** measures every structural figure — tables, views, routers, route
+  decorators, DQ rules, sources, tasks, stages, documents, diagrams, features, tests, smoke checks —
+  straight from the source tree, SQLAlchemy metadata and pytest collection.
+- **`scripts/check_stats.py`** compares those measurements against a committed snapshot
+  (`docs/stats.json`) and fails CI on any difference, printing exactly which figure moved and in which
+  direction.
+- **The README statistics block is generated** between `<!-- BEGIN:STATS -->` markers and verified in
+  CI, so it can never silently disagree with the code. The sync is idempotent: running it twice
+  changes nothing.
+
 ### Fixed
 
+- Two Mermaid diagrams genuinely failed to parse and were caught by the new diagram gate: a
+  semicolon inside a `sequenceDiagram` message, and an edge in `docs/22_data_dictionary.md` that
+  gave a node the same identifier as another node, producing a self-parenting cycle.
+- Three broken in-page anchors in `docs/19_feature_list.md`, where a hand-written table of contents
+  and its section headings had drifted apart on feature counts, plus six section headings whose
+  stated totals did not match the rows beneath them.
+- `slugify` now reproduces GitHub's `github-slugger` exactly. The previous approximation collapsed
+  the double hyphen an em-dash leaves behind, so every such in-document link was broken in the built
+  site while still working on GitHub. Verified against the reference implementation across 24 cases,
+  including multiple spaces, underscores, leading and trailing hyphens, and non-ASCII headings, and
+  pinned by `scripts/check_slugify.py`.
 - Test-suite robustness: the table-count assertion now derives from the ORM instead of a hard-coded
   number, and the audit-isolation test compares identities rather than totals, which had made it
   order-dependent and therefore flaky.
