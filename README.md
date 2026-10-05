@@ -8,9 +8,9 @@
   <img src="https://img.shields.io/badge/MySQL-8.4-4479A1?logo=mysql&logoColor=white" alt="MySQL 8.4"/>
   <img src="https://img.shields.io/badge/Airflow-2.10-017CEE?logo=apacheairflow&logoColor=white" alt="Airflow"/>
   <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker Compose"/>
-  <img src="https://img.shields.io/badge/tables-23-informational" alt="Tables"/>
+  <img src="https://img.shields.io/badge/tables-25-informational" alt="Tables"/>
   <img src="https://img.shields.io/badge/views-20-informational" alt="Views"/>
-  <img src="https://img.shields.io/badge/REST%20operations-110-success" alt="REST operations"/>
+  <img src="https://img.shields.io/badge/REST%20operations-128-success" alt="REST operations"/>
   <img src="https://img.shields.io/badge/DQ%20rules-12-success" alt="Data quality rules"/>
   <img src="https://img.shields.io/badge/unit%20tests-321%20passing-brightgreen" alt="Tests"/>
   <img src="https://img.shields.io/badge/API%20smoke-86%2F86-brightgreen" alt="API smoke"/>
@@ -1118,7 +1118,7 @@ All configuration arrives through environment variables (`.env.example` document
 | **Sources** | registry cards with compliance metadata, robots.txt statistics, raw-versus-cleaned preview |
 | **Query Lab** | read-only SQL console over the 20 views, table inventory, starter examples, CSV export |
 | **Builder** | two modes: *filter & customise* (facets, columns, order, saved presets) and *group & aggregate* (11 entities, six measures, fifteen operators, bar chart, generated SQL, cURL copy, exports) |
-| **Features** | searchable, filterable catalogue of all 118 catalogued features in 13 areas, each with an icon and copy-to-clipboard |
+| **Features** | searchable, filterable catalogue of all 118 catalogued features in 15 areas, each with an icon and copy-to-clipboard |
 | **Alerts** | alert rules with thresholds and channels, notification feed, evaluate action |
 | **Account** | profile, preferences, appearance (theme, accent, density, motion), password change, API keys, **personal activity feed**, **data export**, **account deletion** |
 | **Settings / Users / Audit** | admin-only: global settings, role management, audit trail and HTTP evidence |
@@ -1277,12 +1277,12 @@ natively on GitHub; every structural number is tied to a runnable command.
 | 06 | Literature Review | six themes, 39 verified sources, synthesis, research gaps |
 | 07 | Requirements Gathering | stakeholders, 10 user stories, 20 use cases, 58 FRs, 26 NFRs, traceability |
 | 08 | System Analysis and Design | use-case diagram, architecture diagram, style and rationale |
-| 09 | Database Design | generated 23-table ERD, logical versus physical schema, indexing, retention |
+| 09 | Database Design | generated 25-table ERD, logical versus physical schema, indexing, retention |
 | 10 | Data Flow Diagrams | context and detailed DFDs, data dictionary, control flows |
 | 11 | Behaviour Diagrams | sequence, activity, three state diagrams, class diagram |
 | 12 | UI/UX Design | 12 screen wireframes, design system with contrast ratios, WCAG 2.1 AA |
 | 13 | Deployment | stack, deployment and component diagrams, environment matrix, CI/CD, backups |
-| 14 | API Documentation | auth flow, role matrix, all 110 operations, worked examples |
+| 14 | API Documentation | auth flow, role matrix, all 128 operations, worked examples |
 | 15 | Testing Strategy | test pyramid, 100-case plan, UAT, coverage targets, quality gates |
 | 16 | User Manual | sign-in, every screen, filters, exports, alerts, admin, troubleshooting, FAQ |
 | 17 | Technical Documentation | module map, four key algorithms, every configuration variable |
@@ -1366,9 +1366,9 @@ published on GitHub.
 
 ### What's new in v1.3
 
-- **Feature catalogue** — `GET /meta/features` plus a `/features` screen render all 95 shipped
-  capabilities from `app/core/features.py`, so the API, the UI and the documentation describe exactly
-  the same system.
+- **Feature catalogue** — `GET /meta/features` plus a `/features` screen render the 118 shipped
+  capabilities in 15 areas from `app/core/features.py`, so the API, the UI and the documentation
+  describe exactly the same system.
 - **Aggregate builder** — a structured query surface with group-by, six aggregate functions and
   fifteen filter operators over eleven entities, assembled from a server-side whitelist into a
   parameterised `SELECT`. Results render as a table or a bar chart, with the generated SQL and a

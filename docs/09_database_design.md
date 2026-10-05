@@ -3,7 +3,7 @@
 ## Purpose
 
 This document is the database design of the Web-to-Warehouse Product Intelligence Pipeline. It
-presents the entity-relationship diagram for all 23 physical tables with real columns, keys and
+presents the entity-relationship diagram for all 25 physical tables with real columns, keys and
 cardinalities; the logical versus physical schema; the normalisation argument (3NF for the
 dimensions, deliberate denormalisation inside the facts); the indexing, partitioning and retention
 strategy; and the per-dialect data-type mapping that keeps PostgreSQL and MySQL in agreement.
@@ -46,7 +46,7 @@ Every column, key, index and constraint in this document is generated from the S
 
 ## 2. Table inventory
 
-23 physical tables in 6 logical groups (the grouping is also exposed by the API at
+25 physical tables in 6 logical groups (the grouping is also exposed by the API at
 `GET /api/v1/meta/tables`).
 
 | Group | Count | Tables |

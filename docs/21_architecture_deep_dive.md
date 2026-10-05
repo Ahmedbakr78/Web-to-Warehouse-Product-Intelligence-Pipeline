@@ -52,7 +52,7 @@ flowchart TB
     end
 
     subgraph DATA["Data plane — app/models"]
-        WH[("23 tables · 20 views")]
+        WH[("25 tables · 20 views")]
     end
 
     WEB --> HTTP
@@ -161,7 +161,7 @@ flowchart LR
         S1["Seeded PRNG, fixed date"] --> S2["Identical output every time"]
         S2 --> S3["Same charts, same numbers, every rehearsal"]
     end
-    Live -.both write the same.-> WH[("23 tables")]
+    Live -.both write the same.-> WH[("25 tables")]
     Seeded -.schema and DQ.-> WH
 ```
 

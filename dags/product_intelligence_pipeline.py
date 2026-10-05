@@ -96,19 +96,33 @@ API_URL = os.environ.get("PIPELINE_API_URL", "http://api:8000/api/v1").rstrip("/
 API_KEY = os.environ.get("PIPELINE_SERVICE_KEY", "")
 
 
+_HTTP_CLIENT: Any = None
+
+
+def _client() -> Any:
+    """One shared HTTP client for the whole task run.
+
+    Previously every REST call opened (and closed) its own client, so a task making
+    three fallback calls paid three TCP handshakes and three TLS setups.
+    """
+    global _HTTP_CLIENT
+    if _HTTP_CLIENT is None:
+        import httpx
+
+        _HTTP_CLIENT = httpx.Client(timeout=180.0)
+    return _HTTP_CLIENT
+
+
 def _api(method: str, path: str, **kwargs: Any) -> Any:
     """Call the pipeline REST API with the service credentials."""
-    import httpx
-
     headers = {"Accept": "application/json"}
     if API_KEY:
         headers["Authorization"] = f"Bearer {API_KEY}"
-    with httpx.Client(timeout=180.0) as client:
-        response = client.request(method, f"{API_URL}{path}", headers=headers, **kwargs)
-        response.raise_for_status()
-        if response.headers.get("content-type", "").startswith("application/json"):
-            return response.json()
-        return response.text
+    response = _client().request(method, f"{API_URL}{path}", headers=headers, **kwargs)
+    response.raise_for_status()
+    if response.headers.get("content-type", "").startswith("application/json"):
+        return response.json()
+    return response.text
 
 
 def call_pipeline(local_callable: Any, api_path: str, *, method: str = "GET", **api_kwargs: Any) -> Any:

@@ -230,6 +230,24 @@ site-serve: ## Build the documentation website and serve it on :8001
 site-clean: ## Remove the built website
 	rm -rf site
 
+.PHONY: stats
+stats: ## Print the measured structural counts (tables, routes, tests, diagrams)
+	$(PYBIN) scripts/project_stats.py
+
+.PHONY: stats-check
+stats-check: ## Fail if a documented structural figure no longer matches reality
+	$(PYBIN) scripts/check_stats.py docs/stats.json
+
+.PHONY: stats-update
+stats-update: ## Re-measure and rewrite docs/stats.json (run after updating the prose)
+	$(PYBIN) scripts/check_stats.py docs/stats.json --write
+
+.PHONY: docs-check
+docs-check: docs-validate stats-check ## Validate diagrams and check documentation figures
+	$(PYBIN) scripts/build_site.py --out /tmp/pip-site-check
+	$(PYBIN) scripts/check_links.py /tmp/pip-site-check
+	$(PYBIN) scripts/check_slugify.py
+
 .PHONY: infographic
 infographic: ## Generate the DEPI project roadmap infographic (HTML + PNG)
 	$(PYBIN) scripts/make_infographic.py

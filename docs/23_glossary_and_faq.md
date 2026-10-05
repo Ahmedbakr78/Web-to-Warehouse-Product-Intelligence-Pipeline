@@ -508,7 +508,7 @@ to run on every save.
 ### Why do the docs quote specific numbers?
 
 Because each one is reproducible. 321 tests comes from `make test`, 78 smoke checks from
-`scripts/api_smoke.py`, 23 tables and 20 views from `make bootstrap`, and the DQ score from the
+`scripts/api_smoke.py`, 25 tables and 20 views from `make bootstrap`, and the DQ score from the
 Quality screen. A number nobody can reproduce is a number nobody should trust.
 
 ### How do I render the diagrams as SVG?

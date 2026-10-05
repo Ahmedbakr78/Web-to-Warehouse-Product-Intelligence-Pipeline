@@ -15,7 +15,7 @@ the command cited beside it.
 | 06 | [Literature Review](06_literature_review.md) | Six themes, 39 sources with verification status, synthesis and research gaps |
 | 07 | [Requirements Gathering](07_requirements_gathering.md) | Stakeholders, 10 user stories with Given/When/Then, 20 use cases, 58 FRs, 26 NFRs, traceability |
 | 08 | [System Analysis and Design](08_system_analysis_design.md) | Use-case diagram, architecture diagram, style and rationale |
-| 09 | [Database Design](09_database_design.md) | Generated 23-table ERD, logical versus physical schema, normalisation, indexing, retention, dialect types |
+| 09 | [Database Design](09_database_design.md) | Generated 25-table ERD, logical versus physical schema, normalisation, indexing, retention, dialect types |
 | 10 | [Data Flow Diagrams](10_data_flow_diagrams.md) | Level 0/1/2 DFDs, data dictionary, control flows |
 | 11 | [Behaviour Diagrams](11_behaviour_diagrams.md) | Sequence, activity, three state diagrams, class diagram |
 | 12 | [UI/UX Design](12_ui_ux_design.md) | 12 screen wireframes, design system with contrast ratios, WCAG 2.1 AA, breakpoints, motion policy |
@@ -39,7 +39,7 @@ Structural figures are exact and re-verifiable:
 
 | Claim | Verify with |
 | --- | --- |
-| 23 tables, 20 views | `make bootstrap` |
+| 25 tables, 20 views | `make bootstrap` |
 | 113 REST operations in 16 routers | `http://localhost:8000/docs`, or count route decorators in `app/api/routers/` |
 | 321 tests pass | `make test` |
 | 78/78 API smoke checks | `.venv/bin/python scripts/api_smoke.py` |
@@ -70,7 +70,7 @@ the command that regenerates it is named alongside.
 ```bash
 make install && make env          # environment
 make up-db && make db-wait        # PostgreSQL 16 + MySQL 8.4
-make bootstrap                    # 23 tables + 20 views + reference data
+make bootstrap                    # 25 tables + 20 views + reference data
 make demo-postgres                # demo dataset
 make run-pipeline                 # one full pipeline run
 make verify-dialects              # cross-dialect verification
