@@ -121,6 +121,13 @@ class Settings(BaseSettings):
     log_dir: Path = VAR_DIR / "logs"
     artifacts_dir: Path = VAR_DIR / "artifacts"
 
+    # ---------------------------------------------------------------- background jobs
+    #: Run the in-process job worker thread. Disable in tests and in any process that
+    #: should enqueue work without consuming it (the worker will pick the jobs up later).
+    job_worker_enabled: bool = True
+    #: Claimed jobs whose lease expires are returned to the queue.
+    job_lease_seconds: int = 120
+
     # ---------------------------------------------------------------- validators
     @field_validator("db_schema")
     @classmethod

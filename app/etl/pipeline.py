@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import datetime as dt
 import time
+from collections.abc import Callable
 import uuid
 from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
@@ -140,9 +141,16 @@ class PipelineResult:
 class Pipeline:
     """Executable pipeline. ``Pipeline(config).run()`` returns a :class:`PipelineResult`."""
 
-    def __init__(self, config: PipelineConfig | None = None) -> None:
+    def __init__(
+        self,
+        config: PipelineConfig | None = None,
+        on_stage: Callable[[str, str], None] | None = None,
+    ) -> None:
         self.config = config or PipelineConfig()
         self.result: PipelineResult | None = None
+        #: Optional progress callback ``(stage, detail) -> None``. The job runner uses
+        #: it to stream live progress; the CLI and tests ignore it.
+        self.on_stage = on_stage
 
     # ------------------------------------------------------------------ context
     @contextmanager
@@ -157,6 +165,8 @@ class Pipeline:
             self.result.timings.append(
                 StageTiming(name, elapsed, int(meta.get("rows", 0)), meta.get("detail", ""))
             )
+            if self.on_stage is not None:
+                self.on_stage(name, str(meta.get("detail", "")))
 
     def _run_row(self, session: Session) -> EtlRun:
         run_id = self.result.run_id  # type: ignore[union-attr]

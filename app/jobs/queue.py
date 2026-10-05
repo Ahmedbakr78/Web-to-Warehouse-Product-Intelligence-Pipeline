@@ -42,12 +42,15 @@ from app.models.app_users import AppJob, AppJobEvent
 
 log = get_logger(__name__)
 
-#: How long a worker may hold a job before another worker may reclaim it.
-LEASE_SECONDS = 120
 #: How often a running worker extends its lease.
 HEARTBEAT_SECONDS = 15
 #: Idle poll interval for the worker loop.
 POLL_SECONDS = 1.0
+
+
+def lease_seconds() -> int:
+    """Lease duration, configurable via ``JOB_LEASE_SECONDS``."""
+    return max(10, int(settings.job_lease_seconds))
 
 #: Jobs that can be cancelled cooperatively, checked between units of work.
 CANCELLABLE = frozenset({"pipeline_run", "backfill", "export", "forecast"})
@@ -290,7 +293,7 @@ def claim_next(database: str | None, owner: str) -> AppJob | None:
             .values(
                 status="running",
                 lease_owner=owner,
-                lease_expires_at=now + dt.timedelta(seconds=LEASE_SECONDS),
+                lease_expires_at=now + dt.timedelta(seconds=lease_seconds()),
                 heartbeat_at=now,
                 started_at=candidate.started_at or now,
                 attempt=AppJob.attempt + 1,
@@ -358,7 +361,7 @@ def _heartbeat(job_id: int, database: str | None) -> None:
             session.execute(
                 sa.update(AppJob)
                 .where(AppJob.job_id == job_id, AppJob.status == "running")
-                .values(heartbeat_at=now, lease_expires_at=now + dt.timedelta(seconds=LEASE_SECONDS))
+                .values(heartbeat_at=now, lease_expires_at=now + dt.timedelta(seconds=lease_seconds()))
             )
     except Exception as exc:  # noqa: BLE001 - heartbeats are best-effort
         log.debug("heartbeat for job %s failed: %s", job_id, exc)
@@ -493,7 +496,7 @@ def worker_status() -> dict[str, Any]:
         "running": bool(worker and worker.running),
         "owner": worker.owner if worker else None,
         "cancellable_types": sorted(CANCELLABLE),
-        "lease_seconds": LEASE_SECONDS,
+        "lease_seconds": lease_seconds(),
     }
 
 
