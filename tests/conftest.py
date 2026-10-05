@@ -37,8 +37,13 @@ def database() -> str:
     path = Path(TEST_DATABASE.replace("sqlite:///", ""))
     if target == "sqlite":
         path.parent.mkdir(parents=True, exist_ok=True)
-        if path.exists():
-            path.unlink()
+        # Remove the database AND its WAL sidecars. A stale -wal / -shm pair left
+        # behind by an interrupted run makes the next session fail with
+        # "disk I/O error" on the first PRAGMA.
+        for suffix in ("", "-wal", "-shm"):
+            candidate = Path(f"{path}{suffix}")
+            if candidate.exists():
+                candidate.unlink()
     bootstrap(target)
     run_full_seed(target, days=30)
     yield target

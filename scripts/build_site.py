@@ -169,10 +169,27 @@ class Rendered:
 
 
 def slugify(text: str) -> str:
-    """GitHub-compatible heading anchor."""
-    slug = text.strip().lower()
+    """Heading anchor, reproducing GitHub's ``github-slugger`` exactly.
+
+    The documents link to their own headings with hand-written anchors, so an
+    approximation is not good enough -- a mismatch silently breaks every in-page
+    link. The algorithm below was verified case-for-case against the
+    ``github-slugger`` package GitHub itself uses, including the awkward parts:
+
+    * whitespace is replaced **one character at a time**, not collapsed, so three
+      spaces become three hyphens (``multiple---spaces``);
+    * removed punctuation leaves the hyphens it was sitting between, so
+      ``"sequence — one"`` keeps the **double** hyphen;
+    * underscores survive, because they are word characters;
+    * nothing is stripped at any stage: ``"  spaced  "`` becomes ``--spaced--``
+      and ``"!!!bang!!!"`` becomes ``bang``.
+
+    ``scripts/check_slugify.py`` re-verifies this against the reference
+    implementation; do not "tidy" this without running it.
+    """
+    slug = text.lower()
     slug = re.sub(r"[^\w\s-]", "", slug, flags=re.UNICODE)
-    return re.sub(r"[\s_]+", "-", slug).strip("-")
+    return re.sub(r"\s", "-", slug)
 
 
 def _rewrite_href(url: str) -> str:
