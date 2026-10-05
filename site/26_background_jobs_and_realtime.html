@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Leases, retries, cancellation, SSE and the cross-worker problem">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Background Jobs &amp; Realtime — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Leases, retries, cancellation, SSE and the cross-worker problem">
+<title>Background Jobs &amp; Realtime — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="28-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, 173 operations, worked examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, measured counts, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="Every feature with the file that implements it">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+<a href="24_demo_runbook.html" title="Screen-by-screen live demo script and failure playbook">Demo Runbook</a>
+<a href="25_forecasting_and_anomaly_detection.html" title="Damped Holt-Winters, measured accuracy, three detectors, pricing advice">Forecasting &amp; Anomalies</a>
+<a href="26_background_jobs_and_realtime.html" class="active" title="Leases, retries, cancellation, SSE and the cross-worker problem">Background Jobs &amp; Realtime</a>
+<a href="27_reporting_and_document_generation.html" title="Typed blocks rendered to HTML, JSON, CSV and PDF from one definition">Reporting &amp; Documents</a>
+<a href="28_schema_and_migrations.html" title="Alembic, drift detection, views, Airflow isolation">Schema &amp; Migrations</a>
+<a href="29_two_factor_and_sessions.html" title="TOTP enrolment, recovery codes, per-device revocation">Two-Factor &amp; Sessions</a>
+<a href="30_access_control_and_rate_limiting.html" title="Roles, rights, API-key scopes, sliding-window rate limiting">Access Control &amp; Limits</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Background Jobs &amp; Realtime</h1>
+      <p>Leases, retries, cancellation, SSE and the cross-worker problem</p>
+    </div>
+    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#1-why-a-queue-at-all">1. Why a queue at all</a></li><li class="lvl-2"><a href="#2-job-lifecycle">2. Job lifecycle</a></li><li class="lvl-3"><a href="#leases-not-locks">Leases, not locks</a></li><li class="lvl-3"><a href="#retry">Retry</a></li><li class="lvl-3"><a href="#progress">Progress</a></li><li class="lvl-2"><a href="#3-registered-job-types">3. Registered job types</a></li><li class="lvl-2"><a href="#4-job-api">4. Job API</a></li><li class="lvl-2"><a href="#5-realtime-sse-first-websocket-second">5. Realtime: SSE first, WebSocket second</a></li><li class="lvl-3"><a href="#the-two-worker-problem">The two-worker problem</a></li><li class="lvl-3"><a href="#streaming-details-that-matter">Streaming details that matter</a></li><li class="lvl-3"><a href="#authentication-and-the-eventsource-problem">Authentication, and the EventSource problem</a></li><li class="lvl-2"><a href="#6-client-contract">6. Client contract</a></li><li class="lvl-2"><a href="#7-failure-modes-considered">7. Failure modes considered</a></li><li class="lvl-2"><a href="#related">Related</a></li></ol></details>
+    <article class="doc-body">
+<p>Two mechanisms that keep slow work off the request thread and keep the UI current without polling. Implemented in <a href="../app/jobs"><code>app/jobs/</code></a>, <a href="../app/services/realtime.py"><code>app/services/realtime.py</code></a> and <a href="../app/api/routers/stream.py"><code>app/api/routers/stream.py</code></a>.</p>
+<hr>
+<h2 id="1-why-a-queue-at-all">1. Why a queue at all</h2>
+<p>A backfill, a full forecast rebuild or a PDF render takes seconds to minutes. Three things follow from that:</p>
+<ul>
+<li class="depth-0">A synchronous <code>POST</code> would hold an HTTP connection open for minutes, which</li>
+</ul>
+<p>proxies, load balancers and browser timeouts all punish.</p>
+<ul>
+<li class="depth-0">Progress has to be reported somehow, or the user clicks a button and watches</li>
+</ul>
+<p>a spinner they cannot trust.</p>
+<ul>
+<li class="depth-0">If the process dies mid-work, the work is lost.</li>
+</ul>
+<p>So every long operation becomes a <strong>job</strong>: a row in <code>app_jobs</code>, with a status, an attempt budget, a lease, and an append-only progress log in <code>app_job_events</code>.</p>
+<hr>
+<h2 id="2-job-lifecycle">2. Job lifecycle</h2>
+<pre class="mermaid">stateDiagram-v2
+    [*] --&gt; queued: enqueue
+    queued --&gt; running: worker claims + leases
+    running --&gt; succeeded: handler returns
+    running --&gt; failed: handler raises, attempts left
+    running --&gt; cancelled: cancellation requested
+    failed --&gt; queued: retry requested
+    failed --&gt; [*]
+    succeeded --&gt; [*]
+    cancelled --&gt; [*]</pre>
+<div class='table-scroll'><table><thead><tr>
+<th>Status</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>queued</code></th>
+<td>Waiting for a worker</td>
+</tr>
+<tr>
+<th><code>running</code></th>
+<td>Leased by a worker, heartbeating</td>
+</tr>
+<tr>
+<th><code>succeeded</code></th>
+<td>Finished; progress ends at 100%</td>
+</tr>
+<tr>
+<th><code>failed</code></th>
+<td>All attempts used; the last error is stored</td>
+</tr>
+<tr>
+<th><code>cancelled</code></th>
+<td>Stopped cooperatively at a checkpoint</td>
+</tr>
+</tbody></table></div>
+<h3 id="leases-not-locks">Leases, not locks</h3>
+<p>A worker claims a job by setting <code>lease_expires_at</code> and bumping the attempt counter, then renews that lease while it works. If the worker is killed, the lease simply expires and the job becomes claimable again. Nothing needs to know that a process died; time is the only coordination primitive.</p>
+<h3 id="retry">Retry</h3>
+<p>Retries are bounded by <code>max_attempts</code>, default 3. The last exception message is stored on the row rather than only in a log file, so the UI can show <em>why</em> a job failed without anyone opening a terminal.</p>
+<h3 id="progress">Progress</h3>
+<p>Every step publishes <code>stage</code>, <code>message</code> and <code>progress</code>. On SQLite those writes are coalesced: SQLite serialises writers with a file lock, so flushing every event would let the database stall the very worker producing them. On PostgreSQL the writes go straight through.</p>
+<hr>
+<h2 id="3-registered-job-types">3. Registered job types</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Type</th>
+<th>Trigger</th>
+<th>Cancellable</th>
+</tr></thead><tbody>
+<tr>
+<th><code>pipeline-run</code></th>
+<td><code>POST /pipeline/run</code>, <code>/jobs/pipeline-run</code></td>
+<td>Yes</td>
+</tr>
+<tr>
+<th><code>backfill</code></th>
+<td><code>POST /pipeline/backfill</code></td>
+<td>Yes</td>
+</tr>
+<tr>
+<th><code>export</code></th>
+<td><code>POST /jobs/export</code></td>
+<td>Yes</td>
+</tr>
+<tr>
+<th><code>forecast</code></th>
+<td><code>POST /forecast/rebuild</code></td>
+<td>Yes</td>
+</tr>
+<tr>
+<th><code>aggregate</code></th>
+<td><code>POST /aggregates/rebuild</code></td>
+<td>Yes</td>
+</tr>
+<tr>
+<th><code>report_pdf</code></th>
+<td><code>POST /reports/{template}/queue</code></td>
+<td>Yes</td>
+</tr>
+</tbody></table></div>
+<p>Each handler receives <code>(job, progress)</code> where <code>progress(stage, message, percent)</code> is the only way it reports back. Handlers therefore cannot silently swallow a failure: the queue owns the state transition.</p>
+<hr>
+<h2 id="4-job-api">4. Job API</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+</tr></thead><tbody>
+<tr>
+<th><code>GET</code></th>
+<td><code>/api/v1/jobs</code></td>
+<td>Job history; a non-admin sees only their own</td>
+</tr>
+<tr>
+<th><code>GET</code></th>
+<td><code>/api/v1/jobs/{reference}</code></td>
+<td>Status, attempts, lease, error, full progress log</td>
+</tr>
+<tr>
+<th><code>GET</code></th>
+<td><code>/api/v1/jobs/{reference}/events</code></td>
+<td>Progress events after an id, for polling or replay</td>
+</tr>
+<tr>
+<th><code>GET</code></th>
+<td><code>/api/v1/jobs/worker</code></td>
+<td>Queue depth, running count, lease age</td>
+</tr>
+<tr>
+<th><code>GET</code></th>
+<td><code>/api/v1/jobs/types</code></td>
+<td>Registered types and which are cancellable</td>
+</tr>
+<tr>
+<th><code>POST</code></th>
+<td><code>/api/v1/jobs/{reference}/cancel</code></td>
+<td>Cooperative cancellation</td>
+</tr>
+<tr>
+<th><code>POST</code></th>
+<td><code>/api/v1/jobs/{reference}/retry</code></td>
+<td>Re-queue a failed or cancelled job</td>
+</tr>
+<tr>
+<th><code>GET</code></th>
+<td><code>/api/v1/jobs/stream/jobs</code></td>
+<td>SSE: live job progress</td>
+</tr>
+</tbody></table></div>
+<p>A non-admin listing their own jobs is enforced in the query itself (<code>requested_by = user_id</code>), not by filtering after the fact.</p>
+<hr>
+<h2 id="5-realtime-sse-first-websocket-second">5. Realtime: SSE first, WebSocket second</h2>
+<p>The platform publishes on six topics: <code>run</code>, <code>job</code>, <code>kpi</code>, <code>change</code>, <code>quality</code> and <code>notification</code>.</p>
+<pre class="mermaid">sequenceDiagram
+    participant Job as Job worker
+    participant Broker as In-process broker
+    participant DB as app_job_events
+    participant SSE as SSE response
+    participant UI as Browser
+    Job-&gt;&gt;Broker: publish(job topic)
+    Broker--&gt;&gt;SSE: immediate frame (same worker)
+    Job-&gt;&gt;DB: persist progress event
+    loop every poll interval
+        SSE-&gt;&gt;DB: read events newer than the last id
+    end
+    DB--&gt;&gt;SSE: frames from any worker
+    SSE--&gt;&gt;UI: text/event-stream</pre>
+<h3 id="the-two-worker-problem">The two-worker problem</h3>
+<p>Uvicorn runs more than one worker, and a process-local broker only sees events published <em>in that process</em>. A job executed by worker 2 would be invisible to a client connected to worker 1.</p>
+<p>So each SSE response merges two sources:</p>
+<ul>
+<li class="depth-0">the in-memory broker, for immediacy, and</li>
+<li class="depth-0">a poll of <code>app_job_events</code>, for cross-worker completeness.</li>
+</ul>
+<p><code>Last-Event-ID</code> is honoured, so a reconnect resumes where it left off instead of replaying everything.</p>
+<h3 id="streaming-details-that-matter">Streaming details that matter</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Detail</th>
+<th>Why</th>
+</tr></thead><tbody>
+<tr>
+<th><code>X-Accel-Buffering: no</code></th>
+<td>Without it nginx buffers and nothing arrives until the stream closes</td>
+</tr>
+<tr>
+<td><code>Cache-Control: no-cache, no-transform</code></td>
+<td>Stops proxies transforming the stream</td>
+</tr>
+<tr>
+<th>Keep-alive comments</th>
+<td>Holds the connection open between events</td>
+</tr>
+<tr>
+<th>Bounded client buffer</th>
+<td>A chatty topic cannot grow the browser's array without limit</td>
+</tr>
+<tr>
+<td>Capped exponential backoff</td>
+<td>A server restart is not hammered on reconnect</td>
+</tr>
+</tbody></table></div>
+<h3 id="authentication-and-the-eventsource-problem">Authentication, and the <code>EventSource</code> problem</h3>
+<p><code>EventSource</code> cannot set an <code>Authorization</code> header. The browser can only authenticate by putting the credential in the query string.</p>
+<p>That is normally a bad idea — query strings end up in access logs — so it is accepted <strong>only</strong> on the SSE routes and <strong>only</strong> as a fallback for the header. The dependency in <code>app/api/deps.py::stream_user</code> applies exactly the same role and API-key scope checks as any other read, so the transport widens and the permissions do not.</p>
+<pre class="code" data-lang="python"><code># Header wins when both are present, so a header-based client cannot be
+# downgraded to a query credential.
+if credentials is None and token:
+    credentials = HTTPAuthorizationCredentials(scheme=&quot;Bearer&quot;, credentials=token)</code></pre>
+<p>The header path remains the default and is fully supported: <code>curl -N</code> and any non-browser client should keep using it.</p>
+<hr>
+<h2 id="6-client-contract">6. Client contract</h2>
+<p><a href="../frontend/src/lib/stream.ts"><code>frontend/src/lib/stream.ts</code></a> wraps both transports:</p>
+<pre class="code" data-lang="ts"><code>const { state, events, latest } = useEventStream([&#x27;job&#x27;], {
+  onEvent: (event) =&gt; applyProgress(event),
+})</code></pre>
+<p><code>state</code> is <code>connecting | open | closed | error</code>, which the jobs screen turns into a <strong>Live / Connecting / Polling</strong> badge. If the stream cannot connect at all, the screen still works — it falls back to polling the job endpoint, so realtime is an enhancement and never a dependency.</p>
+<hr>
+<h2 id="7-failure-modes-considered">7. Failure modes considered</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Failure</th>
+<th>Behaviour</th>
+</tr></thead><tbody>
+<tr>
+<th>Worker killed mid-job</th>
+<td>Lease expires, job is reclaimed, attempt count increments</td>
+</tr>
+<tr>
+<th>Handler raises</th>
+<td>Error stored on the row, retried up to the budget, then <code>failed</code></td>
+</tr>
+<tr>
+<td>Cancel during a long step</td>
+<td>Honoured at the next <code>progress()</code> checkpoint</td>
+</tr>
+<tr>
+<th>API restarted</th>
+<td>Jobs are rows; they are picked up again on the next poll</td>
+</tr>
+<tr>
+<th>Broker subscriber gone</th>
+<td>Frame write fails, the subscriber is dropped, the client reconnects</td>
+</tr>
+<tr>
+<th>SQLite lock contention</th>
+<td>Progress writes coalesced so the worker is not blocked</td>
+</tr>
+<tr>
+<th>Two API workers</th>
+<td>Database poll delivers the other worker's events</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="related">Related</h2>
+<ul>
+<li class="depth-0"><a href="27_reporting_and_document_generation.html">27_reporting_and_document_generation.md</a> — the PDF path that most needs a queue</li>
+<li class="depth-0"><a href="17_technical_documentation.html">17_technical_documentation.md</a> — handler registration and configuration</li>
+<li class="depth-0"><a href="13_deployment.html">13_deployment.md</a> — worker scaling and what a single worker means</li>
+<li class="depth-0"><a href="15_testing_strategy.html">15_testing_strategy.md</a> — lease, retry and cancellation tests</li>
+</ul>
+    </article>
+    <div class="doc-foot">
+      <span><a href="25_forecasting_and_anomaly_detection.html">← Forecasting & Anomalies</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="27_reporting_and_document_generation.html">Reporting & Documents →</a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

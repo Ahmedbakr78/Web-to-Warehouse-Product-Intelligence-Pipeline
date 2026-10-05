@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="23-table ERD, indexing, retention">
+<meta name="description" content="28-table ERD, indexing, retention">
 <meta name="color-scheme" content="light dark">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Database Design — Web-to-Warehouse Product Intelligence Pipeline">
-<meta property="og:description" content="23-table ERD, indexing, retention">
+<meta property="og:description" content="28-table ERD, indexing, retention">
 <title>Database Design — Web-to-Warehouse Product Intelligence Pipeline</title>
 <link rel="stylesheet" href="assets/site.css">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
@@ -43,27 +43,33 @@
 <a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
 <div class="nav-group-title">Design</div>
 <a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
-<a href="09_database_design.html" class="active" title="23-table ERD, indexing, retention">Database Design</a>
+<a href="09_database_design.html" class="active" title="28-table ERD, indexing, retention">Database Design</a>
 <a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
 <a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
 <a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
 <a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
 <div class="nav-group-title">Build and operate</div>
-<a href="14_api_documentation.html" title="Auth, roles, all 113 operations, examples">API Documentation</a>
-<a href="15_testing_strategy.html" title="Test pyramid, 100-case plan, quality gates">Testing Strategy</a>
+<a href="14_api_documentation.html" title="Auth, roles, 173 operations, worked examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, measured counts, quality gates">Testing Strategy</a>
 <a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
 <a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
 <a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
-<a href="19_feature_list.html" title="234 features with file references">Feature Inventory</a>
+<a href="19_feature_list.html" title="Every feature with the file that implements it">Feature Inventory</a>
 <a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
 <a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
 <a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
 <a href="24_demo_runbook.html" title="Screen-by-screen live demo script and failure playbook">Demo Runbook</a>
+<a href="25_forecasting_and_anomaly_detection.html" title="Damped Holt-Winters, measured accuracy, three detectors, pricing advice">Forecasting &amp; Anomalies</a>
+<a href="26_background_jobs_and_realtime.html" title="Leases, retries, cancellation, SSE and the cross-worker problem">Background Jobs &amp; Realtime</a>
+<a href="27_reporting_and_document_generation.html" title="Typed blocks rendered to HTML, JSON, CSV and PDF from one definition">Reporting &amp; Documents</a>
+<a href="28_schema_and_migrations.html" title="Alembic, drift detection, views, Airflow isolation">Schema &amp; Migrations</a>
+<a href="29_two_factor_and_sessions.html" title="TOTP enrolment, recovery codes, per-device revocation">Two-Factor &amp; Sessions</a>
+<a href="30_access_control_and_rate_limiting.html" title="Roles, rights, API-key scopes, sliding-window rate limiting">Access Control &amp; Limits</a>
   </nav>
   <main class="content">
     <div class="doc-head">
       <h1>Database Design</h1>
-      <p>23-table ERD, indexing, retention</p>
+      <p>28-table ERD, indexing, retention</p>
     </div>
     <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#table-of-contents">Table of contents</a></li><li class="lvl-2"><a href="#1-design-goals">1. Design goals</a></li><li class="lvl-2"><a href="#2-table-inventory">2. Table inventory</a></li><li class="lvl-2"><a href="#3-entity-relationship-diagram">3. Entity-relationship diagram</a></li><li class="lvl-3"><a href="#31-analytical-and-operational-core-16-tables">3.1 Analytical and operational core (16 tables)</a></li><li class="lvl-3"><a href="#32-application-and-security-tables-7-tables">3.2 Application and security tables (7 tables)</a></li><li class="lvl-3"><a href="#33-cardinality-legend">3.3 Cardinality legend</a></li><li class="lvl-2"><a href="#4-logical-versus-physical-schema">4. Logical versus physical schema</a></li><li class="lvl-3"><a href="#41-logical-to-physical-mapping-example">4.1 Logical-to-physical mapping example</a></li><li class="lvl-2"><a href="#5-normalisation">5. Normalisation</a></li><li class="lvl-3"><a href="#51-dimensions-are-in-third-normal-form">5.1 Dimensions are in third normal form</a></li><li class="lvl-3"><a href="#52-where-the-model-is-deliberately-denormalised">5.2 Where the model is deliberately denormalised</a></li><li class="lvl-3"><a href="#53-functional-dependencies-informal">5.3 Functional dependencies (informal)</a></li><li class="lvl-2"><a href="#6-keys-constraints-and-referential-integrity">6. Keys, constraints and referential integrity</a></li><li class="lvl-3"><a href="#61-primary-and-alternate-keys">6.1 Primary and alternate keys</a></li><li class="lvl-3"><a href="#62-foreign-keys-18">6.2 Foreign keys (18)</a></li><li class="lvl-3"><a href="#63-business-integrity-enforced-in-application-code">6.3 Business integrity enforced in application code</a></li><li class="lvl-2"><a href="#7-indexing-strategy">7. Indexing strategy</a></li><li class="lvl-3"><a href="#71-declared-indexes-by-table">7.1 Declared indexes by table</a></li><li class="lvl-3"><a href="#72-index-count">7.2 Index count</a></li><li class="lvl-3"><a href="#73-query-to-index-alignment">7.3 Query-to-index alignment</a></li><li class="lvl-2"><a href="#8-partitioning-and-retention">8. Partitioning and retention</a></li><li class="lvl-3"><a href="#81-partitioning-strategy-design-not-yet-deployed">8.1 Partitioning strategy (design, not yet deployed)</a></li><li class="lvl-3"><a href="#82-retention-policy">8.2 Retention policy</a></li><li class="lvl-3"><a href="#83-growth-projection">8.3 Growth projection</a></li><li class="lvl-2"><a href="#9-data-types-per-dialect">9. Data types per dialect</a></li><li class="lvl-3"><a href="#91-type-mapping">9.1 Type mapping</a></li><li class="lvl-3"><a href="#92-why-these-choices">9.2 Why these choices</a></li><li class="lvl-2"><a href="#10-entity-catalogue">10. Entity catalogue</a></li><li class="lvl-3"><a href="#101-dim_product--canonical-product">10.1 dim_product — canonical product</a></li><li class="lvl-3"><a href="#102-dim_category--category-hierarchy">10.2 dim_category — category hierarchy</a></li><li class="lvl-3"><a href="#103-dim_date--calendar">10.3 dim_date — calendar</a></li><li class="lvl-3"><a href="#104-dim_source--permitted-source">10.4 dim_source — permitted source</a></li><li class="lvl-3"><a href="#105-dim_currency--currency-reference">10.5 dim_currency — currency reference</a></li><li class="lvl-3"><a href="#106-fact_price_snapshot--the-historical-price-table">10.6 fact_price_snapshot — the historical price table</a></li><li class="lvl-3"><a href="#107-fact_catalog_snapshot--scraped-versus-internal">10.7 fact_catalog_snapshot — scraped versus internal</a></li><li class="lvl-3"><a href="#108-chg_price_change--chg_product_event--the-event-ledger">10.8 chg_price_change / chg_product_event — the event ledger</a></li><li class="lvl-3"><a href="#109-agg_category_daily--materialised-aggregate">10.9 agg_category_daily — materialised aggregate</a></li><li class="lvl-3"><a href="#1010-operational-tables">10.10 Operational tables</a></li><li class="lvl-3"><a href="#1011-application-tables">10.11 Application tables</a></li><li class="lvl-2"><a href="#11-view-catalogue">11. View catalogue</a></li><li class="lvl-3"><a href="#111-portability-rules-observed-in-dbviewssql">11.1 Portability rules observed in db/views.sql</a></li><li class="lvl-3"><a href="#112-regenerating-the-erd">11.2 Regenerating the ERD</a></li></ol></details>
     <article class="doc-body">

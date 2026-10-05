@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="TOTP enrolment, recovery codes, per-device revocation">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Two-Factor &amp; Sessions — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="TOTP enrolment, recovery codes, per-device revocation">
+<title>Two-Factor &amp; Sessions — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="28-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, 173 operations, worked examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, measured counts, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="Every feature with the file that implements it">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+<a href="24_demo_runbook.html" title="Screen-by-screen live demo script and failure playbook">Demo Runbook</a>
+<a href="25_forecasting_and_anomaly_detection.html" title="Damped Holt-Winters, measured accuracy, three detectors, pricing advice">Forecasting &amp; Anomalies</a>
+<a href="26_background_jobs_and_realtime.html" title="Leases, retries, cancellation, SSE and the cross-worker problem">Background Jobs &amp; Realtime</a>
+<a href="27_reporting_and_document_generation.html" title="Typed blocks rendered to HTML, JSON, CSV and PDF from one definition">Reporting &amp; Documents</a>
+<a href="28_schema_and_migrations.html" title="Alembic, drift detection, views, Airflow isolation">Schema &amp; Migrations</a>
+<a href="29_two_factor_and_sessions.html" class="active" title="TOTP enrolment, recovery codes, per-device revocation">Two-Factor &amp; Sessions</a>
+<a href="30_access_control_and_rate_limiting.html" title="Roles, rights, API-key scopes, sliding-window rate limiting">Access Control &amp; Limits</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Two-Factor &amp; Sessions</h1>
+      <p>TOTP enrolment, recovery codes, per-device revocation</p>
+    </div>
+    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#1-the-threat-this-addresses">1. The threat this addresses</a></li><li class="lvl-2"><a href="#2-totp">2. TOTP</a></li><li class="lvl-3"><a href="#enrolment-is-two-step-on-purpose">Enrolment is two-step, on purpose</a></li><li class="lvl-3"><a href="#the-secret-is-encrypted-at-rest">The secret is encrypted at rest</a></li><li class="lvl-3"><a href="#recovery-codes-are-hashed">Recovery codes are hashed</a></li><li class="lvl-2"><a href="#3-lockout-and-the-case-that-contradicts-it">3. Lockout, and the case that contradicts it</a></li><li class="lvl-2"><a href="#4-sessions">4. Sessions</a></li><li class="lvl-3"><a href="#the-handle-has-to-survive-a-reload">The handle has to survive a reload</a></li><li class="lvl-2"><a href="#5-api">5. API</a></li><li class="lvl-2"><a href="#6-ui">6. UI</a></li><li class="lvl-2"><a href="#7-what-is-deliberately-absent">7. What is deliberately absent</a></li><li class="lvl-2"><a href="#related">Related</a></li></ol></details>
+    <article class="doc-body">
+<p>The account-security surface: a real TOTP second factor, real recovery codes, and sessions that can be revoked per device. Implemented in <a href="../app/services/twofactor.py"><code>app/services/twofactor.py</code></a>, <a href="../app/services/sessions.py"><code>app/services/sessions.py</code></a> and <a href="../app/api/routers/account.py"><code>app/api/routers/account.py</code></a>.</p>
+<hr>
+<h2 id="1-the-threat-this-addresses">1. The threat this addresses</h2>
+<p>A password leak is not a hypothetical. Phished credentials, reused passwords and a breached password store all end up in the same place. A second factor means a stolen password is not sufficient to sign in, which is the entire point — so the implementation has to be genuinely enforced rather than a checkbox.</p>
+<pre class="mermaid">sequenceDiagram
+    participant U as User
+    participant API
+    participant DB as app_users
+    U-&gt;&gt;API: POST /auth/login (email, password)
+    API-&gt;&gt;DB: verify Argon2id hash
+    alt password wrong
+        API--&gt;&gt;U: 401
+    else 2FA enabled
+        API--&gt;&gt;U: 401, mfa_required, totp challenge
+        U-&gt;&gt;API: POST /auth/login/2fa (challenge, code)
+        API-&gt;&gt;API: verify TOTP (±1 step) or recovery code
+        API--&gt;&gt;U: tokens + session handle
+    else 2FA not enabled
+        API--&gt;&gt;U: tokens + session handle
+    end</pre>
+<p>Note the ordering: the password is verified <strong>before</strong> a challenge is issued, so the challenge itself leaks nothing about which accounts exist.</p>
+<hr>
+<h2 id="2-totp">2. TOTP</h2>
+<p>RFC 6238, SHA-1, 30-second steps, six digits, with ±1 step of drift tolerated — which is what a phone whose clock has slipped by a few seconds needs.</p>
+<p>Compatible with Google Authenticator, Authy, 1Password, Bitwarden and anything else speaking <code>otpauth://</code>.</p>
+<h3 id="enrolment-is-two-step-on-purpose">Enrolment is two-step, on purpose</h3>
+<pre class="mermaid">flowchart TD
+  start[POST /account/2fa/setup] --&gt; secret[server returns secret + otpauth URI]
+  secret --&gt; scan[user scans QR or types the secret]
+  scan --&gt; code[user enters the current code]
+  code --&gt; verify{server verifies it}
+  verify --&gt;|wrong| retry[stay enrolled-nothing: nothing was enabled]
+  verify --&gt;|right| activate[POST /account/2fa/activate]
+  activate --&gt; store[encrypted secret stored]
+  store --&gt; codes[eight single-use recovery codes returned once]</pre>
+<p>Nothing is enabled until a real code is accepted. The alternative — enabling on setup and letting the user discover a typo later — is the standard way 2FA enrolment locks people out of their own accounts.</p>
+<h3 id="the-secret-is-encrypted-at-rest">The secret is encrypted at rest</h3>
+<p>The shared secret is the whole second factor. It is encrypted with Fernet before being stored, so a database dump does not hand an attacker working TOTP secrets.</p>
+<h3 id="recovery-codes-are-hashed">Recovery codes are hashed</h3>
+<p>Eight codes, generated once, stored hashed and shown exactly once. Each is single-use: consuming one decrements the counter, so the UI can warn before the last one rather than after.</p>
+<hr>
+<h2 id="3-lockout-and-the-case-that-contradicts-it">3. Lockout, and the case that contradicts it</h2>
+<p>Three wrong codes locks the second factor for five minutes. That stops a stolen password from being brute-forced through the second factor — a million TOTP attempts is otherwise a script, not an attack.</p>
+<p>But three mistyped codes would also lock out the legitimate owner, and the recovery codes would be useless if the lock blocked them too. So a valid recovery code is accepted <strong>while locked</strong>, on the grounds that it is proof of possession in its own right. The lock exists to slow an attacker who has only the password.</p>
+<p>The remaining-attempt counter is shown <em>before</em> the lock, not only after it, because a counter nobody can see is not a warning.</p>
+<hr>
+<h2 id="4-sessions">4. Sessions</h2>
+<p>Every sign-in creates a session row: device, address, user agent, created and last-seen times, and the refresh token's digest.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Action</th>
+<th>Effect</th>
+</tr></thead><tbody>
+<tr>
+<th>Sign in</th>
+<td>Creates a session, returns its handle</td>
+</tr>
+<tr>
+<th>Revoke one</th>
+<td>Invalidates that refresh token digest immediately</td>
+</tr>
+<tr>
+<th>Revoke others</th>
+<td>Invalidates every session except the current one</td>
+</tr>
+<tr>
+<th>Password change</th>
+<td>Invalidates every other session</td>
+</tr>
+</tbody></table></div>
+<p>Refresh tokens are stored as digests, never in the clear, so a database leak is not a session leak.</p>
+<h3 id="the-handle-has-to-survive-a-reload">The handle has to survive a reload</h3>
+<p>Revocation only works if the browser can tell the server <em>which</em> session it means. The handle is therefore persisted alongside the tokens on sign-in and sent on sign-out. Without that, "sign out this device" silently degrades into "log out locally", which is the usual implementation and is not the same thing.</p>
+<p>The handle is stored in <code>localStorage</code> because the access token already is; it is a credential in exactly the same sense, and the threat model is unchanged.</p>
+<hr>
+<h2 id="5-api">5. API</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+</tr></thead><tbody>
+<tr>
+<th><code>GET</code></th>
+<td><code>/api/v1/account/2fa/status</code></td>
+<td>Enabled, enrolled at, codes remaining, attempts left</td>
+</tr>
+<tr>
+<th><code>POST</code></th>
+<td><code>/api/v1/account/2fa/setup</code></td>
+<td>Returns the secret and <code>otpauth://</code> URI</td>
+</tr>
+<tr>
+<th><code>POST</code></th>
+<td><code>/api/v1/account/2fa/activate</code></td>
+<td>Confirms a code and enables 2FA</td>
+</tr>
+<tr>
+<th><code>POST</code></th>
+<td><code>/api/v1/account/2fa/disable</code></td>
+<td>Confirms a code and disables 2FA</td>
+</tr>
+<tr>
+<th><code>POST</code></th>
+<td><code>/api/v1/account/2fa/regenerate-codes</code></td>
+<td>New recovery codes, invalidating the old set</td>
+</tr>
+<tr>
+<th><code>GET</code></th>
+<td><code>/api/v1/account/sessions</code></td>
+<td>This device's sessions</td>
+</tr>
+<tr>
+<th><code>POST</code></th>
+<td><code>/api/v1/account/sessions/revoke</code></td>
+<td>Revoke one, or all others</td>
+</tr>
+<tr>
+<th><code>POST</code></th>
+<td><code>/api/v1/auth/login/2fa</code></td>
+<td>Second step of sign-in</td>
+</tr>
+<tr>
+<th><code>POST</code></th>
+<td><code>/api/v1/auth/logout?session_key=…</code></td>
+<td>Ends a specific session</td>
+</tr>
+</tbody></table></div>
+<p>Every 2FA route requires the current password or a current code. Enabling a second factor and then disabling it are both authenticated actions.</p>
+<hr>
+<h2 id="6-ui">6. UI</h2>
+<p>One Account tab, <em>Devices &amp; 2FA</em>, holds both: the two-factor panel with its state, recovery codes remaining and the setup flow, and the device table with revoke and sign-out-everywhere-else.</p>
+<pre class="mermaid">flowchart LR
+  tab[Account › Devices &amp; 2FA] --&gt; status[status: enabled, codes left, attempts]
+  tab --&gt; enroll[set up: QR, secret, confirm code]
+  tab --&gt; codes[save recovery codes once]
+  tab --&gt; devices[device table: this device marked]
+  devices --&gt; revoke[revoke one]
+  devices --&gt; others[sign out everywhere else]</pre>
+<p>Small decisions worth naming:</p>
+<ul>
+<li class="depth-0">The QR is rendered from the <code>otpauth://</code> URI, with the secret also shown as</li>
+</ul>
+<p>text, for an authenticator that cannot scan.</p>
+<ul>
+<li class="depth-0">Recovery codes are shown in a modal that cannot be dismissed accidentally, with</li>
+</ul>
+<p>a copy button — because this is the only moment they exist.</p>
+<ul>
+<li class="depth-0">A warning appears when two or fewer codes remain, not at zero.</li>
+<li class="depth-0">Disabling asks for a current code. The password alone will not do.</li>
+</ul>
+<hr>
+<h2 id="7-what-is-deliberately-absent">7. What is deliberately absent</h2>
+<ul>
+<li class="depth-0"><strong>No SMS or email codes.</strong> Both are weaker than TOTP and depend on a third</li>
+</ul>
+<p>party; pretending otherwise would be dishonest.</p>
+<ul>
+<li class="depth-0"><strong>No push approvals.</strong> Needs a vendor account and an app store release, which is</li>
+</ul>
+<p>out of scope for this project.</p>
+<ul>
+<li class="depth-0"><strong>No remembered device.</strong> Remembering the second factor defeats its purpose for</li>
+</ul>
+<p>a stolen credential; recovery codes are the deliberate escape hatch instead.</p>
+<hr>
+<h2 id="related">Related</h2>
+<ul>
+<li class="depth-0"><a href="30_access_control_and_rate_limiting.html">30_access_control_and_rate_limiting.md</a> — API keys, scopes and rate limiting</li>
+<li class="depth-0"><a href="16_user_manual.html">16_user_manual.md</a> — the user-facing walkthrough</li>
+<li class="depth-0"><a href="14_api_documentation.html">14_api_documentation.md</a> — auth endpoints in full</li>
+<li class="depth-0"><a href="06_literature_review.html">06_literature_review.md</a> — why TOTP over SMS</li>
+</ul>
+    </article>
+    <div class="doc-foot">
+      <span><a href="28_schema_and_migrations.html">← Schema & Migrations</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="30_access_control_and_rate_limiting.html">Access Control & Limits →</a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

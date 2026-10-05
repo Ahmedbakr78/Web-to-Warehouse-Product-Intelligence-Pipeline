@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Damped Holt-Winters, measured accuracy, three detectors, pricing advice">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Forecasting &amp; Anomalies — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Damped Holt-Winters, measured accuracy, three detectors, pricing advice">
+<title>Forecasting &amp; Anomalies — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="28-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, 173 operations, worked examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, measured counts, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="Every feature with the file that implements it">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+<a href="24_demo_runbook.html" title="Screen-by-screen live demo script and failure playbook">Demo Runbook</a>
+<a href="25_forecasting_and_anomaly_detection.html" class="active" title="Damped Holt-Winters, measured accuracy, three detectors, pricing advice">Forecasting &amp; Anomalies</a>
+<a href="26_background_jobs_and_realtime.html" title="Leases, retries, cancellation, SSE and the cross-worker problem">Background Jobs &amp; Realtime</a>
+<a href="27_reporting_and_document_generation.html" title="Typed blocks rendered to HTML, JSON, CSV and PDF from one definition">Reporting &amp; Documents</a>
+<a href="28_schema_and_migrations.html" title="Alembic, drift detection, views, Airflow isolation">Schema &amp; Migrations</a>
+<a href="29_two_factor_and_sessions.html" title="TOTP enrolment, recovery codes, per-device revocation">Two-Factor &amp; Sessions</a>
+<a href="30_access_control_and_rate_limiting.html" title="Roles, rights, API-key scopes, sliding-window rate limiting">Access Control &amp; Limits</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Forecasting &amp; Anomalies</h1>
+      <p>Damped Holt-Winters, measured accuracy, three detectors, pricing advice</p>
+    </div>
+    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#why-this-document-exists">Why this document exists</a></li><li class="lvl-2"><a href="#1-the-projection-damped-holt-winters">1. The projection: damped Holt-Winters</a></li><li class="lvl-3"><a href="#selection-and-fallback">Selection and fallback</a></li><li class="lvl-2"><a href="#2-measuring-the-error-instead-of-asserting-accuracy">2. Measuring the error instead of asserting accuracy</a></li><li class="lvl-2"><a href="#3-three-anomaly-detectors-because-one-is-never-enough">3. Three anomaly detectors, because one is never enough</a></li><li class="lvl-2"><a href="#4-seasonality-as-an-index">4. Seasonality as an index</a></li><li class="lvl-2"><a href="#5-from-a-number-to-a-decision">5. From a number to a decision</a></li><li class="lvl-2"><a href="#6-api">6. API</a></li><li class="lvl-2"><a href="#7-rebuilds-are-jobs">7. Rebuilds are jobs</a></li><li class="lvl-2"><a href="#8-what-this-deliberately-does-not-do">8. What this deliberately does not do</a></li><li class="lvl-2"><a href="#related">Related</a></li></ol></details>
+    <article class="doc-body">
+<p>How the platform decides what a price is <em>going</em> to do, and what to do about a price that moved unusually far. Everything here is implemented in <a href="../app/analytics/forecast.py"><code>app/analytics/forecast.py</code></a> and served by <a href="../app/api/routers/forecast.py"><code>app/api/routers/forecast.py</code></a>.</p>
+<hr>
+<h2 id="why-this-document-exists">Why this document exists</h2>
+<p>Most price dashboards show history. History is already in the facts table, so showing it again adds no engineering value. The three things worth building on top of history are:</p>
+<ul>
+<li class="depth-0"><strong>A projection</strong>, with an honest measure of how wrong it has been.</li>
+<li class="depth-0"><strong>Anomaly detection</strong>, which must not be fooled by the very outlier it is</li>
+</ul>
+<p>looking for.</p>
+<ul>
+<li class="depth-0"><strong>A decision</strong>: what to do about the number.</li>
+</ul>
+<p>Each of those is covered below, with the reasoning that would matter in a defence or a code review.</p>
+<hr>
+<h2 id="1-the-projection-damped-holt-winters">1. The projection: damped Holt-Winters</h2>
+<p>A plain linear trend extrapolates a trend forever, which is nonsense for a catalogue price: the further out you predict, the more confident the model pretends to be. Holt-Winters adds a level and a damped trend term, so the contribution of the trend decays with the horizon.</p>
+<p>For a series <code>y[t]</code> the model maintains:</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Component</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th>Level</th>
+<td>Where the series is now</td>
+</tr>
+<tr>
+<th>Trend</th>
+<td>The current direction and its size</td>
+</tr>
+<tr>
+<th>Damping</th>
+<td>How much of the trend still survives next period</td>
+</tr>
+<tr>
+<th>Seasonality</th>
+<td>A repeating pattern, weekly here</td>
+</tr>
+</tbody></table></div>
+<p>The model is fitted on the price history for one product, then projected over the requested horizon. Two-sided bands are produced at 80% and 95% so the uncertainty is visible rather than implied.</p>
+<pre class="mermaid">flowchart LR
+  facts[(price facts)] --&gt; clean[median clean, dedupe]
+  clean --&gt; series[daily series, gaps zero-filled]
+  series --&gt; fit{damped Holt-Winters fit}
+  fit --&gt; points[projection points + bands]
+  fit --&gt; holdout[holdout tail]
+  holdout --&gt; metrics[MAPE, MAE, RMSE]
+  metrics --&gt; grade[accuracy grade]</pre>
+<h3 id="selection-and-fallback">Selection and fallback</h3>
+<ul>
+<li class="depth-0">Enough history for a seasonal fit → the seasonal model.</li>
+<li class="depth-0">Enough for a trend, not for seasonality → damped trend only.</li>
+<li class="depth-0">Too little history → a flat series with the bands widened to match the</li>
+</ul>
+<p>observed volatility. A flat line is honest; a fabricated curve is not.</p>
+<hr>
+<h2 id="2-measuring-the-error-instead-of-asserting-accuracy">2. Measuring the error instead of asserting accuracy</h2>
+<p>Every forecast endpoint returns the error the model made on data it never saw. The last 20% of the series is held back, the model is fitted on the rest, and the projection is compared against the truth.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Metric</th>
+<th>Definition</th>
+<th>What it tells you</th>
+</tr></thead><tbody>
+<tr>
+<th>MAPE</th>
+<td>Mean absolute percentage error</td>
+<td>Scale-free; explodes on small prices</td>
+</tr>
+<tr>
+<th>MAE</th>
+<td>Mean absolute error, in currency</td>
+<td>What a single mistake costs</td>
+</tr>
+<tr>
+<th>RMSE</th>
+<td>Root mean squared error</td>
+<td>Punishes large misses more heavily</td>
+</tr>
+</tbody></table></div>
+<p>Products are graded from MAPE:</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Grade</th>
+<th>MAPE</th>
+</tr></thead><tbody>
+<tr>
+<th>Excellent</th>
+<td>≤ 5%</td>
+</tr>
+<tr>
+<th>Good</th>
+<td>≤ 10%</td>
+</tr>
+<tr>
+<th>Fair</th>
+<td>≤ 20%</td>
+</tr>
+<tr>
+<th>Poor</th>
+<td>&gt; 20%</td>
+</tr>
+</tbody></table></div>
+<p>A product graded <em>poor</em> is not a failure of the model — it is information. It means the price is genuinely hard to forecast, and the UI says so instead of drawing a confident line through noise.</p>
+<hr>
+<h2 id="3-three-anomaly-detectors-because-one-is-never-enough">3. Three anomaly detectors, because one is never enough</h2>
+<p>A single detector is either too sensitive (noise) or too blind (misses real events). The platform runs three and reports all three.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Detector</th>
+<th>Statistic</th>
+<th>Why</th>
+</tr></thead><tbody>
+<tr>
+<th>MAD</th>
+<td>Median absolute deviation</td>
+<td>The median does not move when one point explodes, so the outlier cannot inflate its own threshold</td>
+</tr>
+<tr>
+<th>Standard deviation</th>
+<td>3σ</td>
+<td>Familiar and fast, but assumes the distribution is roughly normal</td>
+</tr>
+<tr>
+<th>IQR</th>
+<td>Tukey fences</td>
+<td>Distribution-free; 1.5×IQR fences work on skewed price data</td>
+</tr>
+</tbody></table></div>
+<p>A change is flagged when <strong>at least two</strong> detectors agree. That rule is what keeps a single freak observation from generating an alert, and it is why the severity score is a z-score rather than a boolean.</p>
+<pre class="mermaid">flowchart TD
+  change[price change] --&gt; mad{MAD detector}
+  change --&gt; sigma{3 sigma detector}
+  change --&gt; iqr{IQR fence detector}
+  mad --&gt; votes[votes]
+  sigma --&gt; votes
+  iqr --&gt; votes
+  votes --&gt; flagged{majority flags?}
+  flagged --&gt;|yes| severity[severity from z-score]
+  flagged --&gt;|no| quiet[recorded, not alerted]
+  severity --&gt; alert[notification]</pre>
+<hr>
+<h2 id="4-seasonality-as-an-index">4. Seasonality as an index</h2>
+<p><code>GET /forecast/{id}/seasonal</code> returns, per day of week, the average price relative to the product's overall mean, expressed as an index where 100 is average. A Saturday index of 118 means Saturdays run 18% above average.</p>
+<p>This is what turns the forecast into something a merchandiser can use: the absolute level matters less than <em>when</em> to expect it.</p>
+<hr>
+<h2 id="5-from-a-number-to-a-decision">5. From a number to a decision</h2>
+<p>Three derived signals:</p>
+<ul>
+<li class="depth-0"><strong>Price recommendation</strong> — <code>hold</code>, <code>raise</code>, <code>cut</code> or <code>negotiate</code>, with the</li>
+</ul>
+<p>reason stated and the effect on gross margin estimated from the elasticity.</p>
+<ul>
+<li class="depth-0"><strong>Price elasticity</strong> — the absolute percentage price change against the</li>
+</ul>
+<p>absolute percentage volume change across comparable products. Negative elasticity means demand falls when the price rises, which is the normal case and the reason a price rise is not automatically good news.</p>
+<ul>
+<li class="depth-0"><strong>Anomaly summary</strong> — how many flagged moves, how severe, and whether the</li>
+</ul>
+<p>move is toward or away from the market median.</p>
+<p>The recommendation is advisory. The API returns the reasoning alongside the label, and the UI shows both, because a recommendation without its reasoning is not something anyone should act on.</p>
+<hr>
+<h2 id="6-api">6. API</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+</tr></thead><tbody>
+<tr>
+<th><code>GET</code></th>
+<td><code>/api/v1/forecast/overview</code></td>
+<td>Every product: model, accuracy grade, current price, projection</td>
+</tr>
+<tr>
+<th><code>GET</code></th>
+<td><code>/api/v1/forecast/{product_id}</code></td>
+<td>Projection points and bands for one product</td>
+</tr>
+<tr>
+<th><code>GET</code></th>
+<td><code>/api/v1/forecast/{product_id}/backtest</code></td>
+<td>MAPE, MAE, RMSE and the held-out points</td>
+</tr>
+<tr>
+<th><code>GET</code></th>
+<td><code>/api/v1/forecast/anomalies</code></td>
+<td>Flagged moves across the catalogue, ranked by severity</td>
+</tr>
+<tr>
+<th><code>GET</code></th>
+<td><code>/api/v1/forecast/{product_id}/seasonal</code></td>
+<td>Day-of-week and monthly indices</td>
+</tr>
+<tr>
+<th><code>GET</code></th>
+<td><code>/api/v1/forecast/recommendations</code></td>
+<td>Price advice with elasticity and margin effect</td>
+</tr>
+<tr>
+<th><code>POST</code></th>
+<td><code>/api/v1/forecast/rebuild</code></td>
+<td>Queue a full recomputation in the background</td>
+</tr>
+<tr>
+<th><code>GET</code></th>
+<td><code>/api/v1/forecast/accuracy</code></td>
+<td>Distribution of accuracy grades across the catalogue</td>
+</tr>
+</tbody></table></div>
+<p>All forecast routes require the <code>read</code> right. <code>rebuild</code> requires <code>run_pipeline</code>, because it is a pipeline action rather than a read.</p>
+<hr>
+<h2 id="7-rebuilds-are-jobs">7. Rebuilds are jobs</h2>
+<p>A full recomputation is queued as a <code>forecast</code> job, not run inside a request:</p>
+<pre class="code" data-lang="bash"><code>curl -X POST http://localhost:8000/api/v1/forecast/rebuild \
+  -H &quot;Authorization: Bearer $TOKEN&quot;</code></pre>
+<p>The response is a job reference. Progress appears on the forecasting screen and in the jobs tab, and the run can be cancelled. The forecasting screen refreshes its panels automatically when the job reaches a terminal state, so nobody has to press refresh.</p>
+<hr>
+<h2 id="8-what-this-deliberately-does-not-do">8. What this deliberately does not do</h2>
+<ul>
+<li class="depth-0"><strong>No machine learning service.</strong> A statistical model that runs in-process,</li>
+</ul>
+<p>is deterministic, and has no training step is reproducible and reviewable. Adding a dependency on a training pipeline would make the numbers harder to defend, not easier.</p>
+<ul>
+<li class="depth-0"><strong>No confidence theatre.</strong> Where the history is too short, the API returns a</li>
+</ul>
+<p>flat series with wide bands rather than a plausible-looking curve.</p>
+<ul>
+<li class="depth-0"><strong>No alerting on a single detector.</strong> Two of three must agree.</li>
+</ul>
+<hr>
+<h2 id="related">Related</h2>
+<ul>
+<li class="depth-0"><a href="09_database_design.html">09_database_design.md</a> — the <code>fact_price_daily</code> table the series is built from</li>
+<li class="depth-0"><a href="05_kpis.html">05_kpis.md</a> — how forecast accuracy is reported as a KPI</li>
+<li class="depth-0"><a href="17_technical_documentation.html">17_technical_documentation.md</a> — module map and configuration</li>
+<li class="depth-0"><a href="15_testing_strategy.html">15_testing_strategy.md</a> — how the model is tested</li>
+</ul>
+    </article>
+    <div class="doc-foot">
+      <span><a href="24_demo_runbook.html">← Demo Runbook</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="26_background_jobs_and_realtime.html">Background Jobs & Realtime →</a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

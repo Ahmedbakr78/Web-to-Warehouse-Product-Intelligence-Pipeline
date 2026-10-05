@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Alembic, drift detection, views, Airflow isolation">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Schema &amp; Migrations — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Alembic, drift detection, views, Airflow isolation">
+<title>Schema &amp; Migrations — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="28-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, 173 operations, worked examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, measured counts, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="Every feature with the file that implements it">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+<a href="24_demo_runbook.html" title="Screen-by-screen live demo script and failure playbook">Demo Runbook</a>
+<a href="25_forecasting_and_anomaly_detection.html" title="Damped Holt-Winters, measured accuracy, three detectors, pricing advice">Forecasting &amp; Anomalies</a>
+<a href="26_background_jobs_and_realtime.html" title="Leases, retries, cancellation, SSE and the cross-worker problem">Background Jobs &amp; Realtime</a>
+<a href="27_reporting_and_document_generation.html" title="Typed blocks rendered to HTML, JSON, CSV and PDF from one definition">Reporting &amp; Documents</a>
+<a href="28_schema_and_migrations.html" class="active" title="Alembic, drift detection, views, Airflow isolation">Schema &amp; Migrations</a>
+<a href="29_two_factor_and_sessions.html" title="TOTP enrolment, recovery codes, per-device revocation">Two-Factor &amp; Sessions</a>
+<a href="30_access_control_and_rate_limiting.html" title="Roles, rights, API-key scopes, sliding-window rate limiting">Access Control &amp; Limits</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Schema &amp; Migrations</h1>
+      <p>Alembic, drift detection, views, Airflow isolation</p>
+    </div>
+    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#1-why-stop-using-create_all">1. Why stop using create_all</a></li><li class="lvl-2"><a href="#2-migration-layout">2. Migration layout</a></li><li class="lvl-3"><a href="#target-aware-environment">Target-aware environment</a></li><li class="lvl-3"><a href="#foreign-tables-are-excluded">Foreign tables are excluded</a></li><li class="lvl-2"><a href="#3-applying-migrations">3. Applying migrations</a></li><li class="lvl-2"><a href="#4-views-belong-to-the-schema">4. Views belong to the schema</a></li><li class="lvl-2"><a href="#5-airflow-is-not-in-the-warehouse">5. Airflow is not in the warehouse</a></li><li class="lvl-2"><a href="#6-verification-performed">6. Verification performed</a></li><li class="lvl-2"><a href="#7-working-on-the-schema">7. Working on the schema</a></li><li class="lvl-2"><a href="#related">Related</a></li></ol></details>
+    <article class="doc-body">
+<p>How the database is owned, how it is changed safely, and how CI proves the models and the migration still agree. Implemented by <code>alembic.ini</code>, <a href="../migrations/env.py"><code>migrations/env.py</code></a> and the revision in <a href="../migrations/versions"><code>migrations/versions/</code></a>.</p>
+<hr>
+<h2 id="1-why-stop-using-create_all">1. Why stop using <code>create_all</code></h2>
+<p>The original bootstrap called <code>Base.metadata.create_all</code> on startup, which is convenient and wrong in three specific ways:</p>
+<ul>
+<li class="depth-0"><strong>No history.</strong> A changed column is never recorded, so there is no way to</li>
+</ul>
+<p>reconstruct what a database looked like last month.</p>
+<ul>
+<li class="depth-0"><strong>No downgrade.</strong> A bad column type cannot be rolled back.</li>
+<li class="depth-0"><strong>Silent drift.</strong> Adding a column to a model does nothing to an existing</li>
+</ul>
+<p>database, so the schema and the code quietly diverge until a query fails.</p>
+<p>Alembic fixes all three. <code>migrations/versions/0001_initial</code> creates <strong>28 tables</strong> and applies the <strong>20 analytical views</strong>, so an empty database reaches exactly the state the application expects.</p>
+<hr>
+<h2 id="2-migration-layout">2. Migration layout</h2>
+<pre class="code" data-lang=""><code>alembic.ini                  # script_location and the sqlalchemy.url placeholder
+migrations/
+  env.py                     # resolves the target from the active database setting
+  script.py.mako             # revision template
+  versions/
+    20261005_0747_0001_initial_initial_warehouse_schema.py</code></pre>
+<h3 id="target-aware-environment">Target-aware environment</h3>
+<p><code>env.py</code> reads the active database from settings, so the same revision set runs against SQLite, PostgreSQL or MySQL without a second set of migration files. It also sets <code>version_table</code> from <code>settings.alembic_version_table</code>, which keeps the bookkeeping table from colliding with a warehouse table of the same name.</p>
+<h3 id="foreign-tables-are-excluded">Foreign tables are excluded</h3>
+<p>Autogenerate compares the models against the live database. If the target also holds tables this project does not own — and it does, because Airflow keeps its metadata in the same server — autogenerate would try to drop them. They are explicitly excluded, so a revision only ever describes the warehouse schema.</p>
+<pre class="mermaid">flowchart TD
+  models[SQLAlchemy models] --&gt; autogen[alembic revision --autogenerate]
+  live[(live database)] --&gt; autogen
+  autogen --&gt; exclude[exclude foreign tables]
+  exclude --&gt; revision[revision file, reviewed by hand]
+  revision --&gt; apply[alembic upgrade head]
+  apply --&gt; tables[28 tables]
+  apply --&gt; views[20 views]</pre>
+<hr>
+<h2 id="3-applying-migrations">3. Applying migrations</h2>
+<pre class="code" data-lang="bash"><code>make db-upgrade          # alembic upgrade head
+make db-downgrade        # alembic downgrade -1
+make db-current          # what is applied right now
+make db-history          # the full revision list
+make db-check            # alembic check: no drift
+make db-revision         # create a revision after editing models</code></pre>
+<p>Or directly:</p>
+<pre class="code" data-lang="bash"><code>alembic upgrade head
+alembic check</code></pre>
+<p><code>alembic check</code> is the important one: it exits non-zero when the models and the migrations describe different schemas. That single command is the whole defence against silent drift, and it runs in CI.</p>
+<hr>
+<h2 id="4-views-belong-to-the-schema">4. Views belong to the schema</h2>
+<p>The analytical layer is 20 SQL views. They are not created by the application at runtime and they are not fixtures — the initial revision applies them through <code>apply_views()</code>, and the downgrade drops them in the reverse order.</p>
+<pre class="mermaid">flowchart LR
+  raw[(28 base tables)] --&gt; facts[(fact_* tables)]
+  raw --&gt; dims[(dim_* tables)]
+  facts --&gt; views[20 analytical views]
+  dims --&gt; views
+  views --&gt; api[REST API]
+  views --&gt; reports[reports]
+  views --&gt; query[query lab]
+  views --&gt; forecast[forecasting]</pre>
+<p>That is deliberate: the API, the reports, the query lab and the forecaster all read the same views. A figure in a PDF, a figure on the dashboard and a figure in a hand-written query cannot disagree, because there is only one definition.</p>
+<hr>
+<h2 id="5-airflow-is-not-in-the-warehouse">5. Airflow is not in the warehouse</h2>
+<p>Airflow keeps DAG runs, task instances, xcom values and its own version table. Originally that metadata lived in the analytical database, which meant:</p>
+<ul>
+<li class="depth-0">the migration could see tables it did not own, and</li>
+<li class="depth-0">a DAG run could appear in an export of "our" tables.</li>
+</ul>
+<p>The fix is a separate <code>airflow</code> database, created by <code>docker/postgres-init/01-create-airflow-db.sh</code>, with the API pointed at the warehouse. Orchestration metadata is now genuinely separate from analytics, and autogenerate has nothing foreign to exclude beyond the version tables.</p>
+<hr>
+<h2 id="6-verification-performed">6. Verification performed</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Check</th>
+<th>Result</th>
+</tr></thead><tbody>
+<tr>
+<td><code>alembic upgrade head</code> on an empty database</td>
+<td>Creates all 28 tables and applies the 20 views</td>
+</tr>
+<tr>
+<td><code>alembic upgrade head</code> again</td>
+<td>No-op, idempotent</td>
+</tr>
+<tr>
+<th><code>alembic downgrade -1</code></th>
+<td>Drops the views and tables cleanly</td>
+</tr>
+<tr>
+<th><code>alembic check</code></th>
+<td>No drift</td>
+</tr>
+<tr>
+<td>Autogenerate against a live PostgreSQL</td>
+<td>Emits only warehouse changes</td>
+</tr>
+<tr>
+<td>Migration under the test suite</td>
+<td>Covered by <code>tests/test_new_features.py</code></td>
+</tr>
+</tbody></table></div>
+<p>Two tests guard this permanently: one asserts the committed revision creates every table the models declare, and one asserts the revision applies the views — otherwise the analytics layer would have nothing to query.</p>
+<hr>
+<h2 id="7-working-on-the-schema">7. Working on the schema</h2>
+<p>The intended loop:</p>
+<ul>
+<li class="depth-0">Change the model in <code>app/models/</code>.</li>
+<li class="depth-0"><code>make db-revision</code> and <strong>read the generated file</strong>.</li>
+<li class="depth-0">Fix the file by hand: autogenerate misses server defaults, data migrations and</li>
+</ul>
+<p>view changes.</p>
+<ul>
+<li class="depth-0"><code>make db-upgrade</code>, then run the tests.</li>
+<li class="depth-0">If the data itself must move, write it in the revision with an explicit</li>
+</ul>
+<p><code>op.execute</code>, not in application startup code.</p>
+<p>Data migrations belong in revisions. Startup code that mutates data runs on every boot, cannot be rolled back, and behaves differently depending on whether the database is fresh or not.</p>
+<hr>
+<h2 id="related">Related</h2>
+<ul>
+<li class="depth-0"><a href="09_database_design.html">09_database_design.md</a> — the ERD and indexing strategy</li>
+<li class="depth-0"><a href="22_data_dictionary.html">22_data_dictionary.md</a> — every table and column</li>
+<li class="depth-0"><a href="13_deployment.html">13_deployment.md</a> — migrations in the deploy order</li>
+<li class="depth-0"><a href="15_testing_strategy.html">15_testing_strategy.md</a> — schema-related test coverage</li>
+</ul>
+    </article>
+    <div class="doc-foot">
+      <span><a href="27_reporting_and_document_generation.html">← Reporting & Documents</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="29_two_factor_and_sessions.html">Two-Factor & Sessions →</a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

@@ -180,7 +180,7 @@ Small decisions worth naming:
 
 ## Related
 
-- [29_access_control.md](29_access_control.md) — API keys, scopes and rate limiting
+- [30_access_control_and_rate_limiting.md](30_access_control_and_rate_limiting.md) — API keys, scopes and rate limiting
 - [16_user_manual.md](16_user_manual.md) — the user-facing walkthrough
 - [14_api_documentation.md](14_api_documentation.md) — auth endpoints in full
 - [06_literature_review.md](06_literature_review.md) — why TOTP over SMS

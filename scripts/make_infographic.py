@@ -37,6 +37,8 @@ INK = "#0F172A"
 MUTED = "#64748B"
 LINE = "#E2E8F0"
 
+#: Exactly two rows of five: the grid geometry below is fixed, and an eleventh card
+#: would push the tech badges off the timeline.
 ROADMAP = [
     (
         "Overview",
@@ -47,12 +49,27 @@ ROADMAP = [
     ("Problem", "Manual collection is slow and inconsistent", "alert", ["stale spreadsheets", "no history"]),
     ("Solution", "Compliance-first ETL pipeline", "gauge", ["robots.txt aware", "deduplicated"]),
     ("Architecture", "Airflow orchestrates 9 stages", "flow", ["ingest, clean, load", "detect, reconcile"]),
-    ("Warehouse", "23 tables, 20 analytical views", "db", ["PostgreSQL twin", "MySQL twin"]),
+    ("Warehouse", "28 tables, 20 analytical views", "db", ["Alembic-managed schema", "PostgreSQL and MySQL twins"]),
     ("Data Quality", "12 rules across 6 dimensions", "shield", ["score persisted per run", "98.26 measured"]),
-    ("Operations", "104 REST operations, 15 routers", "api", ["JWT + API keys", "role-scoped"]),
-    ("Dashboard", "17 screens, light and dark", "screen", ["command palette", "installable PWA"]),
-    ("Deployment", "6-service Compose stack", "cloud", ["Makefile targets", "GitHub Actions CI"]),
-    ("Future", "SCD-2, webhooks, Grafana", "rocket", ["prioritised in docs/20", "open roadmap"]),
+    ("Forecasting", "Prices, anomalies, advice", "flow", ["damped Holt-Winters", "MAD, sigma and IQR detectors"]),
+    (
+        "Operations",
+        "173 REST operations, 23 routers",
+        "api",
+        ["JWT, TOTP and scoped keys", "leased jobs and SSE"],
+    ),
+    (
+        "Dashboard",
+        "20 screens, 5 themes, 4 report formats",
+        "screen",
+        ["command palette, installable PWA", "HTML, JSON, CSV and PDF"],
+    ),
+    (
+        "Evidence",
+        "397 tests, 104 smoke checks, CI green",
+        "cloud",
+        ["mypy and Ruff clean", "30 documents, 80 diagrams"],
+    ),
 ]
 
 TECH_BADGES = [
@@ -60,32 +77,35 @@ TECH_BADGES = [
     "FastAPI",
     "Airflow 2.10",
     "SQLAlchemy",
-    "BeautifulSoup",
-    "Scrapy",
+    "NumPy",
+    "Alembic",
+    "WeasyPrint",
     "React 19",
     "TypeScript",
     "Tailwind",
     "Recharts",
     "PostgreSQL 16",
     "MySQL 8.4",
-    "JWT + Argon2id",
+    "Argon2id + TOTP",
+    "Server-Sent Events",
     "Docker Compose",
     "GitHub Actions",
-    "pytest",
+    "pytest + mypy + Ruff",
 ]
 
 TIMELINE = ["Plan", "Design", "Build", "Test", "Deploy", "Maintain"]
 
 OUTCOMES = [
     "Working pipeline",
-    "23-table warehouse",
+    "28-table warehouse, 20 views",
     "12-rule DQ gate",
-    "REST API 104 ops",
-    "React dashboard",
-    "Airflow DAG 13 tasks",
-    "CLI + Makefile",
-    "CI green",
-    "20 documents",
+    "REST API, 173 operations",
+    "397 automated tests",
+    "104 API smoke checks",
+    "React dashboard, 20 screens",
+    "Alembic-managed schema",
+    "30 documents, 80 diagrams",
+    "PDF and CSV reports",
     "Private repo released",
 ]
 
@@ -188,11 +208,11 @@ def build_svg() -> str:
     strip_y = hdr_h + 30
     numbers = [
         ("5", "ingestion sources", ACCENT),
-        ("23/20", "tables / views", PRIMARY),
+        ("28/20", "tables / views", PRIMARY),
         ("12x6", "DQ rules x dimensions", SUCCESS),
-        ("104", "REST operations", SECONDARY),
-        ("98.26", "measured DQ score", HIGHLIGHT),
-        ("38.2ms", "p95 API latency", ACCENT),
+        ("173", "REST operations", SECONDARY),
+        ("233", "catalogued features", HIGHLIGHT),
+        ("397", "automated tests", ACCENT),
     ]
     cell_w = 336
     strip_w = cell_w * len(numbers)
@@ -207,7 +227,7 @@ def build_svg() -> str:
 
     # ---------------------------------------------------------------- roadmap (left to right)
     road_y = strip_y + 196
-    road_h = 560
+    road_h = 470
     cols = 5
     rows = 2
     card_w = 424
@@ -237,19 +257,18 @@ def build_svg() -> str:
             f'fill="url(#band)" opacity="0.97"/>'
         )
         parts.append(
-            text(x + card_w / 2, y + 44, f"{step:02d}  {title}", 24, 700, "#FFFFFF", anchor="middle")
+            text(x + card_w / 2, y + 40, f"{step:02d}  {title}", 23, 700, "#FFFFFF", anchor="middle")
         )
-        parts.append(text(x + card_w / 2, y + 74, subtitle, 16, 400, "#D6DEF5", anchor="middle"))
-        icon_cx = x + 52
-        icon_cy = y + 138
-        parts.append(rounded(icon_cx - 30, icon_cy - 30, 60, 60, 16, "#EEF2FF"))
+        parts.append(text(x + card_w / 2, y + 68, subtitle, 15, 400, "#D6DEF5", anchor="middle"))
+        icon_cx = x + 50
+        icon_cy = y + 128
+        parts.append(rounded(icon_cx - 28, icon_cy - 28, 56, 56, 15, "#EEF2FF"))
         parts.append(icon_icon(icon, icon_cx, icon_cy, PRIMARY))
-        keyword_lines = keywords
-        for k, keyword in enumerate(keyword_lines):
-            dot_cx = x + 116
-            dot_cy = icon_cy - 20 + k * 34
+        for k, keyword in enumerate(keywords):
+            dot_cx = x + 110
+            dot_cy = icon_cy - 18 + k * 32
             parts.append(f'<circle cx="{dot_cx:.0f}" cy="{dot_cy:.0f}" r="5" fill="{ACCENT}"/>')
-            parts.append(text(dot_cx + 16, dot_cy + 6, keyword, 18, 500, INK))
+            parts.append(text(dot_cx + 16, dot_cy + 6, keyword, 17, 500, INK))
 
     # ---------------------------------------------------------------- tech badges
     badge_y = road_y + road_h + 34
@@ -261,14 +280,13 @@ def build_svg() -> str:
     for badge in TECH_BADGES:
         size = 9 + 8.4 * len(badge)
         badge_widths.append(size)
-    total_badges_w = sum(bw + 14 for bw in badge_widths)
+    # Wrap by accumulated width: guessing a per-row count overflows as soon as one
+    # badge is longer than average.
     available_w = total_w_of_road - 194
-    rows_badges = max(1, int(total_badges_w // available_w) + 1)
-    per_row = max(4, int(len(TECH_BADGES) / rows_badges) + (1 if len(TECH_BADGES) % rows_badges else 0))
     x_cursor, y_cursor = bx, by
     count_in_row = 0
     for badge, bw in zip(TECH_BADGES, badge_widths, strict=False):
-        if count_in_row >= per_row:
+        if count_in_row and x_cursor + bw - bx > available_w:
             x_cursor = bx
             y_cursor += bh + 12
             count_in_row = 0
@@ -302,7 +320,7 @@ def build_svg() -> str:
         parts.append(text(cx, tl_center + 52, phase, 20, 600, INK, anchor="middle"))
 
     # ---------------------------------------------------------------- outcomes strip
-    outcome_y = timeline_y + 108
+    outcome_y = timeline_y + 142
     parts.append(text(road_x + 6, outcome_y + 4, "PROJECT OUTCOMES", 17, 700, MUTED, spacing="2"))
     cell_w_o = (total_w_of_road - 5 * 26) // 5
     for i, item in enumerate(OUTCOMES):

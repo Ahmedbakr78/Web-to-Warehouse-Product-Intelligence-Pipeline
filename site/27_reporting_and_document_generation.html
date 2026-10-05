@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Typed blocks rendered to HTML, JSON, CSV and PDF from one definition">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Reporting &amp; Documents — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Typed blocks rendered to HTML, JSON, CSV and PDF from one definition">
+<title>Reporting &amp; Documents — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="28-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, 173 operations, worked examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, measured counts, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="Every feature with the file that implements it">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+<a href="24_demo_runbook.html" title="Screen-by-screen live demo script and failure playbook">Demo Runbook</a>
+<a href="25_forecasting_and_anomaly_detection.html" title="Damped Holt-Winters, measured accuracy, three detectors, pricing advice">Forecasting &amp; Anomalies</a>
+<a href="26_background_jobs_and_realtime.html" title="Leases, retries, cancellation, SSE and the cross-worker problem">Background Jobs &amp; Realtime</a>
+<a href="27_reporting_and_document_generation.html" class="active" title="Typed blocks rendered to HTML, JSON, CSV and PDF from one definition">Reporting &amp; Documents</a>
+<a href="28_schema_and_migrations.html" title="Alembic, drift detection, views, Airflow isolation">Schema &amp; Migrations</a>
+<a href="29_two_factor_and_sessions.html" title="TOTP enrolment, recovery codes, per-device revocation">Two-Factor &amp; Sessions</a>
+<a href="30_access_control_and_rate_limiting.html" title="Roles, rights, API-key scopes, sliding-window rate limiting">Access Control &amp; Limits</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Reporting &amp; Documents</h1>
+      <p>Typed blocks rendered to HTML, JSON, CSV and PDF from one definition</p>
+    </div>
+    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#1-the-problem-with-report-builders">1. The problem with report builders</a></li><li class="lvl-2"><a href="#2-block-types">2. Block types</a></li><li class="lvl-2"><a href="#3-the-five-templates">3. The five templates</a></li><li class="lvl-2"><a href="#4-parameters">4. Parameters</a></li><li class="lvl-2"><a href="#5-pdf-rendering">5. PDF rendering</a></li><li class="lvl-3"><a href="#graceful-unavailability">Graceful unavailability</a></li><li class="lvl-3"><a href="#queued-rendering">Queued rendering</a></li><li class="lvl-2"><a href="#6-api">6. API</a></li><li class="lvl-2"><a href="#7-the-report-builder-screen">7. The report builder screen</a></li><li class="lvl-2"><a href="#8-accessibility-and-print-hygiene">8. Accessibility and print hygiene</a></li><li class="lvl-2"><a href="#related">Related</a></li></ol></details>
+    <article class="doc-body">
+<p>How a report becomes a PDF, and why the screen, the HTML preview, the CSV and the PDF can never disagree. Implemented in <a href="../app/services/report.py"><code>app/services/report.py</code></a>, <a href="../app/services/pdf.py"><code>app/services/pdf.py</code></a> and <a href="../app/api/routers/reports.py"><code>app/api/routers/reports.py</code></a>.</p>
+<hr>
+<h2 id="1-the-problem-with-report-builders">1. The problem with report builders</h2>
+<p>Report builders usually fail in one of two ways. Either the PDF is written with its own layout code and quietly drifts from the screen, or the export is defined twice — once for display and once for download — and the two disagree within a release.</p>
+<p>The fix is structural: <strong>a report is a list of typed blocks</strong>, and every format is a renderer over that one list.</p>
+<pre class="mermaid">flowchart LR
+  views[(20 analytical views)] --&gt; template[template function]
+  template --&gt; blocks[typed blocks]
+  blocks --&gt; screen[React block renderer]
+  blocks --&gt; html[server-side HTML]
+  blocks --&gt; pdf[WeasyPrint PDF]
+  blocks --&gt; csv[CSV built from table blocks]
+  blocks --&gt; json[JSON for anything downstream]</pre>
+<p>One definition, four renderers. A block type that the screen cannot draw is skipped rather than crashing the report, so a newer server can add block types without breaking an older cached frontend.</p>
+<hr>
+<h2 id="2-block-types">2. Block types</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Type</th>
+<th>Payload</th>
+<th>Used for</th>
+</tr></thead><tbody>
+<tr>
+<th><code>heading</code></th>
+<td><code>title</code></td>
+<td>Section heading</td>
+</tr>
+<tr>
+<th><code>tiles</code></th>
+<td><code>tiles[{label, value, hint}]</code></td>
+<td>Headline numbers</td>
+</tr>
+<tr>
+<th><code>table</code></th>
+<td><code>columns[{key, label, align}]</code>, <code>rows[]</code></td>
+<td>Tabular detail</td>
+</tr>
+<tr>
+<th><code>bars</code></th>
+<td><code>items[{label, value}]</code></td>
+<td>Distributions and trends</td>
+</tr>
+<tr>
+<th><code>callout</code></th>
+<td><code>title</code>, <code>body</code></td>
+<td>Plain-language explanation</td>
+</tr>
+<tr>
+<th><code>text</code></th>
+<td><code>body</code></td>
+<td>Prose</td>
+</tr>
+</tbody></table></div>
+<p>Column alignment travels with the column definition, so a right-aligned numeric column is right-aligned in the screen, the HTML and the PDF without anyone restating it.</p>
+<hr>
+<h2 id="3-the-five-templates">3. The five templates</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Template</th>
+<th>Answers</th>
+</tr></thead><tbody>
+<tr>
+<th><code>executive_summary</code></th>
+<td>Where do we stand? Market position, freshness, trustworthiness</td>
+</tr>
+<tr>
+<th><code>price_movements</code></th>
+<td>What moved, in which direction, and how volatile is each category</td>
+</tr>
+<tr>
+<th><code>data_quality</code></th>
+<td>Which rules pass, which fail, and how is the score trending</td>
+</tr>
+<tr>
+<th><code>catalog_gaps</code></th>
+<td>Where are we cheaper, where are we missing, what is worth chasing</td>
+</tr>
+<tr>
+<th><code>product</code></th>
+<td>Everything about one product, including its projection</td>
+</tr>
+</tbody></table></div>
+<p>Templates are functions of <code>(session, days, horizon, product_id)</code>. They query the analytical views, never the raw tables, so every figure in a report is reproducible from <code>/api/v1/query</code>.</p>
+<hr>
+<h2 id="4-parameters">4. Parameters</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Parameter</th>
+<th>Range</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>days</code></th>
+<td>1 – 365</td>
+<td>30</td>
+<td>Reporting window</td>
+</tr>
+<tr>
+<th><code>horizon</code></th>
+<td>1 – 60</td>
+<td>14</td>
+<td>Forecast horizon in the product report</td>
+</tr>
+<tr>
+<th><code>product_id</code></th>
+<td>≥ 1</td>
+<td>—</td>
+<td>Required by the product template</td>
+</tr>
+<tr>
+<th><code>sections</code></th>
+<td>subset</td>
+<td>all</td>
+<td>Comma-separated section keys, kept in template order</td>
+</tr>
+</tbody></table></div>
+<p>Requesting a section list returns the report with only those sections. The order is the template's, not the caller's, so a report cannot be assembled out of sequence.</p>
+<hr>
+<h2 id="5-pdf-rendering">5. PDF rendering</h2>
+<p><code>GET /api/v1/reports/{template}/pdf</code> renders with <strong>WeasyPrint</strong>, which is a real HTML/CSS layout engine: the stylesheet is authored once in CSS and the PDF comes out of it. That is why the PDF matches the HTML preview instead of approximating it.</p>
+<p>Host requirements, all installed by <code>docker/api.Dockerfile</code>:</p>
+<pre class="code" data-lang=""><code>libpango-1.0-0  libpangoft2-1.0-0  libharfbuzz-subset0
+libjpeg62-turbo  libopenjp2-7  gdk-pixbuf-2.0-0
+libffi8  shared-mime-info  fonts-dejavu-core</code></pre>
+<h3 id="graceful-unavailability">Graceful unavailability</h3>
+<p>WeasyPrint is a native dependency, and a host may not have it. Rather than failing with a 500, <code>GET /reports/templates</code> reports:</p>
+<pre class="code" data-lang="json"><code>{
+  &quot;formats&quot;: [&quot;html&quot;, &quot;pdf&quot;, &quot;csv&quot;, &quot;json&quot;],
+  &quot;pdf_available&quot;: false,
+  &quot;pdf_unavailable_reason&quot;: &quot;WeasyPrint is not installed on this host&quot;
+}</code></pre>
+<p>and the PDF route answers <strong>501</strong> with that reason as plain text. HTML, JSON and CSV keep working, and the UI disables the PDF button with the reason visible rather than showing an error after a click.</p>
+<h3 id="queued-rendering">Queued rendering</h3>
+<p>A full catalogue report is large enough that WeasyPrint can take a while. <code>POST /reports/{template}/queue</code> enqueues a <code>report_pdf</code> job and returns a reference immediately. The job screen shows progress, and the PDF is produced off the request thread.</p>
+<hr>
+<h2 id="6-api">6. API</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Method</th>
+<th>Path</th>
+<th>Returns</th>
+</tr></thead><tbody>
+<tr>
+<th><code>GET</code></th>
+<td><code>/api/v1/reports/templates</code></td>
+<td>Templates, formats, PDF availability</td>
+</tr>
+<tr>
+<th><code>GET</code></th>
+<td><code>/api/v1/reports/{template}</code></td>
+<td>Server-rendered HTML preview</td>
+</tr>
+<tr>
+<th><code>GET</code></th>
+<td><code>/api/v1/reports/{template}/data</code></td>
+<td>Blocks as JSON</td>
+</tr>
+<tr>
+<th><code>GET</code></th>
+<td><code>/api/v1/reports/{template}/pdf</code></td>
+<td>PDF download</td>
+</tr>
+<tr>
+<th><code>POST</code></th>
+<td><code>/api/v1/reports/{template}/queue</code></td>
+<td>Job reference</td>
+</tr>
+</tbody></table></div>
+<p>All routes require the <code>read</code> right; <code>queue</code> also accepts only templates that exist, and rejects anything else with a validation error naming the available keys.</p>
+<hr>
+<h2 id="7-the-report-builder-screen">7. The report builder screen</h2>
+<p><a href="../frontend/src/pages/Reports.tsx"><code>frontend/src/pages/Reports.tsx</code></a> renders blocks with the same components used elsewhere — <code>StatTile</code>, <code>DataTable</code>, <code>BarSeries</code> — so the screen is not a preview of the report, it <em>is</em> the report.</p>
+<pre class="mermaid">flowchart TD
+  pick[Choose template] --&gt; window[Choose window] --&gt; sections[Toggle sections]
+  sections --&gt; fetch[GET /reports/template/data]
+  fetch --&gt; render[Render blocks]
+  render --&gt; pdf[Download PDF]
+  render --&gt; csv[Download CSV]
+  render --&gt; html[Open HTML in a new tab]</pre>
+<p>The CSV is built client-side from the same table blocks the screen rendered, so the export contains exactly the rows that were on screen — including their formatting — and cannot fall out of step with a second server-side export path.</p>
+<p>The HTML preview opens in a new tab with the credential in the query string, because <code>window.open</code> cannot send an <code>Authorization</code> header. It is a read-only render of the user's own report.</p>
+<hr>
+<h2 id="8-accessibility-and-print-hygiene">8. Accessibility and print hygiene</h2>
+<ul>
+<li class="depth-0">The stylesheet carries print rules, so the PDF is not a screenshot of a dark</li>
+</ul>
+<p>theme.</p>
+<ul>
+<li class="depth-0">Numeric columns use tabular figures, so digits align down the page.</li>
+<li class="depth-0">Colour is never the only signal: status badges carry text.</li>
+<li class="depth-0">Every table has real headers, so a screen reader announces the column names.</li>
+</ul>
+<hr>
+<h2 id="related">Related</h2>
+<ul>
+<li class="depth-0"><a href="14_api_documentation.html">14_api_documentation.md</a> — full endpoint reference</li>
+<li class="depth-0"><a href="09_database_design.html">09_database_design.md</a> — the views every report reads</li>
+<li class="depth-0"><a href="26_background_jobs_and_realtime.html">26_background_jobs_and_realtime.md</a> — the queued PDF path</li>
+<li class="depth-0"><a href="16_user_manual.html">16_user_manual.md</a> — how to read a report as a user</li>
+</ul>
+    </article>
+    <div class="doc-foot">
+      <span><a href="26_background_jobs_and_realtime.html">← Background Jobs & Realtime</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="28_schema_and_migrations.html">Schema & Migrations →</a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Auth, roles, all 113 operations, examples">
+<meta name="description" content="Auth, roles, 173 operations, worked examples">
 <meta name="color-scheme" content="light dark">
 <meta property="og:type" content="website">
 <meta property="og:title" content="API Documentation — Web-to-Warehouse Product Intelligence Pipeline">
-<meta property="og:description" content="Auth, roles, all 113 operations, examples">
+<meta property="og:description" content="Auth, roles, 173 operations, worked examples">
 <title>API Documentation — Web-to-Warehouse Product Intelligence Pipeline</title>
 <link rel="stylesheet" href="assets/site.css">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
@@ -43,27 +43,33 @@
 <a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
 <div class="nav-group-title">Design</div>
 <a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
-<a href="09_database_design.html" title="23-table ERD, indexing, retention">Database Design</a>
+<a href="09_database_design.html" title="28-table ERD, indexing, retention">Database Design</a>
 <a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
 <a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
 <a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
 <a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
 <div class="nav-group-title">Build and operate</div>
-<a href="14_api_documentation.html" class="active" title="Auth, roles, all 113 operations, examples">API Documentation</a>
-<a href="15_testing_strategy.html" title="Test pyramid, 100-case plan, quality gates">Testing Strategy</a>
+<a href="14_api_documentation.html" class="active" title="Auth, roles, 173 operations, worked examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, measured counts, quality gates">Testing Strategy</a>
 <a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
 <a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
 <a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
-<a href="19_feature_list.html" title="234 features with file references">Feature Inventory</a>
+<a href="19_feature_list.html" title="Every feature with the file that implements it">Feature Inventory</a>
 <a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
 <a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
 <a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
 <a href="24_demo_runbook.html" title="Screen-by-screen live demo script and failure playbook">Demo Runbook</a>
+<a href="25_forecasting_and_anomaly_detection.html" title="Damped Holt-Winters, measured accuracy, three detectors, pricing advice">Forecasting &amp; Anomalies</a>
+<a href="26_background_jobs_and_realtime.html" title="Leases, retries, cancellation, SSE and the cross-worker problem">Background Jobs &amp; Realtime</a>
+<a href="27_reporting_and_document_generation.html" title="Typed blocks rendered to HTML, JSON, CSV and PDF from one definition">Reporting &amp; Documents</a>
+<a href="28_schema_and_migrations.html" title="Alembic, drift detection, views, Airflow isolation">Schema &amp; Migrations</a>
+<a href="29_two_factor_and_sessions.html" title="TOTP enrolment, recovery codes, per-device revocation">Two-Factor &amp; Sessions</a>
+<a href="30_access_control_and_rate_limiting.html" title="Roles, rights, API-key scopes, sliding-window rate limiting">Access Control &amp; Limits</a>
   </nav>
   <main class="content">
     <div class="doc-head">
       <h1>API Documentation</h1>
-      <p>Auth, roles, all 113 operations, examples</p>
+      <p>Auth, roles, 173 operations, worked examples</p>
     </div>
     <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#table-of-contents">Table of contents</a></li><li class="lvl-2"><a href="#1-conventions">1. Conventions</a></li><li class="lvl-2"><a href="#2-authentication-flow">2. Authentication flow</a></li><li class="lvl-3"><a href="#21-token-characteristics">2.1 Token characteristics</a></li><li class="lvl-3"><a href="#22-api-keys-machine-clients">2.2 API keys (machine clients)</a></li><li class="lvl-3"><a href="#23-demo-accounts">2.3 Demo accounts</a></li><li class="lvl-2"><a href="#3-role-matrix">3. Role matrix</a></li><li class="lvl-2"><a href="#4-pagination-sorting-and-filtering">4. Pagination, sorting and filtering</a></li><li class="lvl-3"><a href="#41-the-paget-envelope">4.1 The Page[T] envelope</a></li><li class="lvl-3"><a href="#42-filtering-convention">4.2 Filtering convention</a></li><li class="lvl-2"><a href="#5-operation-catalogue">5. Operation catalogue</a></li><li class="lvl-2"><a href="#analytics--13-operations">analytics  (13 operations)</a></li><li class="lvl-2"><a href="#users--13-operations">users  (13 operations)</a></li><li class="lvl-2"><a href="#pipeline--11-operations">pipeline  (11 operations)</a></li><li class="lvl-2"><a href="#products--10-operations">products  (10 operations)</a></li><li class="lvl-2"><a href="#system--9-operations">system  (9 operations)</a></li><li class="lvl-2"><a href="#changes--8-operations">changes  (8 operations)</a></li><li class="lvl-2"><a href="#notifications--8-operations">notifications  (8 operations)</a></li><li class="lvl-2"><a href="#authentication--7-operations">authentication  (7 operations)</a></li><li class="lvl-2"><a href="#data-quality--6-operations">data-quality  (6 operations)</a></li><li class="lvl-2"><a href="#saved-views--5-operations">saved-views  (5 operations)</a></li><li class="lvl-2"><a href="#catalog--4-operations">catalog  (4 operations)</a></li><li class="lvl-2"><a href="#sources--4-operations">sources  (4 operations)</a></li><li class="lvl-2"><a href="#query-lab--4-operations">query-lab  (4 operations)</a></li><li class="lvl-2"><a href="#builder--2-operations">builder  (2 operations)</a></li><li class="lvl-3"><a href="#51-structured-builder-queries">5.1 Structured builder queries</a></li><li class="lvl-2"><a href="#settings--4-operations">settings  (4 operations)</a></li><li class="lvl-2"><a href="#audit--5-operations">audit  (5 operations)</a></li><li class="lvl-3"><a href="#51-notable-parameter-semantics">5.1 Notable parameter semantics</a></li><li class="lvl-3"><a href="#52-operations-hidden-from-the-schema-3">5.2 Operations hidden from the schema (3)</a></li><li class="lvl-2"><a href="#export--4-operations">export  (4 operations)</a></li><li class="lvl-2"><a href="#webhooks--8-operations">webhooks  (8 operations)</a></li><li class="lvl-2"><a href="#backfill-additions-to-pipeline--3-operations">backfill additions to pipeline  (3 operations)</a></li><li class="lvl-2"><a href="#6-worked-examples">6. Worked examples</a></li><li class="lvl-3"><a href="#61-log-in-and-read-the-kpi-cards-curl">6.1 Log in and read the KPI cards (curl)</a></li><li class="lvl-3"><a href="#62-filter-and-page-the-product-list">6.2 Filter and page the product list</a></li><li class="lvl-3"><a href="#63-product-detail-with-history">6.3 Product detail with history</a></li><li class="lvl-3"><a href="#64-price-changes-with-filters">6.4 Price changes with filters</a></li><li class="lvl-3"><a href="#65-data-quality-report">6.5 Data quality report</a></li><li class="lvl-3"><a href="#66-compliance-evidence">6.6 Compliance evidence</a></li><li class="lvl-3"><a href="#67-trigger-a-run-synchronously">6.7 Trigger a run synchronously</a></li><li class="lvl-3"><a href="#68-read-only-sql">6.8 Read-only SQL</a></li><li class="lvl-3"><a href="#69-csv-export">6.9 CSV export</a></li><li class="lvl-3"><a href="#610-python-client-httpx">6.10 Python client (httpx)</a></li><li class="lvl-3"><a href="#611-javascript--typescript-client-fetch">6.11 JavaScript / TypeScript client (fetch)</a></li><li class="lvl-3"><a href="#612-react-query-integration-used-by-the-dashboard">6.12 React Query integration (used by the dashboard)</a></li><li class="lvl-2"><a href="#7-error-catalogue">7. Error catalogue</a></li><li class="lvl-3"><a href="#71-error-handling-pseudocode-for-clients">7.1 Error-handling pseudocode for clients</a></li><li class="lvl-2"><a href="#8-versioning-policy">8. Versioning policy</a></li><li class="lvl-2"><a href="#9-interactive-documentation">9. Interactive documentation</a></li><li class="lvl-3"><a href="#91-generating-client-sdks-and-postman-collections">9.1 Generating client SDKs and Postman collections</a></li><li class="lvl-3"><a href="#92-tags-in-the-openapi-document">9.2 Tags in the OpenAPI document</a></li><li class="lvl-2"><a href="#10-rate-limiting-and-quotas">10. Rate limiting and quotas</a></li><li class="lvl-2"><a href="#11-client-integration-checklist">11. Client integration checklist</a></li></ol></details>
     <article class="doc-body">

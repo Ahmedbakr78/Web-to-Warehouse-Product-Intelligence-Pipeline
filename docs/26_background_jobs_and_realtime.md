@@ -206,7 +206,7 @@ realtime is an enhancement and never a dependency.
 
 ## Related
 
-- [26_reporting_and_document_generation.md](26_reporting_and_document_generation.md) — the PDF path that most needs a queue
+- [27_reporting_and_document_generation.md](27_reporting_and_document_generation.md) — the PDF path that most needs a queue
 - [17_technical_documentation.md](17_technical_documentation.md) — handler registration and configuration
 - [13_deployment.md](13_deployment.md) — worker scaling and what a single worker means
 - [15_testing_strategy.md](15_testing_strategy.md) — lease, retry and cancellation tests

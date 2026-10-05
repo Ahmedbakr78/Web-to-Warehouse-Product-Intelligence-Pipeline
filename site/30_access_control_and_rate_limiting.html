@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Roles, rights, API-key scopes, sliding-window rate limiting">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Access Control &amp; Limits — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Roles, rights, API-key scopes, sliding-window rate limiting">
+<title>Access Control &amp; Limits — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="28-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, 173 operations, worked examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, measured counts, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="Every feature with the file that implements it">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+<a href="24_demo_runbook.html" title="Screen-by-screen live demo script and failure playbook">Demo Runbook</a>
+<a href="25_forecasting_and_anomaly_detection.html" title="Damped Holt-Winters, measured accuracy, three detectors, pricing advice">Forecasting &amp; Anomalies</a>
+<a href="26_background_jobs_and_realtime.html" title="Leases, retries, cancellation, SSE and the cross-worker problem">Background Jobs &amp; Realtime</a>
+<a href="27_reporting_and_document_generation.html" title="Typed blocks rendered to HTML, JSON, CSV and PDF from one definition">Reporting &amp; Documents</a>
+<a href="28_schema_and_migrations.html" title="Alembic, drift detection, views, Airflow isolation">Schema &amp; Migrations</a>
+<a href="29_two_factor_and_sessions.html" title="TOTP enrolment, recovery codes, per-device revocation">Two-Factor &amp; Sessions</a>
+<a href="30_access_control_and_rate_limiting.html" class="active" title="Roles, rights, API-key scopes, sliding-window rate limiting">Access Control &amp; Limits</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Access Control &amp; Limits</h1>
+      <p>Roles, rights, API-key scopes, sliding-window rate limiting</p>
+    </div>
+    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#1-three-credential-types">1. Three credential types</a></li><li class="lvl-2"><a href="#2-roles-and-rights">2. Roles and rights</a></li><li class="lvl-2"><a href="#3-scopes-authorised-twice">3. Scopes: authorised twice</a></li><li class="lvl-2"><a href="#4-rate-limiting">4. Rate limiting</a></li><li class="lvl-2"><a href="#5-token-handling">5. Token handling</a></li><li class="lvl-2"><a href="#6-audit">6. Audit</a></li><li class="lvl-2"><a href="#7-failures-considered">7. Failures considered</a></li><li class="lvl-2"><a href="#related">Related</a></li></ol></details>
+    <article class="doc-body">
+<p>Who may call what, how often, and with which credential. Implemented in <a href="../app/api/deps.py"><code>app/api/deps.py</code></a>, <a href="../app/api/security.py"><code>app/api/security.py</code></a> and <a href="../app/api/ratelimit.py"><code>app/api/ratelimit.py</code></a>.</p>
+<hr>
+<h2 id="1-three-credential-types">1. Three credential types</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Credential</th>
+<th>Format</th>
+<th>Carries</th>
+<th>Typical use</th>
+</tr></thead><tbody>
+<tr>
+<th>Access token</th>
+<td><code>eyJ…</code> JWT, HS256</td>
+<td>A user, a role, 12 hours</td>
+<td>The browser and scripts acting as a person</td>
+</tr>
+<tr>
+<th>Refresh token</th>
+<td><code>eyJ…</code> JWT, type <code>refresh</code></td>
+<td>A session, 30 days</td>
+<td>Silent re-authentication</td>
+</tr>
+<tr>
+<th>API key</th>
+<td><code>pip_…</code></td>
+<td>A user, a scope set, optional expiry</td>
+<td>Machine-to-machine integration</td>
+</tr>
+</tbody></table></div>
+<p>All three resolve to a user, and every authorisation decision is then made from that user's role. There is no "key role" — a key cannot do anything its owner could not do.</p>
+<hr>
+<h2 id="2-roles-and-rights">2. Roles and rights</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Role</th>
+<th>Read</th>
+<th>Write</th>
+<th>Query</th>
+<th>Run pipeline</th>
+<th>Manage users</th>
+</tr></thead><tbody>
+<tr>
+<th><code>admin</code></th>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<th><code>engineer</code></th>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>—</td>
+</tr>
+<tr>
+<th><code>analyst</code></th>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<th><code>viewer</code></th>
+<td>✓</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<p>Rights are declared once in <code>ROLE_RIGHTS</code> and enforced by a dependency factory:</p>
+<pre class="code" data-lang="python"><code>ReadUser = Annotated[AppUser, Depends(require_rights(&quot;read&quot;))]
+PipelineUser = Annotated[AppUser, Depends(require_rights(&quot;run_pipeline&quot;))]</code></pre>
+<p>A route states its requirement in its signature, so the permission and the endpoint are visible together and cannot drift apart.</p>
+<p>When a caller lacks a right, the response names the role, what was missing, and what that role <em>does</em> have — which turns a 403 into something actionable.</p>
+<hr>
+<h2 id="3-scopes-authorised-twice">3. Scopes: authorised twice</h2>
+<p>An API key carries its own scopes. Without a second check, <code>scopes</code> would be decorative: stored on creation and never read.</p>
+<pre class="mermaid">flowchart TD
+  request[request with pip_ key] --&gt; resolve[resolve key → owner]
+  resolve --&gt; check1{owner has the right?}
+  check1 --&gt;|no| 403[403 permission_denied]
+  check1 --&gt;|yes| check2{key carries the scope?}
+  check2 --&gt;|no| 403
+  check2 --&gt;|yes| route[handler runs]</pre>
+<p>The key's effective scopes are intersected with the owner's rights, so a key can never exceed its owner. Capping at creation time would be easier and would let a later role change silently widen an existing key.</p>
+<p><code>GET /api/v1/keys</code> reports usage — last used and total calls per key — because a credential nobody has looked at in months is exactly how a leak goes unnoticed.</p>
+<hr>
+<h2 id="4-rate-limiting">4. Rate limiting</h2>
+<p>A sliding window over two budgets:</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Budget</th>
+<th>Default</th>
+<th>Purpose</th>
+</tr></thead><tbody>
+<tr>
+<th>Per second</th>
+<td>20 requests</td>
+<td>Stops a burst</td>
+</tr>
+<tr>
+<th>Per minute</th>
+<td>300 requests</td>
+<td>Stops a sustained crawl</td>
+</tr>
+</tbody></table></div>
+<pre class="mermaid">sequenceDiagram
+    participant C as Client
+    participant M as Rate limit middleware
+    participant A as API
+    C-&gt;&gt;M: request
+    M-&gt;&gt;M: drop timestamps older than the window
+    M-&gt;&gt;M: count within window
+    alt over budget
+        M--&gt;&gt;C: 429 + Retry-After + X-RateLimit-Reset
+    else within budget
+        M-&gt;&gt;A: request
+        A--&gt;&gt;C: response + X-RateLimit-* headers
+    end</pre>
+<p>Design points that matter:</p>
+<ul>
+<li class="depth-0"><strong>Sliding, not fixed.</strong> A fixed window lets a client send 2× the budget across</li>
+</ul>
+<p>a boundary. The sliding window does not.</p>
+<ul>
+<li class="depth-0"><strong>Headers on success, not only on failure.</strong> Remaining budget is visible before</li>
+</ul>
+<p>the limit is reached, so a well-behaved client can slow down on its own.</p>
+<ul>
+<li class="depth-0"><strong>Outermost middleware.</strong> A rejected request never reaches the database. If the</li>
+</ul>
+<p>budget were enforced in a route dependency, every rejected request would still have paid for a session.</p>
+<ul>
+<li class="depth-0"><strong><code>Retry-After</code> on the 429.</strong> A client that is told when to come back does not</li>
+</ul>
+<p>need to guess.</p>
+<ul>
+<li class="depth-0"><strong>Client identity</strong> is the API key, or the authenticated user, falling back to</li>
+</ul>
+<p>the client address for unauthenticated calls.</p>
+<p>Limits are configurable through settings, so a test can raise them rather than being made slow by them.</p>
+<hr>
+<h2 id="5-token-handling">5. Token handling</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Property</th>
+<th>Value</th>
+</tr></thead><tbody>
+<tr>
+<th>Algorithm</th>
+<td>HS256</td>
+</tr>
+<tr>
+<th>Access lifetime</th>
+<td>12 hours</td>
+</tr>
+<tr>
+<th>Refresh lifetime</th>
+<td>30 days, or the session limit</td>
+</tr>
+<tr>
+<th>Storage, browser</th>
+<td><code>localStorage</code></td>
+</tr>
+<tr>
+<th>Storage, server</th>
+<td>Refresh digests only</td>
+</tr>
+<tr>
+<th>Rotation</th>
+<td>Every refresh issues a new refresh token</td>
+</tr>
+</tbody></table></div>
+<p><code>decode_token</code> verifies the expected <code>type</code>, so an access token cannot be presented where a refresh token is expected. Without that check, a leaked access token would silently mint refreshes for 12 hours' worth of sessions.</p>
+<p>Passwords are Argon2id, rehashed on verification when the parameters change, and never logged.</p>
+<hr>
+<h2 id="6-audit">6. Audit</h2>
+<p>Every mutating request writes a row to <code>app_audit_log</code>: user, action, method, path, status, client address, user agent and duration. Reads against the audit log are themselves audited, and the audit rows are not deletable through the API.</p>
+<p>That combination is the point: the evidence cannot be edited through the interface that generated it.</p>
+<hr>
+<h2 id="7-failures-considered">7. Failures considered</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Situation</th>
+<th>Behaviour</th>
+</tr></thead><tbody>
+<tr>
+<td>Inactive user with a valid token</td>
+<td>401, user lookup rejects on <code>is_active</code></td>
+</tr>
+<tr>
+<th>Expired API key</th>
+<td>401, checked at authentication time</td>
+</tr>
+<tr>
+<th>Role lacks the right</th>
+<td>403 naming the role and its rights</td>
+</tr>
+<tr>
+<td>Key scope lacks the right</td>
+<td>403 naming the required scope</td>
+</tr>
+<tr>
+<th>Wrong password</th>
+<td>401, then a lock after 5 attempts</td>
+</tr>
+<tr>
+<th>Wrong 2FA code</th>
+<td>401, then a 2FA lock after 3</td>
+</tr>
+<tr>
+<th>Over budget</th>
+<td>429 with <code>Retry-After</code></td>
+</tr>
+<tr>
+<th>Unknown key</th>
+<td>401, indistinguishable from an invalid one on purpose</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="related">Related</h2>
+<ul>
+<li class="depth-0"><a href="29_two_factor_and_sessions.html">29_two_factor_and_sessions.md</a> — the second factor</li>
+<li class="depth-0"><a href="14_api_documentation.html">14_api_documentation.md</a> — every authenticated route</li>
+<li class="depth-0"><a href="04_risk_assessment.html">04_risk_assessment.md</a> — how these map to project risks</li>
+<li class="depth-0"><a href="15_testing_strategy.html">15_testing_strategy.md</a> — authorisation tests per role</li>
+</ul>
+    </article>
+    <div class="doc-foot">
+      <span><a href="29_two_factor_and_sessions.html">← Two-Factor & Sessions</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>
