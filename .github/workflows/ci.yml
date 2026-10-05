@@ -240,3 +240,29 @@ jobs:
           name: docs-site
           path: /tmp/site
           retention-days: 7
+
+  # ---------------------------------------------------------------------------------
+  stats:
+    name: Project statistics (documentation drift)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip wheel
+          pip install -e ".[postgres,mysql,dev]"
+
+      # Every structural figure quoted in the README and docs is measured here
+      # rather than maintained by hand. A count that has drifted is reported as a
+      # failure so the docs get corrected instead of quietly going stale.
+      - name: Measure structural counts
+        run: python3 scripts/project_stats.py --json | tee stats.json
+
+      - name: Compare against the figures recorded in the docs
+        run: python3 scripts/check_stats.py docs/stats.json

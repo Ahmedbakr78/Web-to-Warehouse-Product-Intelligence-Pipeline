@@ -37,9 +37,7 @@ def routers() -> int:
 def route_decorators() -> int:
     """Count ``@router.<verb>`` decorators across every router module."""
     pattern = re.compile(r"@router\.(get|post|put|patch|delete)\b")
-    return sum(
-        len(pattern.findall(p.read_text(encoding="utf-8"))) for p in ROUTERS.glob("*.py")
-    )
+    return sum(len(pattern.findall(p.read_text(encoding="utf-8"))) for p in ROUTERS.glob("*.py"))
 
 
 def tables() -> int:
@@ -76,9 +74,7 @@ def _count_tests_in(path: Path) -> int:
     tree = ast.parse(path.read_text(encoding="utf-8"))
     total = 0
     for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef) and node.name.startswith(
-            "test_"
-        ):
+        if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef) and node.name.startswith("test_"):
             total += 1
     return total
 
@@ -184,7 +180,7 @@ def compose_services() -> int:
 
 
 def documentation_documents() -> int:
-    return len([p for p in (ROOT / "docs").glob("[0-9][0-9]_*.md")])
+    return len(list((ROOT / "docs").glob("[0-9][0-9]_*.md")))
 
 
 def mermaid_diagrams() -> int:
