@@ -127,7 +127,7 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 
 ---
 
-## 4. Warehouse model (18)
+## 4. Warehouse model (20)
 
 | ID | Feature | Description | Where |
 | --- | --- | --- | --- |
@@ -220,7 +220,7 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 
 ---
 
-## 9. Analytics and SQL reporting (16)
+## 9. Analytics and SQL reporting (18)
 
 | ID | Feature | Description | Where |
 | --- | --- | --- | --- |
@@ -245,7 +245,7 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 
 ---
 
-## 10. REST API (23)
+## 10. REST API (26)
 
 | ID | Feature | Description | Where |
 | --- | --- | --- | --- |
@@ -314,7 +314,7 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 
 ---
 
-## 13. Operations, orchestration and DX (23)
+## 13. Operations, orchestration and DX (24)
 
 | ID | Feature | Description | Where |
 | --- | --- | --- | --- |
@@ -403,7 +403,7 @@ decision) rather than individual lines of code.
 **Revised total: 234 features.**
 ---
 
-## 16. Platform v1.3 additions (34)
+## 16. Platform v1.3 additions (37)
 
 | ID | Feature | Description | Where |
 | --- | --- | --- | --- |
