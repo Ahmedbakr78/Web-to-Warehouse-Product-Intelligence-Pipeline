@@ -2,6 +2,7 @@ import {
   Activity,
   AlertTriangle,
   BarChart3,
+  FileText,
   Brain,
   Boxes,
   Building2,
@@ -61,6 +62,7 @@ export const NAV_GROUPS: NavGroup[] = [
     title: 'Explore',
     items: [
       { to: '/forecast', label: 'Forecast', icon: Brain, description: 'Price projections, anomalies and pricing advice', badge: 'new' },
+      { to: '/reports', label: 'Reports', icon: FileText, description: 'Build, preview and export PDF/CSV reports', badge: 'new' },
       { to: '/query', label: 'Query lab', icon: Terminal, description: 'Read-only SQL over 20 views', permission: 'query' },
       { to: '/builder', label: 'Builder', icon: Sparkles, description: 'Compose, aggregate and save custom views', badge: 'beta' },
       { to: '/features', label: 'Features', icon: ListChecks, description: 'Everything the platform ships', badge: 'new' },
@@ -98,6 +100,7 @@ export const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = 
   '/quality': { title: 'Data quality', subtitle: 'Rule catalogue, results and quality score trend' },
   '/sources': { title: 'Ingestion sources', subtitle: 'Registered sources, robots.txt and rate limits' },
   '/forecast': { title: 'Forecasting & anomalies', subtitle: 'Model accuracy, price projections and anomaly detection' },
+  '/reports': { title: 'Report builder', subtitle: 'Declarative reports rendered to HTML, JSON, CSV and PDF' },
   '/query': { title: 'Query lab', subtitle: 'Read-only SQL console over the analytical views' },
   '/builder': { title: 'View builder', subtitle: 'Compose, aggregate, save and share custom views' },
   '/features': { title: 'Feature catalogue', subtitle: 'Every capability shipped by the platform, grouped and searchable' },

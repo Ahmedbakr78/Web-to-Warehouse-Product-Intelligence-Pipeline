@@ -496,6 +496,409 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             },
         ],
     },
+{
+        "key": "forecasting",
+        "title": "Forecasting & anomaly detection",
+        "icon": "trending-up",
+        "summary": "Damped Holt-Winters projections with measured accuracy, three independent anomaly detectors, "
+        "and pricing advice derived from elasticity.",
+        "features": [
+            {
+                "name": "Damped Holt-Winters",
+                "detail": "Trend, seasonality and damping, selected automatically from the length of the history",
+            },
+            {
+                "name": "Prediction intervals",
+                "detail": "A lower and upper bound per point, widening as the horizon grows",
+            },
+            {
+                "name": "Two-sided confidence bands",
+                "detail": "80% and 95%, because a single band hides how uncertain the projection is",
+            },
+            {
+                "name": "Holdout backtest",
+                "detail": "MAPE, MAE and RMSE measured on the tail the model never saw",
+            },
+            {
+                "name": "Accuracy grading",
+                "detail": "Each product is graded excellent, good, fair or poor from its MAPE",
+            },
+            {
+                "name": "MAD anomaly detector",
+                "detail": "Median absolute deviation, which a single outlier cannot inflate",
+            },
+            {"name": "Standard-deviation detector", "detail": "Flagged when the move exceeds three sigma"},
+            {
+                "name": "IQR fence detector",
+                "detail": "Tukey fences, which do not assume the distribution is normal",
+            },
+            {
+                "name": "Anomaly severity",
+                "detail": "Ranked by z-score and labelled informational or critical",
+            },
+            {
+                "name": "Seasonality profile",
+                "detail": "Day-of-week and monthly factors expressed as an index above or below 100",
+            },
+            {
+                "name": "Price recommendations",
+                "detail": "Hold, raise, cut or negotiate, with the margin effect stated in the response",
+            },
+            {
+                "name": "Demand elasticity",
+                "detail": "Absolute price change against volume change, computed from the facts table",
+            },
+            {
+                "name": "Forecast rebuild job",
+                "detail": "Recomputed in the background, cancellable and retryable",
+            },
+            {
+                "name": "Forecasting screen",
+                "detail": "Accuracy, anomalies and a per-product projection drawn with a confidence band",
+            },
+            {
+                "name": "Cold-start fallback",
+                "detail": "Too little history returns a flat series rather than a fabricated curve",
+            },
+        ],
+    },
+    {
+        "key": "jobs",
+        "title": "Background job queue",
+        "icon": "workflow",
+        "summary": "Durable, leased, retryable background work with a persisted progress log, so nothing "
+        "long-running ever holds an HTTP request open.",
+        "features": [
+            {
+                "name": "Durable job rows",
+                "detail": "Every job is a row, so a restart resumes the work instead of losing it",
+            },
+            {
+                "name": "Lease with heartbeat",
+                "detail": "A worker holds a lease and renews it; a dead worker's job is reclaimed",
+            },
+            {"name": "Bounded retry", "detail": "A fixed attempt budget with the last error recorded on the row"},
+            {
+                "name": "Cooperative cancellation",
+                "detail": "A cancel request is honoured at the next checkpoint rather than by a kill",
+            },
+            {
+                "name": "Persisted progress events",
+                "detail": "Stage, message and percentage per step, not just a final status",
+            },
+            {
+                "name": "Coalesced progress writes",
+                "detail": "Events are buffered so a SQLite write lock cannot stall the worker",
+            },
+            {
+                "name": "Six job types",
+                "detail": "Pipeline run, backfill, export, forecast rebuild, aggregate rebuild and report PDF",
+            },
+            {
+                "name": "Job detail endpoint",
+                "detail": "Status, attempts, lease expiry, error and the whole progress log",
+            },
+            {
+                "name": "Worker introspection",
+                "detail": "Queue depth, running count and lease age, for a dashboard or an alert",
+            },
+            {"name": "Live jobs screen", "detail": "The same queue with SSE progress, cancel and retry"},
+            {
+                "name": "Enqueue returns immediately",
+                "detail": "The caller gets a job reference, not a result it has to wait for",
+            },
+        ],
+    },
+    {
+        "key": "realtime",
+        "title": "Realtime streaming",
+        "icon": "zap",
+        "summary": "Server-Sent Events and WebSocket over one broker, with a database event log so a second API "
+        "worker cannot hide events published by the first.",
+        "features": [
+            {"name": "SSE per topic", "detail": "Run, job, KPI, change, quality and notification topics"},
+            {
+                "name": "WebSocket channel",
+                "detail": "One bidirectional connection for clients that prefer a socket",
+            },
+            {
+                "name": "Topic filtering",
+                "detail": "A client subscribes to what it actually renders, not to everything",
+            },
+            {
+                "name": "Cross-worker delivery",
+                "detail": "Events are polled from the database, not only from this process's memory",
+            },
+            {
+                "name": "Snapshot first paint",
+                "detail": "A polling-friendly snapshot, so a freshly opened screen is never blank",
+            },
+            {
+                "name": "Keep-alive comments",
+                "detail": "The connection is held open between events instead of being dropped",
+            },
+            {
+                "name": "No proxy buffering",
+                "detail": "X-Accel-Buffering off, so nginx cannot hold frames until the stream closes",
+            },
+            {
+                "name": "Bounded client buffer",
+                "detail": "A chatty topic cannot grow the browser's event array without limit",
+            },
+            {
+                "name": "Capped exponential reconnect",
+                "detail": "Backoff after a drop, so a server restart is not hammered",
+            },
+            {
+                "name": "Query credential for EventSource",
+                "detail": "The transport accepts a query token, since the browser cannot set headers; the role "
+                "and scope checks are unchanged",
+            },
+        ],
+    },
+    {
+        "key": "reports",
+        "title": "Reports & document generation",
+        "icon": "file-search",
+        "summary": "Five declarative reports assembled from typed blocks and rendered identically to HTML, JSON, "
+        "CSV and PDF.",
+        "features": [
+            {
+                "name": "Executive summary",
+                "detail": "Market position, data freshness and trustworthiness at a glance",
+            },
+            {
+                "name": "Price movement report",
+                "detail": "Largest movers, direction mix and per-category volatility",
+            },
+            {"name": "Data quality report", "detail": "Every rule, its current verdict and the score trend"},
+            {
+                "name": "Catalog reconciliation",
+                "detail": "Our list prices against the market, and the gaps worth chasing",
+            },
+            {"name": "Product report", "detail": "One product's price history, movements and projection"},
+            {
+                "name": "Typed blocks",
+                "detail": "heading, tiles, table, bars and callout, all rendered by a single renderer",
+            },
+            {
+                "name": "Section selection",
+                "detail": "Any subset of a template's sections, kept in the template's own order",
+            },
+            {"name": "Window parameters", "detail": "1 to 365 days, with a 1 to 60 day forecast horizon"},
+            {
+                "name": "HTML preview",
+                "detail": "The server's own render, so the screen matches the export",
+            },
+            {
+                "name": "PDF download",
+                "detail": "WeasyPrint with Pango and Cairo, embedded fonts, headers and page numbers",
+            },
+            {
+                "name": "Queued PDF rendering",
+                "detail": "A slow render becomes a job instead of a request the caller waits on",
+            },
+            {
+                "name": "Graceful unavailability",
+                "detail": "A host without PDF support answers 501 and explains why, rather than failing at 500",
+            },
+            {
+                "name": "CSV built from the blocks",
+                "detail": "One export definition, so the CSV cannot drift away from the screen",
+            },
+            {
+                "name": "Report builder screen",
+                "detail": "Template, window, section chips and HTML, CSV and PDF export",
+            },
+        ],
+    },
+    {
+        "key": "schema",
+        "title": "Schema & migrations",
+        "icon": "database",
+        "summary": "Alembic owns the schema: 28 tables and 20 views built from nothing, with drift detection in "
+        "continuous integration.",
+        "features": [
+            {"name": "Alembic integrated", "detail": "Real revisions instead of create_all on every boot"},
+            {
+                "name": "Complete initial revision",
+                "detail": "Every table the models declare, created in dependency order",
+            },
+            {
+                "name": "Views are part of the migration",
+                "detail": "The 20 analytical views are applied by the revision, not by a bootstrap afterthought",
+            },
+            {
+                "name": "Drift check",
+                "detail": "`alembic check` fails when the models and the revision disagree",
+            },
+            {
+                "name": "Reviewed autogenerate",
+                "detail": "Foreign tables are excluded so only the warehouse schema is managed",
+            },
+            {
+                "name": "Downgrade path",
+                "detail": "The revision drops its views and tables cleanly, and the gate proves it",
+            },
+            {
+                "name": "Target-aware environment",
+                "detail": "The migration target is resolved from the active database setting",
+            },
+            {
+                "name": "Idempotent upgrade",
+                "detail": "Applying an already-applied revision is a no-op rather than an error",
+            },
+            {
+                "name": "CLI and Make targets",
+                "detail": "db-upgrade, db-downgrade, db-current, db-history and db-check",
+            },
+            {
+                "name": "Separate version table",
+                "detail": "alembic_version cannot collide with a warehouse table of the same name",
+            },
+            {
+                "name": "Dedicated Airflow database",
+                "detail": "Orchestration metadata lives outside the analytical warehouse",
+            },
+        ],
+    },
+    {
+        "key": "account_security",
+        "title": "Two-factor & session control",
+        "icon": "fingerprint",
+        "summary": "TOTP two-step sign-in with recovery codes, plus per-device sessions that can be revoked "
+        "individually or all at once.",
+        "features": [
+            {"name": "TOTP two-step sign-in", "detail": "RFC 6238, SHA-1, 30 second steps, one step of drift allowed"},
+            {
+                "name": "Enrolment QR code",
+                "detail": "An otpauth:// URI plus the secret in text, for a phone or a desktop authenticator",
+            },
+            {
+                "name": "Nothing enabled until confirmed",
+                "detail": "Activation needs a real code, so a mistyped secret cannot lock anyone out of their account",
+            },
+            {"name": "Encrypted secret", "detail": "The shared secret is encrypted at rest, not stored in the clear"},
+            {
+                "name": "Single-use recovery codes",
+                "detail": "Eight codes, stored hashed, each invalidated the moment it is used",
+            },
+            {
+                "name": "Recovery works while locked",
+                "detail": "Three wrong codes lock the second factor, but a recovery code still proves possession",
+            },
+            {
+                "name": "Attempt counter",
+                "detail": "Remaining attempts are shown before the lock, not only after it",
+            },
+            {
+                "name": "A session per device",
+                "detail": "Device, address, user agent, sign-in time and last activity",
+            },
+            {
+                "name": "Revoke one session",
+                "detail": "The refresh token behind that session is invalidated immediately",
+            },
+            {"name": "Sign out everywhere else", "detail": "One call invalidates every other session"},
+            {
+                "name": "Hashed refresh tokens",
+                "detail": "Rotation stores only a digest, so a database leak is not a session leak",
+            },
+            {
+                "name": "Persistent session handle",
+                "detail": "The handle survives a reload, which is what makes revocation possible at all",
+            },
+            {
+                "name": "Devices and 2FA screen",
+                "detail": "Both controls on one Account tab, next to the password form",
+            },
+        ],
+    },
+    {
+        "key": "access_control",
+        "title": "API access control",
+        "icon": "sliders",
+        "summary": "Rate limiting with honest headers, and API-key scopes that are genuinely enforced against the "
+        "owner's own rights.",
+        "features": [
+            {
+                "name": "Sliding-window rate limit",
+                "detail": "Per-client budgets in seconds and minutes, not a fixed window that resets at the edge",
+            },
+            {
+                "name": "Standard 429 response",
+                "detail": "With Retry-After, so a well-behaved client can back off correctly",
+            },
+            {
+                "name": "Limit headers on every response",
+                "detail": "The remaining budget is visible before the limit is hit, not after",
+            },
+            {
+                "name": "Outermost middleware",
+                "detail": "A rejected request never reaches the database, which is the point of having a budget",
+            },
+            {
+                "name": "Scoped API keys",
+                "detail": "A key carries its own rights, capped by what its owner holds",
+            },
+            {
+                "name": "Scopes checked on every route",
+                "detail": "A scoped key is authorised twice: against the owner, then against its own scopes",
+            },
+            {
+                "name": "Usage counters",
+                "detail": "Last used and total calls per key, which is how a leaked credential gets noticed",
+            },
+            {"name": "Expiring keys", "detail": "An optional expiry is rejected at authentication time"},
+            {
+                "name": "Key rotation",
+                "detail": "Revoke the old key and issue a new one, with no gap in access",
+            },
+        ],
+    },
+    {
+        "key": "quality_gates",
+        "title": "Engineering quality gates",
+        "icon": "clipboard",
+        "summary": "What has to pass before this project counts as working: tests, typing, lint, schema drift "
+        "and a smoke run against the live stack.",
+        "features": [
+            {
+                "name": "397 automated tests",
+                "detail": "Unit and integration, running against SQLite so no service is needed",
+            },
+            {
+                "name": "104-check API smoke run",
+                "detail": "Every endpoint exercised against the running stack, in the smoke script",
+            },
+            {"name": "Strict typing", "detail": "mypy clean across 83 source files"},
+            {"name": "Lint clean", "detail": "Ruff over app, tests, scripts, DAGs and migrations"},
+            {
+                "name": "Schema drift gate",
+                "detail": "CI runs alembic check, so the models cannot drift away from the revision",
+            },
+            {
+                "name": "Migration round trip",
+                "detail": "Upgrade, downgrade and re-upgrade are all exercised, not just the happy path",
+            },
+            {
+                "name": "Frontend type gate",
+                "detail": "tsc, then ESLint at zero warnings, then a production build",
+            },
+            {
+                "name": "Tests need no services",
+                "detail": "A fresh clone can run the suite before Docker exists on the machine",
+            },
+            {
+                "name": "PostgreSQL parity",
+                "detail": "The same suite runs against PostgreSQL by changing a single URL",
+            },
+            {
+                "name": "Documentation drift check",
+                "detail": "A measured count in the docs that stops matching the code fails the build",
+            },
+        ],
+    },
 ]
 
 

@@ -9,8 +9,8 @@ from fastapi import Request
 from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.testclient import TestClient
 
-from app.api.main import app
 from app.api.deps import stream_user
+from app.api.main import app
 from app.api.security import create_access_token
 from app.core.db import session_scope
 from app.core.errors import AuthenticationError, PipelineError

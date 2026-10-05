@@ -396,11 +396,47 @@ export async function downloadExport(
   }
   const disposition = response.headers.get('Content-Disposition') ?? ''
   const match = /filename="?([^"]+)"?/.exec(disposition)
+  await saveBlob(response, match?.[1] ?? `${dataset}.${format}`)
+}
+
+/**
+ * Fetch a binary endpoint with the bearer token and save it under its server-sent name.
+ *
+ * A plain `<a href>` would be rejected by the API, and `window.open` cannot carry a
+ * header either, so the blob round-trip is the only way to download an authenticated
+ * file without giving the token to the browser's history.
+ */
+export async function downloadBinary(
+  path: string,
+  params: Record<string, QueryValue> = {},
+  fallbackName = 'download.bin',
+): Promise<void> {
+  const response = await fetch(`${API_BASE}${path}${buildQuery(params)}`, {
+    headers: { Authorization: `Bearer ${tokenStore.get() ?? ''}` },
+  })
+  if (!response.ok) {
+    let message = `Download failed (${response.status})`
+    try {
+      const payload = await response.json()
+      message = payload?.message ?? message
+    } catch {
+      /* the API answers a 501 with plain text, which is the interesting case here */
+      const text = await response.text().catch(() => '')
+      if (text) message = text.slice(0, 200)
+    }
+    throw new Error(message)
+  }
+  const disposition = response.headers.get('Content-Disposition') ?? ''
+  const match = /filename="?([^"]+)"?/.exec(disposition)
+  await saveBlob(response, match?.[1] ?? fallbackName)
+}
+
+async function saveBlob(response: Response, filename: string): Promise<void> {
   const blob = await response.blob()
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement('a')
   anchor.href = url
-  anchor.download = match?.[1] ?? `${dataset}.${format}`
+  anchor.download = filename
   document.body.appendChild(anchor)
   anchor.click()
   anchor.remove()
