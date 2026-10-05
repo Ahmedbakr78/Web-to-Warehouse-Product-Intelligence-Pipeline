@@ -10,10 +10,10 @@
   <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker Compose"/>
   <img src="https://img.shields.io/badge/tables-23-informational" alt="Tables"/>
   <img src="https://img.shields.io/badge/views-20-informational" alt="Views"/>
-  <img src="https://img.shields.io/badge/REST%20operations-113-success" alt="REST operations"/>
+  <img src="https://img.shields.io/badge/REST%20operations-110-success" alt="REST operations"/>
   <img src="https://img.shields.io/badge/DQ%20rules-12-success" alt="Data quality rules"/>
   <img src="https://img.shields.io/badge/unit%20tests-255%20passing-brightgreen" alt="Tests"/>
-  <img src="https://img.shields.io/badge/API%20smoke-78%2F78-brightgreen" alt="API smoke"/>
+  <img src="https://img.shields.io/badge/API%20smoke-86%2F86-brightgreen" alt="API smoke"/>
   <img src="https://img.shields.io/badge/mypy-clean-61%20files-brightgreen" alt="mypy"/>
   <img src="https://img.shields.io/badge/ruff-0%20warnings-brightgreen" alt="ruff"/>
   <img src="https://img.shields.io/badge/CI-github%20actions-2088FF?logo=github-actions&logoColor=white" alt="CI"/>
@@ -56,8 +56,9 @@
   <a href="docs/21_architecture_deep_dive.md">Architecture deep dive</a> ·
   <a href="docs/22_data_dictionary.md">Data dictionary</a> ·
   <a href="docs/23_glossary_and_faq.md">Glossary &amp; FAQ</a> ·
-  <a href="SECURITY.md">Security</a> ·
+  <a href=".github/SECURITY.md">Security</a> ·
   <a href="CONTRIBUTING.md">Contributing</a> ·
+  <a href=".github/CODE_OF_CONDUCT.md">Code of conduct</a> ·
   <a href="CHANGELOG.md">Changelog</a>
 </p>
 
@@ -1000,8 +1001,8 @@ pyproject.toml                package configuration and tool settings
 
 ## Documentation
 
-All twenty documents live in [docs/](docs/README.md). Every diagram is Mermaid and renders natively
-on GitHub; every number is tied to a runnable command.
+All twenty-three documents live in [docs/](docs/README.md). Every diagram is Mermaid and renders
+natively on GitHub; every structural number is tied to a runnable command.
 
 | # | Document | Contents |
 | --- | --- | --- |
@@ -1025,9 +1026,37 @@ on GitHub; every number is tied to a runnable command.
 | 18 | Presentation Outline | 18-slide defence deck, Q&A preparation, demo script |
 | 19 | Feature Inventory | 234 features in 15 areas with file references |
 | 20 | Feedback and Improvements | feedback template, 32 prioritised improvements, self-assessment |
+| 21 | **Architecture Deep Dive** | design drivers, decisions with rejected alternatives, request lifecycle, layering, known limitations |
+| 22 | **Data Dictionary** | every table, column, type and meaning; controlled vocabularies; view catalogue; dialect portability |
+| 23 | **Glossary and FAQ** | terms defined, then setup, pipeline, quality, security and development Q&A |
 
-Project companion files: [CHANGELOG.md](CHANGELOG.md), [CONTRIBUTING.md](CONTRIBUTING.md),
-[frontend README](frontend/README.md), [docs index](docs/README.md).
+### The documentation website
+
+Every document is also published as a browsable site, with client-side search, a dark mode that
+follows the system preference, and all 50+ diagrams rendered:
+
+```bash
+make site             # build ./site — standard library only, nothing to install
+make site-serve       # build and serve on http://localhost:8001
+```
+
+The builder is a single dependency-free script. It exists because GitHub Pages does not serve
+private repositories on the free plan, so a Pages workflow would never deploy here — but its output
+is a plain directory of static files that can be served locally or dropped on any host.
+
+### Project companion files
+
+| File | Purpose |
+| --- | --- |
+| [CHANGELOG.md](CHANGELOG.md) | Every release, following Keep a Changelog |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | How to set up, test and propose changes |
+| [SECURITY.md](SECURITY.md) | Threat model, boundary controls, disclosure process |
+| [CODE_OF_CONDUCT.md](.github/CODE_OF_CONDUCT.md) | Contributor Covenant 2.1 |
+| [.github/ISSUE_TEMPLATE](.github/ISSUE_TEMPLATE) | Bug, feature and documentation forms |
+| [.github/pull_request_template.md](.github/pull_request_template.md) | PR checklist and verification expectations |
+| [frontend/README.md](frontend/README.md) | Dashboard structure and scripts |
+| [docs/index](docs/README.md) | Documentation table of contents |
+| [db/analysis/README.md](db/analysis/README.md) | The four standalone SQL analyses |
 
 ---
 

@@ -313,7 +313,8 @@ function CommandPalette({
     inputRef.current?.focus()
   }, [open])
 
-  // Live product search (debounced by the typing itself - cheap server-side LIMIT).
+  // Live product search. The AbortSignal is passed all the way through so a
+  // superseded keystroke is cancelled instead of racing the newer response.
   useEffect(() => {
     const term = query.trim()
     if (!open || term.length < 2) {
@@ -322,10 +323,12 @@ function CommandPalette({
     }
     const controller = new AbortController()
     const timer = window.setTimeout(() => {
-      endpoints
-        .products({ q: term, page: 1, page_size: 6 })
-        .then((response: any) => setProducts(response?.items ?? []))
-        .catch(() => setProducts([]))
+      searchProducts(term, controller.signal)
+        .then((response) => setProducts((response?.items ?? []) as typeof products))
+        .catch((error) => {
+          // An abort is the expected outcome of typing another character.
+          if ((error as Error).name !== 'AbortError') setProducts([])
+        })
     }, 220)
     return () => {
       controller.abort()

@@ -176,6 +176,14 @@ export const api = {
 }
 
 /* ------------------------------------------------------------------ endpoint helpers */
+/** Cancellable product search, used by the command palette. */
+export function searchProducts(
+  q: string,
+  signal?: AbortSignal,
+): Promise<{ items?: Array<Record<string, unknown>> }> {
+  return api.get<{ items?: Array<Record<string, unknown>> }>('/products', { q, page: 1, page_size: 6 }, signal)
+}
+
 export const endpoints = {
   health: () => api.get<any>('/health'),
   meta: () => api.get<any>('/meta'),
