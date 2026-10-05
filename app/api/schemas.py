@@ -11,6 +11,25 @@ T = TypeVar("T")
 
 #: Accent palettes the dashboard ships. Mirrors `frontend/src/lib/theme.ts`;
 #: the two are cross-checked by `tests/test_api.py::test_appearance_palettes_match_frontend`.
+#: Every permission a role or an API key can be granted. Defined here rather than
+#: imported from `app.api.security` so this module stays free of request-layer imports.
+ALL_SCOPES: frozenset[str] = frozenset(
+    {
+        "read",
+        "write",
+        "run_pipeline",
+        "manage_sources",
+        "manage_users",
+        "manage_settings",
+        "view_audit",
+        "manage_keys",
+        "manage_alerts",
+        "manage_views",
+        "query",
+        "export",
+    }
+)
+
 ACCENT_PRESETS: frozenset[str] = frozenset(
     {
         "indigo",
@@ -225,6 +244,30 @@ class ApiKeyRead(ORMModel):
 
 class ApiKeyCreate(BaseModel):
     name: str = Field(min_length=2, max_length=64)
+    #: Rights this key may exercise. An empty list means "everything the owner can do",
+    #: which keeps keys created before scopes existed working unchanged.
+    scopes: list[str] | None = Field(
+        default=None,
+        max_length=32,
+        description="Subset of the owner's role rights, e.g. ['read', 'export']",
+    )
+    #: Requests per minute for this key. Falls back to API_RATE_LIMIT_PER_MINUTE.
+    rate_limit_per_minute: int | None = Field(default=None, ge=1, le=100_000)
+    #: Days until expiry. None means it never expires.
+    expires_in_days: int | None = Field(default=90, ge=1, le=3650)
+
+    @field_validator("scopes")
+    @classmethod
+    def _known_scopes(cls, value: list[str] | None) -> list[str] | None:
+        if value is None:
+            return None
+        unknown = sorted(set(value) - ALL_SCOPES)
+        if unknown:
+            raise ValueError(
+                f"unknown scope(s): {', '.join(unknown)}; valid: {', '.join(sorted(ALL_SCOPES))}"
+            )
+        # De-duplicate while preserving the caller's order.
+        return list(dict.fromkeys(value))
 
 
 class ApiKeyCreated(ApiKeyRead):

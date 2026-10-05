@@ -102,6 +102,13 @@ class Settings(BaseSettings):
     retry_backoff_seconds: float = 1.5
     requests_per_second: float = 1.0
     requests_per_minute: int = 30
+
+    # ---------------------------------------------------------------- API rate limiting
+    #: Enforce a per-caller request budget on the REST API. `AppApiKey.rate_limit_per_minute`
+    #: overrides this for machine clients.
+    rate_limit_enabled: bool = True
+    #: Requests per minute for a session token (or for an unauthenticated caller by IP).
+    api_rate_limit_per_minute: int = 240
     crawl_delay_fallback_seconds: float = 2.0
     max_concurrent_requests: int = 4
     cache_enabled: bool = True

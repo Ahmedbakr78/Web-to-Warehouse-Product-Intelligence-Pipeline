@@ -23,7 +23,13 @@ from app.api.schemas import (
     UserUpdate,
 )
 from app.api.security import ROLE_RIGHTS, at_least, generate_api_key, hash_password, verify_password
-from app.core.errors import AuthenticationError, ConflictError, ProductNotFoundError, ValidationError
+from app.core.config import settings
+from app.core.errors import (
+    AuthenticationError,
+    ConflictError,
+    ProductNotFoundError,
+    ValidationError,
+)
 from app.models.app_users import AppApiKey, AppAuditLog, AppNotification, AppSavedView, AppUser
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -370,15 +376,30 @@ def create_key(user_id: int, payload: ApiKeyCreate, session: DbSession, user: Cu
 
         raise PermissionDeniedError("you can only create keys for yourself")
     plain, prefix, hashed = generate_api_key()
+    # A key can never be granted more than its owner already has.
+    owner = session.get(AppUser, user_id)
+    role_rights = ROLE_RIGHTS.get(owner.role if owner else "viewer", set())
+    requested = payload.scopes
+    if requested:
+        beyond = sorted(set(requested) - role_rights)
+        if beyond:
+            raise PermissionDeniedError(
+                f"cannot grant scope(s) the owner does not hold: {', '.join(beyond)}",
+                details={"owner_role": owner.role if owner else "viewer", "beyond_role": beyond},
+            )
     row = AppApiKey(
         user_id=user_id,
         name=payload.name,
         prefix=prefix,
         hashed_key=hashed,
-        scopes=["read"],
+        scopes=sorted(requested) if requested else None,
         is_active=True,
-        expires_at=dt.datetime.now(dt.timezone.utc) + dt.timedelta(days=90),
-        rate_limit_per_minute=120,
+        expires_at=(
+            dt.datetime.now(dt.timezone.utc) + dt.timedelta(days=payload.expires_in_days)
+            if payload.expires_in_days
+            else None
+        ),
+        rate_limit_per_minute=payload.rate_limit_per_minute or settings.api_rate_limit_per_minute,
     )
     session.add(row)
     session.flush()

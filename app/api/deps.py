@@ -171,9 +171,15 @@ OptionalUser = Annotated[AppUser | None, Depends(get_current_user_optional)]
 
 
 def require_rights(*rights: str):
-    """Dependency factory: require every listed right on the caller's role."""
+    """Dependency factory: require every listed right on the caller's role.
 
-    def dependency(user: CurrentUser) -> AppUser:
+    A route is authorised twice when the caller authenticated with an API key: once
+    against the owner's role (above) and once against the key's own `scopes`. Without
+    the second check `AppApiKey.scopes` was decorative - stored on creation and never
+    read - so a narrowly scoped machine key could call anything its owner could.
+    """
+
+    def dependency(user: CurrentUser, request: Request) -> AppUser:
         missing = [right for right in rights if not has_right(user.role, right)]
         if missing:
             raise PermissionDeniedError(
@@ -184,6 +190,9 @@ def require_rights(*rights: str):
                     "granted": sorted(ROLE_RIGHTS.get(user.role, set())),
                 },
             )
+        key_row, owner = _api_key_context(request)
+        for right in rights:
+            enforce_scope(key_row, owner or user, right)
         return user
 
     return dependency
@@ -194,6 +203,41 @@ WriteUser = Annotated[AppUser, Depends(require_rights("write"))]
 AdminUser = Annotated[AppUser, Depends(require_rights("manage_users"))]
 PipelineUser = Annotated[AppUser, Depends(require_rights("run_pipeline"))]
 QueryUser = Annotated[AppUser, Depends(require_rights("query"))]
+
+
+def enforce_scope(key_row: AppApiKey | None, owner: AppUser | None, required: str) -> None:
+    """Narrow an API key's scopes against its owner's role, and refuse if insufficient."""
+    if key_row is None:
+        return
+    from app.api.ratelimit import effective_scopes
+
+    granted = effective_scopes(key_row, owner)
+    if required not in granted:
+        raise PermissionDeniedError(
+            f"this API key does not carry the '{required}' scope",
+            details={"required_scope": required, "granted_scopes": sorted(granted)},
+        )
+
+
+def _api_key_context(request: Request) -> tuple[AppApiKey | None, AppUser | None]:
+    """Resolve the API key behind the current request, if the caller used one."""
+    header = request.headers.get("authorization", "")
+    if not header.lower().startswith("bearer "):
+        return None, None
+    token = header[7:].strip()
+    if not token.startswith("pip_"):
+        return None, None
+    session = get_session_factory()()
+    try:
+        row = (
+            session.execute(sa.select(AppApiKey).where(AppApiKey.hashed_key == hash_api_key(token)))
+            .scalars()
+            .first()
+        )
+        owner = session.get(AppUser, row.user_id) if row is not None else None
+        return row, owner
+    finally:
+        session.close()
 
 
 def client_ip(request: Request) -> str:
@@ -223,6 +267,7 @@ __all__ = [
     "CurrentUser",
     "OptionalUser",
     "require_rights",
+    "enforce_scope",
     "ReadUser",
     "WriteUser",
     "AdminUser",
