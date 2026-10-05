@@ -12,7 +12,7 @@
   <img src="https://img.shields.io/badge/views-20-informational" alt="Views"/>
   <img src="https://img.shields.io/badge/REST%20operations-110-success" alt="REST operations"/>
   <img src="https://img.shields.io/badge/DQ%20rules-12-success" alt="Data quality rules"/>
-  <img src="https://img.shields.io/badge/unit%20tests-255%20passing-brightgreen" alt="Tests"/>
+  <img src="https://img.shields.io/badge/unit%20tests-321%20passing-brightgreen" alt="Tests"/>
   <img src="https://img.shields.io/badge/API%20smoke-86%2F86-brightgreen" alt="API smoke"/>
   <img src="https://img.shields.io/badge/mypy-clean-61%20files-brightgreen" alt="mypy"/>
   <img src="https://img.shields.io/badge/ruff-0%20warnings-brightgreen" alt="ruff"/>
@@ -31,7 +31,7 @@
 
 <p align="center">
   <b>110 REST operations</b> · <b>23 tables</b> · <b>20 analytical views</b> ·
-  <b>12 DQ rules</b> · <b>5 compliant sources</b> · <b>255 tests</b> ·
+  <b>12 DQ rules</b> · <b>5 compliant sources</b> · <b>321 tests</b> ·
   <b>86/86 API checks</b> · <b>two SQL dialects, one schema</b>
 </p>
 
@@ -168,7 +168,7 @@ Everything is engineered like a production system, not a demo:
 23 physical tables  |  20 analytical views  |  110 REST operations in 16 routers
 12 DQ rules across 6 dimensions, weighted score persisted per run
 5 ingestion sources  |  9 pipeline stages  |  13 Airflow tasks
-255 unit tests  |  86/86 API smoke checks  |  mypy clean in 61 files  |  ruff zero warnings
+321 unit tests  |  86/86 API smoke checks  |  mypy clean in 61 files  |  ruff zero warnings
 p95 API latency <= 38.2 ms measured across 12 endpoints
 Catalog reconciliation: 2,975 ms -> 104 ms (29x) with identical results
 ```
@@ -1190,7 +1190,7 @@ trigger a pipeline run is denied.
 | --- | --- | --- |
 | Lint and format | `make lint` | ruff: all checks pass, zero warnings |
 | Static types | `make typecheck` | mypy: no issues in 61 source files |
-| Unit tests | `make test` | pytest: 255 passed (SQLite warehouse, no services required) |
+| Unit tests | `make test` | pytest: 321 passed (SQLite warehouse, no services required) |
 | API regression | `.venv/bin/python scripts/api_smoke.py` | 86/86 checks, including auth, RBAC and 404 paths |
 | Frontend | `cd frontend && npm run lint && npm run typecheck && npm run build` | ESLint at zero warnings, clean tsc, production build |
 | Cross-dialect | `make verify-dialects` | identical model and DQ score on PostgreSQL and MySQL |
@@ -1244,7 +1244,7 @@ scripts/
   run_analysis.py         runs the standalone SQL analyses
   make_infographic.py     generates the roadmap infographic
   diagrams.py            extract, validate and render all Mermaid diagrams
-tests/            pytest unit + integration suite (255 tests)
+tests/            pytest unit + integration suite (321 tests)
 website/          single-file project landing page (index.html) with light/dark themes
 .github/
   workflows/ci.yml        ruff, mypy, pytest, eslint, tsc, vite build

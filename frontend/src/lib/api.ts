@@ -296,4 +296,66 @@ export const endpoints = {
   auditLog: (params: Record<string, QueryValue>) => api.get<any>('/audit', params),
   httpLog: (limit = 100, sourceCode?: string) => api.get<any[]>('/audit/http', { limit, source_code: sourceCode }),
   auditActions: () => api.get<any[]>('/audit/actions'),
+
+  // ---------------------------------------------------------------- integrations
+  exportDatasets: () => api.get<any>('/export/datasets'),
+  exportPreview: (dataset: string, params: Record<string, QueryValue> = {}) =>
+    api.get<any>(`/export/${dataset}`, params),
+
+  webhookEvents: () => api.get<any>('/webhooks/events'),
+  webhooks: () => api.get<any[]>('/webhooks'),
+  createWebhook: (payload: Record<string, unknown>) => api.post<any>('/webhooks', payload),
+  updateWebhook: (id: number, payload: Record<string, unknown>) =>
+    api.patch<any>(`/webhooks/${id}`, payload),
+  deleteWebhook: (id: number) => api.del<any>(`/webhooks/${id}`),
+  testWebhook: (id: number, payload: Record<string, unknown> = {}) =>
+    api.post<any>(`/webhooks/${id}/test`, payload),
+  webhookDeliveries: (id: number, params: Record<string, QueryValue> = {}) =>
+    api.get<any>(`/webhooks/${id}/deliveries`, params),
+  rotateWebhookSecret: (id: number) => api.post<any>(`/webhooks/${id}/rotate-secret`),
+
+  compareRuns: (base: string, target: string) =>
+    api.get<any>('/pipeline/runs/compare', { base, target }),
+  backfills: (limit = 25) => api.get<any[]>('/pipeline/backfills', { limit }),
+  runBackfill: (payload: Record<string, unknown>) => api.post<any>('/pipeline/backfill', payload),
+  backfill: (id: string) => api.get<any>(`/pipeline/backfill/${id}`),
+}
+
+/**
+ * Download an export dataset as a file.
+ *
+ * Uses fetch + an object URL so the browser saves the server-generated filename and the
+ * Authorization header is sent (a plain link would be rejected by the API).
+ */
+export async function downloadExport(
+  dataset: string,
+  format: 'csv' | 'json' = 'csv',
+  params: Record<string, QueryValue> = {},
+  limit = 5000,
+): Promise<void> {
+  const query = buildQuery({ ...params, limit })
+  const response = await fetch(`${API_BASE}/export/${dataset}.${format}${query}`, {
+    headers: { Authorization: `Bearer ${tokenStore.get() ?? ''}` },
+  })
+  if (!response.ok) {
+    let message = `Export failed (${response.status})`
+    try {
+      const payload = await response.json()
+      message = payload?.message ?? message
+    } catch {
+      /* keep the status-code message */
+    }
+    throw new Error(message)
+  }
+  const disposition = response.headers.get('Content-Disposition') ?? ''
+  const match = /filename="?([^"]+)"?/.exec(disposition)
+  const blob = await response.blob()
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = match?.[1] ?? `${dataset}.${format}`
+  document.body.appendChild(anchor)
+  anchor.click()
+  anchor.remove()
+  URL.revokeObjectURL(url)
 }

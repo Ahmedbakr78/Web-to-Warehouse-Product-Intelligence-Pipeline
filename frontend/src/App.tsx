@@ -21,6 +21,7 @@ const QueryLab = lazy(() => import('./pages/QueryLab'))
 const Builder = lazy(() => import('./pages/Builder'))
 const Features = lazy(() => import('./pages/Features'))
 const Alerts = lazy(() => import('./pages/Alerts'))
+const Webhooks = lazy(() => import('./pages/Webhooks'))
 const Account = lazy(() => import('./pages/Account'))
 const Settings = lazy(() => import('./pages/Settings'))
 const Users = lazy(() => import('./pages/Users'))
@@ -207,6 +208,14 @@ export default function App() {
             element={
               <Suspense fallback={<LoadingState label="Loading feature catalogue…" />}>
                 <Features />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/webhooks"
+            element={
+              <Suspense fallback={<LoadingState label="Loading webhooks…" />}>
+                <Webhooks />
               </Suspense>
             }
           />

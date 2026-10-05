@@ -10,7 +10,7 @@ endpoint, a CLI command or a documented design decision. Nothing here is aspirat
 **Scale of the system, measured:** 5 ingestion sources · 23 physical tables · 20 analytical views ·
 12 data-quality rules across 6 dimensions · 113 REST route decorators (110 documented in OpenAPI plus
 3 internal probes) in 16 routers · 9 pipeline stages · 14 Airflow tasks · 12 CLI commands · 30+ Makefile
-targets · 6 Docker Compose services · 20 documentation documents · 255 automated tests ·
+targets · 6 Docker Compose services · 20 documentation documents · 321 automated tests ·
 86 end-to-end API smoke checks.
 
 ---

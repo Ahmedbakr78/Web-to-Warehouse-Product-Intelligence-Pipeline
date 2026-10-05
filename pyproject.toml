@@ -1,6 +1,6 @@
 [project]
 name = "product-intelligence-pipeline"
-version = "1.0.0"
+version = "1.4.0"
 description = "Web-to-Warehouse Product Intelligence Pipeline: compliant scraping, standardization, deduplication, and analytical loading of product data."
 readme = "README.md"
 requires-python = ">=3.10"

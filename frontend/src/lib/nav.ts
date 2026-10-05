@@ -14,6 +14,7 @@ import {
   Sparkles,
   Terminal,
   Tags,
+  Webhook,
   UserCircle,
   Users,
 } from 'lucide-react'
@@ -67,6 +68,13 @@ export const NAV_GROUPS: NavGroup[] = [
     title: 'Workspace',
     items: [
       { to: '/alerts', label: 'Alerts', icon: AlertTriangle, description: 'Alert rules and notifications' },
+      {
+        to: '/webhooks',
+        label: 'Webhooks',
+        icon: Webhook,
+        description: 'Signed event delivery to your own systems',
+        badge: 'new',
+      },
       { to: '/account', label: 'Account', icon: UserCircle, description: 'Profile, appearance and security' },
       { to: '/settings', label: 'Settings', icon: SettingsIcon, description: 'Application settings', permission: 'manage_settings' },
       { to: '/users', label: 'Users', icon: Users, description: 'Roles and access control', permission: 'manage_users' },
@@ -91,6 +99,10 @@ export const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = 
   '/builder': { title: 'View builder', subtitle: 'Compose, aggregate, save and share custom views' },
   '/features': { title: 'Feature catalogue', subtitle: 'Every capability shipped by the platform, grouped and searchable' },
   '/alerts': { title: 'Alerts', subtitle: 'Rules, thresholds and in-app notifications' },
+  '/webhooks': {
+    title: 'Webhooks',
+    subtitle: 'Subscribe to signed pipeline events with retries and a delivery log',
+  },
   '/account': { title: 'Account', subtitle: 'Profile, appearance, security and API keys' },
   '/settings': { title: 'Settings', subtitle: 'Global application configuration' },
   '/users': { title: 'Users & roles', subtitle: 'Accounts, roles and API key management' },

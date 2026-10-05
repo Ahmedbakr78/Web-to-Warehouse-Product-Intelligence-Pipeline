@@ -77,7 +77,7 @@ body:
       options:
         - label: "`make lint` passes"
         - label: "`make typecheck` passes"
-        - label: "`make test` passes (255 tests)"
+        - label: "`make test` (321 tests))"
         - label: "Frontend: ESLint, `tsc` and `vite build` pass"
         - label: "Documentation updated if behaviour changed"
         - label: "`CHANGELOG.md` updated under *Unreleased*"

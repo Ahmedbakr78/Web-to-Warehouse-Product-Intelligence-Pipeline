@@ -41,7 +41,7 @@ Structural figures are exact and re-verifiable:
 | --- | --- |
 | 23 tables, 20 views | `make bootstrap` |
 | 113 REST operations in 16 routers | `http://localhost:8000/docs`, or count route decorators in `app/api/routers/` |
-| 255 tests pass | `make test` |
+| 321 tests pass | `make test` |
 | 78/78 API smoke checks | `.venv/bin/python scripts/api_smoke.py` |
 | ruff and mypy clean | `make lint` and `make typecheck` |
 | 12 DQ rules and the score | Quality screen, or `pip-cli quality` |

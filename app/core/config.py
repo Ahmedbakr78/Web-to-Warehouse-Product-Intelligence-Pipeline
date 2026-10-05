@@ -27,6 +27,20 @@ DOCS_DIR = ROOT_DIR / "docs"
 FRONTEND_DIR = ROOT_DIR / "frontend"
 VAR_DIR = ROOT_DIR / "var"
 DEFAULT_SQLITE_PATH = VAR_DIR / "pipeline.sqlite3"
+VERSION_FILE = ROOT_DIR / "VERSION"
+
+
+def canonical_version() -> str:
+    """The single source of truth for the project version.
+
+    Read from the ``VERSION`` file so `pyproject.toml`, the FastAPI `/meta` and
+    `/version` endpoints, the CLI and the dashboard can never drift apart.
+    """
+    try:
+        value = VERSION_FILE.read_text(encoding="utf-8").strip()
+    except OSError:
+        return "0.0.0"
+    return value or "0.0.0"
 
 
 class Settings(BaseSettings):
@@ -48,7 +62,10 @@ class Settings(BaseSettings):
     app_timezone: str = "UTC"
     app_log_level: str = "INFO"
     app_log_format: Literal["text", "json"] = "text"
-    app_version: str = "1.3.0"
+    # Defaults to the canonical VERSION file at the project root so the API, the
+    # CLI and the packaging metadata can never disagree. APP_VERSION still wins
+    # when explicitly set in the environment.
+    app_version: str = Field(default_factory=canonical_version)
 
     # ---------------------------------------------------------------- database
     database_url: str = f"sqlite:///{DEFAULT_SQLITE_PATH}"
