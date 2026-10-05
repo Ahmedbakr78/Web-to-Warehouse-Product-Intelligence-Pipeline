@@ -76,6 +76,32 @@ NAV: list[tuple[str, str, str]] = [
     ("22_data_dictionary.md", "Data Dictionary", "Every table, column, type and meaning"),
     ("23_glossary_and_faq.md", "Glossary and FAQ", "Terms defined, questions answered"),
     ("24_demo_runbook.md", "Demo Runbook", "Screen-by-screen live demo script and failure playbook"),
+    (
+        "25_forecasting_and_anomaly_detection.md",
+        "Forecasting & Anomalies",
+        "Damped Holt-Winters, measured accuracy, three detectors, pricing advice",
+    ),
+    (
+        "26_background_jobs_and_realtime.md",
+        "Background Jobs & Realtime",
+        "Leases, retries, cancellation, SSE and the cross-worker problem",
+    ),
+    (
+        "27_reporting_and_document_generation.md",
+        "Reporting & Documents",
+        "Typed blocks rendered to HTML, JSON, CSV and PDF from one definition",
+    ),
+    ("28_schema_and_migrations.md", "Schema & Migrations", "Alembic, drift detection, views, Airflow isolation"),
+    (
+        "29_two_factor_and_sessions.md",
+        "Two-Factor & Sessions",
+        "TOTP enrolment, recovery codes, per-device revocation",
+    ),
+    (
+        "30_access_control_and_rate_limiting.md",
+        "Access Control & Limits",
+        "Roles, rights, API-key scopes, sliding-window rate limiting",
+    ),
 ]
 
 #: Documents grouped for the sidebar; keys render as section headers.
@@ -117,6 +143,12 @@ NAV_GROUPS: list[tuple[str, list[str]]] = [
             "22_data_dictionary.md",
             "23_glossary_and_faq.md",
             "24_demo_runbook.md",
+            "25_forecasting_and_anomaly_detection.md",
+            "26_background_jobs_and_realtime.md",
+            "27_reporting_and_document_generation.md",
+            "28_schema_and_migrations.md",
+            "29_two_factor_and_sessions.md",
+            "30_access_control_and_rate_limiting.md",
         ],
     ),
 ]
