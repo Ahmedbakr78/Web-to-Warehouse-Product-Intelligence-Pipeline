@@ -28,6 +28,13 @@ FRONTEND_DIR = ROOT_DIR / "frontend"
 VAR_DIR = ROOT_DIR / "var"
 DEFAULT_SQLITE_PATH = VAR_DIR / "pipeline.sqlite3"
 VERSION_FILE = ROOT_DIR / "VERSION"
+ALEMBIC_INI = ROOT_DIR / "alembic.ini"
+ALEMBIC_DIR = ROOT_DIR / "migrations"
+
+
+def alembic_ini() -> Path:
+    """The Alembic configuration file, if this checkout has one."""
+    return ALEMBIC_INI if ALEMBIC_INI.exists() else ROOT_DIR / "alembic.ini"
 
 
 def canonical_version() -> str:
@@ -127,6 +134,11 @@ class Settings(BaseSettings):
     cache_dir: Path = VAR_DIR / "http-cache"
     log_dir: Path = VAR_DIR / "logs"
     artifacts_dir: Path = VAR_DIR / "artifacts"
+
+    # ---------------------------------------------------------------- migrations
+    #: Table Alembic records its revision in. Named so it cannot collide with a
+    #: warehouse table.
+    alembic_version_table: str = "alembic_version"
 
     # ---------------------------------------------------------------- background jobs
     #: Run the in-process job worker thread. Disable in tests and in any process that

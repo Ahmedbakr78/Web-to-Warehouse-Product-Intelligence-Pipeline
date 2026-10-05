@@ -1,0 +1,1964 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="234 features with file references">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Feature Inventory — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="234 features with file references">
+<title>Feature Inventory — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="23-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, all 113 operations, examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, 100-case plan, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" class="active" title="234 features with file references">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Feature Inventory</h1>
+      <p>234 features with file references</p>
+    </div>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#table-of-contents">Table of contents</a></li><li class="lvl-2"><a href="#1-ingestion-and-web-compliance-24">1. Ingestion and web compliance (24)</a></li><li class="lvl-2"><a href="#2-cleaning-and-normalisation-29">2. Cleaning and normalisation (29)</a></li><li class="lvl-2"><a href="#3-duplicate-resolution-17">3. Duplicate resolution (17)</a></li><li class="lvl-2"><a href="#4-warehouse-model-20">4. Warehouse model (20)</a></li><li class="lvl-2"><a href="#5-etl-pipeline-15">5. ETL pipeline (15)</a></li><li class="lvl-2"><a href="#6-change-detection-6">6. Change detection (6)</a></li><li class="lvl-2"><a href="#7-catalog-reconciliation-7">7. Catalog reconciliation (7)</a></li><li class="lvl-2"><a href="#8-data-quality-10">8. Data quality (10)</a></li><li class="lvl-2"><a href="#9-analytics-and-sql-reporting-18">9. Analytics and SQL reporting (18)</a></li><li class="lvl-2"><a href="#10-rest-api-26">10. REST API (26)</a></li><li class="lvl-2"><a href="#11-security-and-access-control-10">11. Security and access control (10)</a></li><li class="lvl-2"><a href="#12-dashboard-and-user-experience-12">12. Dashboard and user experience (12)</a></li><li class="lvl-2"><a href="#13-operations-orchestration-and-dx-24">13. Operations, orchestration and DX (24)</a></li><li class="lvl-2"><a href="#feature-count-by-area">Feature count by area</a></li><li class="lvl-2"><a href="#14-dashboard-v11-additions-8">14. Dashboard v1.1 additions (8)</a></li><li class="lvl-2"><a href="#15-platform-v12-additions-8">15. Platform v1.2 additions (8)</a></li><li class="lvl-2"><a href="#16-platform-v13-additions-52">16. Platform v1.3 additions (52)</a></li></ol></details>
+    <article class="doc-body">
+<h2 id="purpose">Purpose</h2>
+<p>This document is the complete feature inventory of the Web-to-Warehouse Product Intelligence Pipeline: 271 features grouped into sixteen areas, each with a one-line description and a reference to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an endpoint, a CLI command or a documented design decision. Nothing here is aspirational.</p>
+<p><strong>Scale of the system, measured:</strong> 5 ingestion sources · 25 physical tables · 20 analytical views · 12 data-quality rules across 6 dimensions · 131 REST route decorators (128 documented in OpenAPI plus 3 internal probes) in 18 routers · 9 pipeline stages · 14 Airflow tasks · 6 Docker Compose services · 23 numbered documents · 66 Mermaid diagrams · 321 automated tests · 86 end-to-end API smoke checks.</p>
+<p>Regenerate the numbers above with <code>python3 scripts/project_stats.py</code>.</p>
+<hr>
+<h2 id="table-of-contents">Table of contents</h2>
+<ul>
+<li class="depth-0"><a href="#1-ingestion-and-web-compliance-24">Ingestion and web compliance (24)</a></li>
+<li class="depth-0"><a href="#2-cleaning-and-normalisation-29">Cleaning and normalisation (29)</a></li>
+<li class="depth-0"><a href="#3-duplicate-resolution-17">Duplicate resolution (17)</a></li>
+<li class="depth-0"><a href="#4-warehouse-model-20">Warehouse model (20)</a></li>
+<li class="depth-0"><a href="#5-etl-pipeline-15">ETL pipeline (15)</a></li>
+<li class="depth-0"><a href="#6-change-detection-6">Change detection (6)</a></li>
+<li class="depth-0"><a href="#7-catalog-reconciliation-7">Catalog reconciliation (7)</a></li>
+<li class="depth-0"><a href="#8-data-quality-10">Data quality (10)</a></li>
+<li class="depth-0"><a href="#9-analytics-and-sql-reporting-18">Analytics and SQL reporting (18)</a></li>
+<li class="depth-0"><a href="#10-rest-api-26">REST API (26)</a></li>
+<li class="depth-0"><a href="#11-security-and-access-control-10">Security and access control (10)</a></li>
+<li class="depth-0"><a href="#12-dashboard-and-user-experience-12">Dashboard and user experience (12)</a></li>
+<li class="depth-0"><a href="#13-operations-orchestration-and-dx-24">Operations, orchestration and DX (24)</a></li>
+</ul>
+<p>Platform increments: <a href="#14-dashboard-v11-additions-8">v1.1 (8)</a> · <a href="#15-platform-v12-additions-8">v1.2 (8)</a> · <a href="#16-platform-v13-additions-52">v1.3 (52)</a></p>
+<hr>
+<h2 id="1-ingestion-and-web-compliance-24">1. Ingestion and web compliance (24)</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>Feature</th>
+<th>Description</th>
+<th>Where</th>
+</tr></thead><tbody>
+<tr>
+<th>F-001</th>
+<td>Source contract</td>
+<td>Abstract base class every source implements, with one abstract <code>fetch(limit)</code> method</td>
+<td><code>app/ingestion/base.py</code> <code>ProductSource</code></td>
+</tr>
+<tr>
+<th>F-002</th>
+<td>Source registry</td>
+<td><code>@register_source</code> decorator plus <code>get_source</code>, <code>get_source_class</code>, <code>list_sources</code>, <code>all_source_codes</code></td>
+<td><code>app/ingestion/base.py</code></td>
+</tr>
+<tr>
+<th>F-003</th>
+<td>Lazy extraction</td>
+<td>Sources are generators, so a run stops as soon as the limit is reached</td>
+<td><code>app/ingestion/sources/*.py</code></td>
+</tr>
+<tr>
+<th>F-004</th>
+<td>Declarative compliance metadata per source</td>
+<td><code>terms_url</code>, <code>license_note</code>, <code>terms_allowed</code>, <code>rate_limit_per_minute</code>, <code>min_delay_seconds</code>, <code>supports_paging</code></td>
+<td><code>app/ingestion/base.py</code> class variables</td>
+</tr>
+<tr>
+<th>F-005</th>
+<td>robots.txt parsing</td>
+<td>Standard-library parser with a per-host cache and thread-safe locking</td>
+<td><code>app/ingestion/robots.py</code> <code>RobotsCache</code></td>
+</tr>
+<tr>
+<th>F-006</th>
+<td>RFC 9309 fallback semantics</td>
+<td>4xx → allow all; 401/403 → disallow; 5xx/network → cached failure</td>
+<td><code>app/ingestion/robots.py</code> <code>_load</code></td>
+</tr>
+<tr>
+<th>F-007</th>
+<td>Crawl-delay extraction</td>
+<td><code>Crawl-delay</code> read from the matched group and returned in the decision</td>
+<td><code>app/ingestion/robots.py</code> <code>RobotsDecision</code></td>
+</tr>
+<tr>
+<th>F-008</th>
+<td>Sitemap discovery</td>
+<td><code>Sitemap:</code> lines collected per host</td>
+<td><code>app/ingestion/robots.py</code> <code>sitemaps</code></td>
+</tr>
+<tr>
+<th>F-009</th>
+<td>Robots gate in the transport layer</td>
+<td>Every request is checked before it is made; a refusal raises <code>ComplianceError</code> and is logged</td>
+<td><code>app/ingestion/http_client.py</code> <code>get</code></td>
+</tr>
+<tr>
+<th>F-010</th>
+<td>Token-bucket rate limiting</td>
+<td>Smoothed average rate per host with a burst allowance</td>
+<td><code>app/ingestion/ratelimit.py</code> <code>RateLimiter</code></td>
+</tr>
+<tr>
+<th>F-011</th>
+<td>Sliding-window ceiling</td>
+<td>Hard per-minute cap even when bursts are allowed</td>
+<td><code>app/ingestion/ratelimit.py</code> <code>_prune_window</code></td>
+</tr>
+<tr>
+<th>F-012</th>
+<td>Effective delay</td>
+<td>The slowest of the global delay, the per-minute budget and the crawl delay wins</td>
+<td><code>app/ingestion/ratelimit.py</code> <code>HostState.effective_delay</code></td>
+</tr>
+<tr>
+<th>F-013</th>
+<td><code>Retry-After</code> support</td>
+<td>Both delta-seconds and HTTP-date forms parsed and honoured</td>
+<td><code>app/ingestion/http_client.py</code> <code>_parse_retry_after</code></td>
+</tr>
+<tr>
+<th>F-014</th>
+<td>Exponential backoff with jitter-free doubling</td>
+<td><code>retry_backoff × 2^attempt</code> for retryable statuses and network exceptions</td>
+<td><code>app/ingestion/http_client.py</code></td>
+</tr>
+<tr>
+<th>F-015</th>
+<td>Circuit breaker</td>
+<td>A host that fails five times in a row is skipped without network I/O</td>
+<td><code>app/ingestion/ratelimit.py</code> <code>CircuitBreaker</code></td>
+</tr>
+<tr>
+<th>F-016</th>
+<td>Disk response cache</td>
+<td>Responses cached by URL hash with a TTL, so a repeat run performs zero requests</td>
+<td><code>app/ingestion/http_client.py</code> <code>_read_cache</code> / <code>_write_cache</code></td>
+</tr>
+<tr>
+<th>F-017</th>
+<td>Per-request audit trail</td>
+<td>One row per outbound attempt with status, latency, bytes, robots decision, cache flag and retries</td>
+<td><code>app/ingestion/http_client.py</code> <code>HttpAuditEntry</code> → <code>ingestion_http_log</code></td>
+</tr>
+<tr>
+<th>F-018</th>
+<td>Honest crawler identity</td>
+<td>User agent names the bot and publishes a contact address</td>
+<td><code>app/core/config.py</code> <code>ingest_user_agent</code></td>
+</tr>
+<tr>
+<th>F-019</th>
+<td>Source failure isolation</td>
+<td>An exception in one source becomes a warning; the run continues as <code>partial</code></td>
+<td><code>app/etl/pipeline.py</code> <code>_process_source</code></td>
+</tr>
+<tr>
+<th>F-020</th>
+<td>Bounded extraction</td>
+<td><code>--limit</code> plus <code>_safe_take</code> prevents a misbehaving source from hanging a run</td>
+<td><code>app/etl/pipeline.py</code></td>
+</tr>
+<tr>
+<th>F-021</th>
+<td>Five source adapters</td>
+<td>DummyJSON, FakeStore, Open Library (APIs), books.toscrape.com (HTML), local demo (synthetic)</td>
+<td><code>app/ingestion/sources/</code></td>
+</tr>
+<tr>
+<th>F-022</th>
+<td>BeautifulSoup + lxml scraper</td>
+<td>Listing → detail crawl, breadcrumb categories, price, stock count, star rating, UPC, image</td>
+<td><code>app/ingestion/sources/books_to_scrape.py</code></td>
+</tr>
+<tr>
+<th>F-023</th>
+<td>Deterministic offline source</td>
+<td>Seeded generator used for demos, tests and CI, with deliberate quality defects injected</td>
+<td><code>app/ingestion/sources/local_fixture.py</code></td>
+</tr>
+<tr>
+<th>F-024</th>
+<td>Source transparency endpoint</td>
+<td>Fetch a few raw records and see them side by side with the cleaned result</td>
+<td><code>GET /api/v1/sources/{code}/preview</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="2-cleaning-and-normalisation-29">2. Cleaning and normalisation (29)</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>Feature</th>
+<th>Description</th>
+<th>Where</th>
+</tr></thead><tbody>
+<tr>
+<th>F-025</th>
+<td>Unicode folding</td>
+<td>NFKC normalisation plus smart-quote, dash, ellipsis and zero-width translation</td>
+<td><code>cleaning.normalise_unicode</code></td>
+</tr>
+<tr>
+<th>F-026</th>
+<td>HTML stripping</td>
+<td>Tags removed and entities unescaped</td>
+<td><code>cleaning.strip_html</code></td>
+</tr>
+<tr>
+<th>F-027</th>
+<td>Promotional noise removal</td>
+<td>17 prefix patterns (<code>SALE:</code>, <code>HOT SALE</code>, <code>CLEARANCE</code>, …) and 9 suffix patterns (<code>(new)</code>, <code>- free shipping</code>, <code>50% off</code>)</td>
+<td><code>cleaning.PROMO_PREFIXES</code> / <code>_PROMO_SUFFIXES</code></td>
+</tr>
+<tr>
+<th>F-028</th>
+<td>Marketing-tag removal</td>
+<td>Bracketed qualifiers up to 40 characters are dropped</td>
+<td><code>cleaning._BRACKETED_RE</code></td>
+</tr>
+<tr>
+<th>F-029</th>
+<td>Smart title casing</td>
+<td>Applied only when a title is entirely lower case; known acronyms (<code>USB</code>, <code>4K</code>, <code>OLED</code>) are preserved</td>
+<td><code>cleaning._smart_title</code></td>
+</tr>
+<tr>
+<th>F-030</th>
+<td>Word-boundary truncation</td>
+<td>Long names are cut at the last complete word and marked with an ellipsis</td>
+<td><code>cleaning.clean_product_name</code></td>
+</tr>
+<tr>
+<th>F-031</th>
+<td>Brand cleaning</td>
+<td><code>by</code> / <code>brand:</code> prefixes removed; stop-word brands rejected; capped at 128 characters</td>
+<td><code>cleaning.clean_brand</code></td>
+</tr>
+<tr>
+<th>F-032</th>
+<td>Normalised comparison key</td>
+<td>Lower-case alphanumerics, 60 stop-words removed, tokens sorted and de-duplicated</td>
+<td><code>cleaning.normalise_name_key</code></td>
+</tr>
+<tr>
+<th>F-033</th>
+<td>Product fingerprint</td>
+<td>`sha1(brand_key + "</td>
+<td>" + name_key)[:32]` — the exact-match key</td>
+<td><code>cleaning.name_fingerprint</code></td>
+</tr>
+<tr>
+<th>F-034</th>
+<td>Blocking key</td>
+<td>First four characters of the normalised key; the candidate-generation mechanism</td>
+<td><code>cleaning.blocking_key</code></td>
+</tr>
+<tr>
+<th>F-035</th>
+<td>Category synonym map</td>
+<td>~140 mappings to a canonical hierarchy such as <code>tech → Electronics</code>, <code>jewellery → Accessories &gt; Jewellery</code></td>
+<td><code>cleaning.CATEGORY_SYNONYMS</code></td>
+</tr>
+<tr>
+<th>F-036</th>
+<td>Breadcrumb normalisation</td>
+<td><code>/</code>, `\</td>
+<td><code>, </code>»<code>, </code>›<code>, </code>-&gt;<code>, </code>=&gt;<code> all become </code>&gt;` and each segment is canonicalised</td>
+<td><code>cleaning.normalise_category</code></td>
+</tr>
+<tr>
+<th>F-037</th>
+<td>Category slug and level</td>
+<td>URL-safe slug for a path; depth counter for the hierarchy</td>
+<td><code>cleaning.category_slug</code>, <code>category_levels</code></td>
+</tr>
+<tr>
+<th>F-038</th>
+<td>Locale-aware number parsing</td>
+<td>Resolves <code>1,234.56</code> vs <code>1.234,56</code> and the single-separator ambiguity</td>
+<td><code>cleaning.parse_number</code></td>
+</tr>
+<tr>
+<th>F-039</th>
+<td>Competing price patterns</td>
+<td>Five patterns scored by confidence (ISO code 0.95 → bare number 0.60); the strongest candidate wins</td>
+<td><code>cleaning.parse_price</code>, <code>_PATTERN_CONFIDENCE</code></td>
+</tr>
+<tr>
+<th>F-040</th>
+<td>Price-range handling</td>
+<td><code>$10 – $20</code> yields the midpoint plus both bounds and <code>is_range=True</code></td>
+<td><code>cleaning.parse_price</code></td>
+</tr>
+<tr>
+<th>F-041</th>
+<td>Was/now handling</td>
+<td><code>Was $49.99 Now $39.99</code> resolves to the current price with pattern <code>was_now</code></td>
+<td><code>cleaning.parse_price</code></td>
+</tr>
+<tr>
+<th>F-042</th>
+<td>Unavailable markers</td>
+<td><code>free</code>, <code>N/A</code>, <code>poa</code>, <code>call for price</code>, <code>tbd</code> produce a null price and the <code>unparseable_price</code> flag</td>
+<td><code>cleaning._UNAVAILABLE_RE</code></td>
+</tr>
+<tr>
+<th>F-043</th>
+<td>Currency resolution</td>
+<td>60 symbol/code mappings plus a dominant-symbol heuristic for long blobs</td>
+<td><code>cleaning.normalise_currency</code></td>
+</tr>
+<tr>
+<th>F-044</th>
+<td>Locale currency detection</td>
+<td>Host suffix (<code>.co.uk</code>, <code>.de</code>, <code>.co.jp</code>…), microdata markers, symbol frequency</td>
+<td><code>cleaning.detect_currency_locale</code></td>
+</tr>
+<tr>
+<th>F-045</th>
+<td>FX normalisation</td>
+<td>Static 25-currency reference table; the applied rate is stored with the observation</td>
+<td><code>cleaning.convert_to_usd</code>, <code>STATIC_FX_RATES</code></td>
+</tr>
+<tr>
+<th>F-046</th>
+<td>Rating rescaling</td>
+<td><code>4.2 out of 5</code>, <code>84 percent</code>, <code>8.5/10</code>, star counts and bare numbers all rescale to 0–5 and are clamped</td>
+<td><code>cleaning.parse_rating</code></td>
+</tr>
+<tr>
+<th>F-047</th>
+<td>Availability mapping</td>
+<td>Six token families resolved with a documented precedence to a five-value vocabulary</td>
+<td><code>cleaning.normalise_availability</code></td>
+</tr>
+<tr>
+<th>F-048</th>
+<td>Quality flags</td>
+<td><code>unparseable_price</code>, <code>missing_rating</code>, <code>unknown_availability</code>, <code>invalid_url</code>, <code>name_equals_category</code>, <code>missing_price</code></td>
+<td><code>app/ingestion/base.py</code> <code>transform_product</code></td>
+</tr>
+<tr>
+<th>F-049</th>
+<td>Validation gates</td>
+<td>Short names are always rejected; missing price or an invalid URL reject in strict mode, with a reason</td>
+<td><code>app/ingestion/base.py</code></td>
+</tr>
+<tr>
+<th>F-050</th>
+<td>URL validation</td>
+<td><code>^https?://host</code> only</td>
+<td><code>cleaning.validate_url</code></td>
+</tr>
+<tr>
+<th>F-051</th>
+<td>Payload content hash</td>
+<td>Deterministic SHA-256 over source, id, name, price and availability for re-ingestion checks</td>
+<td><code>cleaning.content_hash</code></td>
+</tr>
+<tr>
+<th>F-052</th>
+<td>Human price formatting</td>
+<td>Symbol-aware formatting with thousands separators for reports and the CLI</td>
+<td><code>cleaning.format_price</code></td>
+</tr>
+<tr>
+<th>F-053</th>
+<td>Percentage change</td>
+<td><code>None</code>-safe, symmetric against negative prices, division by zero handled</td>
+<td><code>cleaning.percent_change</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="3-duplicate-resolution-17">3. Duplicate resolution (17)</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>Feature</th>
+<th>Description</th>
+<th>Where</th>
+</tr></thead><tbody>
+<tr>
+<th>F-054</th>
+<td>Levenshtein distance</td>
+<td>Two-row dynamic programme with early abandonment above a maximum distance</td>
+<td><code>dedupe.levenshtein</code></td>
+</tr>
+<tr>
+<th>F-055</th>
+<td>Jaro similarity</td>
+<td>Transposition- and typo-robust, normalised by string length</td>
+<td><code>dedupe.jaro</code></td>
+</tr>
+<tr>
+<th>F-056</th>
+<td>Jaro-Winkler</td>
+<td>Prefix bonus (<code>0.1</code>, max 4 characters) applied only when the base score exceeds 0.7</td>
+<td><code>dedupe.jaro_winkler</code></td>
+</tr>
+<tr>
+<th>F-057</th>
+<td>Token-sort ratio</td>
+<td>Order-insensitive comparison of two token sequences</td>
+<td><code>dedupe.token_sort_ratio</code></td>
+</tr>
+<tr>
+<th>F-058</th>
+<td>Token-set ratio</td>
+<td>Best of three comparisons, mirroring the established fuzzywuzzy algorithm</td>
+<td><code>dedupe.token_set_ratio</code></td>
+</tr>
+<tr>
+<th>F-059</th>
+<td>Trigram Dice coefficient</td>
+<td>Padded character trigrams with a 50,000-entry LRU cache</td>
+<td><code>dedupe.trigram_similarity</code></td>
+</tr>
+<tr>
+<th>F-060</th>
+<td>Digit-signature guard</td>
+<td>Ordered digit runs compared; one difference multiplies the score by 0.85, more by 0.60</td>
+<td><code>dedupe.digit_signature</code>, <code>digit_signature_factor</code></td>
+</tr>
+<tr>
+<th>F-061</th>
+<td>Blended similarity</td>
+<td>Weighted blend of six measures (0.20/0.15/0.10/0.05/0.20/0.30) plus per-measure parts</td>
+<td><code>dedupe.combined_similarity</code></td>
+</tr>
+<tr>
+<th>F-062</th>
+<td>Character-evidence short circuit</td>
+<td>Near-identical strings that differ only in punctuation bypass the blend at a 3 % discount</td>
+<td><code>dedupe.combined_similarity</code></td>
+</tr>
+<tr>
+<th>F-063</th>
+<td>Brand term</td>
+<td><code>score × 0.88 + brand_similarity × 0.12</code> when both brands are known</td>
+<td><code>dedupe.combined_similarity</code></td>
+</tr>
+<tr>
+<th>F-064</th>
+<td>Category bonus</td>
+<td>Up to +0.03 for an equal or containing category</td>
+<td><code>dedupe.combined_similarity</code></td>
+</tr>
+<tr>
+<th>F-065</th>
+<td>Three-stage matching cascade</td>
+<td>Fingerprint exact → normalised-name equality → fuzzy above the threshold</td>
+<td><code>DedupeEngine.find_match</code></td>
+</tr>
+<tr>
+<th>F-066</th>
+<td>Blocking candidate retrieval</td>
+<td>Prefix <code>LIKE</code> on <code>normalized_name</code> and <code>canonical_name</code>, capped at 25, refined by brand</td>
+<td><code>DedupeEngine._blocking_candidates</code></td>
+</tr>
+<tr>
+<th>F-067</th>
+<td>Fingerprint cache</td>
+<td>Loaded once per run, updated on register and on merge; removes a query per record</td>
+<td><code>DedupeEngine._load_fingerprints</code></td>
+</tr>
+<tr>
+<th>F-068</th>
+<td>Merge bookkeeping</td>
+<td>Survivor chosen by observation count; absorbed row gets <code>matched_product_id</code> and <code>match_strategy='merged'</code></td>
+<td><code>DedupeEngine.merge_into</code></td>
+</tr>
+<tr>
+<th>F-069</th>
+<td>Match provenance stored</td>
+<td>Strategy, score and the per-measure breakdown persisted on <code>dim_product</code></td>
+<td><code>dim_product.match_strategy</code> / <code>match_score</code></td>
+</tr>
+<tr>
+<th>F-070</th>
+<td>Batch and offline resolution</td>
+<td><code>resolve_batch</code> for bulk resolution; <code>duplicates_in_iterable</code> for offline inspection</td>
+<td><code>DedupeEngine</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="4-warehouse-model-20">4. Warehouse model (20)</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>Feature</th>
+<th>Description</th>
+<th>Where</th>
+</tr></thead><tbody>
+<tr>
+<th>F-071</th>
+<td>Dimensional model</td>
+<td>Five conformed dimensions shared by three facts and two change feeds</td>
+<td><code>app/models/dimensions.py</code>, <code>facts.py</code></td>
+</tr>
+<tr>
+<th>F-072</th>
+<td>Append-only price fact</td>
+<td>One row per product per source per run, enforced by a unique constraint</td>
+<td><code>fact_price_snapshot</code>, <code>uq_fact_price_product_run</code></td>
+</tr>
+<tr>
+<th>F-073</th>
+<td>Change-feed tables</td>
+<td><code>chg_price_change</code> and <code>chg_product_event</code> as an immutable event ledger</td>
+<td><code>app/models/facts.py</code></td>
+</tr>
+<tr>
+<th>F-074</th>
+<td>Category hierarchy</td>
+<td>Self-referencing <code>parent_id</code> with <code>level</code> and a materialised <code>path</code></td>
+<td><code>dim_category</code></td>
+</tr>
+<tr>
+<th>F-075</th>
+<td>Pre-populated calendar</td>
+<td><code>YYYYMMDD</code> surrogate key, 400 days back and 2 forward by default, idempotent</td>
+<td><code>dim_date</code>, <code>bootstrap.ensure_date_range</code></td>
+</tr>
+<tr>
+<th>F-076</th>
+<td>Currency reference</td>
+<td>Code, name, symbol, rate to USD, rate source and as-of date</td>
+<td><code>dim_currency</code></td>
+</tr>
+<tr>
+<th>F-077</th>
+<td>Portable JSON columns</td>
+<td><code>JSON(none_as_null=True)</code> so <code>IS NULL</code> behaves identically on all dialects</td>
+<td><code>app/models/base.py</code> <code>JSONType</code></td>
+</tr>
+<tr>
+<th>F-078</th>
+<td>Timezone-safe timestamps</td>
+<td><code>UTCDateTime</code> converts on write and re-tags on read</td>
+<td><code>app/models/base.py</code></td>
+</tr>
+<tr>
+<th>F-079</th>
+<td>Exact money type</td>
+<td><code>NUMERIC(18, 4)</code> for every monetary column</td>
+<td><code>app/models/base.py</code> <code>NumericMixin</code></td>
+</tr>
+<tr>
+<th>F-080</th>
+<td>Consistent object naming</td>
+<td>Metadata naming convention for indexes, unique constraints, checks, foreign keys and primary keys</td>
+<td><code>app/models/base.py</code> <code>Base.metadata</code></td>
+</tr>
+<tr>
+<th>F-081</th>
+<td>Staging landing zone</td>
+<td>Raw payloads with hash, HTTP status, validity and rejection reason</td>
+<td><code>stg_raw_observation</code></td>
+</tr>
+<tr>
+<th>F-082</th>
+<td>Sync checkpoints</td>
+<td>Per-source last run, last success, failure streak, cursors and status</td>
+<td><code>sync_state</code></td>
+</tr>
+<tr>
+<th>F-083</th>
+<td>Materialised aggregate</td>
+<td>Category-day counts, price statistics, new/removed counts and change counts</td>
+<td><code>agg_category_daily</code></td>
+</tr>
+<tr>
+<th>F-084</th>
+<td>Source reference with reliability</td>
+<td>Kind, robots/terms URLs, licence note, run counters, success rate and average duration</td>
+<td><code>dim_source</code></td>
+</tr>
+<tr>
+<th>F-085</th>
+<td>Internal catalogue store</td>
+<td>The retailer's SKUs with cost, list price, supplier, stock and status</td>
+<td><code>catalog_product</code></td>
+</tr>
+<tr>
+<th>F-086</th>
+<td>Application tables</td>
+<td>Accounts, API keys, saved views, alerts, notifications, audit and settings</td>
+<td><code>app/models/app_users.py</code></td>
+</tr>
+<tr>
+<th>F-087</th>
+<td>One-command bootstrap</td>
+<td>Schema, reference data and views for any target</td>
+<td><code>app/etl/bootstrap.py</code> <code>bootstrap</code></td>
+</tr>
+<tr>
+<th>F-088</th>
+<td>Portable view application</td>
+<td>Each view statement runs in its own transaction with dialect-correct quoting</td>
+<td><code>app/etl/bootstrap.py</code> <code>apply_views</code></td>
+</tr>
+<tr>
+<th>F-089</th>
+<td>Schema verification</td>
+<td>Compares the physical schema with the ORM and reports missing tables</td>
+<td><code>app/cli/main.py</code> <code>check-schema</code></td>
+</tr>
+<tr>
+<th>F-090</th>
+<td>Row-count reporting</td>
+<td>Per-table counts used by <code>status</code>, <code>verify</code> and the health endpoint</td>
+<td><code>app/etl/bootstrap.py</code> <code>table_report</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="5-etl-pipeline-15">5. ETL pipeline (15)</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>Feature</th>
+<th>Description</th>
+<th>Where</th>
+</tr></thead><tbody>
+<tr>
+<th>F-091</th>
+<td>Declarative run configuration</td>
+<td>Sources, target database, limit, strictness, skips, staleness, trigger, identity</td>
+<td><code>PipelineConfig</code></td>
+</tr>
+<tr>
+<th>F-092</th>
+<td>Rich run result</td>
+<td>Counters, quality summary, reconciliation summary, stage timings, warnings, processed and failed sources</td>
+<td><code>PipelineResult</code></td>
+</tr>
+<tr>
+<th>F-093</th>
+<td>Nine instrumented stages</td>
+<td>extract, stage, transform, resolve, load, detect, reconcile, quality, aggregate — each timed with row counts</td>
+<td><code>STAGE_NAMES</code>, <code>Pipeline._timer</code></td>
+</tr>
+<tr>
+<th>F-094</th>
+<td>Source dimension registration</td>
+<td><code>dim_source</code> ensured before any fact references it (foreign-key integrity)</td>
+<td><code>Pipeline._process_source</code></td>
+</tr>
+<tr>
+<th>F-095</th>
+<td>Running source statistics</td>
+<td>Total records, run count, rolling success rate and rolling average duration</td>
+<td><code>Pipeline._register_source_dim</code></td>
+</tr>
+<tr>
+<th>F-096</th>
+<td>Dimension cache warm-up</td>
+<td>One query per dimension instead of one per record</td>
+<td><code>WarehouseLoader.preload_dimensions</code></td>
+</tr>
+<tr>
+<th>F-097</th>
+<td>Category materialisation</td>
+<td>Each path segment becomes a row with the correct parent and level</td>
+<td><code>WarehouseLoader.resolve_category</code></td>
+</tr>
+<tr>
+<th>F-098</th>
+<td>Product upsert</td>
+<td>Creates or updates the canonical row, maintains prices, observation count and quality flags</td>
+<td><code>WarehouseLoader.upsert_product</code></td>
+</tr>
+<tr>
+<th>F-099</th>
+<td>Batch loading</td>
+<td>Staging and fact inserts batched by <code>PIPELINE_BATCH_SIZE</code></td>
+<td><code>WarehouseLoader.stage</code>, <code>insert_snapshot</code></td>
+</tr>
+<tr>
+<th>F-100</th>
+<td>N+1 elimination</td>
+<td>The previous snapshot for every product of a source is fetched in one ordered query</td>
+<td><code>WarehouseLoader.preload_latest</code></td>
+</tr>
+<tr>
+<th>F-101</th>
+<td>Intra-run grain protection</td>
+<td>A second record resolving to the same product is skipped and counted as a merge</td>
+<td><code>Pipeline._process_source</code></td>
+</tr>
+<tr>
+<th>F-102</th>
+<td>Aggregate refresh</td>
+<td>Category-day aggregates rebuilt for the dates a run touched, idempotently</td>
+<td><code>WarehouseLoader.refresh_category_daily</code></td>
+</tr>
+<tr>
+<th>F-103</th>
+<td>Status logic</td>
+<td><code>failed</code> on blocking DQ failure, <code>partial</code> when a source failed, otherwise <code>success</code></td>
+<td><code>Pipeline._execute</code></td>
+</tr>
+<tr>
+<th>F-104</th>
+<td>Fail-fast mode</td>
+<td>Optional strict behaviour for CI and unattended runs</td>
+<td><code>settings.pipeline_fail_fast</code></td>
+</tr>
+<tr>
+<th>F-105</th>
+<td>Sync-state updates</td>
+<td>Source cursors and failure streaks maintained after every run</td>
+<td><code>WarehouseLoader.update_sync_state</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="6-change-detection-6">6. Change detection (6)</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>Feature</th>
+<th>Description</th>
+<th>Where</th>
+</tr></thead><tbody>
+<tr>
+<th>F-106</th>
+<td>Price change events</td>
+<td>Absolute and percentage change with direction, magnitude band and significance</td>
+<td><code>WarehouseLoader.insert_snapshot</code></td>
+</tr>
+<tr>
+<th>F-107</th>
+<td>Magnitude banding</td>
+<td>minor (&lt; 1 %), small (&lt; 5 %), moderate (&lt; 15 %), large (&lt; 30 %), major (≥ 30 %)</td>
+<td><code>loader.magnitude_band</code></td>
+</tr>
+<tr>
+<th>F-108</th>
+<td>First sighting detection</td>
+<td>A product with no previous snapshot emits a <code>new</code> event and sets <code>is_first_sighting</code></td>
+<td><code>WarehouseLoader.insert_snapshot</code></td>
+</tr>
+<tr>
+<th>F-109</th>
+<td>Recurring sightings</td>
+<td>Later observations emit a <code>recurring</code> event carrying the previous and current price</td>
+<td><code>WarehouseLoader.insert_snapshot</code></td>
+</tr>
+<tr>
+<th>F-110</th>
+<td>Removal detection</td>
+<td>Products unseen beyond the staleness window (default 7 days) are deactivated with a <code>removed</code> event</td>
+<td><code>WarehouseLoader.detect_removed</code></td>
+</tr>
+<tr>
+<th>F-111</th>
+<td>Category change detection</td>
+<td>A different resolved category emits <code>category_changed</code> with the old and new category ids</td>
+<td><code>WarehouseLoader.upsert_product</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="7-catalog-reconciliation-7">7. Catalog reconciliation (7)</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>Feature</th>
+<th>Description</th>
+<th>Where</th>
+</tr></thead><tbody>
+<tr>
+<th>F-112</th>
+<td>Three-stage match cascade</td>
+<td>SKU identifier, then normalised name, then fuzzy above 0.86</td>
+<td><code>CatalogReconciler.match_one</code></td>
+</tr>
+<tr>
+<th>F-113</th>
+<td>Blocking index</td>
+<td>4-character block index plus a rare-token fallback index, so each SKU sees a handful of candidates</td>
+<td><code>CatalogReconciler._build_indexes</code></td>
+</tr>
+<tr>
+<th>F-114</th>
+<td>Candidate pool floor</td>
+<td>When the prefix pool is smaller than <code>min_pool</code>, the pool widens rather than narrowing</td>
+<td><code>CatalogReconciler._narrow_candidates</code></td>
+</tr>
+<tr>
+<th>F-115</th>
+<td>Price-gap analysis</td>
+<td>Absolute and percentage gap between the market and our list price</td>
+<td><code>CatalogReconciler.match_one</code></td>
+</tr>
+<tr>
+<th>F-116</th>
+<td>Mismatch flagging</td>
+<td>Gaps of 1 % or more are flagged as a pricing opportunity</td>
+<td><code>PRICE_GAP_THRESHOLD_PCT</code></td>
+</tr>
+<tr>
+<th>F-117</th>
+<td>Market position</td>
+<td><code>we_are_cheaper</code> or <code>we_are_dearer</code> derived from the gap sign</td>
+<td><code>GET /api/v1/catalog/opportunities</code></td>
+</tr>
+<tr>
+<th>F-118</th>
+<td>Match evidence</td>
+<td>Brand and category match flags, similarity, supplier, scraped category and candidate count persisted as JSON</td>
+<td><code>fact_catalog_snapshot.details</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="8-data-quality-10">8. Data quality (10)</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>Feature</th>
+<th>Description</th>
+<th>Where</th>
+</tr></thead><tbody>
+<tr>
+<th>F-119</th>
+<td>Twelve rules, six dimensions</td>
+<td>Completeness ×4, validity ×3, uniqueness ×2, consistency ×1, accuracy ×1, timeliness ×1</td>
+<td><code>app/etl/dq.py</code> <code>RULES</code></td>
+</tr>
+<tr>
+<th>F-120</th>
+<td>Declarative rules</td>
+<td>Frozen dataclasses with a code, name, dimension, severity, description and evaluator</td>
+<td><code>dq.Rule</code></td>
+</tr>
+<tr>
+<th>F-121</th>
+<td>Three-band classification</td>
+<td>pass / warn (within 5 % of the threshold) / fail</td>
+<td><code>dq._status</code></td>
+</tr>
+<tr>
+<th>F-122</th>
+<td>Severity-weighted score</td>
+<td>0–100, <code>weight = 1 + 0.5 × severity_rank</code></td>
+<td><code>QualityReport.score</code></td>
+</tr>
+<tr>
+<th>F-123</th>
+<td>Critical-only blocking</td>
+<td>Only <code>critical</code> failures can fail a run</td>
+<td><code>QualityReport.blocking_failures</code></td>
+</tr>
+<tr>
+<th>F-124</th>
+<td>Rule isolation</td>
+<td>Each rule evaluates inside a savepoint; failures are recorded, not raised</td>
+<td><code>Rule.run</code></td>
+</tr>
+<tr>
+<th>F-125</th>
+<td>Per-run persistence</td>
+<td>Every outcome stored with observed/expected values, counts, message and evidence</td>
+<td><code>dq_rule_result</code></td>
+</tr>
+<tr>
+<th>F-126</th>
+<td>Rule catalogue endpoint</td>
+<td>The 12 rules with descriptions and no evaluator payload</td>
+<td><code>GET /api/v1/quality/rules</code></td>
+</tr>
+<tr>
+<th>F-127</th>
+<td>Quality history and trend</td>
+<td>Paginated history plus a per-run score trend with a threshold line</td>
+<td><code>GET /api/v1/quality/results</code>, <code>/trend</code></td>
+</tr>
+<tr>
+<th>F-128</th>
+<td>Quality posture summary</td>
+<td>Counts by dimension and status plus the ten worst findings</td>
+<td><code>GET /api/v1/quality/summary</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="9-analytics-and-sql-reporting-18">9. Analytics and SQL reporting (18)</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>Feature</th>
+<th>Description</th>
+<th>Where</th>
+</tr></thead><tbody>
+<tr>
+<th>F-129</th>
+<td>Twenty analytical views</td>
+<td>The semantic layer over the star schema, portable across three engines</td>
+<td><code>db/views.sql</code></td>
+</tr>
+<tr>
+<th>F-130</th>
+<td>KPI summary</td>
+<td>Products, sources, average/min/max price, average rating, in-stock count, change statistics, event mix, quality, catalog</td>
+<td><code>analytics.kpi_summary</code></td>
+</tr>
+<tr>
+<th>F-131</th>
+<td>Daily trend</td>
+<td>Observations, products, average price, average rating and in-stock percentage per day</td>
+<td><code>analytics.daily_trend</code> → <code>vw_daily_kpis</code></td>
+</tr>
+<tr>
+<th>F-132</th>
+<td>Price-change timeline</td>
+<td>Daily increase/decrease counts with mean and maximum absolute change</td>
+<td><code>analytics.price_change_timeline</code></td>
+</tr>
+<tr>
+<th>F-133</th>
+<td>Top movers</td>
+<td>Largest absolute movements with an optional direction filter</td>
+<td><code>analytics.top_movers</code> → <code>vw_top_movers</code></td>
+</tr>
+<tr>
+<th>F-134</th>
+<td>Category breakdown</td>
+<td>Observations, price range, rating, new products and changes per category</td>
+<td><code>analytics.category_breakdown</code></td>
+</tr>
+<tr>
+<th>F-135</th>
+<td>Brand leaderboard</td>
+<td>Product count, price range, rating and in-stock observations per brand</td>
+<td><code>analytics.brand_leaderboard</code></td>
+</tr>
+<tr>
+<th>F-136</th>
+<td>Availability summary</td>
+<td>In-stock percentage and out-of-stock counts per category</td>
+<td><code>analytics.availability_summary</code></td>
+</tr>
+<tr>
+<th>F-137</th>
+<td>Category tree with live counts</td>
+<td>Hierarchy with active product counts and average price</td>
+<td><code>analytics.category_tree</code></td>
+</tr>
+<tr>
+<th>F-138</th>
+<td>Lifecycle feeds</td>
+<td>New products, removed products with days missing, category changes</td>
+<td><code>analytics.new_products</code>, <code>removed_products</code>, <code>category_changes</code></td>
+</tr>
+<tr>
+<th>F-139</th>
+<td>Category drift report</td>
+<td>Added, removed, recategorised and net change per category</td>
+<td><code>analytics.category_drift_report</code></td>
+</tr>
+<tr>
+<th>F-140</th>
+<td>Category price index with portable variance</td>
+<td>Average, min, max, rating and a <code>SQRT(E[x²]−E[x]²)</code> standard deviation</td>
+<td><code>vw_category_price_index</code></td>
+</tr>
+<tr>
+<th>F-141</th>
+<td>Compliance report</td>
+<td>Requests, blocked, cached, retried, bytes, latency and hosts</td>
+<td><code>analytics.compliance_report</code></td>
+</tr>
+<tr>
+<th>F-142</th>
+<td>HTTP audit feed</td>
+<td>Every request flattened for the compliance screen</td>
+<td><code>vw_http_audit</code></td>
+</tr>
+<tr>
+<th>F-143</th>
+<td>Price history series</td>
+<td>Per-product time series with the change context</td>
+<td><code>analytics.price_history</code></td>
+</tr>
+<tr>
+<th>F-144</th>
+<td>Query plan explorer</td>
+<td>Dialect-aware <code>EXPLAIN</code> for any view</td>
+<td><code>analytics.query_explain</code></td>
+</tr>
+<tr>
+<th>F-145</th>
+<td>CSV export</td>
+<td>The current product list as CSV, capped at 50,000 rows</td>
+<td><code>GET /api/v1/analytics/export/products.csv</code></td>
+</tr>
+<tr>
+<th>F-146</th>
+<td>Table inventory API</td>
+<td>23 tables grouped into the six logical groups</td>
+<td><code>GET /api/v1/meta/tables</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="10-rest-api-26">10. REST API (26)</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>Feature</th>
+<th>Description</th>
+<th>Where</th>
+</tr></thead><tbody>
+<tr>
+<th>F-147</th>
+<td>Sixteen routers, 113 operations</td>
+<td>Every analytical and operational capability exposed and documented</td>
+<td><code>app/api/routers/</code></td>
+</tr>
+<tr>
+<th>F-148</th>
+<td>Health, readiness and metadata</td>
+<td>Liveness with the database probe, readiness with a schema check, <code>/meta</code>, <code>/version</code>, <code>/stats/tables</code></td>
+<td><code>app/api/routers/health.py</code></td>
+</tr>
+<tr>
+<th>F-149</th>
+<td>Login, refresh, logout</td>
+<td>Credential exchange with lockout handling and an audit row</td>
+<td><code>app/api/routers/auth.py</code></td>
+</tr>
+<tr>
+<th>F-150</th>
+<td>Session introspection</td>
+<td>The shell reads role, permissions, theme, accent, density, rows per page and token lifetime</td>
+<td><code>GET /api/v1/auth/session</code></td>
+</tr>
+<tr>
+<th>F-151</th>
+<td>Product catalogue endpoints</td>
+<td>List with 14 filters, facets, category tree, type-ahead, compare, detail, history, duplicates, catalog links</td>
+<td><code>app/api/routers/products.py</code></td>
+</tr>
+<tr>
+<th>F-152</th>
+<td>Change-feed endpoints</td>
+<td>Price changes, top movers, events, new, removed, category changes, drift, summary</td>
+<td><code>app/api/routers/changes.py</code></td>
+</tr>
+<tr>
+<th>F-153</th>
+<td>Analytics endpoints</td>
+<td>KPI, trend, price trend, categories, brands, availability, sources, category index and four reports</td>
+<td><code>app/api/routers/analytics.py</code></td>
+</tr>
+<tr>
+<th>F-154</th>
+<td>Pipeline endpoints</td>
+<td>Run history, latest run, run detail, DQ and HTTP audit per run, stages, schedule</td>
+<td><code>app/api/routers/pipeline.py</code></td>
+</tr>
+<tr>
+<th>F-155</th>
+<td>Background run trigger</td>
+<td><code>POST /pipeline/run</code> queues a run and creates a notification</td>
+<td><code>routers/pipeline.py</code> <code>trigger</code></td>
+</tr>
+<tr>
+<th>F-156</th>
+<td>Synchronous run trigger</td>
+<td><code>POST /pipeline/run/sync</code> returns the full <code>PipelineResult</code></td>
+<td><code>routers/pipeline.py</code> <code>trigger_sync</code></td>
+</tr>
+<tr>
+<th>F-157</th>
+<td>Quality endpoints</td>
+<td>Latest, per run, catalogue, history, trend, posture</td>
+<td><code>app/api/routers/quality.py</code></td>
+</tr>
+<tr>
+<th>F-158</th>
+<td>Catalog endpoints</td>
+<td>Reconciliation with filters, internal SKUs, summary by strategy and supplier, opportunities</td>
+<td><code>app/api/routers/catalog.py</code></td>
+</tr>
+<tr>
+<th>F-159</th>
+<td>Source endpoints</td>
+<td>Registry with compliance metadata, robots cache statistics, single source, raw preview</td>
+<td><code>app/api/routers/sources.py</code></td>
+</tr>
+<tr>
+<th>F-160</th>
+<td>Read-only query console</td>
+<td>Validated <code>SELECT</code>/<code>WITH</code>/<code>EXPLAIN</code> with a 5,000-row cap and truncation flag</td>
+<td><code>app/api/routers/queries.py</code></td>
+</tr>
+<tr>
+<th>F-161</th>
+<td>Query discovery</td>
+<td>View list, table groups and five starter queries</td>
+<td><code>/queries/views</code>, <code>/tables</code>, <code>/examples</code></td>
+</tr>
+<tr>
+<th>F-162</th>
+<td>Saved views</td>
+<td>Create, list (own + shared), favourite, delete and usage counter</td>
+<td><code>app/api/routers/saved_views.py</code></td>
+</tr>
+<tr>
+<th>F-163</th>
+<td>Alerts</td>
+<td>CRUD over five metrics with five operators plus a live evaluation endpoint</td>
+<td><code>app/api/routers/notifications.py</code></td>
+</tr>
+<tr>
+<th>F-164</th>
+<td>Notifications</td>
+<td>Paged feed, unread filter, mark one and mark all as read</td>
+<td><code>app/api/routers/notifications.py</code></td>
+</tr>
+<tr>
+<th>F-165</th>
+<td>Settings</td>
+<td>Grouped list, admin upsert and delete, public-flag visibility</td>
+<td><code>app/api/routers/settings.py</code></td>
+</tr>
+<tr>
+<th>F-166</th>
+<td>Audit endpoints</td>
+<td>Paged audit log with action/user/window filters plus a distinct-action summary</td>
+<td><code>app/api/routers/audit.py</code></td>
+</tr>
+<tr>
+<th>F-167</th>
+<td>User administration</td>
+<td>List, create, update, deactivate, statistics, own-profile endpoints</td>
+<td><code>app/api/routers/users.py</code></td>
+</tr>
+<tr>
+<th>F-168</th>
+<td>API key endpoints</td>
+<td>Create (shown once), list and revoke</td>
+<td><code>/users/{id}/api-keys</code></td>
+</tr>
+<tr>
+<th>F-169</th>
+<td>Pagination convention</td>
+<td><code>page</code>, <code>page_size ≤ 200</code>, whitelisted sorting, exact totals, seven-field envelope</td>
+<td><code>app/api/deps.py</code> <code>Pagination</code>, <code>schemas.Page</code></td>
+</tr>
+<tr>
+<th>F-170</th>
+<td>Consistent error envelope</td>
+<td><code>error</code>, <code>message</code>, <code>details</code>, <code>path</code> for every failure class</td>
+<td><code>app/api/main.py</code> handlers, <code>app/core/errors.py</code></td>
+</tr>
+<tr>
+<th>F-171</th>
+<td>Performance headers</td>
+<td><code>X-Process-Time-Ms</code> and <code>X-Database</code> on every response; slow requests logged</td>
+<td><code>app/api/main.py</code> timing middleware</td>
+</tr>
+<tr>
+<th>F-172</th>
+<td>CORS and compression</td>
+<td>Configurable allow-list; GZip above 1 KB</td>
+<td><code>app/api/main.py</code> middleware</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="11-security-and-access-control-10">11. Security and access control (10)</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>Feature</th>
+<th>Description</th>
+<th>Where</th>
+</tr></thead><tbody>
+<tr>
+<th>F-173</th>
+<td>Argon2id password hashing</td>
+<td><code>time_cost=2</code>, <code>memory_cost=64 MiB</code>, <code>parallelism=2</code>, with automatic rehash</td>
+<td><code>app/api/security.py</code></td>
+</tr>
+<tr>
+<th>F-174</th>
+<td>Password strength gate</td>
+<td>Length, upper, lower, digit and symbol enforced server-side and surfaced in the UI</td>
+<td><code>security.password_strength</code>, <code>schemas.PasswordChangeRequest</code></td>
+</tr>
+<tr>
+<th>F-175</th>
+<td>Account lockout</td>
+<td>Five consecutive failures lock the account for 15 minutes</td>
+<td><code>routers/auth.py</code> <code>MAX_FAILED_LOGINS</code></td>
+</tr>
+<tr>
+<th>F-176</th>
+<td>JWT access and refresh tokens</td>
+<td>HS256 with <code>sub</code>, <code>role</code>, <code>email</code>, <code>iat</code>, <code>exp</code>, <code>type</code> and <code>iss</code>; type confusion rejected</td>
+<td><code>security.create_access_token</code> / <code>decode_token</code></td>
+</tr>
+<tr>
+<th>F-177</th>
+<td>Scoped, hashed API keys</td>
+<td><code>pip_</code> prefix, SHA-256 with a server pepper, expiry, usage counter, revocation</td>
+<td><code>security.generate_api_key</code></td>
+</tr>
+<tr>
+<th>F-178</th>
+<td>Role-based authorisation</td>
+<td>Three roles, ten rights, enforced by a dependency factory</td>
+<td><code>security.ROLE_RIGHTS</code>, <code>deps.require_rights</code></td>
+</tr>
+<tr>
+<th>F-179</th>
+<td>Read-only query guard</td>
+<td>Write keywords, comments and multi-statement payloads rejected before execution</td>
+<td><code>schemas.QueryRequest._readonly</code></td>
+</tr>
+<tr>
+<th>F-180</th>
+<td>Audit trail</td>
+<td>Login, logout, failed login, password change, user management, pipeline trigger and settings writes</td>
+<td><code>app/models/app_users.py</code> <code>AppAuditLog</code></td>
+</tr>
+<tr>
+<th>F-181</th>
+<td>Secret redaction</td>
+<td>Connection strings masked as <code>scheme://<strong><em>:</em></strong>@host</code> in every log line</td>
+<td><code>app/core/config.py</code> <code>describe_target</code></td>
+</tr>
+<tr>
+<th>F-182</th>
+<td>Field-level response control</td>
+<td><code>hashed_password</code> never appears in a response model</td>
+<td><code>app/api/schemas.py</code> <code>UserRead</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="12-dashboard-and-user-experience-12">12. Dashboard and user experience (12)</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>Feature</th>
+<th>Description</th>
+<th>Where</th>
+</tr></thead><tbody>
+<tr>
+<th>F-183</th>
+<td>Twelve screens specified</td>
+<td>Dashboard, Products, Product detail, Changes (6 tabs), Analytics, Pipeline, Run detail, Quality, Catalog, Sources, Query Lab, Account, Admin</td>
+<td><code>docs/12_ui_ux_design.md</code></td>
+</tr>
+<tr>
+<th>F-184</th>
+<td>Light and dark themes</td>
+<td><code>system</code>, <code>light</code> and <code>dark</code> persisted per user; measured contrast ratios for every token pair</td>
+<td><code>app_user.theme</code>, doc 12 §6</td>
+</tr>
+<tr>
+<th>F-185</th>
+<td>Accent and density preferences</td>
+<td>Five accents and three row densities, applied without a reload</td>
+<td><code>app_user.accent</code>, <code>app_user.density</code></td>
+</tr>
+<tr>
+<th>F-186</th>
+<td>Filter, sort and paging on every list</td>
+<td>Filter state lives in the URL so a view is shareable</td>
+<td>doc 12 §5.3</td>
+</tr>
+<tr>
+<th>F-187</th>
+<td>Saved filter views</td>
+<td>Per-user or shared presets with favourites and usage counters</td>
+<td><code>app_saved_view</code></td>
+</tr>
+<tr>
+<th>F-188</th>
+<td>Type-ahead search</td>
+<td>Suggestions after two characters, normalised on the server</td>
+<td><code>GET /api/v1/products/search/suggest</code></td>
+</tr>
+<tr>
+<th>F-189</th>
+<td>Side-by-side comparison</td>
+<td>Up to six products in one drawer</td>
+<td><code>GET /api/v1/products/compare/ids</code></td>
+</tr>
+<tr>
+<th>F-190</th>
+<td>Exports</td>
+<td>CSV for the product list and filtered reports</td>
+<td><code>analytics/export/products.csv</code></td>
+</tr>
+<tr>
+<th>F-191</th>
+<td>WCAG 2.1 AA design system</td>
+<td>Contrast-verified palette, visible focus, keyboard operation, ARIA live regions, 200 % zoom, 320 px reflow</td>
+<td>doc 12 §7</td>
+</tr>
+<tr>
+<th>F-192</th>
+<td>Responsive from 320 px</td>
+<td>Three breakpoints; cards replace grids on mobile; the filter rail becomes a sheet</td>
+<td>doc 12 §8</td>
+</tr>
+<tr>
+<th>F-193</th>
+<td>Silent motion policy</td>
+<td>No decorative animation, no spinners, no transitions; <code>prefers-reduced-motion</code> respected</td>
+<td>doc 12 §9</td>
+</tr>
+<tr>
+<th>F-194</th>
+<td>Transparency panel</td>
+<td>Raw-versus-cleaned source preview as a first-class feature</td>
+<td><code>GET /api/v1/sources/{code}/preview</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="13-operations-orchestration-and-dx-24">13. Operations, orchestration and DX (24)</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>Feature</th>
+<th>Description</th>
+<th>Where</th>
+</tr></thead><tbody>
+<tr>
+<th>F-195</th>
+<td>Eleven CLI commands</td>
+<td>Eleven commands (<code>init-db</code>, <code>bootstrap</code>, <code>seed-demo</code>, <code>run-pipeline</code>, <code>report</code>, <code>quality</code>, <code>verify</code>, <code>serve</code>, <code>status</code>, <code>check-schema</code>, <code>version</code>) plus two command groups (`sources list</td>
+<td>preview</td>
+<td>check<code>, </code>user list</td>
+<td>create</td>
+<td>token`)</td>
+<td><code>app/cli/main.py</code></td>
+</tr>
+<tr>
+<th>F-196</th>
+<td>Rich terminal reports</td>
+<td>Tables, panels and colour-coded status for runs, movers, drift, quality and sources</td>
+<td><code>app/cli/main.py</code></td>
+</tr>
+<tr>
+<th>F-197</th>
+<td>Cross-dialect verification</td>
+<td>Compares structural counts and the DQ score across targets and reports drift</td>
+<td><code>pip-cli verify</code></td>
+</tr>
+<tr>
+<th>F-198</th>
+<td>Thirty-plus Make targets</td>
+<td>One-command install, databases, bootstrap, demo, pipeline, API, tests, frontend, Airflow, docs</td>
+<td><code>Makefile</code></td>
+</tr>
+<tr>
+<th>F-199</th>
+<td>Airflow DAG with 13 tasks</td>
+<td>Two short-circuit guards, extraction, change detection, DQ gate, aggregates, reconciliation, branch, notification and report</td>
+<td><code>dags/product_intelligence_pipeline.py</code></td>
+</tr>
+<tr>
+<th>F-200</th>
+<td>Recoverable orchestration</td>
+<td>Two retries with exponential back-off, 45-minute execution timeout, <code>max_active_runs=1</code></td>
+<td>DAG <code>DEFAULT_ARGS</code></td>
+</tr>
+<tr>
+<th>F-201</th>
+<td>Change-aware branching</td>
+<td>Notifications run only when the run actually produced changes (XCom branch)</td>
+<td>DAG <code>branch_on_changes</code></td>
+</tr>
+<tr>
+<th>F-202</th>
+<td>Report artefact</td>
+<td>The analytics report is written to <code>var/artifacts/report-*.json</code> by the DAG</td>
+<td>DAG <code>publish_report</code></td>
+</tr>
+<tr>
+<th>F-203</th>
+<td>Airflow-optional imports</td>
+<td>The DAG module imports without Airflow installed, so tests and the CLI still work</td>
+<td><code>dags/…</code> try/except with <code>AIRFLOW_AVAILABLE</code></td>
+</tr>
+<tr>
+<th>F-204</th>
+<td>Six-service Compose stack</td>
+<td>PostgreSQL 16, MySQL 8.4, API, Airflow, Airflow scheduler, frontend</td>
+<td><code>docker-compose.yml</code></td>
+</tr>
+<tr>
+<th>F-205</th>
+<td>Health-gated startup</td>
+<td>The API waits for both databases to be healthy</td>
+<td>Compose <code>depends_on: condition: service_healthy</code></td>
+</tr>
+<tr>
+<th>F-206</th>
+<td>Read-only code mounts</td>
+<td><code>./app</code> and <code>./db</code> are mounted read-only into the API and Airflow containers</td>
+<td><code>docker-compose.yml</code></td>
+</tr>
+<tr>
+<th>F-207</th>
+<td>Validated configuration</td>
+<td>One typed <code>Settings</code> object with validators, reloadable, documented variable by variable</td>
+<td><code>app/core/config.py</code>, doc 17 §7</td>
+</tr>
+<tr>
+<th>F-208</th>
+<td>Seeded demo dataset</td>
+<td>Users, internal catalog, saved views, alerts, 150 days of price history with realistic promotions</td>
+<td><code>app/etl/seed.py</code></td>
+</tr>
+<tr>
+<th>F-209</th>
+<td>API smoke suite</td>
+<td>78 checks covering every router, including 401 and 403 paths</td>
+<td><code>scripts/api_smoke.py</code></td>
+</tr>
+<tr>
+<th>F-210</th>
+<td>Cross-dialect verification command</td>
+<td><code>make verify-dialects</code> in CI and locally</td>
+<td><code>Makefile</code>, <code>app/cli/main.py</code></td>
+</tr>
+<tr>
+<th>F-211</th>
+<td>Typed error taxonomy</td>
+<td>13 domain exceptions mapped to HTTP status codes</td>
+<td><code>app/core/errors.py</code></td>
+</tr>
+<tr>
+<th>F-212</th>
+<td>Structured logging</td>
+<td>ANSI console, JSON for shippers, rotating file handler, third-party log quieting</td>
+<td><code>app/core/logging.py</code></td>
+</tr>
+<tr>
+<th>F-213</th>
+<td>Lint, format and type checking</td>
+<td>ruff (E,F,W,I,UP,B,C4,SIM) and mypy configured with a 110-character line limit</td>
+<td><code>pyproject.toml</code>, <code>make lint</code>, <code>make typecheck</code></td>
+</tr>
+<tr>
+<th>F-214</th>
+<td>Six-step source extension</td>
+<td>Documented procedure with a worked adapter template</td>
+<td>doc 17 §8</td>
+</tr>
+<tr>
+<th>F-215</th>
+<td>Regenerable diagrams</td>
+<td>The ERD and the API catalogue are generated from the code, so they cannot drift</td>
+<td>doc 9 §11.2, doc 14 §5</td>
+</tr>
+<tr>
+<th>F-216</th>
+<td>Twenty-document documentation set</td>
+<td>Proposal through feedback, all with Mermaid diagrams and measurable claims</td>
+<td><code>docs/01</code> … <code>docs/20</code></td>
+</tr>
+<tr>
+<th>F-217</th>
+<td>Measured KPIs</td>
+<td>Sixteen KPIs with SQL, commands and target-versus-measured tables</td>
+<td><code>docs/05_kpis.md</code></td>
+</tr>
+<tr>
+<th>F-218</th>
+<td>Health probes for orchestration</td>
+<td>Liveness and readiness endpoints consumed by the container health check and the DAG guard</td>
+<td><code>app/api/routers/health.py</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="feature-count-by-area">Feature count by area</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Area</th>
+<th>Features</th>
+</tr></thead><tbody>
+<tr>
+<td>Ingestion and web compliance</td>
+<td>24</td>
+</tr>
+<tr>
+<td>Cleaning and normalisation</td>
+<td>29</td>
+</tr>
+<tr>
+<th>Duplicate resolution</th>
+<td>17</td>
+</tr>
+<tr>
+<th>Warehouse model</th>
+<td>20</td>
+</tr>
+<tr>
+<th>ETL pipeline</th>
+<td>15</td>
+</tr>
+<tr>
+<th>Change detection</th>
+<td>6</td>
+</tr>
+<tr>
+<th>Catalog reconciliation</th>
+<td>7</td>
+</tr>
+<tr>
+<th>Data quality</th>
+<td>10</td>
+</tr>
+<tr>
+<td>Analytics and SQL reporting</td>
+<td>18</td>
+</tr>
+<tr>
+<th>REST API</th>
+<td>26</td>
+</tr>
+<tr>
+<td>Security and access control</td>
+<td>10</td>
+</tr>
+<tr>
+<td>Dashboard and user experience</td>
+<td>12</td>
+</tr>
+<tr>
+<td>Operations, orchestration and DX</td>
+<td>24</td>
+</tr>
+<tr>
+<th><strong>Total</strong></th>
+<td><strong>218</strong></td>
+</tr>
+</tbody></table></div>
+<p>The numbering is continuous from F-001 to F-218; the counts above reflect features that are independently demonstrable (a function, an endpoint, a table, a command or a documented design decision) rather than individual lines of code.</p>
+<hr>
+<h2 id="14-dashboard-v11-additions-8">14. Dashboard v1.1 additions (8)</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>Feature</th>
+<th>Description</th>
+<th>Where</th>
+</tr></thead><tbody>
+<tr>
+<th>F-219</th>
+<td>Command palette</td>
+<td>Ctrl/Cmd-K or "/" opens a searchable palette: screens <strong>and live product results</strong> with prices, plus quick actions (theme toggle, sidebar toggle, sign out); ↑↓/↵/esc keyboard navigation</td>
+<td><code>frontend/src/components/AppShell.tsx</code> <code>CommandPalette</code></td>
+</tr>
+<tr>
+<th>F-220</th>
+<td>JSON exports</td>
+<td>One-click JSON download of the dashboard snapshot, product list, analytics bundle and change feed (alongside the existing CSV exports)</td>
+<td><code>frontend/src/lib/format.ts</code> <code>downloadJson</code> + Dashboard/Products/Analytics/Changes</td>
+</tr>
+<tr>
+<th>F-221</th>
+<td>RFC-4180 CSV builder</td>
+<td>Shared CSV serialiser with proper quoting used by every export button</td>
+<td><code>frontend/src/lib/format.ts</code> <code>toCsv</code>/<code>csvCell</code></td>
+</tr>
+<tr>
+<th>F-222</th>
+<td>Installable PWA</td>
+<td>Web app manifest, maskable SVG icon, iOS <code>apple-touch-icon</code>, safe-area viewport; installable on desktop/Android/iOS</td>
+<td><code>frontend/public/manifest.webmanifest</code>, <code>frontend/index.html</code></td>
+</tr>
+<tr>
+<th>F-223</th>
+<td>Zero-warning quality gates</td>
+<td>ESLint runs with <code>--max-warnings 0</code>; strict TypeScript compile is part of every build; mirrored in CI</td>
+<td><code>frontend/package.json</code>, <code>.github/workflows/ci.yml</code></td>
+</tr>
+<tr>
+<th>F-224</th>
+<td>GitHub Actions CI</td>
+<td>Two jobs (backend: ruff + mypy + pytest; frontend: eslint + tsc + vite build) with artefact upload</td>
+<td><code>.github/workflows/ci.yml</code></td>
+</tr>
+<tr>
+<th>F-225</th>
+<td>Iconography pass</td>
+<td>Every screen action, empty state and navigation item carries a Lucide icon; aria-labels on all icon-only controls</td>
+<td><code>frontend/src/**</code></td>
+</tr>
+<tr>
+<th>F-226</th>
+<td>Modern slim scrollbars</td>
+<td>Thin rounded theme-aware scrollbars app-wide via <code>scrollbar-width</code>/<code>::-webkit-scrollbar</code> tokens</td>
+<td><code>frontend/src/styles/index.css</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Revised total: 226 features.</strong></p>
+<hr>
+<h2 id="15-platform-v12-additions-8">15. Platform v1.2 additions (8)</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>Feature</th>
+<th>Description</th>
+<th>Where</th>
+</tr></thead><tbody>
+<tr>
+<th>F-227</th>
+<td>Avatar colour picker</td>
+<td>Twelve-swatch picker on the profile header; the choice is stored per user and drives the sidebar, account menu and profiles via <code>avatar_color</code></td>
+<td><code>frontend/src/pages/Account.tsx</code>, <code>app/api/schemas.py</code> <code>UserUpdate.avatar_color</code></td>
+</tr>
+<tr>
+<th>F-228</th>
+<td>Start-page preference</td>
+<td>"Start page after sign-in" select over every permitted screen; stored locally and in server <code>preferences</code>, honoured by the login redirect and session restore</td>
+<td><code>frontend/src/pages/Account.tsx</code>, <code>frontend/src/pages/Login.tsx</code></td>
+</tr>
+<tr>
+<th>F-229</th>
+<td>Motion preference</td>
+<td>Account-level "reduce motion" override applied before first paint (<code>data-motion</code> on <code>&lt;html&gt;</code>), complementing the operating-system setting</td>
+<td><code>frontend/src/lib/theme.ts</code>, <code>frontend/src/styles/index.css</code>, <code>frontend/index.html</code></td>
+</tr>
+<tr>
+<th>F-230</th>
+<td>Builder column reordering</td>
+<td>Arrow buttons move any visible column earlier or later; order persists with the saved view</td>
+<td><code>frontend/src/pages/Builder.tsx</code> <code>moveColumn</code></td>
+</tr>
+<tr>
+<th>F-231</th>
+<td>Builder copy-as-API-request</td>
+<td>Copies the composed query as a ready-to-run REST URL with the correct endpoint path and query-string for each entity</td>
+<td><code>frontend/src/pages/Builder.tsx</code> <code>copyApiRequest</code></td>
+</tr>
+<tr>
+<th>F-232</th>
+<td>Builder preview export</td>
+<td>CSV and JSON export of the live preview using the visible columns and plain-text mapping per entity</td>
+<td><code>frontend/src/pages/Builder.tsx</code> <code>exportPreview</code></td>
+</tr>
+<tr>
+<th>F-233</th>
+<td>Project infographic generator</td>
+<td>Reusable script producing the DEPI 16:9 roadmap slide (SVG master, HTML preview, PNG when cairosvg is installed) straight from the documented facts</td>
+<td><code>scripts/make_infographic.py</code>, <code>docs/assets/infographic.svg</code></td>
+</tr>
+<tr>
+<th>F-234</th>
+<td>Diagram extractor</td>
+<td>Extracts every Mermaid block from the documentation set into <code>docs/diagrams/out/*.mmd</code> with an index table; optional <code>mmdc</code> rendering</td>
+<td><code>scripts/diagrams.py</code>, <code>docs/diagrams/out/index.md</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Revised total: 271 features across 16 areas</strong> (F-001 to F-271, contiguous, with no duplicate or missing identifiers). Each section heading states its own count, and those counts match the rows beneath them.</p>
+<hr>
+<h2 id="16-platform-v13-additions-52">16. Platform v1.3 additions (52)</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>Feature</th>
+<th>Description</th>
+<th>Where</th>
+</tr></thead><tbody>
+<tr>
+<th>F-235</th>
+<td>Feature catalogue module</td>
+<td>Single source of truth for platform capabilities: 13 areas, 95 features, each with a Lucide icon name; consumed by the API, the dashboard and the website so they cannot drift</td>
+<td><code>app/core/features.py</code></td>
+</tr>
+<tr>
+<th>F-236</th>
+<td>Structured feature catalogue endpoint</td>
+<td><code>GET /meta/features</code> returns the catalogue with per-group counts and totals; unauthenticated like <code>/meta</code></td>
+<td><code>app/api/routers/health.py</code> <code>meta_features</code></td>
+</tr>
+<tr>
+<th>F-237</th>
+<td>Feature catalogue in <code>/meta</code></td>
+<td><code>/meta</code> derives <code>features</code> (flat names) and the new <code>feature_groups</code> count from the catalogue module instead of a hand-maintained list</td>
+<td><code>app/api/routers/health.py</code></td>
+</tr>
+<tr>
+<th>F-238</th>
+<td>Feature catalogue screen</td>
+<td>New <code>/features</code> dashboard screen rendering the catalogue as icon-headed cards with a search box, group chips, copy-to-clipboard per feature and a source-of-truth footer</td>
+<td><code>frontend/src/pages/Features.tsx</code></td>
+</tr>
+<tr>
+<th>F-239</th>
+<td>Catalogue search and filtering</td>
+<td>Live filter over feature names, details and group titles; chip row switches areas; an empty state guides the user to broader terms</td>
+<td><code>frontend/src/pages/Features.tsx</code></td>
+</tr>
+<tr>
+<th>F-240</th>
+<td>Builder schema endpoint</td>
+<td><code>GET /builder/schema</code> publishes 11 entities, their columns with types and groupable flags, 15 operators with value types, and the aggregate list; drives the builder UI</td>
+<td><code>app/api/routers/builder.py</code> <code>schema</code></td>
+</tr>
+<tr>
+<th>F-241</th>
+<td>Aggregate query endpoint</td>
+<td><code>POST /builder/query</code> runs a structured read-only query: group-by, six aggregate functions, filters, sort, paging; returns rows, total, duration and the generated SQL</td>
+<td><code>app/api/routers/builder.py</code> <code>run_query</code></td>
+</tr>
+<tr>
+<th>F-242</th>
+<td>Whitelisted identifier SQL assembly</td>
+<td>Every identifier reaching the SQL text comes from the server-side <code>ENTITIES</code> whitelist; every value is a bind parameter, making injection structurally impossible</td>
+<td><code>app/api/routers/builder.py</code> <code>_build_sql</code></td>
+</tr>
+<tr>
+<th>F-243</th>
+<td>Fifteen filter operators</td>
+<td><code>eq</code>, <code>ne</code>, <code>gt</code>, <code>gte</code>, <code>lt</code>, <code>lte</code>, <code>contains</code>, <code>not_contains</code>, <code>starts_with</code>, <code>ends_with</code>, <code>in</code>, <code>not_in</code>, <code>between</code>, <code>empty</code>, <code>not_empty</code> with per-operator input handling</td>
+<td><code>app/api/routers/builder.py</code> <code>OPERATORS</code></td>
+</tr>
+<tr>
+<th>F-244</th>
+<td>Six aggregate functions</td>
+<td><code>count</code>, <code>count_distinct</code>, <code>sum</code>, <code>avg</code>, <code>min</code>, <code>max</code> with optional aliases and validation (aggregates without a column must be <code>count</code>)</td>
+<td><code>app/api/routers/builder.py</code> <code>AGGREGATES</code></td>
+</tr>
+<tr>
+<th>F-245</th>
+<td>Aggregate sort validation</td>
+<td>Grouped queries may sort by grouping columns and aggregate aliases only; ungrouped queries by entity columns, preventing invalid <code>GROUP BY</code> SQL</td>
+<td><code>app/api/routers/builder.py</code> <code>_validate_sort</code></td>
+</tr>
+<tr>
+<th>F-246</th>
+<td>Aggregate builder mode</td>
+<td>The Builder screen gains a "Group &amp; aggregate" mode with dataset, grouping, measure rows (add/remove), advanced filter rows, sort measure, direction and row count</td>
+<td><code>frontend/src/pages/AggregateBuilder.tsx</code></td>
+</tr>
+<tr>
+<th>F-247</th>
+<td>Aggregate chart preview</td>
+<td>Horizontal bar chart of the grouped result with a toggle, truncated to the top 20 groups</td>
+<td><code>frontend/src/pages/AggregateBuilder.tsx</code>, <code>frontend/src/components/charts.tsx</code></td>
+</tr>
+<tr>
+<th>F-248</th>
+<td>Generated SQL preview</td>
+<td>Every aggregate run displays the exact SQL the server executed, with values bound as parameters</td>
+<td><code>frontend/src/pages/AggregateBuilder.tsx</code></td>
+</tr>
+<tr>
+<th>F-249</th>
+<td>Aggregate copy-as-cURL</td>
+<td>Copies a ready-to-run <code>curl</code> command including the bearer-token header and the JSON body</td>
+<td><code>frontend/src/pages/AggregateBuilder.tsx</code> <code>copyCurl</code></td>
+</tr>
+<tr>
+<th>F-250</th>
+<td>Aggregate export</td>
+<td>CSV and JSON export of the aggregated rows, and a JSON bundle containing the composed query alongside the result</td>
+<td><code>frontend/src/pages/AggregateBuilder.tsx</code> <code>exportResult</code></td>
+</tr>
+<tr>
+<th>F-251</th>
+<td>Account data export</td>
+<td><code>GET /users/me/export</code> returns a portable JSON snapshot: profile, preferences, API-key metadata (never secrets), saved views, alert rules, notifications and 90 days of activity</td>
+<td><code>app/api/routers/users.py</code> <code>export_me</code></td>
+</tr>
+<tr>
+<th>F-252</th>
+<td>Account self-deletion</td>
+<td><code>DELETE /users/me</code> with password confirmation; personal rows cascade via foreign keys, audit history is preserved with the email recorded and the user link nulled</td>
+<td><code>app/api/routers/users.py</code> <code>delete_me</code></td>
+</tr>
+<tr>
+<th>F-253</th>
+<td>Self-deletion audit trail</td>
+<td>The deletion writes an <code>app_audit_log</code> entry before removing the user, so the event survives the foreign-key <code>SET NULL</code></td>
+<td><code>app/api/routers/users.py</code> <code>delete_me</code></td>
+</tr>
+<tr>
+<th>F-254</th>
+<td>Personal activity feed</td>
+<td><code>GET /audit/me</code> returns the caller's own audited actions with paging and a day window — no admin permission needed</td>
+<td><code>app/api/routers/audit.py</code> <code>my_activity</code></td>
+</tr>
+<tr>
+<th>F-255</th>
+<td>Account activity tab</td>
+<td>New Account tab listing recent sign-ins, key changes and settings updates with action, target, status, IP and relative time</td>
+<td><code>frontend/src/pages/Account.tsx</code></td>
+</tr>
+<tr>
+<th>F-256</th>
+<td>Account data &amp; privacy tab</td>
+<td>New Account tab with a data-export card and a danger-zone card; deletion requires the password and typing <code>DELETE</code></td>
+<td><code>frontend/src/pages/Account.tsx</code></td>
+</tr>
+<tr>
+<th>F-257</th>
+<td>Change-event summary service</td>
+<td>Lifecycle counters plus the price-change timeline moved out of the router into <code>analytics.change_event_summary</code>, reused by the API and the Airflow report task</td>
+<td><code>app/analytics/service.py</code></td>
+</tr>
+<tr>
+<th>F-258</th>
+<td>Stable scrollbar gutter</td>
+<td><code>scrollbar-gutter: stable</code> reserves the rail so content never shifts sideways when a page grows past the viewport</td>
+<td><code>frontend/src/styles/index.css</code></td>
+</tr>
+<tr>
+<th>F-259</th>
+<td>Refined scrollbar system</td>
+<td>Translucent rounded thumbs, a brand-coloured thumb while dragging, slimmer 8px rails inside the sidebar, popovers and code blocks, all theme-aware via <code>color-mix</code></td>
+<td><code>frontend/src/styles/index.css</code></td>
+</tr>
+<tr>
+<th>F-260</th>
+<td>Scroll containment</td>
+<td><code>overscroll-behavior: contain</code> on the shell, sidebar nav, tables and scroll regions so scrolling a panel never drags the page behind it</td>
+<td><code>frontend/src/styles/index.css</code></td>
+</tr>
+<tr>
+<th>F-261</th>
+<td>Mobile drawer scroll lock</td>
+<td>Opening the off-canvas drawer locks background scrolling and restores the previous overflow on close</td>
+<td><code>frontend/src/components/AppShell.tsx</code></td>
+</tr>
+<tr>
+<th>F-262</th>
+<td>Drawer accessibility</td>
+<td>The mobile drawer is exposed as a modal dialog with an accessible name and respects the bottom safe-area inset for notched devices</td>
+<td><code>frontend/src/components/AppShell.tsx</code></td>
+</tr>
+<tr>
+<th>F-263</th>
+<td>Static project website</td>
+<td>A dependency-free landing page (<code>website/index.html</code>) with light/dark/system themes applied before first paint, inline SVG icons and no build step</td>
+<td><code>website/index.html</code></td>
+</tr>
+<tr>
+<th>F-264</th>
+<td>API smoke coverage for v1.3</td>
+<td>The smoke suite grew from 78 to 86 checks, now covering the catalogue, builder schema, aggregate query, rejection of unknown entities, the viewer/analyst builder boundary, account export and personal activity</td>
+<td><code>scripts/api_smoke.py</code></td>
+</tr>
+<tr>
+<th>F-265</th>
+<td>Analyst coverage in smoke tests</td>
+<td>The smoke runner logs in as the analyst as well as the viewer, so role boundaries are exercised for both non-admin roles</td>
+<td><code>scripts/api_smoke.py</code></td>
+</tr>
+<tr>
+<th>F-266</th>
+<td>Correct API container healthcheck</td>
+<td>The compose healthcheck probed <code>/health</code> instead of <code>/api/v1/health</code>, so the service was permanently reported unhealthy; corrected</td>
+<td><code>docker-compose.yml</code></td>
+</tr>
+<tr>
+<th>F-267</th>
+<td>Secret hygiene in templates</td>
+<td><code>.env.example</code> ships a placeholder service key and documents how to mint a real one; no live credential is committed</td>
+<td><code>.env.example</code></td>
+</tr>
+<tr>
+<th>F-268</th>
+<td>DAG aggregate + reconciliation work</td>
+<td><code>build_aggregates</code> and <code>reconcile_catalog</code> perform their real in-process work again (rollup refresh and SKU matching) instead of only reporting state</td>
+<td><code>dags/product_intelligence_pipeline.py</code></td>
+</tr>
+<tr>
+<th>F-269</th>
+<td>DAG compliance guard restored</td>
+<td>The source-compliance guard once again honours per-source <code>enabled</code> and <code>terms_allowed</code> flags, and the REST fallback validates the registry response it receives</td>
+<td><code>dags/product_intelligence_pipeline.py</code> <code>source_enabled</code></td>
+</tr>
+<tr>
+<th>F-270</th>
+<td>DAG report artifacts</td>
+<td><code>publish_report</code> writes a timestamped JSON KPI artifact to <code>var/reports/</code>, falling back to the repository root when the Airflow home is read-only</td>
+<td><code>dags/product_intelligence_pipeline.py</code> <code>_write_report_artifact</code></td>
+</tr>
+<tr>
+<th>F-271</th>
+<td>v1.3 regression tests</td>
+<td>19 new tests covering the catalogue, the personal activity feed, account export and deletion, and every builder code path including validation failures</td>
+<td><code>tests/test_new_features.py</code></td>
+</tr>
+</tbody></table></div>
+<p>| F-272 | Dependency-free documentation website | <code>scripts/build_site.py</code> turns the documentation set into a browsable site with client-side search, system-aware dark mode and 50+ rendered diagrams, using only the standard library — MkDocs would add a large dependency tree for the same result | <code>scripts/build_site.py</code> |</p>
+<p>| F-273 | GitHub-fidelity heading anchors | <code>slugify</code> reproduces <code>github-slugger</code> exactly, including the double hyphen an em-dash leaves behind and the one-hyphen-per-space rule, so hand-written in-document anchors resolve in the built site just as they do on GitHub | <code>scripts/build_site.py</code> <code>slugify</code> |</p>
+<p>| F-274 | Anchor regression suite | 24 captured slug cases plus a sweep verifying every hand-written <code>#anchor</code> in the README and all documents resolves to a real heading | <code>scripts/check_slugify.py</code> |</p>
+<p>| F-275 | Mermaid syntax gate | Every diagram is extracted and parsed before merge, turning a broken diagram from a silent rendering error into a build failure; it caught two real defects — a semicolon in a sequence message and a self-parenting edge | <code>scripts/diagrams.py</code> |</p>
+<p>| F-276 | Internal link and anchor checker | Validates that every generated page link, in-page anchor, image reference and static asset resolves, and that no control characters survive Markdown conversion | <code>scripts/check_links.py</code> |</p>
+<p>| F-277 | Security policy and threat model | Boundary-by-boundary control table covering web-to-ingestion, user-to-API and API-to-warehouse threats, with disclosure targets and the commands that verify each claim | <code>SECURITY.md</code> |</p>
+<p>| F-278 | Contributor Covenant | Community health standards with a four-tier enforcement ladder | <code>.github/CODE_OF_CONDUCT.md</code> |</p>
+<p>| F-279 | Structured issue and pull request forms | Bug, feature and documentation forms plus a PR template carrying repository-specific reminders — robots enforcement, parameterised SQL, cross-dialect parity — and a verification section asking for pasted output | <code>.github/ISSUE_TEMPLATE/</code>, <code>.github/pull_request_template.md</code> |</p>
+<p>| F-280 | Automated dependency updates | Weekly pull requests for pip, npm and GitHub Actions, grouped by ecosystem | <code>.github/dependabot.yml</code> |</p>
+<p>| F-281 | Documentation CI job | A dedicated job validates all diagrams, extracts them, fails on a stale extraction, builds the site and checks its links — the documentation can no longer rot unnoticed | <code>.github/workflows/ci.yml</code> <code>docs</code> |</p>
+<p>| F-282 | Review ownership | Explicit code ownership so every change has a named reviewer | <code>.github/CODEOWNERS</code> |</p>
+<p>| F-283 | Measurement provenance | The README and docs index state which figures are structural and re-verifiable and which are measurements that vary with data volume and hardware, so a number is never presented as a constant when it is not one | <code>README.md</code>, <code>docs/README.md</code> |</p>
+<p>| F-284 | Architecture rationale with rejected alternatives | Every significant decision records what was chosen, what was rejected, why, and the measured consequence — including the 29× reconciliation optimisation that preserved identical output | <code>docs/21_architecture_deep_dive.md</code> |</p>
+<p>| F-285 | Complete data dictionary | All 23 tables with every column, type, nullability and meaning, plus controlled vocabularies, magnitude bands, the view catalogue and a dialect-portability table | <code>docs/22_data_dictionary.md</code> |</p>
+<p>| F-286 | Glossary and FAQ | Defined terms and questions across setup, the pipeline, data quality, security and development — including how to add a source in six steps | <code>docs/23_glossary_and_faq.md</code> |</p>
+<p><strong>Revised total: 286 features across 16 areas</strong> (F-001 to F-286, contiguous, with no duplicate or missing identifiers). Each section heading states its own count, matching the rows beneath it.</p>
+    </article>
+    <div class="doc-foot">
+      <span><a href="18_presentation_outline.html">← Presentation Outline</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="20_literature_feedback_and_improvements.html">Feedback and Improvements →</a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Use cases, architecture, rationale">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="System Analysis and Design — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Use cases, architecture, rationale">
+<title>System Analysis and Design — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" class="active" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="23-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, all 113 operations, examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, 100-case plan, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="234 features with file references">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>System Analysis and Design</h1>
+      <p>Use cases, architecture, rationale</p>
+    </div>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#table-of-contents">Table of contents</a></li><li class="lvl-2"><a href="#1-problem-statement-and-objectives">1. Problem statement and objectives</a></li><li class="lvl-3"><a href="#11-problem-statement">1.1 Problem statement</a></li><li class="lvl-3"><a href="#12-engineering-objectives">1.2 Engineering objectives</a></li><li class="lvl-3"><a href="#13-constraints">1.3 Constraints</a></li><li class="lvl-2"><a href="#2-actors-and-use-case-diagram">2. Actors and use-case diagram</a></li><li class="lvl-3"><a href="#21-actor-responsibilities">2.1 Actor responsibilities</a></li><li class="lvl-2"><a href="#3-use-case-descriptions">3. Use-case descriptions</a></li><li class="lvl-3"><a href="#uc-02--collect-products-from-permitted-sources-primary">UC-02 — Collect products from permitted sources (primary)</a></li><li class="lvl-3"><a href="#uc-04--resolve-duplicates-to-a-canonical-product">UC-04 — Resolve duplicates to a canonical product</a></li><li class="lvl-3"><a href="#uc-07--evaluate-data-quality">UC-07 — Evaluate data quality</a></li><li class="lvl-3"><a href="#uc-08--reconcile-with-the-internal-catalog">UC-08 — Reconcile with the internal catalog</a></li><li class="lvl-3"><a href="#uc-10--authenticate-and-authorise">UC-10 — Authenticate and authorise</a></li><li class="lvl-3"><a href="#uc-14--run-a-read-only-query">UC-14 — Run a read-only query</a></li><li class="lvl-2"><a href="#4-requirements-summary">4. Requirements summary</a></li><li class="lvl-3"><a href="#41-functional-requirements-by-area">4.1 Functional requirements by area</a></li><li class="lvl-3"><a href="#42-non-functional-requirements-condensed">4.2 Non-functional requirements (condensed)</a></li><li class="lvl-2"><a href="#5-software-architecture">5. Software architecture</a></li><li class="lvl-3"><a href="#51-component-diagram">5.1 Component diagram</a></li><li class="lvl-3"><a href="#52-layer-responsibilities">5.2 Layer responsibilities</a></li><li class="lvl-3"><a href="#53-data-flow-through-the-architecture">5.3 Data flow through the architecture</a></li><li class="lvl-3"><a href="#54-deployment-topology">5.4 Deployment topology</a></li><li class="lvl-2"><a href="#6-architecture-style-and-rationale">6. Architecture style and rationale</a></li><li class="lvl-3"><a href="#61-style-selected">6.1 Style selected</a></li><li class="lvl-3"><a href="#62-why-not-microservices">6.2 Why not microservices</a></li><li class="lvl-3"><a href="#63-why-a-single-pipeline-object-rather-than-framework-coupled-tasks">6.3 Why a single Pipeline object rather than framework-coupled tasks</a></li><li class="lvl-3"><a href="#64-design-principles-applied">6.4 Design principles applied</a></li><li class="lvl-2"><a href="#7-deployment-and-runtime-view">7. Deployment and runtime view</a></li><li class="lvl-2"><a href="#8-cross-cutting-concerns">8. Cross-cutting concerns</a></li></ol></details>
+    <article class="doc-body">
+<h2 id="purpose">Purpose</h2>
+<p>This document is the system-level analysis and design of the Web-to-Warehouse Product Intelligence Pipeline. It restates the problem and objectives in engineering terms, presents the use-case diagram and detailed use-case descriptions, summarises the functional and non-functional requirements, documents the software architecture as a Mermaid component diagram, and justifies the chosen architecture style (layered batch ETL with a read-only serving API and an MVC-like front end).</p>
+<hr>
+<h2 id="table-of-contents">Table of contents</h2>
+<ul>
+<li class="depth-0"><a href="#1-problem-statement-and-objectives">Problem statement and objectives</a></li>
+<li class="depth-0"><a href="#2-actors-and-use-case-diagram">Actors and use-case diagram</a></li>
+<li class="depth-0"><a href="#3-use-case-descriptions">Use-case descriptions</a></li>
+<li class="depth-0"><a href="#4-requirements-summary">Requirements summary</a></li>
+<li class="depth-0"><a href="#5-software-architecture">Software architecture</a></li>
+<li class="depth-0"><a href="#6-architecture-style-and-rationale">Architecture style and rationale</a></li>
+<li class="depth-0"><a href="#7-deployment-and-runtime-view">Deployment and runtime view</a></li>
+<li class="depth-0"><a href="#8-cross-cutting-concerns">Cross-cutting concerns</a></li>
+</ul>
+<hr>
+<h2 id="1-problem-statement-and-objectives">1. Problem statement and objectives</h2>
+<h3 id="11-problem-statement">1.1 Problem statement</h3>
+<blockquote><p>A retailer must observe price and assortment movement across permitted public web sources and combine that observation with its internal product catalog. Manual collection is slow, produces inconsistent records and destroys history, so the business cannot answer three questions: <em>what does a product cost now and how did it get there?</em>, <em>what appeared or disappeared in the market?</em>, and <em>are our prices competitive?</em> The system must collect only from sources that permit automated access, standardise what it collects, resolve duplicates, preserve full price history, measure its own data quality, and expose the result through an API that non-technical users can trust.</p></blockquote>
+<h3 id="12-engineering-objectives">1.2 Engineering objectives</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>Objective</th>
+<th>Verification</th>
+</tr></thead><tbody>
+<tr>
+<th>O1</th>
+<td>Ingest from ≥ 3 permitted sources with robots enforcement in the transport layer</td>
+<td><code>pip-cli sources list</code>; <code>ingestion_http_log</code></td>
+</tr>
+<tr>
+<th>O2</th>
+<td>Preserve every observed price as an immutable snapshot</td>
+<td><code>fact_price_snapshot</code> (8,182 rows / 150 days)</td>
+</tr>
+<tr>
+<th>O3</th>
+<td>Detect four change classes with SQL</td>
+<td><code>chg_price_change</code>, <code>chg_product_event</code></td>
+</tr>
+<tr>
+<th>O4</th>
+<td>Resolve duplicates without a third-party matching library</td>
+<td><code>app/ingestion/dedupe.py</code>, 14/14 pairs</td>
+</tr>
+<tr>
+<th>O5</th>
+<td>Reconcile with the internal catalog and quantify the price gap</td>
+<td><code>fact_catalog_snapshot</code> (39/57 matched)</td>
+</tr>
+<tr>
+<th>O6</th>
+<td>Measure data quality on six dimensions and fail only on critical rules</td>
+<td>12 rules, score 98.26</td>
+</tr>
+<tr>
+<th>O7</th>
+<td>Run identically on PostgreSQL and MySQL</td>
+<td><code>make verify-dialects</code></td>
+</tr>
+<tr>
+<th>O8</th>
+<td>Serve the warehouse read-only over a secure, role-gated API</td>
+<td>113 operations, 78/78 smoke checks</td>
+</tr>
+<tr>
+<th>O9</th>
+<td>Be orchestrated on a schedule with recoverable tasks</td>
+<td>Airflow DAG, 13 tasks, 2 retries each</td>
+</tr>
+<tr>
+<th>O10</th>
+<td>Be operable without the UI</td>
+<td>CLI with 12 commands, Makefile with 30+ targets</td>
+</tr>
+</tbody></table></div>
+<h3 id="13-constraints">1.3 Constraints</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Constraint</th>
+<th>Consequence for the design</th>
+</tr></thead><tbody>
+<tr>
+<td>Web sources are untrusted and unstable</td>
+<td>Staging zone + per-source isolation + flags instead of hard failures</td>
+</tr>
+<tr>
+<td>Two SQL engines must be supported</td>
+<td>No dialect-specific SQL: read-then-write upserts, <code>UTCDateTime</code>, <code>JSONType</code>, per-statement view application</td>
+</tr>
+<tr>
+<td>Compliance must be provable</td>
+<td>Every request audited; terms allow-list; robots gate inside the HTTP client</td>
+</tr>
+<tr>
+<td>Analysts cannot wait for IT</td>
+<td>Self-service read-only SQL over a stable semantic layer of views</td>
+</tr>
+<tr>
+<td>Extraction and preparation must be testable in isolation</td>
+<td>Pure functions in <code>app/ingestion/cleaning.py</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="2-actors-and-use-case-diagram">2. Actors and use-case diagram</h2>
+<pre class="mermaid">flowchart TB
+    subgraph EXT[&quot;External actors&quot;]
+        A1[&quot;Pricing analyst&quot;]
+        A2[&quot;Category manager&quot;]
+        A3[&quot;Data platform lead&quot;]
+        A4[&quot;System administrator&quot;]
+        A5[&quot;Compliance officer&quot;]
+        A6[&quot;Upstream source&lt;br/&gt;API or website&quot;]
+        A7[&quot;Scheduler&lt;br/&gt;(Airflow / cron)&quot;]
+        A8[&quot;Academic supervisor&quot;]
+    end
+
+    subgraph SYS[&quot;Web-to-Warehouse Product Intelligence Pipeline&quot;]
+        direction TB
+        UC1([&quot;UC-01 Register source&quot;])
+        UC2([&quot;UC-02 Collect products&quot;])
+        UC3([&quot;UC-03 Clean and normalise&quot;])
+        UC4([&quot;UC-04 Resolve duplicates&quot;])
+        UC5([&quot;UC-05 Load price snapshot&quot;])
+        UC6([&quot;UC-06 Detect removals&quot;])
+        UC7([&quot;UC-07 Evaluate data quality&quot;])
+        UC8([&quot;UC-08 Reconcile with catalog&quot;])
+        UC9([&quot;UC-09 Refresh aggregate&quot;])
+        UC10([&quot;UC-10 Authenticate&quot;])
+        UC11([&quot;UC-11 Browse catalogue&quot;])
+        UC12([&quot;UC-12 Inspect product&quot;])
+        UC13([&quot;UC-13 Review changes&quot;])
+        UC14([&quot;UC-14 Run read-only query&quot;])
+        UC15([&quot;UC-15 Manage accounts&quot;])
+        UC16([&quot;UC-16 Define alerts&quot;])
+        UC17([&quot;UC-17 Compliance evidence&quot;])
+        UC18([&quot;UC-18 Trigger run&quot;])
+        UC19([&quot;UC-19 Verify dialects&quot;])
+    end
+
+    A1 --&gt; UC11
+    A1 --&gt; UC12
+    A1 --&gt; UC13
+    A1 --&gt; UC14
+    A2 --&gt; UC13
+    A2 --&gt; UC8
+    A3 --&gt; UC1
+    A3 --&gt; UC2
+    A3 --&gt; UC7
+    A3 --&gt; UC18
+    A3 --&gt; UC19
+    A4 --&gt; UC10
+    A4 --&gt; UC15
+    A5 --&gt; UC17
+    A6 --&gt; UC2
+    A7 --&gt; UC2
+    A8 --&gt; UC19
+
+    UC2 --&gt; UC3
+    UC3 --&gt; UC4
+    UC4 --&gt; UC5
+    UC5 --&gt; UC6
+    UC5 --&gt; UC9
+    UC5 --&gt; UC7
+    UC9 --&gt; UC8</pre>
+<h3 id="21-actor-responsibilities">2.1 Actor responsibilities</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Actor</th>
+<th>Goals</th>
+<th>Frequency</th>
+<th>Interfaces</th>
+</tr></thead><tbody>
+<tr>
+<th>Pricing analyst</th>
+<td>Price movement, history, catalog position</td>
+<td>Daily</td>
+<td>Dashboard, API, CSV export</td>
+</tr>
+<tr>
+<th>Category manager</th>
+<td>New / removed / recategorised products</td>
+<td>Daily</td>
+<td>Dashboard, change feeds</td>
+</tr>
+<tr>
+<th>Data platform lead</th>
+<td>Runs, quality, source health, performance</td>
+<td>Continuous</td>
+<td>Dashboard, CLI, API</td>
+</tr>
+<tr>
+<th>System administrator</th>
+<td>Accounts, roles, keys, settings</td>
+<td>Weekly</td>
+<td>Dashboard admin area</td>
+</tr>
+<tr>
+<th>Compliance officer</th>
+<td>Evidence of respectful collection</td>
+<td>Monthly</td>
+<td>Compliance screen, API</td>
+</tr>
+<tr>
+<th>Upstream source</th>
+<td>Serve data without being overloaded</td>
+<td>Continuous</td>
+<td>HTTP (passive)</td>
+</tr>
+<tr>
+<th>Scheduler</th>
+<td>Trigger the pipeline unattended</td>
+<td>Daily</td>
+<td>Airflow DAG / cron</td>
+</tr>
+<tr>
+<th>Academic supervisor</th>
+<td>Verify the design and the evidence</td>
+<td>Per milestone</td>
+<td>Documentation, CLI</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="3-use-case-descriptions">3. Use-case descriptions</h2>
+<h3 id="uc-02--collect-products-from-permitted-sources-primary">UC-02 — Collect products from permitted sources (primary)</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Field</th>
+<th>Value</th>
+</tr></thead><tbody>
+<tr>
+<th><strong>Use case ID</strong></th>
+<td>UC-02</td>
+</tr>
+<tr>
+<th><strong>Name</strong></th>
+<td>Collect products from permitted sources</td>
+</tr>
+<tr>
+<th><strong>Primary actor</strong></th>
+<td>Scheduler (system); secondary actors: data platform lead</td>
+</tr>
+<tr>
+<th><strong>Goal</strong></th>
+<td>Load a fresh, standardised, de-duplicated snapshot of the market into the warehouse</td>
+</tr>
+<tr>
+<th><strong>Trigger</strong></th>
+<td>Schedule (default <code>0 3 <em> </em> *</code>), <code>pip-cli run-pipeline</code>, <code>POST /api/v1/pipeline/run</code></td>
+</tr>
+<tr>
+<th><strong>Preconditions</strong></th>
+<td>Target database reachable; at least one source enabled and allowed by its terms</td>
+</tr>
+<tr>
+<th><strong>Postconditions</strong></th>
+<td><code>etl_run</code> row with status, counters, DQ score; snapshots, changes and events written; <code>sync_state</code> and <code>dim_source</code> statistics updated; HTTP audit rows written</td>
+</tr>
+<tr>
+<td><strong>Main success scenario</strong></td>
+<td>1. The runner creates an <code>etl_run</code> row (status <code>running</code>, trigger recorded). 2. For each enabled source the dimension row is ensured, records are extracted under the robots gate and rate limit, and raw payloads are staged. 3. Each record is cleaned, normalised, priced and validated; invalid records are rejected with a reason. 4. Duplicates are resolved to a canonical product. 5. One snapshot per product is appended and price changes are recorded. 6. Products unseen for the staleness window are marked removed. 7. Category-day aggregates are refreshed. 8. The catalog is reconciled and price gaps stored. 9. Twelve DQ rules are evaluated and persisted. 10. The run is finalised: counters, duration, status.</td>
+</tr>
+<tr>
+<th><strong>Alternative flows</strong></th>
+<td>A source fails → warning recorded, run marked <code>partial</code>, remaining sources continue. Catalog is empty → reconciliation skipped. DQ critical rule fails → run marked <code>failed</code>.</td>
+</tr>
+<tr>
+<td><strong>Post-conditions on failure</strong></td>
+<td><code>etl_run.error_message</code> and <code>warnings</code> carry the reason; already committed work stays committed (stage-level granularity is per source).</td>
+</tr>
+</tbody></table></div>
+<h3 id="uc-04--resolve-duplicates-to-a-canonical-product">UC-04 — Resolve duplicates to a canonical product</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Field</th>
+<th>Value</th>
+</tr></thead><tbody>
+<tr>
+<th><strong>Use case ID</strong></th>
+<td>UC-04</td>
+</tr>
+<tr>
+<th><strong>Primary actor</strong></th>
+<td>Pipeline</td>
+</tr>
+<tr>
+<th><strong>Goal</strong></th>
+<td>Ensure one canonical row per real-world product</td>
+</tr>
+<tr>
+<th><strong>Precondition</strong></th>
+<td>A normalised record with a fingerprint and a blocking key</td>
+</tr>
+<tr>
+<td><strong>Main success scenario</strong></td>
+<td>1. Compute `fingerprint = sha1(brand_key</td>
+<td>name_key)[:32]<code>. 2. If the fingerprint is known → strategy </code>exact<code>, score 1.0. 3. Else look for a row with the same </code>normalized_name<code> → strategy </code>blocked_exact<code>. 4. Else load the blocking candidates (prefix </code>blocking_key<code>) and score each with </code>combined_similarity()<code>. 5. If the best score ≥ 0.90 → strategy </code>fuzzy<code> with the score and the per-measure breakdown. 6. Otherwise → strategy </code>new<code>; the loader inserts a new </code>dim_product`.</td>
+</tr>
+<tr>
+<th><strong>Alternative flow</strong></th>
+<td>Two upstream rows in the same run resolve to the same product → the second snapshot is skipped and <code>duplicates_merged</code> is incremented (protects the fact grain).</td>
+</tr>
+<tr>
+<th><strong>Postcondition</strong></th>
+<td><code>dim_product.match_strategy</code>, <code>match_score</code> and <code>observation_count</code> reflect the decision; the merge is auditable.</td>
+</tr>
+</tbody></table></div>
+<h3 id="uc-07--evaluate-data-quality">UC-07 — Evaluate data quality</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Field</th>
+<th>Value</th>
+</tr></thead><tbody>
+<tr>
+<th><strong>Use case ID</strong></th>
+<td>UC-07</td>
+</tr>
+<tr>
+<th><strong>Primary actor</strong></th>
+<td>Pipeline; secondary: data platform lead, analyst</td>
+</tr>
+<tr>
+<th><strong>Goal</strong></th>
+<td>Produce an auditable quality verdict for the run</td>
+</tr>
+<tr>
+<th><strong>Trigger</strong></th>
+<td>End of every run, <code>POST /api/v1/pipeline/quality</code> equivalent (<code>pip-cli quality</code>), DAG task <code>data_quality_gate</code></td>
+</tr>
+<tr>
+<td><strong>Main success scenario</strong></td>
+<td>1. For each of the 12 rules, open a SAVEPOINT. 2. Evaluate the rule SQL. 3. Compute the status from the threshold (<code>_status</code>, with a ±5 % warn band). 4. Persist the outcome in <code>dq_rule_result</code>. 5. Compute the severity-weighted score. 6. If a <strong>critical</strong> rule failed, mark the run <code>failed</code>.</td>
+</tr>
+<tr>
+<th><strong>Alternative flow</strong></th>
+<td>A rule raises → the SAVEPOINT is rolled back and the outcome is recorded as <code>fail</code> with the exception message; the remaining rules still run.</td>
+</tr>
+<tr>
+<th><strong>Postcondition</strong></th>
+<td><code>dq_rule_result</code> rows, <code>etl_run.dq_score</code>, <code>dq_passed</code>, <code>dq_failed</code>; the Quality screen shows the trend.</td>
+</tr>
+</tbody></table></div>
+<h3 id="uc-08--reconcile-with-the-internal-catalog">UC-08 — Reconcile with the internal catalog</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Field</th>
+<th>Value</th>
+</tr></thead><tbody>
+<tr>
+<th><strong>Use case ID</strong></th>
+<td>UC-08</td>
+</tr>
+<tr>
+<th><strong>Primary actor</strong></th>
+<td>Pipeline; secondary: merchandiser</td>
+</tr>
+<tr>
+<th><strong>Goal</strong></th>
+<td>Match each internal SKU to a scraped product and quantify the price gap</td>
+</tr>
+<tr>
+<td><strong>Main success scenario</strong></td>
+<td>1. Load active catalog rows (≤ 5,000). 2. Load active, recently seen products as candidates and their latest price. 3. Build blocking indexes (4-char prefix and token index). 4. For each SKU: try identifier match → normalised-name match → fuzzy match inside a narrowed pool. 5. Compute <code>price_gap_abs</code> and <code>price_gap_pct</code>; flag <code>is_price_mismatch</code> when the gap ≥ 1 %. 6. Persist the row in <code>fact_catalog_snapshot</code>.</td>
+</tr>
+<tr>
+<th><strong>Alternative flow</strong></th>
+<td>No candidate ≥ 0.86 → status <code>unmatched</code>, product id null (an internal-only SKU).</td>
+</tr>
+<tr>
+<th><strong>Postcondition</strong></th>
+<td>Reconciliation summary: total, matched, unmatched, match rate, price mismatches, average similarity, strategy mix.</td>
+</tr>
+</tbody></table></div>
+<h3 id="uc-10--authenticate-and-authorise">UC-10 — Authenticate and authorise</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Field</th>
+<th>Value</th>
+</tr></thead><tbody>
+<tr>
+<th><strong>Use case ID</strong></th>
+<td>UC-10</td>
+</tr>
+<tr>
+<th><strong>Primary actor</strong></th>
+<td>Any authenticated user</td>
+</tr>
+<tr>
+<td><strong>Main success scenario</strong></td>
+<td>1. Post email + password. 2. Look up the user; refuse if unknown or locked. 3. Verify the Argon2id hash (rehash if the parameters changed). 4. Reset the failure counter, update <code>login_count</code>, <code>last_login_at</code>, <code>last_login_ip</code>. 5. Issue an access token (12 h) and a refresh token (30 d). 6. Write an audit row and a welcome notification.</td>
+</tr>
+<tr>
+<th><strong>Alternative flows</strong></th>
+<td>Wrong password → increment <code>failed_login_count</code>; at 5, lock for 15 minutes. Inactive user → <code>401</code>. Refresh → validate the token type is <code>refresh</code>, then re-issue.</td>
+</tr>
+<tr>
+<th><strong>Postcondition</strong></th>
+<td>Bearer token usable on every protected endpoint; permissions derived from the role.</td>
+</tr>
+</tbody></table></div>
+<h3 id="uc-14--run-a-read-only-query">UC-14 — Run a read-only query</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Field</th>
+<th>Value</th>
+</tr></thead><tbody>
+<tr>
+<th><strong>Use case ID</strong></th>
+<td>UC-14</td>
+</tr>
+<tr>
+<th><strong>Primary actor</strong></th>
+<td>Analyst or admin (requires the <code>query</code> right)</td>
+</tr>
+<tr>
+<td><strong>Main success scenario</strong></td>
+<td>1. Validate the statement: must start with <code>SELECT</code>, <code>WITH</code> or <code>EXPLAIN</code> and must not contain a write keyword, a comment or a second statement. 2. Execute with a row cap (<code>limit</code>, default 200, max 5,000). 3. Serialise values (Decimal → float, date → ISO 8601, bytes → size placeholder). 4. Return columns, rows, <code>row_count</code>, <code>duration_ms</code> and <code>truncated</code>.</td>
+</tr>
+<tr>
+<th><strong>Alternative flows</strong></th>
+<td>Invalid SQL → <code>422</code>; viewer role → <code>403</code>.</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="4-requirements-summary">4. Requirements summary</h2>
+<h3 id="41-functional-requirements-by-area">4.1 Functional requirements by area</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Area</th>
+<th>Requirement summary</th>
+<th>Count</th>
+<th>Reference</th>
+</tr></thead><tbody>
+<tr>
+<th>Ingestion</th>
+<td>Source contract, 5 sources, bounded extraction, compliant transport</td>
+<td>17</td>
+<td><code>docs/07</code> FR-001 … FR-019</td>
+</tr>
+<tr>
+<th>Preparation</th>
+<td>Name/category cleaning, price + currency normalisation, rating and availability parsing</td>
+<td>6</td>
+<td>FR-006 … FR-008, FR-056</td>
+</tr>
+<tr>
+<th>Resolution</th>
+<td>Fingerprint match, blocking, blended fuzzy scoring, merge bookkeeping</td>
+<td>2</td>
+<td>FR-009, FR-010</td>
+</tr>
+<tr>
+<th>Warehouse</th>
+<td>23 tables, 20 views, append-only facts, conformed dimensions</td>
+<td>8</td>
+<td>FR-011, FR-018</td>
+</tr>
+<tr>
+<th>Change detection</th>
+<td>New, recurring, removed, category changed, price change with bands</td>
+<td>5</td>
+<td>FR-027 … FR-031</td>
+</tr>
+<tr>
+<th>Reconciliation</th>
+<td>3-stage match cascade, price gap, market position</td>
+<td>4</td>
+<td>FR-032 … FR-035</td>
+</tr>
+<tr>
+<th>Quality</th>
+<td>12 rules, 6 dimensions, weighted score, blocking semantics</td>
+<td>4</td>
+<td>FR-036 … FR-039</td>
+</tr>
+<tr>
+<th>Analytics</th>
+<td>KPI cards, trends, leaderboards, reports, CSV export</td>
+<td>4</td>
+<td>FR-040, FR-048, FR-026</td>
+</tr>
+<tr>
+<th>Serving</th>
+<td>113 REST operations, paging, OpenAPI</td>
+<td>3</td>
+<td>FR-020 … FR-025</td>
+</tr>
+<tr>
+<th>Security</th>
+<td>Argon2id, JWT, 3 roles, API keys, audit</td>
+<td>7</td>
+<td>FR-041 … FR-044, FR-049</td>
+</tr>
+<tr>
+<th>Operations</th>
+<td>CLI, Makefile, Airflow, demo seed, cross-dialect verification</td>
+<td>6</td>
+<td>FR-018, FR-019, FR-054 … FR-057</td>
+</tr>
+</tbody></table></div>
+<h3 id="42-non-functional-requirements-condensed">4.2 Non-functional requirements (condensed)</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Category</th>
+<th>Requirement</th>
+<th>Target</th>
+<th>Measured</th>
+</tr></thead><tbody>
+<tr>
+<th>Performance</th>
+<td>Pipeline run duration</td>
+<td>&lt; 600 s</td>
+<td>3.5 s</td>
+</tr>
+<tr>
+<th>Performance</th>
+<td>API read p95</td>
+<td>&lt; 500 ms</td>
+<td>≤ 38.2 ms</td>
+</tr>
+<tr>
+<th>Performance</th>
+<td>Reconciliation time</td>
+<td>&lt; 3 s</td>
+<td>182 ms</td>
+</tr>
+<tr>
+<th>Reliability</th>
+<td>Source isolation, rule isolation, idempotent load</td>
+<td>0 aborts</td>
+<td>Verified</td>
+</tr>
+<tr>
+<th>Portability</th>
+<td>PostgreSQL + MySQL parity</td>
+<td>0 drift</td>
+<td>Verified</td>
+</tr>
+<tr>
+<th>Security</th>
+<td>Argon2id, JWT HS256, least privilege, audit</td>
+<td>100 %</td>
+<td>Verified</td>
+</tr>
+<tr>
+<th>Compliance</th>
+<td>Robots, rate limits, no personal data</td>
+<td>100 %</td>
+<td>Verified</td>
+</tr>
+<tr>
+<th>Usability</th>
+<td>Paging, saved views, keyboard access, WCAG 2.1 AA, no gratuitous motion</td>
+<td>100 %</td>
+<td>Design specified</td>
+</tr>
+<tr>
+<th>Maintainability</th>
+<td>Externalised configuration, 6-step source extension, pure preparation functions</td>
+<td>100 %</td>
+<td>Verified</td>
+</tr>
+</tbody></table></div>
+<p>The full list is in <code>docs/07_requirements_gathering.md</code> §6 (NFR-01 … NFR-26).</p>
+<hr>
+<h2 id="5-software-architecture">5. Software architecture</h2>
+<h3 id="51-component-diagram">5.1 Component diagram</h3>
+<pre class="mermaid">flowchart LR
+    subgraph SRC[&quot;Sources - external&quot;]
+        S1[&quot;local_demo&lt;br/&gt;synthetic&quot;]
+        S2[&quot;dummyjson_products&lt;br/&gt;API&quot;]
+        S3[&quot;fakestore_products&lt;br/&gt;API&quot;]
+        S4[&quot;openlibrary_books&lt;br/&gt;API&quot;]
+        S5[&quot;books_to_scrape&lt;br/&gt;HTML scraper&quot;]
+    end
+
+    subgraph ING[&quot;Ingestion layer - app/ingestion&quot;]
+        RG[&quot;RobotsGate&lt;br/&gt;robots.py RFC 9309&quot;]
+        RL[&quot;RateLimiter&lt;br/&gt;ratelimit.py token bucket&quot;]
+        CA[&quot;Cache&lt;br/&gt;http_client.py disk cache&quot;]
+        HC[&quot;CompliantHttpClient&lt;br/&gt;robots + rate limit + retry + audit&quot;]
+        EX[&quot;Extractor&lt;br/&gt;ProductSource.fetch&quot;]
+        CL[&quot;Cleaner&lt;br/&gt;cleaning.py&quot;]
+        DD[&quot;DedupeEngine&lt;br/&gt;dedupe.py&quot;]
+    end
+
+    subgraph STG[&quot;Staging - staging zone&quot;]
+        ST[&quot;stg_raw_observation&quot;]
+    end
+
+    subgraph WHS[&quot;Warehouse - app/models + db/views.sql&quot;]
+        DIM[&quot;Conformed dimensions&lt;br/&gt;dim_product, dim_category,&lt;br/&gt;dim_date, dim_source, dim_currency&quot;]
+        FAC[&quot;Facts&lt;br/&gt;fact_price_snapshot, fact_catalog_snapshot,&lt;br/&gt;agg_category_daily&quot;]
+        CHG[&quot;Change feeds&lt;br/&gt;chg_price_change, chg_product_event&quot;]
+        OPS[&quot;Operations&lt;br/&gt;etl_run, dq_rule_result,&lt;br/&gt;ingestion_http_log, sync_state&quot;]
+        VIEWS[&quot;20 analytical views vw_*&quot;]
+    end
+
+    subgraph ANA[&quot;Analytics - app/analytics&quot;]
+        AS[&quot;Analytics service&lt;br/&gt;21 query functions&quot;]
+        DQ[&quot;Data-quality framework&lt;br/&gt;dq.py 12 rules&quot;]
+        RC[&quot;CatalogReconciler&lt;br/&gt;catalog_reconcile.py&quot;]
+    end
+
+    subgraph API[&quot;Serving - app/api&quot;]
+        FAPI[&quot;FastAPI routers&lt;br/&gt;16 routers, 113 operations&quot;]
+        SEC[&quot;Security&lt;br/&gt;JWT HS256, Argon2id, RBAC&quot;]
+        DSH[&quot;React dashboard&lt;br/&gt;Vite + TypeScript + Tailwind&quot;]
+    end
+
+    subgraph OPSX[&quot;Operations&quot;]
+        SCH[&quot;Airflow DAG&lt;br/&gt;product_intelligence_pipeline&quot;]
+        CLI[&quot;CLI&lt;br/&gt;app/cli/main.py&quot;]
+        MK[&quot;Makefile&lt;br/&gt;30 plus targets&quot;]
+    end
+
+    S1 --&gt; EX
+    S2 --&gt; EX
+    S3 --&gt; EX
+    S4 --&gt; EX
+    S5 --&gt; EX
+    EX --&gt; HC
+    HC --&gt; RG
+    HC --&gt; RL
+    HC &lt;--&gt; CA
+    HC --&gt; STG
+    STG --&gt; CL
+    CL --&gt; DD
+    DD --&gt; DIM
+    DD --&gt; FAC
+    FAC --&gt; CHG
+    CHG --&gt; OPS
+    FAC --&gt; VIEWS
+    CHG --&gt; VIEWS
+    DIM --&gt; VIEWS
+    AS --&gt; VIEWS
+    DQ --&gt; OPS
+    DQ --&gt; FAC
+    RC --&gt; FAC
+    RC --&gt; DIM
+    AS --&gt; FAPI
+    DQ --&gt; FAPI
+    FAPI --&gt; SEC
+    SEC --&gt; DSH
+    SCH --&gt; ING
+    SCH --&gt; ANA
+    CLI --&gt; ING
+    CLI --&gt; ANA
+    MK --&gt; SCH
+    MK --&gt; CLI</pre>
+<h3 id="52-layer-responsibilities">5.2 Layer responsibilities</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Layer</th>
+<th>Package</th>
+<th>Responsibility</th>
+<th>Must not</th>
+</tr></thead><tbody>
+<tr>
+<th>Source adapters</th>
+<td><code>app/ingestion/sources/</code></td>
+<td>Yield <code>RawProduct</code> records exactly as published; declare compliance metadata</td>
+<td>Clean, deduplicate or write to the database</td>
+</tr>
+<tr>
+<th>Compliance transport</th>
+<td><code>robots.py</code>, <code>ratelimit.py</code>, <code>http_client.py</code></td>
+<td>Robots decision, pacing, retries, caching, audit</td>
+<td>Know about products</td>
+</tr>
+<tr>
+<th>Preparation</th>
+<td><code>cleaning.py</code></td>
+<td>Unicode folding, category synonymy, price/currency/rating/availability parsing, fingerprints</td>
+<td>Perform I/O or touch the database</td>
+</tr>
+<tr>
+<th>Resolution</th>
+<td><code>dedupe.py</code></td>
+<td>Blocking, similarity, merge bookkeeping</td>
+<td>Write facts</td>
+</tr>
+<tr>
+<th>Warehouse</th>
+<td><code>loader.py</code>, <code>models/</code></td>
+<td>Dimension upserts, append-only facts, change detection, aggregates</td>
+<td>Decide <em>what</em> data is valid</td>
+</tr>
+<tr>
+<th>Quality</th>
+<td><code>dq.py</code></td>
+<td>Execute rules, score, persist outcomes</td>
+<td>Raise exceptions that abort a run</td>
+</tr>
+<tr>
+<th>Reconciliation</th>
+<td><code>catalog_reconcile.py</code></td>
+<td>Match catalog SKUs, compute price gaps</td>
+<td>Persist when <code>persist=False</code></td>
+</tr>
+<tr>
+<th>Serving</th>
+<td><code>app/api/</code>, <code>app/analytics/</code></td>
+<td>Auth, RBAC, validation, serialisation, SQL execution</td>
+<td>Contain business rules or write to the warehouse</td>
+</tr>
+<tr>
+<th>Operations</th>
+<td><code>app/cli/</code>, <code>dags/</code>, <code>Makefile</code></td>
+<td>Scheduling, parameterisation, reporting</td>
+<td>Reimplement pipeline logic</td>
+</tr>
+</tbody></table></div>
+<h3 id="53-data-flow-through-the-architecture">5.3 Data flow through the architecture</h3>
+<pre class="mermaid">sequenceDiagram
+    participant SCH as Scheduler or CLI
+    participant PIPE as Pipeline
+    participant SRC as ProductSource
+    participant HTTP as CompliantHttpClient
+    participant ROB as RobotsCache
+    participant STG as stg_raw_observation
+    participant CLN as cleaning
+    participant DD as DedupeEngine
+    participant LD as WarehouseLoader
+    participant WH as Warehouse tables
+    participant DQ as dq.evaluate_quality
+    participant RC as CatalogReconciler
+
+    SCH-&gt;&gt;PIPE: PipelineConfig(sources, limit, strict)
+    PIPE-&gt;&gt;WH: create etl_run status running
+    loop for each source
+        PIPE-&gt;&gt;SRC: fetch(limit)
+        SRC-&gt;&gt;HTTP: get(url)
+        HTTP-&gt;&gt;ROB: can_fetch(url, user_agent)
+        ROB--&gt;&gt;HTTP: RobotsDecision allowed
+        HTTP-&gt;&gt;SRC: FetchResult text or json
+        SRC--&gt;&gt;PIPE: RawProduct
+        PIPE-&gt;&gt;STG: batch insert raw payload
+        PIPE-&gt;&gt;CLN: transform_product(raw)
+        CLN--&gt;&gt;PIPE: NormalizedProduct with flags
+        PIPE-&gt;&gt;DD: find_match(name, brand, category)
+        DD-&gt;&gt;WH: blocking candidates
+        DD--&gt;&gt;PIPE: MatchResult strategy and score
+        PIPE-&gt;&gt;LD: upsert_product and insert_snapshot
+        LD-&gt;&gt;WH: dim_product, fact_price_snapshot, chg_*
+        PIPE-&gt;&gt;LD: detect_removed and refresh aggregates
+    end
+    PIPE-&gt;&gt;RC: run(persist)
+    RC-&gt;&gt;WH: fact_catalog_snapshot
+    PIPE-&gt;&gt;DQ: evaluate_quality(session, run_id)
+    DQ-&gt;&gt;WH: dq_rule_result
+    PIPE-&gt;&gt;WH: finalise etl_run status and counters
+    PIPE--&gt;&gt;SCH: PipelineResult</pre>
+<h3 id="54-deployment-topology">5.4 Deployment topology</h3>
+<pre class="mermaid">flowchart TB
+    subgraph CLIENTS[&quot;Clients&quot;]
+        BR[&quot;Browser - React dashboard&quot;]
+        CL[&quot;curl / Python / JS clients&quot;]
+    end
+    subgraph SERVE[&quot;Serving tier&quot;]
+        API[&quot;FastAPI on port 8000&quot;]
+        NGINX[&quot;Static assets - nginx in the frontend image&quot;]
+    end
+    subgraph SCHED[&quot;Scheduling tier&quot;]
+        AF[&quot;Airflow 2.10.5 webserver port 8080&quot;]
+        AFS[&quot;Airflow scheduler LocalExecutor&quot;]
+    end
+    subgraph DATA[&quot;Data tier&quot;]
+        PG[(&quot;PostgreSQL 16 port 5432&quot;)]
+        MY[(&quot;MySQL 8.4 port 3306&quot;)]
+    end
+    subgraph EXT[&quot;External&quot;]
+        UP[&quot;Upstream APIs and sandbox site&quot;]
+    end
+    BR --&gt; NGINX
+    NGINX --&gt; API
+    CL --&gt; API
+    API --&gt; PG
+    API -.-&gt; MY
+    AF --&gt; AFS
+    AFS --&gt; PG
+    API --&gt; UP
+    AFS --&gt; UP</pre>
+<hr>
+<h2 id="6-architecture-style-and-rationale">6. Architecture style and rationale</h2>
+<h3 id="61-style-selected">6.1 Style selected</h3>
+<p>A <strong>layered architecture</strong> with three classic concerns composed:</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Concern</th>
+<th>Style applied</th>
+<th>Where</th>
+</tr></thead><tbody>
+<tr>
+<th>Data movement</th>
+<td><strong>Batch ETL</strong> (extract → stage → transform → load → analyse) with a raw landing zone</td>
+<td><code>app/etl/pipeline.py</code>, <code>stg_raw_observation</code></td>
+</tr>
+<tr>
+<th>Serving</th>
+<td><strong>Layered REST API</strong> (routers → dependencies → services → ORM)</td>
+<td><code>app/api/routers</code> → <code>app/api/deps.py</code> → <code>app/analytics/service.py</code> → <code>app/models</code></td>
+</tr>
+<tr>
+<th>Presentation</th>
+<td><strong>MVC-like</strong>: views (React pages) bind to a model (API payloads) with a controller layer provided by React Query hooks</td>
+<td><code>frontend/src/pages</code>, <code>frontend/src/hooks</code>, <code>frontend/src/lib</code></td>
+</tr>
+<tr>
+<th>Orchestration</th>
+<td><strong>Workflow-as-code DAG</strong> with a short-circuit guard</td>
+<td><code>dags/product_intelligence_pipeline.py</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="62-why-not-microservices">6.2 Why not microservices</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Alternative</th>
+<th>Rejected because</th>
+</tr></thead><tbody>
+<tr>
+<td>Microservices per stage (scraper service, dedupe service…)</td>
+<td>The volumes are tiny (≤ 5,000 records per source, a 3.5 s run). Service boundaries would add network failure modes without adding throughput, and would make the dialect-portability guarantee harder to prove</td>
+</tr>
+<tr>
+<td>Kafka / stream processing</td>
+<td>The business question ("what is the price today?") is answered by a daily snapshot; streaming would add a broker, a consumer group and an eventual-consistency story for no analytical gain</td>
+</tr>
+<tr>
+<th>Full event sourcing</th>
+<td>The fact table is already append-only; the change feeds give the event history that matters. Full event sourcing would prevent the simple SQL the analysts need</td>
+</tr>
+<tr>
+<td>A BI tool (Power BI / Tableau) instead of an API</td>
+<td>Direct connection would bypass the RBAC, the audit trail and the data-quality gate that the compliance stakeholder requires</td>
+</tr>
+</tbody></table></div>
+<h3 id="63-why-a-single-pipeline-object-rather-than-framework-coupled-tasks">6.3 Why a single <code>Pipeline</code> object rather than framework-coupled tasks</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Benefit</th>
+<th>Evidence</th>
+</tr></thead><tbody>
+<tr>
+<td>Identical behaviour from CLI, API and Airflow</td>
+<td><code>app/cli/main.py run-pipeline</code>, <code>POST /api/v1/pipeline/run</code>, DAG task <code>run_full_pipeline</code> all call <code>Pipeline(config).run()</code></td>
+</tr>
+<tr>
+<th>Testability</th>
+<td>A run can be limited to 2 records per source in a test, as the smoke test does (<code>limit_per_source=2</code>)</td>
+</tr>
+<tr>
+<th>Instrumented stages</th>
+<td><code>_timer("extract")</code>, <code>_timer("stage")</code>, … produce the stage-timing table in the CLI and the run detail API</td>
+</tr>
+<tr>
+<th>Degradation, not failure</th>
+<td>Per-source try/except turns a source error into a warning and a <code>partial</code> status</td>
+</tr>
+</tbody></table></div>
+<h3 id="64-design-principles-applied">6.4 Design principles applied</h3>
+<ul>
+<li class="depth-0"><strong>Compliance in the infrastructure, not in the adapters.</strong> Politeness cannot be forgotten because the HTTP client owns it.</li>
+<li class="depth-0"><strong>Purity where it pays.</strong> Preparation and matching have no I/O, so they are unit-testable and deterministic.</li>
+<li class="depth-0"><strong>One semantic layer.</strong> Twenty views are the only place where joins are defined; routers select from views.</li>
+<li class="depth-0"><strong>Fail soft, fail loud, in that order.</strong> A source error degrades the run; a critical data-quality failure stops it.</li>
+<li class="depth-0"><strong>Portable SQL only.</strong> No <code>ON CONFLICT</code>, no <code>ON DUPLICATE KEY</code>, no <code>STDDEV</code>; variance is computed with <code>AVG(x*x)</code> so that SQLite, PostgreSQL and MySQL agree.</li>
+<li class="depth-0"><strong>Explain every automatic decision.</strong> <code>match_strategy</code>, <code>match_score</code>, <code>quality_flags</code>, <code>blocking_key</code>, <code>fx_rate_to_usd</code> and <code>payload_hash</code> make each automated judgement inspectable.</li>
+<li class="depth-0"><strong>Measured, not asserted.</strong> Every number in the documentation is produced by a command in <code>docs/05</code>.</li>
+</ul>
+<hr>
+<h2 id="7-deployment-and-runtime-view">7. Deployment and runtime view</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Tier</th>
+<th>Process</th>
+<th>Entry point</th>
+<th>Configuration</th>
+</tr></thead><tbody>
+<tr>
+<th>Presentation</th>
+<td>Static SPA served by nginx (or the Vite dev server)</td>
+<td><code>frontend/</code> build → nginx</td>
+<td><code>VITE_API_BASE_URL</code></td>
+</tr>
+<tr>
+<th>Serving</th>
+<td>uvicorn + FastAPI</td>
+<td><code>app.api.main:app</code></td>
+<td><code>APP_PORT</code>, <code>DATABASE_URL</code>, <code>CORS_ORIGINS</code>, <code>SECRET_KEY</code></td>
+</tr>
+<tr>
+<th>Scheduling</th>
+<td>Airflow webserver + scheduler</td>
+<td><code>airflow webserver</code>, <code>airflow scheduler</code></td>
+<td><code>PIP_SCHEDULE</code>, <code>PIP_DATABASE_URL</code>, <code>AIRFLOW__CORE__EXECUTOR</code></td>
+</tr>
+<tr>
+<th>Data</th>
+<td>PostgreSQL 16 and MySQL 8.4</td>
+<td>Docker Compose services <code>postgres</code>, <code>mysql</code></td>
+<td><code>POSTGRES_*</code>, <code>MYSQL_*</code></td>
+</tr>
+<tr>
+<th>CLI</th>
+<td><code>python -m app.cli.main</code></td>
+<td>Typer app</td>
+<td><code>--database</code>, <code>--limit</code>, <code>--strict</code></td>
+</tr>
+</tbody></table></div>
+<p>The full deployment design — services, ports, environment matrix, secrets, backup and scaling — is in <code>docs/13_deployment.md</code>.</p>
+<hr>
+<h2 id="8-cross-cutting-concerns">8. Cross-cutting concerns</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Concern</th>
+<th>Mechanism</th>
+<th>Location</th>
+</tr></thead><tbody>
+<tr>
+<th>Authentication</th>
+<td>JWT HS256 access + refresh, API keys for machines</td>
+<td><code>app/api/security.py</code></td>
+</tr>
+<tr>
+<th>Authorisation</th>
+<td>Role → rights dictionary, dependency factory</td>
+<td><code>security.ROLE_RIGHTS</code>, <code>deps.require_rights()</code></td>
+</tr>
+<tr>
+<th>Input validation</th>
+<td>Pydantic v2 models; SQL console allow-list</td>
+<td><code>app/api/schemas.py</code></td>
+</tr>
+<tr>
+<th>Error handling</th>
+<td>Typed domain errors mapped to status codes; global handlers</td>
+<td><code>app/core/errors.py</code>, <code>app/api/main.py</code></td>
+</tr>
+<tr>
+<th>Logging</th>
+<td>Namespaced loggers, ANSI or JSON, rotating file handler</td>
+<td><code>app/core/logging.py</code></td>
+</tr>
+<tr>
+<th>Time</th>
+<td>One UTC-aware boundary type for every dialect</td>
+<td><code>app/models/base.py:UTCDateTime</code></td>
+</tr>
+<tr>
+<th>Money</th>
+<td><code>Numeric(18,4)</code> everywhere, plus the FX rate used</td>
+<td><code>app/models/base.py:NumericMixin</code></td>
+</tr>
+<tr>
+<th>Configuration</th>
+<td>Validated settings singleton, reloadable</td>
+<td><code>app/core/config.py</code></td>
+</tr>
+<tr>
+<th>Observability</th>
+<td>Run counters, stage timings, DQ results, HTTP audit, <code>X-Process-Time-Ms</code></td>
+<td><code>etl_run</code>, <code>dq_rule_result</code>, <code>ingestion_http_log</code></td>
+</tr>
+<tr>
+<th>Compliance</th>
+<td>Robots gate, rate limiter, terms allow-list, license notes</td>
+<td><code>app/ingestion/</code></td>
+</tr>
+<tr>
+<th>Internationalisation</th>
+<td>UTC storage, per-user timezone preference, ISO 8601 in JSON</td>
+<td><code>app_users.timezone</code>, <code>app_timezone</code></td>
+</tr>
+<tr>
+<th>Accessibility</th>
+<td>Keyboard-first interaction, focus states, contrast tokens</td>
+<td>Design system in <code>docs/12</code></td>
+</tr>
+</tbody></table></div>
+    </article>
+    <div class="doc-foot">
+      <span><a href="07_requirements_gathering.html">← Requirements</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="09_database_design.html">Database Design →</a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

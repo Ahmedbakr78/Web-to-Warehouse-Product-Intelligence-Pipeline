@@ -1,0 +1,1841 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Module map, algorithms, config">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Technical Documentation — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Module map, algorithms, config">
+<title>Technical Documentation — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="23-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, all 113 operations, examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, 100-case plan, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" class="active" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="234 features with file references">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Technical Documentation</h1>
+      <p>Module map, algorithms, config</p>
+    </div>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#table-of-contents">Table of contents</a></li><li class="lvl-2"><a href="#1-module-map">1. Module map</a></li><li class="lvl-3"><a href="#11-module-responsibilities-at-a-glance">1.1 Module responsibilities at a glance</a></li><li class="lvl-2"><a href="#2-package-layout">2. Package layout</a></li><li class="lvl-3"><a href="#21-layering-rules">2.1 Layering rules</a></li><li class="lvl-2"><a href="#3-key-algorithm-1--duplicate-resolution">3. Key algorithm 1 — duplicate resolution</a></li><li class="lvl-3"><a href="#31-the-cascade">3.1 The cascade</a></li><li class="lvl-3"><a href="#32-the-similarity-function">3.2 The similarity function</a></li><li class="lvl-3"><a href="#33-worked-measurements">3.3 Worked measurements</a></li><li class="lvl-3"><a href="#34-blocking">3.4 Blocking</a></li><li class="lvl-3"><a href="#35-catalog-reconciliation-cascade">3.5 Catalog reconciliation cascade</a></li><li class="lvl-2"><a href="#4-key-algorithm-2--currency-and-price-normalisation">4. Key algorithm 2 — currency and price normalisation</a></li><li class="lvl-3"><a href="#41-price-extraction">4.1 Price extraction</a></li><li class="lvl-3"><a href="#42-number-parsing">4.2 Number parsing</a></li><li class="lvl-3"><a href="#43-currency-resolution">4.3 Currency resolution</a></li><li class="lvl-3"><a href="#44-fx-normalisation">4.4 FX normalisation</a></li><li class="lvl-3"><a href="#45-other-normalisations">4.5 Other normalisations</a></li><li class="lvl-2"><a href="#5-key-algorithm-3--change-detection">5. Key algorithm 3 — change detection</a></li><li class="lvl-3"><a href="#51-per-record-path">5.1 Per-record path</a></li><li class="lvl-3"><a href="#52-definitions">5.2 Definitions</a></li><li class="lvl-3"><a href="#53-why-the-previous-snapshot-is-pre-loaded">5.3 Why the previous snapshot is pre-loaded</a></li><li class="lvl-2"><a href="#6-key-algorithm-4--data-quality-scoring">6. Key algorithm 4 — data-quality scoring</a></li><li class="lvl-3"><a href="#61-the-12-rules">6.1 The 12 rules</a></li><li class="lvl-3"><a href="#62-classification">6.2 Classification</a></li><li class="lvl-3"><a href="#63-score">6.3 Score</a></li><li class="lvl-3"><a href="#64-gating">6.4 Gating</a></li><li class="lvl-3"><a href="#65-isolation">6.5 Isolation</a></li><li class="lvl-2"><a href="#7-configuration-reference">7. Configuration reference</a></li><li class="lvl-2"><a href="#8-extension-guide--adding-a-source">8. Extension guide — adding a source</a></li><li class="lvl-3"><a href="#step-1--write-the-adapter">Step 1 — Write the adapter</a></li><li class="lvl-3"><a href="#step-2--register-the-module-for-import">Step 2 — Register the module for import</a></li><li class="lvl-3"><a href="#step-3--justify-the-permission">Step 3 — Justify the permission</a></li><li class="lvl-3"><a href="#step-4--verify-extraction-and-cleaning">Step 4 — Verify extraction and cleaning</a></li><li class="lvl-3"><a href="#step-5--add-it-to-the-schedule">Step 5 — Add it to the schedule</a></li><li class="lvl-3"><a href="#step-6--test-and-document">Step 6 — Test and document</a></li><li class="lvl-2"><a href="#9-performance-notes">9. Performance notes</a></li><li class="lvl-3"><a href="#91-measured-baseline">9.1 Measured baseline</a></li><li class="lvl-3"><a href="#92-design-choices-that-buy-performance">9.2 Design choices that buy performance</a></li><li class="lvl-3"><a href="#93-known-bottlenecks-and-fixes">9.3 Known bottlenecks and fixes</a></li><li class="lvl-3"><a href="#94-index-and-configuration-tuning">9.4 Index and configuration tuning</a></li><li class="lvl-2"><a href="#10-security-notes">10. Security notes</a></li><li class="lvl-3"><a href="#101-what-is-implemented">10.1 What is implemented</a></li><li class="lvl-3"><a href="#102-threats-and-mitigations">10.2 Threats and mitigations</a></li><li class="lvl-3"><a href="#103-hardening-recommendations">10.3 Hardening recommendations</a></li><li class="lvl-2"><a href="#11-error-taxonomy">11. Error taxonomy</a></li></ol></details>
+    <article class="doc-body">
+<h2 id="purpose">Purpose</h2>
+<p>This is the engineering reference for the Web-to-Warehouse Product Intelligence Pipeline. It maps every module, explains the four key algorithms in enough detail to re-implement or tune them, documents <strong>every configuration variable</strong> with its default and effect, gives the six-step procedure for adding a new ingestion source, and closes with performance and security notes.</p>
+<hr>
+<h2 id="table-of-contents">Table of contents</h2>
+<ul>
+<li class="depth-0"><a href="#1-module-map">Module map</a></li>
+<li class="depth-0"><a href="#2-package-layout">Package layout</a></li>
+<li class="depth-0"><a href="#3-key-algorithm-1--duplicate-resolution">Key algorithm 1 — duplicate resolution</a></li>
+<li class="depth-0"><a href="#4-key-algorithm-2--currency-and-price-normalisation">Key algorithm 2 — currency and price normalisation</a></li>
+<li class="depth-0"><a href="#5-key-algorithm-3--change-detection">Key algorithm 3 — change detection</a></li>
+<li class="depth-0"><a href="#6-key-algorithm-4--data-quality-scoring">Key algorithm 4 — data-quality scoring</a></li>
+<li class="depth-0"><a href="#7-configuration-reference">Configuration reference</a></li>
+<li class="depth-0"><a href="#8-extension-guide--adding-a-source">Extension guide — adding a source</a></li>
+<li class="depth-0"><a href="#9-performance-notes">Performance notes</a></li>
+<li class="depth-0"><a href="#10-security-notes">Security notes</a></li>
+<li class="depth-0"><a href="#11-error-taxonomy">Error taxonomy</a></li>
+</ul>
+<hr>
+<h2 id="1-module-map">1. Module map</h2>
+<pre class="mermaid">flowchart LR
+    subgraph CORE[&quot;app.core&quot;]
+        C1[&quot;config&lt;br/&gt;Settings, paths, reload&quot;]
+        C2[&quot;db&lt;br/&gt;engines, sessions, ping&quot;]
+        C3[&quot;errors&lt;br/&gt;typed domain errors&quot;]
+        C4[&quot;logging&lt;br/&gt;ANSI / JSON formatters&quot;]
+    end
+    subgraph ING[&quot;app.ingestion&quot;]
+        I1[&quot;base&lt;br/&gt;ProductSource, RawProduct,&lt;br/&gt;NormalizedProduct, transform_product, registry&quot;]
+        I2[&quot;cleaning&lt;br/&gt;pure normalisation&quot;]
+        I3[&quot;dedupe&lt;br/&gt;similarity + DedupeEngine&quot;]
+        I4[&quot;robots&lt;br/&gt;robots.txt cache&quot;]
+        I5[&quot;ratelimit&lt;br/&gt;token bucket + breaker&quot;]
+        I6[&quot;http_client&lt;br/&gt;robots + limit + cache + retry + audit&quot;]
+        I7[&quot;sources/*&lt;br/&gt;5 adapters&quot;]
+        I8[&quot;compliance&lt;br/&gt;policy statement&quot;]
+    end
+    subgraph ETL[&quot;app.etl&quot;]
+        E1[&quot;pipeline&lt;br/&gt;9 stages, PipelineConfig/Result&quot;]
+        E2[&quot;loader&lt;br/&gt;dimensions, facts, changes, aggregate&quot;]
+        E3[&quot;dq&lt;br/&gt;12 rules, score, persistence&quot;]
+        E4[&quot;catalog_reconcile&lt;br/&gt;3-stage match, price gap&quot;]
+        E5[&quot;bootstrap&lt;br/&gt;schema, reference data, views&quot;]
+        E6[&quot;seed&lt;br/&gt;users, catalog, history&quot;]
+    end
+    subgraph ANA[&quot;app.analytics&quot;]
+        A1[&quot;service&lt;br/&gt;21 query functions&quot;]
+    end
+    subgraph API[&quot;app.api&quot;]
+        P1[&quot;main&lt;br/&gt;factory, middleware, handlers&quot;]
+        P2[&quot;deps&lt;br/&gt;session, paging, auth, RBAC&quot;]
+        P3[&quot;security&lt;br/&gt;Argon2id, JWT, API keys, rights&quot;]
+        P4[&quot;schemas&lt;br/&gt;Pydantic contracts&quot;]
+        P5[&quot;routers/*&lt;br/&gt;16 routers&quot;]
+    end
+    subgraph OPS[&quot;Operations&quot;]
+        O1[&quot;app.cli.main&lt;br/&gt;12 commands&quot;]
+        O2[&quot;dags/*&lt;br/&gt;Airflow DAG&quot;]
+    end
+
+    C1 --&gt; C2
+    I1 --&gt; I2
+    I1 --&gt; I6
+    I3 --&gt; I2
+    I6 --&gt; I4
+    I6 --&gt; I5
+    E1 --&gt; I1
+    E1 --&gt; I3
+    E1 --&gt; E2
+    E1 --&gt; E4
+    E1 --&gt; E5
+    E1 --&gt; E3
+    E2 --&gt; I2
+    E4 --&gt; I3
+    E6 --&gt; E2
+    A1 --&gt; E5
+    P1 --&gt; P5
+    P5 --&gt; P2
+    P5 --&gt; A1
+    P5 --&gt; E1
+    P2 --&gt; P3
+    O1 --&gt; E1
+    O1 --&gt; A1
+    O2 --&gt; E1</pre>
+<h3 id="11-module-responsibilities-at-a-glance">1.1 Module responsibilities at a glance</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Module</th>
+<th>Responsibility</th>
+<th>Key public symbols</th>
+</tr></thead><tbody>
+<tr>
+<th><code>app/core/config.py</code></th>
+<td>Typed, validated configuration and paths</td>
+<td><code>Settings</code>, <code>settings</code>, <code>get_settings</code>, <code>reload_settings</code>, <code>describe_target</code>, <code>ROOT_DIR</code>, <code>VAR_DIR</code></td>
+</tr>
+<tr>
+<th><code>app/core/db.py</code></th>
+<td>Dialect-aware engines, session factories, transactional scopes, health probe</td>
+<td><code>get_engine</code>, <code>get_session_factory</code>, <code>session_scope</code>, <code>read_session</code>, <code>ping</code>, <code>dispose_all</code>, <code>iter_targets</code></td>
+</tr>
+<tr>
+<th><code>app/core/errors.py</code></th>
+<td>Domain errors with HTTP status codes</td>
+<td><code>PipelineError</code>, <code>ComplianceError</code>, <code>AuthenticationError</code>, <code>PermissionDeniedError</code>, <code>ProductNotFoundError</code>, …</td>
+</tr>
+<tr>
+<th><code>app/core/logging.py</code></th>
+<td>Console/file logging, ANSI and JSON formatters</td>
+<td><code>configure_logging</code>, <code>get_logger</code>, <code>setup_file_logging</code></td>
+</tr>
+<tr>
+<th><code>app/ingestion/base.py</code></th>
+<td>Source contract, record shapes, transform stage, registry</td>
+<td><code>ProductSource</code>, <code>RawProduct</code>, <code>NormalizedProduct</code>, <code>transform_product</code>, <code>register_source</code>, <code>get_source</code>, <code>list_sources</code></td>
+</tr>
+<tr>
+<td><code>app/ingestion/cleaning.py</code></td>
+<td>All pure normalisation</td>
+<td><code>clean_product_name</code>, <code>normalise_category</code>, <code>parse_price</code>, <code>convert_to_usd</code>, <code>parse_rating</code>, <code>normalise_availability</code>, <code>name_fingerprint</code>, <code>blocking_key</code></td>
+</tr>
+<tr>
+<td><code>app/ingestion/dedupe.py</code></td>
+<td>Similarity primitives and the stateful engine</td>
+<td><code>combined_similarity</code>, <code>DedupeEngine</code>, <code>MatchResult</code>, <code>DedupeStats</code>, <code>digit_signature</code></td>
+</tr>
+<tr>
+<td><code>app/ingestion/robots.py</code></td>
+<td>robots.txt parsing, caching and decisions</td>
+<td><code>RobotsCache</code>, <code>RobotsDecision</code>, <code>get_robots_cache</code></td>
+</tr>
+<tr>
+<td><code>app/ingestion/ratelimit.py</code></td>
+<td>Per-host pacing and the circuit breaker</td>
+<td><code>RateLimiter</code>, <code>RatePolicy</code>, <code>HostState</code>, <code>CircuitBreaker</code></td>
+</tr>
+<tr>
+<td><code>app/ingestion/http_client.py</code></td>
+<td>The compliant transport used by every source</td>
+<td><code>CompliantHttpClient</code>, <code>FetchResult</code>, <code>HttpAuditEntry</code></td>
+</tr>
+<tr>
+<td><code>app/ingestion/sources/*.py</code></td>
+<td>Five source adapters</td>
+<td><code>LocalFixtureSource</code>, <code>DummyJsonProductsSource</code>, <code>FakeStoreProductsSource</code>, <code>OpenLibraryBooksSource</code>, <code>BooksToScrapeSource</code></td>
+</tr>
+<tr>
+<th><code>app/etl/pipeline.py</code></th>
+<td>Orchestration, stage timing, run bookkeeping</td>
+<td><code>Pipeline</code>, <code>PipelineConfig</code>, <code>PipelineResult</code>, <code>StageTiming</code>, <code>run_pipeline</code>, <code>STAGE_NAMES</code></td>
+</tr>
+<tr>
+<th><code>app/etl/loader.py</code></th>
+<td>Warehouse writes and change detection</td>
+<td><code>WarehouseLoader</code>, <code>LoadStats</code>, <code>magnitude_band</code>, <code>slugify</code></td>
+</tr>
+<tr>
+<th><code>app/etl/dq.py</code></th>
+<td>Rule framework and persistence</td>
+<td><code>RULES</code>, <code>Rule</code>, <code>RuleOutcome</code>, <code>QualityReport</code>, <code>evaluate_quality</code>, <code>latest_report</code>, <code>rules_catalog</code></td>
+</tr>
+<tr>
+<td><code>app/etl/catalog_reconcile.py</code></td>
+<td>Catalog matching and price gaps</td>
+<td><code>CatalogReconciler</code>, <code>CatalogMatchResult</code>, <code>reconciliation_summary</code></td>
+</tr>
+<tr>
+<th><code>app/etl/bootstrap.py</code></th>
+<td>Schema, reference data, view application</td>
+<td><code>bootstrap</code>, <code>create_schema</code>, <code>apply_views</code>, <code>drop_views</code>, <code>seed_dim_date</code>, <code>seed_dim_currency</code>, <code>sync_dim_source</code>, <code>date_id</code></td>
+</tr>
+<tr>
+<th><code>app/etl/seed.py</code></th>
+<td>Demo users, catalog and history</td>
+<td><code>run_full_seed</code>, <code>seed_users</code>, <code>seed_catalog</code>, <code>seed_history</code>, <code>build_seed_products</code></td>
+</tr>
+<tr>
+<td><code>app/analytics/service.py</code></td>
+<td>Every analytical query</td>
+<td><code>kpi_summary</code>, <code>daily_trend</code>, <code>price_change_timeline</code>, <code>top_movers</code>, <code>category_breakdown</code>, <code>brand_leaderboard</code>, <code>source_health</code>, <code>availability_summary</code>, <code>category_tree</code>, <code>new_products</code>, <code>removed_products</code>, <code>category_changes</code>, <code>catalog_reconciliation</code>, <code>price_history</code>, <code>product_detail</code>, <code>pipeline_runs</code>, <code>run_detail</code>, <code>price_change_report</code>, <code>category_drift_report</code>, <code>compliance_report</code>, <code>http_log</code>, <code>query_explain</code>, <code>list_views</code>, <code>table_counts</code></td>
+</tr>
+<tr>
+<th><code>app/api/main.py</code></th>
+<td>Application factory, middleware, error handlers, OpenAPI</td>
+<td><code>app</code>, <code>create_app</code>, <code>API_PREFIX</code>, <code>TAGS_METADATA</code></td>
+</tr>
+<tr>
+<th><code>app/api/deps.py</code></th>
+<td>Dependencies: session, paging, auth, RBAC, audit metadata</td>
+<td><code>get_db</code>, <code>Pagination</code>, <code>get_current_user</code>, <code>require_rights</code>, <code>ReadUser</code>, <code>WriteUser</code>, <code>AdminUser</code>, <code>PipelineUser</code>, <code>QueryUser</code></td>
+</tr>
+<tr>
+<th><code>app/api/security.py</code></th>
+<td>Passwords, tokens, API keys, rights</td>
+<td><code>hash_password</code>, <code>verify_password</code>, <code>create_access_token</code>, <code>decode_token</code>, <code>generate_api_key</code>, <code>ROLE_RIGHTS</code>, <code>has_right</code>, <code>at_least</code></td>
+</tr>
+<tr>
+<th><code>app/api/schemas.py</code></th>
+<td>Request/response contracts</td>
+<td><code>Page[T]</code>, <code>ProductSummary</code>, <code>ProductDetail</code>, <code>PriceChangeRead</code>, <code>QueryRequest</code>, <code>TokenResponse</code>, …</td>
+</tr>
+<tr>
+<th><code>app/cli/main.py</code></th>
+<td>Operator CLI</td>
+<td><code>init-db</code>, <code>bootstrap</code>, <code>seed-demo</code>, <code>run-pipeline</code>, <code>report</code>, <code>quality</code>, <code>verify</code>, <code>serve</code>, <code>status</code>, <code>check-schema</code>, <code>version</code>, <code>sources</code>, <code>user</code></td>
+</tr>
+<tr>
+<td><code>dags/product_intelligence_pipeline.py</code></td>
+<td>Airflow DAG</td>
+<td>13 tasks, guards, branch, report artefact</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="2-package-layout">2. Package layout</h2>
+<pre class="code" data-lang="text"><code>Depi_Ahmed_Abobakr_Project/
+├── app/
+│   ├── __init__.py
+│   ├── core/
+│   │   ├── base-free helpers: config.py, db.py, errors.py, logging.py
+│   ├── models/
+│   │   ├── base.py        DeclarativeBase, UTCDateTime, JSONType, ShortStr, NumericMixin
+│   │   ├── dimensions.py  dim_source, dim_category, dim_product, dim_date, dim_currency
+│   │   ├── facts.py       fact_price_snapshot, fact_catalog_snapshot,
+│   │   │                  chg_price_change, chg_product_event, agg_category_daily
+│   │   ├── operations.py  etl_run, dq_rule_result, ingestion_http_log,
+│   │   │                  stg_raw_observation, sync_state
+│   │   ├── catalog.py     catalog_product
+│   │   ├── app_users.py   app_user, app_api_key, app_saved_view, app_alert_rule,
+│   │   │                  app_notification, app_audit_log, app_setting
+│   │   └── __init__.py    ALL_MODELS, MODEL_BY_TABLE, CORE_TABLES, TABLE_GROUPS
+│   ├── ingestion/
+│   │   ├── base.py, cleaning.py, dedupe.py, robots.py, ratelimit.py,
+│   │   │   http_client.py, compliance.py
+│   │   └── sources/  local_fixture.py, dummyjson.py, fakestore.py,
+│   │                 openlibrary.py, books_to_scrape.py
+│   ├── etl/
+│   │   ├── pipeline.py, loader.py, dq.py, catalog_reconcile.py,
+│   │   │   bootstrap.py, seed.py
+│   ├── analytics/  __init__.py, service.py
+│   ├── api/
+│   │   ├── main.py, deps.py, security.py, schemas.py
+│   │   └── routers/  health, auth, users, products, changes, analytics, pipeline,
+│   │                 quality, catalog, sources, queries, saved_views,
+│   │                 notifications, settings, audit, __init__.py
+│   └── cli/  __init__.py, main.py
+├── db/
+│   └── views.sql              20 analytical views
+├── dags/
+│   └── product_intelligence_pipeline.py
+├── scripts/
+│   └── api_smoke.py           78-check API regression
+├── docs/                      20 documents (this set)
+├── tests/                     pytest suite (not committed in this snapshot)
+├── frontend/                  React + Vite + TypeScript app
+├── var/                       runtime: http-cache, logs, artifacts, sqlite fallback
+├── docker-compose.yml
+├── Makefile                   30+ targets
+├── pyproject.toml             dependencies, ruff, mypy, pytest config
+├── .env.example               configuration template
+└── todo.md                    original brief</code></pre>
+<h3 id="21-layering-rules">2.1 Layering rules</h3>
+<pre class="mermaid">flowchart TB
+    L4[&quot;Presentation&lt;br/&gt;CLI, Airflow, REST API, dashboard&quot;]
+    L3[&quot;Application&lt;br/&gt;pipeline orchestration, analytics service, routers&quot;]
+    L2[&quot;Domain&lt;br/&gt;cleaning, dedupe, DQ rules, change detection&quot;]
+    L1[&quot;Infrastructure&lt;br/&gt;database, HTTP client, robots, rate limiter, cache&quot;]
+    L4 --&gt; L3 --&gt; L2 --&gt; L1
+    L4 -.-&gt;|&quot;may not be imported by&quot;| L2
+    L2 -.-&gt;|&quot;no I/O allowed&quot;| L1</pre>
+<div class='table-scroll'><table><thead><tr>
+<th>Layer</th>
+<th>May import</th>
+<th>Must not import</th>
+</tr></thead><tbody>
+<tr>
+<td>Presentation (CLI, API, DAG)</td>
+<td>Application, Core</td>
+<td>Domain internals directly</td>
+</tr>
+<tr>
+<td>Application (pipeline, analytics)</td>
+<td>Domain, Infrastructure</td>
+<td>Presentation</td>
+</tr>
+<tr>
+<td>Domain (cleaning, dedupe, rules)</td>
+<td><code>app.core.logging</code>, <code>app.core.errors</code></td>
+<td><code>app.core.db</code>, <code>httpx</code>, <code>app.etl</code>, <code>app.api</code></td>
+</tr>
+<tr>
+<td>Infrastructure (db, http, robots)</td>
+<td><code>app.core</code></td>
+<td>Domain</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="3-key-algorithm-1--duplicate-resolution">3. Key algorithm 1 — duplicate resolution</h2>
+<h3 id="31-the-cascade">3.1 The cascade</h3>
+<pre class="mermaid">flowchart TD
+    A[&quot;Record: canonical_name, brand, category&quot;] --&gt; B[&quot;fingerprint = sha1 brand_key + name_key, 32 hex&quot;]
+    B --&gt; C{&quot;Fingerprint known?&quot;}
+    C --&gt;|&quot;yes&quot;| R1[&quot;strategy exact, score 1.0&quot;]
+    C --&gt;|&quot;no&quot;| D{&quot;normalized_name equals an existing row?&quot;}
+    D --&gt;|&quot;yes&quot;| R2[&quot;strategy blocked_exact, score 1.0&quot;]
+    D --&gt;|&quot;no&quot;| E[&quot;Blocking candidates&lt;br/&gt;LIKE blocking_key + &#x27;%&#x27;, limit 25&lt;br/&gt;brand filter refines&quot;]
+    E --&gt; F[&quot;combined_similarity for each candidate&quot;]
+    F --&gt; G[&quot;digit-signature factor&quot;]
+    G --&gt; H[&quot;brand blend and category bonus&quot;]
+    H --&gt; I{&quot;score &gt;= threshold 0.90?&quot;}
+    I --&gt;|&quot;yes&quot;| J[&quot;strategy fuzzy, score and parts stored&quot;]
+    I --&gt;|&quot;no&quot;| K[&quot;strategy new - loader inserts dim_product&quot;]
+    J --&gt; L[&quot;duplicates_merged incremented when the match was fuzzy&quot;]
+    R1 --&gt; M[&quot;Upsert dim_product&quot;]
+    R2 --&gt; M
+    K --&gt; M</pre>
+<h3 id="32-the-similarity-function">3.2 The similarity function</h3>
+<p><code>combined_similarity(name_a, name_b, brand_a, brand_b, category_a, category_b)</code> returns <code>(score, parts)</code>:</p>
+<ul>
+<li class="depth-0"><strong>Normalisation.</strong> <code>normalise_name_key()</code> lower-cases, removes non-alphanumerics, drops stop-words</li>
+</ul>
+<p>(<code>STOPWORDS</code>, 60 entries including format and edition qualifiers) and <strong>sorts the remaining tokens</strong>.</p>
+<ul>
+<li class="depth-0"><strong>Exact key.</strong> If the two normalised keys are equal → score <code>1.0</code>.</li>
+<li class="depth-0"><strong>Character-level forms.</strong></li>
+<li class="depth-1"><code>squash</code>: lowercase alphanumeric with all separators removed (<code>256GB</code> vs <code>256 GB</code>).</li>
+<li class="depth-1"><code>compact</code>: the normalised key with spaces removed.</li>
+<li class="depth-0"><strong>Six measures.</strong></li>
+</ul>
+<div class='table-scroll'><table><thead><tr>
+<th>Measure</th>
+<th>Implementation</th>
+<th>Robust to</th>
+</tr></thead><tbody>
+<tr>
+<th><code>token_set</code></th>
+<td><code>token_set_ratio</code> — best of three token-set comparisons over Levenshtein ratio</td>
+<td>Extra or missing descriptive tokens</td>
+</tr>
+<tr>
+<th><code>jaro_winkler</code></th>
+<td>Jaro + prefix bonus (<code>0.1 × prefix</code>, max 4, only when base ≥ 0.7)</td>
+<td>Transpositions, typos, shared prefixes</td>
+</tr>
+<tr>
+<th><code>trigram</code></th>
+<td>Dice coefficient over padded character trigrams, <code>lru_cache(50_000)</code></td>
+<td>Truncation, small edits</td>
+</tr>
+<tr>
+<th><code>levenshtein</code></th>
+<td>Two-row DP edit distance normalised by the longer string</td>
+<td>Character substitution</td>
+</tr>
+<tr>
+<th><code>compact</code></th>
+<td><code>max(trigram(compact_a, compact_b), jaro_winkler(compact_a, compact_b))</code></td>
+<td>Tokenisation differences</td>
+</tr>
+<tr>
+<th><code>squash</code></th>
+<td><code>max(jaro_winkler(squash), trigram(squash))</code></td>
+<td>Punctuation and spacing</td>
+</tr>
+</tbody></table></div>
+<ul>
+<li class="depth-0"><strong>Blend.</strong> <code>0.20·token_set + 0.15·jaro_winkler + 0.10·trigram + 0.05·levenshtein + 0.20·compact + 0.30·squash</code>.</li>
+<li class="depth-0"><strong>Character-evidence short circuit.</strong> <code>max(blend, max(compact, squash) × 0.97)</code> — near-identical</li>
+</ul>
+<p>strings that differ only in punctuation or tokenisation bypass the blend (with a 3 % safety discount).</p>
+<ul>
+<li class="depth-0"><strong>Digit-signature factor.</strong> <code>digit_signature()</code> extracts the ordered digit runs of a name</li>
+</ul>
+<p>(<code>Canon EOS R6</code> → <code>('6')</code>, <code>Nike Pegasus 40</code> → <code>('40')</code>). Equal → ×1.0; one differing position or length → ×0.85; more → ×0.60.</p>
+<ul>
+<li class="depth-0"><strong>Brand blend.</strong> If both brands are known: <code>score = score × 0.88 + brand_similarity × 0.12</code>, where</li>
+</ul>
+<p>brand similarity is 1.0 for equality and a trigram similarity otherwise. If neither brand is known, the brand term is 1.0 and the score is unchanged.</p>
+<ul>
+<li class="depth-0"><strong>Category bonus.</strong> Equal → +0.03; one containing the other → +0.021; otherwise 0. Clamped to 1.0.</li>
+</ul>
+<h3 id="33-worked-measurements">3.3 Worked measurements</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Pair</th>
+<th>Score</th>
+<th>Decision</th>
+<th>Why</th>
+</tr></thead><tbody>
+<tr>
+<td><code>Samsung Galaxy S23 128GB</code> / <code>Samsung Galaxy S23 128 GB</code></td>
+<td>0.9700</td>
+<td>duplicate</td>
+<td>Identical after tokenisation; <code>squash</code> short-circuit</td>
+</tr>
+<tr>
+<td><code>adidas Ultraboost 22</code> / <code>Adidas Ultra Boost 22</code></td>
+<td>0.9700</td>
+<td>duplicate</td>
+<td>Same, punctuation-free</td>
+</tr>
+<tr>
+<td><code>Canon EOS R6</code> / <code>Canon EOS R5</code></td>
+<td>0.8121</td>
+<td>distinct</td>
+<td>Digit signatures differ → ×0.60</td>
+</tr>
+<tr>
+<td><code>Sony WH-1000XM5</code> / <code>Sony WH-1000XM4</code></td>
+<td>0.8034</td>
+<td>distinct</td>
+<td>Digit signatures differ → ×0.60</td>
+</tr>
+<tr>
+<td><code>Clean Architecture</code> / <code>Clean Architecture: A Craftsman's Guide</code></td>
+<td>0.8812</td>
+<td>distinct</td>
+<td>Subtitle tokens reduce the blend</td>
+</tr>
+</tbody></table></div>
+<h3 id="34-blocking">3.4 Blocking</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Property</th>
+<th>Value</th>
+<th>Reason</th>
+</tr></thead><tbody>
+<tr>
+<th>Key</th>
+<td>First 4 characters of the normalised key (<code>DEDUPE_BLOCKING_KEY_LENGTH</code>)</td>
+<td>Cheap prefix match; index-friendly <code>LIKE 'prefix%'</code> on <code>normalized_name</code></td>
+</tr>
+<tr>
+<th>Candidate limit</th>
+<td>25 (<code>DEDUPE_CANDIDATE_LIMIT</code>)</td>
+<td>Bounds per-record cost to a constant</td>
+</tr>
+<tr>
+<th>Brand refinement</th>
+<td>If any candidate has the same brand, prefer that subset</td>
+<td>Reduces noise in dense categories</td>
+</tr>
+<tr>
+<th>Cache</th>
+<td>Fingerprint → <code>product_id</code> loaded once per run, updated on register/merge</td>
+<td>Avoids a query per record</td>
+</tr>
+<tr>
+<th>Cross-source behaviour</th>
+<td>The engine is shared across sources in one run, so a product seen in two feeds merges</td>
+<td>Proven by the seeded catalog's 68.42 % match rate</td>
+</tr>
+</tbody></table></div>
+<h3 id="35-catalog-reconciliation-cascade">3.5 Catalog reconciliation cascade</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Stage</th>
+<th>Test</th>
+<th>Strategy recorded</th>
+<th>Threshold</th>
+</tr></thead><tbody>
+<tr>
+<th>1</th>
+<td><code>catalog.sku</code> equals <code>product.source_product_id</code></td>
+<td><code>sku</code></td>
+<td>exact, similarity 1.0</td>
+</tr>
+<tr>
+<th>2</th>
+<td><code>normalise_name_key(catalog.name) == product.normalized_name</code></td>
+<td><code>normalized_name</code></td>
+<td>exact</td>
+</tr>
+<tr>
+<th>3</th>
+<td><code>combined_similarity</code> over the narrowed pool</td>
+<td><code>fuzzy</code></td>
+<td>0.86</td>
+</tr>
+<tr>
+<th>—</th>
+<td>No candidate qualifies</td>
+<td><code>unmatched</code></td>
+<td><code>product_id = NULL</code></td>
+</tr>
+</tbody></table></div>
+<p>Performance: 4-character block index plus a rare-token fallback index reduces the comparison set from the whole catalogue to a handful per SKU. Measured 2,975 ms → 104 ms (29×) with identical results.</p>
+<hr>
+<h2 id="4-key-algorithm-2--currency-and-price-normalisation">4. Key algorithm 2 — currency and price normalisation</h2>
+<h3 id="41-price-extraction">4.1 Price extraction</h3>
+<p><code>parse_price(text, default_currency, locale_hint, max_value=10_000_000)</code>:</p>
+<ul>
+<li class="depth-0"><strong>Unicode fold and trim.</strong> NFKC, smart-punctuation translation.</li>
+<li class="depth-0"><strong>Unavailable markers.</strong> <code>free</code>, <code>n/a</code>, <code>null</code>, <code>none</code>, <code>unavailable</code>, <code>-</code>, <code>poa</code>, `call for</li>
+</ul>
+<p>price<code>, </code>tbd<code>, </code>ask for price<code> → </code>amount=None<code>, </code>confidence=0.0<code>, </code>is_valid=False`.</p>
+<ul>
+<li class="depth-0"><strong>Ranges.</strong> <code>$10 - $20</code> → midpoint 15.0 with <code>is_range=True</code>, <code>range_low</code>, <code>range_high</code>,</li>
+</ul>
+<p><code>confidence=0.7</code> — unless the text contains <code>was</code>, <code>now</code>, <code>mrp</code>, <code>rrp</code>, <code>list price</code>.</p>
+<ul>
+<li class="depth-0"><strong>Was/now.</strong> <code>Was $49.99 Now $39.99</code> → 39.99 with <code>matched_pattern="was_now"</code>, confidence 0.85.</li>
+<li class="depth-0"><strong>Five competing patterns</strong>, each with a confidence:</li>
+</ul>
+<div class='table-scroll'><table><thead><tr>
+<th>Pattern</th>
+<th>Example</th>
+<th>Confidence</th>
+</tr></thead><tbody>
+<tr>
+<th><code>code_prefix</code></th>
+<td><code>USD 12.99</code></td>
+<td>0.95</td>
+</tr>
+<tr>
+<th><code>symbol_prefix</code></th>
+<td><code>$12.99</code></td>
+<td>0.95</td>
+</tr>
+<tr>
+<th><code>code_suffix</code></th>
+<td><code>12.99 USD</code></td>
+<td>0.92</td>
+</tr>
+<tr>
+<th><code>symbol_suffix</code></th>
+<td><code>12.99 kr</code></td>
+<td>0.88</td>
+</tr>
+<tr>
+<th><code>bare</code></th>
+<td><code>12.99</code></td>
+<td>0.60</td>
+</tr>
+</tbody></table></div>
+<ul>
+<li class="depth-0"><strong>Confidence adjustment.</strong> If the pattern's optional currency group did not participate, the</li>
+</ul>
+<p>confidence is capped at the <code>bare</code> value — a bare number matched by a symbol rule is weak evidence.</p>
+<ul>
+<li class="depth-0"><strong>Selection.</strong> The highest <code>(confidence, −pattern_priority)</code> wins; amounts outside</li>
+</ul>
+<p><code>[0, max_value]</code> are rejected.</p>
+<h3 id="42-number-parsing">4.2 Number parsing</h3>
+<p><code>parse_number()</code> resolves the decimal/thousands ambiguity:</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Input</th>
+<th>Logic</th>
+<th>Result</th>
+</tr></thead><tbody>
+<tr>
+<th><code>1,234.56</code></th>
+<td>Both separators → right-most is the decimal</td>
+<td>1234.56</td>
+</tr>
+<tr>
+<th><code>1.234,56</code></th>
+<td>Both separators → right-most is the decimal</td>
+<td>1234.56</td>
+</tr>
+<tr>
+<th><code>1,499</code></th>
+<td>One separator, exactly three trailing digits → thousands</td>
+<td>1499</td>
+</tr>
+<tr>
+<th><code>45,90</code></th>
+<td>One separator, two trailing digits → decimal</td>
+<td>45.90</td>
+</tr>
+<tr>
+<th><code>1.234.567</code></th>
+<td>Multiple dots → grouping</td>
+<td>1234567</td>
+</tr>
+</tbody></table></div>
+<h3 id="43-currency-resolution">4.3 Currency resolution</h3>
+<p><code>normalise_currency(value, default, hint)</code>:</p>
+<ul>
+<li class="depth-0">Exact ISO-4217 match against <code>STATIC_FX_RATES</code> (25 currencies).</li>
+<li class="depth-0">Symbol/code map <code>CURRENCY_SYMBOLS</code> (60 entries, including <code>£</code>, <code>¥</code>, <code>₹</code>, <code>A$</code>, <code>C$</code>, <code>ج.م</code>).</li>
+<li class="depth-0">Substring search for codes of three characters or more.</li>
+<li class="depth-0">Dominant-symbol heuristic for long blobs (<code>"Was $49.99 Now $39.99"</code> → <code>USD</code>).</li>
+<li class="depth-0">Fallback to the default or the hint.</li>
+</ul>
+<p><code>detect_currency_locale(text, url, html)</code> resolves a page's currency from the host suffix (<code>.co.uk</code> → GBP, <code>.de</code> → EUR, <code>.co.jp</code> → JPY, …), then from <code>itemprop="priceCurrency"</code> or <code>"currency":"</code> markers, then from symbol frequency.</p>
+<h3 id="44-fx-normalisation">4.4 FX normalisation</h3>
+<pre class="code" data-lang="python"><code>def convert_to_usd(amount, currency):
+    rate = STATIC_FX_RATES.get((currency or &quot;USD&quot;).upper())
+    if rate is None:
+        return amount, 1.0            # unknown currency: pass through, flagged by DQ004
+    return round(amount * rate, 4), rate</code></pre>
+<p>The rate that was used is stored with the observation (<code>fx_rate_to_usd</code>) <strong>and</strong> in <code>dim_product.extra</code>, so historical USD values remain reproducible if the table changes. Swapping in a live provider requires changing only <code>convert_to_usd()</code> and <code>dim_currency</code>.</p>
+<h3 id="45-other-normalisations">4.5 Other normalisations</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Concern</th>
+<th>Function</th>
+<th>Rule</th>
+</tr></thead><tbody>
+<tr>
+<th>Product name</th>
+<td><code>clean_product_name</code></td>
+<td>HTML strip → NFKC → promo prefix/suffix removal → bracketed-tag removal → punctuation collapse → smart title case only if fully lower-case → truncate at a word boundary</td>
+</tr>
+<tr>
+<th>Comparison key</th>
+<td><code>normalise_name_key</code></td>
+<td>Lower-case, alphanumerics only, stop-words removed, tokens <strong>sorted and de-duplicated</strong></td>
+</tr>
+<tr>
+<th>Category</th>
+<td><code>normalise_category</code></td>
+<td>Breadcrumb separators (<code>/</code>, `\</td>
+<td><code>, </code>»<code>, </code>›<code>, </code>-&gt;<code>, </code>=&gt;<code>) → </code>&gt;`; per-segment synonym mapping; hierarchy preserved</td>
+</tr>
+<tr>
+<th>Brand</th>
+<td><code>clean_brand</code></td>
+<td>Strip <code>by</code> / <code>brand:</code> prefixes; drop values that are stop-words; cap at 128 characters</td>
+</tr>
+<tr>
+<th>Rating</th>
+<td><code>parse_rating(target_scale=5.0)</code></td>
+<td><code>4.2 out of 5</code>, <code>84 percent</code>, <code>8.5/10</code>, star counts and bare numbers all rescale; clamped to <code>[0, scale]</code></td>
+</tr>
+<tr>
+<th>Availability</th>
+<td><code>normalise_availability</code></td>
+<td>Token precedence: out-of-stock → preorder → in-stock → limited → unknown; <code>in_stock_flag</code> overrides text</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="5-key-algorithm-3--change-detection">5. Key algorithm 3 — change detection</h2>
+<h3 id="51-per-record-path">5.1 Per-record path</h3>
+<pre class="mermaid">flowchart TD
+    A[&quot;Resolved canonical product&quot;] --&gt; B[&quot;preload_latest product_ids, source&lt;br/&gt;one query for the whole source&quot;]
+    B --&gt; C{&quot;Product already loaded&lt;br/&gt;in this run?&quot;}
+    C --&gt;|&quot;yes&quot;| D[&quot;Skip, duplicates_merged += 1&lt;br/&gt;(protects the fact grain)&quot;]
+    C --&gt;|&quot;no&quot;| E{&quot;previous snapshot exists?&quot;}
+    E --&gt;|&quot;no&quot;| F[&quot;is_first_sighting = true&lt;br/&gt;emit event new&lt;br/&gt;new_products += 1&quot;]
+    E --&gt;|&quot;yes&quot;| G[&quot;change_abs = price - previous.price&lt;br/&gt;change_pct = percent_change(previous, price)&quot;]
+    G --&gt; H{&quot;change_pct not in None, 0?&quot;}
+    H --&gt;|&quot;no&quot;| I[&quot;emit event recurring&quot;]
+    H --&gt;|&quot;yes&quot;| J[&quot;emit chg_price_change&lt;br/&gt;direction, band, significance&quot;]
+    F --&gt; K[&quot;append fact_price_snapshot&quot;]
+    J --&gt; K
+    I --&gt; K
+    K --&gt; L[&quot;product.current_price = price&lt;br/&gt;product.previous_price = previous.price&quot;]
+    L --&gt; M[&quot;detect_removed: products unseen for&lt;br/&gt;staleness_days -&gt; event removed, is_active = false&quot;]</pre>
+<h3 id="52-definitions">5.2 Definitions</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Term</th>
+<th>Formula</th>
+<th>Source</th>
+</tr></thead><tbody>
+<tr>
+<th>Absolute change</th>
+<td><code>new − previous</code></td>
+<td><code>insert_snapshot</code></td>
+</tr>
+<tr>
+<th>Percentage change</th>
+<td>`(new − previous) /</td>
+<td>previous</td>
+<td>× 100<code>, rounded to 4 dp; </code>None<code> when previous is </code>None` or 0</td>
+<td><code>percent_change</code></td>
+</tr>
+<tr>
+<th>Direction</th>
+<td><code>increase</code> when <code>change_abs &gt; 0</code>, else <code>decrease</code></td>
+<td><code>insert_snapshot</code></td>
+</tr>
+<tr>
+<th>Magnitude band</th>
+<td><code>minor &lt; 1 %</code>, <code>small &lt; 5 %</code>, <code>moderate &lt; 15 %</code>, <code>large &lt; 30 %</code>, <code>major ≥ 30 %</code></td>
+<td><code>magnitude_band</code></td>
+</tr>
+<tr>
+<th>Significance</th>
+<td>`</td>
+<td>change_pct</td>
+<td>≥ 1.0 %<code> (</code>SIGNIFICANT_CHANGE_PCT`)</td>
+<td><code>insert_snapshot</code></td>
+</tr>
+<tr>
+<th>First sighting</th>
+<td>No previous snapshot <strong>for the same product and source</strong></td>
+<td><code>previous is None</code></td>
+</tr>
+<tr>
+<th>Removed</th>
+<td>Not seen in this run <strong>and</strong> <code>last_seen_at &lt; captured_at − 7 days</code></td>
+<td><code>detect_removed</code></td>
+</tr>
+<tr>
+<th>Category changed</th>
+<td>Stored <code>category_id</code> differs from the resolved one, on an existing product</td>
+<td><code>upsert_product</code></td>
+</tr>
+<tr>
+<th>Price mismatch</th>
+<td>`</td>
+<td>price_gap_pct</td>
+<td>≥ 1.0 %<code> (</code>PRICE_GAP_THRESHOLD_PCT`)</td>
+<td><code>CatalogMatchResult.is_price_mismatch</code></td>
+</tr>
+<tr>
+<th>Net category change</th>
+<td><code>new − removed</code> per category in the window</td>
+<td><code>category_drift_report</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="53-why-the-previous-snapshot-is-pre-loaded">5.3 Why the previous snapshot is pre-loaded</h3>
+<p><code>preload_latest(product_ids, source_code)</code> fetches the newest snapshot for <strong>all</strong> products of a source in one ordered query and keeps the first row per product. Without it, the loader would issue one query per record (an N+1 pattern) and, worse, would compare against a snapshot it had just written inside the same run.</p>
+<hr>
+<h2 id="6-key-algorithm-4--data-quality-scoring">6. Key algorithm 4 — data-quality scoring</h2>
+<h3 id="61-the-12-rules">6.1 The 12 rules</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Code</th>
+<th>Name</th>
+<th>Dimension</th>
+<th>Severity</th>
+<th>Threshold</th>
+<th>SQL intent</th>
+</tr></thead><tbody>
+<tr>
+<th>DQ001</th>
+<td>Required fields populated</td>
+<td>completeness</td>
+<td>error</td>
+<td>≥ 95 %</td>
+<td>Active products with name, price and category</td>
+</tr>
+<tr>
+<th>DQ002</th>
+<td>Prices within valid range</td>
+<td>validity</td>
+<td>error</td>
+<td>≥ 99 %</td>
+<td><code>price</code> between 0 and 1,000,000</td>
+</tr>
+<tr>
+<th>DQ003</th>
+<td>Ratings within 0–5 scale</td>
+<td>validity</td>
+<td>error</td>
+<td>≥ 98 %</td>
+<td><code>rating</code> between 0 and 5</td>
+</tr>
+<tr>
+<th>DQ004</th>
+<td>Currency codes known</td>
+<td>consistency</td>
+<td>error</td>
+<td>100 %</td>
+<td>Every snapshot currency exists in <code>dim_currency</code></td>
+</tr>
+<tr>
+<th>DQ005</th>
+<td>Product fingerprints unique</td>
+<td>uniqueness</td>
+<td>warn</td>
+<td>≥ 99.5 %</td>
+<td>Fingerprint collisions among active products</td>
+</tr>
+<tr>
+<th>DQ006</th>
+<td>One snapshot per product per run</td>
+<td>uniqueness</td>
+<td><strong>critical</strong></td>
+<td>0</td>
+<td>Fact-grain violations</td>
+</tr>
+<tr>
+<th>DQ007</th>
+<td>Data freshness</td>
+<td>timeliness</td>
+<td>warn</td>
+<td>≤ 48 h</td>
+<td>Hours since the newest snapshot</td>
+</tr>
+<tr>
+<th>DQ008</th>
+<td>Category coverage</td>
+<td>completeness</td>
+<td>warn</td>
+<td>≥ 90 %</td>
+<td>Active products not in <code>Uncategorised</code></td>
+</tr>
+<tr>
+<th>DQ009</th>
+<td>Price movement plausibility</td>
+<td>accuracy</td>
+<td>warn</td>
+<td>≥ 99 %</td>
+<td>`</td>
+<td>price_change_pct</td>
+<td>&gt; 50`</td>
+</tr>
+<tr>
+<th>DQ010</th>
+<td>Availability captured</td>
+<td>completeness</td>
+<td>info</td>
+<td>≥ 85 %</td>
+<td>Snapshots with <code>availability</code> known</td>
+</tr>
+<tr>
+<th>DQ011</th>
+<td>Run produced observations</td>
+<td>completeness</td>
+<td><strong>critical</strong></td>
+<td>≥ 1</td>
+<td>Snapshots written by this run</td>
+</tr>
+<tr>
+<th>DQ012</th>
+<td>Rejection rate in staging</td>
+<td>validity</td>
+<td>warn</td>
+<td>≥ 90 %</td>
+<td><code>stg_raw_observation.is_valid</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="62-classification">6.2 Classification</h3>
+<pre class="code" data-lang="python"><code>def _status(observed, threshold, higher_is_better=True):
+    if observed is None: return &quot;fail&quot;
+    if higher_is_better:
+        if observed &gt;= threshold:                 return &quot;pass&quot;
+        if observed &gt;= threshold * 0.95:          return &quot;warn&quot;   # 5 % tolerance band
+        return &quot;fail&quot;
+    if observed &lt;= threshold:                     return &quot;pass&quot;
+    if observed &lt;= threshold * 1.05:              return &quot;warn&quot;
+    return &quot;fail&quot;</code></pre>
+<p>For the freshness rule the three bands are explicit: pass ≤ 24 h, warn ≤ 48 h, fail beyond.</p>
+<h3 id="63-score">6.3 Score</h3>
+<pre class="code" data-lang="text"><code>weight(outcome) = 1 + 0.5 × severity_rank        severity_rank: info 0, warn 1, error 2, critical 3
+factor(status)  = pass 1.0 | warn 0.75 | fail 0.0
+score           = round( Σ(weight × factor) / Σ(weight) × 100 , 2 )</code></pre>
+<p>With the delivered dataset (22 pass, 2 warn, 0 fail; severities mostly <code>error</code> and <code>warn</code>) the score is <strong>98.26</strong>, identical on PostgreSQL and MySQL.</p>
+<h3 id="64-gating">6.4 Gating</h3>
+<p><code>QualityReport.blocking_failures</code> returns only outcomes that are <code>fail</code> <strong>and</strong> <code>critical</code>. The pipeline sets the run status to <code>failed</code> if that list is non-empty; otherwise <code>partial</code> if any source failed; otherwise <code>success</code>. This separation is deliberate: an <code>error</code> failure is reported loudly without blocking the warehouse.</p>
+<h3 id="65-isolation">6.5 Isolation</h3>
+<pre class="code" data-lang="python"><code>def run(self, session, context):
+    nested = session.begin_nested()          # SAVEPOINT
+    try:
+        outcome = self.evaluator(session, context or {})
+        nested.commit()
+        return outcome
+    except Exception as exc:
+        nested.rollback()
+        return RuleOutcome(status=&quot;fail&quot;, message=f&quot;rule evaluation error: ...&quot;)</code></pre>
+<p>A broken rule degrades to a recorded failure; the remaining 11 rules still run.</p>
+<hr>
+<h2 id="7-configuration-reference">7. Configuration reference</h2>
+<p>Every setting is a field of <code>Settings</code> (Pydantic v2). Precedence: real environment variables → <code>.env</code> file → declared default. Validation happens once at import (and can be refreshed with <code>reload_settings()</code>).</p>
+<div class='table-scroll'><table><thead><tr>
+<th>#</th>
+<th>Variable</th>
+<th>Type</th>
+<th>Default</th>
+<th>Effect and valid values</th>
+</tr></thead><tbody>
+<tr>
+<th>1</th>
+<td><code>APP_NAME</code></td>
+<td>str</td>
+<td><code>Product Intelligence Pipeline</code></td>
+<td>Reported by <code>/meta</code> and <code>/version</code></td>
+</tr>
+<tr>
+<th>2</th>
+<td><code>APP_ENV</code></td>
+<td>literal</td>
+<td><code>development</code></td>
+<td><code>development</code> \</td>
+<td><code>testing</code> \</td>
+<td><code>production</code>; drives <code>is_production</code>, hides demo accounts</td>
+</tr>
+<tr>
+<th>3</th>
+<td><code>APP_DEBUG</code></td>
+<td>bool</td>
+<td><code>true</code></td>
+<td>Verbose logging and <code>details.type</code> in 500 responses</td>
+</tr>
+<tr>
+<th>4</th>
+<td><code>APP_HOST</code></td>
+<td>str</td>
+<td><code>0.0.0.0</code></td>
+<td>Bind address for <code>pip-cli serve</code></td>
+</tr>
+<tr>
+<th>5</th>
+<td><code>APP_PORT</code></td>
+<td>int</td>
+<td><code>8000</code></td>
+<td>API port</td>
+</tr>
+<tr>
+<th>6</th>
+<td><code>APP_TIMEZONE</code></td>
+<td>str</td>
+<td><code>UTC</code></td>
+<td>Display timezone label</td>
+</tr>
+<tr>
+<th>7</th>
+<td><code>APP_LOG_LEVEL</code></td>
+<td>str</td>
+<td><code>INFO</code></td>
+<td>Root log level</td>
+</tr>
+<tr>
+<th>8</th>
+<td><code>APP_LOG_FORMAT</code></td>
+<td>literal</td>
+<td><code>text</code></td>
+<td><code>text</code> (ANSI console) \</td>
+<td><code>json</code> (shipper-friendly)</td>
+</tr>
+<tr>
+<th>9</th>
+<td><code>APP_VERSION</code></td>
+<td>str</td>
+<td><code>1.0.0</code></td>
+<td>API version string</td>
+</tr>
+<tr>
+<th>10</th>
+<td><code>DATABASE_URL</code></td>
+<td>str</td>
+<td><code>sqlite:///var/pipeline.sqlite3</code></td>
+<td>Primary SQLAlchemy URL; PostgreSQL in every real deployment</td>
+</tr>
+<tr>
+<th>11</th>
+<td><code>MYSQL_URL</code></td>
+<td>str</td>
+<td><code>""</code></td>
+<td>Secondary URL; required when <code>ACTIVE_DATABASE=mysql</code></td>
+</tr>
+<tr>
+<th>12</th>
+<td><code>ACTIVE_DATABASE</code></td>
+<td>literal</td>
+<td><code>postgres</code></td>
+<td><code>postgres</code> \</td>
+<td><code>mysql</code> \</td>
+<td><code>sqlite</code>; overridden by <code>--database</code></td>
+</tr>
+<tr>
+<th>13</th>
+<td><code>DB_SCHEMA</code></td>
+<td>str</td>
+<td><code>public</code></td>
+<td>Schema created on PostgreSQL; stripped for other dialects</td>
+</tr>
+<tr>
+<th>14</th>
+<td><code>DB_ECHO</code></td>
+<td>bool</td>
+<td><code>false</code></td>
+<td>Log every statement — development only</td>
+</tr>
+<tr>
+<th>15</th>
+<td><code>DB_POOL_SIZE</code></td>
+<td>int</td>
+<td><code>10</code></td>
+<td>Pool size for PostgreSQL/MySQL</td>
+</tr>
+<tr>
+<th>16</th>
+<td><code>DB_MAX_OVERFLOW</code></td>
+<td>int</td>
+<td><code>20</code></td>
+<td>Extra connections beyond the pool size</td>
+</tr>
+<tr>
+<th>17</th>
+<td><code>DB_POOL_RECYCLE</code></td>
+<td>int</td>
+<td><code>1800</code></td>
+<td>Recycle connections after 30 minutes (proxy-friendly)</td>
+</tr>
+<tr>
+<th>18</th>
+<td><code>DB_STATEMENT_TIMEOUT_MS</code></td>
+<td>int</td>
+<td><code>30000</code></td>
+<td>PostgreSQL <code>statement_timeout</code> applied at connect</td>
+</tr>
+<tr>
+<th>19</th>
+<td><code>SECRET_KEY</code></td>
+<td>str</td>
+<td>dev placeholder</td>
+<td>JWT signing key and API-key pepper. <strong>Rotate in production</strong></td>
+</tr>
+<tr>
+<th>20</th>
+<td><code>JWT_ALGORITHM</code></td>
+<td>str</td>
+<td><code>HS256</code></td>
+<td>Signing algorithm</td>
+</tr>
+<tr>
+<th>21</th>
+<td><code>ACCESS_TOKEN_EXPIRE_MINUTES</code></td>
+<td>int</td>
+<td><code>720</code></td>
+<td>Access-token lifetime (12 h)</td>
+</tr>
+<tr>
+<th>22</th>
+<td><code>REFRESH_TOKEN_EXPIRE_DAYS</code></td>
+<td>int</td>
+<td><code>30</code></td>
+<td>Refresh-token lifetime</td>
+</tr>
+<tr>
+<th>23</th>
+<td><code>CORS_ORIGINS</code></td>
+<td>csv</td>
+<td><code>http://localhost:5173,<a href="http://127.0.0.1:5173">http://127.0.0.1:5173</a></code></td>
+<td>Normalised (trimmed, trailing slash removed); no wildcard with credentials</td>
+</tr>
+<tr>
+<th>24</th>
+<td><code>SEED_ADMIN_EMAIL</code></td>
+<td>str</td>
+<td><code>admin@example.com</code></td>
+<td>Seeded administrator</td>
+</tr>
+<tr>
+<th>25</th>
+<td><code>SEED_ADMIN_PASSWORD</code></td>
+<td>str</td>
+<td><code>Admin@12345</code></td>
+<td><strong>Change outside development</strong></td>
+</tr>
+<tr>
+<th>26</th>
+<td><code>SEED_ANALYST_EMAIL</code></td>
+<td>str</td>
+<td><code>analyst@example.com</code></td>
+<td>Seeded analyst</td>
+</tr>
+<tr>
+<th>27</th>
+<td><code>SEED_ANALYST_PASSWORD</code></td>
+<td>str</td>
+<td><code>Analyst@12345</code></td>
+<td><strong>Change outside development</strong></td>
+</tr>
+<tr>
+<th>28</th>
+<td><code>SEED_VIEWER_EMAIL</code></td>
+<td>str</td>
+<td><code>viewer@example.com</code></td>
+<td>Seeded viewer</td>
+</tr>
+<tr>
+<th>29</th>
+<td><code>SEED_VIEWER_PASSWORD</code></td>
+<td>str</td>
+<td><code>Viewer@12345</code></td>
+<td><strong>Change outside development</strong></td>
+</tr>
+<tr>
+<th>30</th>
+<td><code>SEED_DEMO_DATA</code></td>
+<td>bool</td>
+<td><code>true</code></td>
+<td>Seed users/settings on API boot</td>
+</tr>
+<tr>
+<th>31</th>
+<td><code>INGEST_USER_AGENT</code></td>
+<td>str</td>
+<td><code>ProductIntelligenceBot/1.0 (+…; contact: …)</code></td>
+<td>Crawler identity; must stay honest</td>
+</tr>
+<tr>
+<th>32</th>
+<td><code>RESPECT_ROBOTS_TXT</code></td>
+<td>bool</td>
+<td><code>true</code></td>
+<td>Master switch for the robots gate. Never disable</td>
+</tr>
+<tr>
+<th>33</th>
+<td><code>REQUEST_TIMEOUT_SECONDS</code></td>
+<td>float</td>
+<td><code>20.0</code></td>
+<td>httpx timeout</td>
+</tr>
+<tr>
+<th>34</th>
+<td><code>MAX_RETRIES</code></td>
+<td>int</td>
+<td><code>3</code></td>
+<td>Retries after the first attempt</td>
+</tr>
+<tr>
+<th>35</th>
+<td><code>RETRY_BACKOFF_SECONDS</code></td>
+<td>float</td>
+<td><code>1.5</code></td>
+<td>Base for <code>backoff × 2^attempt</code></td>
+</tr>
+<tr>
+<th>36</th>
+<td><code>REQUESTS_PER_SECOND</code></td>
+<td>float</td>
+<td><code>1.0</code></td>
+<td>Token-bucket refill rate per host</td>
+</tr>
+<tr>
+<th>37</th>
+<td><code>REQUESTS_PER_MINUTE</code></td>
+<td>int</td>
+<td><code>30</code></td>
+<td>Hard sliding-window ceiling per host</td>
+</tr>
+<tr>
+<th>38</th>
+<td><code>CRAWL_DELAY_FALLBACK_SECONDS</code></td>
+<td>float</td>
+<td><code>2.0</code></td>
+<td>Minimum delay when a source declares none</td>
+</tr>
+<tr>
+<th>39</th>
+<td><code>MAX_CONCURRENT_REQUESTS</code></td>
+<td>int</td>
+<td><code>4</code></td>
+<td>httpx connection/keepalive limit</td>
+</tr>
+<tr>
+<th>40</th>
+<td><code>CACHE_ENABLED</code></td>
+<td>bool</td>
+<td><code>true</code></td>
+<td>Disk response cache</td>
+</tr>
+<tr>
+<th>41</th>
+<td><code>CACHE_TTL_SECONDS</code></td>
+<td>int</td>
+<td><code>1800</code></td>
+<td>Cache and robots-cache TTL</td>
+</tr>
+<tr>
+<th>42</th>
+<td><code>RESPECT_TERMS_WHITELIST</code></td>
+<td>bool</td>
+<td><code>true</code></td>
+<td>Disable a source whose <code>terms_allowed</code> is false. Never disable</td>
+</tr>
+<tr>
+<th>43</th>
+<td><code>PIPELINE_BATCH_SIZE</code></td>
+<td>int</td>
+<td><code>500</code></td>
+<td>Staging and load batch size</td>
+</tr>
+<tr>
+<th>44</th>
+<td><code>PIPELINE_FAIL_FAST</code></td>
+<td>bool</td>
+<td><code>false</code></td>
+<td>Abort the run on the first source error</td>
+</tr>
+<tr>
+<th>45</th>
+<td><code>DEDUPE_SIMILARITY_THRESHOLD</code></td>
+<td>float</td>
+<td><code>0.90</code></td>
+<td>Fuzzy match threshold; validated to 0–1 at startup</td>
+</tr>
+<tr>
+<th>46</th>
+<td><code>DEDUPE_BLOCKING_KEY_LENGTH</code></td>
+<td>int</td>
+<td><code>4</code></td>
+<td>Blocking prefix length</td>
+</tr>
+<tr>
+<th>47</th>
+<td><code>DEDUPE_CANDIDATE_LIMIT</code></td>
+<td>int</td>
+<td><code>25</code></td>
+<td>Max candidates per comparison</td>
+</tr>
+<tr>
+<th>48</th>
+<td><code>MAX_PRODUCTS_PER_SOURCE</code></td>
+<td>int</td>
+<td><code>400</code></td>
+<td>Upper bound on records per source per run</td>
+</tr>
+<tr>
+<th>49</th>
+<td><code>CACHE_DIR</code></td>
+<td>path</td>
+<td><code>var/http-cache</code></td>
+<td>Where responses are stored</td>
+</tr>
+<tr>
+<th>50</th>
+<td><code>LOG_DIR</code></td>
+<td>path</td>
+<td><code>var/logs</code></td>
+<td>Rotating file logs (<code>--log-file</code>)</td>
+</tr>
+<tr>
+<th>51</th>
+<td><code>ARTIFACTS_DIR</code></td>
+<td>path</td>
+<td><code>var/artifacts</code></td>
+<td>DAG report artefacts</td>
+</tr>
+<tr>
+<th>52</th>
+<td><code>VITE_API_BASE_URL</code></td>
+<td>str</td>
+<td><code>http://localhost:8000/api/v1</code></td>
+<td>Baked into the frontend bundle at build time</td>
+</tr>
+<tr>
+<th>53</th>
+<td><code>FRONTEND_PORT</code></td>
+<td>int</td>
+<td><code>5173</code></td>
+<td>Compose port mapping</td>
+</tr>
+<tr>
+<th>54</th>
+<td><code>POSTGRES_USER</code> / <code>POSTGRES_PASSWORD</code> / <code>POSTGRES_DB</code> / <code>POSTGRES_PORT</code></td>
+<td>str/int</td>
+<td><code>pip</code>/<code>pip</code>/<code>pipeline</code>/<code>5432</code></td>
+<td>Compose PostgreSQL</td>
+</tr>
+<tr>
+<th>55</th>
+<td><code>MYSQL_USER</code> / <code>MYSQL_PASSWORD</code> / <code>MYSQL_DATABASE</code> / <code>MYSQL_ROOT_PASSWORD</code> / <code>MYSQL_PORT</code></td>
+<td>str/int</td>
+<td><code>pip</code>/<code>pip</code>/<code>pipeline</code>/<code>root</code>/<code>3306</code></td>
+<td>Compose MySQL</td>
+</tr>
+<tr>
+<th>56</th>
+<td><code>AIRFLOW_PORT</code> / <code>AIRFLOW_UID</code> / <code>AIRFLOW_GID</code> / <code>AIRFLOW_ADMIN_PASSWORD</code></td>
+<td>int/str</td>
+<td><code>8080</code>/<code>50000</code>/<code>0</code>/<code>admin</code></td>
+<td>Compose Airflow</td>
+</tr>
+<tr>
+<th>57</th>
+<td><code>APP_PORT</code> (Docker)</td>
+<td>int</td>
+<td><code>8000</code></td>
+<td>Compose API mapping</td>
+</tr>
+<tr>
+<th>58</th>
+<td><code>PIP_PROJECT_ROOT</code></td>
+<td>str</td>
+<td><code>/opt/airflow</code></td>
+<td>Import path for the DAG</td>
+</tr>
+<tr>
+<th>59</th>
+<td><code>PIP_SCHEDULE</code></td>
+<td>str</td>
+<td><code>0 3 <em> </em> *</code></td>
+<td>DAG cron expression</td>
+</tr>
+<tr>
+<th>60</th>
+<td><code>PIP_REQUESTS_PER_SOURCE</code></td>
+<td>int</td>
+<td><code>120</code></td>
+<td>Records per source in the DAG</td>
+</tr>
+<tr>
+<th>61</th>
+<td><code>PIP_DATABASE_URL</code></td>
+<td>str</td>
+<td>—</td>
+<td>Warehouse URL for the DAG containers</td>
+</tr>
+<tr>
+<th>62</th>
+<td><code>SMOKE_EMAIL</code> / <code>SMOKE_PASSWORD</code></td>
+<td>str</td>
+<td>demo admin</td>
+<td>Credentials used by <code>scripts/api_smoke.py</code></td>
+</tr>
+</tbody></table></div>
+<p>Validators worth knowing: <code>db_schema</code> is trimmed and defaults to <code>public</code>; <code>dedupe_similarity_threshold</code> must be in <code>[0, 1]</code>; <code>cors_origins</code> is normalised to a clean list.</p>
+<hr>
+<h2 id="8-extension-guide--adding-a-source">8. Extension guide — adding a source</h2>
+<p>Six steps. Estimated effort: 1–2 hours for an API source, 3–4 hours for an HTML scraper.</p>
+<h3 id="step-1--write-the-adapter">Step 1 — Write the adapter</h3>
+<p>Create <code>app/ingestion/sources/&lt;code&gt;.py</code>:</p>
+<pre class="code" data-lang="python"><code>from __future__ import annotations
+
+from collections.abc import Iterator
+from typing import Any, ClassVar
+
+from app.core.config import settings
+from app.ingestion.base import ProductSource, RawProduct, register_source
+
+
+@register_source
+class ExampleComSource(ProductSource):
+    &quot;&quot;&quot;One-line description of what this source is permitted to provide.&quot;&quot;&quot;
+
+    code: ClassVar[str] = &quot;example_com&quot;          # unique, snake_case
+    name: ClassVar[str] = &quot;Example.com products API&quot;
+    kind: ClassVar[str] = &quot;api&quot;                  # api | scrape | synthetic
+    base_url: ClassVar[str] = &quot;https://api.example.com/products&quot;
+    terms_url: ClassVar[str | None] = &quot;https://example.com/terms&quot;
+    license_note: ClassVar[str | None] = &quot;Free API for non-commercial use.&quot;
+    default_currency: ClassVar[str] = &quot;USD&quot;
+    rate_limit_per_minute: ClassVar[int] = 30
+    min_delay_seconds: ClassVar[float] = 1.0
+    supports_paging: ClassVar[bool] = True
+    description: ClassVar[str] = &quot;Shown on the Sources screen.&quot;
+
+    def fetch(self, limit: int | None = None) -&gt; Iterator[RawProduct]:
+        limit = limit or settings.max_products_per_source
+        skip = 0
+        emitted = 0
+        while emitted &lt; limit:
+            self._count_request()                                  # keep the HTTP counter honest
+            payload = self.client.get_json(                        # robots gate + rate limit + cache + audit
+                self.base_url, params={&quot;limit&quot;: min(100, limit - emitted), &quot;skip&quot;: skip}
+            )
+            items = payload.get(&quot;items&quot;) or []
+            if not items:
+                break
+            for item in items:
+                yield self._to_raw(item)
+                emitted += 1
+                if emitted &gt;= limit:
+                    break
+            skip += len(items)
+
+    def _to_raw(self, item: dict[str, Any]) -&gt; RawProduct:
+        return RawProduct(
+            source_code=self.code,
+            source_product_id=str(item[&quot;id&quot;]),
+            name=item[&quot;title&quot;],
+            category=item.get(&quot;category&quot;),
+            price_text=str(item.get(&quot;price&quot;)),
+            currency_hint=self.default_currency,
+            rating_text=str(item.get(&quot;rating&quot;)) if item.get(&quot;rating&quot;) is not None else None,
+            availability_text=&quot;in_stock&quot; if item.get(&quot;stock&quot;) else &quot;out_of_stock&quot;,
+            url=item.get(&quot;url&quot;),
+            image_url=item.get(&quot;thumbnail&quot;),
+            brand=item.get(&quot;brand&quot;),
+            description=item.get(&quot;description&quot;),
+            payload=item,
+        )</code></pre>
+<p>For an HTML source, replace <code>get_json</code> with <code>self.client.get_soup(url)</code> and select with BeautifulSoup (as in <code>books_to_scrape.py</code>). Keep the adapter dumb: extract only, never clean.</p>
+<h3 id="step-2--register-the-module-for-import">Step 2 — Register the module for import</h3>
+<p>Add the module to the <code>load_builtin_sources()</code> import block in <code>app/ingestion/base.py</code>:</p>
+<pre class="code" data-lang="python"><code>    from app.ingestion.sources import (
+        dummyjson, fakestore, local_fixture, openlibrary, books_to_scrape, example_com,
+    )</code></pre>
+<h3 id="step-3--justify-the-permission">Step 3 — Justify the permission</h3>
+<p>Record the terms position in <code>docs/01_project_proposal.md</code> §8.2 and set <code>terms_allowed</code> honestly. If the terms are unclear, leave <code>terms_allowed = False</code> — the pipeline will skip the source and <code>sync_dim_source()</code> will record why.</p>
+<h3 id="step-4--verify-extraction-and-cleaning">Step 4 — Verify extraction and cleaning</h3>
+<pre class="code" data-lang="bash"><code>pip-cli sources list                            # the source appears with its compliance metadata
+pip-cli sources preview example_com --limit 5   # raw vs cleaned, price, USD, rating, flags</code></pre>
+<p>Check that: prices parse, the currency is right, ratings land in 0–5, availability is recognised, and the flags column is empty.</p>
+<h3 id="step-5--add-it-to-the-schedule">Step 5 — Add it to the schedule</h3>
+<pre class="code" data-lang="python"><code># dags/product_intelligence_pipeline.py
+DEFAULT_SOURCES = [&quot;local_demo&quot;, &quot;dummyjson_products&quot;, &quot;fakestore_products&quot;, &quot;example_com&quot;]</code></pre>
+<p>Or set <code>pipeline.default_sources</code> in <code>app_setting</code> for the UI-driven configuration.</p>
+<h3 id="step-6--test-and-document">Step 6 — Test and document</h3>
+<ul>
+<li class="depth-0">Add a unit test for the <code>_to_raw</code> mapping and a fixture in <code>tests/</code>.</li>
+<li class="depth-0">Add two checks to <code>scripts/api_smoke.py</code> (registry listing and preview).</li>
+<li class="depth-0">Run the pipeline for one source and confirm snapshots, quality and reconciliation:</li>
+</ul>
+<p><code>make run-pipeline</code> then <code>pip-cli report</code>.</p>
+<ul>
+<li class="depth-0">Update <code>docs/19_feature_list.md</code> and the source table in <code>docs/17</code> §1.</li>
+<li class="depth-0">Re-run <code>scripts/api_smoke.py</code> and <code>make verify-dialects</code> before merging.</li>
+</ul>
+<p><strong>Things the framework already gives you:</strong> robots enforcement, rate limiting, <code>Crawl-delay</code>, retries with back-off, <code>Retry-After</code> handling, the disk cache, the HTTP audit log, the per-source circuit breaker, bounded extraction, staging, cleaning, deduplication, change detection, DQ rules, source statistics, sync state and every dashboard panel that is keyed by source.</p>
+<hr>
+<h2 id="9-performance-notes">9. Performance notes</h2>
+<h3 id="91-measured-baseline">9.1 Measured baseline</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Operation</th>
+<th>Measured</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<td>Pipeline run (60 extracted, 57 loaded)</td>
+<td>3,481 ms</td>
+<td>Nine stages; <code>reconcile</code> dominates</td>
+</tr>
+<tr>
+<td>Catalog reconciliation (57 SKUs)</td>
+<td>104 ms cold, 182 ms warm</td>
+<td>After blocking; was 2,975 ms</td>
+</tr>
+<tr>
+<td>API p95 (12 read endpoints)</td>
+<td>≤ 38.2 ms</td>
+<td>PostgreSQL, 8,302 snapshots</td>
+</tr>
+<tr>
+<th><code>GET /products/facets</code></th>
+<td>36.5 ms median</td>
+<td>Five <code>GROUP BY</code> queries over <code>vw_product_current</code></td>
+</tr>
+<tr>
+<th><code>bootstrap()</code></th>
+<td>23 tables + 20 views in ≈ 300 ms</td>
+<td>PostgreSQL</td>
+</tr>
+</tbody></table></div>
+<h3 id="92-design-choices-that-buy-performance">9.2 Design choices that buy performance</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Choice</th>
+<th>Effect</th>
+</tr></thead><tbody>
+<tr>
+<td>Blocking before fuzzy comparison</td>
+<td>Comparison set is constant instead of O(n)</td>
+</tr>
+<tr>
+<td>In-memory dimension caches</td>
+<td>One query per dimension per source instead of one per record</td>
+</tr>
+<tr>
+<th><code>preload_latest</code></th>
+<td>One ordered query per source instead of N+1</td>
+</tr>
+<tr>
+<td>Batched inserts (<code>PIPELINE_BATCH_SIZE</code>)</td>
+<td>One <code>executemany</code> per batch</td>
+</tr>
+<tr>
+<td>Trigram <code>lru_cache(50_000)</code></td>
+<td>Repeated token sets are free</td>
+</tr>
+<tr>
+<td>Fingerprint cache per run</td>
+<td>No query for exact matches</td>
+</tr>
+<tr>
+<td>Composite indexes matching the views' predicates</td>
+<td>Index-only scans for the dashboard queries</td>
+</tr>
+<tr>
+<td>Aggregates (<code>agg_category_daily</code>)</td>
+<td>Interactive category numbers without scanning facts</td>
+</tr>
+<tr>
+<td>Disk HTTP cache (TTL 1,800 s)</td>
+<td>Repeat runs cost zero network</td>
+</tr>
+<tr>
+<td>Views as the semantic layer</td>
+<td>Analysts query pre-joined, pre-filtered data</td>
+</tr>
+</tbody></table></div>
+<h3 id="93-known-bottlenecks-and-fixes">9.3 Known bottlenecks and fixes</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Bottleneck</th>
+<th>Symptom</th>
+<th>Fix</th>
+</tr></thead><tbody>
+<tr>
+<td><code>reconcile</code> on a large catalog</td>
+<td>Grows with SKUs × candidates</td>
+<td>Raise <code>max_pool</code>, widen the block index, or persist a materialised candidate table</td>
+</tr>
+<tr>
+<td><code>fact_price_snapshot</code> growth</td>
+<td>Slower trend queries</td>
+<td>Partition by month; archive beyond the retention window</td>
+</tr>
+<tr>
+<th><code>products/facets</code></th>
+<td>Five separate group-bys</td>
+<td>Cache per <code>run_id</code>, or pre-aggregate facets nightly</td>
+</tr>
+<tr>
+<td>DQ rules on a huge fact table</td>
+<td>Full scans per rule</td>
+<td>Add indexes on the predicate columns (<code>price</code>, <code>rating</code>, <code>availability</code>)</td>
+</tr>
+<tr>
+<th><code>preload_dimensions</code></th>
+<td>Loads every category row</td>
+<td>Cache across runs in a process-level map</td>
+</tr>
+<tr>
+<td><code>vw_product_current</code> correlated subquery</td>
+<td>Per-row max lookup</td>
+<td>Replace with a window function (<code>ROW_NUMBER()</code>), which all three engines support</td>
+</tr>
+</tbody></table></div>
+<h3 id="94-index-and-configuration-tuning">9.4 Index and configuration tuning</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Goal</th>
+<th>Knob</th>
+</tr></thead><tbody>
+<tr>
+<td>Faster duplicate resolution</td>
+<td>Lower <code>DEDUPE_BLOCKING_KEY_LENGTH</code> (more candidates) or lower <code>DEDUPE_CANDIDATE_LIMIT</code> (risk missing matches)</td>
+</tr>
+<tr>
+<th>Faster staging</th>
+<td>Raise <code>PIPELINE_BATCH_SIZE</code> to 2,000+</td>
+</tr>
+<tr>
+<th>Fewer outbound requests</th>
+<td>Raise <code>CACHE_TTL_SECONDS</code>, lower <code>REQUESTS_PER_MINUTE</code></td>
+</tr>
+<tr>
+<th>Faster API under load</th>
+<td>Raise <code>DB_POOL_SIZE</code> to ≈ 2 × workers; keep <code>DB_POOL_RECYCLE</code> below the proxy idle timeout</td>
+</tr>
+<tr>
+<th>Bound a single response</th>
+<td><code>page_size ≤ 200</code>, <code>limit ≤ 200</code>, <code>days ≤ 3,650</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="10-security-notes">10. Security notes</h2>
+<h3 id="101-what-is-implemented">10.1 What is implemented</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Control</th>
+<th>Implementation</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<th>Password hashing</th>
+<td>Argon2id, <code>time_cost=2</code>, <code>memory_cost=65536</code>, <code>parallelism=2</code></td>
+<td>Memory-hard; <code>needs_rehash</code> upgrades old parameters at login</td>
+</tr>
+<tr>
+<th>Password policy</th>
+<td>≥ 10 characters, upper, lower, digit, symbol</td>
+<td>Enforced server-side in <code>password_strength()</code> and by a Pydantic validator</td>
+</tr>
+<tr>
+<th>Brute-force control</th>
+<td>5 failures → 15-minute lock, counter reset</td>
+<td>Audited with the failure</td>
+</tr>
+<tr>
+<th>Session tokens</th>
+<td>HS256 JWT with <code>sub</code>, <code>role</code>, <code>email</code>, <code>iat</code>, <code>exp</code>, <code>type</code>, <code>iss</code></td>
+<td><code>decode_token</code> requires <code>exp</code>/<code>sub</code>, verifies the issuer and the token type</td>
+</tr>
+<tr>
+<th>Authorisation</th>
+<td><code>ROLE_RIGHTS</code> + <code>require_rights(...)</code> dependency</td>
+<td>10 rights across 3 roles; least privilege</td>
+</tr>
+<tr>
+<th>API keys</th>
+<td><code>pip_</code> + 32 bytes of <code>secrets.token_urlsafe</code>, stored as <code>SHA-256(SECRET_KEY + key)</code></td>
+<td>Shown once; prefix stored; revocable; 90-day expiry</td>
+</tr>
+<tr>
+<th>SQL injection</th>
+<td>Parameter binding everywhere; the only interpolated values are whitelisted sort columns and generated placeholders</td>
+<td><code>SORTABLE</code> maps client input to fixed column names</td>
+</tr>
+<tr>
+<th>Read-only console</th>
+<td>Validator allows <code>SELECT</code>/<code>WITH</code>/<code>EXPLAIN</code> only; rejects write keywords, comments and multiple statements</td>
+<td>Defence in depth: use a read-only database role as well</td>
+</tr>
+<tr>
+<th>Mass assignment</th>
+<td>Pydantic models with explicit fields; <code>exclude_unset=True</code> on profile updates</td>
+<td>A user cannot set their own <code>role</code></td>
+</tr>
+<tr>
+<th>Error disclosure</th>
+<td><code>details.type</code> only when <code>APP_DEBUG=true</code>; credentials redacted by <code>describe_target()</code></td>
+<td>No stack traces or URLs with credentials leak</td>
+</tr>
+<tr>
+<th>Audit</th>
+<td>Login, logout, failed login, password change, user create/update/deactivate, pipeline trigger, settings writes</td>
+<td><code>app_audit_log</code> rows survive user deletion (<code>ON DELETE SET NULL</code>)</td>
+</tr>
+<tr>
+<th>Transport</th>
+<td>TLS required in production; CORS allow-list; no wildcard with credentials</td>
+<td>Documented in <code>docs/13</code> §8.3</td>
+</tr>
+<tr>
+<th>Headers</th>
+<td><code>X-Process-Time-Ms</code>, <code>X-Database</code> exposed deliberately; no <code>Server</code> detail added</td>
+<td>Consider HSTS and <code>X-Content-Type-Options</code> at the proxy</td>
+</tr>
+</tbody></table></div>
+<h3 id="102-threats-and-mitigations">10.2 Threats and mitigations</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Threat</th>
+<th>Mitigation</th>
+<th>Residual risk</th>
+</tr></thead><tbody>
+<tr>
+<th>Credential stuffing</th>
+<td>Lockout, audit, Argon2id cost</td>
+<td>Distributed attacks are not addressed (rate limiting at the proxy)</td>
+</tr>
+<tr>
+<th>Token theft</th>
+<td>Short access-token life, refresh rotation, no localStorage storage recommendation</td>
+<td>Without 2FA, a stolen refresh token is valid for its lifetime</td>
+</tr>
+<tr>
+<th>Privilege escalation</th>
+<td>Role checked server-side on every request; <code>role</code> in the token is never trusted for authorisation — the database row is</td>
+<td>None identified</td>
+</tr>
+<tr>
+<td>SQL injection through the Query Lab</td>
+<td>Allow-list validator plus a read-only role recommendation</td>
+<td>A future <code>EXPLAIN ANALYZE</code>-style extension must re-review the validator</td>
+</tr>
+<tr>
+<td>SSRF through a source URL</td>
+<td>Sources are code-level classes, not user input; <code>validate_url</code> requires <code>http(s)</code></td>
+<td>Adding a user-supplied URL source would need egress filtering</td>
+</tr>
+<tr>
+<td>Data exfiltration via export</td>
+<td>Row caps, role-gated endpoints, audit trail</td>
+<td>Bulk export by an analyst is possible by design; add watermarking if required</td>
+</tr>
+<tr>
+<td>Secrets in the repository</td>
+<td><code>.env</code> ignored; <code>.env.example</code> only; redaction in logs</td>
+<td>Rotate immediately if a credential is ever committed</td>
+</tr>
+<tr>
+<th>Unpinned dependency risk</th>
+<td>Version floors in <code>pyproject.toml</code></td>
+<td>Add a lock file and dependency scanning in CI</td>
+</tr>
+</tbody></table></div>
+<h3 id="103-hardening-recommendations">10.3 Hardening recommendations</h3>
+<ul>
+<li class="depth-0">Set <code>APP_ENV=production</code>, <code>APP_DEBUG=false</code>, <code>SEED_DEMO_DATA=false</code>.</li>
+<li class="depth-0">Generate a 32+ byte <code>SECRET_KEY</code> (<code>python -c "import secrets; print(secrets.token_urlsafe(48))"</code>).</li>
+<li class="depth-0">Rotate or delete the seeded accounts; force a password change.</li>
+<li class="depth-0">Restrict <code>CORS_ORIGINS</code> to the exact dashboard origin.</li>
+<li class="depth-0">Grant the application database role only <code>SELECT, INSERT, UPDATE, DELETE</code> (plus <code>CREATE</code> during</li>
+</ul>
+<p>bootstrap), and use a strictly read-only role for the Query Lab connection.</p>
+<ul>
+<li class="depth-0">Terminate TLS at a proxy and add <code>Strict-Transport-Security</code>, <code>X-Content-Type-Options: nosniff</code></li>
+</ul>
+<p>and <code>Content-Security-Policy</code>.</p>
+<ul>
+<li class="depth-0">Keep <code>RESPECT_ROBOTS_TXT=true</code> and <code>RESPECT_TERMS_WHITELIST=true</code> — these are compliance controls,</li>
+</ul>
+<p>not tuning knobs.</p>
+<ul>
+<li class="depth-0">Schedule the retention job for <code>stg_raw_observation</code> and <code>ingestion_http_log</code>.</li>
+</ul>
+<hr>
+<h2 id="11-error-taxonomy">11. Error taxonomy</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Exception</th>
+<th>HTTP</th>
+<th>Raised when</th>
+<th>Handling in code</th>
+</tr></thead><tbody>
+<tr>
+<th><code>PipelineError</code></th>
+<td>500 (base)</td>
+<td>Base class; carries <code>code</code>, <code>message</code>, <code>details</code></td>
+<td><code>to_dict()</code></td>
+</tr>
+<tr>
+<th><code>ConfigurationError</code></th>
+<td>500</td>
+<td>Invalid configuration, e.g. <code>ACTIVE_DATABASE=mysql</code> without <code>MYSQL_URL</code></td>
+<td>From <code>Settings.url_for</code></td>
+</tr>
+<tr>
+<td><code>DatabaseUnavailableError</code></td>
+<td>503</td>
+<td>Warehouse unreachable</td>
+<td><code>/health</code> reports <code>degraded</code></td>
+</tr>
+<tr>
+<th><code>ComplianceError</code></th>
+<td>451</td>
+<td>robots.txt forbids the URL</td>
+<td>Raised inside <code>CompliantHttpClient.get()</code> before any network call</td>
+</tr>
+<tr>
+<th><code>RateLimitError</code></th>
+<td>429</td>
+<td>Upstream returned 429 after retries</td>
+<td>Triggered by <code>Retry-After</code> handling</td>
+</tr>
+<tr>
+<th><code>SourceNotFoundError</code></th>
+<td>404</td>
+<td>Unknown source code</td>
+<td><code>get_source_class</code> raises with <code>details.available</code></td>
+</tr>
+<tr>
+<th><code>ProductNotFoundError</code></th>
+<td>404</td>
+<td>Unknown product, run, setting, view, user</td>
+<td>Routers raise; the global handler maps it</td>
+</tr>
+<tr>
+<th><code>ValidationError</code></th>
+<td>422</td>
+<td>Domain validation, e.g. a weak password</td>
+<td>Also raised by Pydantic with field details</td>
+</tr>
+<tr>
+<th><code>IngestionError</code></th>
+<td>502</td>
+<td>Fetch failed after retries, or the breaker is open</td>
+<td>Includes the URL in <code>details</code></td>
+</tr>
+<tr>
+<th><code>AuthenticationError</code></th>
+<td>401</td>
+<td>Missing/expired/invalid token, bad credentials, deactivated user</td>
+<td>Token errors carry <code>details.reason</code></td>
+</tr>
+<tr>
+<th><code>PermissionDeniedError</code></th>
+<td>403</td>
+<td>Role lacks a right; the resource belongs to another user</td>
+<td><code>details.missing</code> lists the required rights</td>
+</tr>
+<tr>
+<th><code>ConflictError</code></th>
+<td>409</td>
+<td>Duplicate email or saved-view name</td>
+<td>Raised by <code>users</code> and <code>saved_views</code> routers</td>
+</tr>
+</tbody></table></div>
+<p><strong>Logging convention.</strong> Every exception is logged with its type, the message (first line, truncated) and the run id. <code>settings.app_debug</code> adds the traceback. No exception message includes credentials: connection strings pass through <code>describe_target()</code> first.</p>
+    </article>
+    <div class="doc-foot">
+      <span><a href="16_user_manual.html">← User Manual</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="18_presentation_outline.html">Presentation Outline →</a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

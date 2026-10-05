@@ -28,6 +28,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.theme import Theme
 
+from app.core.config import ROOT_DIR as ROOT
 from app.core.config import describe_target, reload_settings, settings
 from app.core.logging import configure_logging, get_logger, setup_file_logging
 
@@ -104,6 +105,70 @@ def init_db(
         },
     )
     _status_line("Schema, reference data and views are ready")
+
+
+@app.command("migrate")
+def migrate_cmd(
+    database: str = DB_OPTION,
+    revision: str = typer.Argument("head", help="Target revision, e.g. head, -1, 0001_initial"),
+    sql: bool = typer.Option(False, "--sql", help="Print the SQL instead of executing it"),
+) -> None:
+    """Apply schema migrations with Alembic.
+
+    The supported path for evolving the schema. `pip init-db` remains available for a
+    first-time bootstrap because it also seeds reference data and the analytical views,
+    but from here on a change to the ORM needs a migration.
+    """
+    import os
+    import subprocess
+
+    root = ROOT
+    url = settings.url_for(database)
+    alembic = ROOT / ".venv" / "bin" / "alembic"
+    command = [
+        str(alembic) if alembic.exists() else "alembic",
+        *(["upgrade", "--sql"] if sql else ["upgrade"]),
+        revision,
+    ]
+
+    console.rule(f"[bold]Migrating {describe_target(database)} to {revision}")
+    env = {
+        **os.environ,
+        "DATABASE_URL": url,
+        "ACTIVE_DATABASE": (database or settings.active_database).lower(),
+    }
+    result = subprocess.run(command, cwd=str(root), env=env, capture_output=True, text=True)
+    if result.stdout.strip():
+        console.print(result.stdout.strip())
+    if result.returncode != 0:
+        console.print(f"[red]{result.stderr.strip()}[/red]")
+        raise typer.Exit(code=result.returncode)
+    _status_line(f"Schema is at {revision}")
+
+
+@app.command("migration-status")
+def migration_status_cmd(database: str = DB_OPTION) -> None:
+    """Which revision is applied, and whether the ORM has drifted from it."""
+    import os
+    import subprocess
+
+    root = ROOT
+    alembic = ROOT / ".venv" / "bin" / "alembic"
+    base = [str(alembic) if alembic.exists() else "alembic"]
+    env = {
+        **os.environ,
+        "DATABASE_URL": settings.url_for(database),
+        "ACTIVE_DATABASE": (database or settings.active_database).lower(),
+    }
+
+    console.rule(f"[bold]Migration status for {describe_target(database)}")
+    for label, arguments in (("current", ["current"]), ("pending changes", ["check"])):
+        result = subprocess.run([*base, *arguments], cwd=str(root), env=env, capture_output=True, text=True)
+        output = (result.stdout or result.stderr).strip().splitlines()
+        last = output[-1] if output else "(no output)"
+        if result.returncode != 0:
+            last = f"[red]{last}[/red]"
+        _kv_table(f"Alembic {label}", {"result": last})
 
 
 @app.command("bootstrap")

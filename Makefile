@@ -10,6 +10,8 @@ VENV ?= .venv
 PIP := $(VENV)/bin/pip
 PYBIN := $(VENV)/bin/python
 COMPOSE ?= docker compose
+ALEMBIC ?= $(VENV)/bin/alembic
+REVISION ?= head
 
 GREEN  := \033[0;32m
 BLUE   := \033[0;34m
@@ -87,7 +89,28 @@ bootstrap-mysql: ## Same bootstrap against MySQL (cross-dialect verification)
 	$(PYBIN) -m app.cli.main bootstrap --database mysql
 
 .PHONY: migrate
-migrate: ## Create tables for the active database
+migrate: ## Apply schema migrations with Alembic (to a revision, default head)
+	$(PYBIN) -m app.cli.main migrate $(REVISION)
+
+.PHONY: migrate-status
+migrate-status: ## Show the applied revision and any pending ORM drift
+	$(PYBIN) -m app.cli.main migration-status
+
+.PHONY: migrate-new
+migrate-new: ## Autogenerate a migration from the ORM diff (MSG="what changed")
+	@test -n "$(MSG)" || (echo "usage: make migrate-new MSG=\"add x\"" && exit 1)
+	$(ALEMBIC) revision --autogenerate -m "$(MSG)"
+
+.PHONY: migrate-check
+migrate-check: ## Fail if the ORM has drifted from the applied migration
+	$(ALEMBIC) check
+
+.PHONY: migrate-sql
+migrate-sql: ## Print the migration SQL without executing it (REVISION=head)
+	$(PYBIN) -m app.cli.main migrate $(REVISION) --sql
+
+.PHONY: init-db
+init-db: ## Create tables + views + reference data without Alembic (first-time bootstrap)
 	$(PYBIN) -m app.cli.main init-db
 
 .PHONY: demo-postgres
@@ -259,6 +282,10 @@ infographic: ## Generate the DEPI project roadmap infographic (HTML + PNG)
 # ---------------------------------------------------------------- housekeeping
 .PHONY: check
 check: lint typecheck test ## Full static + unit verification (no services required)
+
+.PHONY: check-migrations
+check-migrations: ## Fail if a migration is missing for a model change
+	$(ALEMBIC) check
 
 .PHONY: verify-all
 verify-all: bootstrap run-pipeline test ## Bootstrap, run the pipeline and test

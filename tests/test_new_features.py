@@ -857,3 +857,73 @@ def test_report_pdf_endpoint_answers_on_either_outcome(client, admin_token):
     else:
         assert response.status_code == 501
         assert "WeasyPrint" in response.text
+
+
+# --------------------------------------------------------------------------------------
+# Schema migrations
+# --------------------------------------------------------------------------------------
+def test_alembic_autogenerate_excludes_foreign_tables():
+    """Autogenerate must never propose dropping another service's tables."""
+    from app.core.schema_scope import include_object, is_warehouse_table
+
+    # Our own tables are included.
+    assert include_object(None, "dim_product", "table", False, None) is True
+    assert include_object(None, "fact_price_snapshot", "table", False, None) is True
+
+    # The analytical views are created from db/views.sql, not the ORM.
+    assert include_object(None, "vw_price_changes", "table", True, None) is False
+
+    # Alembic's own bookkeeping.
+    assert include_object(None, "alembic_version", "table", True, None) is False
+
+    # Another service's tables. Airflow used to share this database, and an
+    # unguarded autogenerate would have generated a migration to delete 41 tables.
+    for name in ("dag", "dag_run", "task_instance", "xcom", "ab_user", "slot_pool", "variable"):
+        assert include_object(None, name, "table", True, None) is False, name
+
+    # Non-table objects still participate in the diff.
+    assert include_object(None, "pk_dim_product", "index", True, None) is True
+
+    # And every table the ORM declares is a warehouse table, or the exclusions are
+    # too broad and the next autogenerate would try to re-create real tables.
+    from app.models import Base
+
+    assert all(is_warehouse_table(name) for name in Base.metadata.tables)
+    assert not is_warehouse_table("")
+
+
+def test_migration_config_resolves_the_target_from_settings():
+    """The Alembic env must read the app's own config, never alembic.ini."""
+    from pathlib import Path
+
+    env = Path(__file__).resolve().parents[1] / "migrations" / "env.py"
+    source = env.read_text(encoding="utf-8")
+    assert "from app.core.config import settings" in source
+    # A hard-coded URL in env.py would silently migrate the wrong database.
+    assert "sqlalchemy.url" not in source.replace("sqlalchemy.url =", "")
+
+
+def test_alembic_version_table_does_not_collide_with_the_warehouse():
+    from app.core.config import settings
+    from app.models import MODEL_BY_TABLE
+
+    assert settings.alembic_version_table not in MODEL_BY_TABLE
+
+
+def test_initial_migration_creates_every_table_and_the_views():
+    """The committed revision must build the whole schema from nothing."""
+    import re
+    from pathlib import Path
+
+    from app.models import Base
+
+    versions = sorted((Path(__file__).resolve().parents[1] / "migrations" / "versions").glob("*.py"))
+    assert versions, "no migration revisions are committed"
+    source = versions[0].read_text(encoding="utf-8")
+
+    created = set(re.findall(r'op\.create_table\(\s*"([a-z_]+)"', source))
+    missing = sorted(set(Base.metadata.tables) - created)
+    assert not missing, f"the initial migration does not create: {missing}"
+
+    # And it must apply the views, or the analytics layer has nothing to query.
+    assert "apply_views()" in source

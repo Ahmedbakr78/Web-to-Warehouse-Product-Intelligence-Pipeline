@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Terms defined, questions answered">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Glossary and FAQ — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Terms defined, questions answered">
+<title>Glossary and FAQ — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="23-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, all 113 operations, examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, 100-case plan, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="234 features with file references">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" class="active" title="Terms defined, questions answered">Glossary and FAQ</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Glossary and FAQ</h1>
+      <p>Terms defined, questions answered</p>
+    </div>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#part-1--glossary">Part 1 — Glossary</a></li><li class="lvl-3"><a href="#a">A</a></li><li class="lvl-3"><a href="#b">B</a></li><li class="lvl-3"><a href="#c">C</a></li><li class="lvl-3"><a href="#d">D</a></li><li class="lvl-3"><a href="#e">E</a></li><li class="lvl-3"><a href="#f">F</a></li><li class="lvl-3"><a href="#g">G</a></li><li class="lvl-3"><a href="#i">I</a></li><li class="lvl-3"><a href="#j">J</a></li><li class="lvl-3"><a href="#k">K</a></li><li class="lvl-3"><a href="#l">L</a></li><li class="lvl-3"><a href="#m">M</a></li><li class="lvl-3"><a href="#n">N</a></li><li class="lvl-3"><a href="#p">P</a></li><li class="lvl-3"><a href="#q">Q</a></li><li class="lvl-3"><a href="#r">R</a></li><li class="lvl-3"><a href="#s">S</a></li><li class="lvl-3"><a href="#t">T</a></li><li class="lvl-3"><a href="#v">V</a></li><li class="lvl-3"><a href="#w">W</a></li><li class="lvl-2"><a href="#part-2--setup-and-running">Part 2 — Setup and running</a></li><li class="lvl-3"><a href="#why-is-the-dashboard-empty-after-i-start-the-stack">Why is the dashboard empty after I start the stack?</a></li><li class="lvl-3"><a href="#make-db-wait-seems-to-hang">make db-wait seems to hang</a></li><li class="lvl-3"><a href="#which-port-do-i-use">Which port do I use?</a></li><li class="lvl-3"><a href="#how-do-i-sign-in">How do I sign in?</a></li><li class="lvl-3"><a href="#the-dashboard-cannot-reach-the-api">The dashboard cannot reach the API</a></li><li class="lvl-3"><a href="#how-do-i-switch-between-postgresql-and-mysql">How do I switch between PostgreSQL and MySQL?</a></li><li class="lvl-2"><a href="#part-3--the-pipeline">Part 3 — The pipeline</a></li><li class="lvl-3"><a href="#does-it-actually-respect-robotstxt">Does it actually respect robots.txt?</a></li><li class="lvl-3"><a href="#why-does-open-library-show-partial-with-robots-warnings">Why does Open Library show partial with robots warnings?</a></li><li class="lvl-3"><a href="#what-happens-if-a-source-fails">What happens if a source fails?</a></li><li class="lvl-3"><a href="#can-i-re-run-a-pipeline-safely">Can I re-run a pipeline safely?</a></li><li class="lvl-3"><a href="#where-is-the-raw-data-before-cleaning">Where is the raw data before cleaning?</a></li><li class="lvl-3"><a href="#how-do-i-add-a-new-source">How do I add a new source?</a></li><li class="lvl-3"><a href="#how-does-deduplication-decide">How does deduplication decide?</a></li><li class="lvl-2"><a href="#part-4--data-quality-and-analytics">Part 4 — Data quality and analytics</a></li><li class="lvl-3"><a href="#what-do-the-twelve-rules-actually-check">What do the twelve rules actually check?</a></li><li class="lvl-3"><a href="#why-is-the-score-9826-and-not-100">Why is the score 98.26 and not 100?</a></li><li class="lvl-3"><a href="#can-i-run-the-rules-without-a-full-pipeline-run">Can I run the rules without a full pipeline run?</a></li><li class="lvl-3"><a href="#why-is-the-score-identical-on-postgresql-and-mysql">Why is the score identical on PostgreSQL and MySQL?</a></li><li class="lvl-3"><a href="#how-do-i-interpret-a-price-gap">How do I interpret a price gap?</a></li><li class="lvl-3"><a href="#what-is-the-query-lab-and-is-it-safe">What is the Query Lab, and is it safe?</a></li><li class="lvl-2"><a href="#part-5--security">Part 5 — Security</a></li><li class="lvl-3"><a href="#how-are-passwords-stored">How are passwords stored?</a></li><li class="lvl-3"><a href="#what-is-an-api-key-and-how-do-i-use-one">What is an API key, and how do I use one?</a></li><li class="lvl-3"><a href="#how-do-i-check-that-rbac-really-works">How do I check that RBAC really works?</a></li><li class="lvl-3"><a href="#why-store-raw_price_text-on-the-snapshot">Why store raw_price_text on the snapshot?</a></li><li class="lvl-3"><a href="#is-the-crawler-ethical">Is the crawler ethical?</a></li><li class="lvl-2"><a href="#part-6--development">Part 6 — Development</a></li><li class="lvl-3"><a href="#how-do-i-run-everything">How do I run everything?</a></li><li class="lvl-3"><a href="#what-does-the-test-suite-cover">What does the test suite cover?</a></li><li class="lvl-3"><a href="#how-do-i-add-a-dq-rule">How do I add a DQ rule?</a></li><li class="lvl-3"><a href="#why-do-the-docs-quote-specific-numbers">Why do the docs quote specific numbers?</a></li><li class="lvl-3"><a href="#how-do-i-render-the-diagrams-as-svg">How do I render the diagrams as SVG?</a></li><li class="lvl-3"><a href="#how-do-i-build-the-documentation-website">How do I build the documentation website?</a></li><li class="lvl-3"><a href="#the-repo-is-private--how-do-i-show-it-to-someone">The repo is private — how do I show it to someone?</a></li><li class="lvl-2"><a href="#part-7--project-context">Part 7 — Project context</a></li><li class="lvl-3"><a href="#what-is-this-project-for">What is this project for?</a></li><li class="lvl-3"><a href="#why-two-databases">Why two databases?</a></li><li class="lvl-3"><a href="#why-a-kimball-star-instead-of-a-normalised-warehouse">Why a Kimball star instead of a normalised warehouse?</a></li><li class="lvl-3"><a href="#why-store-every-snapshot-instead-of-just-the-current-price">Why store every snapshot instead of just the current price?</a></li><li class="lvl-3"><a href="#what-would-you-build-next">What would you build next?</a></li></ol></details>
+    <article class="doc-body">
+<p>Terms defined, then the questions that actually come up when running, reviewing or demonstrating this project.</p>
+<hr>
+<h2 id="part-1--glossary">Part 1 — Glossary</h2>
+<h3 id="a">A</h3>
+<p><strong>Airflow DAG</strong> — the directed acyclic graph in <code>dags/product_intelligence_pipeline.py</code> that orchestrates the run: 13 tasks, with a real branch that skips notification when no changes were detected.</p>
+<p><strong>Analytical view</strong> — a named <code>SELECT</code> stored in the database (<code>db/views.sql</code>). Views are the only read surface the API and query lab use, which keeps query logic in one place instead of scattered across endpoints.</p>
+<p><strong>Argon2id</strong> — the password hashing algorithm used for <code>app_user.hashed_password</code>. Memory-hard, and currently the recommended choice for password storage.</p>
+<p><strong>Availability</strong> — the normalised stock state of a product, from the closed vocabulary <code>in_stock</code>, <code>out_of_stock</code>, <code>backorder</code>, <code>preorder</code>, <code>discontinued</code>, <code>unknown</code>.</p>
+<h3 id="b">B</h3>
+<p><strong>Backoff (exponential)</strong> — each retry waits longer than the last, typically doubling the interval. Prevents a struggling source from being hammered while it recovers.</p>
+<p><strong>Blocking index</strong> — a precomputed lookup that narrows the set of products a fuzzy comparison must consider, instead of comparing every product with every other. This is what turned catalog reconciliation from 2,975 ms into 104 ms.</p>
+<p><strong>Bounded extraction</strong> — a generator wrapped so it cannot yield more than the configured limit. <code>_safe_take</code> applies it to every source, so a misbehaving source cannot hang a run.</p>
+<h3 id="c">C</h3>
+<p><strong>Candlestick / CoNCEPT of conformance</strong> — see <em>conformed dimension</em>.</p>
+<p><strong>Catalog reconciliation</strong> — matching the retailer's internal SKUs to observed market products and computing the price gap. This is where "we are 8 % more expensive than the market" comes from.</p>
+<p><strong>Change detection</strong> — comparing consecutive snapshots per product to derive price changes and lifecycle events.</p>
+<p><strong>Circuit breaker</strong> — after five consecutive failures against a host, the client stops attempting requests for a cooling-off period. Zero network I/O while open; the skip is logged.</p>
+<p><strong>Conformed dimension</strong> — a dimension shared by multiple fact tables, so <code>dim_date</code> means the same thing everywhere. This is what keeps a star schema consistent.</p>
+<p><strong>Crawl-delay</strong> — a <code>robots.txt</code> directive asking crawlers to wait a minimum interval. The effective delay here is the <strong>slowest</strong> of the global setting, the per-minute budget and the site's declared value.</p>
+<p><strong>Crawler evidence log</strong> — <code>ingestion_http_log</code>, one row per outbound HTTP attempt including the ones that never happened because robots.txt disallowed them.</p>
+<h3 id="d">D</h3>
+<p><strong>Data quality (DQ) rule</strong> — one named check with a dimension, a threshold and a persisted verdict. Twelve rules across six dimensions, re-evaluated on every load.</p>
+<p><strong>Data quality dimension</strong> — the category a DQ rule belongs to: completeness, validity, uniqueness, accuracy, consistency or timeliness.</p>
+<p><strong>Deterministic seed</strong> — a reproducible dataset generated from a fixed seed and a fixed date, so demonstrations and screenshots are stable across runs.</p>
+<p><strong>Deduplication</strong> — collapsing several source records that describe the same real product into one canonical identity.</p>
+<p><strong>Digit signature</strong> — the set of numbers appearing in a product name. "iPhone 15 Pro 256GB" and "Apple iPhone 15 Pro (256 GB)" share a digit signature even though their strings differ; this is one of the four similarity signals.</p>
+<p><strong>Drift (taxonomy)</strong> — a product moving between categories between snapshots.</p>
+<h3 id="e">E</h3>
+<p><strong>ETL / ELT</strong> — Extract-Transform-Load, or Extract-Load-Transform. This project is ETL: cleaning happens in Python before anything is written to the warehouse.</p>
+<p><strong>Event (lifecycle)</strong> — a recorded transition: <code>new</code>, <code>removed</code> or <code>category_changed</code>.</p>
+<h3 id="f">F</h3>
+<p><strong>Fingerprint</strong> — a deterministic hash of a cleaned product name, brand and digit signature. The identity key that makes loads idempotent.</p>
+<p><strong>Fuzzy matching</strong> — similarity scoring rather than exact comparison. Four signals are combined here: Jaro-Winkler, token-set, trigram and digit-signature factors.</p>
+<h3 id="g">G</h3>
+<p><strong>Grain</strong> — the level of detail a fact table records, stated as "one row per X". A table with an undeclared grain cannot be aggregated safely, so every fact here declares its grain in the documentation.</p>
+<h3 id="i">I</h3>
+<p><strong>Idempotent</strong> — re-running produces the same result without duplicating data. Achieved by merging on natural keys rather than blind-inserting.</p>
+<p><strong>Ingestion</strong> — everything between "a source exists" and "a <code>RawProduct</code> object exists": robots enforcement, rate limiting, retries, caching, HTML parsing and validation.</p>
+<h3 id="j">J</h3>
+<p><strong>Jaro-Winkler similarity</strong> — a string-distance measure that scores prefix matches more favourably. Effective on product names that differ mainly in spacing or a shared prefix.</p>
+<h3 id="k">K</h3>
+<p><strong>Kimball star schema</strong> — denormalised dimensions around fact tables, optimised for read-heavy analytical queries rather than write integrity.</p>
+<h3 id="l">L</h3>
+<p><strong>LRU / response cache</strong> — responses stored on disk keyed by a hash of the URL, so a repeated run performs no outbound requests at all.</p>
+<h3 id="m">M</h3>
+<p><strong>Magnitude band</strong> — a classification of a price change by size: <code>flash_sale</code> (≥ 30 %), <code>large</code> (15–30 %), <code>medium</code> (5–15 %), <code>small</code> (1–5 %), <code>minor</code> (&lt; 1 %).</p>
+<p><strong>Mode (per-user)</strong> — a user preference set by an admin and applied to every account, in contrast to per-user preferences in <code>app_user.preferences</code>.</p>
+<h3 id="n">N</h3>
+<p><strong>Natural key</strong> — a business-meaningful identifier (<code>sku</code>, <code>slug</code>, <code>fingerprint</code>) used to merge rows instead of a surrogate key.</p>
+<h3 id="p">P</h3>
+<p><strong>Partial run</strong> — a run that completed with one or more sources failing. It is reported as <code>partial</code> with warnings rather than failing outright, because losing one source should not discard the work of four others.</p>
+<p><strong>Product fingerprint</strong> — see <em>fingerprint</em>.</p>
+<p><strong>Promo prefix/suffix</strong> — marketing text such as "NEW", "Hot Sale" or "30% off" stripped during cleaning so it does not pollute the identity.</p>
+<h3 id="q">Q</h3>
+<p><strong>Query Lab</strong> — the read-only SQL console in the dashboard. <code>SELECT</code> only, identifiers whitelisted, <code>LIMIT</code> clamped.</p>
+<h3 id="r">R</h3>
+<p><strong>RBAC</strong> — role-based access control. Three roles (<code>viewer</code>, <code>analyst</code>, <code>admin</code>), enforced per route on the server.</p>
+<p><strong>Reconciliation rate</strong> — the percentage of internal SKUs matched to a market product. Current measured value: 39 of 57 (68.42 %).</p>
+<p><strong>Retries</strong> — bounded re-attempts after a failure, using exponential backoff and honouring <code>Retry-After</code> when the server sends it.</p>
+<p><strong>robots.txt</strong> — the per-site rules file consulted before every request. RFC 9309 fallback semantics are implemented: 4xx allows, 401/403 disallows, 5xx falls back to the cached decision.</p>
+<p><strong>Row count / row count parity</strong> — comparing table counts across PostgreSQL and MySQL to prove the load is structurally identical.</p>
+<h3 id="s">S</h3>
+<p><strong>SCD (slowly changing dimension)</strong> — a dimension whose attributes change over time. Category history would be SCD-2; it is on the roadmap, not yet implemented.</p>
+<p><strong>Snapshot</strong> — one observation of one product at one moment. Append-only.</p>
+<p><strong>Stage (pipeline)</strong> — one of the nine ordered steps in a run, each recording its own counters and duration.</p>
+<p><strong>Staging table</strong> — <code>stg_raw_observation</code>, holding raw rows including rejected ones, so a partially-failed run stays inspectable.</p>
+<p><strong>Token bucket</strong> — a rate limiter allowing bursts up to a bucket capacity while enforcing a steady average rate.</p>
+<p><strong>Trimmed / normalised</strong> — lowercased, punctuation-stripped, whitespace-collapsed. Stored in <code>dim_product.normalized_name</code> for comparison while <code>canonical_name</code> stays human-readable.</p>
+<h3 id="t">T</h3>
+<p><strong>Token-set similarity</strong> — compares name tokens as a set, so word order and extra marketing words matter less.</p>
+<p><strong>Trigram similarity</strong> — compares overlapping three-character sequences; robust to typos and reordering.</p>
+<p><strong>Truncate per run</strong> — staging is emptied at the start of each run, so a retry never sees stale rows.</p>
+<h3 id="v">V</h3>
+<p><strong>Views</strong> — see <em>analytical view</em>.</p>
+<h3 id="w">W</h3>
+<p><strong>Warm cache run</strong> — a run where every response is served from the on-disk cache, making zero outbound requests.</p>
+<hr>
+<h2 id="part-2--setup-and-running">Part 2 — Setup and running</h2>
+<h3 id="why-is-the-dashboard-empty-after-i-start-the-stack">Why is the dashboard empty after I start the stack?</h3>
+<p>Bootstrap creates the schema but not demo data. Load it:</p>
+<pre class="code" data-lang="bash"><code>make demo-postgres     # or: make demo-mysql</code></pre>
+<p>Check the Pipeline screen for run status. If you want real data instead of the demo dataset:</p>
+<pre class="code" data-lang="bash"><code>make run-pipeline</code></pre>
+<h3 id="make-db-wait-seems-to-hang"><code>make db-wait</code> seems to hang</h3>
+<p>It is polling both engines until they report healthy. Check what is actually running:</p>
+<pre class="code" data-lang="bash"><code>make ps
+docker compose logs postgres | tail -30</code></pre>
+<p>On a cold first start, database initialisation genuinely takes 20–40 seconds.</p>
+<h3 id="which-port-do-i-use">Which port do I use?</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Service</th>
+<th>URL</th>
+</tr></thead><tbody>
+<tr>
+<th>Dashboard</th>
+<td>&lt;<a href="http://localhost:5173&gt;">http://localhost:5173&gt;</a></td>
+</tr>
+<tr>
+<th>API</th>
+<td>&lt;<a href="http://localhost:8000&gt;">http://localhost:8000&gt;</a></td>
+</tr>
+<tr>
+<th>Interactive API docs</th>
+<td>&lt;<a href="http://localhost:8000/docs&gt;">http://localhost:8000/docs&gt;</a></td>
+</tr>
+<tr>
+<th>ReDoc</th>
+<td>&lt;<a href="http://localhost:8000/redoc&gt;">http://localhost:8000/redoc&gt;</a></td>
+</tr>
+<tr>
+<th>Airflow</th>
+<td>&lt;<a href="http://localhost:8080&gt;">http://localhost:8080&gt;</a></td>
+</tr>
+<tr>
+<th>PostgreSQL</th>
+<td><code>localhost:5432</code></td>
+</tr>
+<tr>
+<th>MySQL</th>
+<td><code>localhost:3306</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="how-do-i-sign-in">How do I sign in?</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Role</th>
+<th>Email</th>
+<th>Password</th>
+</tr></thead><tbody>
+<tr>
+<th>Admin</th>
+<td><code>admin@example.com</code></td>
+<td><code>Admin@12345</code></td>
+</tr>
+<tr>
+<th>Analyst</th>
+<td><code>analyst@example.com</code></td>
+<td><code>Analyst@12345</code></td>
+</tr>
+<tr>
+<th>Viewer</th>
+<td><code>viewer@example.com</code></td>
+<td><code>Viewer@12345</code></td>
+</tr>
+</tbody></table></div>
+<p>These are <strong>demo credentials</strong>. Change them via <code>.env</code> before exposing anything beyond localhost.</p>
+<h3 id="the-dashboard-cannot-reach-the-api">The dashboard cannot reach the API</h3>
+<p>In development, Vite proxies <code>/api</code> to <code>127.0.0.1:8000</code>, so the <strong>API must be running first</strong>. In the Compose stack, the Nginx container performs the same proxy.</p>
+<pre class="code" data-lang="bash"><code>curl http://localhost:8000/api/v1/health     # should answer without auth</code></pre>
+<h3 id="how-do-i-switch-between-postgresql-and-mysql">How do I switch between PostgreSQL and MySQL?</h3>
+<pre class="code" data-lang="bash"><code>make run-pipeline            # uses ACTIVE_DATABASE
+make run-pipeline-mysql      # the MySQL twin
+make verify-dialects         # proves the two are structurally identical</code></pre>
+<p>Set <code>ACTIVE_DATABASE</code> in <code>.env</code> to change what the API and pipeline use by default.</p>
+<hr>
+<h2 id="part-3--the-pipeline">Part 3 — The pipeline</h2>
+<h3 id="does-it-actually-respect-robotstxt">Does it actually respect robots.txt?</h3>
+<p>Yes, and the evidence is queryable. Every outbound attempt — including blocked ones — is written to <code>ingestion_http_log</code>:</p>
+<pre class="code" data-lang="sql"><code>SELECT status_code, robots_allowed, robots_rule, COUNT(*)
+FROM ingestion_http_log
+GROUP BY status_code, robots_allowed, robots_rule;</code></pre>
+<p>A row with <code>robots_allowed = false</code> and <code>status_code IS NULL</code> is a request the crawler <strong>declined to make</strong>. The Audit screen shows the same data through the UI.</p>
+<h3 id="why-does-open-library-show-partial-with-robots-warnings">Why does Open Library show <code>partial</code> with robots warnings?</h3>
+<p>That is the compliance layer working. Open Library's robots.txt forbids the request patterns used, so those topics are skipped and the run finishes as <code>partial</code> rather than failing. The remaining sources proceed. Skipping a disallowed source is the correct behaviour, not a bug.</p>
+<h3 id="what-happens-if-a-source-fails">What happens if a source fails?</h3>
+<p>The run continues and is recorded as <code>partial</code> with a warning. One unavailable source should not discard the output of four working ones. Five consecutive failures against the same host trip the circuit breaker, and subsequent requests are skipped with zero network I/O.</p>
+<h3 id="can-i-re-run-a-pipeline-safely">Can I re-run a pipeline safely?</h3>
+<p>Yes. Loads are idempotent: dimensions merge on natural keys, staging is truncated per run, facts are keyed by their grain, and DQ verdicts are keyed by <code>(run_id, rule_id)</code>. Re-running merges rather than duplicating.</p>
+<h3 id="where-is-the-raw-data-before-cleaning">Where is the raw data before cleaning?</h3>
+<p><code>stg_raw_observation</code>, including rows that failed validation along with a <code>reject_reason</code>. This is what makes the DQ-012 rejection-rate rule measurable, and what lets a cleaning rule be tuned and its effect compared.</p>
+<h3 id="how-do-i-add-a-new-source">How do I add a new source?</h3>
+<ul>
+<li class="depth-0">Subclass <code>ProductSource</code> in <code>app/ingestion/sources/</code>.</li>
+<li class="depth-0">Declare the compliance metadata as class variables: <code>code</code>, <code>name</code>, <code>kind</code>, <code>base_url</code>,</li>
+</ul>
+<p><code>robots_url</code>, <code>rate_limit_per_minute</code>, <code>min_delay_seconds</code>.</p>
+<ul>
+<li class="depth-0">Implement <code>fetch(limit)</code> as a <strong>generator</strong> yielding <code>RawProduct</code>.</li>
+<li class="depth-0">Decorate with <code>@register_source</code>.</li>
+<li class="depth-0">Add a seed row to <code>dim_source</code> if you want it in the Sources screen.</li>
+<li class="depth-0">Add a test asserting your generator is bounded and raises nothing on malformed input.</li>
+</ul>
+<pre class="code" data-lang="python"><code>from app.ingestion.base import ProductSource, RawProduct, register_source
+
+
+@register_source
+class MySource(ProductSource):
+    code = &quot;mysource&quot;
+    name = &quot;My Permitted Source&quot;
+    kind = &quot;api&quot;
+    base_url = &quot;https://example.com/products.json&quot;
+    robots_url = &quot;https://example.com/robots.txt&quot;
+    rate_limit_per_minute = 20
+    min_delay_seconds = 2.0
+
+    def fetch(self, limit: int):
+        response = self.client.get(self.base_url)
+        for item in response.json()[&quot;products&quot;][:limit]:
+            yield RawProduct(
+                source_product_id=str(item[&quot;id&quot;]),
+                name=item[&quot;title&quot;],
+                price_text=item[&quot;price_text&quot;],
+                currency=item[&quot;currency&quot;],
+                url=item[&quot;url&quot;],
+            )</code></pre>
+<p>You do <strong>not</strong> write any HTTP, robots, retry or rate-limit code. Using <code>self.client</code> inherits the entire compliance layer, because the gate lives in the transport, not in the adapter.</p>
+<h3 id="how-does-deduplication-decide">How does deduplication decide?</h3>
+<p>Four signals — Jaro-Winkler, token-set, trigram and digit-signature factors — combined into one score. Candidates are narrowed by blocking indexes before comparison. Above <code>DEDUPE_THRESHOLD</code> (default <code>0.90</code>) two products merge, and the decision is recorded in <code>match_strategy</code> and <code>match_score</code> so it stays auditable. Every duplicate keeps its trail via <code>matched_product_id</code>.</p>
+<hr>
+<h2 id="part-4--data-quality-and-analytics">Part 4 — Data quality and analytics</h2>
+<h3 id="what-do-the-twelve-rules-actually-check">What do the twelve rules actually check?</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Code</th>
+<th>Dimension</th>
+<th>Rule</th>
+</tr></thead><tbody>
+<tr>
+<th>DQ001</th>
+<td>Completeness</td>
+<td>Product name present and non-empty</td>
+</tr>
+<tr>
+<th>DQ002</th>
+<td>Completeness</td>
+<td>Price present on active products</td>
+</tr>
+<tr>
+<th>DQ003</th>
+<td>Validity</td>
+<td>Price is a positive, parseable number</td>
+</tr>
+<tr>
+<th>DQ004</th>
+<td>Validity</td>
+<td>Rating within 0–5, or null</td>
+</tr>
+<tr>
+<th>DQ005</th>
+<td>Uniqueness</td>
+<td>One canonical row per fingerprint</td>
+</tr>
+<tr>
+<th>DQ006</th>
+<td>Consistency</td>
+<td>Snapshot grain respected (product × source × time)</td>
+</tr>
+<tr>
+<th>DQ007</th>
+<td>Accuracy</td>
+<td>USD price within 5 % of native price × FX</td>
+</tr>
+<tr>
+<th>DQ008</th>
+<td>Validity</td>
+<td>Availability in the normalised vocabulary</td>
+</tr>
+<tr>
+<th>DQ009</th>
+<td>Completeness</td>
+<td>Category resolved for ≥ 90 % of products</td>
+</tr>
+<tr>
+<th>DQ010</th>
+<td>Consistency</td>
+<td>Change percentages consistent with prices</td>
+</tr>
+<tr>
+<th>DQ011</th>
+<td>Timeliness</td>
+<td>Fresh observation for every active product</td>
+</tr>
+<tr>
+<th>DQ012</th>
+<td>Validity</td>
+<td>Staging rejection rate below 5 %</td>
+</tr>
+</tbody></table></div>
+<h3 id="why-is-the-score-9826-and-not-100">Why is the score 98.26 and not 100?</h3>
+<p>One rule returns <code>warn</code> rather than <code>pass</code>. The weighted score reflects that — a warning is not a failure, and a project that reports 100 % while a rule is warning is not measuring honestly. Check the Quality screen for which rule is warning and why.</p>
+<h3 id="can-i-run-the-rules-without-a-full-pipeline-run">Can I run the rules without a full pipeline run?</h3>
+<pre class="code" data-lang="bash"><code>pip-cli quality</code></pre>
+<p>This re-evaluates the twelve rules against the most recent run.</p>
+<h3 id="why-is-the-score-identical-on-postgresql-and-mysql">Why is the score identical on PostgreSQL and MySQL?</h3>
+<p>Because the rules are written against the shared model rather than against dialect-specific SQL, and the same rows are loaded to both engines. <code>make verify-dialects</code> proves it, which is a stronger claim than "the queries ran".</p>
+<h3 id="how-do-i-interpret-a-price-gap">How do I interpret a price gap?</h3>
+<p><code>price_gap_pct</code> in <code>fact_catalog_snapshot</code> is the market price relative to our list price:</p>
+<ul>
+<li class="depth-0"><strong>Positive</strong> — the market is more expensive than our list price. Opportunity to raise, or evidence</li>
+</ul>
+<p>we are under-priced.</p>
+<ul>
+<li class="depth-0"><strong>Negative</strong> — we are more expensive. A competitive problem worth investigating.</li>
+</ul>
+<p>Only <code>match_status = 'matched'</code> rows are meaningful; <code>unmatched</code> SKUs have no gap by definition.</p>
+<h3 id="what-is-the-query-lab-and-is-it-safe">What is the Query Lab, and is it safe?</h3>
+<p>Read-only by construction: <code>SELECT</code> only, identifiers validated against a whitelist, <code>LIMIT</code> clamped. A general SQL console would be a data-exfiltration primitive regardless of how carefully it was guarded, and it is unnecessary — twenty views cover the analytical questions and the Builders handle ad-hoc composition safely.</p>
+<hr>
+<h2 id="part-5--security">Part 5 — Security</h2>
+<h3 id="how-are-passwords-stored">How are passwords stored?</h3>
+<p>Argon2id, memory-hard. Plain text is never stored or logged. Passwords never appear in the audit log or in any API response.</p>
+<h3 id="what-is-an-api-key-and-how-do-i-use-one">What is an API key, and how do I use one?</h3>
+<p>Generated in <strong>Account → API keys</strong>, shown exactly once, hashed at rest thereafter. Send it as a header:</p>
+<pre class="code" data-lang="bash"><code>curl -H &quot;X-API-Key: pip_live_...&quot; http://localhost:8000/api/v1/products</code></pre>
+<p>Keys are usage-counted and individually revocable.</p>
+<h3 id="how-do-i-check-that-rbac-really-works">How do I check that RBAC really works?</h3>
+<p>Use the API directly, not the UI — the point is that the server refuses regardless of what the interface shows:</p>
+<pre class="code" data-lang="bash"><code># as viewer: should be denied
+curl -X POST -H &quot;Authorization: Bearer $VIEWER_TOKEN&quot; \
+     http://localhost:8000/api/v1/pipeline/run/sync</code></pre>
+<p>The smoke suite asserts exactly this.</p>
+<h3 id="why-store-raw_price_text-on-the-snapshot">Why store <code>raw_price_text</code> on the snapshot?</h3>
+<p>So a price-parsing bug is diagnosable after the fact. When <code>price</code> is wrong, the original string that produced it is still on the row. Same reasoning for <code>fx_rate_to_usd</code>: history records the rate it used, so updating the currency table cannot silently rewrite it.</p>
+<h3 id="is-the-crawler-ethical">Is the crawler ethical?</h3>
+<p>It identifies itself with an honest <code>User-Agent</code> including a contact address, checks robots.txt before every request, applies a floor delay even when a site declares none, stops after repeated failures, and records every decision. <code>dim_source.terms_url</code> and <code>license_note</code> document the terms for each source. The position taken in the proposal is that permitted public data, collected politely and transparently, is legitimate; scraping that evades access controls is not, and this system has no code path that could.</p>
+<hr>
+<h2 id="part-6--development">Part 6 — Development</h2>
+<h3 id="how-do-i-run-everything">How do I run everything?</h3>
+<pre class="code" data-lang="bash"><code>make check       # ruff, mypy, 321 tests — no services required
+make everything  # full stack: install, databases, bootstrap, demo data, pipeline, tests, build</code></pre>
+<h3 id="what-does-the-test-suite-cover">What does the test suite cover?</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>File</th>
+<th>Focus</th>
+</tr></thead><tbody>
+<tr>
+<th><code>test_ingestion.py</code></th>
+<td>Source adapters, robots, validation</td>
+</tr>
+<tr>
+<th><code>test_ratelimit.py</code></th>
+<td>Token bucket, sliding window, circuit breaker</td>
+</tr>
+<tr>
+<th><code>test_cleaning.py</code></th>
+<td>The 29 normalisation steps</td>
+</tr>
+<tr>
+<th><code>test_dedupe.py</code></th>
+<td>Similarity signals and merge thresholds</td>
+</tr>
+<tr>
+<th><code>test_etl_pipeline.py</code></th>
+<td>Stage sequencing, idempotency, counters</td>
+</tr>
+<tr>
+<th><code>test_security.py</code></th>
+<td>Hashing, tokens, lockout, RBAC</td>
+</tr>
+<tr>
+<th><code>test_api.py</code></th>
+<td>Endpoint behaviour, exports, audit</td>
+</tr>
+<tr>
+<th><code>test_new_features.py</code></th>
+<td>Builders, aggregate queries, notifications</td>
+</tr>
+</tbody></table></div>
+<p>Tests run against SQLite and need no running services, which is what makes <code>make check</code> fast enough to run on every save.</p>
+<h3 id="how-do-i-add-a-dq-rule">How do I add a DQ rule?</h3>
+<ul>
+<li class="depth-0">Add it to the rule list in <code>app/etl/dq.py</code> with code, dimension, severity and threshold.</li>
+<li class="depth-0">Write the check function returning <code>(status, observed, expected, message, evidence)</code>.</li>
+<li class="depth-0">Add tests for the pass case and at least one fail case.</li>
+<li class="depth-0">Re-run <code>make test</code> — verdicts are keyed by <code>(run_id, rule_code)</code>, so the trend chart picks it up</li>
+</ul>
+<p>automatically.</p>
+<h3 id="why-do-the-docs-quote-specific-numbers">Why do the docs quote specific numbers?</h3>
+<p>Because each one is reproducible. 321 tests comes from <code>make test</code>, 78 smoke checks from <code>scripts/api_smoke.py</code>, 25 tables and 20 views from <code>make bootstrap</code>, and the DQ score from the Quality screen. A number nobody can reproduce is a number nobody should trust.</p>
+<h3 id="how-do-i-render-the-diagrams-as-svg">How do I render the diagrams as SVG?</h3>
+<pre class="mermaid">flowchart LR
+    A[&quot;Markdown&quot;] --&gt; B[&quot;scripts/diagrams.py&quot;] --&gt; C[&quot;docs/diagrams/out/*.mmd&quot;] --&gt; D[&quot;mmdc → SVG&quot;]
+    A --&gt; E[&quot;GitHub renders Mermaid natively&quot;]</pre>
+<pre class="code" data-lang="bash"><code>make docs-render   # extract and render every diagram
+make docs-serve    # serve docs/ locally</code></pre>
+<h3 id="how-do-i-build-the-documentation-website">How do I build the documentation website?</h3>
+<pre class="code" data-lang="bash"><code>python3 scripts/build_site.py            # writes site/
+python3 scripts/build_site.py --serve    # build, then serve on :8001</code></pre>
+<p>No dependencies beyond the standard library. It produces one page per document, client-side search over a generated index, and a dark mode that respects system preference.</p>
+<h3 id="the-repo-is-private--how-do-i-show-it-to-someone">The repo is private — how do I show it to someone?</h3>
+<p>Add them as a collaborator (<strong>Settings → Collaborators</strong>), or grant them read access on your plan. GitHub Pages does not serve private repositories on the free plan, which is why the documentation website is built as a portable static directory rather than deployed to Pages.</p>
+<hr>
+<h2 id="part-7--project-context">Part 7 — Project context</h2>
+<h3 id="what-is-this-project-for">What is this project for?</h3>
+<p>A DEPI data-engineering graduation project: demonstrate that the full pipeline from "permitted public web source" to "analytical answer" can be built to production standards — with compliance, idempotency, measurable data quality, two SQL dialects and full auditability — rather than as a script that happens to work once.</p>
+<h3 id="why-two-databases">Why two databases?</h3>
+<p>The brief requires it, and it is a genuine portability test rather than a formality. The same model must load identically on PostgreSQL 16 and MySQL 8.4, which constrains the schema: no <code>JSONB</code>, no <code>DISTINCT ON</code>, portable boolean and timestamp handling. <code>make verify-dialects</code> proves no structural drift.</p>
+<h3 id="why-a-kimball-star-instead-of-a-normalised-warehouse">Why a Kimball star instead of a normalised warehouse?</h3>
+<p>Analytical workloads read broadly and write rarely. A star makes "average price per category per day" a single indexed scan instead of a multi-hop join. Normalisation optimises the opposite profile.</p>
+<h3 id="why-store-every-snapshot-instead-of-just-the-current-price">Why store every snapshot instead of just the current price?</h3>
+<p>Because the product is about <strong>change</strong>. "What was the price last week?" and "which products disappeared?" are only answerable from history. Keeping the FX rate with each snapshot additionally means history is stable even as exchange rates move.</p>
+<h3 id="what-would-you-build-next">What would you build next?</h3>
+<p>In priority order, with the reasoning in <a href="20_literature_feedback_and_improvements.html">20_literature_feedback_and_improvements.md</a>:</p>
+<ul>
+<li class="depth-0"><strong>Incremental SCD-2 for categories</strong> — so category drift has real history instead of a</li>
+</ul>
+<p>run-to-run comparison.</p>
+<ul>
+<li class="depth-0"><strong>A Playwright end-to-end suite</strong> — the frontend is currently covered by lint, types and API</li>
+</ul>
+<p>tests, but not by browser-level interaction tests.</p>
+<ul>
+<li class="depth-0"><strong>Redis-backed caching and a Celery worker pool</strong> — for runs large enough that in-process</li>
+</ul>
+<p>parallelism stops being enough.</p>
+<ul>
+<li class="depth-0"><strong>Prometheus metrics and a Grafana dashboard</strong> — turning the existing counters into proper time</li>
+</ul>
+<p>series.</p>
+<ul>
+<li class="depth-0"><strong>Webhook and email alert channels</strong> — extending in-app notifications.</li>
+<li class="depth-0"><strong>Multi-tenant catalog spaces</strong> — so saved views and catalog data can be partitioned per team.</li>
+</ul>
+    </article>
+    <div class="doc-foot">
+      <span><a href="22_data_dictionary.html">← Data Dictionary</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

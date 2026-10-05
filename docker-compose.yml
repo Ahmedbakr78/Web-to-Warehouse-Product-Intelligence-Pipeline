@@ -11,11 +11,16 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pip}
       POSTGRES_DB: ${POSTGRES_DB:-pipeline}
       POSTGRES_INITDB_ARGS: "--data-checksums"
+      # Airflow keeps its orchestration metadata in its own database. See the script
+      # for why: sharing the analytical warehouse put 40+ Airflow tables inside it.
+      AIRFLOW_DB: ${AIRFLOW_DB:-airflow}
       TZ: UTC
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
+      # Creates the `airflow` database on first initialisation of pg_data.
+      - ./docker/postgres-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pip} -d ${POSTGRES_DB:-pipeline}"]
       interval: 5s
@@ -94,7 +99,7 @@ services:
     user: "${AIRFLOW_UID:-50000}:${AIRFLOW_GID:-0}"
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-pip}:${POSTGRES_PASSWORD:-pip}@postgres:5432/${POSTGRES_DB:-pipeline}
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-pip}:${POSTGRES_PASSWORD:-pip}@postgres:5432/${AIRFLOW_DB:-airflow}
       AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       AIRFLOW__CORE__DAG_DISCOVERY_SAFE_MODE: "false"
@@ -102,7 +107,7 @@ services:
       AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
       AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.session
       TZ: UTC
-      PIP_DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-pip}:${POSTGRES_PASSWORD:-pip}@postgres:5432/${POSTGRES_DB:-pipeline}
+      PIP_DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-pip}:${POSTGRES_PASSWORD:-pip}@postgres:5432/${POSTGRES_DB:-pipeline}  # the warehouse, not the Airflow metadata DB
       PIPELINE_API_URL: ${PIPELINE_API_URL:-http://api:8000/api/v1}
       PIPELINE_SERVICE_KEY: ${PIPELINE_SERVICE_KEY:-}
     ports:
@@ -135,10 +140,10 @@ services:
     user: "${AIRFLOW_UID:-50000}:${AIRFLOW_GID:-0}"
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-pip}:${POSTGRES_PASSWORD:-pip}@postgres:5432/${POSTGRES_DB:-pipeline}
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-pip}:${POSTGRES_PASSWORD:-pip}@postgres:5432/${AIRFLOW_DB:-airflow}
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL: 30
-      PIP_DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-pip}:${POSTGRES_PASSWORD:-pip}@postgres:5432/${POSTGRES_DB:-pipeline}
+      PIP_DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-pip}:${POSTGRES_PASSWORD:-pip}@postgres:5432/${POSTGRES_DB:-pipeline}  # the warehouse, not the Airflow metadata DB
       PIPELINE_API_URL: ${PIPELINE_API_URL:-http://api:8000/api/v1}
       PIPELINE_SERVICE_KEY: ${PIPELINE_SERVICE_KEY:-}
     volumes:

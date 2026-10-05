@@ -21,13 +21,12 @@ coverage.xml
 *.db
 data/
 var/
-state/
-site/
 logs/
 *.log
 !docs/**/*.log
 mysql_data/
 pg_data/
+.airflow/
 
 # ---------- Node / Frontend ----------
 node_modules/
@@ -55,6 +54,6 @@ secrets/
 Thumbs.db
 *.swp
 
-# ---------- Generated documentation site ----------
-# `make site` rebuilds this from docs/; it is build output, not source.
-/site/
+# ---------- Alembic ----------
+# The revisions themselves are committed; nothing generated inside them is not.
+migrations/**/__pycache__/

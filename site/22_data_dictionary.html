@@ -1,0 +1,2278 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Every table, column, type and meaning">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Data Dictionary — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Every table, column, type and meaning">
+<title>Data Dictionary — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="23-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, all 113 operations, examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, 100-case plan, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="234 features with file references">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" class="active" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Data Dictionary</h1>
+      <p>Every table, column, type and meaning</p>
+    </div>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#1-how-the-schema-is-organised">1. How the schema is organised</a></li><li class="lvl-2"><a href="#2-dimensions">2. Dimensions</a></li><li class="lvl-3"><a href="#21-dim_product--product-identity">2.1 dim_product — product identity</a></li><li class="lvl-3"><a href="#22-dim_category--taxonomy">2.2 dim_category — taxonomy</a></li><li class="lvl-3"><a href="#23-dim_source--the-ingestion-registry">2.3 dim_source — the ingestion registry</a></li><li class="lvl-3"><a href="#24-dim_currency">2.4 dim_currency</a></li><li class="lvl-3"><a href="#25-dim_date">2.5 dim_date</a></li><li class="lvl-2"><a href="#3-facts">3. Facts</a></li><li class="lvl-3"><a href="#31-fact_price_snapshot">3.1 fact_price_snapshot</a></li><li class="lvl-3"><a href="#32-fact_catalog_snapshot">3.2 fact_catalog_snapshot</a></li><li class="lvl-2"><a href="#4-aggregate">4. Aggregate</a></li><li class="lvl-3"><a href="#agg_category_daily">agg_category_daily</a></li><li class="lvl-2"><a href="#5-change-capture">5. Change capture</a></li><li class="lvl-3"><a href="#51-chg_price_change">5.1 chg_price_change</a></li><li class="lvl-3"><a href="#52-chg_product_event">5.2 chg_product_event</a></li><li class="lvl-2"><a href="#6-operational-tables">6. Operational tables</a></li><li class="lvl-3"><a href="#61-etl_run--the-run-record">6.1 etl_run — the run record</a></li><li class="lvl-3"><a href="#62-dq_rule_result--the-verdicts">6.2 dq_rule_result — the verdicts</a></li><li class="lvl-3"><a href="#63-ingestion_http_log--the-crawler-evidence">6.3 ingestion_http_log — the crawler evidence</a></li><li class="lvl-3"><a href="#64-sync_state">6.4 sync_state</a></li><li class="lvl-2"><a href="#7-staging">7. Staging</a></li><li class="lvl-3"><a href="#stg_raw_observation">stg_raw_observation</a></li><li class="lvl-2"><a href="#8-application-and-access-tables">8. Application and access tables</a></li><li class="lvl-3"><a href="#81-app_user">8.1 app_user</a></li><li class="lvl-3"><a href="#82-app_api_key">8.2 app_api_key</a></li><li class="lvl-3"><a href="#83-app_audit_log">8.3 app_audit_log</a></li><li class="lvl-3"><a href="#84-app_saved_view-app_alert_rule-app_notification-app_setting">8.4 app_saved_view, app_alert_rule, app_notification, app_setting</a></li><li class="lvl-3"><a href="#85-catalog_product">8.5 catalog_product</a></li><li class="lvl-2"><a href="#9-controlled-vocabularies">9. Controlled vocabularies</a></li><li class="lvl-3"><a href="#magnitude-bands">Magnitude bands</a></li><li class="lvl-2"><a href="#10-views">10. Views</a></li><li class="lvl-2"><a href="#11-dialect-portability">11. Dialect portability</a></li></ol></details>
+    <article class="doc-body">
+<p>Every table in the warehouse, every column, and what it means. Generated against the live SQLAlchemy metadata, so it matches the code rather than a design intention.</p>
+<p>Conventions used below:</p>
+<ul>
+<li class="depth-0"><strong>PK</strong> primary key · <strong>FK</strong> foreign key · <strong>UQ</strong> unique constraint</li>
+<li class="depth-0"><code>NUMERIC(18,4)</code> for money — never a float, so sums are exact</li>
+<li class="depth-0"><code>VARCHAR</code> lengths follow the physical model; the longest meaningful value is noted</li>
+<li class="depth-0">Timestamps are stored naive UTC; presentation timezones are applied at the edge</li>
+<li class="depth-0"><code>JSON</code> columns hold structures that are read as a whole, not queried field-by-field — which keeps</li>
+</ul>
+<p>the schema identical on PostgreSQL and MySQL (MySQL has no <code>JSONB</code>)</p>
+<hr>
+<h2 id="1-how-the-schema-is-organised">1. How the schema is organised</h2>
+<pre class="mermaid">flowchart TB
+    subgraph APP[&quot;Application and access (7 tables)&quot;]
+        U[&quot;app_user&quot;] --&gt; AK[&quot;app_api_key&quot;]
+        U --&gt; SV[&quot;app_saved_view&quot;]
+        U --&gt; AR[&quot;app_alert_rule&quot;] --&gt; N[&quot;app_notification&quot;]
+        U --&gt; AL[&quot;app_audit_log&quot;]
+        ST[&quot;app_setting&quot;]
+    end
+    subgraph OPS[&quot;Operational (5 tables)&quot;]
+        R[&quot;etl_run&quot;] --&gt; DQ[&quot;dq_rule_result&quot;]
+        R --&gt; HL[&quot;ingestion_http_log&quot;]
+        SS[&quot;sync_state&quot;]
+    end
+subgraph CORE[&quot;Analytical core (10 tables)&quot;]
+        DP[&quot;dim_product&quot;] --&gt; FP[&quot;fact_price_snapshot&quot;]
+        DC[&quot;dim_category&quot;] --&gt; DP
+        DS[&quot;dim_source&quot;] --&gt; DP
+        DU[&quot;dim_currency&quot;] --&gt; FP
+        DD[&quot;dim_date&quot;] --&gt; FP
+        FP --&gt; AG[&quot;agg_category_daily&quot;]
+        DP --&gt; CP[&quot;chg_price_change&quot;]
+        DP --&gt; CE[&quot;chg_product_event&quot;]
+        CAT[&quot;catalog_product&quot;] --&gt; FC[&quot;fact_catalog_snapshot&quot;]
+        DP --&gt; FC
+    end
+    subgraph STG[&quot;Staging (1 table)&quot;]
+        RAW[&quot;stg_raw_observation&quot;]
+    end
+    RAW -.validated and promoted.-&gt; DP</pre>
+<p><strong>23 tables</strong> in total: 5 dimensions, 2 facts, 1 aggregate, 2 change tables, 1 staging table, 4 operational tables, 7 application tables, 1 catalog table. Plus <strong>20 analytical views</strong> in <a href="../db/views.sql">db/views.sql</a>.</p>
+<hr>
+<h2 id="2-dimensions">2. Dimensions</h2>
+<h3 id="21-dim_product--product-identity">2.1 <code>dim_product</code> — product identity</h3>
+<p>Grain: <strong>one row per canonical product identity</strong>. This is the conformed dimension every fact points at.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>product_id</code></th>
+<td>INTEGER</td>
+<td><strong>PK</strong></td>
+<td>Surrogate key, warehouse-internal</td>
+</tr>
+<tr>
+<th><code>source_product_id</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Identifier as published by the source</td>
+</tr>
+<tr>
+<th><code>source_code</code></th>
+<td>VARCHAR(128)</td>
+<td>FK</td>
+<td>The source this identity came from</td>
+</tr>
+<tr>
+<th><code>canonical_name</code></th>
+<td>VARCHAR(512)</td>
+<td>no</td>
+<td>Cleaned, human-facing name</td>
+</tr>
+<tr>
+<th><code>normalized_name</code></th>
+<td>TEXT</td>
+<td>no</td>
+<td>Lowercased, punctuation-free comparison form</td>
+</tr>
+<tr>
+<th><code>display_name</code></th>
+<td>VARCHAR(512)</td>
+<td>yes</td>
+<td>Name shown in the UI when it differs from canonical</td>
+</tr>
+<tr>
+<th><code>brand</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Extracted brand, normalised</td>
+</tr>
+<tr>
+<th><code>category_id</code></th>
+<td>INTEGER</td>
+<td>FK</td>
+<td>Resolved category</td>
+</tr>
+<tr>
+<th><code>product_url</code></th>
+<td>VARCHAR(2048)</td>
+<td>yes</td>
+<td>Canonical product page</td>
+</tr>
+<tr>
+<th><code>image_url</code></th>
+<td>VARCHAR(2048)</td>
+<td>yes</td>
+<td>Product image</td>
+</tr>
+<tr>
+<th><code>description</code></th>
+<td>TEXT</td>
+<td>yes</td>
+<td>Source description, stripped of HTML</td>
+</tr>
+<tr>
+<th><code>currency</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Native currency of <code>current_price</code></td>
+</tr>
+<tr>
+<th><code>current_price</code></th>
+<td>NUMERIC(18,4)</td>
+<td>yes</td>
+<td>Latest observed price, native currency</td>
+</tr>
+<tr>
+<th><code>previous_price</code></th>
+<td>NUMERIC(18,4)</td>
+<td>yes</td>
+<td>Previous observation, for inline deltas</td>
+</tr>
+<tr>
+<th><code>current_rating</code></th>
+<td>FLOAT</td>
+<td>yes</td>
+<td>Latest rating, 0–5</td>
+</tr>
+<tr>
+<th><code>rating_count</code></th>
+<td>INTEGER</td>
+<td>yes</td>
+<td>How many ratings the rating is based on</td>
+</tr>
+<tr>
+<th><code>availability</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Normalised vocabulary, see §8</td>
+</tr>
+<tr>
+<th><code>fingerprint</code></th>
+<td>VARCHAR(128)</td>
+<td><strong>UQ</strong></td>
+<td>Deterministic identity key — see §2.1.1</td>
+</tr>
+<tr>
+<th><code>match_strategy</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>How the identity was established: <code>fingerprint</code>, <code>sku</code>, <code>fuzzy</code>, <code>manual</code></td>
+</tr>
+<tr>
+<th><code>match_score</code></th>
+<td>FLOAT</td>
+<td>yes</td>
+<td>Similarity score when the strategy was fuzzy</td>
+</tr>
+<tr>
+<th><code>matched_product_id</code></th>
+<td>INTEGER</td>
+<td>FK</td>
+<td>The surviving product when this row was merged away</td>
+</tr>
+<tr>
+<th><code>is_active</code></th>
+<td>BOOLEAN</td>
+<td>no</td>
+<td>Seen in the most recent run</td>
+</tr>
+<tr>
+<th><code>version</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Increments on every update; a cheap optimistic-concurrency check</td>
+</tr>
+<tr>
+<th><code>observation_count</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Lifetime count of snapshots for this identity</td>
+</tr>
+<tr>
+<th><code>first_seen_at</code></th>
+<td>DATETIME</td>
+<td>no</td>
+<td>First ever sighting</td>
+</tr>
+<tr>
+<th><code>last_seen_at</code></th>
+<td>DATETIME</td>
+<td>no</td>
+<td>Most recent sighting</td>
+</tr>
+<tr>
+<th><code>extra</code></th>
+<td>JSON</td>
+<td>yes</td>
+<td>Source-specific fields with no home in the core model</td>
+</tr>
+</tbody></table></div>
+<h4 id="211-the-fingerprint">2.1.1 The fingerprint</h4>
+<p><code>fingerprint</code> is the single most important column in the warehouse. It is a deterministic hash of the cleaned name, the brand and a digit signature, and it is what makes the load <strong>idempotent</strong>: re-running the same data merges onto the same row instead of creating a duplicate.</p>
+<pre class="code" data-lang=""><code>fingerprint = hash( normalized_name | brand | digit_signature )</code></pre>
+<p>Consequences worth knowing:</p>
+<ul>
+<li class="depth-0">The same product from two sources gets two rows unless fuzzy matching merges them — which is why</li>
+</ul>
+<p><code>matched_product_id</code> and <code>match_score</code> exist and why the dashboard exposes duplicate candidates.</p>
+<ul>
+<li class="depth-0">Changing the fingerprint algorithm is a <strong>breaking schema change</strong>; existing rows would no longer</li>
+</ul>
+<p>merge. It is versioned deliberately.</p>
+<h3 id="22-dim_category--taxonomy">2.2 <code>dim_category</code> — taxonomy</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>category_id</code></th>
+<td>INTEGER</td>
+<td><strong>PK</strong></td>
+<td>Surrogate key</td>
+</tr>
+<tr>
+<th><code>name</code></th>
+<td>VARCHAR(512)</td>
+<td>no</td>
+<td>Cleaned category name</td>
+</tr>
+<tr>
+<th><code>slug</code></th>
+<td>VARCHAR(128)</td>
+<td><strong>UQ</strong></td>
+<td>URL-safe form; the natural key for merges</td>
+</tr>
+<tr>
+<th><code>parent_id</code></th>
+<td>INTEGER</td>
+<td>FK</td>
+<td>Self-referencing parent; enables the tree view</td>
+</tr>
+<tr>
+<th><code>level</code></th>
+<td>SMALLINT</td>
+<td>no</td>
+<td>Depth in the taxonomy, 1-based</td>
+</tr>
+<tr>
+<th><code>path</code></th>
+<td>VARCHAR(512)</td>
+<td>yes</td>
+<td>Full ancestry, e.g. <code>electronics/audio/headphones</code></td>
+</tr>
+<tr>
+<th><code>source_category_raw</code></th>
+<td>VARCHAR(512)</td>
+<td>yes</td>
+<td>The unnormalised label as published</td>
+</tr>
+<tr>
+<th><code>product_count</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Denormalised count, refreshed per run</td>
+</tr>
+<tr>
+<th><code>avg_price</code></th>
+<td>NUMERIC(18,4)</td>
+<td>yes</td>
+<td>Denormalised average, refreshed per run</td>
+</tr>
+<tr>
+<td><code>created_at</code> / <code>updated_at</code></td>
+<td>DATETIME</td>
+<td>no</td>
+<td>Audit timestamps</td>
+</tr>
+</tbody></table></div>
+<p><code>product_count</code> and <code>avg_price</code> are deliberate denormalisations: they turn a screen that would otherwise aggregate the fact table on every request into an indexed read. They are recomputed by <code>build_aggregates</code>, never incrementally patched, so they cannot drift.</p>
+<h3 id="23-dim_source--the-ingestion-registry">2.3 <code>dim_source</code> — the ingestion registry</h3>
+<p>This table is the compliance record as much as a dimension. It answers "what may we fetch, from where, how often, and what did we actually get?"</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>source_code</code></th>
+<td>VARCHAR(128)</td>
+<td><strong>PK</strong></td>
+<td>Short code, e.g. <code>dummyjson</code>, <code>fakestore</code></td>
+</tr>
+<tr>
+<th><code>name</code></th>
+<td>VARCHAR(512)</td>
+<td>no</td>
+<td>Display name</td>
+</tr>
+<tr>
+<th><code>kind</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td><code>api</code>, <code>html</code>, <code>local</code></td>
+</tr>
+<tr>
+<th><code>base_url</code></th>
+<td>VARCHAR(2048)</td>
+<td>no</td>
+<td>Entry point</td>
+</tr>
+<tr>
+<th><code>robots_url</code></th>
+<td>VARCHAR(2048)</td>
+<td>yes</td>
+<td>Where robots.txt is fetched from</td>
+</tr>
+<tr>
+<th><code>terms_url</code></th>
+<td>VARCHAR(2048)</td>
+<td>yes</td>
+<td>Terms of service, recorded for the ethics section</td>
+</tr>
+<tr>
+<th><code>license_note</code></th>
+<td>TEXT</td>
+<td>yes</td>
+<td>Licence or usage note</td>
+</tr>
+<tr>
+<th><code>rate_limit_per_minute</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Ceiling enforced by the token bucket</td>
+</tr>
+<tr>
+<th><code>min_delay_seconds</code></th>
+<td>FLOAT</td>
+<td>no</td>
+<td>Floor delay between requests, even if robots.txt declares none</td>
+</tr>
+<tr>
+<th><code>enabled</code></th>
+<td>BOOLEAN</td>
+<td>no</td>
+<td>Operator switch</td>
+</tr>
+<tr>
+<th><code>terms_allowed</code></th>
+<td>BOOLEAN</td>
+<td>no</td>
+<td>Whether the terms permit this use</td>
+</tr>
+<tr>
+<th><code>robots_checked_at</code></th>
+<td>DATETIME</td>
+<td>yes</td>
+<td>When robots.txt was last evaluated</td>
+</tr>
+<tr>
+<td><code>last_run_id</code> / <code>last_run_at</code></td>
+<td></td>
+<td>yes</td>
+<td>Most recent attempt</td>
+</tr>
+<tr>
+<th><code>total_records</code></th>
+<td>BIGINT</td>
+<td>no</td>
+<td>Lifetime records extracted</td>
+</tr>
+<tr>
+<th><code>total_runs</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Lifetime run count</td>
+</tr>
+<tr>
+<th><code>success_rate_pct</code></th>
+<td>FLOAT</td>
+<td>no</td>
+<td>Rolling success rate — drives the Sources screen</td>
+</tr>
+<tr>
+<th><code>avg_duration_seconds</code></th>
+<td>FLOAT</td>
+<td>no</td>
+<td>Rolling mean duration</td>
+</tr>
+<tr>
+<th><code>config</code></th>
+<td>JSON</td>
+<td>yes</td>
+<td>Source-specific settings</td>
+</tr>
+</tbody></table></div>
+<h3 id="24-dim_currency">2.4 <code>dim_currency</code></h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>currency_code</code></th>
+<td>VARCHAR(128)</td>
+<td><strong>PK</strong></td>
+<td>ISO 4217 code</td>
+</tr>
+<tr>
+<th><code>currency_name</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td>Display name</td>
+</tr>
+<tr>
+<th><code>symbol</code></th>
+<td>VARCHAR(8)</td>
+<td>yes</td>
+<td>Symbol where one exists</td>
+</tr>
+<tr>
+<th><code>rate_to_usd</code></th>
+<td>NUMERIC(18,6)</td>
+<td>no</td>
+<td>Conversion rate, precision matters</td>
+</tr>
+<tr>
+<th><code>rate_source</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Where the rate came from — <code>offline_table</code> for this project</td>
+</tr>
+<tr>
+<th><code>as_of</code></th>
+<td>DATE</td>
+<td>yes</td>
+<td>Date the rate was accurate for</td>
+</tr>
+</tbody></table></div>
+<p>The project uses an <strong>offline FX table</strong> deliberately: a pipeline that depends on a third-party rates API cannot run when that API is down, and cannot reproduce a historical run. Each snapshot stores the rate actually used (see <code>fact_price_snapshot.fx_rate_to_usd</code>), so history is stable even if this table is later updated.</p>
+<h3 id="25-dim_date">2.5 <code>dim_date</code></h3>
+<p>A conventional calendar dimension with no gaps and no duplicates.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>date_id</code></th>
+<td>INTEGER</td>
+<td><strong>PK</strong></td>
+<td><code>YYYYMMDD</code> as an integer</td>
+</tr>
+<tr>
+<th><code>full_date</code></th>
+<td>DATE</td>
+<td>no</td>
+<td>The date itself</td>
+</tr>
+<tr>
+<td><code>year</code>, <code>quarter</code>, <code>month</code>, <code>day</code></td>
+<td>SMALLINT</td>
+<td>no</td>
+<td>Calendar parts</td>
+</tr>
+<tr>
+<th><code>month_name</code>, <code>day_name</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Pre-formatted names, so the UI needs no date library</td>
+</tr>
+<tr>
+<td><code>week_of_year</code>, <code>iso_week</code></td>
+<td>SMALLINT</td>
+<td>yes</td>
+<td>ISO-8601 week numbering</td>
+</tr>
+<tr>
+<th><code>is_weekend</code></th>
+<td>BOOLEAN</td>
+<td>no</td>
+<td>Saturday or Sunday</td>
+</tr>
+<tr>
+<td><code>is_month_start</code>, <code>is_month_end</code></td>
+<td>BOOLEAN</td>
+<td>no</td>
+<td>Calendar boundaries</td>
+</tr>
+</tbody></table></div>
+<p><code>date_id</code> as <code>YYYYMMDD</code> rather than a sequence means a fact row is self-describing in a <code>SELECT</code>, which makes debugging considerably easier.</p>
+<hr>
+<h2 id="3-facts">3. Facts</h2>
+<h3 id="31-fact_price_snapshot">3.1 <code>fact_price_snapshot</code></h3>
+<p>Grain: <strong>one row per product × source × capture moment</strong>. Append-only — this table is never updated after insert.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>snapshot_id</code></th>
+<td>INTEGER</td>
+<td><strong>PK</strong></td>
+<td>Surrogate key</td>
+</tr>
+<tr>
+<th><code>product_id</code></th>
+<td>INTEGER</td>
+<td>FK</td>
+<td>Conform dimension</td>
+</tr>
+<tr>
+<th><code>source_code</code></th>
+<td>VARCHAR(128)</td>
+<td>FK</td>
+<td>Conform dimension</td>
+</tr>
+<tr>
+<th><code>run_id</code></th>
+<td>VARCHAR(128)</td>
+<td>FK</td>
+<td>Which run produced it</td>
+</tr>
+<tr>
+<th><code>date_id</code></th>
+<td>INTEGER</td>
+<td>FK</td>
+<td>Conform dimension</td>
+</tr>
+<tr>
+<th><code>captured_at</code></th>
+<td>DATETIME</td>
+<td>no</td>
+<td>When the source reported the value</td>
+</tr>
+<tr>
+<th><code>ingested_at</code></th>
+<td>DATETIME</td>
+<td>no</td>
+<td>When we stored it</td>
+</tr>
+<tr>
+<th><code>price</code></th>
+<td>NUMERIC(18,4)</td>
+<td>yes</td>
+<td>Native price as published</td>
+</tr>
+<tr>
+<th><code>list_price</code></th>
+<td>NUMERIC(18,4)</td>
+<td>yes</td>
+<td>Pre-discount price when the source exposes one</td>
+</tr>
+<tr>
+<th><code>currency</code></th>
+<td>VARCHAR(128)</td>
+<td>FK</td>
+<td>Native currency</td>
+</tr>
+<tr>
+<th><code>fx_rate_to_usd</code></th>
+<td>NUMERIC(18,6)</td>
+<td>no</td>
+<td><strong>The rate used for this row</strong></td>
+</tr>
+<tr>
+<th><code>price_usd</code></th>
+<td>NUMERIC(18,4)</td>
+<td>yes</td>
+<td>Converted price</td>
+</tr>
+<tr>
+<th><code>discount_pct</code></th>
+<td>FLOAT</td>
+<td>yes</td>
+<td>Derived from <code>list_price</code> and <code>price</code></td>
+</tr>
+<tr>
+<th><code>rating</code></th>
+<td>FLOAT</td>
+<td>yes</td>
+<td>0–5, or null</td>
+</tr>
+<tr>
+<th><code>rating_count</code></th>
+<td>INTEGER</td>
+<td>yes</td>
+<td>Sample size behind the rating</td>
+</tr>
+<tr>
+<th><code>availability</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Normalised vocabulary</td>
+</tr>
+<tr>
+<th><code>in_stock</code></th>
+<td>BOOLEAN</td>
+<td>yes</td>
+<td>Derived boolean, for fast filtering</td>
+</tr>
+<tr>
+<th><code>price_change_abs</code></th>
+<td>NUMERIC(18,4)</td>
+<td>yes</td>
+<td>Change vs the previous snapshot</td>
+</tr>
+<tr>
+<th><code>price_change_pct</code></th>
+<td>FLOAT</td>
+<td>yes</td>
+<td>Percentage change vs the previous snapshot</td>
+</tr>
+<tr>
+<th><code>is_first_sighting</code></th>
+<td>BOOLEAN</td>
+<td>no</td>
+<td>True on the product's first ever appearance</td>
+</tr>
+<tr>
+<th><code>product_url</code></th>
+<td>VARCHAR(2048)</td>
+<td>yes</td>
+<td>URL as captured, even if the product has since moved</td>
+</tr>
+<tr>
+<th><code>raw_price_text</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td><strong>The original string</strong> before parsing</td>
+</tr>
+<tr>
+<th><code>quality_flags</code></th>
+<td>JSON</td>
+<td>yes</td>
+<td>Flags raised by the cleaner and DQ framework</td>
+</tr>
+</tbody></table></div>
+<p>Two columns carry more weight than they appear to:</p>
+<ul>
+<li class="depth-0"><strong><code>raw_price_text</code></strong> makes price-parsing bugs diagnosable after the fact. When <code>price</code> is wrong,</li>
+</ul>
+<p>the original string that produced it is still there.</p>
+<ul>
+<li class="depth-0"><strong><code>fx_rate_to_usd</code></strong> makes the USD column reproducible. Changing <code>dim_currency</code> does not rewrite</li>
+</ul>
+<p>history, because history already knows the rate it used.</p>
+<h3 id="32-fact_catalog_snapshot">3.2 <code>fact_catalog_snapshot</code></h3>
+<p>Grain: <strong>one row per catalog SKU × run</strong>. This is where the retailer's own catalog meets the scraped market.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>match_id</code></th>
+<td>INTEGER</td>
+<td><strong>PK</strong></td>
+<td>Surrogate key</td>
+</tr>
+<tr>
+<th><code>run_id</code></th>
+<td>VARCHAR(128)</td>
+<td>FK</td>
+<td>Which run produced it</td>
+</tr>
+<tr>
+<th><code>catalog_sku</code></th>
+<td>VARCHAR(128)</td>
+<td>FK</td>
+<td>Internal SKU</td>
+</tr>
+<tr>
+<th><code>product_id</code></th>
+<td>INTEGER</td>
+<td>FK</td>
+<td>Matched market product, null when unmatched</td>
+</tr>
+<tr>
+<th><code>source_code</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Source of the match</td>
+</tr>
+<tr>
+<th><code>date_id</code></th>
+<td>INTEGER</td>
+<td>FK</td>
+<td>Conform dimension</td>
+</tr>
+<tr>
+<th><code>match_status</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td><code>matched</code>, <code>unmatched</code>, <code>ambiguous</code></td>
+</tr>
+<tr>
+<th><code>match_strategy</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td><code>sku_exact</code>, <code>fingerprint</code>, <code>fuzzy</code>, <code>none</code></td>
+</tr>
+<tr>
+<th><code>similarity_score</code></th>
+<td>FLOAT</td>
+<td>yes</td>
+<td>Score for the chosen match</td>
+</tr>
+<tr>
+<td><code>scraped_name</code> / <code>catalog_name</code></td>
+<td>TEXT</td>
+<td>yes</td>
+<td>Both sides retained, so a bad match is visible</td>
+</tr>
+<tr>
+<td><code>scraped_price</code> / <code>catalog_price</code></td>
+<td>NUMERIC(18,4)</td>
+<td>yes</td>
+<td>Both sides of the comparison</td>
+</tr>
+<tr>
+<th><code>price_gap_abs</code></th>
+<td>NUMERIC(18,4)</td>
+<td>yes</td>
+<td>Absolute difference</td>
+</tr>
+<tr>
+<th><code>price_gap_pct</code></th>
+<td>FLOAT</td>
+<td>yes</td>
+<td>Gap as a percentage of the catalog price</td>
+</tr>
+<tr>
+<td><code>category_match</code> / <code>brand_match</code></td>
+<td>BOOLEAN</td>
+<td>yes</td>
+<td>Independent agreement signals</td>
+</tr>
+<tr>
+<th><code>is_price_mismatch</code></th>
+<td>BOOLEAN</td>
+<td>no</td>
+<td>Gap beyond the configured tolerance</td>
+</tr>
+<tr>
+<th><code>matched_at</code></th>
+<td>DATETIME</td>
+<td>no</td>
+<td>When the comparison ran</td>
+</tr>
+<tr>
+<th><code>details</code></th>
+<td>JSON</td>
+<td>yes</td>
+<td>Evidence for the decision</td>
+</tr>
+</tbody></table></div>
+<p><code>price_gap_pct</code> positive means the market is more expensive than our list price — that is the pricing opportunity the Catalog screen surfaces.</p>
+<hr>
+<h2 id="4-aggregate">4. Aggregate</h2>
+<h3 id="agg_category_daily"><code>agg_category_daily</code></h3>
+<p>Grain: <strong>category × date × source</strong>. Fully derived and fully rebuildable — drop it and recompute, nothing is lost.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>agg_id</code></th>
+<td>INTEGER</td>
+<td><strong>PK</strong></td>
+<td>Surrogate key</td>
+</tr>
+<tr>
+<th><code>date_id</code></th>
+<td>INTEGER</td>
+<td>FK</td>
+<td>Conform dimension</td>
+</tr>
+<tr>
+<th><code>category_id</code></th>
+<td>INTEGER</td>
+<td>FK</td>
+<td>Conform dimension</td>
+</tr>
+<tr>
+<th><code>source_code</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Null means all sources combined</td>
+</tr>
+<tr>
+<th><code>product_count</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Distinct products observed</td>
+</tr>
+<tr>
+<th><code>new_product_count</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>First sightings that day</td>
+</tr>
+<tr>
+<th><code>removed_product_count</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Products that stopped being observed</td>
+</tr>
+<tr>
+<td><code>avg_price</code>, <code>median_price</code>, <code>min_price</code>, <code>max_price</code></td>
+<td>NUMERIC(18,4)</td>
+<td>yes</td>
+<td>Price distribution</td>
+</tr>
+<tr>
+<th><code>avg_rating</code></th>
+<td>FLOAT</td>
+<td>yes</td>
+<td>Mean rating</td>
+</tr>
+<tr>
+<th><code>price_change_count</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Price changes in this cell</td>
+</tr>
+<tr>
+<th><code>avg_price_change_pct</code></th>
+<td>FLOAT</td>
+<td>yes</td>
+<td>Mean movement — the volatility signal</td>
+</tr>
+<tr>
+<th><code>computed_at</code></th>
+<td>DATETIME</td>
+<td>no</td>
+<td>When this row was computed</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="5-change-capture">5. Change capture</h2>
+<h3 id="51-chg_price_change">5.1 <code>chg_price_change</code></h3>
+<p>Append-only. One row per detected price movement.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>change_id</code></th>
+<td>INTEGER</td>
+<td><strong>PK</strong></td>
+<td>Surrogate key</td>
+</tr>
+<tr>
+<th><code>product_id</code></th>
+<td>INTEGER</td>
+<td>FK</td>
+<td>Conform dimension</td>
+</tr>
+<tr>
+<th><code>source_code</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td>Source the change came from</td>
+</tr>
+<tr>
+<th><code>run_id</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td>Detecting run</td>
+</tr>
+<tr>
+<th><code>date_id</code></th>
+<td>INTEGER</td>
+<td>FK</td>
+<td>Conform dimension</td>
+</tr>
+<tr>
+<td><code>previous_price</code> / <code>new_price</code></td>
+<td>NUMERIC(18,4)</td>
+<td>yes</td>
+<td>Native currency</td>
+</tr>
+<tr>
+<th><code>change_abs</code></th>
+<td>NUMERIC(18,4)</td>
+<td>yes</td>
+<td>Absolute delta</td>
+</tr>
+<tr>
+<th><code>change_pct</code></th>
+<td>FLOAT</td>
+<td>yes</td>
+<td>Percentage delta</td>
+</tr>
+<tr>
+<th><code>direction</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td><code>increase</code> or <code>decrease</code></td>
+</tr>
+<tr>
+<th><code>currency</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td>Native currency</td>
+</tr>
+<tr>
+<th><code>magnitude_band</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>See §8</td>
+</tr>
+<tr>
+<th><code>is_significant</code></th>
+<td>BOOLEAN</td>
+<td>no</td>
+<td>Beyond the alerting threshold</td>
+</tr>
+<tr>
+<td><code>previous_price_usd</code> / <code>new_price_usd</code></td>
+<td>NUMERIC(18,4)</td>
+<td>yes</td>
+<td>USD equivalents at their own rates</td>
+</tr>
+<tr>
+<th><code>detected_at</code></th>
+<td>DATETIME</td>
+<td>no</td>
+<td>Detection timestamp</td>
+</tr>
+</tbody></table></div>
+<p>Comparing the previous and new price in <strong>USD as well as native</strong> avoids a false "price change" when only the exchange rate moved.</p>
+<h3 id="52-chg_product_event">5.2 <code>chg_product_event</code></h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>event_id</code></th>
+<td>INTEGER</td>
+<td><strong>PK</strong></td>
+<td>Surrogate key</td>
+</tr>
+<tr>
+<th><code>product_id</code></th>
+<td>INTEGER</td>
+<td>FK</td>
+<td>Conform dimension</td>
+</tr>
+<tr>
+<th><code>source_code</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td>Source</td>
+</tr>
+<tr>
+<th><code>run_id</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td>Detecting run</td>
+</tr>
+<tr>
+<th><code>date_id</code></th>
+<td>INTEGER</td>
+<td>FK</td>
+<td>Conform dimension</td>
+</tr>
+<tr>
+<th><code>event_type</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td><code>new</code>, <code>removed</code>, <code>category_changed</code>, <code>price_changed</code></td>
+</tr>
+<tr>
+<th><code>severity</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td><code>info</code>, <code>warning</code>, <code>critical</code></td>
+</tr>
+<tr>
+<td><code>old_value</code> / <code>new_value</code></td>
+<td>TEXT</td>
+<td>yes</td>
+<td>Human-readable before and after</td>
+</tr>
+<tr>
+<td><code>old_category_id</code> / <code>new_category_id</code></td>
+<td>INTEGER</td>
+<td>yes</td>
+<td>For <code>category_changed</code></td>
+</tr>
+<tr>
+<th><code>days_missing</code></th>
+<td>INTEGER</td>
+<td>yes</td>
+<td>How long a <code>removed</code> product had already been absent</td>
+</tr>
+<tr>
+<th><code>detected_at</code></th>
+<td>DATETIME</td>
+<td>no</td>
+<td>Detection timestamp</td>
+</tr>
+<tr>
+<th><code>details</code></th>
+<td>JSON</td>
+<td>yes</td>
+<td>Extra context</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="6-operational-tables">6. Operational tables</h2>
+<h3 id="61-etl_run--the-run-record">6.1 <code>etl_run</code> — the run record</h3>
+<p>One row per execution, whatever triggered it. This is the spine of the whole observability story: <code>GET /pipeline/runs/{run_id}</code> returns this row.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>run_id</code></th>
+<td>VARCHAR(128)</td>
+<td><strong>PK</strong></td>
+<td>Unique run identifier</td>
+</tr>
+<tr>
+<th><code>run_key</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Natural key for deduplicating retried runs</td>
+</tr>
+<tr>
+<th><code>pipeline</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td>Pipeline name</td>
+</tr>
+<tr>
+<th><code>target_database</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td><code>postgres</code>, <code>mysql</code> or <code>sqlite</code></td>
+</tr>
+<tr>
+<th><code>dag_id</code> / <code>task_id</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Present when Airflow triggered the run</td>
+</tr>
+<tr>
+<th><code>status</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td><code>running</code>, <code>success</code>, <code>partial</code>, <code>failed</code></td>
+</tr>
+<tr>
+<th><code>trigger</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td><code>airflow</code>, <code>api</code>, <code>cli</code>, <code>schedule</code>, <code>manual</code></td>
+</tr>
+<tr>
+<td><code>started_at</code> / <code>finished_at</code></td>
+<td>DATETIME</td>
+<td>—</td>
+<td>Wall-clock bounds</td>
+</tr>
+<tr>
+<th><code>duration_ms</code></th>
+<td>INTEGER</td>
+<td>yes</td>
+<td>Total duration</td>
+</tr>
+<tr>
+<th><code>records_extracted</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Rows pulled from sources</td>
+</tr>
+<tr>
+<th><code>records_valid</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Passed validation</td>
+</tr>
+<tr>
+<th><code>records_rejected</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Failed validation and staged with a reason</td>
+</tr>
+<tr>
+<td><code>records_inserted</code> / <code>records_updated</code></td>
+<td>INTEGER</td>
+<td>no</td>
+<td>Warehouse writes</td>
+</tr>
+<tr>
+<th><code>duplicates_merged</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Fuzzy merges performed</td>
+</tr>
+<tr>
+<td><code>new_products</code> / <code>removed_products</code></td>
+<td>INTEGER</td>
+<td>no</td>
+<td>Lifecycle changes</td>
+</tr>
+<tr>
+<th><code>price_changes</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Price movements detected</td>
+</tr>
+<tr>
+<th><code>catalog_matched</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>SKUs matched to the market</td>
+</tr>
+<tr>
+<td><code>dq_passed</code> / <code>dq_failed</code></td>
+<td>INTEGER</td>
+<td>no</td>
+<td>DQ rule outcomes</td>
+</tr>
+<tr>
+<th><code>dq_score</code></th>
+<td>FLOAT</td>
+<td>yes</td>
+<td>Weighted quality score</td>
+</tr>
+<tr>
+<th><code>error_message</code></th>
+<td>TEXT</td>
+<td>yes</td>
+<td>Failure detail</td>
+</tr>
+<tr>
+<th><code>warnings</code></th>
+<td>JSON</td>
+<td>yes</td>
+<td>Non-fatal warnings, e.g. a source skipped</td>
+</tr>
+<tr>
+<th><code>params</code></th>
+<td>JSON</td>
+<td>yes</td>
+<td>Effective configuration for this run</td>
+</tr>
+<tr>
+<th><code>created_by</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Principal that triggered it</td>
+</tr>
+</tbody></table></div>
+<p>Fifteen-plus counters on one row is intentional: a run is a <strong>measurement</strong>, and the Pipeline screen can reconstruct what happened without re-reading logs.</p>
+<h3 id="62-dq_rule_result--the-verdicts">6.2 <code>dq_rule_result</code> — the verdicts</h3>
+<p>Grain: <strong>run × rule</strong>. Persisting verdicts (rather than only logging them) is what makes the 90-day quality trend possible.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>result_id</code></th>
+<td>INTEGER</td>
+<td><strong>PK</strong></td>
+<td>Surrogate key</td>
+</tr>
+<tr>
+<th><code>run_id</code></th>
+<td>VARCHAR(128)</td>
+<td>FK</td>
+<td>Run evaluated</td>
+</tr>
+<tr>
+<th><code>rule_code</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td><code>DQ001</code> … <code>DQ012</code></td>
+</tr>
+<tr>
+<th><code>rule_name</code></th>
+<td>VARCHAR(512)</td>
+<td>yes</td>
+<td>Human-readable rule name</td>
+</tr>
+<tr>
+<th><code>dimension</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td><code>completeness</code>, <code>validity</code>, <code>uniqueness</code>, <code>accuracy</code>, <code>consistency</code>, <code>timeliness</code></td>
+</tr>
+<tr>
+<th><code>severity</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td><code>info</code>, <code>warning</code>, <code>critical</code></td>
+</tr>
+<tr>
+<th><code>status</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td><code>pass</code>, <code>warn</code>, <code>fail</code></td>
+</tr>
+<tr>
+<th><code>table_name</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Table the rule inspected</td>
+</tr>
+<tr>
+<th><code>observed_value</code></th>
+<td>FLOAT</td>
+<td>yes</td>
+<td>What was measured</td>
+</tr>
+<tr>
+<td><code>expected_value</code> / <code>threshold</code></td>
+<td>FLOAT</td>
+<td>yes</td>
+<td>What was required</td>
+</tr>
+<tr>
+<td><code>records_checked</code> / <code>records_failed</code></td>
+<td>INTEGER</td>
+<td>no</td>
+<td>Sample size and failures</td>
+</tr>
+<tr>
+<th><code>pass_rate_pct</code></th>
+<td>FLOAT</td>
+<td>yes</td>
+<td>Pass rate</td>
+</tr>
+<tr>
+<th><code>message</code></th>
+<td>TEXT</td>
+<td>yes</td>
+<td>Explanation</td>
+</tr>
+<tr>
+<th><code>evidence</code></th>
+<td>JSON</td>
+<td>yes</td>
+<td>Example offending rows</td>
+</tr>
+<tr>
+<th><code>evaluated_at</code></th>
+<td>DATETIME</td>
+<td>no</td>
+<td>When evaluated</td>
+</tr>
+</tbody></table></div>
+<h3 id="63-ingestion_http_log--the-crawler-evidence">6.3 <code>ingestion_http_log</code> — the crawler evidence</h3>
+<p>Grain: <strong>one row per outbound HTTP attempt</strong>, including attempts that never left the process.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>log_id</code></th>
+<td>INTEGER</td>
+<td><strong>PK</strong></td>
+<td>Surrogate key</td>
+</tr>
+<tr>
+<th><code>run_id</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Run during which it happened</td>
+</tr>
+<tr>
+<th><code>source_code</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Source being fetched</td>
+</tr>
+<tr>
+<th><code>method</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td>Usually <code>GET</code></td>
+</tr>
+<tr>
+<th><code>url</code></th>
+<td>VARCHAR(2048)</td>
+<td>no</td>
+<td>Full URL</td>
+</tr>
+<tr>
+<th><code>host</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Extracted host</td>
+</tr>
+<tr>
+<th><code>status_code</code></th>
+<td>INTEGER</td>
+<td>yes</td>
+<td>HTTP status, null if never sent</td>
+</tr>
+<tr>
+<th><code>elapsed_ms</code></th>
+<td>FLOAT</td>
+<td>yes</td>
+<td>Latency</td>
+</tr>
+<tr>
+<th><code>response_bytes</code></th>
+<td>INTEGER</td>
+<td>yes</td>
+<td>Response size</td>
+</tr>
+<tr>
+<th><code>robots_allowed</code></th>
+<td>BOOLEAN</td>
+<td>yes</td>
+<td><strong>The compliance decision</strong></td>
+</tr>
+<tr>
+<th><code>robots_rule</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Which rule matched</td>
+</tr>
+<tr>
+<th><code>from_cache</code></th>
+<td>BOOLEAN</td>
+<td>no</td>
+<td>Whether the response cache served it</td>
+</tr>
+<tr>
+<th><code>retry_count</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Retries before this attempt</td>
+</tr>
+<tr>
+<th><code>error</code></th>
+<td>TEXT</td>
+<td>yes</td>
+<td>Failure detail</td>
+</tr>
+<tr>
+<th><code>requested_at</code></th>
+<td>DATETIME</td>
+<td>no</td>
+<td>When the attempt was made</td>
+</tr>
+</tbody></table></div>
+<p>A row with <code>robots_allowed = false</code> and <code>status_code = null</code> is the proof that the crawler declined to make a request — which is exactly the evidence an examiner asks for.</p>
+<h3 id="64-sync_state">6.4 <code>sync_state</code></h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>source_code</code></th>
+<td>VARCHAR(128)</td>
+<td><strong>PK</strong></td>
+<td>Source</td>
+</tr>
+<tr>
+<th><code>last_run_id</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Most recent attempt</td>
+</tr>
+<tr>
+<td><code>last_success_at</code> / <code>last_attempt_at</code></td>
+<td>DATETIME</td>
+<td>yes</td>
+<td>Timestamps</td>
+</tr>
+<tr>
+<td><code>cursor_value</code> / <code>cursor_json</code></td>
+<td></td>
+<td>yes</td>
+<td>Resume position for incremental fetches</td>
+</tr>
+<tr>
+<th><code>total_extracted</code></th>
+<td>BIGINT</td>
+<td>no</td>
+<td>Lifetime records</td>
+</tr>
+<tr>
+<th><code>consecutive_failures</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Feeds the circuit breaker</td>
+</tr>
+<tr>
+<th><code>status</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td><code>ok</code>, <code>degraded</code>, <code>failing</code></td>
+</tr>
+<tr>
+<th><code>message</code></th>
+<td>TEXT</td>
+<td>yes</td>
+<td>Last message</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="7-staging">7. Staging</h2>
+<h3 id="stg_raw_observation"><code>stg_raw_observation</code></h3>
+<p>Grain: <strong>one row per raw observation</strong>, including rows that failed validation. Truncated per run.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>observation_id</code></th>
+<td>INTEGER</td>
+<td><strong>PK</strong></td>
+<td>Surrogate key</td>
+</tr>
+<tr>
+<th><code>run_id</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Run that produced it</td>
+</tr>
+<tr>
+<th><code>source_code</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td>Source</td>
+</tr>
+<tr>
+<th><code>source_product_id</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Source identifier</td>
+</tr>
+<tr>
+<th><code>entity_type</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td><code>product</code>, <code>book</code>, …</td>
+</tr>
+<tr>
+<th><code>source_url</code></th>
+<td>VARCHAR(2048)</td>
+<td>yes</td>
+<td>Where it came from</td>
+</tr>
+<tr>
+<td><code>raw_name</code>, <code>raw_category</code>, <code>raw_price_text</code>, <code>raw_currency</code>, <code>raw_rating_text</code>, <code>raw_availability</code></td>
+<td></td>
+<td>yes</td>
+<td><strong>Original values before any cleaning</strong></td>
+</tr>
+<tr>
+<th><code>raw_payload</code></th>
+<td>JSON</td>
+<td>yes</td>
+<td>Complete original response fragment</td>
+</tr>
+<tr>
+<th><code>payload_hash</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Hash of <code>raw_payload</code>, for change detection</td>
+</tr>
+<tr>
+<th><code>http_status</code></th>
+<td>INTEGER</td>
+<td>yes</td>
+<td>Status of the fetch</td>
+</tr>
+<tr>
+<th><code>is_valid</code></th>
+<td>BOOLEAN</td>
+<td>no</td>
+<td>Passed validation</td>
+</tr>
+<tr>
+<th><code>reject_reason</code></th>
+<td>VARCHAR(512)</td>
+<td>yes</td>
+<td>Why it was rejected</td>
+</tr>
+<tr>
+<td><code>fetched_at</code> / <code>landed_at</code></td>
+<td>DATETIME</td>
+<td>no</td>
+<td>Fetch time and landing time</td>
+</tr>
+</tbody></table></div>
+<p>Rejected rows are kept, not discarded. That is what makes the DQ-012 rejection-rate rule measurable, and what lets a cleaning rule be tuned and its effect compared.</p>
+<hr>
+<h2 id="8-application-and-access-tables">8. Application and access tables</h2>
+<h3 id="81-app_user">8.1 <code>app_user</code></h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>user_id</code></th>
+<td>INTEGER</td>
+<td><strong>PK</strong></td>
+<td>Surrogate key</td>
+</tr>
+<tr>
+<th><code>email</code></th>
+<td>VARCHAR(512)</td>
+<td><strong>UQ</strong></td>
+<td>Login identifier</td>
+</tr>
+<tr>
+<th><code>full_name</code></th>
+<td>VARCHAR(512)</td>
+<td>no</td>
+<td>Display name</td>
+</tr>
+<tr>
+<th><code>hashed_password</code></th>
+<td>VARCHAR(255)</td>
+<td>no</td>
+<td><strong>Argon2id hash — never plain text</strong></td>
+</tr>
+<tr>
+<th><code>role</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td><code>admin</code>, <code>analyst</code>, <code>viewer</code></td>
+</tr>
+<tr>
+<td><code>job_title</code> / <code>department</code></td>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Profile metadata</td>
+</tr>
+<tr>
+<th><code>avatar_color</code></th>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Chosen swatch, applied app-wide</td>
+</tr>
+<tr>
+<th><code>timezone</code> / <code>locale</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td>Presentation preferences</td>
+</tr>
+<tr>
+<th><code>theme</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td><code>light</code>, <code>dark</code>, <code>system</code></td>
+</tr>
+<tr>
+<th><code>accent</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td>Accent colour choice</td>
+</tr>
+<tr>
+<th><code>density</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td><code>comfortable</code>, <code>compact</code></td>
+</tr>
+<tr>
+<td><code>is_active</code> / <code>is_verified</code></td>
+<td>BOOLEAN</td>
+<td>no</td>
+<td>Account state</td>
+</tr>
+<tr>
+<th><code>rows_per_page</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Table page size</td>
+</tr>
+<tr>
+<th><code>default_currency</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td>Presentation currency</td>
+</tr>
+<tr>
+<th><code>price_change_alert_pct</code></th>
+<td>FLOAT</td>
+<td>no</td>
+<td>Alert threshold for this user</td>
+</tr>
+<tr>
+<td><code>email_alerts_enabled</code> / <code>weekly_digest_enabled</code></td>
+<td>BOOLEAN</td>
+<td>no</td>
+<td>Notification preferences</td>
+</tr>
+<tr>
+<th><code>login_count</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Lifetime logins</td>
+</tr>
+<tr>
+<td><code>last_login_at</code> / <code>last_login_ip</code></td>
+<td>DATETIME</td>
+<td>yes</td>
+<td>Last sign-in evidence</td>
+</tr>
+<tr>
+<th><code>password_changed_at</code></th>
+<td>DATETIME</td>
+<td>yes</td>
+<td>Drives expiry policy</td>
+</tr>
+<tr>
+<th><code>two_factor_enabled</code></th>
+<td>BOOLEAN</td>
+<td>no</td>
+<td>Reserved for a future TOTP implementation</td>
+</tr>
+<tr>
+<th><code>failed_login_count</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Consecutive failures</td>
+</tr>
+<tr>
+<th><code>locked_until</code></th>
+<td>DATETIME</td>
+<td>yes</td>
+<td>Lockout expiry — five failures locks for 15 minutes</td>
+</tr>
+<tr>
+<th><code>preferences</code></th>
+<td>JSON</td>
+<td>yes</td>
+<td>Server-side preferences so they follow the user to a new device</td>
+</tr>
+<tr>
+<td><code>created_at</code> / <code>updated_at</code></td>
+<td>DATETIME</td>
+<td>no</td>
+<td>Audit timestamps</td>
+</tr>
+</tbody></table></div>
+<h3 id="82-app_api_key">8.2 <code>app_api_key</code></h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>key_id</code></th>
+<td>INTEGER</td>
+<td><strong>PK</strong></td>
+<td>Surrogate key</td>
+</tr>
+<tr>
+<th><code>user_id</code></th>
+<td>INTEGER</td>
+<td>FK</td>
+<td>Owner</td>
+</tr>
+<tr>
+<th><code>name</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td>Human label</td>
+</tr>
+<tr>
+<th><code>prefix</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td>Displayed prefix, e.g. <code>pip_live_a1b2…</code></td>
+</tr>
+<tr>
+<th><code>hashed_key</code></th>
+<td>VARCHAR(255)</td>
+<td>no</td>
+<td><strong>Hash — the secret itself is shown exactly once</strong></td>
+</tr>
+<tr>
+<th><code>scopes</code></th>
+<td>JSON</td>
+<td>yes</td>
+<td>Granted scopes</td>
+</tr>
+<tr>
+<th><code>is_active</code></th>
+<td>BOOLEAN</td>
+<td>no</td>
+<td>Revocation flag</td>
+</tr>
+<tr>
+<th><code>expires_at</code></th>
+<td>DATETIME</td>
+<td>yes</td>
+<td>Optional expiry</td>
+</tr>
+<tr>
+<th><code>last_used_at</code></th>
+<td>DATETIME</td>
+<td>yes</td>
+<td>Usage evidence</td>
+</tr>
+<tr>
+<th><code>usage_count</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Lifetime calls</td>
+</tr>
+<tr>
+<th><code>rate_limit_per_minute</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Per-key limit</td>
+</tr>
+<tr>
+<td><code>created_at</code> / <code>updated_at</code></td>
+<td>DATETIME</td>
+<td>no</td>
+<td>Audit timestamps</td>
+</tr>
+</tbody></table></div>
+<h3 id="83-app_audit_log">8.3 <code>app_audit_log</code></h3>
+<p>Grain: <strong>one row per mutating request.</strong></p>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>audit_id</code></th>
+<td>INTEGER</td>
+<td><strong>PK</strong></td>
+<td>Surrogate key</td>
+</tr>
+<tr>
+<th><code>user_id</code></th>
+<td>INTEGER</td>
+<td>FK</td>
+<td>Actor, null for system actions</td>
+</tr>
+<tr>
+<th><code>user_email</code></th>
+<td>VARCHAR(512)</td>
+<td>yes</td>
+<td>Denormalised so the trail survives user deletion</td>
+</tr>
+<tr>
+<th><code>action</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td>e.g. <code>product.update</code></td>
+</tr>
+<tr>
+<td><code>entity_type</code> / <code>entity_id</code></td>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>What was touched</td>
+</tr>
+<tr>
+<th><code>status</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td><code>success</code> or <code>failure</code></td>
+</tr>
+<tr>
+<td><code>ip_address</code> / <code>user_agent</code></td>
+<td>VARCHAR(128)</td>
+<td>yes</td>
+<td>Request origin</td>
+</tr>
+<tr>
+<th><code>duration_ms</code></th>
+<td>INTEGER</td>
+<td>yes</td>
+<td>Handler duration</td>
+</tr>
+<tr>
+<th><code>details</code></th>
+<td>JSON</td>
+<td>yes</td>
+<td>Structured context</td>
+</tr>
+<tr>
+<th><code>created_at</code></th>
+<td>DATETIME</td>
+<td>no</td>
+<td>When it happened</td>
+</tr>
+</tbody></table></div>
+<h3 id="84-app_saved_view-app_alert_rule-app_notification-app_setting">8.4 <code>app_saved_view</code>, <code>app_alert_rule</code>, <code>app_notification</code>, <code>app_setting</code></h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Table</th>
+<th>Grain</th>
+<th>Key columns</th>
+</tr></thead><tbody>
+<tr>
+<th><code>app_saved_view</code></th>
+<td>One saved configuration per user</td>
+<td><code>name</code>, <code>entity</code>, <code>filters</code> (JSON), <code>sort_by</code>, <code>sort_dir</code>, <code>visible_columns</code> (JSON), <code>is_shared</code>, <code>is_favorite</code>, <code>is_default</code>, <code>use_count</code></td>
+</tr>
+<tr>
+<th><code>app_alert_rule</code></th>
+<td>One rule per user</td>
+<td><code>metric</code>, <code>operator</code>, <code>threshold</code>, <code>category</code>, <code>source_code</code>, <code>channel</code>, <code>is_active</code>, <code>last_triggered_at</code>, <code>trigger_count</code></td>
+</tr>
+<tr>
+<th><code>app_notification</code></th>
+<td>One notification per recipient</td>
+<td><code>level</code>, <code>title</code>, <code>body</code>, <code>entity_type</code>, <code>entity_id</code>, <code>action_url</code>, <code>is_read</code></td>
+</tr>
+<tr>
+<th><code>app_setting</code></th>
+<td>One global setting per key</td>
+<td><code>value</code>, <code>value_type</code>, <code>category</code>, <code>description</code>, <code>is_public</code> (exposed to clients), <code>updated_by</code></td>
+</tr>
+</tbody></table></div>
+<p><code>app_setting.is_public</code> is the single flag that decides whether a setting reaches the browser — anything sensitive stays server-side by default.</p>
+<h3 id="85-catalog_product">8.5 <code>catalog_product</code></h3>
+<p>The retailer's own catalog — the left-hand side of every price-gap comparison.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>sku</code></th>
+<td>VARCHAR(128)</td>
+<td><strong>PK</strong></td>
+<td>Internal SKU</td>
+</tr>
+<tr>
+<th><code>name</code></th>
+<td>VARCHAR(512)</td>
+<td>no</td>
+<td>Catalog name</td>
+</tr>
+<tr>
+<th><code>normalized_name</code></th>
+<td>TEXT</td>
+<td>yes</td>
+<td>Comparison form</td>
+</tr>
+<tr>
+<td><code>brand</code> / <code>category</code> / <code>supplier</code></td>
+<td>VARCHAR</td>
+<td>yes</td>
+<td>Attributes</td>
+</tr>
+<tr>
+<td><code>cost_price</code> / <code>list_price</code></td>
+<td>NUMERIC(18,4)</td>
+<td>yes</td>
+<td>Our prices</td>
+</tr>
+<tr>
+<th><code>currency</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td>Our currency</td>
+</tr>
+<tr>
+<th><code>qty_on_hand</code></th>
+<td>INTEGER</td>
+<td>no</td>
+<td>Stock on hand</td>
+</tr>
+<tr>
+<th><code>status</code></th>
+<td>VARCHAR(128)</td>
+<td>no</td>
+<td><code>active</code>, <code>discontinued</code>, …</td>
+</tr>
+<tr>
+<td><code>product_url</code> / <code>image_url</code></td>
+<td>VARCHAR(2048)</td>
+<td>yes</td>
+<td>Links</td>
+</tr>
+<tr>
+<th><code>attributes</code></th>
+<td>JSON</td>
+<td>yes</td>
+<td>Extra attributes</td>
+</tr>
+<tr>
+<td><code>created_at</code> / <code>updated_at</code></td>
+<td>DATETIME</td>
+<td>no</td>
+<td>Audit timestamps</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="9-controlled-vocabularies">9. Controlled vocabularies</h2>
+<p>Enumerations used across the warehouse. Keeping these closed is what makes the DQ validity rules possible — an open vocabulary cannot be validated.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>Permitted values</th>
+</tr></thead><tbody>
+<tr>
+<th><code>etl_run.status</code></th>
+<td><code>running</code>, <code>success</code>, <code>partial</code>, <code>failed</code></td>
+</tr>
+<tr>
+<th><code>etl_run.trigger</code></th>
+<td><code>airflow</code>, <code>api</code>, <code>cli</code>, <code>schedule</code>, <code>manual</code></td>
+</tr>
+<tr>
+<th><code>app_user.role</code></th>
+<td><code>admin</code>, <code>analyst</code>, <code>viewer</code></td>
+</tr>
+<tr>
+<th><code>app_user.theme</code></th>
+<td><code>light</code>, <code>dark</code>, <code>system</code></td>
+</tr>
+<tr>
+<th><code>app_user.density</code></th>
+<td><code>comfortable</code>, <code>compact</code></td>
+</tr>
+<tr>
+<th><code>dim_source.kind</code></th>
+<td><code>api</code>, <code>html</code>, <code>local</code></td>
+</tr>
+<tr>
+<td><code>dim_product.match_strategy</code></td>
+<td><code>fingerprint</code>, <code>sku</code>, <code>fuzzy</code>, <code>manual</code></td>
+</tr>
+<tr>
+<th><code>availability</code></th>
+<td><code>in_stock</code>, <code>out_of_stock</code>, <code>backorder</code>, <code>preorder</code>, <code>discontinued</code>, <code>unknown</code></td>
+</tr>
+<tr>
+<td><code>chg_price_change.direction</code></td>
+<td><code>increase</code>, <code>decrease</code></td>
+</tr>
+<tr>
+<td><code>chg_price_change.magnitude_band</code></td>
+<td><code>flash_sale</code>, <code>large</code>, <code>medium</code>, <code>small</code>, <code>minor</code></td>
+</tr>
+<tr>
+<td><code>chg_product_event.event_type</code></td>
+<td><code>new</code>, <code>removed</code>, <code>category_changed</code>, <code>price_changed</code></td>
+</tr>
+<tr>
+<td><code>chg_product_event.severity</code></td>
+<td><code>info</code>, <code>warning</code>, <code>critical</code></td>
+</tr>
+<tr>
+<th><code>dq_rule_result.status</code></th>
+<td><code>pass</code>, <code>warn</code>, <code>fail</code></td>
+</tr>
+<tr>
+<td><code>dq_rule_result.dimension</code></td>
+<td><code>completeness</code>, <code>validity</code>, <code>uniqueness</code>, <code>accuracy</code>, <code>consistency</code>, <code>timeliness</code></td>
+</tr>
+<tr>
+<td><code>dq_rule_result.severity</code></td>
+<td><code>info</code>, <code>warning</code>, <code>critical</code></td>
+</tr>
+<tr>
+<td><code>fact_catalog_snapshot.match_status</code></td>
+<td><code>matched</code>, <code>unmatched</code>, <code>ambiguous</code></td>
+</tr>
+<tr>
+<td><code>fact_catalog_snapshot.match_strategy</code></td>
+<td><code>sku_exact</code>, <code>fingerprint</code>, <code>fuzzy</code>, <code>none</code></td>
+</tr>
+<tr>
+<th><code>sync_state.status</code></th>
+<td><code>ok</code>, <code>degraded</code>, <code>failing</code></td>
+</tr>
+<tr>
+<td><code>stg_raw_observation.entity_type</code></td>
+<td><code>product</code>, <code>book</code>, <code>category</code></td>
+</tr>
+<tr>
+<th><code>app_audit_log.status</code></th>
+<td><code>success</code>, <code>failure</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="magnitude-bands">Magnitude bands</h3>
+<p><code>change_pct</code> is banded so the dashboard can filter for what matters:</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Band</th>
+<th>Absolute change</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>flash_sale</code></th>
+<td>≥ 30 %</td>
+<td>Almost certainly a promotion, not a market move</td>
+</tr>
+<tr>
+<th><code>large</code></th>
+<td>15 – 30 %</td>
+<td>Significant; worth alerting on</td>
+</tr>
+<tr>
+<th><code>medium</code></th>
+<td>5 – 15 %</td>
+<td>Ordinary movement</td>
+</tr>
+<tr>
+<th><code>small</code></th>
+<td>1 – 5 %</td>
+<td>Routine</td>
+</tr>
+<tr>
+<th><code>minor</code></th>
+<td>&lt; 1 %</td>
+<td>Noise</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="10-views">10. Views</h2>
+<p>Twenty views in <a href="../db/views.sql">db/views.sql</a> form the only read surface exposed to the API and the query lab.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>View</th>
+<th>Answers</th>
+</tr></thead><tbody>
+<tr>
+<th><code>vw_product_current</code></th>
+<td>What is every product's latest state?</td>
+</tr>
+<tr>
+<th><code>vw_product_index</code></th>
+<td>Searchable product index with category and brand</td>
+</tr>
+<tr>
+<th><code>vw_price_history</code></th>
+<td>Full price series per product</td>
+</tr>
+<tr>
+<th><code>vw_price_movements</code></th>
+<td>Snapshots that changed price</td>
+</tr>
+<tr>
+<th><code>vw_price_changes</code></th>
+<td>Change records joined to product and source</td>
+</tr>
+<tr>
+<th><code>vw_product_events</code></th>
+<td>Lifecycle events with product context</td>
+</tr>
+<tr>
+<th><code>vw_new_products</code></th>
+<td>First sightings in a window</td>
+</tr>
+<tr>
+<th><code>vw_removed_products</code></th>
+<td>Products that stopped appearing</td>
+</tr>
+<tr>
+<th><code>vw_category_changes</code></th>
+<td>Taxonomy drift between runs</td>
+</tr>
+<tr>
+<td><code>vw_category_price_index</code></td>
+<td>Price level per category, indexed</td>
+</tr>
+<tr>
+<th><code>vw_category_tree</code></th>
+<td>Hierarchy with counts, for the taxonomy screen</td>
+</tr>
+<tr>
+<th><code>vw_brand_summary</code></th>
+<td>Brand-level counts, prices and ratings</td>
+</tr>
+<tr>
+<th><code>vw_source_coverage</code></th>
+<td>Per-source volume, freshness and success</td>
+</tr>
+<tr>
+<th><code>vw_quality_latest</code></th>
+<td>Latest DQ verdicts per rule</td>
+</tr>
+<tr>
+<th><code>vw_pipeline_health</code></th>
+<td>Recent runs with duration and status</td>
+</tr>
+<tr>
+<td><code>vw_catalog_reconciliation</code></td>
+<td>Catalog SKUs against matched market prices</td>
+</tr>
+<tr>
+<th><code>vw_top_movers</code></th>
+<td>Largest price movements in a window</td>
+</tr>
+<tr>
+<td><code>vw_availability_summary</code></td>
+<td>Stock-state distribution</td>
+</tr>
+<tr>
+<th><code>vw_daily_kpis</code></th>
+<td>Headline metrics per day</td>
+</tr>
+<tr>
+<th><code>vw_http_audit</code></th>
+<td>Crawler evidence with the robots decision</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="11-dialect-portability">11. Dialect portability</h2>
+<p>The schema must load identically on PostgreSQL 16 and MySQL 8.4. <code>make verify-dialects</code> proves there is no structural drift.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Concern</th>
+<th>How it is handled</th>
+</tr></thead><tbody>
+<tr>
+<td><code>SERIAL</code> vs <code>AUTO_INCREMENT</code></td>
+<td>SQLAlchemy abstracts it per dialect</td>
+</tr>
+<tr>
+<td><code>TIMESTAMP</code> vs <code>DATETIME</code></td>
+<td>Handled by the type layer</td>
+</tr>
+<tr>
+<th><code>JSONB</code> vs <code>JSON</code></th>
+<td><strong>Only <code>JSON</code> is used</strong> — MySQL has no <code>JSONB</code></td>
+</tr>
+<tr>
+<th><code>NUMERIC</code> semantics</th>
+<td>Consistent precision and scale declared everywhere</td>
+</tr>
+<tr>
+<th><code>ILIKE</code></th>
+<td>Replaced with portable <code>LIKE</code> on normalised columns</td>
+</tr>
+<tr>
+<th><code>DISTINCT ON</code></th>
+<td>Not used; window functions instead, since both engines support them</td>
+</tr>
+<tr>
+<th>Identifiers</th>
+<td>Lowercase without reserved words</td>
+</tr>
+<tr>
+<th>Boolean handling</th>
+<td><code>BOOLEAN</code> on both; MySQL's <code>TINYINT(1)</code> is mapped transparently</td>
+</tr>
+<tr>
+<th><code>CREATE OR REPLACE VIEW</code></th>
+<td>Emitted per dialect by the migration layer</td>
+</tr>
+</tbody></table></div>
+<p>Money is <code>NUMERIC(18,4)</code> throughout and never a float. A 0.0001 error on a revenue figure is a reporting defect that compounds the moment anyone sums a column.</p>
+    </article>
+    <div class="doc-foot">
+      <span><a href="21_architecture_deep_dive.html">← Architecture Deep Dive</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="23_glossary_and_faq.html">Glossary and FAQ →</a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>
