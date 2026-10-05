@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowDown, ArrowUp, Bookmark, Braces, Copy, Download, Filter, Play, RotateCcw, Save, Sparkles, Wand2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, Bookmark, Braces, Copy, Download, Filter, Layers, Play, RotateCcw, Save, Sparkles, Wand2 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import {
@@ -16,6 +16,7 @@ import {
   LoadingState,
   Modal,
   SearchInput,
+  Segmented,
   Select,
   StatTile,
   TextInput,
@@ -26,6 +27,7 @@ import {
 import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { useDebounce } from '@/hooks/useDebounce'
+import AggregateBuilder from './AggregateBuilder'
 import { downloadCsv, downloadJson, toCsv, formatAvailability, formatNumber, formatPrice, formatRelative, titleCase } from '@/lib/format'
 
 type Entity = 'products' | 'price-changes' | 'runs' | 'quality' | 'catalog'
@@ -132,6 +134,7 @@ const ENTITY_HINTS: Record<Entity, string> = {
 }
 
 export default function Builder() {
+  const [mode, setMode] = useState<'filters' | 'aggregate'>('filters')
   const [state, setState] = useState<BuilderState>(DEFAULT_STATE)
   const [showSave, setShowSave] = useState(false)
   const [viewName, setViewName] = useState('')
@@ -290,6 +293,28 @@ export default function Builder() {
 
   return (
     <div className="space-y-4">
+      {/* ------------------------------------------------------- mode switch */}
+      <div className="flex items-center justify-between gap-3">
+        <Segmented
+          options={[
+            { id: 'filters', label: 'Filter & customise' },
+            { id: 'aggregate', label: 'Group & aggregate' },
+          ]}
+          value={mode}
+          onChange={(value) => setMode(value as 'filters' | 'aggregate')}
+        />
+        {mode === 'aggregate' ? (
+          <span className="flex items-center gap-1.5 text-[11px] text-subtle">
+            <Layers className="h-3.5 w-3.5" aria-hidden />
+            Server-side aggregation via <code className="rounded bg-surface-3 px-1 font-mono">/builder/query</code>
+          </span>
+        ) : null}
+      </div>
+
+      {mode === 'aggregate' ? (
+        <AggregateBuilder />
+      ) : (
+        <>
       {/* ------------------------------------------------------------- header */}
       <Card>
         <div className="flex flex-wrap items-start justify-between gap-3">
