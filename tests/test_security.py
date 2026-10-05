@@ -21,6 +21,7 @@ from app.api.security import (
     verify_password,
 )
 from app.core.errors import AuthenticationError, PermissionDeniedError
+from app.models.app_users import AppUser
 
 
 # --------------------------------------------------------------------------------------
@@ -175,32 +176,21 @@ def test_totp_codes_verify_within_the_window_and_outside_it():
 
 
 def test_totp_secret_round_trips_through_encryption():
-    from app.services.twofactor import decrypt_secret, encrypt_secret, verify_code
+    from app.services.twofactor import (
+        current_code,
+        decrypt_secret,
+        encrypt_secret,
+        generate_secret,
+        verify_code,
+    )
 
-    secret = twofactor_secret()
+    secret = generate_secret()
     stored = encrypt_secret(secret)
-    assert secret not in stored
-    assert decrypt_secret(stored) == secret
+    assert secret not in stored, "the secret must not be readable at rest"
+    recovered = decrypt_secret(stored)
+    assert recovered == secret
     # And the recovered secret still validates a live code.
-    assert twofactor_verify(decrypt_secret(stored), twofactor_current(secret)) is True
-
-
-def twofactor_secret() -> str:
-    from app.services.twofactor import generate_secret
-
-    return generate_secret()
-
-
-def twofactor_verify(secret: str, code: str) -> bool:
-    from app.services.twofactor import verify_code
-
-    return verify_code(secret, code)
-
-
-def twofactor_current(secret: str) -> str:
-    from app.services.twofactor import current_code
-
-    return current_code(secret)
+    assert verify_code(recovered, current_code(secret)) is True
 
 
 def test_recovery_codes_are_single_use_and_normalised():
