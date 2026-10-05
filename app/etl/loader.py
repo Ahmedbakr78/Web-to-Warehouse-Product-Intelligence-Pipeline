@@ -97,12 +97,9 @@ class WarehouseLoader:
 
     # ------------------------------------------------------------------ dimensions
     def preload_dimensions(self) -> None:
-        """Warm the in-memory dimension caches (one query per dimension)."""
-        for row in self.session.execute(sa.select(DimCategory.category_id, DimCategory.slug)):
-            category = self.session.get(DimCategory, row[0])
-            if category is not None:
-                self._category_cache[category.slug] = category
-        self._category_cache.update({c.slug: c for c in self._category_cache.values()})
+        """Warm the in-memory dimension caches with one query per dimension."""
+        categories = self.session.execute(sa.select(DimCategory)).scalars().all()
+        self._category_cache = {category.slug: category for category in categories}
         log.debug("preloaded %d categories", len(self._category_cache))
 
     def resolve_category(self, record: NormalizedProduct) -> DimCategory | None:

@@ -142,9 +142,7 @@ def validate(diagrams: list[Diagram], *, render: bool = False) -> int:
         for number, diagram in enumerate(diagrams, start=1):
             source_file = tmp_path / f"{number:03d}.mmd"
             source_file.write_text(diagram.body, encoding="utf-8")
-            target = (
-                OUT / f"{diagram.slug}_{number:02d}.svg" if render else tmp_path / f"{number:03d}.svg"
-            )
+            target = OUT / f"{diagram.slug}_{number:02d}.svg" if render else tmp_path / f"{number:03d}.svg"
 
             result = subprocess.run(
                 ["mmdc", "-i", str(source_file), "-o", str(target), "-p", str(config), "-q"],

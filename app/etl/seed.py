@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.db import session_scope
+from app.etl.loader import SIGNIFICANT_CHANGE_PCT
 from app.core.logging import get_logger
 from app.ingestion.cleaning import (
     category_slug,
@@ -580,7 +581,7 @@ def seed_history(
                                 else ("large" if abs(change_pct) < 30 else "major")
                             )
                         ),
-                        "is_significant": abs(change_pct) >= 2.0,
+                        "is_significant": abs(change_pct) >= SIGNIFICANT_CHANGE_PCT,
                         "previous_price_usd": convert_to_usd(previous_price, product.currency)[0],
                         "new_price_usd": price_usd,
                         "detected_at": captured_at,

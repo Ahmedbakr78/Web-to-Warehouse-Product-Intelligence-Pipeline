@@ -192,9 +192,7 @@ def update_me(payload: UserUpdate, session: DbSession, user: CurrentUser) -> Use
 
 
 @router.post("/me/password", response_model=Message, summary="Change my password")
-def set_password(
-    payload: PasswordChangeRequest, session: DbSession, user: CurrentUser
-) -> Message:
+def set_password(payload: PasswordChangeRequest, session: DbSession, user: CurrentUser) -> Message:
     """Self-service password change.
 
     Kept separate from `PATCH /users/me` so the current password is always

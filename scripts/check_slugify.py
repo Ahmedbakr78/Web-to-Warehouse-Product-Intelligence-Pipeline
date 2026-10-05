@@ -75,9 +75,7 @@ CASES: list[tuple[str, str]] = [
 
 def test_slugify_matches_github_slugger() -> None:
     slugify = _load_builder().slugify
-    mismatches = [
-        (text, expected, slugify(text)) for text, expected in CASES if slugify(text) != expected
-    ]
+    mismatches = [(text, expected, slugify(text)) for text, expected in CASES if slugify(text) != expected]
     assert not mismatches, "slugify diverges from github-slugger:\n" + json.dumps(
         [{"input": t, "github": g, "ours": o} for t, g, o in mismatches],
         ensure_ascii=False,

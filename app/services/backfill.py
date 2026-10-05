@@ -150,12 +150,19 @@ def execute_backfill(plan: BackfillPlan) -> dict[str, Any]:
         entry: dict[str, Any] = {"date": day.isoformat()}
         try:
             result = Pipeline(config).run()
+            counters = result.counters or {}
+            quality = result.quality or {}
             entry |= {
                 "run_id": result.run_id,
                 "status": result.status,
-                "records_extracted": result.records_extracted,
-                "records_valid": result.records_valid,
-                "dq_score": result.dq_score,
+                # PipelineResult.counters uses its own names; map them to the API shape
+                "records_extracted": counters.get("staged"),
+                "records_valid": counters.get("snapshots_inserted"),
+                "records_rejected": counters.get("rejected"),
+                "new_products": counters.get("new_products"),
+                "price_changes": counters.get("price_changes"),
+                "removed_products": counters.get("removed_products"),
+                "dq_score": quality.get("score"),
             }
         except Exception as exc:  # noqa: BLE001 - one bad day must not stop the job
             log.exception("backfill %s failed for %s", plan.backfill_id, day)
@@ -225,44 +232,59 @@ def backfill_progress(session: Session, backfill_id: str) -> dict[str, Any]:
 
 
 def list_backfills(session: Session, limit: int = 25) -> list[dict[str, Any]]:
-    """Recent backfill jobs with rolled-up counts, newest first."""
+    """Recent backfill jobs with rolled-up counts, newest first.
+
+    Runs are tagged ``<backfill_id>:<date>``, so the roll-up is done in Python: string
+    slicing on ``run_key`` behaves the same on PostgreSQL, MySQL and SQLite, whereas the
+    equivalent SQL substring functions do not.
+    """
     rows = session.execute(
         sa.text(
             """
             SELECT run_key,
-                   COUNT(*)                AS total_runs,
-                   SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed_runs,
-                   SUM(COALESCE(records_extracted, 0)) AS records_extracted,
-                   MIN(started_at)         AS started_at,
-                   MAX(finished_at)        AS finished_at
+                   status,
+                   COALESCE(records_extracted, 0) AS records_extracted,
+                   started_at,
+                   finished_at
             FROM etl_run
             WHERE run_key LIKE 'bf\\_%'
-            GROUP BY run_key
             ORDER BY started_at DESC
-            LIMIT :limit
             """
-        ),
-        {"limit": limit},
+        )
     ).mappings()
-    jobs = []
+
+    jobs: dict[str, dict[str, Any]] = {}
     for row in rows:
         job_id = str(row["run_key"]).split(":", 1)[0]
-        jobs.append(
-            {
+        job = jobs.get(job_id)
+        if job is None:
+            job = jobs[job_id] = {
                 "backfill_id": job_id,
-                "total_runs": row["total_runs"],
-                "failed_runs": row["failed_runs"],
-                "records_extracted": row["records_extracted"],
+                "total_runs": 0,
+                "failed_runs": 0,
+                "records_extracted": 0,
                 "started_at": row["started_at"],
                 "finished_at": row["finished_at"],
-                "status": (
-                    "success"
-                    if not row["failed_runs"]
-                    else ("partial" if row["total_runs"] > row["failed_runs"] else "failed")
-                ),
             }
-        )
-    return jobs
+        job["total_runs"] += 1
+        job["records_extracted"] += row["records_extracted"] or 0
+        if row["status"] == "failed":
+            job["failed_runs"] += 1
+        if job["started_at"] is None or (
+            row["started_at"] is not None and row["started_at"] < job["started_at"]
+        ):
+            job["started_at"] = row["started_at"]
+        if job["finished_at"] is None or (
+            row["finished_at"] is not None and row["finished_at"] > job["finished_at"]
+        ):
+            job["finished_at"] = row["finished_at"]
+
+    for job in jobs.values():
+        failed = job["failed_runs"]
+        total = job["total_runs"]
+        job["status"] = "success" if not failed else ("partial" if total > failed else "failed")
+
+    return sorted(jobs.values(), key=lambda job: job["started_at"] or dt.datetime.min, reverse=True)[:limit]
 
 
 __all__ = [
