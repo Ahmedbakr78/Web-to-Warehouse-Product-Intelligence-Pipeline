@@ -88,7 +88,9 @@ while IFS=$'\t' read -r number source position first; do
     destination="$target"
   fi
 
-  if error=$(mmdc -i "$TMP/$number.mmd" -o "$destination" -p "$PUPPETEER_JSON" -q 2>&1); then
+  # </dev/null matters: mmdc is a Node process that would otherwise drain this
+  # loop's stdin and make `read` skip the remaining index rows.
+  if error=$(mmdc -i "$TMP/$number.mmd" -o "$destination" -p "$PUPPETEER_JSON" -q 2>&1 </dev/null); then
     OK=$((OK + 1))
     printf '  \033[32mok\033[0m   %s (diagram %s, %s)\n' "$source" "$position" "$first"
   else

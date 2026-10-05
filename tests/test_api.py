@@ -45,9 +45,12 @@ def test_health(client):
 
 
 def test_readiness_and_meta(client):
+    from app.models import table_count
+
     assert client.get("/api/v1/health/ready").json()["ready"] is True
     meta = client.get("/api/v1/meta").json()
-    assert meta["tables"] == 23
+    # Derived from the ORM so adding a table does not silently break this test.
+    assert meta["tables"] == table_count()
     assert meta["compliance"]["respect_robots_txt"] is True
     assert len(meta["features"]) >= 10
 

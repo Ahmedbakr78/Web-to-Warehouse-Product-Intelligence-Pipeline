@@ -246,7 +246,7 @@ function CommandPalette({
         },
         {
           kind: 'action' as const,
-          label: 'Toggle sidebar',
+          label: toggleSidebarLabel,
           description: 'Collapse or expand the navigation',
           run: onToggleSidebar,
         },
@@ -517,22 +517,6 @@ function UserMenu() {
           </div>
         </div>
       ) : null}
-    </div>
-  )
-}
-
-/* =====================================================================================
-   Error boundary + offline banner (exported for the router)
-   ===================================================================================== */
-export function ErrorBoundaryFallback({ error, reset }: { error: Error; reset: () => void }) {
-  return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 p-6 text-center">
-      <RefreshCw className="h-8 w-8 text-danger" aria-hidden />
-      <h2 className="text-base font-semibold">This screen failed to render</h2>
-      <p className="max-w-md text-sm text-muted">{error.message}</p>
-      <Button variant="primary" onClick={reset} icon={<RefreshCw className="h-4 w-4" />}>
-        Reload the screen
-      </Button>
     </div>
   )
 }
