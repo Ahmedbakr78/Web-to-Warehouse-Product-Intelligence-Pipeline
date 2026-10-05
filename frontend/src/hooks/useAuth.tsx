@@ -163,7 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         applyMotion(patch.motion as MotionMode)
         localStorage.setItem('pip.motion', patch.motion)
       }
-      if (patch.direction) {
+      if (patch.direction === 'rtl' || patch.direction === 'ltr') {
         applyDirection(patch.direction)
         localStorage.setItem('pip.direction', patch.direction)
       }
