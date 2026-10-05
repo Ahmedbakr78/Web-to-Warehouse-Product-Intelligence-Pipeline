@@ -117,6 +117,105 @@
     --shadow-pop: 0 16px 40px rgb(0 0 0 / 0.6);
   }
 
+  /* ------------------------------------------------------------------ midnight
+     OLED-friendly deep navy. True-black surfaces, cooler text ramp, brighter
+     chart series so data still reads clearly on a dark panel. */
+  .theme-midnight {
+    --bg: #010409;
+    --bg-alt: #040a14;
+    --surface: #070d1a;
+    --surface-2: #0b1222;
+    --surface-3: #111a2e;
+    --overlay: rgb(1 4 9 / 0.82);
+
+    --text: #dbe7ff;
+    --text-muted: #93a6c8;
+    --text-subtle: #6f82a6;
+
+    --border: #16233d;
+    --border-strong: #24365a;
+    --ring: rgb(96 165 250 / 0.6);
+
+    --sidebar-bg: #040a14;
+    --sidebar-text: #9fb1d1;
+    --sidebar-hover: #0d1729;
+    --sidebar-active-bg: rgb(59 130 246 / 0.18);
+    --sidebar-active-text: #93c5fd;
+
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --info: #60a5fa;
+
+    --chart-1: #60a5fa;
+    --chart-2: #22d3ee;
+    --chart-3: #34d399;
+    --chart-4: #fbbf24;
+    --chart-5: #fb7185;
+    --chart-6: #a78bfa;
+    --chart-grid: #16233d;
+
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.6);
+    --shadow-card-hover: 0 6px 22px rgb(0 0 0 / 0.7);
+    --shadow-pop: 0 18px 46px rgb(0 0 0 / 0.85);
+  }
+
+  /* --------------------------------------------------------- high contrast
+     WCAG AAA-leaning text contrast with heavier borders and stronger focus rings.
+     Built on top of whichever base is active, so it also works over dark. */
+  .theme-high-contrast {
+    --success: #047857;
+    --warning: #a16207;
+    --danger: #b91c1c;
+    --info: #0369a1;
+    --ring: var(--brand-600);
+  }
+
+  html[data-theme='high-contrast']:not(.dark) {
+    --bg: #ffffff;
+    --bg-alt: #f1f5f9;
+    --surface: #ffffff;
+    --surface-2: #ffffff;
+    --surface-3: #e2e8f0;
+    --overlay: rgb(2 6 23 / 0.6);
+
+    --text: #000000;
+    --text-muted: #1e293b;
+    --text-subtle: #334155;
+
+    --border: #64748b;
+    --border-strong: #0f172a;
+    --ring: #1d4ed8;
+
+    --sidebar-bg: #ffffff;
+    --sidebar-text: #0f172a;
+    --sidebar-hover: #e2e8f0;
+    --sidebar-active-bg: rgb(29 78 216 / 0.14);
+    --sidebar-active-text: #1e3a8a;
+
+    --chart-1: #1d4ed8;
+    --chart-2: #0e7490;
+    --chart-3: #047857;
+    --chart-4: #a16207;
+    --chart-5: #b91c1c;
+    --chart-6: #6d28d9;
+    --chart-grid: #94a3b8;
+
+    --shadow-card: 0 0 0 1px var(--border-strong);
+    --shadow-card-hover: 0 0 0 2px var(--brand-600);
+    --shadow-pop: 0 0 0 2px var(--brand-600), 0 16px 40px rgb(0 0 0 / 0.3);
+  }
+
+  .theme-high-contrast .card,
+  .theme-high-contrast .input,
+  .theme-high-contrast .btn {
+    border-width: 2px;
+  }
+
+  .theme-high-contrast :focus-visible {
+    outline-width: 3px;
+  }
+
   * {
     border-color: var(--border);
   }
@@ -130,23 +229,35 @@
      grows past the viewport (silent, jolt-free reloads). */
   html {
     scrollbar-gutter: stable;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
     background-color: var(--bg);
     color: var(--text);
     font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-size: var(--app-font-size, 16px);
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'tnum';
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    /* Kill the iOS URL-bar viewport jitter: 100dvh tracks the real visible area. */
+    min-height: 100dvh;
   }
 
-  /* Motion policy: only short, functional transitions - no decorative animation. */
+  /* Motion policy: only short, functional transitions - no decorative animation,
+     and crucially NO global smooth scrolling (that is what made navigation and
+     hash restores feel like the page was drifting). */
   * {
     animation-duration: 0.12s;
     animation-timing-function: cubic-bezier(0.2, 0, 0.2, 1);
     transition-duration: 0.12s;
     transition-timing-function: cubic-bezier(0.2, 0, 0.2, 1);
+    scroll-behavior: auto;
+  }
+
+  /* Opt-in smooth scrolling, used only where a jump is intentional. */
+  [data-smooth-scroll] {
     scroll-behavior: smooth;
   }
 
@@ -155,19 +266,41 @@
     *::before,
     *::after {
       animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
       transition-duration: 0.001ms !important;
       scroll-behavior: auto !important;
     }
   }
 
-  /* Manual override from Account -> Appearance: forces the same instant-motion policy
-     regardless of the operating system preference. */
+  /* Account -> Appearance motion control. `full` honours the OS, `reduced` and
+     `none` force everything instant regardless of the operating system. */
   html[data-motion='reduced'] *,
   html[data-motion='reduced'] *::before,
-  html[data-motion='reduced'] *::after {
+  html[data-motion='reduced'] *::after,
+  html[data-motion='none'] *,
+  html[data-motion='none'] *::before,
+  html[data-motion='none'] *::after {
     animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* `full` must not defeat an OS-level reduce preference. */
+  @media (prefers-reduced-motion: reduce) {
+    html[data-motion='full'] *,
+    html[data-motion='full'] *::before,
+    html[data-motion='full'] *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+
+  /* `none` additionally kills spinners and progress indicators, which are the only
+     genuinely animated elements in the app. */
+  html[data-motion='none'] .animate-spin {
+    animation: none !important;
   }
 
   :focus-visible {
@@ -245,6 +378,33 @@
 
   html[data-density='spacious'] {
     font-size: 17px;
+  }
+
+  /* Font scale is independent of density, so a user can have dense rows and large
+     text at the same time. `--app-font-size` is set by theme.ts / index.html. */
+  html[data-font-scale='xs'] {
+    --app-font-size: 13px;
+  }
+
+  html[data-font-scale='sm'] {
+    --app-font-size: 15px;
+  }
+
+  html[data-font-scale='md'] {
+    --app-font-size: 16px;
+  }
+
+  html[data-font-scale='lg'] {
+    --app-font-size: 17.5px;
+  }
+
+  html[data-font-scale='xl'] {
+    --app-font-size: 19px;
+  }
+
+  /* Logical properties: the layout mirrors automatically when dir="rtl". */
+  [dir='rtl'] .rtl-flip {
+    transform: scaleX(-1);
   }
 
   /* Recharts overrides */

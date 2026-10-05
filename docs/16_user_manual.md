@@ -388,6 +388,51 @@ Never write to the database from the Query Lab; the warehouse is maintained only
 
 ---
 
+## 13.1 View builder
+
+The Builder composes custom views instead of raw SQL. It has two modes, switched at the top of the
+screen.
+
+### Filter & customise
+
+Pick an entity, then narrow it with the search box, facets (category, brand, source, availability),
+numeric windows (price, rating, price change) and toggles. Choose which columns appear and in which
+order, then **Save view** to store the preset for one-click reuse, optionally shared with the team.
+
+### Group & aggregate
+
+Ask a question of the whole dataset instead of listing rows.
+
+1. **Dataset** — one of eleven entities: current products, price changes, new products, removed
+   products, category index, brand summary, source coverage, top movers, availability, latest quality
+   report, catalog reconciliation.
+2. **Group by** — the dimension to group on (for example category, brand or source).
+3. **Measures** — one or more of `Count`, `Count distinct`, `Sum`, `Average`, `Minimum`, `Maximum`,
+   each with a column and an optional label. Add or remove rows freely.
+4. **Advanced filters** — add as many as you need; each row chooses a column, one of fifteen
+   operators (`equals`, `not equal`, `greater than`, `at least`, `less than`, `at most`, `contains`,
+   `excludes`, `starts with`, `ends with`, `in list`, `not in list`, `between`, `is empty`,
+   `is not empty`) and one or two values. Use a comma-separated list for the `in` operators.
+5. **Sort measure** — order by any returned column, including your aggregates.
+6. **Run** — results stream in automatically. Use the right-hand card for the group count, the query
+   duration and export buttons; toggle **Show chart** for a bar preview.
+
+The **Generated SQL** card shows exactly what the server executed, and **Copy cURL** gives you a
+ready-to-run command with the bearer header. Export to CSV or JSON at any time.
+
+Everything is rebuilt from scratch on each keystroke, so a reload never loses your composition.
+
+---
+
+## 13.2 Feature catalogue
+
+The **Features** screen (Explore → Features) lists everything the platform ships, grouped into
+thirteen areas. Use the search box to filter across feature names and details, or the chips to jump to
+one area. Click the copy icon on any feature to put its name on the clipboard. The catalogue is served
+by `GET /api/v1/meta/features`, so it always reflects the deployed code.
+
+---
+
 ## 14. Account and preferences
 
 ### 14.1 Profile

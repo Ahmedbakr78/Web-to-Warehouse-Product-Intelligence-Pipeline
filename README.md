@@ -8,9 +8,15 @@
   <img src="https://img.shields.io/badge/MySQL-8.4-4479A1?logo=mysql&logoColor=white" alt="MySQL 8.4"/>
   <img src="https://img.shields.io/badge/Airflow-2.10-017CEE?logo=apacheairflow&logoColor=white" alt="Airflow"/>
   <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker Compose"/>
+  <img src="https://img.shields.io/badge/tables-23-informational" alt="Tables"/>
+  <img src="https://img.shields.io/badge/views-20-informational" alt="Views"/>
+  <img src="https://img.shields.io/badge/REST%20operations-113-success" alt="REST operations"/>
+  <img src="https://img.shields.io/badge/DQ%20rules-12-success" alt="Data quality rules"/>
   <img src="https://img.shields.io/badge/unit%20tests-255%20passing-brightgreen" alt="Tests"/>
   <img src="https://img.shields.io/badge/API%20smoke-78%2F78-brightgreen" alt="API smoke"/>
-  <img src="https://img.shields.io/badge/DQ%20score-98.26-brightgreen" alt="DQ"/>
+  <img src="https://img.shields.io/badge/mypy-clean-61%20files-brightgreen" alt="mypy"/>
+  <img src="https://img.shields.io/badge/ruff-0%20warnings-brightgreen" alt="ruff"/>
+  <img src="https://img.shields.io/badge/CI-github%20actions-2088FF?logo=github-actions&logoColor=white" alt="CI"/>
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT"/>
 </p>
 
@@ -24,18 +30,35 @@
 </p>
 
 <p align="center">
+  <b>113 REST operations</b> · <b>23 tables</b> · <b>20 analytical views</b> ·
+  <b>12 DQ rules</b> · <b>5 compliant sources</b> · <b>255 tests</b> ·
+  <b>78/78 API checks</b> · <b>two SQL dialects, one schema</b>
+</p>
+
+<p align="center">
   <a href="#why-this-project-exists">Why</a> ·
   <a href="#what-was-built">What was built</a> ·
   <a href="#quick-start">Quick start</a> ·
   <a href="#architecture">Architecture</a> ·
   <a href="#the-pipeline-end-to-end">Pipeline</a> ·
-  <a href="#1---retrieve">Phases</a> ·
+  <a href="#design-decisions">Decisions</a> ·
+  <a href="#data-model">Data model</a> ·
   <a href="#feature-catalogue">Features</a> ·
   <a href="#screens">Screens</a> ·
   <a href="#security">Security</a> ·
   <a href="#testing-and-verification">Testing</a> ·
   <a href="#documentation">Docs</a> ·
+  <a href="#faq-and-troubleshooting">FAQ</a> ·
   <a href="#license">License</a>
+</p>
+
+<p align="center">
+  <a href="docs/21_architecture_deep_dive.md">Architecture deep dive</a> ·
+  <a href="docs/22_data_dictionary.md">Data dictionary</a> ·
+  <a href="docs/23_glossary_and_faq.md">Glossary &amp; FAQ</a> ·
+  <a href="SECURITY.md">Security</a> ·
+  <a href="CONTRIBUTING.md">Contributing</a> ·
+  <a href="CHANGELOG.md">Changelog</a>
 </p>
 
 <!-- Variable life-cylinder: extract, clean, load, analyse, serve, repeat -->
@@ -48,6 +71,15 @@
 2. [What was built](#what-was-built)
 3. [Quick start](#quick-start)
 4. [Architecture](#architecture)
+   - [System overview](#system-overview)
+   - [System context](#system-context-level-0-data-flow)
+   - [Application stack](#application-stack-layered)
+   - [Request sequence](#request-sequence-dashboard-reads)
+   - [Pipeline write sequence](#pipeline-write-sequence-one-run)
+   - [Airflow DAG shape](#airflow-dag-shape)
+   - [ER diagram](#er-diagram-warehouse-core)
+   - [Data flow](#data-flow-level-1)
+   - [Deployment view](#deployment-view)
 5. [The pipeline end-to-end](#the-pipeline-end-to-end)
    - [1 - Retrieve](#1---retrieve)
    - [2 - Clean](#2---clean)
@@ -55,20 +87,21 @@
    - [4 - Detect](#4---detect)
    - [5 - Quality](#5---quality)
    - [6 - Serve](#6---serve)
-6. [Data model](#data-model)
-7. [Data quality](#data-quality)
-8. [Feature catalogue](#feature-catalogue)
-9. [Configuration reference](#configuration-reference)
-10. [Screens](#screens)
-11. [Security](#security)
-12. [Testing and verification](#testing-and-verification)
-13. [Performance](#performance)
-14. [Repository layout](#repository-layout)
-15. [Documentation](#documentation)
-16. [FAQ and troubleshooting](#faq-and-troubleshooting)
-17. [Roadmap](#roadmap)
-18. [Team](#team)
-19. [License](#license)
+6. [Design decisions](#design-decisions)
+7. [Data model](#data-model)
+8. [Data quality](#data-quality)
+9. [Feature catalogue](#feature-catalogue)
+10. [Configuration reference](#configuration-reference)
+11. [Screens](#screens)
+12. [Security](#security)
+13. [Testing and verification](#testing-and-verification)
+14. [Performance](#performance)
+15. [Repository layout](#repository-layout)
+16. [Documentation](#documentation)
+17. [FAQ and troubleshooting](#faq-and-troubleshooting)
+18. [Roadmap](#roadmap)
+19. [Team](#team)
+20. [License](#license)
 
 ---
 
