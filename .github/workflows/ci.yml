@@ -192,3 +192,51 @@ jobs:
           name: frontend-dist
           path: frontend/dist
           retention-days: 7
+  # ---------------------------------------------------------------------------------
+  docs:
+    name: Documentation (diagrams, links, site)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # A Mermaid syntax error would otherwise only surface as a broken image on
+      # github.com, long after review. This turns it into a build failure.
+      - name: Validate every Mermaid diagram
+        run: |
+          npm install -g @mermaid-js/mermaid-cli
+          python3 scripts/diagrams.py validate
+
+      - name: Extract diagrams
+        run: python3 scripts/diagrams.py extract
+
+      - name: Verify extracted diagrams are committed
+        run: |
+          if ! git diff --quiet -- docs/diagrams/out; then
+            echo "::error::docs/diagrams/out is stale. Run 'make docs-diagrams' and commit."
+            git --no-pager diff --stat -- docs/diagrams/out
+            exit 1
+          fi
+
+      # The site builder is deliberately dependency-free, so a plain python3 works.
+      - name: Build the documentation website
+        run: python3 scripts/build_site.py --out /tmp/site
+
+      - name: Check internal links and anchors
+        run: python3 scripts/check_links.py /tmp/site
+
+      - name: Upload the built site
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-site
+          path: /tmp/site
+          retention-days: 7
