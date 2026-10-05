@@ -616,12 +616,22 @@ def compliance_report(session: Session, days: int = 7) -> dict[str, Any]:
     )
 
 
-def http_log(session: Session, limit: int = 100, source_code: str | None = None) -> list[dict[str, Any]]:
+def http_log(
+    session: Session,
+    limit: int = 100,
+    source_code: str | None = None,
+    run_id: str | None = None,
+) -> list[dict[str, Any]]:
+    """Outbound HTTP audit rows, newest first, optionally scoped to a run or source."""
     params: dict[str, Any] = {"limit": limit}
-    clause = ""
+    filters: list[str] = []
     if source_code:
-        clause = "WHERE source_code = :source_code"
+        filters.append("source_code = :source_code")
         params["source_code"] = source_code
+    if run_id:
+        filters.append("run_id = :run_id")
+        params["run_id"] = run_id
+    clause = f"WHERE {' AND '.join(filters)}" if filters else ""
     return _rows(
         session,
         sa.text(

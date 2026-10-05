@@ -15,6 +15,7 @@ from app.core.config import settings
 from app.core.db import ping
 from app.core.features import feature_catalogue, feature_names
 from app.core.logging import get_logger
+from app.etl.bootstrap import expected_view_names
 from app.ingestion.base import list_sources
 from app.models import table_count
 
@@ -46,16 +47,54 @@ def health() -> HealthResponse:
     )
 
 
+def _probe_views() -> tuple[str, int, str | None]:
+    """Actually query one analytical view so readiness cannot lie.
+
+    Returns `(status, view_count, error)`. A missing view is a real failure: the
+    whole analytics layer reads through `vw_*` objects.
+    """
+    import sqlalchemy as sa
+
+    from app.core.db import read_session
+
+    try:
+        with read_session() as session:
+            rows = session.execute(
+                sa.text(
+                    "SELECT table_name FROM information_schema.views WHERE table_name LIKE 'vw\\_%' ESCAPE '\\'"
+                    if settings.dialect_name == "postgresql"
+                    else "SHOW FULL TABLES WHERE Table_type = 'VIEW'"
+                )
+            ).all()
+            names = {str(row[0]) for row in rows}
+            expected = expected_view_names()
+            present = sorted(expected & names)
+            missing = sorted(expected - names)
+            if missing:
+                return "fail", len(present), f"missing views: {', '.join(missing[:5])}"
+            # Prove the views are queryable, not merely present in the catalogue.
+            session.execute(sa.text("SELECT COUNT(*) FROM vw_product_current")).scalar()
+            return "pass", len(present), None
+    except Exception as exc:  # pragma: no cover - defensive
+        return "fail", 0, str(exc)[:200]
+
+
 @router.get("/health/ready", summary="Readiness probe")
 def readiness() -> dict[str, Any]:
     database = ping()
+    views_status, views_present, views_error = ("skip", 0, None)
+    if database["connected"]:
+        views_status, views_present, views_error = _probe_views()
     return {
-        "ready": bool(database["connected"]),
+        "ready": bool(database["connected"]) and views_status != "fail",
         "checks": {
             "database": "pass" if database["connected"] else "fail",
             "schema": "pass" if (database.get("tables") or 0) >= table_count() else "fail",
-            "views": "pass",
+            "views": views_status,
         },
+        "views_present": views_present,
+        "views_expected": len(expected_view_names()),
+        "views_error": views_error,
         "database": database,
     }
 

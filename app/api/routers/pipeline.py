@@ -116,7 +116,7 @@ def run_dq(run_id: str, session: DbSession, _user: ReadUser) -> list[dict[str, A
 
 @router.get("/runs/{run_id}/http", summary="HTTP compliance log for one run")
 def run_http(run_id: str, session: DbSession, _user: ReadUser, limit: int = 200) -> list[dict[str, Any]]:
-    return analytics.http_log(session, limit=limit)
+    return analytics.http_log(session, limit=limit, run_id=run_id)
 
 
 @router.post("/run", summary="Trigger a pipeline run (background)")
@@ -312,14 +312,12 @@ def clear_history(
         return Message(
             message="Refused: requires an admin role and confirm=true", detail={"required": "admin + confirm"}
         )
-    deleted = {
-        "etl_run": session.execute(sa.text("DELETE FROM dq_rule_result")).rowcount,  # type: ignore[attr-defined]
-        "dq_rule_result": 0,
-    }
-    session.execute(sa.text("DELETE FROM fact_catalog_snapshot"))
-    session.execute(sa.text("DELETE FROM ingestion_http_log"))
-    session.execute(sa.text("DELETE FROM dq_rule_result"))
-    session.execute(sa.text("DELETE FROM etl_run"))
+    # Child rows first (foreign keys), then the parent runs. Each rowcount is
+    # captured under its own table name so the response reports real numbers.
+    deleted: dict[str, int] = {}
+    for table in ("dq_rule_result", "fact_catalog_snapshot", "ingestion_http_log", "etl_run"):
+        result = session.execute(sa.text(f"DELETE FROM {table}"))  # noqa: S608 - fixed table list
+        deleted[table] = int(result.rowcount or 0)  # type: ignore[attr-defined]
     return Message(message="Run history cleared", detail=deleted)
 
 

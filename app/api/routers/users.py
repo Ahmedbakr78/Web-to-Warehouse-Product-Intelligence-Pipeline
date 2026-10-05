@@ -15,6 +15,7 @@ from app.api.schemas import (
     ApiKeyRead,
     Message,
     Page,
+    PasswordChangeRequest,
     UserCreate,
     UserDeleteRequest,
     UserRead,
@@ -22,7 +23,7 @@ from app.api.schemas import (
     UserUpdate,
 )
 from app.api.security import ROLE_RIGHTS, at_least, generate_api_key, hash_password, verify_password
-from app.core.errors import AuthenticationError, ConflictError, ProductNotFoundError
+from app.core.errors import AuthenticationError, ConflictError, ProductNotFoundError, ValidationError
 from app.models.app_users import AppApiKey, AppAuditLog, AppNotification, AppSavedView, AppUser
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -50,9 +51,13 @@ def list_users(
     if q:
         conditions.append(sa.or_(User.full_name.ilike(f"%{q}%"), User.email.ilike(f"%{q}%")))
     stmt = sa.select(User)
+    count_stmt = sa.select(sa.func.count()).select_from(User)
     if conditions:
         stmt = stmt.where(*conditions)
-    total = session.execute(sa.select(sa.func.count()).select_from(User)).scalar() or 0
+        # The count must apply the same filters, otherwise the page metadata lies
+        # whenever a role or search term narrows the result set.
+        count_stmt = count_stmt.where(*conditions)
+    total = session.execute(count_stmt).scalar() or 0
     users = (
         session.execute(stmt.order_by(User.user_id).limit(pagination.page_size).offset(pagination.offset))
         .scalars()
@@ -186,9 +191,35 @@ def update_me(payload: UserUpdate, session: DbSession, user: CurrentUser) -> Use
     return _to_read(user)
 
 
-@router.post("/me/password", response_model=Message, summary="Set a new password")
-def set_password(payload: UserUpdate, session: DbSession, user: CurrentUser) -> Message:
-    return Message(message="Use /auth/change-password to update credentials")
+@router.post("/me/password", response_model=Message, summary="Change my password")
+def set_password(
+    payload: PasswordChangeRequest, session: DbSession, user: CurrentUser
+) -> Message:
+    """Self-service password change.
+
+    Kept separate from `PATCH /users/me` so the current password is always
+    required and the response never echoes the new secret.
+    """
+    if not verify_password(payload.current_password, user.hashed_password):
+        raise AuthenticationError("Current password is incorrect")
+    if payload.current_password == payload.new_password:
+        raise ValidationError("The new password must differ from the current one")
+
+    user.hashed_password = hash_password(payload.new_password)
+    user.failed_login_count = 0
+    user.locked_until = None
+    session.add(
+        AppAuditLog(
+            user_id=user.user_id,
+            user_email=user.email,
+            action="user.password_changed",
+            entity_type="app_user",
+            entity_id=str(user.user_id),
+            details={"self_service": True},
+        )
+    )
+    session.flush()
+    return Message(message="Password updated. Existing sessions remain active.")
 
 
 @router.get("/stats", response_model=UserStats, summary="Usage statistics")
@@ -311,8 +342,6 @@ def deactivate(user_id: int, session: DbSession, admin: AdminUser) -> Message:
     if user is None:
         raise ProductNotFoundError(f"user {user_id} not found")
     if user.user_id == admin.user_id:
-        from app.core.errors import ValidationError
-
         raise ValidationError("you cannot deactivate your own account")
     user.is_active = False
     return Message(message=f"User '{user.email}' deactivated")

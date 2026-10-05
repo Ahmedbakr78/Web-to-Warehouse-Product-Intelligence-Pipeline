@@ -23,7 +23,7 @@ TMP="$(mktemp -d)"
 RENDER=0
 [[ "${1:-}" == "--render" ]] && RENDER=1
 
-# trap removed for debug
+trap 'rm -rf "$TMP"' EXIT
 
 if ! command -v mmdc >/dev/null 2>&1; then
   cat >&2 <<'EOF'
@@ -68,7 +68,7 @@ with (tmp / "index.tsv").open("w", encoding="utf-8") as handle:
 print(f"  found {total} diagrams")
 PY
 
-echo "DEBUG TMP=$TMP files=$(ls "$TMP"/*.mmd 2>/dev/null | wc -l)"
+
 TOTAL=$(wc -l < "$TMP/index.tsv")
 OK=0
 FAILED=0
@@ -82,17 +82,19 @@ EOF
 mkdir -p "$OUT"
 
 while IFS=$'\t' read -r number source position first; do
-  echo "DEBUG num=[$number] src=[$source]"
-  target="$TMP/$number.svg"
+  # The extracted file name is zero-padded to three digits; index.tsv stores the
+  # bare number, so rebuild the same padded stem here.
+  stem="$(printf '%03d' "$number")"
+  target="$TMP/$stem.svg"
   if [[ $RENDER -eq 1 ]]; then
-    destination="$OUT/$(basename "${source%.md}")-$number.svg"
+    destination="$OUT/$(basename "${source%.md}")-$stem.svg"
   else
     destination="$target"
   fi
 
   # </dev/null matters: mmdc is a Node process that would otherwise drain this
   # loop's stdin and make `read` skip the remaining index rows.
-  if error=$(mmdc -i "$TMP/$number.mmd" -o "$destination" -p "$PUPPETEER_JSON" -q 2>&1 </dev/null); then
+  if error=$(mmdc -i "$TMP/$stem.mmd" -o "$destination" -p "$PUPPETEER_JSON" -q 2>&1 </dev/null); then
     OK=$((OK + 1))
     printf '  \033[32mok\033[0m   %s (diagram %s, %s)\n' "$source" "$position" "$first"
   else

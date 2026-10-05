@@ -49,9 +49,23 @@ def list_products(
     max_price: Annotated[float | None, Query(ge=0)] = None,
     min_rating: Annotated[float | None, Query(ge=0, le=5)] = None,
     min_change_pct: Annotated[
-        float | None, Query(description="Only products whose price moved at least this much %")
+        float | None,
+        Query(
+            ge=-100,
+            le=100,
+            description="Signed lower bound on price_change_pct. Use a negative value "
+            "(for example -5) to keep only products that fell by 5% or more.",
+        ),
     ] = None,
-    max_change_pct: Annotated[float | None, Query()] = None,
+    max_change_pct: Annotated[
+        float | None,
+        Query(
+            ge=-100,
+            le=100,
+            description="Signed upper bound on price_change_pct. Use a positive value "
+            "(for example 5) to keep only products that rose by 5% or more.",
+        ),
+    ] = None,
     new_since_days: Annotated[
         int | None, Query(ge=0, le=3650, description="First seen within N days")
     ] = None,
@@ -97,9 +111,11 @@ def list_products(
         where.append("v.rating >= :min_rating")
         params["min_rating"] = min_rating
     if min_change_pct is not None:
+        # Signed lower bound: min_change_pct=-5 means "moved by 5% or more".
         where.append("v.price_change_pct <= :min_change_pct")
         params["min_change_pct"] = min_change_pct
     if max_change_pct is not None:
+        # Signed upper bound: max_change_pct=5 means "moved by 5% or more".
         where.append("v.price_change_pct >= :max_change_pct")
         params["max_change_pct"] = max_change_pct
     if new_since_days is not None:

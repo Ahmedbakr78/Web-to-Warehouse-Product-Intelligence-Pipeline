@@ -6,6 +6,7 @@ every target without changing a single line of application code.
 
 from __future__ import annotations
 
+import re
 import contextlib
 import datetime as dt
 import time
@@ -294,15 +295,42 @@ def apply_views(database: str | None = None) -> list[str]:
     return applied
 
 
+_CREATE_VIEW_RE = re.compile(
+    r"create\s+(?:or\s+replace\s+)?(?:(?:temp|temporary|unlogged|materialized)\s+)*view\s+"
+    r'(?:(?:if\s+not\s+exists)\s+)?(?P<name>[A-Za-z_][\w$]*(?:\.[A-Za-z_][\w$]*)?|"[^"]+"|`[^`]+`)',
+    re.IGNORECASE,
+)
+
+
 def _view_name(statement: str) -> str:
-    lowered = statement.lower()
-    marker = "view"
-    index = lowered.find(marker)
-    remainder = statement[index + len(marker) :]
-    for token in ['"', "`", " ", ".", "("]:
-        remainder = remainder.replace(token, " ")
-    parts = remainder.split()
-    return parts[0] if parts else "unknown_view"
+    """Extract the view name from a CREATE VIEW statement.
+
+    The previous implementation searched for the first occurrence of the substring
+    "view", which mis-parsed any statement whose comment or column list contained
+    that word. This anchors on the statement keyword instead.
+    """
+    match = _CREATE_VIEW_RE.search(statement)
+    if not match:
+        return "unknown_view"
+    return match.group("name").strip('"`')
+
+
+def expected_view_names() -> set[str]:
+    """The analytical views declared in `db/views.sql`.
+
+    Used by the readiness probe and by the documentation consistency check so the
+    count is never hard-coded in two places.
+    """
+    path = VIEWS_DIR / "views.sql"
+    if not path.exists():
+        return set()
+    names = {
+        _view_name(statement)
+        for statement in _load_sql_statements(path)
+        if statement.lower().startswith(("create", "replace"))
+    }
+    names.discard("unknown_view")
+    return names
 
 
 def drop_views(database: str | None = None) -> int:
