@@ -7,7 +7,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   Bell,
   ChevronDown,
@@ -27,7 +27,7 @@ import { cn } from '@/lib/cn'
 import { useTheme } from '@/lib/theme'
 import { endpoints, searchProducts, tokenStore } from '@/lib/api'
 import { useQuery } from '@tanstack/react-query'
-import { Badge, Button, IconButton } from './ui'
+import { Badge, IconButton } from './ui'
 import { initials, formatRelative, titleCase, formatPrice } from '@/lib/format'
 import { useAuth } from '@/hooks/useAuth'
 import { NavDrawer, PhoneTabBar, Sidebar, usePhoneLayout, useRailState } from './Navigation'
@@ -260,7 +260,7 @@ function CommandPalette({
     ).filter((action) => !term || action.label.toLowerCase().includes(term))
 
     return [...productResults, ...nav, ...actions].slice(0, 12)
-  }, [query, products, onToggleTheme, onToggleSidebar, logout])
+  }, [query, products, onToggleTheme, onToggleSidebar, toggleSidebarLabel, logout])
 
   useEffect(() => setCursor(0), [results.length])
 

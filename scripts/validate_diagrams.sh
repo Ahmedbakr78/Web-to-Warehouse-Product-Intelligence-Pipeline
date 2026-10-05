@@ -68,6 +68,7 @@ with (tmp / "index.tsv").open("w", encoding="utf-8") as handle:
 print(f"  found {total} diagrams")
 PY
 
+echo "DEBUG TMP=$TMP files=$(ls "$TMP"/*.mmd 2>/dev/null | wc -l)"
 TOTAL=$(wc -l < "$TMP/index.tsv")
 OK=0
 FAILED=0

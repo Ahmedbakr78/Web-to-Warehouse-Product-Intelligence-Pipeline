@@ -77,10 +77,12 @@ def test_audit_me_returns_own_activity_only(client, admin_token):
     assert feed["total"] >= 1
     actions = {item["action"] for item in feed["items"]}
     assert "auth.change_password" in actions
-    # The admin's feed is a different, independent stream: it must not contain the
-    # other account's entries. (Totals are unrelated, so compare identities, not counts.)
+    # The admin's feed is a different, independent stream: it must not contain any of
+    # the other account's entries. (Totals are unrelated, so compare identities.)
     admin_feed = client.get("/api/v1/audit/me", headers=auth(admin_token)).json()
-    assert all(item["user_email"] != "audit-me@example.com" for item in admin_feed["items"])
+    own_ids = {item["audit_id"] for item in feed["items"]}
+    admin_ids = {item["audit_id"] for item in admin_feed["items"]}
+    assert own_ids and not (own_ids & admin_ids)
 
 
 def test_audit_me_pagination_and_window(client, admin_token):
