@@ -197,16 +197,49 @@ def run_export(job_id: int, report: Report) -> dict[str, Any]:
 
 @job_type("forecast")
 def run_forecast(job_id: int, report: Report) -> dict[str, Any]:
-    """Recompute price forecasts for every tracked product."""
-    from app.analytics.forecast import forecast_all, save_forecasts
+    """Recompute price forecasts and write them to var/artifacts as JSON.
+
+    The result is a file rather than a warehouse table on purpose: a forecast is a
+    derived artefact that is fully reproducible from the snapshots already stored, and
+    a table would add a migration and a staleness problem for no analytical gain.
+    """
+    import json
+
+    from app.analytics.forecast import forecast_all
+    from app.core.config import settings
 
     payload = _payload(job_id)
+    horizon = int(payload.get("horizon", 14))
+    product_id = payload.get("product_id")
+
     report("forecasting price series", stage="forecast", progress_pct=20)
-    rows = forecast_all(product_id=payload.get("product_id"))
-    report(f"{len(rows)} forecast(s) computed", stage="persist", progress_pct=80)
-    written = save_forecasts(rows)
-    report("forecasts stored", stage="done", progress_pct=100)
-    return {"computed": len(rows), "stored": written}
+    with session_scope() as session:
+        if product_id:
+            from app.analytics.forecast import forecast_product
+
+            forecasts = [forecast_product(session, int(product_id), horizon=horizon)]
+        else:
+            forecasts = forecast_all(session, horizon=horizon)
+
+    report(f"{len(forecasts)} forecast(s) computed", stage="serialise", progress_pct=80)
+    target = settings.artifacts_dir / "forecasts"
+    target.mkdir(parents=True, exist_ok=True)
+    path = target / f"forecasts-{dt.datetime.now(dt.timezone.utc):%Y%m%dT%H%M%S}.json"
+    path.write_text(
+        json.dumps(
+            {
+                "horizon": horizon,
+                "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+                "forecasts": [item.as_dict() for item in forecasts],
+            },
+            indent=2,
+            default=str,
+        ),
+        encoding="utf-8",
+    )
+
+    report("forecasts written", stage="done", progress_pct=100)
+    return {"computed": len(forecasts), "horizon": horizon, "path": str(path)}
 
 
 @job_type("rebuild_aggregates")

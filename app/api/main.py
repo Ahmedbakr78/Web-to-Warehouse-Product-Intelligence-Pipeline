@@ -34,6 +34,7 @@ The API exposes the analytical warehouse built from permitted public web sources
 * `products` - canonical, deduplicated product catalogue with facets and price history
 * `changes` - price changes, new products, removals and category drift
 * `analytics` - KPI cards, trends, leaderboards and SQL reports
+* `forecast` - price projections, anomaly detection, elasticity and price recommendations
 * `pipeline` - run history, manual triggers, stage timings, source health
 * `quality` - the 12-rule data-quality framework and its historical results
 * `catalog` - reconciliation against the retailer's internal catalog (price gaps)
@@ -74,6 +75,11 @@ TAGS_METADATA: list[dict[str, Any]] = [
         "description": "Price changes, new/removed products, lifecycle events and category drift.",
     },
     {"name": "analytics", "description": "Dashboard KPIs, trends, leaderboards, exports and SQL reports."},
+    {
+        "name": "forecasting",
+        "description": "Holt-Winters price forecasts with measured accuracy, robust anomaly "
+        "detection, price elasticity and recommended prices.",
+    },
     {
         "name": "pipeline",
         "description": "Run history, manual triggers, stage timings, source and scheduler status.",
