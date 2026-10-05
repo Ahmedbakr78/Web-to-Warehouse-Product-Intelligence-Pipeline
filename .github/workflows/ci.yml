@@ -266,3 +266,12 @@ jobs:
 
       - name: Compare against the figures recorded in the docs
         run: python3 scripts/check_stats.py docs/stats.json
+
+      - name: Verify the generated block in README.md is current
+        run: |
+          python3 scripts/project_stats.py --sync-readme
+          if ! git diff --quiet -- README.md; then
+            echo "::error::The generated statistics block in README.md is stale."
+            git --no-pager diff -- README.md
+            exit 1
+          fi
