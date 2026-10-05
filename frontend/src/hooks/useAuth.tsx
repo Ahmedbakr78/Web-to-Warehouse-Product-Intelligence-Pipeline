@@ -23,6 +23,12 @@ import {
   THEME_MODES,
   useAppearanceSync,
 } from '@/lib/theme'
+import type { Density, Direction, FontScale, MotionMode, ThemeMode } from '@/lib/theme'
+
+/** Narrow an untrusted string against a list of allowed values. */
+function isOneOf(value: string | null | undefined, allowed: readonly string[]): value is string {
+  return Boolean(value && allowed.includes(value))
+}
 
 type User = {
   user_id: number
@@ -124,20 +130,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!user) return
 
-    const themeValues = THEME_MODES.map((mode) => mode.id)
-    if (user.theme && themeValues.includes(user.theme)) setTheme(user.theme as never)
+    // Narrow the loosely-typed profile strings against the allowed value sets.
+    if (isOneOf(user.theme, THEME_MODES.map((mode) => mode.id))) setTheme(user.theme as ThemeMode)
     if (user.accent && ACCENT_KEYS.includes(user.accent)) setAccent(user.accent)
-
-    const densityValues = DENSITIES.map((item) => item.id)
-    if (user.density && densityValues.includes(user.density)) setDensity(user.density as never)
-
-    const motionValues = MOTION_MODES.map((item) => item.id)
-    if (user.motion && motionValues.includes(user.motion)) setMotion(user.motion as never)
-
+    if (isOneOf(user.density, DENSITIES.map((item) => item.id))) setDensity(user.density as Density)
+    if (isOneOf(user.motion, MOTION_MODES.map((item) => item.id))) setMotion(user.motion as MotionMode)
     if (user.direction === 'rtl' || user.direction === 'ltr') setDirection(user.direction)
-
-    const fontValues = FONT_SCALES.map((item) => item.id)
-    if (user.font_scale && fontValues.includes(user.font_scale)) setFontScale(user.font_scale as never)
+    if (isOneOf(user.font_scale, FONT_SCALES.map((item) => item.id))) setFontScale(user.font_scale as FontScale)
   }, [user])
 
   /**
@@ -149,7 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const saveAppearance = useCallback(
     (patch: Partial<Pick<User, 'theme' | 'accent' | 'density' | 'motion' | 'direction' | 'font_scale'>>) => {
       if (patch.theme) {
-        applyTheme(patch.theme as never)
+        applyTheme(patch.theme as ThemeMode)
         localStorage.setItem('pip.theme', patch.theme)
       }
       if (patch.accent) {
@@ -157,11 +156,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('pip.accent', patch.accent)
       }
       if (patch.density) {
-        applyDensity(patch.density as never)
+        applyDensity(patch.density as Density)
         localStorage.setItem('pip.density', patch.density)
       }
       if (patch.motion) {
-        applyMotion(patch.motion as never)
+        applyMotion(patch.motion as MotionMode)
         localStorage.setItem('pip.motion', patch.motion)
       }
       if (patch.direction) {
@@ -169,7 +168,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('pip.direction', patch.direction)
       }
       if (patch.font_scale) {
-        applyFontScale(patch.font_scale as never)
+        applyFontScale(patch.font_scale as FontScale)
         localStorage.setItem('pip.fontScale', patch.font_scale)
       }
       void endpoints

@@ -64,11 +64,11 @@
       <h1>Feature Inventory</h1>
       <p>234 features with file references</p>
     </div>
-    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#table-of-contents">Table of contents</a></li><li class="lvl-2"><a href="#1-ingestion-and-web-compliance-24">1. Ingestion and web compliance (24)</a></li><li class="lvl-2"><a href="#2-cleaning-and-normalisation-29">2. Cleaning and normalisation (29)</a></li><li class="lvl-2"><a href="#3-duplicate-resolution-17">3. Duplicate resolution (17)</a></li><li class="lvl-2"><a href="#4-warehouse-model-18">4. Warehouse model (18)</a></li><li class="lvl-2"><a href="#5-etl-pipeline-15">5. ETL pipeline (15)</a></li><li class="lvl-2"><a href="#6-change-detection-6">6. Change detection (6)</a></li><li class="lvl-2"><a href="#7-catalog-reconciliation-7">7. Catalog reconciliation (7)</a></li><li class="lvl-2"><a href="#8-data-quality-10">8. Data quality (10)</a></li><li class="lvl-2"><a href="#9-analytics-and-sql-reporting-16">9. Analytics and SQL reporting (16)</a></li><li class="lvl-2"><a href="#10-rest-api-23">10. REST API (23)</a></li><li class="lvl-2"><a href="#11-security-and-access-control-10">11. Security and access control (10)</a></li><li class="lvl-2"><a href="#12-dashboard-and-user-experience-12">12. Dashboard and user experience (12)</a></li><li class="lvl-2"><a href="#13-operations-orchestration-and-dx-23">13. Operations, orchestration and DX (23)</a></li><li class="lvl-2"><a href="#feature-count-by-area">Feature count by area</a></li><li class="lvl-2"><a href="#14-dashboard-v11-additions-8">14. Dashboard v1.1 additions (8)</a></li><li class="lvl-2"><a href="#15-platform-v12-additions-8">15. Platform v1.2 additions (8)</a></li></ol></details>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#table-of-contents">Table of contents</a></li><li class="lvl-2"><a href="#1-ingestion-and-web-compliance-24">1. Ingestion and web compliance (24)</a></li><li class="lvl-2"><a href="#2-cleaning-and-normalisation-29">2. Cleaning and normalisation (29)</a></li><li class="lvl-2"><a href="#3-duplicate-resolution-17">3. Duplicate resolution (17)</a></li><li class="lvl-2"><a href="#4-warehouse-model-18">4. Warehouse model (18)</a></li><li class="lvl-2"><a href="#5-etl-pipeline-15">5. ETL pipeline (15)</a></li><li class="lvl-2"><a href="#6-change-detection-6">6. Change detection (6)</a></li><li class="lvl-2"><a href="#7-catalog-reconciliation-7">7. Catalog reconciliation (7)</a></li><li class="lvl-2"><a href="#8-data-quality-10">8. Data quality (10)</a></li><li class="lvl-2"><a href="#9-analytics-and-sql-reporting-16">9. Analytics and SQL reporting (16)</a></li><li class="lvl-2"><a href="#10-rest-api-23">10. REST API (23)</a></li><li class="lvl-2"><a href="#11-security-and-access-control-10">11. Security and access control (10)</a></li><li class="lvl-2"><a href="#12-dashboard-and-user-experience-12">12. Dashboard and user experience (12)</a></li><li class="lvl-2"><a href="#13-operations-orchestration-and-dx-23">13. Operations, orchestration and DX (23)</a></li><li class="lvl-2"><a href="#feature-count-by-area">Feature count by area</a></li><li class="lvl-2"><a href="#14-dashboard-v11-additions-8">14. Dashboard v1.1 additions (8)</a></li><li class="lvl-2"><a href="#15-platform-v12-additions-8">15. Platform v1.2 additions (8)</a></li><li class="lvl-2"><a href="#16-platform-v13-additions-34">16. Platform v1.3 additions (34)</a></li></ol></details>
     <article class="doc-body">
 <h2 id="purpose">Purpose</h2>
-<p>This document is the complete feature inventory of the Web-to-Warehouse Product Intelligence Pipeline: 234 features grouped into fifteen areas, each with a one-line description and a reference to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an endpoint, a CLI command or a documented design decision. Nothing here is aspirational.</p>
-<p><strong>Scale of the system, measured:</strong> 5 ingestion sources · 23 physical tables · 20 analytical views · 12 data-quality rules across 6 dimensions · 113 documented REST operations in 16 routers · 9 pipeline stages · 13 Airflow tasks · 12 CLI commands · 30+ Makefile targets · 6 Docker Compose services · 20 documentation documents.</p>
+<p>This document is the complete feature inventory of the Web-to-Warehouse Product Intelligence Pipeline: 271 features grouped into sixteen areas, each with a one-line description and a reference to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an endpoint, a CLI command or a documented design decision. Nothing here is aspirational.</p>
+<p><strong>Scale of the system, measured:</strong> 5 ingestion sources · 23 physical tables · 20 analytical views · 12 data-quality rules across 6 dimensions · 113 REST route decorators (110 documented in OpenAPI plus 3 internal probes) in 16 routers · 9 pipeline stages · 14 Airflow tasks · 12 CLI commands · 30+ Makefile targets · 6 Docker Compose services · 20 documentation documents · 255 automated tests · 86 end-to-end API smoke checks.</p>
 <hr>
 <h2 id="table-of-contents">Table of contents</h2>
 <ul>
@@ -86,6 +86,7 @@
 <li class="depth-0"><a href="#12-dashboard-and-user-experience-12">Dashboard and user experience (12)</a></li>
 <li class="depth-0"><a href="#13-operations-orchestration-and-dx-23">Operations, orchestration and DX (23)</a></li>
 </ul>
+<p>Platform increments: <a href="#14-dashboard-v11-additions-8">v1.1 (8)</a> · <a href="#15-platform-v12-additions-8">v1.2 (8)</a> · <a href="#16-platform-v13-additions-34">v1.3 (34)</a></p>
 <hr>
 <h2 id="1-ingestion-and-web-compliance-24">1. Ingestion and web compliance (24)</h2>
 <div class='table-scroll'><table><thead><tr>
@@ -1697,6 +1698,238 @@
 </tr>
 </tbody></table></div>
 <p><strong>Revised total: 234 features.</strong></p>
+<hr>
+<h2 id="16-platform-v13-additions-34">16. Platform v1.3 additions (34)</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>ID</th>
+<th>Feature</th>
+<th>Description</th>
+<th>Where</th>
+</tr></thead><tbody>
+<tr>
+<th>F-235</th>
+<td>Feature catalogue module</td>
+<td>Single source of truth for platform capabilities: 13 areas, 95 features, each with a Lucide icon name; consumed by the API, the dashboard and the website so they cannot drift</td>
+<td><code>app/core/features.py</code></td>
+</tr>
+<tr>
+<th>F-236</th>
+<td>Structured feature catalogue endpoint</td>
+<td><code>GET /meta/features</code> returns the catalogue with per-group counts and totals; unauthenticated like <code>/meta</code></td>
+<td><code>app/api/routers/health.py</code> <code>meta_features</code></td>
+</tr>
+<tr>
+<th>F-237</th>
+<td>Feature catalogue in <code>/meta</code></td>
+<td><code>/meta</code> derives <code>features</code> (flat names) and the new <code>feature_groups</code> count from the catalogue module instead of a hand-maintained list</td>
+<td><code>app/api/routers/health.py</code></td>
+</tr>
+<tr>
+<th>F-238</th>
+<td>Feature catalogue screen</td>
+<td>New <code>/features</code> dashboard screen rendering the catalogue as icon-headed cards with a search box, group chips, copy-to-clipboard per feature and a source-of-truth footer</td>
+<td><code>frontend/src/pages/Features.tsx</code></td>
+</tr>
+<tr>
+<th>F-239</th>
+<td>Catalogue search and filtering</td>
+<td>Live filter over feature names, details and group titles; chip row switches areas; an empty state guides the user to broader terms</td>
+<td><code>frontend/src/pages/Features.tsx</code></td>
+</tr>
+<tr>
+<th>F-240</th>
+<td>Builder schema endpoint</td>
+<td><code>GET /builder/schema</code> publishes 11 entities, their columns with types and groupable flags, 15 operators with value types, and the aggregate list; drives the builder UI</td>
+<td><code>app/api/routers/builder.py</code> <code>schema</code></td>
+</tr>
+<tr>
+<th>F-241</th>
+<td>Aggregate query endpoint</td>
+<td><code>POST /builder/query</code> runs a structured read-only query: group-by, six aggregate functions, filters, sort, paging; returns rows, total, duration and the generated SQL</td>
+<td><code>app/api/routers/builder.py</code> <code>run_query</code></td>
+</tr>
+<tr>
+<th>F-242</th>
+<td>Whitelisted identifier SQL assembly</td>
+<td>Every identifier reaching the SQL text comes from the server-side <code>ENTITIES</code> whitelist; every value is a bind parameter, making injection structurally impossible</td>
+<td><code>app/api/routers/builder.py</code> <code>_build_sql</code></td>
+</tr>
+<tr>
+<th>F-243</th>
+<td>Fifteen filter operators</td>
+<td><code>eq</code>, <code>ne</code>, <code>gt</code>, <code>gte</code>, <code>lt</code>, <code>lte</code>, <code>contains</code>, <code>not_contains</code>, <code>starts_with</code>, <code>ends_with</code>, <code>in</code>, <code>not_in</code>, <code>between</code>, <code>empty</code>, <code>not_empty</code> with per-operator input handling</td>
+<td><code>app/api/routers/builder.py</code> <code>OPERATORS</code></td>
+</tr>
+<tr>
+<th>F-244</th>
+<td>Six aggregate functions</td>
+<td><code>count</code>, <code>count_distinct</code>, <code>sum</code>, <code>avg</code>, <code>min</code>, <code>max</code> with optional aliases and validation (aggregates without a column must be <code>count</code>)</td>
+<td><code>app/api/routers/builder.py</code> <code>AGGREGATES</code></td>
+</tr>
+<tr>
+<th>F-245</th>
+<td>Aggregate sort validation</td>
+<td>Grouped queries may sort by grouping columns and aggregate aliases only; ungrouped queries by entity columns, preventing invalid <code>GROUP BY</code> SQL</td>
+<td><code>app/api/routers/builder.py</code> <code>_validate_sort</code></td>
+</tr>
+<tr>
+<th>F-246</th>
+<td>Aggregate builder mode</td>
+<td>The Builder screen gains a "Group &amp; aggregate" mode with dataset, grouping, measure rows (add/remove), advanced filter rows, sort measure, direction and row count</td>
+<td><code>frontend/src/pages/AggregateBuilder.tsx</code></td>
+</tr>
+<tr>
+<th>F-247</th>
+<td>Aggregate chart preview</td>
+<td>Horizontal bar chart of the grouped result with a toggle, truncated to the top 20 groups</td>
+<td><code>frontend/src/pages/AggregateBuilder.tsx</code>, <code>frontend/src/components/charts.tsx</code></td>
+</tr>
+<tr>
+<th>F-248</th>
+<td>Generated SQL preview</td>
+<td>Every aggregate run displays the exact SQL the server executed, with values bound as parameters</td>
+<td><code>frontend/src/pages/AggregateBuilder.tsx</code></td>
+</tr>
+<tr>
+<th>F-249</th>
+<td>Aggregate copy-as-cURL</td>
+<td>Copies a ready-to-run <code>curl</code> command including the bearer-token header and the JSON body</td>
+<td><code>frontend/src/pages/AggregateBuilder.tsx</code> <code>copyCurl</code></td>
+</tr>
+<tr>
+<th>F-250</th>
+<td>Aggregate export</td>
+<td>CSV and JSON export of the aggregated rows, and a JSON bundle containing the composed query alongside the result</td>
+<td><code>frontend/src/pages/AggregateBuilder.tsx</code> <code>exportResult</code></td>
+</tr>
+<tr>
+<th>F-251</th>
+<td>Account data export</td>
+<td><code>GET /users/me/export</code> returns a portable JSON snapshot: profile, preferences, API-key metadata (never secrets), saved views, alert rules, notifications and 90 days of activity</td>
+<td><code>app/api/routers/users.py</code> <code>export_me</code></td>
+</tr>
+<tr>
+<th>F-252</th>
+<td>Account self-deletion</td>
+<td><code>DELETE /users/me</code> with password confirmation; personal rows cascade via foreign keys, audit history is preserved with the email recorded and the user link nulled</td>
+<td><code>app/api/routers/users.py</code> <code>delete_me</code></td>
+</tr>
+<tr>
+<th>F-253</th>
+<td>Self-deletion audit trail</td>
+<td>The deletion writes an <code>app_audit_log</code> entry before removing the user, so the event survives the foreign-key <code>SET NULL</code></td>
+<td><code>app/api/routers/users.py</code> <code>delete_me</code></td>
+</tr>
+<tr>
+<th>F-254</th>
+<td>Personal activity feed</td>
+<td><code>GET /audit/me</code> returns the caller's own audited actions with paging and a day window — no admin permission needed</td>
+<td><code>app/api/routers/audit.py</code> <code>my_activity</code></td>
+</tr>
+<tr>
+<th>F-255</th>
+<td>Account activity tab</td>
+<td>New Account tab listing recent sign-ins, key changes and settings updates with action, target, status, IP and relative time</td>
+<td><code>frontend/src/pages/Account.tsx</code></td>
+</tr>
+<tr>
+<th>F-256</th>
+<td>Account data &amp; privacy tab</td>
+<td>New Account tab with a data-export card and a danger-zone card; deletion requires the password and typing <code>DELETE</code></td>
+<td><code>frontend/src/pages/Account.tsx</code></td>
+</tr>
+<tr>
+<th>F-257</th>
+<td>Change-event summary service</td>
+<td>Lifecycle counters plus the price-change timeline moved out of the router into <code>analytics.change_event_summary</code>, reused by the API and the Airflow report task</td>
+<td><code>app/analytics/service.py</code></td>
+</tr>
+<tr>
+<th>F-258</th>
+<td>Stable scrollbar gutter</td>
+<td><code>scrollbar-gutter: stable</code> reserves the rail so content never shifts sideways when a page grows past the viewport</td>
+<td><code>frontend/src/styles/index.css</code></td>
+</tr>
+<tr>
+<th>F-259</th>
+<td>Refined scrollbar system</td>
+<td>Translucent rounded thumbs, a brand-coloured thumb while dragging, slimmer 8px rails inside the sidebar, popovers and code blocks, all theme-aware via <code>color-mix</code></td>
+<td><code>frontend/src/styles/index.css</code></td>
+</tr>
+<tr>
+<th>F-260</th>
+<td>Scroll containment</td>
+<td><code>overscroll-behavior: contain</code> on the shell, sidebar nav, tables and scroll regions so scrolling a panel never drags the page behind it</td>
+<td><code>frontend/src/styles/index.css</code></td>
+</tr>
+<tr>
+<th>F-261</th>
+<td>Mobile drawer scroll lock</td>
+<td>Opening the off-canvas drawer locks background scrolling and restores the previous overflow on close</td>
+<td><code>frontend/src/components/AppShell.tsx</code></td>
+</tr>
+<tr>
+<th>F-262</th>
+<td>Drawer accessibility</td>
+<td>The mobile drawer is exposed as a modal dialog with an accessible name and respects the bottom safe-area inset for notched devices</td>
+<td><code>frontend/src/components/AppShell.tsx</code></td>
+</tr>
+<tr>
+<th>F-263</th>
+<td>Static project website</td>
+<td>A dependency-free landing page (<code>website/index.html</code>) with light/dark/system themes applied before first paint, inline SVG icons and no build step</td>
+<td><code>website/index.html</code></td>
+</tr>
+<tr>
+<th>F-264</th>
+<td>API smoke coverage for v1.3</td>
+<td>The smoke suite grew from 78 to 86 checks, now covering the catalogue, builder schema, aggregate query, rejection of unknown entities, the viewer/analyst builder boundary, account export and personal activity</td>
+<td><code>scripts/api_smoke.py</code></td>
+</tr>
+<tr>
+<th>F-265</th>
+<td>Analyst coverage in smoke tests</td>
+<td>The smoke runner logs in as the analyst as well as the viewer, so role boundaries are exercised for both non-admin roles</td>
+<td><code>scripts/api_smoke.py</code></td>
+</tr>
+<tr>
+<th>F-266</th>
+<td>Correct API container healthcheck</td>
+<td>The compose healthcheck probed <code>/health</code> instead of <code>/api/v1/health</code>, so the service was permanently reported unhealthy; corrected</td>
+<td><code>docker-compose.yml</code></td>
+</tr>
+<tr>
+<th>F-267</th>
+<td>Secret hygiene in templates</td>
+<td><code>.env.example</code> ships a placeholder service key and documents how to mint a real one; no live credential is committed</td>
+<td><code>.env.example</code></td>
+</tr>
+<tr>
+<th>F-268</th>
+<td>DAG aggregate + reconciliation work</td>
+<td><code>build_aggregates</code> and <code>reconcile_catalog</code> perform their real in-process work again (rollup refresh and SKU matching) instead of only reporting state</td>
+<td><code>dags/product_intelligence_pipeline.py</code></td>
+</tr>
+<tr>
+<th>F-269</th>
+<td>DAG compliance guard restored</td>
+<td>The source-compliance guard once again honours per-source <code>enabled</code> and <code>terms_allowed</code> flags, and the REST fallback validates the registry response it receives</td>
+<td><code>dags/product_intelligence_pipeline.py</code> <code>source_enabled</code></td>
+</tr>
+<tr>
+<th>F-270</th>
+<td>DAG report artifacts</td>
+<td><code>publish_report</code> writes a timestamped JSON KPI artifact to <code>var/reports/</code>, falling back to the repository root when the Airflow home is read-only</td>
+<td><code>dags/product_intelligence_pipeline.py</code> <code>_write_report_artifact</code></td>
+</tr>
+<tr>
+<th>F-271</th>
+<td>v1.3 regression tests</td>
+<td>19 new tests covering the catalogue, the personal activity feed, account export and deletion, and every builder code path including validation failures</td>
+<td><code>tests/test_new_features.py</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Revised total: 271 features.</strong></p>
     </article>
     <div class="doc-foot">
       <span><a href="18_presentation_outline.html">← Presentation Outline</a></span>
