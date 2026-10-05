@@ -118,6 +118,14 @@ def call_pipeline(local_callable: Any, api_path: str, *, method: str = "GET", **
         return _api(method, api_path, **api_kwargs)
 
 
+def _task_id(context: dict) -> str | None:
+    """Task id from the Airflow context (TaskInstance object, dict or None)."""
+    task = context.get("task")
+    if isinstance(task, dict):
+        return task.get("task_id")
+    return getattr(task, "task_id", None)
+
+
 def latest_run_id_via_api() -> str:
     run = _api("GET", "/pipeline/runs/latest")
     if not run or not run.get("run_id"):
@@ -253,7 +261,7 @@ def run_full_pipeline(**context: Any) -> dict[str, Any]:
             limit_per_source=int(params.get("limit") or REQUESTS_PER_SOURCE),
             trigger="airflow",
             dag_id=DAG_ID,
-            task_id=task.get("task_id") if isinstance(task, dict) else None,
+            task_id=_task_id(context),
             created_by="airflow",
         )
         result = Pipeline(config).run()
@@ -261,14 +269,13 @@ def run_full_pipeline(**context: Any) -> dict[str, Any]:
         return result.as_dict()
 
     params = context.get("params") or {}
-    task = context.get("task")
     payload = {
         "sources": params.get("sources") or DEFAULT_SOURCES,
         "database": params.get("database") or "postgres",
         "limit_per_source": int(params.get("limit") or REQUESTS_PER_SOURCE),
         "trigger": "airflow",
         "dag_id": DAG_ID,
-        "task_id": task.get("task_id") if isinstance(task, dict) else None,
+        "task_id": _task_id(context),
     }
     result = call_pipeline(local, "/pipeline/run/sync", method="POST", json=payload)
     print(f"airflow run {result.get('run_id')} status={result.get('status')}")
