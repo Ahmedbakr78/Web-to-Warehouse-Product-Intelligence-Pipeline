@@ -33,7 +33,8 @@ Regenerate the numbers above with `python3 scripts/project_stats.py`.
 13. [Operations, orchestration and DX (24)](#13-operations-orchestration-and-dx-24)
 
 Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
-[v1.2 (8)](#15-platform-v12-additions-8) · [v1.3 (52)](#16-platform-v13-additions-52)
+[v1.2 (8)](#15-platform-v12-additions-8) · [v1.3 (37)](#16-platform-v13-additions-37) ·
+[v1.4 (40)](#17-platform-v14-additions-40)
 
 ---
 
@@ -349,7 +350,7 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 ## Feature count by area
 
 | Area | Features |
-| --- | --- |
+| --- | ---: |
 | Ingestion and web compliance | 24 |
 | Cleaning and normalisation | 29 |
 | Duplicate resolution | 17 |
@@ -363,11 +364,13 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 | Security and access control | 10 |
 | Dashboard and user experience | 12 |
 | Operations, orchestration and DX | 24 |
-| **Total** | **218** |
+| Dashboard v1.1 additions | 8 |
+| Platform v1.2 additions | 8 |
+| Platform v1.3 additions | 37 |
+| Platform v1.4 additions | 40 |
+| **Total** | **311** |
 
-The numbering is continuous from F-001 to F-218; the counts above reflect features that are
-independently demonstrable (a function, an endpoint, a table, a command or a documented design
-decision) rather than individual lines of code.
+The numbering is continuous from F-001 to F-311 with no duplicate or missing identifier. Counts are measured from the rows themselves by `scripts/project_stats.py`, and each section heading states the same figure, so the three cannot quietly disagree.
 
 ---
 
@@ -383,9 +386,7 @@ decision) rather than individual lines of code.
 | F-224 | GitHub Actions CI | Two jobs (backend: ruff + mypy + pytest; frontend: eslint + tsc + vite build) with artefact upload | `.github/workflows/ci.yml` |
 | F-225 | Iconography pass | Every screen action, empty state and navigation item carries a Lucide icon; aria-labels on all icon-only controls | `frontend/src/**` |
 | F-226 | Modern slim scrollbars | Thin rounded theme-aware scrollbars app-wide via `scrollbar-width`/`::-webkit-scrollbar` tokens | `frontend/src/styles/index.css` |
-| F-287 | Demo runbook | Screen-by-screen live demo script with exact URLs, the sentence worth saying at each step, time-boxed 3/5/8-minute variants, a pre-flight checklist, the five questions that always get asked, and a failure playbook that falls back to `curl` when the browser dies | `docs/24_demo_runbook.md` |
 
-**Revised total: 226 features.**
 
 ---
 
@@ -402,12 +403,11 @@ decision) rather than individual lines of code.
 | F-233 | Project infographic generator | Reusable script producing the DEPI 16:9 roadmap slide (SVG master, HTML preview, PNG when cairosvg is installed) straight from the documented facts | `scripts/make_infographic.py`, `docs/assets/infographic.svg` |
 | F-234 | Diagram extractor | Extracts every Mermaid block from the documentation set into `docs/diagrams/out/*.mmd` with an index table; optional `mmdc` rendering | `scripts/diagrams.py`, `docs/diagrams/out/index.md` |
 
-**Revised total: 271 features across 16 areas** (F-001 to F-271, contiguous, with no duplicate or
 missing identifiers) — superseded by section 17 below. Each section heading states its own count, and those counts match the rows
 beneath them.
 ---
 
-## 16. Platform v1.3 additions (53)
+## 16. Platform v1.3 additions (37)
 
 | ID | Feature | Description | Where |
 | --- | --- | --- | --- |
@@ -449,24 +449,9 @@ beneath them.
 | F-270 | DAG report artifacts | `publish_report` writes a timestamped JSON KPI artifact to `var/reports/`, falling back to the repository root when the Airflow home is read-only | `dags/product_intelligence_pipeline.py` `_write_report_artifact` |
 | F-271 | v1.3 regression tests | 19 new tests covering the catalogue, the personal activity feed, account export and deletion, and every builder code path including validation failures | `tests/test_new_features.py` |
 
-| F-272 | Dependency-free documentation website | `scripts/build_site.py` turns the documentation set into a browsable site with client-side search, system-aware dark mode and 50+ rendered diagrams, using only the standard library — MkDocs would add a large dependency tree for the same result | `scripts/build_site.py` |
-| F-273 | GitHub-fidelity heading anchors | `slugify` reproduces `github-slugger` exactly, including the double hyphen an em-dash leaves behind and the one-hyphen-per-space rule, so hand-written in-document anchors resolve in the built site just as they do on GitHub | `scripts/build_site.py` `slugify` |
-| F-274 | Anchor regression suite | 24 captured slug cases plus a sweep verifying every hand-written `#anchor` in the README and all documents resolves to a real heading | `scripts/check_slugify.py` |
-| F-275 | Mermaid syntax gate | Every diagram is extracted and parsed before merge, turning a broken diagram from a silent rendering error into a build failure; it caught two real defects — a semicolon in a sequence message and a self-parenting edge | `scripts/diagrams.py` |
-| F-276 | Internal link and anchor checker | Validates that every generated page link, in-page anchor, image reference and static asset resolves, and that no control characters survive Markdown conversion | `scripts/check_links.py` |
-| F-277 | Security policy and threat model | Boundary-by-boundary control table covering web-to-ingestion, user-to-API and API-to-warehouse threats, with disclosure targets and the commands that verify each claim | `SECURITY.md` |
-| F-278 | Contributor Covenant | Community health standards with a four-tier enforcement ladder | `.github/CODE_OF_CONDUCT.md` |
-| F-279 | Structured issue and pull request forms | Bug, feature and documentation forms plus a PR template carrying repository-specific reminders — robots enforcement, parameterised SQL, cross-dialect parity — and a verification section asking for pasted output | `.github/ISSUE_TEMPLATE/`, `.github/pull_request_template.md` |
-| F-280 | Automated dependency updates | Weekly pull requests for pip, npm and GitHub Actions, grouped by ecosystem | `.github/dependabot.yml` |
-| F-281 | Documentation CI job | A dedicated job validates all diagrams, extracts them, fails on a stale extraction, builds the site and checks its links — the documentation can no longer rot unnoticed | `.github/workflows/ci.yml` `docs` |
-| F-282 | Review ownership | Explicit code ownership so every change has a named reviewer | `.github/CODEOWNERS` |
-| F-283 | Measurement provenance | The README and docs index state which figures are structural and re-verifiable and which are measurements that vary with data volume and hardware, so a number is never presented as a constant when it is not one | `README.md`, `docs/README.md` |
-| F-284 | Architecture rationale with rejected alternatives | Every significant decision records what was chosen, what was rejected, why, and the measured consequence — including the 29× reconciliation optimisation that preserved identical output | `docs/21_architecture_deep_dive.md` |
-| F-285 | Complete data dictionary | All 23 tables with every column, type, nullability and meaning, plus controlled vocabularies, magnitude bands, the view catalogue and a dialect-portability table | `docs/22_data_dictionary.md` |
-| F-286 | Glossary and FAQ | Defined terms and questions across setup, the pipeline, data quality, security and development — including how to add a source in six steps | `docs/23_glossary_and_faq.md` |
 ---
 
-## 17. Platform v1.4 additions (24)
+## 17. Platform v1.4 additions (40)
 
 Integrations (export, webhooks, backfill) and run comparison. Every row ships behind a test.
 
@@ -494,6 +479,24 @@ Integrations (export, webhooks, backfill) and run comparison. Every row ships be
 | F-293 | Run comparison | Diff any two runs: 12 metric deltas, DQ regressions and fixes, catalogue movement, price moves, runtime | `app/analytics/service.py` `compare_runs` |
 | F-294 | Compare screen tab | Pick a base and target run; see deltas, quality movement and the largest repricing | `frontend/src/pages/Pipeline.tsx` `RunCompare` |
 | F-295 | Shared export button | Reusable CSV/JSON download control that reads its capabilities from the export catalogue | `frontend/src/components/ExportButton.tsx` |
+| F-296 | Dependency-free documentation website | `scripts/build_site.py` turns the documentation set into a browsable site with client-side search, system-aware dark mode and 50+ rendered diagrams, using only the standard library — MkDocs would add a large dependency tree for the same result | `scripts/build_site.py` |
+| F-297 | GitHub-fidelity heading anchors | `slugify` reproduces `github-slugger` exactly, including the double hyphen an em-dash leaves behind and the one-hyphen-per-space rule, so hand-written in-document anchors resolve in the built site just as they do on GitHub | `scripts/build_site.py` `slugify` |
+| F-298 | Anchor regression suite | 24 captured slug cases plus a sweep verifying every hand-written `#anchor` in the README and all documents resolves to a real heading | `scripts/check_slugify.py` |
+| F-299 | Mermaid syntax gate | Every diagram is extracted and parsed before merge, turning a broken diagram from a silent rendering error into a build failure; it caught two real defects — a semicolon in a sequence message and a self-parenting edge | `scripts/diagrams.py` |
+| F-300 | Internal link and anchor checker | Validates that every generated page link, in-page anchor, image reference and static asset resolves, and that no control characters survive Markdown conversion | `scripts/check_links.py` |
+| F-301 | Security policy and threat model | Boundary-by-boundary control table covering web-to-ingestion, user-to-API and API-to-warehouse threats, with disclosure targets and the commands that verify each claim | `SECURITY.md` |
+| F-302 | Contributor Covenant | Community health standards with a four-tier enforcement ladder | `.github/CODE_OF_CONDUCT.md` |
+| F-303 | Structured issue and pull request forms | Bug, feature and documentation forms plus a PR template carrying repository-specific reminders — robots enforcement, parameterised SQL, cross-dialect parity — and a verification section asking for pasted output | `.github/ISSUE_TEMPLATE/`, `.github/pull_request_template.md` |
+| F-304 | Automated dependency updates | Weekly pull requests for pip, npm and GitHub Actions, grouped by ecosystem | `.github/dependabot.yml` |
+| F-305 | Documentation CI job | A dedicated job validates all diagrams, extracts them, fails on a stale extraction, builds the site and checks its links — the documentation can no longer rot unnoticed | `.github/workflows/ci.yml` `docs` |
+| F-306 | Review ownership | Explicit code ownership so every change has a named reviewer | `.github/CODEOWNERS` |
+| F-307 | Measurement provenance | The README and docs index state which figures are structural and re-verifiable and which are measurements that vary with data volume and hardware, so a number is never presented as a constant when it is not one | `README.md`, `docs/README.md` |
+| F-308 | Architecture rationale with rejected alternatives | Every significant decision records what was chosen, what was rejected, why, and the measured consequence — including the 29× reconciliation optimisation that preserved identical output | `docs/21_architecture_deep_dive.md` |
+| F-309 | Complete data dictionary | All 23 tables with every column, type, nullability and meaning, plus controlled vocabularies, magnitude bands, the view catalogue and a dialect-portability table | `docs/22_data_dictionary.md` |
+| F-310 | Glossary and FAQ | Defined terms and questions across setup, the pipeline, data quality, security and development — including how to add a source in six steps | `docs/23_glossary_and_faq.md` |
+| F-311 | Demo runbook | Screen-by-screen live demo script with exact URLs, the sentence worth saying at each step, time-boxed 3/5/8-minute variants, a pre-flight checklist, the five questions that always get asked, and a failure playbook that falls back to `curl` when the browser dies | `docs/24_demo_runbook.md` |
 
 **Final total: 295 features across 17 areas** (F-001 to F-295). Section 17 adds the
 export, webhook, backfill and run-comparison capabilities shipped in v1.4.
+
+**Revised total: 311 features across 17 areas** (F-001 to F-311, contiguous, with no duplicate or missing identifiers). Each section heading states its own count, matching the rows beneath it.

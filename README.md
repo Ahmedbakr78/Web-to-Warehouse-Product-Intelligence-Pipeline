@@ -168,19 +168,19 @@ Everything is engineered like a production system, not a demo:
 <!-- BEGIN:STATS -->
 
 ```text
-27 physical tables  |  20 analytical views  |  150 REST route decorators in 20 routers
+28 physical tables  |  20 analytical views  |  160 REST route decorators in 21 routers
 12 data-quality rules across 6 dimensions, weighted score persisted per run
 5 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
-11 CLI commands  |  6 Docker Compose services  |  24 documents  |  66 Mermaid diagrams
-348 tests  |  86/86 API smoke checks  |  295 catalogued features
+11 CLI commands  |  6 Docker Compose services  |  24 documents  |  67 Mermaid diagrams
+348 tests  |  86/86 API smoke checks  |  311 catalogued features
 ```
 
 | Metric | Count |
 | --- | ---: |
-| Physical tables         | 27 |
+| Physical tables         | 28 |
 | Analytical views        | 20 |
-| REST routers            | 20 |
-| REST route decorators   | 150 |
+| REST routers            | 21 |
+| REST route decorators   | 160 |
 | Data-quality rules      | 12 |
 | Ingestion sources       | 5 |
 | Airflow task callables  | 33 |
@@ -188,8 +188,8 @@ Everything is engineered like a production system, not a demo:
 | Pipeline stages         | 9 |
 | Docker Compose services | 6 |
 | Numbered documents      | 24 |
-| Mermaid diagrams        | 66 |
-| Catalogued features     | 295 |
+| Mermaid diagrams        | 67 |
+| Catalogued features     | 311 |
 | Collected test cases    | 348 |
 | API smoke checks        | 86 |
 
@@ -1003,7 +1003,7 @@ are persisted per run in `dq_rule_result`, and the dashboard charts the score tr
 ## Feature catalogue
 
 The exhaustive, file-referenced inventory lives in
-[docs/19_feature_list.md](docs/19_feature_list.md) — 295 features in 17 areas. It is also served as
+[docs/19_feature_list.md](docs/19_feature_list.md) — 311 features in 17 areas. It is also served as
 structured JSON by `GET /api/v1/meta/features` and rendered by the **Features** screen, both generated
 from `app/core/features.py`, so this section can never describe something the code does not do.
 Highlights by area:
@@ -1394,7 +1394,7 @@ natively on GitHub; every structural number is tied to a runnable command.
 | 16 | User Manual | sign-in, every screen, filters, exports, alerts, admin, troubleshooting, FAQ |
 | 17 | Technical Documentation | module map, four key algorithms, every configuration variable |
 | 18 | Presentation Outline | 18-slide defence deck, Q&A preparation, demo script |
-| 19 | Feature Inventory | 295 features in 17 areas with file references |
+| 19 | Feature Inventory | 311 features in 17 areas with file references |
 | 20 | Feedback and Improvements | feedback template, 32 prioritised improvements, self-assessment |
 | 21 | **Architecture Deep Dive** | design drivers, decisions with rejected alternatives, request lifecycle, layering, known limitations |
 | 22 | **Data Dictionary** | every table, column, type and meaning; controlled vocabularies; view catalogue; dialect portability |

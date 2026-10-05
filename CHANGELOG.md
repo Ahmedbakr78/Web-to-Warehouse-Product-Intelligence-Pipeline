@@ -54,11 +54,19 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   - [docs/23_glossary_and_faq.md](docs/23_glossary_and_faq.md) — the vocabulary defined, then the
     questions that actually come up across setup, the pipeline, data quality, security and
     development, including a six-step recipe for adding a source.
+  - [docs/24_demo_runbook.md](docs/24_demo_runbook.md) — the operational version of the demo: a
+    pre-flight checklist, an eight-minute screen-by-screen script with exact URLs and the one
+    sentence worth saying at each step, time-boxed 3/5/8-minute variants, the five questions that
+    always get asked, and a failure playbook that falls back to `curl` when the browser dies. Every
+    command and URL in it was executed against the running stack before being written down.
 - **A documentation website**, built by `scripts/build_site.py` using only the standard library:
   one page per document, client-side search over a generated index, a dark mode that follows the
   system preference, and all diagrams rendered. It is dependency-free by design — GitHub Pages does
   not serve private repositories on the free plan, so a Pages workflow could never deploy here, while
   a static directory works anywhere. Build with `make site`, preview with `make site-serve`.
+- **`.github/FUNDING.yml`** — declares *no* funding platform, so an absent "Sponsor" button is a
+  deliberate statement rather than an oversight: MIT licensed, nothing to pay for, no paid
+  dependencies. The comments show how to add a platform if that ever changes.
 - **`SECURITY.md`** — a threat model with a control table for each trust boundary (web to ingestion,
   user to API, API to warehouse), what is implemented today, and how to verify each claim yourself.
 - **`.github/CODE_OF_CONDUCT.md`** — Contributor Covenant 2.1 with a four-tier enforcement ladder.
