@@ -20,6 +20,7 @@ const Sources = lazy(() => import('./pages/Sources'))
 const QueryLab = lazy(() => import('./pages/QueryLab'))
 const Builder = lazy(() => import('./pages/Builder'))
 const Features = lazy(() => import('./pages/Features'))
+const Forecast = lazy(() => import('./pages/Forecast'))
 const Alerts = lazy(() => import('./pages/Alerts'))
 const Webhooks = lazy(() => import('./pages/Webhooks'))
 const Account = lazy(() => import('./pages/Account'))
@@ -182,6 +183,14 @@ export default function App() {
             element={
               <Suspense fallback={<LoadingState label="Loading sources…" />}>
                 <Sources />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/forecast"
+            element={
+              <Suspense fallback={<LoadingState label="Loading forecasting…" />}>
+                <Forecast />
               </Suspense>
             }
           />
