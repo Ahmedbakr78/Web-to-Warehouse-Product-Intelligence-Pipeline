@@ -150,7 +150,7 @@ export default function Changes() {
             title="Change activity"
             subtitle="Daily increases and decreases"
             icon={<Activity className="h-4 w-4" />}
-            action={<ExportButton dataset="price_changes" params={source ? { source_code: source } : undefined} />}
+            action={<ExportButton dataset="price_changes" />}
           />
           {timelineData.length ? (
             <BarSeries

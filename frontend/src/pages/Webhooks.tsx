@@ -40,7 +40,7 @@ import {
   type Column,
 } from '@/components/ui'
 import { endpoints } from '@/lib/api'
-import { queryKeys, useApiQuery } from '@/hooks/useApi'
+import { useApiQuery } from '@/hooks/useApi'
 import { formatDateTime, formatNumber } from '@/lib/format'
 
 type Webhook = {
@@ -91,7 +91,7 @@ export default function Webhooks() {
   const [deliveriesFor, setDeliveriesFor] = useState<Webhook | null>(null)
   const [busy, setBusy] = useState<number | null>(null)
 
-  const hooks = useApiQuery<Webhook[]>(queryKeys.webhooks(), endpoints.webhooks)
+  const hooks = useApiQuery<Webhook[]>(['webhooks'], endpoints.webhooks)
   const meta = useApiQuery<{ events: string[]; signature_header: string }>(
     ['webhook-events'],
     endpoints.webhookEvents,
@@ -128,9 +128,9 @@ export default function Webhooks() {
       setForm({ ...EMPTY_FORM })
       setCreating(false)
       await hooks.refetch()
-      toast.push({ tone: 'success', title: 'Webhook created', message: 'Copy the signing secret now.' })
+      toast.success('Webhook created', 'Copy the signing secret now.')
     } catch (error) {
-      toast.push({ tone: 'danger', title: 'Could not create webhook', message: (error as Error).message })
+      toast.error('Could not create webhook', (error as Error).message)
     } finally {
       setBusy(null)
     }
@@ -140,14 +140,12 @@ export default function Webhooks() {
     setBusy(hook.webhook_id)
     try {
       const result = await endpoints.testWebhook(hook.webhook_id, { event: hook.events[0] ?? 'run.completed' })
-      toast.push({
-        tone: result.delivered ? 'success' : 'warning',
-        title: result.delivered ? 'Test delivered' : 'Test failed',
-        message: result.error ?? `HTTP ${result.status_code ?? '—'} in ${result.duration_ms ?? 0} ms`,
-      })
+      const summary = result.error ?? `HTTP ${result.status_code ?? '—'} in ${result.duration_ms ?? 0} ms`
+      if (result.delivered) toast.success('Test delivered', summary)
+      else toast.warning('Test failed', summary)
       await hooks.refetch()
     } catch (error) {
-      toast.push({ tone: 'danger', title: 'Test failed', message: (error as Error).message })
+      toast.error('Test failed', (error as Error).message)
     } finally {
       setBusy(null)
     }
@@ -160,7 +158,7 @@ export default function Webhooks() {
       setRevealed({ name: updated.name, secret: updated.secret ?? '' })
       await hooks.refetch()
     } catch (error) {
-      toast.push({ tone: 'danger', title: 'Rotation failed', message: (error as Error).message })
+      toast.error('Rotation failed', (error as Error).message)
     } finally {
       setBusy(null)
     }
@@ -171,9 +169,9 @@ export default function Webhooks() {
     try {
       await endpoints.deleteWebhook(hook.webhook_id)
       await hooks.refetch()
-      toast.push({ tone: 'success', title: 'Webhook deleted', message: hook.name })
+      toast.success('Webhook deleted', hook.name)
     } catch (error) {
-      toast.push({ tone: 'danger', title: 'Delete failed', message: (error as Error).message })
+      toast.error('Delete failed', (error as Error).message)
     } finally {
       setBusy(null)
     }
@@ -184,7 +182,7 @@ export default function Webhooks() {
       await endpoints.updateWebhook(hook.webhook_id, { is_active: !hook.is_active })
       await hooks.refetch()
     } catch (error) {
-      toast.push({ tone: 'danger', title: 'Update failed', message: (error as Error).message })
+      toast.error('Update failed', (error as Error).message)
     }
   }
 
@@ -265,23 +263,29 @@ export default function Webhooks() {
       align: 'right',
       render: (row) => (
         <div className="flex justify-end gap-1">
-          <Toggle checked={row.is_active} onChange={() => void toggleActive(row)} label="Active" hideLabel />
+          <Toggle checked={row.is_active} onChange={() => void toggleActive(row)} label="Active" />
           <IconButton
             label="Send a test event"
+            icon={<Send className="h-4 w-4" />}
             onClick={() => void testDelivery(row)}
             disabled={busy === row.webhook_id}
-          >
-            <Send className="h-4 w-4" aria-hidden />
-          </IconButton>
-          <IconButton label="Delivery log" onClick={() => setDeliveriesFor(row)}>
-            <RefreshCw className="h-4 w-4" aria-hidden />
-          </IconButton>
-          <IconButton label="Rotate signing secret" onClick={() => void rotate(row)}>
-            <RotateCw className="h-4 w-4" aria-hidden />
-          </IconButton>
-          <IconButton label="Delete webhook" tone="danger" onClick={() => void remove(row)}>
-            <Trash2 className="h-4 w-4" aria-hidden />
-          </IconButton>
+          />
+          <IconButton
+            label="Delivery log"
+            icon={<RefreshCw className="h-4 w-4" />}
+            onClick={() => setDeliveriesFor(row)}
+          />
+          <IconButton
+            label="Rotate signing secret"
+            icon={<RotateCw className="h-4 w-4" />}
+            onClick={() => void rotate(row)}
+          />
+          <IconButton
+            label="Delete webhook"
+            icon={<Trash2 className="h-4 w-4" />}
+            className="text-danger hover:text-danger"
+            onClick={() => void remove(row)}
+          />
         </div>
       ),
     },
@@ -293,7 +297,11 @@ export default function Webhooks() {
         <StatTile label="Subscriptions" value={formatNumber((hooks.data ?? []).length)} icon={<WebhookIcon className="h-4 w-4" />} />
         <StatTile label="Active" value={formatNumber(totals.active)} icon={<CheckCircle2 className="h-4 w-4" />} tone="success" />
         <StatTile label="Deliveries sent" value={formatNumber(totals.success)} icon={<Send className="h-4 w-4" />} />
-        <StatTile label="Failed deliveries" value={formatNumber(totals.failure)} icon={<XCircle className="h-4 w-4" />} tone={totals.failure ? 'danger' : 'neutral'} />
+        <StatTile label="Failed deliveries"
+            value={formatNumber(totals.failure)}
+            icon={<XCircle className="h-4 w-4" />}
+            tone={totals.failure ? 'danger' : 'neutral'}
+          />
       </div>
 
       <Card>
@@ -310,16 +318,20 @@ export default function Webhooks() {
         {hooks.isLoading ? (
           <LoadingState rows={3} />
         ) : hooks.isError ? (
-          <ErrorState error={hooks.error} onRetry={() => void hooks.refetch()} />
+          <ErrorState
+            title="Could not load webhooks"
+            message={(hooks.error as Error)?.message}
+            onRetry={() => void hooks.refetch()}
+          />
         ) : (hooks.data ?? []).length === 0 ? (
           <EmptyState
             icon={<WebhookIcon className="h-6 w-6" />}
             title="No webhooks yet"
-            description="Create one to receive signed pipeline events in your own application."
+            message="Create one to receive signed pipeline events in your own application."
             action={<Button onClick={() => setCreating(true)}>Create the first webhook</Button>}
           />
         ) : (
-          <DataTable columns={columns} rows={hooks.data ?? []} rowKey={(row) => row.webhook_id} />
+          <DataTable columns={columns} rows={hooks.data ?? []} rowKey={(row) => String(row.webhook_id)} />
         )}
       </Card>
 
@@ -438,7 +450,7 @@ export default function Webhooks() {
                 icon={<Copy className="h-4 w-4" />}
                 onClick={() => {
                   void navigator.clipboard?.writeText(revealed.secret)
-                  toast.push({ tone: 'success', title: 'Copied to clipboard' })
+                  toast.success('Copied to clipboard')
                 }}
               >
                 Copy
@@ -461,7 +473,7 @@ export default function Webhooks() {
           <EmptyState
             icon={<KeyRound className="h-6 w-6" />}
             title="No deliveries yet"
-            description="Send a test event to see the signed payload arrive."
+            message="Send a test event to see the signed payload arrive."
           />
         ) : (
           <div className="space-y-2">
@@ -474,7 +486,7 @@ export default function Webhooks() {
                   </Badge>
                 </div>
                 <p className="mt-1 text-xs text-muted">
-                  {item.created_at ? formatDateTime(item.created_at) : ''} · {item.attempts} attempt
+                  {item.created_at ? formatDateTime(item.created_at) : ''} · {String(item.attempts)} attempt
                   {item.attempts === 1 ? '' : 's'} · {item.duration_ms ?? 0} ms
                 </p>
                 {item.error && <p className="mt-1 break-words text-xs text-danger">{item.error}</p>}

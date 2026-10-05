@@ -655,7 +655,11 @@ function RunCompare({ runs }: { runs: RunSummary[] }) {
       {comparison.isLoading ? (
         <LoadingState rows={4} />
       ) : comparison.isError ? (
-        <ErrorState error={comparison.error} onRetry={() => void comparison.refetch()} />
+        <ErrorState
+          title="Could not compare those runs"
+          message={(comparison.error as Error)?.message}
+          onRetry={() => void comparison.refetch()}
+        />
       ) : diff ? (
         <>
           <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
@@ -760,7 +764,7 @@ function RunCompare({ runs }: { runs: RunSummary[] }) {
                     icon={<Download className="h-4 w-4" />}
                     onClick={() =>
                       void downloadExport('price_changes', 'csv', { limit: 5000 }).catch((error: Error) =>
-                        toast.push({ tone: 'danger', title: 'Export failed', message: error.message }),
+                        toast.error('Export failed', error.message),
                       )
                     }
                   >
@@ -787,7 +791,7 @@ function RunCompare({ runs }: { runs: RunSummary[] }) {
         <EmptyState
           icon={<GitCompareArrows className="h-6 w-6" />}
           title="Choose two runs"
-          description="Pick a base run and a target run to see what changed between them."
+          message="Pick a base run and a target run to see what changed between them."
         />
       )}
     </div>

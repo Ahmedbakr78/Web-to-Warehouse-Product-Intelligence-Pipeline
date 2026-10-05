@@ -18,12 +18,13 @@ Conventions used below:
 
 ```mermaid
 flowchart TB
-    subgraph APP["Application and access (7 tables)"]
+    subgraph APP["Application and access (9 tables)"]
         U["app_user"] --> AK["app_api_key"]
         U --> SV["app_saved_view"]
         U --> AR["app_alert_rule"] --> N["app_notification"]
         U --> AL["app_audit_log"]
         ST["app_setting"]
+        U --> WH["app_webhook"] --> WD["app_webhook_delivery"]
     end
     subgraph OPS["Operational (5 tables)"]
         R["etl_run"] --> DQ["dq_rule_result"]
@@ -48,9 +49,9 @@ subgraph CORE["Analytical core (10 tables)"]
     RAW -.validated and promoted.-> DP
 ```
 
-**23 tables** in total: 5 dimensions, 2 facts, 1 aggregate, 2 change tables, 1 staging table, 4
-operational tables, 7 application tables, 1 catalog table. Plus **20 analytical views** in
-[db/views.sql](../db/views.sql).
+**25 tables** in total: 5 dimensions, 2 facts, 1 aggregate, 2 change tables, 1 staging table, 4
+operational tables, 9 application tables (including the two webhook tables added in v1.3), 1 catalog
+table. Plus **20 analytical views** in [db/views.sql](../db/views.sql).
 
 ---
 

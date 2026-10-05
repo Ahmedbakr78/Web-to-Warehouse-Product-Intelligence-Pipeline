@@ -9,7 +9,7 @@ import type React from 'react'
 import { useState } from 'react'
 import { Check, FileJson, Sheet } from 'lucide-react'
 
-import { Button, type ButtonProps } from '@/components/ui'
+import { Button } from '@/components/ui'
 import { downloadExport, endpoints, type QueryValue } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 
