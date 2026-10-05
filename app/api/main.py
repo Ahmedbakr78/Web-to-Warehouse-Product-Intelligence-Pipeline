@@ -37,6 +37,11 @@ The API exposes the analytical warehouse built from permitted public web sources
 * `quality` - the 12-rule data-quality framework and its historical results
 * `catalog` - reconciliation against the retailer's internal catalog (price gaps)
 * `queries` - read-only SQL console plus the list of analytical views
+* `builder` - compose, aggregate and save custom views without writing SQL
+* `exports` - CSV/JSON datasets and PDF-ready report rendering
+* `webhooks` - signed outbound notifications for pipeline and data events
+* `jobs` - durable background queue with progress, cancellation and live streaming
+* `stream` - Server-Sent Events and a WebSocket for live run and KPI updates
 * `users` / `settings` / `audit` - account, preference and compliance management
 
 ### Authentication
@@ -86,13 +91,29 @@ TAGS_METADATA: list[dict[str, Any]] = [
     {"name": "notifications", "description": "In-app notifications and user alert rules."},
     {"name": "settings", "description": "Global application settings (admin only for writes)."},
     {"name": "audit", "description": "Application audit trail and outbound HTTP compliance evidence."},
+    {"name": "exports", "description": "Dataset exports in CSV and JSON, plus PDF report rendering."},
+    {"name": "webhooks", "description": "Signed outbound webhooks with delivery retries and audit."},
+    {
+        "name": "jobs",
+        "description": "Durable background queue: enqueue, inspect, cancel, retry and stream progress.",
+    },
+    {
+        "name": "realtime",
+        "description": "Server-Sent Events and WebSocket streams for live run, KPI and notification updates.",
+    },
 ]
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Startup / shutdown: verify the database and warm the app."""
+    import asyncio
+
+    from app.jobs import start_worker, stop_worker
+    from app.services.realtime import bind_loop
+
     settings.ensure_directories()
+    bind_loop(asyncio.get_running_loop())
     health = ping()
     if health["connected"]:
         log.info(
@@ -105,7 +126,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             _ensure_reference_data()
     else:
         log.warning("api started but the database is unreachable: %s", health["error"])
+
+    if health["connected"]:
+        start_worker()
+
     yield
+
+    stop_worker()
     dispose_all()
     log.info("api shutdown complete")
 

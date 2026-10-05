@@ -13,6 +13,7 @@ from collections.abc import Callable
 from typing import Any
 
 from app.core.db import session_scope
+from app.core.errors import NotFoundError, ValidationError
 from app.core.logging import get_logger
 from app.jobs import queue
 from app.models.app_users import AppJob
@@ -38,7 +39,9 @@ STAGES = (
 )
 
 
-def job_type(name: str) -> Callable[[Callable[[int, Report], dict[str, Any]]], Callable[[int, Report], dict[str, Any]]]:
+def job_type(
+    name: str,
+) -> Callable[[Callable[[int, Report], dict[str, Any]]], Callable[[int, Report], dict[str, Any]]]:
     """Register a handler for a job type."""
 
     def decorate(func: Callable[[int, Report], dict[str, Any]]) -> Callable[[int, Report], dict[str, Any]]:
@@ -94,8 +97,8 @@ def run_pipeline(job_id: int, report: Report) -> dict[str, Any]:
         )
 
     report("pipeline starting", stage="start", progress_pct=0)
-    pipeline = Pipeline(config)
-    result = pipeline.run(on_stage=on_stage)
+    pipeline = Pipeline(config, on_stage=on_stage)
+    result = pipeline.run()
     report("pipeline finished", stage="done", progress_pct=100)
     return result.as_dict()
 
@@ -138,10 +141,10 @@ def run_backfill(job_id: int, report: Report) -> dict[str, Any]:
             progress_pct=round(done / total * 100) if total else 100,
         )
 
-    def guard() -> None:
+    def guard(day: dt.date) -> None:
         """Stop at a day boundary when an operator cancels the job."""
         if _should_stop(job_id):
-            raise queue.ValidationError("backfill cancelled by the operator")
+            raise ValidationError(f"backfill cancelled before {day.isoformat()}")
 
     summary = execute_backfill(plan, on_day=on_day, before_day=guard)
     report("backfill finished", stage="done", progress_pct=100)
@@ -151,7 +154,7 @@ def run_backfill(job_id: int, report: Report) -> dict[str, Any]:
 @job_type("export")
 def run_export(job_id: int, report: Report) -> dict[str, Any]:
     """Write a dataset export to disk and record where it landed."""
-    from app.services.exporter import filename_for, fetch_rows, to_csv, to_json
+    from app.services.exporter import fetch_rows, filename_for, to_csv, to_json
 
     payload = _payload(job_id)
     fmt = payload.get("format", "csv")
@@ -168,7 +171,11 @@ def run_export(job_id: int, report: Report) -> dict[str, Any]:
         )
 
     report(f"serialising {len(rows)} row(s) to {fmt.upper()}", stage="serialise", progress_pct=60)
-    body = to_csv(rows, dataset.columns) if fmt == "csv" else to_json(rows, dataset, int(payload.get("row_limit", 5_000)))
+    body = (
+        to_csv(rows, dataset.columns)
+        if fmt == "csv"
+        else to_json(rows, dataset, int(payload.get("row_limit", 5_000)))
+    )
 
     from app.core.config import settings
 
@@ -193,6 +200,7 @@ def run_forecast(job_id: int, report: Report) -> dict[str, Any]:
     """Recompute price forecasts for every tracked product."""
     from app.analytics.forecast import forecast_all, save_forecasts
 
+    payload = _payload(job_id)
     report("forecasting price series", stage="forecast", progress_pct=20)
     rows = forecast_all(product_id=payload.get("product_id"))
     report(f"{len(rows)} forecast(s) computed", stage="persist", progress_pct=80)
@@ -206,15 +214,14 @@ def run_rebuild_aggregates(job_id: int, report: Report) -> dict[str, Any]:
     """Refresh the category/day rollup for the latest run."""
     import sqlalchemy as sa
 
-    from app.core.db import session_scope as scoped
     from app.etl.loader import WarehouseLoader
     from app.models.operations import EtlRun
 
     payload = _payload(job_id)
-    with scoped(payload.get("database")) as session:
+    with session_scope(payload.get("database")) as session:
         run = session.execute(sa.select(EtlRun).order_by(EtlRun.started_at.desc()).limit(1)).scalars().first()
         if run is None:
-            raise queue.NotFoundError("no pipeline run found")
+            raise NotFoundError("no pipeline run found")
         report(f"rebuilding aggregates for {run.run_id}", stage="aggregate", progress_pct=50)
         written = WarehouseLoader(session, run.run_id).refresh_category_daily()
     report("aggregates rebuilt", stage="done", progress_pct=100)

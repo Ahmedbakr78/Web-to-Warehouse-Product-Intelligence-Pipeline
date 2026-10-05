@@ -13,6 +13,7 @@ from app.api.routers import (
     changes,
     exports,
     health,
+    jobs,
     notifications,
     pipeline,
     products,
@@ -21,6 +22,7 @@ from app.api.routers import (
     saved_views,
     settings,
     sources,
+    stream,
     users,
     webhooks,
 )
@@ -44,6 +46,8 @@ ROUTERS: tuple[APIRouter, ...] = (
     audit.router,
     exports.router,
     webhooks.router,
+    jobs.router,
+    stream.router,
 )
 
 __all__ = ["ROUTERS"]

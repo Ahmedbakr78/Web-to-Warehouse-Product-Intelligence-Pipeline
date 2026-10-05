@@ -25,10 +25,10 @@ from __future__ import annotations
 
 import datetime as dt
 import threading
-import time
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import Any
 
 import sqlalchemy as sa
@@ -36,11 +36,31 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.db import session_scope
-from app.core.errors import ConflictError, NotFoundError, ValidationError
+from app.core.errors import ConflictError, NotFoundError
 from app.core.logging import get_logger
 from app.models.app_users import AppJob, AppJobEvent
 
 log = get_logger(__name__)
+
+
+def _publish(data: dict[str, Any], topics: tuple[str, ...] = ()) -> None:
+    """Push a job event to connected clients. Never raises.
+
+    `topics` lets a job also announce itself on a domain topic, so a client watching
+    only `/stream/runs` still sees a pipeline run progress.
+    """
+    try:
+        from app.services.realtime import TOPIC_JOB, TOPIC_RUN, publish
+
+        publish(TOPIC_JOB, data)
+        if data.get("job_type") == "pipeline_run" or not topics:
+            publish(TOPIC_RUN, data)
+        else:
+            for topic in topics:
+                publish(topic, data)
+    except Exception as exc:  # noqa: BLE001 - realtime must never break a job
+        log.debug("realtime publish failed: %s", exc)
+
 
 #: How often a running worker extends its lease.
 HEARTBEAT_SECONDS = 15
@@ -51,6 +71,7 @@ POLL_SECONDS = 1.0
 def lease_seconds() -> int:
     """Lease duration, configurable via ``JOB_LEASE_SECONDS``."""
     return max(10, int(settings.job_lease_seconds))
+
 
 #: Jobs that can be cancelled cooperatively, checked between units of work.
 CANCELLABLE = frozenset({"pipeline_run", "backfill", "export", "forecast"})
@@ -67,6 +88,30 @@ class JobHandle:
 
 def _utcnow() -> dt.datetime:
     return dt.datetime.now(dt.timezone.utc)
+
+
+def jsonable(value: Any) -> Any:
+    """Make a handler result safe to store in a JSON column.
+
+    Pipeline and backfill results carry `datetime`, `date`, `Decimal` and `timedelta`
+    objects, none of which SQLAlchemy's JSON type can serialise. Converting them here
+    (rather than in each handler) keeps every handler free of serialisation concerns.
+    """
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, (dt.datetime, dt.date, dt.time)):
+        return value.isoformat()
+    if isinstance(value, dt.timedelta):
+        return value.total_seconds()
+    if isinstance(value, Decimal):
+        return float(value)
+    if isinstance(value, (bytes, bytearray)):
+        return value.decode("utf-8", "replace")
+    if isinstance(value, dict):
+        return {str(key): jsonable(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [jsonable(item) for item in value]
+    return str(value)
 
 
 def new_job_key(prefix: str = "job") -> str:
@@ -124,6 +169,23 @@ def log_event(
         job.stage = stage or job.stage
         if progress_pct is not None:
             job.progress_pct = max(0, min(100, int(progress_pct)))
+        key, status, job_type = job.job_key, job.status, job.job_type
+    else:
+        key, status, job_type = "", "", ""
+    session.flush()
+    _publish(
+        {
+            "kind": "job_progress",
+            "job_id": job_id,
+            "job_key": key,
+            "job_type": job_type,
+            "status": status,
+            "level": level,
+            "stage": stage,
+            "message": message,
+            "progress_pct": progress_pct,
+        },
+    )
 
 
 def get_job(session: Session, reference: str) -> AppJob:
@@ -132,9 +194,7 @@ def get_job(session: Session, reference: str) -> AppJob:
     if str(reference).isdigit():
         job = session.get(AppJob, int(reference))
     if job is None:
-        job = (
-            session.execute(sa.select(AppJob).where(AppJob.job_key == str(reference))).scalars().first()
-        )
+        job = session.execute(sa.select(AppJob).where(AppJob.job_key == str(reference))).scalars().first()
     if job is None:
         raise NotFoundError(f"job '{reference}' not found")
     return job
@@ -288,7 +348,7 @@ def claim_next(database: str | None, owner: str) -> AppJob | None:
             return None
         job_id = candidate.job_id
         result = session.execute(
-            sa.update(AppJob)
+            sa.update(AppJob)  # type: ignore[arg-type]
             .where(AppJob.job_id == job_id, AppJob.status == candidate.status)
             .values(
                 status="running",
@@ -299,7 +359,7 @@ def claim_next(database: str | None, owner: str) -> AppJob | None:
                 attempt=AppJob.attempt + 1,
             )
         )
-        if not result.rowcount:
+        if not result.rowcount:  # type: ignore[attr-defined]
             # Another worker won the race; try again on the next poll.
             return None
         job = session.get(AppJob, job_id)
@@ -307,8 +367,9 @@ def claim_next(database: str | None, owner: str) -> AppJob | None:
 
 
 def _execute(job_id: int, handler: Handler, database: str | None) -> None:
-    def report(message: str, *, stage: str | None = None, progress_pct: int | None = None,
-               level: str = "info") -> None:
+    def report(
+        message: str, *, stage: str | None = None, progress_pct: int | None = None, level: str = "info"
+    ) -> None:
         with session_scope(database) as session:
             log_event(session, job_id, message, level=level, stage=stage, progress_pct=progress_pct)
 
@@ -319,7 +380,7 @@ def _execute(job_id: int, handler: Handler, database: str | None) -> None:
         with session_scope(database) as session:
             job = session.get(AppJob, job_id)
             if job is not None:
-                job.result = result
+                job.result = jsonable(result)
                 job.status = "succeeded"
                 job.progress_pct = 100
                 job.finished_at = _utcnow()
@@ -423,6 +484,22 @@ class JobWorker:
     def running(self) -> bool:
         return bool(self._thread and self._thread.is_alive())
 
+    def _run_with_heartbeat(self, job_id: int, handler: Handler) -> None:
+        """Execute a handler while a companion thread keeps its lease fresh."""
+        stop_beat = threading.Event()
+
+        def beat() -> None:
+            while not stop_beat.wait(HEARTBEAT_SECONDS):
+                _heartbeat(job_id, self.database)
+
+        beater = threading.Thread(target=beat, name=f"heartbeat-{job_id}", daemon=True)
+        beater.start()
+        try:
+            _execute(job_id, handler, self.database)
+        finally:
+            stop_beat.set()
+            beater.join(timeout=1.0)
+
     def _loop(self) -> None:
         handlers = _handlers()
         while not self._stop.is_set():
@@ -446,20 +523,9 @@ class JobWorker:
                         row.lease_owner = None
                         row.lease_expires_at = None
                 continue
-            # Keep the lease alive for as long as the handler runs.
-            stop_beat = threading.Event()
-
-            def beat() -> None:
-                while not stop_beat.wait(HEARTBEAT_SECONDS):
-                    _heartbeat(job.job_id, self.database)
-
-            beater = threading.Thread(target=beat, name=f"heartbeat-{job.job_id}", daemon=True)
-            beater.start()
-            try:
-                _execute(job.job_id, handler, self.database)
-            finally:
-                stop_beat.set()
-                beater.join(timeout=1.0)
+            # Keep the lease alive for as long as the handler runs. The thread and
+            # its stop flag are passed as arguments rather than captured from the loop.
+            self._run_with_heartbeat(job.job_id, handler)
 
 
 _WORKER: JobWorker | None = None
@@ -512,6 +578,7 @@ __all__ = [
     "is_cancelled",
     "job_events",
     "job_to_dict",
+    "jsonable",
     "list_jobs",
     "log_event",
     "retry_job",

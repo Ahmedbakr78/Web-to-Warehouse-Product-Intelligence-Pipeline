@@ -13,9 +13,8 @@ from __future__ import annotations
 
 import datetime as dt
 import time
-from collections.abc import Callable
 import uuid
-from collections.abc import Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Any
