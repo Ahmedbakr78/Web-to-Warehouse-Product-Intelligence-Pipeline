@@ -29,10 +29,10 @@ targets · 6 Docker Compose services · 20 documentation documents · 255 automa
 10. [REST API (26)](#10-rest-api-26)
 11. [Security and access control (10)](#11-security-and-access-control-10)
 12. [Dashboard and user experience (12)](#12-dashboard-and-user-experience-12)
-13. [Operations, orchestration and DX (23)](#13-operations-orchestration-and-dx-23)
+13. [Operations, orchestration and DX (24)](#13-operations-orchestration-and-dx-24)
 
 Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
-[v1.2 (8)](#15-platform-v12-additions-8) · [v1.3 (34)](#16-platform-v13-additions-34)
+[v1.2 (8)](#15-platform-v12-additions-8) · [v1.3 (52)](#16-platform-v13-additions-52)
 
 ---
 
@@ -449,7 +449,7 @@ beneath them.
 
 | F-272 | Dependency-free documentation website | `scripts/build_site.py` turns the documentation set into a browsable site with client-side search, system-aware dark mode and 50+ rendered diagrams, using only the standard library — MkDocs would add a large dependency tree for the same result | `scripts/build_site.py` |
 | F-273 | GitHub-fidelity heading anchors | `slugify` reproduces `github-slugger` exactly, including the double hyphen an em-dash leaves behind and the one-hyphen-per-space rule, so hand-written in-document anchors resolve in the built site just as they do on GitHub | `scripts/build_site.py` `slugify` |
-| F-274 | Anchor regression suite | 24 captured slug cases plus a sweep verifying every hand-written `](#anchor)` in the README and all documents resolves to a real heading | `scripts/check_slugify.py` |
+| F-274 | Anchor regression suite | 24 captured slug cases plus a sweep verifying every hand-written `#anchor` in the README and all documents resolves to a real heading | `scripts/check_slugify.py` |
 | F-275 | Mermaid syntax gate | Every diagram is extracted and parsed before merge, turning a broken diagram from a silent rendering error into a build failure; it caught two real defects — a semicolon in a sequence message and a self-parenting edge | `scripts/diagrams.py` |
 | F-276 | Internal link and anchor checker | Validates that every generated page link, in-page anchor, image reference and static asset resolves, and that no control characters survive Markdown conversion | `scripts/check_links.py` |
 | F-277 | Security policy and threat model | Boundary-by-boundary control table covering web-to-ingestion, user-to-API and API-to-warehouse threats, with disclosure targets and the commands that verify each claim | `SECURITY.md` |
