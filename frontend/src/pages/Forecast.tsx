@@ -201,13 +201,13 @@ export default function Forecast() {
       </div>
 
       <Tabs
-        value={tab}
-        onChange={setTab}
-        options={[
+        tabs={[
           { id: 'accuracy', label: 'Model accuracy' },
-          { id: 'anomalies', label: 'Anomalies' },
+          { id: 'anomalies', label: 'Anomalies', count: anomalies.data?.total },
           { id: 'projection', label: 'Product projection' },
         ]}
+        active={tab}
+        onChange={setTab}
       />
 
       {/* ============================================================ accuracy */}
@@ -600,10 +600,12 @@ function ProductProjection({
             <LoadingState label="Building the weekly profile…" rows={3} />
           ) : seasonal.data?.weekdays?.length ? (
             <HeatmapStrip
-              rows={(seasonal.data.weekdays as any[]).map((day) => ({
+              data={(seasonal.data.weekdays as any[]).map((day) => ({
                 label: String(day.name).slice(0, 3),
                 value: Number(day.mean),
               }))}
+              valueKey="value"
+              height={200}
             />
           ) : (
             <EmptyState icon={<CalendarRange className="h-5 w-5" />} title="Not enough history" />
