@@ -131,7 +131,10 @@ STATS = [
 ]
 
 PIPELINE_STEPS = [
-    ("Retrieve", "robots.txt gate, token-bucket rate limit, circuit breaker, response cache, per-request audit"),
+    (
+        "Retrieve",
+        "robots.txt gate, token-bucket rate limit, circuit breaker, response cache, per-request audit",
+    ),
     ("Clean", "29 normalisation steps, 18+ currency formats, offline FX table, fixed vocabularies"),
     ("Load", "resumable staging, then idempotent dimension and fact merges on natural keys"),
     ("Detect", "price changes banded by magnitude, new/removed/recategorised events, catalog reconciliation"),
@@ -140,7 +143,11 @@ PIPELINE_STEPS = [
 ]
 
 QUICKSTART = [
-    ("Bring the stack up", "make up && make db-wait", "PostgreSQL 16, MySQL 8.4, the API, Airflow and the dashboard"),
+    (
+        "Bring the stack up",
+        "make up && make db-wait",
+        "PostgreSQL 16, MySQL 8.4, the API, Airflow and the dashboard",
+    ),
     ("Create the schema", "make bootstrap", "23 tables, 20 views, demo users and reference data"),
     ("Load the demo dataset", "make demo-postgres", "130 products and 150 days of price history"),
     ("Run the pipeline", "make run-pipeline", "Ingest, clean, load, detect changes and score quality"),
@@ -272,16 +279,12 @@ def render_markdown(text: str) -> Rendered:
             else:
                 out.append(
                     f'<pre class="code" data-lang="{html.escape(lang)}">'
-                    f'<code>{html.escape(content)}</code></pre>'
+                    f"<code>{html.escape(content)}</code></pre>"
                 )
             continue
 
         # ---- table -------------------------------------------------------------
-        if (
-            stripped.startswith("|")
-            and i + 1 < n
-            and re.match(r"^\s*\|[\s:|-]+\|\s*$", lines[i + 1])
-        ):
+        if stripped.startswith("|") and i + 1 < n and re.match(r"^\s*\|[\s:|-]+\|\s*$", lines[i + 1]):
             close_list()
             header = _table_row(lines[i])
             i += 2  # skip header and separator
@@ -344,9 +347,7 @@ def render_markdown(text: str) -> Rendered:
                 out.append("<ul>")
                 in_list = True
             indent = len(item.group(1))
-            out.append(
-                f'<li class="depth-{min(indent // 2, 3)}">{_inline(item.group(3))}</li>'
-            )
+            out.append(f'<li class="depth-{min(indent // 2, 3)}">{_inline(item.group(3))}</li>')
             plain_parts.append(item.group(3))
             i += 1
             continue
@@ -831,7 +832,7 @@ def page(
         nav_html.append(f'<div class="nav-group-title">{html.escape(group)}</div>')
         for fname in files:
             slug = fname[:-3].lower()
-            cls = " class=\"active\"" if fname == active else ""
+            cls = ' class="active"' if fname == active else ""
             label, blurb = next(((t, b) for f, t, b in NAV if f == fname), (fname, ""))
             nav_html.append(
                 f'<a href="{slug}.html"{cls} title="{html.escape(blurb)}">{html.escape(label)}</a>'
@@ -914,9 +915,7 @@ def doc_page(fname: str, title: str, blurb: str) -> tuple[str, dict]:
     prev_doc = next((f for f, _, _ in NAV if NAV[NAV.index((fname, title, blurb)) - 1][0] == f), None)
     order = [f for f, _, _ in NAV]
     idx = order.index(fname)
-    prev_link = (
-        f'<a href="{order[idx - 1][:-3].lower()}.html">← {NAV[idx - 1][1]}</a>' if idx > 0 else ""
-    )
+    prev_link = f'<a href="{order[idx - 1][:-3].lower()}.html">← {NAV[idx - 1][1]}</a>' if idx > 0 else ""
     next_link = (
         f'<a href="{order[idx + 1][:-3].lower()}.html">{NAV[idx + 1][1]} →</a>'
         if idx < len(order) - 1
@@ -951,12 +950,10 @@ def doc_page(fname: str, title: str, blurb: str) -> tuple[str, dict]:
 def landing_page() -> str:
     """The site home page: what this is, how to run it, and where to read next."""
     stats = "".join(
-        f'<div class="stat"><b>{v}</b><span>{html.escape(label)}</span></div>'
-        for v, label in STATS
+        f'<div class="stat"><b>{v}</b><span>{html.escape(label)}</span></div>' for v, label in STATS
     )
     steps = "".join(
-        f'<div class="step"><b><span class="num">{i}</span>{html.escape(n)}</b>'
-        f"<p>{html.escape(d)}</p></div>"
+        f'<div class="step"><b><span class="num">{i}</span>{html.escape(n)}</b><p>{html.escape(d)}</p></div>'
         for i, (n, d) in enumerate(PIPELINE_STEPS, 1)
     )
     cmds = "".join(
@@ -978,7 +975,7 @@ def landing_page() -> str:
       crawler feeds a Kimball star schema on PostgreSQL and MySQL, twelve data-quality rules score
       every load, and 113 REST operations with a React dashboard make the result explorable.</p>
       <div class="cta">
-        <a href="{QUICKSTART[0][1].split()[0] and '03_roles_and_responsibilities.html'}">Read the documentation</a>
+        <a href="{QUICKSTART[0][1].split()[0] and "03_roles_and_responsibilities.html"}">Read the documentation</a>
         <a class="secondary" href="14_api_documentation.html">API reference</a>
         <a class="secondary" href="21_architecture_deep_dive.html">Architecture</a>
       </div>
@@ -1013,10 +1010,30 @@ def landing_page() -> str:
 
 
 TOPICS = [
-    "Python 3.12", "FastAPI", "SQLAlchemy 2.0", "Pydantic", "httpx", "BeautifulSoup",
-    "Apache Airflow 2.10", "PostgreSQL 16", "MySQL 8.4", "React 19", "TypeScript",
-    "Vite", "Tailwind CSS", "TanStack Query", "Recharts", "Docker Compose", "Nginx",
-    "Typer CLI", "structlog", "pytest", "mypy", "ruff", "ESLint", "Mermaid",
+    "Python 3.12",
+    "FastAPI",
+    "SQLAlchemy 2.0",
+    "Pydantic",
+    "httpx",
+    "BeautifulSoup",
+    "Apache Airflow 2.10",
+    "PostgreSQL 16",
+    "MySQL 8.4",
+    "React 19",
+    "TypeScript",
+    "Vite",
+    "Tailwind CSS",
+    "TanStack Query",
+    "Recharts",
+    "Docker Compose",
+    "Nginx",
+    "Typer CLI",
+    "structlog",
+    "pytest",
+    "mypy",
+    "ruff",
+    "ESLint",
+    "Mermaid",
 ]
 
 FAVICON = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">

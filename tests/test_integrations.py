@@ -283,7 +283,8 @@ def test_emit_never_raises_when_delivery_breaks(session, admin):
 # --------------------------------------------------------------------------------------
 def test_retry_due_resends_after_backoff_elapsed(session, admin, receiver):
     hook = _hook(session, admin, "http://127.0.0.1:9/unreachable")
-    delivery = webhooks.deliver(session, hook, "run.completed", {"run_id": "retry-me"})
+    delivery = webhooks.deliver(session, hook, "run.completed", {"run_id": "retry-me"}).delivery
+    assert delivery is not None
     delivery.next_retry_at = dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=5)
     session.flush()
 
@@ -309,7 +310,8 @@ def test_retry_due_ignores_deliveries_that_are_not_due(session, admin):
 
 def test_retry_gives_up_after_max_attempts(session, admin):
     hook = _hook(session, admin, "http://127.0.0.1:9/unreachable", max_attempts=2)
-    delivery = webhooks.deliver(session, hook, "run.completed", {})
+    delivery = webhooks.deliver(session, hook, "run.completed", {}).delivery
+    assert delivery is not None
     delivery.attempts = 1
     delivery.next_retry_at = dt.datetime.now(dt.timezone.utc) - dt.timedelta(seconds=1)
     session.flush()
@@ -323,7 +325,8 @@ def test_retry_gives_up_after_max_attempts(session, admin):
 
 def test_retry_due_skips_disabled_subscriptions(session, admin):
     hook = _hook(session, admin, "http://127.0.0.1:9/unreachable", is_active=False)
-    delivery = webhooks.deliver(session, hook, "run.completed", {})
+    delivery = webhooks.deliver(session, hook, "run.completed", {}).delivery
+    assert delivery is not None
     delivery.next_retry_at = dt.datetime.now(dt.timezone.utc) - dt.timedelta(seconds=1)
     session.flush()
     assert webhooks.retry_due(session) == 0
