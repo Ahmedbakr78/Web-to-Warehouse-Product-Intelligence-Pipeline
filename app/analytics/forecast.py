@@ -445,8 +445,6 @@ def predict_price(
     forecast_mean = float(np.mean(forecast)) if len(forecast) else current
     momentum = (forecast_mean - current) / max(current, 1e-9)
 
-    # A weighted blend: the forecast is the signal, the recent trend is the sanity check.
-    projected = current * (1 + 0.6 * momentum + 0.4 * seasonal_trend)
     notes.append(f"forecast drift {momentum * 100:+.1f}% over the horizon")
     notes.append(f"recent-week drift {seasonal_trend * 100:+.1f}%")
 
@@ -455,16 +453,25 @@ def predict_price(
     margin = margin_target_pct / 100.0
     break_even = (1 - margin) / abs(elasticity) if elasticity else 0.0
     drift_pct = momentum * 0.6 + seasonal_trend * 0.4
+    notes.append(
+        f"blended drift {drift_pct * 100:+.1f}% "
+        f"(forecast {momentum * 100:+.1f}% x 0.6 + recent week {seasonal_trend * 100:+.1f}% x 0.4)"
+    )
+    notes.append(
+        f"break-even for a {margin_target_pct:.0f}% margin at elasticity {elasticity} is "
+        f"{break_even * 100:.0f}%"
+    )
     if abs(drift_pct) > break_even:
         notes.append(
-            f"movement {drift_pct * 100:+.1f}% exceeds the {break_even * 100:.0f}% break-even, "
-            "so the recommendation is damped"
+            f"blended drift exceeds break-even, so the recommendation is capped at "
+            f"{break_even * 100:.0f}% rather than {drift_pct * 100:.1f}%"
         )
         damped = break_even * math.copysign(1.0, drift_pct)
         recommended = current * (1 + damped)
     else:
-        recommended = projected
-        notes.append("movement is within the break-even band, so no damping applied")
+        # Uncapped: the blended drift is inside what the margin can absorb.
+        recommended = current * (1 + drift_pct)
+        notes.append("blended drift is within the break-even band, so no damping applied")
 
     recommended = max(floor, min(ceiling, recommended))
     change = (recommended - current) / max(current, 1e-9)
@@ -705,32 +712,60 @@ def elasticity_for_category(session: Session, category: str, *, days: int = 120)
     rows = session.execute(
         sa.text(
             """
-            SELECT AVG(p.price_usd) AS avg_price, COUNT(DISTINCT p.product_id) AS products
-            FROM dim_product p
-            WHERE p.category_path LIKE :like
-              AND p.is_active = :active
-            GROUP BY p.product_id
+            SELECT v.price_usd AS price, v.observation_count AS observations
+            FROM vw_product_current v
+            WHERE (v.category_path LIKE :like OR v.category_name LIKE :like)
+              AND v.is_active = :active
+              AND v.price_usd IS NOT NULL
+              AND v.price_usd > 0
+              AND v.observation_count IS NOT NULL
             """
         ),
-        {"like": f"%{category}%", "active": True},
+        # `ESCAPE` is explicit: `_` is a wildcard on some dialects and a literal on
+        # others, so an unescaped LIKE is not portable.
+        {"like": f"%{category.replace('_', chr(92) + '_')}%", "active": True},
     ).all()
-    prices = np.array([float(row[0]) for row in rows if row[0]], dtype=float)
-    if prices.size < 5:
+
+    pairs = [
+        (float(row[0]), float(row[1]))
+        for row in rows
+        if row[0] and row[1] is not None and float(row[0]) > 0 and float(row[1]) > 0
+    ]
+    if len(pairs) < 5:
         return {
             "category": category,
             "elasticity": None,
-            "reason": "not enough distinct price points to fit a regression",
-            "products": int(prices.size),
+            "reason": f"only {len(pairs)} usable product(s); at least 5 are needed to fit a regression",
+            "products": len(pairs),
             "days": days,
         }
 
-    log_price = np.log(prices)
-    slope, intercept = np.polyfit(log_price, np.log(prices), 1)
+    prices = np.array([pair[0] for pair in pairs], dtype=float)
+    demand = np.array([pair[1] for pair in pairs], dtype=float)
+    if float(np.std(prices)) <= 1e-9 or float(np.std(demand)) <= 1e-9:
+        return {
+            "category": category,
+            "elasticity": None,
+            "reason": "price or demand has no variance within this category, so the slope is not identifiable",
+            "products": len(pairs),
+            "days": days,
+        }
+
+    # log-log regression: the slope *is* the elasticity.
+    slope, _intercept = np.polyfit(np.log(prices), np.log(demand), 1)
     return {
         "category": category,
         "elasticity": float(slope),
-        "method": "log-log OLS on the category's active products",
-        "products": int(prices.size),
+        "method": "log-log OLS of observation count on price across the category's active products",
+        "interpretation": (
+            "elastic demand: higher prices reduce visibility"
+            if slope < -0.5
+            else "inelastic demand: price is a weak driver of visibility"
+            if slope < 0
+            else "positive association: price is not what drives visibility here"
+        ),
+        "products": len(pairs),
+        "price_range": [round(float(prices.min()), 4), round(float(prices.max()), 4)],
         "days": days,
     }
 

@@ -514,3 +514,193 @@ def test_job_lease_is_reclaimed_when_a_worker_dies():
     assert claimed.job_key == key
     assert claimed.lease_owner == "live-worker"
     assert claimed.attempt == 1
+
+
+# --------------------------------------------------------------------------------------
+# Forecasting and anomaly detection
+# --------------------------------------------------------------------------------------
+def _seasonal_series(days: int = 120, seed: int = 7) -> list[float]:
+    """A synthetic series with a known weekly cycle and a mild upward trend."""
+    import math
+
+    import numpy as np
+
+    rng = np.random.default_rng(seed)
+    return [
+        100.0 + day * 0.08 + 5 * math.sin(2 * math.pi * day / 7) + float(rng.normal(0, 1.2))
+        for day in range(days)
+    ]
+
+
+def test_holt_winters_recovers_a_known_trend_and_season():
+    from app.analytics.forecast import damped_holt_winters
+
+    values = _seasonal_series()
+    result = damped_holt_winters(values, 14)
+
+    assert len(result.values) == 14
+    assert len(result.seasonal_indices) == 7, "a 120-day series supports weekly seasonality"
+    # The true level at the end is 100 + 119*0.08 ~= 109.5 plus whatever weekday offset.
+    level = sum(values[-7:]) / 7
+    assert abs(sum(result.values[:7]) / 7 - level) / level < 0.10
+
+    # Unpacking works for callers that just want the pair.
+    forecast, indices = result
+    assert forecast is result.values
+    assert indices is result.seasonal_indices
+
+
+def test_prediction_intervals_widen_with_horizon():
+    from app.analytics.forecast import damped_holt_winters
+
+    widths = damped_holt_winters(_seasonal_series(), 14).widths
+    assert len(widths) == 14
+    assert widths[0] < widths[5] < widths[-1], "uncertainty must compound with distance"
+    assert all(width >= 0 for width in widths)
+
+
+def test_backtest_reports_real_accuracy():
+    from app.analytics.forecast import backtest
+
+    values = _seasonal_series()
+    scores = backtest(values, horizon=14, holdout=7)
+    assert scores["mape_pct"] is not None
+    assert 0 < scores["mape_pct"] < 10, "the model should be accurate on a clean synthetic series"
+    assert scores["rmse"] >= scores["mae"] >= 0
+
+    # Too little history must report nothing rather than a flattering number.
+    assert backtest([1, 2, 3], horizon=7, holdout=7)["mape_pct"] is None
+
+
+def test_holt_winters_handles_degenerate_input():
+    from app.analytics.forecast import damped_holt_winters
+
+    assert damped_holt_winters([], 5).values == [0.0] * 5
+    flat = damped_holt_winters([10, 10, 10], 5)
+    assert flat.values == [10.0] * 5
+    # A short series gets no seasonal profile rather than a fabricated one.
+    assert damped_holt_winters([1, 2, 3, 4], 5).seasonal_indices == {}
+
+
+def test_anomaly_detector_finds_an_injected_defect_without_false_positives():
+    import numpy as np
+
+    from app.analytics.forecast import detect_anomalies
+
+    rng = np.random.default_rng(3)
+    clean = [100 + float(rng.normal(0, 1)) for _ in range(40)]
+    assert detect_anomalies(clean) == [], "a clean series must not produce anomalies"
+
+    dirty = list(clean)
+    dirty[20] = 950.0  # a price parsed with three extra digits
+    found = detect_anomalies(dirty)
+    assert len(found) == 1
+    index, value, expected, score = found[0]
+    assert index == 20
+    assert value == 950.0
+    assert score > 3.5
+
+    # Every method agrees on where the defect is.
+    for method in ("mad", "std", "iqr"):
+        hits = detect_anomalies(dirty, method=method)
+        assert [hit[0] for hit in hits] == [20], f"{method} missed or added detections"
+
+
+def test_median_absolute_deviation_ignores_a_single_outlier():
+    from app.analytics.forecast import median_absolute_deviation
+
+    steady = [10.0] * 10
+    with_one = steady + [1000.0]
+    # A mean-based spread would explode here; the median-based one barely moves.
+    assert median_absolute_deviation(steady) == 0.0
+    assert median_absolute_deviation(with_one) < 1000.0
+
+
+def test_severity_classification():
+    from app.analytics.forecast import classify_severity
+
+    assert classify_severity(9) == "critical"
+    assert classify_severity(-9) == "critical"
+    assert classify_severity(6) == "high"
+    assert classify_severity(4.2) == "medium"
+    assert classify_severity(3.6) == "low"
+
+
+def test_price_prediction_is_damped_at_break_even():
+    from app.analytics.forecast import damped_holt_winters, predict_price
+
+    # A steeply rising series: the model would otherwise recommend an absurd rise.
+    rising = [100 * (1.02**day) for day in range(60)]
+    prediction = predict_price(rising, damped_holt_winters(rising, 7).values, elasticity=-1.4)
+    assert prediction.recommended_price is not None
+    # Break-even at a 35% margin and elasticity -1.4 is 46%; the recommendation
+    # must be capped at that, not follow the model's 20%-a-step extrapolation.
+    assert prediction.change_pct is not None
+    assert prediction.change_pct <= 47
+    assert any("break-even" in note for note in prediction.notes)
+    assert 0 <= prediction.confidence <= 1
+
+
+def test_price_prediction_refuses_on_thin_history():
+    from app.analytics.forecast import predict_price
+
+    prediction = predict_price([100.0, 101.0], [102.0, 103.0])
+    assert prediction.recommended_price is None
+    assert prediction.confidence == 0.0
+    assert "not enough history" in prediction.notes[0]
+
+
+def test_seasonality_profile_covers_every_weekday_slot():
+    from app.analytics.forecast import seasonality_profile
+
+    values = _seasonal_series(days=70)
+    profile = seasonality_profile(values)
+    assert set(profile) == set(range(7))
+    # The synthetic series peaks on the weekend-ish slots by construction.
+    assert all(stats["count"] == 10 for stats in profile.values())
+
+
+def test_elasticity_is_reported_as_unidentifiable_rather_than_guessed(client, admin_token):
+    """Too few products must yield None, not a fabricated slope."""
+    response = client.get("/api/v1/forecast/category/NoSuchCategory/elasticity", headers=auth(admin_token))
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["elasticity"] is None
+    assert "at least 5" in payload["reason"]
+
+
+def test_forecast_endpoints_respond(client, admin_token):
+    product = client.get("/api/v1/products?page_size=1", headers=auth(admin_token)).json()["items"][0]
+    product_id = product["product_id"]
+
+    forecast = client.get(f"/api/v1/forecast/{product_id}?horizon=7", headers=auth(admin_token))
+    assert forecast.status_code == 200
+    payload = forecast.json()
+    assert payload["model"] == "damped_holt_winters"
+    assert len(payload["points"]) <= 7
+    for point in payload["points"]:
+        assert point["lower"] <= point["value"] <= point["upper"], "intervals must bracket the forecast"
+
+    anomalies = client.get(f"/api/v1/forecast/{product_id}/anomalies", headers=auth(admin_token))
+    assert anomalies.status_code == 200
+    assert "anomalies" in anomalies.json()
+
+    weekly = client.get(f"/api/v1/forecast/{product_id}/seasonality", headers=auth(admin_token))
+    assert weekly.status_code == 200
+
+    # A product that does not exist must be reported, not crash.
+    missing = client.get("/api/v1/forecast/99999999", headers=auth(admin_token))
+    assert missing.status_code == 200
+    assert missing.json()["reason"] == "product not found"
+
+
+def test_forecast_backtest_summary_is_honest(client, admin_token):
+    """Mean and median MAPE must come from a real holdout, over real products."""
+    response = client.get("/api/v1/forecast/backtest?limit=20", headers=auth(admin_token))
+    assert response.status_code == 200
+    payload = response.json()
+    if payload["evaluated"]:
+        assert payload["mean_mape_pct"] is not None
+        assert payload["median_mape_pct"] is not None
+        assert len(payload["best"]) <= 5
+        assert "holdout backtest" in payload["note"]
