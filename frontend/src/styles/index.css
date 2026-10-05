@@ -126,6 +126,12 @@
     height: 100%;
   }
 
+  /* Reserve the scrollbar gutter so content never jumps sideways when a page
+     grows past the viewport (silent, jolt-free reloads). */
+  html {
+    scrollbar-gutter: stable;
+  }
+
   body {
     background-color: var(--bg);
     color: var(--text);
@@ -178,7 +184,7 @@
   /* --------------------------- modern scrollbars ---------------------------------- */
   * {
     scrollbar-width: thin;
-    scrollbar-color: var(--border-strong) transparent;
+    scrollbar-color: color-mix(in srgb, var(--text-subtle) 45%, transparent) transparent;
   }
 
   ::-webkit-scrollbar {
@@ -191,18 +197,45 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background-color: var(--border-strong);
+    background-color: color-mix(in srgb, var(--text-subtle) 38%, transparent);
     border-radius: 999px;
-    border: 2px solid transparent;
+    border: 3px solid transparent;
     background-clip: content-box;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background-color: var(--text-subtle);
+    background-color: color-mix(in srgb, var(--text-subtle) 70%, transparent);
+  }
+
+  ::-webkit-scrollbar-thumb:active {
+    background-color: var(--brand-500);
   }
 
   ::-webkit-scrollbar-corner {
     background: transparent;
+  }
+
+  /* Stop scroll chaining so scrolling inside a panel, table or modal never
+     drags the page behind it (feels solid on both desktop and mobile). */
+  main,
+  aside nav,
+  .table-wrap,
+  [data-scroll-area] {
+    overscroll-behavior: contain;
+  }
+
+  /* Slimmer scrollbars inside dense UI (sidebar, palettes, code blocks). */
+  aside ::-webkit-scrollbar,
+  .shadow-pop ::-webkit-scrollbar,
+  pre ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  aside ::-webkit-scrollbar-thumb,
+  .shadow-pop ::-webkit-scrollbar-thumb,
+  pre ::-webkit-scrollbar-thumb {
+    border-width: 2px;
   }
 
   /* Density switch used by the appearance settings */

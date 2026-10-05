@@ -64,6 +64,17 @@ export default function AppShell() {
   // Close the mobile drawer on navigation (silent, instant).
   useEffect(() => setMobileOpen(false), [location.pathname])
 
+  // While the off-canvas drawer is open the page behind it must not scroll, and
+  // the drawer itself should behave like a dialog on small screens.
+  useEffect(() => {
+    if (!mobileOpen) return
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previous
+    }
+  }, [mobileOpen])
+
   // Global shortcuts: Ctrl/Cmd-K or "/" opens the palette, Escape closes overlays.
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
@@ -174,9 +185,9 @@ export default function AppShell() {
 
       {/* ------------------------------------------------------------ mobile nav */}
       {mobileOpen ? (
-        <div className="fixed inset-0 z-50 lg:hidden">
+        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Navigation">
           <div className="absolute inset-0 bg-[var(--overlay)]" onClick={() => setMobileOpen(false)} aria-hidden />
-          <aside className="relative flex h-full w-72 max-w-[82vw] flex-col border-r border-line bg-[var(--sidebar-bg)]">
+          <aside className="relative flex h-full w-72 max-w-[82vw] flex-col border-r border-line bg-[var(--sidebar-bg)] pb-[env(safe-area-inset-bottom)]">
             <div className="flex h-14 shrink-0 items-center justify-between border-b border-line px-4">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-white">
@@ -595,7 +606,7 @@ function UserMenu() {
             </button>
           </div>
           <div className="border-t border-line px-3 py-2 text-[10px] text-subtle">
-            Signed in {formatRelative(user.last_login_at ?? user.created_at)} · v1.2.0
+            Signed in {formatRelative(user.last_login_at ?? user.created_at)} · v1.3.0
           </div>
         </div>
       ) : null}

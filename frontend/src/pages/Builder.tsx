@@ -626,6 +626,8 @@ export default function Builder() {
           </div>
         </div>
       </Modal>
+        </>
+      )}
     </div>
   )
 }
