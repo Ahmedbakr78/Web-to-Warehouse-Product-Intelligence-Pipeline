@@ -1387,6 +1387,50 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             },
         ],
     },
+    {
+        "key": "watchlist_max",
+        "title": "Watchlist & personal tracking Max",
+        "icon": "star",
+        "summary": "Star products into a migration-free personal watchlist that syncs with the profile and exports with it.",
+        "features": [
+            {
+                "name": "Migration-free watchlist",
+                "detail": "Stored in profile preferences JSON: no schema change, syncs to every device",
+            },
+            {
+                "name": "Watchlist API trio",
+                "detail": "GET /users/me/watchlist plus idempotent POST and DELETE per product",
+            },
+            {
+                "name": "Star column on Products",
+                "detail": "One-click star per row with filled state, toasts and live count",
+            },
+            {
+                "name": "Watched-only filter",
+                "detail": "Toolbar toggle narrows the table to starred products with its own empty state",
+            },
+            {
+                "name": "Watch button on detail",
+                "detail": "Header Watch/Watched toggle on every product page with instant feedback",
+            },
+            {
+                "name": "Live product summaries",
+                "detail": "Watchlist resolves ids against vw_product_current: price, rating, stock, source",
+            },
+            {
+                "name": "200-item cap + validation",
+                "detail": "Unknown product ids 404, malformed ids skipped, oldest trimmed past the cap",
+            },
+            {
+                "name": "HTTP-log CSV export",
+                "detail": "One-click CSV of the Audit compliance log with robots, cache and timing columns",
+            },
+            {
+                "name": "Dark infographic artefacts",
+                "detail": "2560x1440 dark SVG plus PNG and PDF, freshness-gated like the light set",
+            },
+        ],
+    },
 ]
 
 

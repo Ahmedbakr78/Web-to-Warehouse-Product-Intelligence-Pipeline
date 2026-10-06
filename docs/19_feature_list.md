@@ -723,3 +723,21 @@ Egress control for restricted networks plus commit-time and backup safety nets.
 | F-431 | One-command backup | Timestamped pg_dump, mysqldump and sqlite copies via make backup | `scripts/backup.sh` `Makefile` |
 
 **Revised total: 431 features across 28 areas** (F-001 to F-431).
+
+## 29. Watchlist + personal tracking Max (9)
+
+Star products into a migration-free personal watchlist, plus compliance-log export and dark presentation artefacts.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-432 | Migration-free watchlist | Stored in profile preferences JSON: no schema change, syncs per device | `app/api/routers/users.py` `WATCHLIST_KEY` |
+| F-433 | Watchlist API trio | GET plus idempotent POST and DELETE per product id | `app/api/routers/users.py` `/me/watchlist` |
+| F-434 | Star column on Products | One-click star per row with filled state, toasts and live count | `frontend/src/pages/Products.tsx` `toggleWatch` |
+| F-435 | Watched-only filter | Toolbar toggle narrows to starred products with own empty state | `frontend/src/pages/Products.tsx` `watchedOnly` |
+| F-436 | Watch button on detail | Header Watch/Watched toggle with instant feedback | `frontend/src/pages/ProductDetail.tsx` `toggleWatch` |
+| F-437 | Live product summaries | Ids resolved against vw_product_current with price/rating/stock | `app/api/routers/users.py` `_watchlist_products` |
+| F-438 | 200-item cap + validation | Unknown ids 404, malformed skipped, oldest trimmed past cap | `app/api/routers/users.py` `WATCHLIST_MAX_ITEMS` |
+| F-439 | HTTP-log CSV export | One-click CSV of compliance log with robots/cache/timing columns | `frontend/src/pages/Audit.tsx` `http-compliance-log.csv` |
+| F-440 | Dark infographic artefacts | 2560x1440 dark SVG plus PNG and PDF, freshness-gated | `docs/assets/infographic-dark.svg` `scripts/make_infographic.py` |
+
+**Revised total: 440 features across 29 areas** (F-001 to F-440).

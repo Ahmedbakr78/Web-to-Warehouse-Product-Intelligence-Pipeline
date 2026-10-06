@@ -115,6 +115,7 @@ export default function Audit() {
   const [sourceCode, setSourceCode] = useState('')
   const [httpLimit, setHttpLimit] = useState(200)
   const [sort, setSort] = useState<{ by?: string; dir: 'asc' | 'desc' }>({ by: 'created_at', dir: 'desc' })
+  const toast = useToast()
 
   const windowDays = Number(days)
 
@@ -525,7 +526,7 @@ export default function Audit() {
                       disabled={!httpRows.length}
                       onClick={() => {
                         const body = httpRows.map((row: HttpRow) => [
-                          row.created_at ?? '',
+                          row.requested_at ?? '',
                           row.source_code ?? '',
                           row.method ?? '',
                           row.url ?? '',
