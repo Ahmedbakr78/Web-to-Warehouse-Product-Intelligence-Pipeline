@@ -102,7 +102,7 @@ export default function AggregateBuilder() {
   const [limit, setLimit] = useState(25)
   const [showChart, setShowChart] = useState(true)
 
-  const current = useMemo(() => schema?.entities.find((item) => item.entity === entity), [schema, entity])
+  const current = useMemo(() => schema?.entities?.find((item) => item.entity === entity), [schema, entity])
   const numericColumns = useMemo(() => current?.columns.filter((column) => column.type === 'number') ?? [], [current])
   const groupableColumns = useMemo(() => current?.columns.filter((column) => column.groupable) ?? [], [current])
 
@@ -238,7 +238,7 @@ export default function AggregateBuilder() {
                   setAggregates([makeAgg()])
                 }}
               >
-                {schema?.entities.map((item) => (
+                {schema?.entities?.map((item) => (
                   <option key={item.entity} value={item.entity}>
                     {item.label}
                   </option>
@@ -263,7 +263,7 @@ export default function AggregateBuilder() {
                 onChange={(event) => setSortColumn(event.target.value)}
               >
                 <option value="">Default</option>
-                {result?.columns.map((column) => (
+                {result?.columns?.map((column) => (
                   <option key={column} value={column}>
                     {titleCase(column)}
                   </option>
@@ -306,7 +306,7 @@ export default function AggregateBuilder() {
                     }
                     className="w-40"
                   >
-                    {schema?.aggregates.map((fn) => (
+                    {schema?.aggregates?.map((fn) => (
                       <option key={fn} value={fn}>
                         {AGG_LABELS[fn] ?? titleCase(fn)}
                       </option>
@@ -379,7 +379,7 @@ export default function AggregateBuilder() {
                       onChange={(event) => setFilters((rows) => rows.map((item) => (item.id === row.id ? { ...item, operator: event.target.value } : item)))}
                       className="w-36"
                     >
-                      {schema?.operators.map((op) => (
+                      {schema?.operators?.map((op) => (
                         <option key={op.operator} value={op.operator}>
                           {OP_LABELS[op.operator] ?? op.operator}
                         </option>
