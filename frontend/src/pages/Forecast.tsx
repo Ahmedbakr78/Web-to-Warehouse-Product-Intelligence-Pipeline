@@ -578,6 +578,20 @@ function ProductProjection({
               ))}
             </Select>
           </label>
+          <Button
+            size="sm"
+            variant="ghost"
+            icon={<Download className="h-4 w-4" />}
+            disabled={!forecastPoints.length}
+            onClick={() => {
+              const body = forecastPoints.map((point) => [point.date ?? '', point.value ?? '', point.lower ?? '', point.upper ?? ''])
+              downloadCsv(`forecast-product-${productId}.csv`, toCsv(['date', 'forecast', 'lower', 'upper'], body))
+              toast.success('Projection exported', `${body.length} forecast points saved as CSV.`)
+            }}
+            title="Download this product's forecast points as CSV"
+          >
+            Export CSV
+          </Button>
         </div>
 
         {forecast.isLoading ? (
