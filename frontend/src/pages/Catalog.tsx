@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Building2, GitCompare, Play, RefreshCw, TrendingDown, TrendingUp } from 'lucide-react'
+import { Building2, FileDown, GitCompare, Play, RefreshCw, TrendingDown, TrendingUp, Upload } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { BarSeries, DonutChart } from '@/components/charts'
@@ -23,7 +23,7 @@ import {
   Tabs,
   useToast,
 } from '@/components/ui'
-import { endpoints } from '@/lib/api'
+import { downloadBinary, endpoints, uploadCatalogCsv } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { useAuth } from '@/hooks/useAuth'
 import { useDebounce } from '@/hooks/useDebounce'
@@ -67,6 +67,21 @@ export default function Catalog() {
     onError: (error: Error) => toast.error('Pipeline run failed', error.message),
   })
 
+  const fileRef = useRef<HTMLInputElement>(null)
+  const catalogImport = useMutation({
+    mutationFn: (file: File) => uploadCatalogCsv(file),
+    onSuccess: (result) => {
+      toast.success('Catalog imported', `${result.created} created · ${result.updated} updated`)
+      void queryClient.invalidateQueries()
+    },
+    onError: (error: Error) => toast.error('Catalog import failed', error.message),
+  })
+  const downloadTemplate = useMutation({
+    mutationFn: () => downloadBinary('/catalog/template', {}, 'catalog-template.csv'),
+    onSuccess: () => toast.success('Template downloaded', 'Fill it in and import it back above.'),
+    onError: (error: Error) => toast.error('Could not download the template', error.message),
+  })
+
   const rows = reconciliation.data?.items ?? []
   const filtered = debouncedSearch
     ? rows.filter((row: any) =>
@@ -97,6 +112,40 @@ export default function Catalog() {
             <span className="text-[11px] text-subtle">
               Last reconciliation {formatRelative(runs.data.items[0].started_at)} ({runs.data.items[0].run_id?.slice(0, 8)})
             </span>
+          ) : null}
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".csv,text/csv"
+            className="hidden"
+            aria-label="Upload catalog CSV"
+            onChange={(event) => {
+              const file = event.target.files?.[0]
+              event.target.value = ''
+              if (file) catalogImport.mutate(file)
+            }}
+          />
+          <Button
+            size="sm"
+            variant="ghost"
+            icon={<FileDown className="h-4 w-4" />}
+            loading={downloadTemplate.isPending}
+            onClick={() => downloadTemplate.mutate()}
+            title="Download the CSV template with header and examples"
+          >
+            Template
+          </Button>
+          {can('write') ? (
+            <Button
+              size="sm"
+              variant="secondary"
+              icon={<Upload className="h-4 w-4" />}
+              loading={catalogImport.isPending}
+              onClick={() => fileRef.current?.click()}
+              title="Bulk upsert SKUs from a CSV file (5 MB / 5,000 rows)"
+            >
+              Import CSV
+            </Button>
           ) : null}
           {can('run_pipeline') ? (
             <Button

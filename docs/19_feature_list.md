@@ -653,3 +653,20 @@ Add a JSON feed from the dashboard, with compliance proven before anything is sa
 | F-410 | Source lifecycle controls | Enable, disable, history-guarded delete; bundled rows read-only | `frontend/src/pages/Sources.tsx` `app/api/routers/sources.py` |
 
 **Revised total: 410 features across 23 areas** (F-001 to F-410).
+
+## 24. Catalog import additions (8)
+
+Bulk-load the internal catalog from any spreadsheet, with the same validation the API enforces.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-411 | CSV catalog import | Bulk upsert of 5,000 SKUs per file keyed by sku | `app/api/routers/catalog.py` `POST /catalog/import` |
+| F-412 | Import CSV template | Header plus two example rows downloadable for spreadsheets | `app/api/routers/catalog.py` `GET /catalog/template` |
+| F-413 | Row-level import validation | Required sku/name, 3-letter currency, status vocabulary, non-negative prices | `app/api/routers/catalog.py` `_parse_optional_*` |
+| F-414 | All-or-nothing import | Any invalid row rejects the file with the first 50 errors listed | `app/api/routers/catalog.py` `import_products` |
+| F-415 | Import size caps | 5 MB file cap and 5,000-row cap enforced before any write | `app/api/routers/catalog.py` `IMPORT_MAX_*` |
+| F-416 | Import audit entry | catalog.import with created/updated counts, file name and actor | `app/models/app_users.py` `AppAuditLog` |
+| F-417 | Catalog upload UI | Template + Import CSV buttons on the SKUs tab with toasts and refresh | `frontend/src/pages/Catalog.tsx` `uploadCatalogCsv` |
+| F-418 | Import permission gate | Analyst/admin may import; viewers refused server-side with 403 | `app/api/deps.py` `WriteUser` `tests/test_catalog_import.py` |
+
+**Revised total: 418 features across 24 areas** (F-001 to F-418).

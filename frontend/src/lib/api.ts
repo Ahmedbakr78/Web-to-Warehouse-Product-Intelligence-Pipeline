@@ -450,3 +450,32 @@ async function saveBlob(response: Response, filename: string): Promise<void> {
   anchor.remove()
   URL.revokeObjectURL(url)
 }
+
+/**
+ * Upload a catalog CSV file (see GET /catalog/template for the columns).
+ *
+ * FormData travels without a JSON content-type, so this uses fetch directly
+ * rather than the JSON `api` helper — the bearer token is attached manually.
+ */
+export async function uploadCatalogCsv(file: File): Promise<{ created: number; updated: number; total: number }> {
+  const form = new FormData()
+  form.append('file', file, file.name)
+  const response = await fetch(`${API_BASE}/catalog/import`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${tokenStore.get() ?? ''}` },
+    body: form,
+  })
+  if (!response.ok) {
+    let message = `Import failed (${response.status})`
+    try {
+      const payload = await response.json()
+      const errors = payload?.details?.errors
+      message = payload?.message ?? message
+      if (Array.isArray(errors) && errors.length) message = `${message}: ${errors.slice(0, 3).join('; ')}`
+    } catch {
+      /* keep the status-code message */
+    }
+    throw new Error(message)
+  }
+  return response.json()
+}
