@@ -36,12 +36,12 @@
 <rect x="1624" y="146" width="320" height="118" rx="18" ry="18" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
 <filter id="s4" filter="url(#soft)"/>
 <rect x="1624" y="254" width="320" height="10" rx="5" ry="5" fill="#F59E0B"/>
-<text x="1784" y="202" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="40" font-weight="700" fill="#F59E0B" text-anchor="middle" letter-spacing="0">233</text>
+<text x="1784" y="202" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="40" font-weight="700" fill="#F59E0B" text-anchor="middle" letter-spacing="0">324</text>
 <text x="1784" y="236" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="18" font-weight="500" fill="#64748B" text-anchor="middle" letter-spacing="0">catalogued features</text>
 <rect x="1960" y="146" width="320" height="118" rx="18" ry="18" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
 <filter id="s5" filter="url(#soft)"/>
 <rect x="1960" y="254" width="320" height="10" rx="5" ry="5" fill="#06B6D4"/>
-<text x="2120" y="202" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="40" font-weight="700" fill="#06B6D4" text-anchor="middle" letter-spacing="0">397</text>
+<text x="2120" y="202" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="40" font-weight="700" fill="#06B6D4" text-anchor="middle" letter-spacing="0">408</text>
 <text x="2120" y="236" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="18" font-weight="500" fill="#64748B" text-anchor="middle" letter-spacing="0">automated tests</text>
 <path d="M548 438 H578" stroke="#E2E8F0" stroke-width="3" fill="none"/>
 <path d="M578 438 l-12 -7 v14 z" fill="#E2E8F0"/>
@@ -152,7 +152,7 @@
 <rect x="2012" y="577" width="424" height="199" rx="22" ry="22" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
 <path d="M2012 577 h424 a22 22 0 0 1 22 22 v36 h-468 v-36 a22 22 0 0 1 22 -22 z" fill="url(#band)" opacity="0.97"/>
 <text x="2224" y="609" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0">10  Evidence</text>
-<text x="2224" y="629" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="14" font-weight="400" fill="#E6EBFB" text-anchor="middle" letter-spacing="0">397 tests, 104 smoke checks, CI green</text>
+<text x="2224" y="629" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="14" font-weight="400" fill="#E6EBFB" text-anchor="middle" letter-spacing="0">408 tests, 104 smoke checks, CI green</text>
 <rect x="2034" y="669" width="56" height="56" rx="15" ry="15" fill="#EEF2FF"/>
 <g transform="translate(2062,697) scale(1.05)" transform-origin="0 0" stroke="#1B3A8A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path transform="translate(-14,-14)" d="M7 17a4 4 0 010-8 5.5 5.5 0 0110.6 1.5A3.6 3.6 0 0117 17H7z"/></g>
 <circle cx="2122" cy="679" r="5" fill="#06B6D4"/>
@@ -249,7 +249,7 @@
 <text x="1560" y="1240" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">REST API, 173 operations</text>
 <rect x="1972" y="1202" width="436" height="62" rx="14" ry="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
 <circle cx="2002" cy="1233" r="6" fill="#10B981"/>
-<text x="2022" y="1240" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">397 automated tests</text>
+<text x="2022" y="1240" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">408 automated tests</text>
 <rect x="124" y="1280" width="436" height="62" rx="14" ry="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
 <circle cx="154" cy="1311" r="6" fill="#10B981"/>
 <text x="174" y="1318" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#2E4FA8" text-anchor="start" letter-spacing="0">104 API smoke checks</text>

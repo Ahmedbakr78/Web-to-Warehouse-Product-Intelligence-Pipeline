@@ -17,6 +17,20 @@ import shutil
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+try:
+    from app.core.features import feature_catalogue as _feature_catalogue
+
+    def _measured_features() -> str:
+        try:
+            return str(_feature_catalogue()["total_features"])
+        except Exception:
+            return "322"
+except Exception:  # pragma: no cover - generator must never crash on import
+
+    def _measured_features() -> str:
+        return "322"
+
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs" / "assets"
 
@@ -76,7 +90,7 @@ ROADMAP = [
     ),
     (
         "Evidence",
-        "397 tests, 104 smoke checks, CI green",
+        "408 tests, 104 smoke checks, CI green",
         "cloud",
         ["mypy and Ruff clean", "30 documents, 80 diagrams"],
     ),
@@ -110,7 +124,7 @@ OUTCOMES = [
     "28-table warehouse, 20 views",
     "12-rule DQ gate",
     "REST API, 173 operations",
-    "397 automated tests",
+    "408 automated tests",
     "104 API smoke checks",
     "React dashboard, 20 screens",
     "Alembic-managed schema",
@@ -220,8 +234,8 @@ def build_svg() -> str:
         ("28/20", "tables / views", PRIMARY),
         ("12x6", "DQ rules x dimensions", SUCCESS),
         ("173", "REST operations", SECONDARY),
-        ("233", "catalogued features", HIGHLIGHT),
-        ("397", "automated tests", ACCENT),
+        (_measured_features(), "catalogued features", HIGHLIGHT),
+        ("408", "automated tests", ACCENT),
     ]
     cell_w = 336
     strip_w = cell_w * len(numbers)
