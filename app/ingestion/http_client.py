@@ -96,6 +96,22 @@ class HttpAuditEntry:
         }
 
 
+def resolve_proxy(url: str, *, proxy_url: str = "", no_proxy: str = "") -> str | None:
+    """Return the proxy to use for ``url``, or ``None`` for a direct connection.
+
+    Pure function (no settings access) so it is unit-testable: an explicit
+    proxy wins, ``no_proxy`` hosts bypass it, and anything else goes direct.
+    """
+    proxy = (proxy_url or "").strip()
+    if not proxy:
+        return None
+    host = (urlparse(url).netloc or "").split(":")[0].strip().lower()
+    bypassed = {entry.strip().lower() for entry in (no_proxy or "").split(",") if entry.strip()}
+    if host in bypassed:
+        return None
+    return proxy
+
+
 class CompliantHttpClient:
     """Polite HTTP client: robots gate + rate limit + cache + retry + audit log."""
 
@@ -136,9 +152,11 @@ class CompliantHttpClient:
         self.limiter = _shared_limiter()
         self.breaker = _shared_breaker()
         self.robots = get_robots_cache()
+        self.proxy_url = settings.ingest_proxy_url
         self._client = httpx.Client(
             timeout=settings.request_timeout_seconds,
             follow_redirects=True,
+            proxy=self.proxy_url or None,
             headers={
                 "User-Agent": self.user_agent,
                 "Accept-Language": "en-US,en;q=0.9",

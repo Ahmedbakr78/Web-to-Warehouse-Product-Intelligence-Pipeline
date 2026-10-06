@@ -31,7 +31,7 @@ RUN python -m venv /opt/venv \
  && /opt/venv/bin/pip install "fastapi>=0.115" "uvicorn[standard]" "sqlalchemy>=2.0.30" pydantic pydantic-settings \
       httpx beautifulsoup4 lxml lxml-html-clean pandas numpy plotly python-dateutil python-multipart \
       PyJWT argon2-cffi email-validator orjson tenacity structlog typer rich \
-      weasyprint pyotp alembic
+      weasyprint pyotp alembic openpyxl
 
 # ---- runtime ------------------------------------------------------------------------
 FROM base AS runtime

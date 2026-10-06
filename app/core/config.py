@@ -109,6 +109,12 @@ class Settings(BaseSettings):
     retry_backoff_seconds: float = 1.5
     requests_per_second: float = 1.0
     requests_per_minute: int = 30
+    #: Optional egress proxy for every ingestion request, e.g.
+    #: ``http://proxy.internal:3128``. Empty means direct connections (httpx
+    #: still honours the standard ``HTTP_PROXY``/``HTTPS_PROXY`` environment).
+    ingest_proxy_url: str = ""
+    #: Comma-separated hosts that bypass the proxy even when one is set.
+    ingest_no_proxy: str = "localhost,127.0.0.1"
 
     # ---------------------------------------------------------------- API rate limiting
     #: Enforce a per-caller request budget on the REST API. `AppApiKey.rate_limit_per_minute`
@@ -160,6 +166,17 @@ class Settings(BaseSettings):
         if not 0.0 <= value <= 1.0:
             raise ValueError("dedupe_similarity_threshold must be between 0.0 and 1.0")
         return value
+
+    @field_validator("ingest_proxy_url")
+    @classmethod
+    def _clean_proxy(cls, value: str) -> str:
+        """Only plain http(s) proxy URLs are accepted — never empty-space or socks."""
+        cleaned = value.strip()
+        if not cleaned:
+            return ""
+        if not cleaned.startswith(("http://", "https://")):
+            raise ValueError("ingest_proxy_url must start with http:// or https://")
+        return cleaned.rstrip("/")
 
     @field_validator("cors_origins")
     @classmethod
