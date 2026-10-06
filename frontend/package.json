@@ -1,7 +1,7 @@
 {
   "name": "product-intelligence-dashboard",
   "private": true,
-  "version": "1.6.1",
+  "version": "1.7.0",
   "type": "module",
   "description": "React dashboard for the Web-to-Warehouse Product Intelligence Pipeline",
   "scripts": {

@@ -8,6 +8,12 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Nothing yet.
+
+## [1.7.0] - 2026-10-06
+
+### Added
+
 - **Add sources from the GUI** — the Sources screen gains an *Add source* dialog: endpoint presets
   (DummyJSON, FakeStore, Shopify `products.json`, Open Food Facts, Open Library), a live compliance
   pre-check (SSRF guard + robots.txt verdict + JSON shape sniff), dot-path field mapping with three
