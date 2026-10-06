@@ -1,5 +1,5 @@
 /**
- * The Account screen's ninth and tenth tabs.
+ * The Account screen's alerts and data & privacy tabs.
  *
  * These are deliberately built from endpoints that already exist rather than adding
  * new server surface: alert rules and notifications are real resources, and the

@@ -690,6 +690,7 @@ __all__ = [
     "source_health",
     "availability_summary",
     "category_tree",
+    "change_event_summary",
     "new_products",
     "removed_products",
     "category_changes",
