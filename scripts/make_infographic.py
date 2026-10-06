@@ -371,10 +371,23 @@ def build_html() -> str:
     )
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    import argparse
+
+    parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
+    parser.add_argument("--check", action="store_true", help="regenerate and fail if the SVG differs")
+    args = parser.parse_args(argv)
+
     OUT.mkdir(parents=True, exist_ok=True)
     svg = build_svg()
     svg_path = OUT / "infographic.svg"
+    if args.check:
+        current = svg_path.read_text(encoding="utf-8") if svg_path.exists() else ""
+        if current != svg:
+            print("infographic.svg is stale; run `make infographic` to regenerate")
+            return 1
+        print("infographic.svg is up to date")
+        return 0
     svg_path.write_text(svg, encoding="utf-8")
     (OUT / "infographic.html").write_text(build_html(), encoding="utf-8")
 
