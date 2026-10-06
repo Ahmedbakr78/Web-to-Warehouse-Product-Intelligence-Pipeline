@@ -260,6 +260,12 @@ export const endpoints = {
   sources: () => api.get<any[]>('/sources'),
   sourceRobots: () => api.get<any>('/sources/robots'),
   sourcePreview: (code: string, limit = 5) => api.get<any>(`/sources/${code}/preview`, { limit }),
+  sourcePresets: () => api.get<any>('/sources/presets'),
+  checkSource: (payload: Record<string, unknown>) => api.post<any>('/sources/check', payload),
+  createSource: (payload: Record<string, unknown>) => api.post<any>('/sources', payload),
+  updateSource: (code: string, payload: Record<string, unknown>) =>
+    api.patch<any>(`/sources/${code}`, payload),
+  deleteSource: (code: string) => api.del<any>(`/sources/${code}`),
 
   views: () => api.get<any[]>('/queries/views'),
   queryTables: () => api.get<any>('/queries/tables'),
