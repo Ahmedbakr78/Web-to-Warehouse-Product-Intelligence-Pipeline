@@ -711,3 +711,15 @@ Native spreadsheets for every dataset, alongside CSV and JSON.
 | F-428 | Export format picker | CSV, Excel and JSON from one button on every dataset screen | `frontend/src/components/ExportButton.tsx` `downloadExport` |
 
 **Revised total: 428 features across 27 areas** (F-001 to F-428).
+
+## 28. Proxy + ops additions (3)
+
+Egress control for restricted networks plus commit-time and backup safety nets.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-429 | Egress proxy support | Optional INGEST_PROXY_URL with INGEST_NO_PROXY bypass, validated http(s) only | `app/core/config.py` `app/ingestion/http_client.py` `resolve_proxy` |
+| F-430 | Pre-commit hooks | Ruff, whitespace and the stats drift gate at commit time | `.pre-commit-config.yaml` `make precommit` |
+| F-431 | One-command backup | Timestamped pg_dump, mysqldump and sqlite copies via make backup | `scripts/backup.sh` `Makefile` |
+
+**Revised total: 431 features across 28 areas** (F-001 to F-431).
