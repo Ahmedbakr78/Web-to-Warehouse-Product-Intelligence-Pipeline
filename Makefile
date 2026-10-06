@@ -313,6 +313,14 @@ verify-all: bootstrap run-pipeline test ## Bootstrap, run the pipeline and test
 .PHONY: everything
 everything: install env up-db db-wait bootstrap demo-postgres run-pipeline test frontend-install frontend-build ## Full end-to-end verification
 
+.PHONY: backup
+backup: ## Timestamped backup of postgres, mysql and local sqlite files
+	./scripts/backup.sh
+
+.PHONY: precommit
+precommit: ## Install pre-commit hooks (ruff + whitespace + stats drift gate)
+	pre-commit install
+
 .PHONY: clean-cache
 clean-cache: ## Remove caches
 	find . -type d -name __pycache__ -prune -exec rm -rf {} + 2>/dev/null || true
