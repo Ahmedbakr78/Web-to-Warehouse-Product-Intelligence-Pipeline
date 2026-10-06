@@ -3,7 +3,7 @@
 ## Purpose
 
 This document is the complete feature inventory of the Web-to-Warehouse Product Intelligence
-Pipeline: 295 features grouped into sixteen areas, each with a one-line description and a reference
+Pipeline: 403 features grouped into twenty-two areas, each with a one-line description and a reference
 to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an
 endpoint, a CLI command or a documented design decision. Nothing here is aspirational.
 
@@ -516,3 +516,119 @@ Navigation discoverability, flash-free appearance and generated artefacts with d
 | F-315 | Infographic freshness gate | `make_infographic.py --check` fails when the committed SVG differs from the generator | `scripts/make_infographic.py` |
 | F-316 | Presentation deck generator | `make deck` builds a 12-slide PDF from measured counts in the DEPI palette | `scripts/make_deck.py` `make deck` |
 | F-317 | Deck freshness gate | `make_deck.py --check` fails when the committed HTML differs from the generator | `scripts/make_deck.py` |
+
+## 19. Builder Max additions (22)
+
+Self-service analytics without raw SQL.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-318 | 11 builder entities | products, price_changes, new/removed, category_index, brand_summary, source_coverage, top_movers, availability, quality_latest, catalog_reconciliation | `app/api/routers/builder.py` `frontend/src/pages/Builder.tsx` |
+| F-319 | Rows mode filters | search, category, brand, source, availability, price/rating/change ranges, in-stock, significant-only | `app/api/routers/builder.py` `frontend/src/pages/Builder.tsx` |
+| F-320 | 15 filter operators | eq, ne, gt, gte, lt, lte, contains, not_contains, starts/ends_with, in, not_in, between, empty, not_empty | `app/api/routers/builder.py` `frontend/src/pages/Builder.tsx` |
+| F-321 | 6 aggregate functions | count, count_distinct, sum, avg, min, max with up to 8 measures per query | `app/api/routers/builder.py` `frontend/src/pages/Builder.tsx` |
+| F-322 | Group-by + having | Server-side grouping with aggregate-aware ordering and result capping | `app/api/routers/builder.py` `frontend/src/pages/Builder.tsx` |
+| F-323 | Whitelist-assembled SQL | Entity/column whitelist plus bind parameters — structurally incapable of injection | `app/api/routers/builder.py` `frontend/src/pages/Builder.tsx` |
+| F-324 | Live SQL preview | POST /builder/query returns sql_preview beside columns, rows and duration_ms | `app/api/routers/builder.py` `frontend/src/pages/Builder.tsx` |
+| F-325 | cURL copy button | One click copies an authenticated curl for the exact builder state | `app/api/routers/builder.py` `frontend/src/pages/Builder.tsx` |
+| F-326 | Chart preview | Bar chart renders the first grouped measure instantly | `app/api/routers/builder.py` `frontend/src/pages/Builder.tsx` |
+| F-327 | Saved views | Name any builder state, reuse it from Products/Changes screens, usage-counted | `app/api/routers/builder.py` `frontend/src/pages/Builder.tsx` |
+| F-328 | View sharing scope | Private views plus usage counts; admin can audit all views | `app/api/routers/builder.py` `frontend/src/pages/Builder.tsx` |
+| F-329 | CSV export | builder-{entity}.csv generated client-side from visible columns | `app/api/routers/builder.py` `frontend/src/pages/Builder.tsx` |
+| F-330 | JSON export | Same rows as JSON with entity plus applied filters envelope | `app/api/routers/builder.py` `frontend/src/pages/Builder.tsx` |
+| F-331 | Column picker | Per-entity column sets with sticky, sortable headers | `app/api/routers/builder.py` `frontend/src/pages/Builder.tsx` |
+| F-332 | Sort everywhere | asc/desc on any whitelisted column, default sort per entity | `app/api/routers/builder.py` `frontend/src/pages/Builder.tsx` |
+| F-333 | Pagination control | Page-size selector persisted to profile, total + duration shown | `app/api/routers/builder.py` `frontend/src/pages/Builder.tsx` |
+| F-334 | Debounced search | 300ms debounce so typing never hammers the API | `app/api/routers/builder.py` `frontend/src/pages/Builder.tsx` |
+| F-335 | Stale-while-revalidate | Cached preview first, silent refetch, no spinners on revisit | `app/api/routers/builder.py` `frontend/src/pages/Builder.tsx` |
+| F-336 | Join guidance | Cross-entity recipes (products x changes x catalog) documented with example SQL | `app/api/routers/builder.py` `frontend/src/pages/Builder.tsx` |
+| F-337 | Builder schema endpoint | GET /builder/schema drives entity/column/operator pickers — no hardcoded lists | `app/api/routers/builder.py` `frontend/src/pages/Builder.tsx` |
+| F-338 | Error envelope | Unknown entity/column returns {error,message,details.available} with 422 | `app/api/routers/builder.py` `frontend/src/pages/Builder.tsx` |
+| F-339 | Builder docs page | docs plus QueryLab examples mirror the same whitelist | `app/api/routers/builder.py` `frontend/src/pages/Builder.tsx` |
+
+## 20. Account Max additions (22)
+
+Nine tabs of self-service control.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-340 | 9 account tabs | Profile, Appearance, Security, Devices & 2FA, API keys, Alerts, Activity, Data & privacy, Preferences | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
+| F-341 | Avatar picker | 12 theme-aware colours with initials fallback, shown in topbar and sidebar | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
+| F-342 | Full-name editing | Validated, audited, reflected in JWT display name immediately | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
+| F-343 | Password strength meter | Length, variety and breach-hint feedback before submit | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
+| F-344 | Rows-per-page control | Persisted default page size used by every table screen | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
+| F-345 | Default landing page | Choose Dashboard, Analytics, Products or Pipeline as post-login route | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
+| F-346 | Weekly digest toggle | Opt in to Monday price-movement summary via notifications channel | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
+| F-347 | Alert threshold slider | Per-user % movement that raises a notification, default 5% | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
+| F-348 | Keyboard shortcut reference | Press ? anywhere: palette, sidebar, rail, overlay shortcuts on one screen | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
+| F-349 | Session timeout display | Idle and absolute lifetimes visible beside each device row | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
+| F-350 | Sign out everywhere | One call revokes every refresh token except the current session | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
+| F-351 | Recovery code download | One-click .txt export at enrol time, hashed at rest, single-use | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
+| F-352 | API key scopes UI | read/query/run/admin checkboxes capped by owner role, shown per key | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
+| F-353 | Key last-used display | Relative time plus total calls — leaked credentials get noticed | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
+| F-354 | Personal activity feed | GET /audit/me powers the Activity tab with IP and user-agent | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
+| F-355 | Portable data export | GET /users/me/export downloads profile, prefs, keys metadata and activity as JSON | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
+| F-356 | Danger-zone confirm | DELETE /users/me needs password, cascades, writes audit, signs out | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
+| F-357 | Alert rules inline | Create, pause and test alert rules without leaving Account | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
+| F-358 | Preference sync | Appearance plus prefs saved server-side, inherited by new devices | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
+| F-359 | Cross-tab live sync | storage event keeps two open tabs visually identical | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
+| F-360 | Accessible forms | Labels, focus rings, ARIA descriptions and keyboard-only operation | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
+| F-361 | Toast confirmations | Every mutation confirms with undo hint where safe | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
+
+## 21. Design, mobile and motion Max (22)
+
+Perfect white and dark, silent reloads, mobile.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-362 | Perfect white mode | Warm paper surfaces, indigo brand ramp, AAA body text on white | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+| F-363 | Perfect dark mode | Navy surfaces, lifted borders, recoloured charts with zero pure-black crush | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+| F-364 | Midnight OLED theme | True-black surfaces for phones and OLED laptops | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+| F-365 | High-contrast theme | 2px borders, 3px focus rings, AAA text in both bases | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+| F-366 | System follows OS | prefers-color-scheme resolved through the same path, no forced light | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+| F-367 | No flash on reload | Inline pre-paint script resolves theme plus accent before React mounts | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+| F-368 | 12 accent colours | Indigo to violet applied via CSS vars without a rebuild | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+| F-369 | 3 densities + 5 font scales | Compact/comfortable/spacious independent of 13–19px text | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+| F-370 | 3 motion levels | Full/reduced/none; none also stops spinners and progress bars | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+| F-371 | Silent reload policy | No route transitions, no smooth scroll, 120ms functional transitions only | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+| F-372 | Scroll restoration | Back restores offset, forward starts at top, focus moves to h1 | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+| F-373 | Three-state sidebar | Expanded, icon rail, off-canvas drawer; choice shared across tabs | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+| F-374 | Phone bottom tab bar | Five primary destinations under 640px with safe-area padding | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+| F-375 | Card-view tables | Dense tables become stacked cards below 640px — no horizontal blowout | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+| F-376 | Drawer scroll lock | Body locked while drawer/modal open, focus trapped, Esc closes | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+| F-377 | Lucide icons everywhere | Nav, tabs, stats, empty states and toasts — no emoji, aria-hidden decorative | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+| F-378 | Modern thin scrollbars | 10px track, rounded thumb, hover/active states, 8px in dense UI | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+| F-379 | Scroll shadows | Top/bottom fades driven by scrollTop vs scrollHeight via data-scroll-shadow | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+| F-380 | No scroll chaining | overscroll-behavior:contain on main, nav, table-wrap and scroll areas | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+| F-381 | Stable gutter | scrollbar-gutter:stable stops sideways jumps when pages grow | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+| F-382 | PWA installable | Manifest, maskable icons, offline fallback, safe-area viewport from 320px | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+| F-383 | Command palette | Ctrl/Cmd-K or /: screens, live products and actions with full keyboard nav | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+
+## 22. Platform and release Max (20)
+
+Free unlimited operations and releases.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-384 | 44 Make targets | make everything/check/up/bootstrap/demo/analysis/deck/verify-dialects and more | `Makefile` `scripts/project_stats.py` `website/index.html` |
+| F-385 | One-command everything | install, env, databases, schema, demo data, pipeline, tests, frontend build | `Makefile` `scripts/project_stats.py` `website/index.html` |
+| F-386 | Single canonical version | VERSION feeds API, CLI, pyproject and dashboard via sync_version.py | `Makefile` `scripts/project_stats.py` `website/index.html` |
+| F-387 | Stats sync gate | project_stats.py rewrites README block; check_stats.py fails CI on drift | `Makefile` `scripts/project_stats.py` `website/index.html` |
+| F-388 | 30 numbered docs | Proposal through access-control, each with purpose plus Mermaid | `Makefile` `scripts/project_stats.py` `website/index.html` |
+| F-389 | 80 Mermaid diagrams | Context, stack, sequences, DAG, ER, DFD, deployment — rendered to SVG | `Makefile` `scripts/project_stats.py` `website/index.html` |
+| F-390 | Infographic 2560x1440 | One 16:9 DEPI Data Engineering slide, freshness-gated by generator | `Makefile` `scripts/project_stats.py` `website/index.html` |
+| F-391 | 12-slide deck | make deck builds PDF from measured counts in the DEPI palette | `Makefile` `scripts/project_stats.py` `website/index.html` |
+| F-392 | Multi-section website | Hero, features from live OpenAPI, docs, quickstart, About — light/dark/system | `Makefile` `scripts/project_stats.py` `website/index.html` |
+| F-393 | SEO + OG tags | Description, og:title/description/type, color-scheme, favicon | `Makefile` `scripts/project_stats.py` `website/index.html` |
+| F-394 | Private-by-default repo | gh repo edit --private; secrets never committed, .env.example only | `Makefile` `scripts/project_stats.py` `website/index.html` |
+| F-395 | Topic taxonomy | etl, airflow, fastapi, react, postgres, mysql, data-quality, scraping, warehouse, dashboard | `Makefile` `scripts/project_stats.py` `website/index.html` |
+| F-396 | Release notes | Tag v1.x with changelog, counts, demo accounts and verify steps | `Makefile` `scripts/project_stats.py` `website/index.html` |
+| F-397 | 4-job CI | backend, databases PG+MySQL, api-smoke, frontend type+lint+build | `Makefile` `scripts/project_stats.py` `website/index.html` |
+| F-398 | 6-service Compose | api, postgres, mysql, airflow webserver/scheduler, frontend nginx with /api proxy | `Makefile` `scripts/project_stats.py` `website/index.html` |
+| F-399 | Nginx frontend | Static build plus API proxy, gzip, cache headers | `Makefile` `scripts/project_stats.py` `website/index.html` |
+| F-400 | Health probes | Liveness plus real DB readiness used by Compose and Airflow | `Makefile` `scripts/project_stats.py` `website/index.html` |
+| F-401 | Structured logs | structlog with run_id, stage, duration and slow-request warnings | `Makefile` `scripts/project_stats.py` `website/index.html` |
+| F-402 | Timing headers | X-Process-Time-Ms plus X-Database on every response | `Makefile` `scripts/project_stats.py` `website/index.html` |
+| F-403 | Free forever stack | No paid APIs: offline FX, seeded demo, SQLite-runnable tests | `Makefile` `scripts/project_stats.py` `website/index.html` |
+
+**Revised total: 403 features across 22 areas** (F-001 to F-403).
