@@ -59,7 +59,7 @@ warn()  { printf '    %s!%s %s\n' "$YELLOW" "$NC" "$*"; }
 die()   { printf '\n%serror:%s %s\n' "$RED" "$NC" "$*" >&2; exit 1; }
 
 usage() {
-  sed -n '3,28p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '3,26p' "$0" | sed 's/^# \{0,1\}//'
   exit 0
 }
 

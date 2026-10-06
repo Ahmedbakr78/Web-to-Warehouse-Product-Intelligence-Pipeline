@@ -537,6 +537,10 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "detail": "Products CSV/JSON follows the Watched filter with watchlist filenames",
             },
             {
+                "name": "Sources ExportButton",
+                "detail": "One-click CSV, Excel and JSON of the source coverage dataset on the Sources screen",
+            },
+            {
                 "name": "Side-by-side product comparison",
                 "detail": "Select up to 4 products for a live server-side attribute matrix",
             },
