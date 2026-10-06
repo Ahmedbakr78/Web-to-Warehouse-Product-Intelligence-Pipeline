@@ -1,0 +1,29 @@
+# Pre-commit hooks: the same gates CI runs, shifted left to the commit.
+# Install once with `pre-commit install` (pip install pre-commit).
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ["--maxkb=2048"]
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.0
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+      - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: stats-drift
+        name: docs stats drift check
+        entry: python3 scripts/check_stats.py docs/stats.json
+        language: system
+        pass_filenames: false
+        always_run: true
