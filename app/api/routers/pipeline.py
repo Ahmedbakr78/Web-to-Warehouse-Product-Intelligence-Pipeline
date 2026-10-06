@@ -332,6 +332,7 @@ def sources_status(session: DbSession, _user: OptionalUser) -> list[dict[str, An
     for row in rows:
         item = dict(row)
         item["registered"] = row["source_code"] in registered
+        item["managed"] = "code" if row["source_code"] in registered else "database"
         item["description"] = registered.get(row["source_code"], {}).get("description", "")
         item["robots_respected"] = registered.get(row["source_code"], {}).get("robots_respected", True)
         payload.append(item)
@@ -342,6 +343,7 @@ def sources_status(session: DbSession, _user: OptionalUser) -> list[dict[str, An
                     "source_code": code,
                     "name": source["name"],
                     "registered": True,
+                    "managed": "code",
                     "enabled": source["enabled"],
                     "kind": source["kind"],
                     "products_seen": 0,

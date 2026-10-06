@@ -30,8 +30,9 @@ from app.etl.bootstrap import sync_dim_source
 from app.etl.catalog_reconcile import CatalogReconciler, reconciliation_summary
 from app.etl.dq import QualityReport, evaluate_quality
 from app.etl.loader import LoadStats, WarehouseLoader
-from app.ingestion.base import NormalizedProduct, ProductSource, get_source, transform_product
+from app.ingestion.base import NormalizedProduct, ProductSource, transform_product
 from app.ingestion.dedupe import DedupeEngine
+from app.ingestion.dynamic import resolve_source
 from app.models import DimSource
 from app.models.operations import EtlRun, IngestionHttpLog
 
@@ -193,12 +194,25 @@ class Pipeline:
         if self.config.sources:
             return list(dict.fromkeys(self.config.sources))
         from app.ingestion.base import list_sources
+        from app.ingestion.dynamic import enabled_dynamic_codes
 
-        return [
+        codes = [
             source["code"]
             for source in list_sources()
             if source.get("enabled") and source.get("terms_allowed", True)
         ]
+        # Dashboard-defined rows live in the database, not the registry, so they
+        # are unioned here; _process_source resolves each code through the same
+        # path, which keeps explicit selection and auto-selection consistent.
+        database = (self.config.database or settings.active_database).lower()
+        try:
+            with session_scope(database) as session:
+                for code in enabled_dynamic_codes(session):
+                    if code not in codes:
+                        codes.append(code)
+        except Exception as exc:  # noqa: BLE001 - a dynamic lookup must not kill the run
+            log.warning("dynamic source lookup failed: %s", exc)
+        return codes
 
     # ------------------------------------------------------------------ main
     def run(self) -> PipelineResult:
@@ -252,7 +266,7 @@ class Pipeline:
         for code in self._source_codes():
             source_started = time.perf_counter()
             try:
-                source = get_source(code, run_id=run_id)
+                source = resolve_source(session, code, run_id=run_id)
                 source_stats = self._process_source(session, run_id, source, dedupe)
                 stats.merge(source_stats)
                 result.sources_processed.append(code)

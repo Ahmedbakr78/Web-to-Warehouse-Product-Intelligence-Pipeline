@@ -324,9 +324,23 @@ def get_source(
     return get_source_class(code)(run_id=run_id, client=client)
 
 
-def list_sources() -> list[dict[str, Any]]:
+def list_sources(session: Any | None = None) -> list[dict[str, Any]]:
+    """Registry health-checks, plus dashboard-defined rows when given a session.
+
+    The session is optional so import-time callers (CLI, health probes, the DAG
+    file) keep working without a database; the API and the pipeline pass one so
+    GUI-created sources appear everywhere registry sources do.
+    """
     load_builtin_sources()
-    return [cls().health_check() for cls in sorted(_REGISTRY.values(), key=lambda c: c.code)]
+    merged = [
+        {**cls().health_check(), "managed": "code"} for cls in sorted(_REGISTRY.values(), key=lambda c: c.code)
+    ]
+    if session is not None:
+        from app.ingestion.dynamic import dynamic_definitions
+
+        merged.extend(dynamic_definitions(session))
+    merged.sort(key=lambda item: item["code"])
+    return merged
 
 
 def all_source_codes() -> list[str]:

@@ -242,6 +242,7 @@ WriteUser = Annotated[AppUser, Depends(require_rights("write"))]
 AdminUser = Annotated[AppUser, Depends(require_rights("manage_users"))]
 PipelineUser = Annotated[AppUser, Depends(require_rights("run_pipeline"))]
 QueryUser = Annotated[AppUser, Depends(require_rights("query"))]
+SourceManagerUser = Annotated[AppUser, Depends(require_rights("manage_sources"))]
 
 
 def enforce_scope(key_row: AppApiKey | None, owner: AppUser | None, required: str) -> None:

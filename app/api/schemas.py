@@ -455,6 +455,64 @@ class PipelineTriggerRequest(BaseModel):
     task_id: str | None = Field(default=None, description="Airflow task that requested the run")
 
 
+#: Source codes are identifiers, not prose: lowercase, digits and underscores.
+SOURCE_CODE_PATTERN = r"^[a-z0-9_]{3,32}$"
+
+
+class SourcePaginationConfig(BaseModel):
+    style: Literal["none", "skip_limit", "page_number"] = "none"
+    page_size: int = Field(default=100, ge=1, le=500)
+    limit_param: str = "limit"
+    offset_param: str = "skip"
+    page_param: str = "page"
+    per_page_param: str = "per_page"
+    total_path: str | None = None
+    max_pages: int = Field(default=20, ge=1, le=100)
+
+
+class SourceMappingConfig(BaseModel):
+    items_path: str = Field(default="products", description="Dot path to the list; empty = the root")
+    id_field: str = Field(default="id", description="Dot path to a stable identifier")
+    fields: dict[str, str] = Field(default_factory=lambda: {"name": "title"})
+    pagination: SourcePaginationConfig = Field(default_factory=SourcePaginationConfig)
+    params: dict[str, Any] = Field(default_factory=dict)
+    url_template: str | None = Field(default=None, description="e.g. {origin}/products/{handle}")
+    currency: str = Field(default="USD", min_length=3, max_length=3)
+
+
+class SourceCheckRequest(BaseModel):
+    base_url: str = Field(description="The JSON endpoint to inspect, e.g. https://…/products.json")
+    items_path: str = Field(default="products", description="Dot path to the list for the shape sniff")
+
+
+class SourceCreate(BaseModel):
+    code: str = Field(pattern=SOURCE_CODE_PATTERN, description="Unique snake_case code, e.g. myshopify")
+    name: str = Field(min_length=3, max_length=120)
+    base_url: str
+    terms_url: str | None = None
+    license_note: str | None = None
+    rate_limit_per_minute: int = Field(default=30, ge=1, le=1000)
+    min_delay_seconds: float = Field(default=1.0, ge=0.0, le=60.0)
+    terms_confirmed: bool = Field(
+        default=False,
+        description="The creator confirms the site's terms permit automated access",
+    )
+    enabled: bool = True
+    mapping: SourceMappingConfig = Field(default_factory=SourceMappingConfig)
+
+
+class SourceUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=3, max_length=120)
+    base_url: str | None = None
+    terms_url: str | None = None
+    license_note: str | None = None
+    rate_limit_per_minute: int | None = Field(default=None, ge=1, le=1000)
+    min_delay_seconds: float | None = Field(default=None, ge=0.0, le=60.0)
+    enabled: bool | None = None
+    terms_confirmed: bool | None = None
+    mapping: SourceMappingConfig | None = None
+
+
 class DqRuleRead(ORMModel):
     result_id: int | None = None
     rule_code: str
