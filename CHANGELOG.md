@@ -8,7 +8,9 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- Nothing yet.
+- **Excel exports** — every dataset downloads as a real `.xlsx` workbook (`GET /export/{dataset}.xlsx`):
+  native dates/decimals, bold header, frozen top row, auto-filter and fitted columns. The ExportButton
+  offers CSV, Excel and JSON on every dataset screen.
 
 ## [1.7.0] - 2026-10-06
 

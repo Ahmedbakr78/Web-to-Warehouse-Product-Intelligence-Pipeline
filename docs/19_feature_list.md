@@ -374,9 +374,13 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 | Design, mobile and motion Max | 22 |
 | Platform and release Max | 20 |
 | GUI source onboarding | 7 |
-| **Total** | **410** |
+| Catalog import additions | 8 |
+| Builder entities + export additions | 4 |
+| History + activity export additions | 4 |
+| Excel export additions | 2 |
+| **Total** | **428** |
 
-The numbering is continuous from F-001 to F-410 with no duplicate or missing identifier. Counts are measured from the rows themselves by `scripts/project_stats.py`, and each section heading states the same figure, so the three cannot quietly disagree. Sections 14–23 continue below with the same running sequence.
+The numbering is continuous from F-001 to F-428 with no duplicate or missing identifier. Counts are measured from the rows themselves by `scripts/project_stats.py`, and each section heading states the same figure, so the three cannot quietly disagree. Sections 14–27 continue below with the same running sequence.
 
 ---
 
@@ -652,7 +656,7 @@ Add a JSON feed from the dashboard, with compliance proven before anything is sa
 | F-409 | Dynamic resolution | Registry first, dashboard rows second; pipeline auto-selects enabled rows | `app/ingestion/dynamic.py` `app/etl/pipeline.py` |
 | F-410 | Source lifecycle controls | Enable, disable, history-guarded delete; bundled rows read-only | `frontend/src/pages/Sources.tsx` `app/api/routers/sources.py` |
 
-**Revised total: 410 features across 23 areas** (F-001 to F-410).
+**Revised total: 410 features across 23 areas** (F-001 to F-410 at this checkpoint; the running total continues below).
 
 ## 24. Catalog import additions (8)
 
