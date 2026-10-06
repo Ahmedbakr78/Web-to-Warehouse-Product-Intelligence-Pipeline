@@ -83,7 +83,9 @@ def test_pipeline_runs_end_to_end(db):
     assert result.counters["snapshots_inserted"] > 0
     assert result.run_id and result.duration_ms is not None
     stage_names = [stage.name for stage in result.timings]
-    assert set(stage_names) <= set(STAGE_NAMES), f"undeclared stages reported: {set(stage_names) - set(STAGE_NAMES)}"
+    assert set(stage_names) <= set(STAGE_NAMES), (
+        f"undeclared stages reported: {set(stage_names) - set(STAGE_NAMES)}"
+    )
 
 
 def test_pipeline_is_idempotent_for_the_same_run_id(db):

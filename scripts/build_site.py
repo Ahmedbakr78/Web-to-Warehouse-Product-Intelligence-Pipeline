@@ -91,7 +91,11 @@ NAV: list[tuple[str, str, str]] = [
         "Reporting & Documents",
         "Typed blocks rendered to HTML, JSON, CSV and PDF from one definition",
     ),
-    ("28_schema_and_migrations.md", "Schema & Migrations", "Alembic, drift detection, views, Airflow isolation"),
+    (
+        "28_schema_and_migrations.md",
+        "Schema & Migrations",
+        "Alembic, drift detection, views, Airflow isolation",
+    ),
     (
         "29_two_factor_and_sessions.md",
         "Two-Factor & Sessions",

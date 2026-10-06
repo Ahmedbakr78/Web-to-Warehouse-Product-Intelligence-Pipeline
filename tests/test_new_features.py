@@ -1179,11 +1179,17 @@ def test_alert_rules_are_scoped_to_their_owner(client, admin_token):
     ).json()
 
     assert client.get("/api/v1/alerts", headers=auth(other["access_token"])).json() == []
-    assert client.patch(
-        f"/api/v1/alerts/{mine['alert_id']}", headers=auth(other["access_token"]), json={"is_active": False}
-    ).status_code == 404
-    assert client.delete(
-        f"/api/v1/alerts/{mine['alert_id']}", headers=auth(other["access_token"])
-    ).status_code == 404
+    assert (
+        client.patch(
+            f"/api/v1/alerts/{mine['alert_id']}",
+            headers=auth(other["access_token"]),
+            json={"is_active": False},
+        ).status_code
+        == 404
+    )
+    assert (
+        client.delete(f"/api/v1/alerts/{mine['alert_id']}", headers=auth(other["access_token"])).status_code
+        == 404
+    )
 
     client.delete(f"/api/v1/alerts/{mine['alert_id']}", headers=auth(token))

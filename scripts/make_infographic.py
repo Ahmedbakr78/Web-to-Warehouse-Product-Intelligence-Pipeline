@@ -49,9 +49,19 @@ ROADMAP = [
     ("Problem", "Manual collection is slow and inconsistent", "alert", ["stale spreadsheets", "no history"]),
     ("Solution", "Compliance-first ETL pipeline", "gauge", ["robots.txt aware", "deduplicated"]),
     ("Architecture", "Airflow orchestrates 9 stages", "flow", ["ingest, clean, load", "detect, reconcile"]),
-    ("Warehouse", "28 tables, 20 analytical views", "db", ["Alembic-managed schema", "PostgreSQL and MySQL twins"]),
+    (
+        "Warehouse",
+        "28 tables, 20 analytical views",
+        "db",
+        ["Alembic-managed schema", "PostgreSQL and MySQL twins"],
+    ),
     ("Data Quality", "12 rules across 6 dimensions", "shield", ["score persisted per run", "98.26 measured"]),
-    ("Forecasting", "Prices, anomalies, advice", "flow", ["damped Holt-Winters", "MAD, sigma and IQR detectors"]),
+    (
+        "Forecasting",
+        "Prices, anomalies, advice",
+        "flow",
+        ["damped Holt-Winters", "MAD, sigma and IQR detectors"],
+    ),
     (
         "Operations",
         "173 REST operations, 23 routers",

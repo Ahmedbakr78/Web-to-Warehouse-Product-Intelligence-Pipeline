@@ -496,7 +496,7 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             },
         ],
     },
-{
+    {
         "key": "forecasting",
         "title": "Forecasting & anomaly detection",
         "icon": "trending-up",
@@ -577,7 +577,10 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "name": "Lease with heartbeat",
                 "detail": "A worker holds a lease and renews it; a dead worker's job is reclaimed",
             },
-            {"name": "Bounded retry", "detail": "A fixed attempt budget with the last error recorded on the row"},
+            {
+                "name": "Bounded retry",
+                "detail": "A fixed attempt budget with the last error recorded on the row",
+            },
             {
                 "name": "Cooperative cancellation",
                 "detail": "A cancel request is honoured at the next checkpoint rather than by a kill",
@@ -769,7 +772,10 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "summary": "TOTP two-step sign-in with recovery codes, plus per-device sessions that can be revoked "
         "individually or all at once.",
         "features": [
-            {"name": "TOTP two-step sign-in", "detail": "RFC 6238, SHA-1, 30 second steps, one step of drift allowed"},
+            {
+                "name": "TOTP two-step sign-in",
+                "detail": "RFC 6238, SHA-1, 30 second steps, one step of drift allowed",
+            },
             {
                 "name": "Enrolment QR code",
                 "detail": "An otpauth:// URI plus the secret in text, for a phone or a desktop authenticator",
@@ -778,7 +784,10 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "name": "Nothing enabled until confirmed",
                 "detail": "Activation needs a real code, so a mistyped secret cannot lock anyone out of their account",
             },
-            {"name": "Encrypted secret", "detail": "The shared secret is encrypted at rest, not stored in the clear"},
+            {
+                "name": "Encrypted secret",
+                "detail": "The shared secret is encrypted at rest, not stored in the clear",
+            },
             {
                 "name": "Single-use recovery codes",
                 "detail": "Eight codes, stored hashed, each invalidated the moment it is used",

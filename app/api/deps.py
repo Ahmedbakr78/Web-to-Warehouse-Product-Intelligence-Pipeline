@@ -195,7 +195,11 @@ def stream_user(
     if missing:
         raise PermissionDeniedError(
             f"role '{user.role}' lacks the required permission(s): {', '.join(missing)}",
-            details={"role": user.role, "missing": missing, "granted": sorted(ROLE_RIGHTS.get(user.role, set()))},
+            details={
+                "role": user.role,
+                "missing": missing,
+                "granted": sorted(ROLE_RIGHTS.get(user.role, set())),
+            },
         )
     key_row, owner = _api_key_context(request)
     enforce_scope(key_row, owner or user, "read")
