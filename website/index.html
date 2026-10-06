@@ -38,7 +38,8 @@
   ::-webkit-scrollbar { width:10px; height:10px }
   ::-webkit-scrollbar-thumb { background:color-mix(in srgb, var(--subtle) 38%, transparent); border-radius:999px; border:3px solid transparent; background-clip:content-box }
   ::-webkit-scrollbar-thumb:hover { background:color-mix(in srgb, var(--subtle) 70%, transparent) }
-  html { scrollbar-gutter:stable; scroll-behavior:smooth }
+  html { scrollbar-gutter:stable; scroll-behavior:auto }
+  [data-smooth-scroll] { scroll-behavior:smooth }
   body {
     margin:0; background:var(--bg); color:var(--text);
     font-family:'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -414,10 +415,48 @@ make frontend-dev  # dashboard on :5173</pre>
   </div>
 </section>
 
+<section id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Feature catalogue</span>
+      <h2>403 features, 28 groups — same source as the app</h2>
+      <p style="color:var(--muted);max-width:62ch">The dashboard's Features screen, <code>GET /api/v1/meta/features</code> and this page all read <code>app/core/features.py</code>. New in Max: 9-tab Account, 9-entity Builder with SQL + cURL, perfect white/dark, silent reloads, phone tab bar, thin scrollbars.</p>
+    </div>
+    <div class="badges">
+      <span class="badge">Builder Max <b>22</b></span>
+      <span class="badge">Account Max <b>22</b></span>
+      <span class="badge">Design &amp; mobile Max <b>22</b></span>
+      <span class="badge">Platform Max <b>20</b></span>
+      <span class="badge">Forecasting <b>15</b></span>
+      <span class="badge">Jobs <b>11</b></span>
+      <span class="badge">Realtime <b>10</b></span>
+      <span class="badge">Reports <b>14</b></span>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">About</span>
+      <h2>Compliance-first, warehouse-grade, free forever</h2>
+    </div>
+    <div class="card">
+      <p style="margin:0;color:var(--muted)">A retailer needs the market picture every morning. This pipeline replaces manual copy-paste with robots-gated ingestion, 29-step cleaning, fuzzy dedupe, a Kimball star on PostgreSQL + MySQL, 12 DQ rules, Airflow orchestration, forecasting, webhooks, backfill and a 21-screen React dashboard — no paid APIs, SQLite-runnable tests, one-command verification.</p>
+      <div class="badges" style="margin-top:14px">
+        <span class="badge">Topics <b>etl · airflow · fastapi · react · postgres · mysql · data-quality · scraping · warehouse · dashboard</b></span>
+        <span class="badge">Releases <b>v1.6.1 → v1.7.0 Max</b></span>
+        <span class="badge">License <b>MIT</b></span>
+        <span class="badge">Visibility <b>private-safe</b></span>
+      </div>
+    </div>
+  </div>
+</section>
+
 <footer>
   <div class="wrap foot-in">
     <span>Web-to-Warehouse Product Intelligence Pipeline · built for a retailer's morning market picture.</span>
-    <span>MIT licensed · DEPI Data Engineering</span>
+    <span>MIT licensed · DEPI Data Engineering · 403 features · 28 tables · 20 views · 173 API ops</span>
   </div>
 </footer>
 

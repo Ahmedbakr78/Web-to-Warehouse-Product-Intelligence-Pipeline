@@ -30,7 +30,7 @@ import { useDebounce } from '@/hooks/useDebounce'
 import AggregateBuilder from './AggregateBuilder'
 import { downloadCsv, downloadJson, toCsv, formatAvailability, formatNumber, formatPrice, formatRelative, titleCase } from '@/lib/format'
 
-type Entity = 'products' | 'price-changes' | 'runs' | 'quality' | 'catalog'
+type Entity = 'products' | 'price-changes' | 'runs' | 'quality' | 'catalog' | 'new' | 'removed' | 'movers' | 'sources'
 
 interface BuilderState {
   entity: Entity
@@ -123,6 +123,36 @@ const ENTITY_COLUMNS: Record<Entity, { key: string; label: string }[]> = {
     { key: 'gap', label: 'Gap %' },
     { key: 'status', label: 'Match status' },
   ],
+  new: [
+    { key: 'product', label: 'Product' },
+    { key: 'category', label: 'Category' },
+    { key: 'brand', label: 'Brand' },
+    { key: 'price', label: 'First price' },
+    { key: 'source', label: 'Source' },
+    { key: 'first_seen', label: 'First seen' },
+  ],
+  removed: [
+    { key: 'product', label: 'Product' },
+    { key: 'category', label: 'Category' },
+    { key: 'source', label: 'Source' },
+    { key: 'last_price', label: 'Last price' },
+    { key: 'missing_days', label: 'Missing days' },
+  ],
+  movers: [
+    { key: 'product', label: 'Product' },
+    { key: 'from', label: 'Previous price' },
+    { key: 'to', label: 'New price' },
+    { key: 'change', label: 'Change %' },
+    { key: 'direction', label: 'Direction' },
+    { key: 'band', label: 'Magnitude band' },
+  ],
+  sources: [
+    { key: 'source', label: 'Source' },
+    { key: 'kind', label: 'Kind' },
+    { key: 'products', label: 'Products' },
+    { key: 'observations', label: 'Observations' },
+    { key: 'success', label: 'Success %' },
+  ],
 }
 
 const ENTITY_HINTS: Record<Entity, string> = {
@@ -131,6 +161,10 @@ const ENTITY_HINTS: Record<Entity, string> = {
   runs: 'Review pipeline execution history by status and duration.',
   quality: 'Inspect data-quality evaluations by dimension and outcome.',
   catalog: 'Compare the internal catalog against scraped market prices.',
+  new: 'First-sighting events with source attribution — use New Since (days) to set the window.',
+  removed: 'Absent-from-source detection with grace window and last known price.',
+  movers: 'Largest absolute and relative movements, banded flash_sale to minor.',
+  sources: 'Coverage matrix: products, observations and success rate per permitted source.',
 }
 
 export default function Builder() {
@@ -194,6 +228,10 @@ export default function Builder() {
       if (state.entity === 'price-changes') return endpoints.priceChanges(productParams)
       if (state.entity === 'runs') return endpoints.runs({ page: 1, page_size: state.pageSize, sort_by: state.sortBy, sort_dir: state.sortDir })
       if (state.entity === 'quality') return endpoints.qualityResults({ page: 1, page_size: state.pageSize, dimension: state.category || undefined, status: state.availability || undefined })
+      if (state.entity === 'new') return endpoints.products({ ...productParams, new_since_days: state.newSinceDays || '30' })
+      if (state.entity === 'removed') return endpoints.removedProducts(180, state.pageSize)
+      if (state.entity === 'movers') return endpoints.topMovers(state.pageSize)
+      if (state.entity === 'sources') return endpoints.sourceCoverage()
       return endpoints.catalogReconciliation({ page: 1, page_size: state.pageSize, match_status: state.availability || undefined, only_mismatches: state.significantOnly })
     },
     { enabled: true, placeholderData: (previous: unknown) => previous },
@@ -253,6 +291,28 @@ export default function Builder() {
   }
 
   /** Share the composed query as a ready-to-run REST call. */
+  function copyCurlRequest() {
+    const paths: Record<Entity, string> = {
+      products: '/products',
+      'price-changes': '/changes/price',
+      runs: '/pipeline/runs',
+      quality: '/quality/results',
+      catalog: '/catalog/reconciliation',
+      new: '/changes/new',
+      removed: '/changes/removed',
+      movers: '/changes/top-movers',
+      sources: '/analytics/sources',
+    }
+    const params = new URLSearchParams(cleanParams(productParams))
+    const base = `${window.location.origin}${import.meta.env.VITE_API_BASE_URL ?? '/api/v1'}${paths[state.entity]}?${params.toString()}`
+    const cmd = `curl -s "${base}" -H "Authorization: Bearer $TOKEN"`
+    navigator.clipboard?.writeText(cmd).then(
+      () => toast.success('cURL copied', 'Paste it in any terminal with $TOKEN set.'),
+      () => toast.error('Clipboard unavailable', cmd),
+    )
+  }
+
+  /** Share the composed query as a ready-to-run REST call. */
   function copyApiRequest() {
     const paths: Record<Entity, string> = {
       products: '/products',
@@ -260,6 +320,10 @@ export default function Builder() {
       runs: '/pipeline/runs',
       quality: '/quality/results',
       catalog: '/catalog/reconciliation',
+      new: '/changes/new',
+      removed: '/changes/removed',
+      movers: '/changes/top-movers',
+      sources: '/analytics/sources',
     }
     const params = new URLSearchParams(cleanParams(productParams))
     const url = `${window.location.origin}${import.meta.env.VITE_API_BASE_URL ?? '/api/v1'}${paths[state.entity]}?${params.toString()}`
@@ -560,6 +624,9 @@ export default function Builder() {
             <Button size="sm" variant="ghost" icon={<Copy className="h-4 w-4" />} onClick={copyApiRequest}>
               Copy API request
             </Button>
+            <Button size="sm" variant="ghost" icon={<Braces className="h-4 w-4" />} onClick={copyCurlRequest}>
+              Copy cURL
+            </Button>
             <Button size="sm" variant="secondary" icon={<Download className="h-4 w-4" />} onClick={() => exportPreview('csv')} disabled={!rows.length}>
               CSV
             </Button>
@@ -589,6 +656,16 @@ export default function Builder() {
             columns={buildColumns(state.entity, state.columns)}
           />
         )}
+      </Card>
+
+      <Card>
+        <CardHeader title="Cross-entity recipes" subtitle="Joins the filter mode cannot express — run in QueryLab or /builder/query" icon={<Layers className="h-4 w-4" />} />
+        <div className="grid grid-cols-1 gap-2 text-xs text-muted md:grid-cols-3">
+          <div className="rounded-lg bg-surface-2 p-3"><p className="font-semibold text-ink">Products × price changes</p><code className="mt-1 block break-all font-mono text-[10px]">products ⨝ price_changes ON product_id — movers with category + brand</code></div>
+          <div className="rounded-lg bg-surface-2 p-3"><p className="font-semibold text-ink">Market × catalog gaps</p><code className="mt-1 block break-all font-mono text-[10px]">catalog_reconciliation WHERE price_gap_pct &gt; 10 — pricing opportunities</code></div>
+          <div className="rounded-lg bg-surface-2 p-3"><p className="font-semibold text-ink">Quality × runs</p><code className="mt-1 block break-all font-mono text-[10px]">quality_latest ⨝ pipeline_runs ON run_id — DQ regression per run</code></div>
+        </div>
+        <p className="mt-2 text-[11px] text-subtle">Tip: switch to <span className="font-medium">Group &amp; aggregate</span> for server-side group-by, 6 aggregates, 15 operators, live SQL preview and chart. All builder SQL is whitelist-assembled with bind parameters.</p>
       </Card>
 
       {/* ------------------------------------------------------------- save modal */}
@@ -691,6 +768,44 @@ function plainCell(entity: Entity, key: string, row: any): string {
         case 'market_price': return string(row.scraped_price_usd)
         case 'gap': return string(row.price_gap_pct)
         case 'status': return string(row.match_status)
+        default: return ''
+      }
+    case 'new':
+      switch (key) {
+        case 'product': return string(row.canonical_name)
+        case 'category': return string(row.category_name)
+        case 'brand': return string(row.brand)
+        case 'price': return string(row.price_usd ?? row.first_seen_price_usd ?? row.price)
+        case 'source': return string(row.source_code)
+        case 'first_seen': return string(row.first_seen_at)
+        default: return ''
+      }
+    case 'removed':
+      switch (key) {
+        case 'product': return string(row.canonical_name)
+        case 'category': return string(row.category_name)
+        case 'source': return string(row.source_code)
+        case 'last_price': return string(row.last_known_price_usd)
+        case 'missing_days': return string(row.days_missing)
+        default: return ''
+      }
+    case 'movers':
+      switch (key) {
+        case 'product': return string(row.canonical_name)
+        case 'from': return string(row.previous_price)
+        case 'to': return string(row.new_price)
+        case 'change': return string(row.change_pct)
+        case 'direction': return string(row.direction)
+        case 'band': return string(row.magnitude_band)
+        default: return ''
+      }
+    case 'sources':
+      switch (key) {
+        case 'source': return string(row.source_code ?? row.source_name)
+        case 'kind': return string(row.kind)
+        case 'products': return string(row.products_seen ?? row.product_count)
+        case 'observations': return string(row.observations)
+        case 'success': return string(row.success_rate_pct)
         default: return ''
       }
   }
@@ -804,6 +919,36 @@ function buildColumns(entity: Entity, visible: string[]): Column<any>[] {
       market_price: { key: 'market_price', header: 'Market', align: 'right', render: (row: any) => formatPrice(row.scraped_price_usd) },
       gap: { key: 'gap', header: 'Gap', align: 'right', render: (row: any) => <DeltaPill value={row.price_gap_pct} /> },
       status: { key: 'status', header: 'Status', hideBelow: 'md', render: (row: any) => <Badge tone={row.match_status === 'matched' ? 'success' : 'neutral'}>{titleCase(row.match_status ?? 'unknown')}</Badge> },
+    },
+    new: {
+      product: { key: 'product', header: 'Product', render: (row: any) => <span className="block max-w-[20rem] truncate font-medium">{row.canonical_name}</span> },
+      category: { key: 'category', header: 'Category', hideBelow: 'sm', render: (row: any) => <Badge tone="neutral">{row.category_name ?? '—'}</Badge> },
+      brand: { key: 'brand', header: 'Brand', hideBelow: 'md', render: (row: any) => row.brand ?? '—' },
+      price: { key: 'price', header: 'First price', align: 'right', render: (row: any) => formatPrice(row.price_usd ?? row.first_seen_price_usd) },
+      source: { key: 'source', header: 'Source', hideBelow: 'xl', render: (row: any) => <Badge tone="neutral">{row.source_code ?? '—'}</Badge> },
+      first_seen: { key: 'first_seen', header: 'First seen', align: 'right', hideBelow: 'lg', render: (row: any) => formatRelative(row.first_seen_at) },
+    },
+    removed: {
+      product: { key: 'product', header: 'Product', render: (row: any) => <span className="block max-w-[20rem] truncate">{row.canonical_name}</span> },
+      category: { key: 'category', header: 'Category', hideBelow: 'sm', render: (row: any) => <Badge tone="neutral">{row.category_name ?? '—'}</Badge> },
+      source: { key: 'source', header: 'Source', render: (row: any) => <Badge tone="neutral">{row.source_code ?? '—'}</Badge> },
+      last_price: { key: 'last_price', header: 'Last price', align: 'right', render: (row: any) => formatPrice(row.last_known_price_usd) },
+      missing_days: { key: 'missing_days', header: 'Missing', align: 'right', render: (row: any) => `${row.days_missing ?? '—'}d` },
+    },
+    movers: {
+      product: { key: 'product', header: 'Product', render: (row: any) => <span className="block max-w-[20rem] truncate">{row.canonical_name}</span> },
+      from: { key: 'from', header: 'From', align: 'right', render: (row: any) => formatPrice(row.previous_price) },
+      to: { key: 'to', header: 'To', align: 'right', render: (row: any) => formatPrice(row.new_price) },
+      change: { key: 'change', header: 'Change', align: 'right', render: (row: any) => <DeltaPill value={row.change_pct} /> },
+      direction: { key: 'direction', header: 'Direction', hideBelow: 'md', render: (row: any) => <Badge tone={row.direction === 'decrease' ? 'success' : 'danger'}>{titleCase(row.direction)}</Badge> },
+      band: { key: 'band', header: 'Band', hideBelow: 'lg', render: (row: any) => <Badge tone="neutral">{row.magnitude_band ?? '—'}</Badge> },
+    },
+    sources: {
+      source: { key: 'source', header: 'Source', render: (row: any) => <span className="font-medium">{row.source_code ?? row.source_name}</span> },
+      kind: { key: 'kind', header: 'Kind', hideBelow: 'sm', render: (row: any) => <Badge tone="neutral">{row.kind ?? '—'}</Badge> },
+      products: { key: 'products', header: 'Products', align: 'right', render: (row: any) => formatNumber(row.products_seen ?? row.product_count ?? 0) },
+      observations: { key: 'observations', header: 'Obs.', align: 'right', render: (row: any) => formatNumber(row.observations ?? 0) },
+      success: { key: 'success', header: 'Success', align: 'right', render: (row: any) => `${Number(row.success_rate_pct ?? 0).toFixed(1)}%` },
     },
   }
   return Object.entries(all[entity])
