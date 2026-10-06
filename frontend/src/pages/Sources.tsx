@@ -37,6 +37,7 @@ import {
   type Tone,
 } from '@/components/ui'
 import { cn } from '@/lib/cn'
+import { ExportButton } from '@/components/ExportButton'
 import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { useAuth } from '@/hooks/useAuth'
@@ -1149,6 +1150,7 @@ export default function Sources() {
               Add source
             </Button>
           ) : null}
+          <ExportButton dataset="sources" />
         </div>
 
         {status.isError ? (
