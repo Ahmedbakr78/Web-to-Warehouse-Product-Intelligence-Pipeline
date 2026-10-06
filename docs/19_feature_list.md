@@ -817,3 +817,14 @@ The last two toolbars without a download get one: alerts and run history.
 | F-454 | Runs ExportButton | CSV, Excel and JSON of run history beside the status filter | `frontend/src/pages/Pipeline.tsx` `ExportButton` |
 
 **Revised total: 454 features across 35 areas** (F-001 to F-454).
+
+## 36. Builder filter-mode Max (2)
+
+Three more filter entities plus the fix that un-blanks four existing previews.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-455 | Categories/brands/availability entities | Leaderboards and stock ratios as first-class filter entities with columns and exports | `frontend/src/pages/Builder.tsx` `ENTITY_COLUMNS` |
+| F-456 | Array-preview normalisation | Bare-array entities render rows instead of an empty table; counts use rows.length | `frontend/src/pages/Builder.tsx` `displayRows` |
+
+**Revised total: 456 features across 36 areas** (F-001 to F-456).

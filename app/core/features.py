@@ -1147,6 +1147,14 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "detail": "GET /builder/schema drives entity/column/operator pickers — no hardcoded lists",
             },
             {
+                "name": "12 filter-mode entities",
+                "detail": "products, changes, runs, quality, catalog, new, removed, movers, sources plus categories, brands, availability",
+            },
+            {
+                "name": "Array-preview normalisation",
+                "detail": "Analytics and event entities render bare arrays; the empty-preview bug is gone",
+            },
+            {
                 "name": "Pipeline-runs entity",
                 "detail": "Group and aggregate etl_run: status, trigger, counters, DQ score per run",
             },

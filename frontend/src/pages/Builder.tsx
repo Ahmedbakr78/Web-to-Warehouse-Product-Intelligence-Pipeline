@@ -30,7 +30,7 @@ import { useDebounce } from '@/hooks/useDebounce'
 import AggregateBuilder from './AggregateBuilder'
 import { downloadCsv, downloadJson, toCsv, formatAvailability, formatNumber, formatPrice, formatRelative, titleCase } from '@/lib/format'
 
-type Entity = 'products' | 'price-changes' | 'runs' | 'quality' | 'catalog' | 'new' | 'removed' | 'movers' | 'sources'
+type Entity = 'products' | 'price-changes' | 'runs' | 'quality' | 'catalog' | 'new' | 'removed' | 'movers' | 'sources' | 'categories' | 'brands' | 'availability'
 
 interface BuilderState {
   entity: Entity
@@ -153,6 +153,28 @@ const ENTITY_COLUMNS: Record<Entity, { key: string; label: string }[]> = {
     { key: 'observations', label: 'Observations' },
     { key: 'success', label: 'Success %' },
   ],
+  categories: [
+    { key: 'category', label: 'Category' },
+    { key: 'observations', label: 'Observations' },
+    { key: 'avg_price', label: 'Avg price' },
+    { key: 'rating', label: 'Avg rating' },
+    { key: 'new_products', label: 'New' },
+    { key: 'price_changes', label: 'Changes' },
+  ],
+  brands: [
+    { key: 'brand', label: 'Brand' },
+    { key: 'category', label: 'Category' },
+    { key: 'products', label: 'Products' },
+    { key: 'avg_price', label: 'Avg price' },
+    { key: 'rating', label: 'Avg rating' },
+    { key: 'last_seen', label: 'Last seen' },
+  ],
+  availability: [
+    { key: 'category', label: 'Category' },
+    { key: 'observations', label: 'Observations' },
+    { key: 'in_stock', label: 'In-stock %' },
+    { key: 'out_of_stock', label: 'Out of stock' },
+  ],
 }
 
 const ENTITY_HINTS: Record<Entity, string> = {
@@ -165,6 +187,9 @@ const ENTITY_HINTS: Record<Entity, string> = {
   removed: 'Absent-from-source detection with grace window and last known price.',
   movers: 'Largest absolute and relative movements, banded flash_sale to minor.',
   sources: 'Coverage matrix: products, observations and success rate per permitted source.',
+  categories: 'Category leaderboard: observations, average price and rating per category.',
+  brands: 'Brand leaderboard: product counts, average price and rating per brand.',
+  availability: 'In-stock ratio per category with out-of-stock counts.',
 }
 
 export default function Builder() {
@@ -232,6 +257,9 @@ export default function Builder() {
       if (state.entity === 'removed') return endpoints.removedProducts(180, state.pageSize)
       if (state.entity === 'movers') return endpoints.topMovers(state.pageSize)
       if (state.entity === 'sources') return endpoints.sourceCoverage()
+      if (state.entity === 'categories') return endpoints.categories(state.pageSize)
+      if (state.entity === 'brands') return endpoints.brands(state.pageSize)
+      if (state.entity === 'availability') return endpoints.availability()
       return endpoints.catalogReconciliation({ page: 1, page_size: state.pageSize, match_status: state.availability || undefined, only_mismatches: state.significantOnly })
     },
     { enabled: true, placeholderData: (previous: unknown) => previous },
@@ -261,7 +289,9 @@ export default function Builder() {
   })
 
   const activeFilters = countActiveFilters(state)
-  const rows = (preview.data as any)?.items ?? []
+  // Some entities return a bare array (analytics, movers, sources) while the
+  // paged ones return {items, total}: normalise so previews never render empty.
+  const rows = Array.isArray(preview.data) ? preview.data : ((preview.data as any)?.items ?? [])
   const columns = ENTITY_COLUMNS[state.entity]
 
   function patch(changes: Partial<BuilderState>) {
@@ -302,6 +332,9 @@ export default function Builder() {
       removed: '/changes/removed',
       movers: '/changes/top-movers',
       sources: '/analytics/sources',
+      categories: '/analytics/categories',
+      brands: '/analytics/brands',
+      availability: '/analytics/availability',
     }
     const params = new URLSearchParams(cleanParams(productParams))
     const base = `${window.location.origin}${import.meta.env.VITE_API_BASE_URL ?? '/api/v1'}${paths[state.entity]}?${params.toString()}`
@@ -324,6 +357,9 @@ export default function Builder() {
       removed: '/changes/removed',
       movers: '/changes/top-movers',
       sources: '/analytics/sources',
+      categories: '/analytics/categories',
+      brands: '/analytics/brands',
+      availability: '/analytics/availability',
     }
     const params = new URLSearchParams(cleanParams(productParams))
     const url = `${window.location.origin}${import.meta.env.VITE_API_BASE_URL ?? '/api/v1'}${paths[state.entity]}?${params.toString()}`
@@ -603,7 +639,7 @@ export default function Builder() {
 
       {/* ------------------------------------------------------------- preview */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <StatTile label="Matching records" value={formatNumber((preview.data as any)?.total ?? 0)} hint={titleCase(state.entity)} />
+        <StatTile label="Matching records" value={formatNumber((preview.data as any)?.total ?? rows.length)} hint={titleCase(state.entity)} />
         <StatTile label="Active filters" value={String(activeFilters)} hint="Serialised with the saved view" tone="info" />
         <StatTile
           label="Columns shown"
@@ -808,6 +844,34 @@ function plainCell(entity: Entity, key: string, row: any): string {
         case 'success': return string(row.success_rate_pct)
         default: return ''
       }
+    case 'categories':
+      switch (key) {
+        case 'category': return string(row.category_name)
+        case 'observations': return string(row.observations)
+        case 'avg_price': return string(row.avg_price)
+        case 'rating': return string(row.avg_rating)
+        case 'new_products': return string(row.new_products)
+        case 'price_changes': return string(row.price_changes)
+        default: return ''
+      }
+    case 'brands':
+      switch (key) {
+        case 'brand': return string(row.brand)
+        case 'category': return string(row.category_name)
+        case 'products': return string(row.product_count)
+        case 'avg_price': return string(row.avg_price_usd)
+        case 'rating': return string(row.avg_rating)
+        case 'last_seen': return string(row.last_seen_at)
+        default: return ''
+      }
+    case 'availability':
+      switch (key) {
+        case 'category': return string(row.category_name)
+        case 'observations': return string(row.observations)
+        case 'in_stock': return string(row.in_stock_pct)
+        case 'out_of_stock': return string(row.out_of_stock_count)
+        default: return ''
+      }
   }
 }
 
@@ -949,6 +1013,28 @@ function buildColumns(entity: Entity, visible: string[]): Column<any>[] {
       products: { key: 'products', header: 'Products', align: 'right', render: (row: any) => formatNumber(row.products_seen ?? row.product_count ?? 0) },
       observations: { key: 'observations', header: 'Obs.', align: 'right', render: (row: any) => formatNumber(row.observations ?? 0) },
       success: { key: 'success', header: 'Success', align: 'right', render: (row: any) => `${Number(row.success_rate_pct ?? 0).toFixed(1)}%` },
+    },
+    categories: {
+      category: { key: 'category', header: 'Category', render: (row: any) => <Badge tone="neutral">{row.category_name ?? '—'}</Badge> },
+      observations: { key: 'observations', header: 'Obs.', align: 'right', render: (row: any) => formatNumber(row.observations ?? 0) },
+      avg_price: { key: 'avg_price', header: 'Avg price', align: 'right', render: (row: any) => formatPrice(row.avg_price) },
+      rating: { key: 'rating', header: 'Rating', align: 'center', hideBelow: 'sm', render: (row: any) => (row.avg_rating ? Number(row.avg_rating).toFixed(1) : '—') },
+      new_products: { key: 'new_products', header: 'New', align: 'right', hideBelow: 'md', render: (row: any) => formatNumber(row.new_products ?? 0) },
+      price_changes: { key: 'price_changes', header: 'Changes', align: 'right', hideBelow: 'md', render: (row: any) => formatNumber(row.price_changes ?? 0) },
+    },
+    brands: {
+      brand: { key: 'brand', header: 'Brand', render: (row: any) => <span className="font-medium">{row.brand ?? '—'}</span> },
+      category: { key: 'category', header: 'Category', hideBelow: 'sm', render: (row: any) => <Badge tone="neutral">{row.category_name ?? '—'}</Badge> },
+      products: { key: 'products', header: 'Products', align: 'right', render: (row: any) => formatNumber(row.product_count ?? 0) },
+      avg_price: { key: 'avg_price', header: 'Avg price', align: 'right', render: (row: any) => formatPrice(row.avg_price_usd) },
+      rating: { key: 'rating', header: 'Rating', align: 'center', hideBelow: 'sm', render: (row: any) => (row.avg_rating ? Number(row.avg_rating).toFixed(1) : '—') },
+      last_seen: { key: 'last_seen', header: 'Last seen', align: 'right', hideBelow: 'lg', render: (row: any) => formatRelative(row.last_seen_at) },
+    },
+    availability: {
+      category: { key: 'category', header: 'Category', render: (row: any) => <Badge tone="neutral">{row.category_name ?? '—'}</Badge> },
+      observations: { key: 'observations', header: 'Obs.', align: 'right', render: (row: any) => formatNumber(row.observations ?? 0) },
+      in_stock: { key: 'in_stock', header: 'In-stock', align: 'right', render: (row: any) => `${Number(row.in_stock_pct ?? 0).toFixed(1)}%` },
+      out_of_stock: { key: 'out_of_stock', header: 'Out of stock', align: 'right', hideBelow: 'sm', render: (row: any) => formatNumber(row.out_of_stock_count ?? 0) },
     },
   }
   return Object.entries(all[entity])
