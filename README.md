@@ -30,7 +30,7 @@
 
 <p align="center">
   <b>173 REST operations</b> · <b>28 tables</b> · <b>20 analytical views</b> ·
-  <b>12 DQ rules</b> · <b>5 compliant sources</b> · <b>311 catalogued features</b> ·
+  <b>12 DQ rules</b> · <b>5 compliant sources</b> · <b>403 catalogued features</b> ·
   <b>408 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
 </p>
 
@@ -1002,8 +1002,8 @@ are persisted per run in `dq_rule_result`, and the dashboard charts the score tr
 ## Feature catalogue
 
 The exhaustive, file-referenced inventory lives in
-[docs/19_feature_list.md](docs/19_feature_list.md) — 311 features in sixteen areas. It is also served as
-structured JSON by `GET /api/v1/meta/features` and rendered by the **Features** screen, both generated
+[docs/19_feature_list.md](docs/19_feature_list.md) — 403 features in twenty-two areas. It is also served as
+structured JSON by `GET /api/v1/meta/features` (322 entries in 28 groups) and rendered by the **Features** screen, both generated
 from `app/core/features.py`, so this section can never describe something the code does not do.
 Highlights by area:
 
@@ -1079,13 +1079,13 @@ Highlights by area:
 
 ### v1.3: discovery, aggregation and self-service
 
-- **Feature catalogue** — `GET /meta/features` + `/features` screen: 118 features, 15 areas, searchable
+- **Feature catalogue** — `GET /meta/features` + `/features` screen: 322 features, 28 groups, searchable
 - **Aggregate builder** — `POST /builder/query` + `/builder/schema`: 11 entities, 6 aggregates,
   15 operators, whitelist-assembled parameterised SQL, chart preview, generated SQL, cURL copy
-- **Account self-service** — `GET /users/me/export` (portable JSON), `DELETE /users/me` (password
-  confirmed, cascade, audited), `GET /audit/me` (personal activity feed)
+- **Filter builder Max** — 9 entities (products, price-changes, runs, quality, catalog, new, removed, movers, sources), SQL + cURL copy, CSV/JSON export, saved views, cross-entity join recipes
+- **Account self-service Max** — 9 tabs: profile, appearance, security, devices & 2FA, API keys, alerts, activity, data & privacy, preferences; `GET /users/me/export`, `DELETE /users/me`, `GET /audit/me`
 - **Interface polish** — stable scrollbar gutter, theme-aware rounded scrollbars, scroll containment,
-  mobile drawer scroll lock and dialog semantics, safe-area insets
+  mobile drawer scroll lock and dialog semantics, safe-area insets, silent reload, phone tab bar
 
 ### Operations and developer experience
 
@@ -1223,7 +1223,7 @@ All configuration arrives through environment variables (`.env.example` document
 | **Sources** | registry cards with compliance metadata, robots.txt statistics, raw-versus-cleaned preview |
 | **Query Lab** | read-only SQL console over the 20 views, table inventory, starter examples, CSV export |
 | **Builder** | two modes: *filter & customise* (facets, columns, order, saved presets) and *group & aggregate* (11 entities, six measures, fifteen operators, bar chart, generated SQL, cURL copy, exports) |
-| **Features** | searchable, filterable catalogue of all 118 catalogued features in 15 areas, each with an icon and copy-to-clipboard |
+| **Features** | searchable, filterable catalogue of all 322 catalogued features in 28 groups, each with an icon and copy-to-clipboard |
 | **Alerts** | alert rules with thresholds and channels, notification feed, evaluate action |
 | **Webhooks** | outbound event subscriptions with HMAC-signed payloads, one-time secret reveal and rotation, test delivery, per-attempt delivery log |
 | **Account** | profile, preferences, appearance (theme, accent, density, motion), password change, API keys, **personal activity feed**, **data export**, **account deletion** |
@@ -1393,7 +1393,7 @@ natively on GitHub; every structural number is tied to a runnable command.
 | 16 | User Manual | sign-in, every screen, filters, exports, alerts, admin, troubleshooting, FAQ |
 | 17 | Technical Documentation | module map, key algorithms, every configuration variable |
 | 18 | Presentation Outline | defence deck, Q&A preparation, demo script |
-| 19 | Feature Inventory | 311 features in sixteen areas with file references |
+| 19 | Feature Inventory | 403 features in twenty-two areas with file references |
 | 20 | Feedback and Improvements | feedback template, 32 prioritised improvements, self-assessment |
 | 21 | **Architecture Deep Dive** | design drivers, decisions with rejected alternatives, request lifecycle, layering, known limitations |
 | 22 | **Data Dictionary** | every table, column, type and meaning; controlled vocabularies; view catalogue; dialect portability |
@@ -1480,7 +1480,7 @@ published on GitHub.
 ### What's new in v1.3
 
 - **Feature catalogue** — `GET /meta/features` plus a `/features` screen render the 118 shipped
-  capabilities in 15 areas from `app/core/features.py`, so the API, the UI and the documentation
+  capabilities in 28 groups from `app/core/features.py`, so the API, the UI and the documentation
   describe exactly the same system.
 - **Aggregate builder** — a structured query surface with group-by, six aggregate functions and
   fifteen filter operators over eleven entities, assembled from a server-side whitelist into a

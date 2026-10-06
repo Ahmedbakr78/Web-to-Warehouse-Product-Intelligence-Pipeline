@@ -369,9 +369,13 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 | Platform v1.3 additions | 37 |
 | Platform v1.4 additions | 40 |
 | Platform v1.6 additions | 6 |
-| **Total** | **317** |
+| Builder Max additions | 22 |
+| Account Max additions | 22 |
+| Design, mobile and motion Max | 22 |
+| Platform and release Max | 20 |
+| **Total** | **403** |
 
-The numbering is continuous from F-001 to F-317 with no duplicate or missing identifier. Counts are measured from the rows themselves by `scripts/project_stats.py`, and each section heading states the same figure, so the three cannot quietly disagree.
+The numbering is continuous from F-001 to F-403 with no duplicate or missing identifier. Counts are measured from the rows themselves by `scripts/project_stats.py`, and each section heading states the same figure, so the three cannot quietly disagree. Sections 14–22 continue below with the same running sequence.
 
 ---
 
@@ -500,7 +504,7 @@ Integrations (export, webhooks, backfill) and run comparison. Every row ships be
 **Final total: 295 features across 17 areas** (F-001 to F-295). Section 17 adds the
 export, webhook, backfill and run-comparison capabilities shipped in v1.4.
 
-**Revised total: 311 features across 17 areas** (F-001 to F-311, contiguous, with no duplicate or missing identifiers). Section 18 continues the sequence; see the count table below for the current totals.
+**Revised total at F-311: 311 features across 17 areas**, contiguous with no duplicate or missing identifier. Later sections continue the same sequence; the count table above carries the current totals.
 
 ---
 
