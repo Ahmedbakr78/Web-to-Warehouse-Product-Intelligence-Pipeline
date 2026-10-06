@@ -120,6 +120,33 @@ def _audit(
         session.commit()
 
 
+@router.post("/register", response_model=TokenResponse, status_code=201, summary="Create my own account")
+def register(payload: RegisterRequest, request: Request, session: DbSession) -> TokenResponse:
+    """Public self-registration. The role is forced to the configured default
+    (viewer) no matter what the caller sends — there is no role field to abuse.
+    Returns tokens immediately so the new account signs in with one round trip.
+    """
+    if not settings.registration_enabled:
+        raise PermissionDeniedError("self-registration is disabled on this deployment")
+    email = str(payload.email).lower().strip()
+    if session.execute(sa.select(AppUser).where(AppUser.email == email)).scalars().first() is not None:
+        raise ConflictError(f"user '{email}' already exists")
+    role = settings.registration_default_role if settings.registration_default_role in ROLE_RIGHTS else "viewer"
+    now = dt.datetime.now(dt.timezone.utc)
+    user = AppUser(
+        email=email,
+        full_name=payload.full_name.strip(),
+        hashed_password=hash_password(payload.password),
+        role=role,
+        is_active=True,
+        password_changed_at=now,
+    )
+    session.add(user)
+    session.flush()
+    _audit(session, user, "auth.register", request, role=role)
+    return _tokens(user, request, session)
+
+
 @router.post("/login", response_model=TokenResponse, summary="Exchange credentials for tokens")
 def login(payload: LoginRequest, request: Request, session: DbSession) -> TokenResponse:
     from app.services import twofactor

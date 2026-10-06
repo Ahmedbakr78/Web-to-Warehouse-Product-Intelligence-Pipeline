@@ -524,6 +524,14 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "name": "Watchlist-aware product export",
                 "detail": "Products CSV/JSON follows the Watched filter with watchlist filenames",
             },
+            {
+                "name": "Side-by-side product comparison",
+                "detail": "Select up to 4 products for a live server-side attribute matrix",
+            },
+            {
+                "name": "Server-side full export",
+                "detail": "Export-all downloads every filtered product, not just the visible page",
+            },
         ],
     },
     {
@@ -1440,6 +1448,10 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             {
                 "name": "Dark infographic artefacts",
                 "detail": "2560x1440 dark SVG plus PNG and PDF, freshness-gated like the light set",
+            },
+            {
+                "name": "One-click watchlist clear",
+                "detail": "DELETE /users/me/watchlist empties the list and reports the removed count",
             },
         ],
     },

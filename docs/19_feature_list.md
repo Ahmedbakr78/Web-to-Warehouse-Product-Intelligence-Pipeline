@@ -753,3 +753,15 @@ Every remaining table leaves the app as a file, and filtered views export what i
 | F-443 | Watchlist-aware product export | Products CSV/JSON follows the Watched filter with watchlist filenames | `frontend/src/pages/Products.tsx` `displayRows` |
 
 **Revised total: 443 features across 30 areas** (F-001 to F-443).
+
+## 31. Compare + export-all Max (3)
+
+Compare across pages and export beyond the visible page, with one-click watchlist reset.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-444 | Side-by-side product comparison | Up to 4 products in a live server-side attribute matrix modal | `frontend/src/pages/Products.tsx` `GET /products/compare/ids` |
+| F-445 | Server-side full export | Export-all downloads every filtered product via /export/products.csv | `frontend/src/pages/Products.tsx` `downloadExport` |
+| F-446 | One-click watchlist clear | Clear button plus DELETE /users/me/watchlist with removed count | `app/api/routers/users.py` `clear_watchlist` |
+
+**Revised total: 446 features across 31 areas** (F-001 to F-446).
