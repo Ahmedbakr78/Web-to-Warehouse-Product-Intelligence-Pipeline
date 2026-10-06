@@ -303,12 +303,30 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             {"name": "Price-gap analysis", "detail": "Absolute and percent gaps vs internal prices"},
             {"name": "Pricing opportunities", "detail": "Where the market is cheaper or dearer"},
             {"name": "Reconciliation summary", "detail": "Match rate, mismatches, strategy mix"},
-            {"name": "CSV catalog import", "detail": "POST /catalog/import upserts 5,000 SKUs per file with per-row validation"},
-            {"name": "Import template download", "detail": "GET /catalog/template serves header plus example rows for spreadsheets"},
-            {"name": "All-or-nothing validation", "detail": "Any invalid row rejects the file; a half-loaded catalog is impossible"},
-            {"name": "Import audit trail", "detail": "Every import writes catalog.import with created/updated counts and actor"},
-            {"name": "One-click Catalog upload", "detail": "Template + Import CSV buttons on the SKUs tab with toasts and refresh"},
-            {"name": "Role-gated writes", "detail": "Analyst and admin can import; viewers get a 403 on both UI and API"},
+            {
+                "name": "CSV catalog import",
+                "detail": "POST /catalog/import upserts 5,000 SKUs per file with per-row validation",
+            },
+            {
+                "name": "Import template download",
+                "detail": "GET /catalog/template serves header plus example rows for spreadsheets",
+            },
+            {
+                "name": "All-or-nothing validation",
+                "detail": "Any invalid row rejects the file; a half-loaded catalog is impossible",
+            },
+            {
+                "name": "Import audit trail",
+                "detail": "Every import writes catalog.import with created/updated counts and actor",
+            },
+            {
+                "name": "One-click Catalog upload",
+                "detail": "Template + Import CSV buttons on the SKUs tab with toasts and refresh",
+            },
+            {
+                "name": "Role-gated writes",
+                "detail": "Analyst and admin can import; viewers get a 403 on both UI and API",
+            },
         ],
     },
     {

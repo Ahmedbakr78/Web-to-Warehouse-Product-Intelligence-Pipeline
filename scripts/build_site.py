@@ -923,7 +923,7 @@ def page(
 <meta property="og:description" content="{html.escape(description or SUBTITLE)}">
 <title>{html.escape(full_title)}</title>
 <link rel="stylesheet" href="assets/site.css">
-<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon.png" type="image/png">
 {extra_head}
 </head>
 <body>
@@ -1204,6 +1204,9 @@ def build(out_dir: Path, diagrams: Path | None = None) -> list[Path]:
     (out_dir / "assets" / "site.css").write_text(CSS, encoding="utf-8")
     (out_dir / "assets" / "site.js").write_text(JS, encoding="utf-8")
     (out_dir / "assets" / "favicon.svg").write_text(FAVICON, encoding="utf-8")
+    logo = ROOT / "website" / "favicon.png"
+    if logo.is_file():
+        shutil.copy(logo, out_dir / "assets" / "favicon.png")
 
     # A local Mermaid build makes the site work fully offline; otherwise the CDN is used.
     local = _find_local_mermaid()
