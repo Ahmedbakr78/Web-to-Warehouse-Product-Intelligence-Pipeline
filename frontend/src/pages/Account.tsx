@@ -13,6 +13,7 @@ import {
   Palette,
   RefreshCw,
   Save,
+  Settings2,
   Shield,
   ShieldCheck,
   Sun,
@@ -306,6 +307,7 @@ export default function Account() {
           { id: 'alerts', label: 'Alerts', count: alerts.data?.length ?? 0, icon: <Bell className="h-4 w-4" /> },
           { id: 'activity', label: 'Activity', icon: <Activity className="h-4 w-4" /> },
           { id: 'data', label: 'Data & privacy', icon: <Download className="h-4 w-4" /> },
+          { id: 'prefs', label: 'Preferences', icon: <Settings2 className="h-4 w-4" /> },
         ]}
       />
 
@@ -750,6 +752,80 @@ export default function Account() {
           exporting={exportData.isPending}
           onDelete={() => setShowDeleteModal(true)}
         />
+      ) : null}
+
+      {tab === 'prefs' ? (
+        <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+          <Card>
+            <CardHeader title="Workspace defaults" subtitle="Applied instantly to every table and landing route" icon={<Settings2 className="h-4 w-4" />} />
+            <div className="space-y-3">
+              <div>
+                <p className="stat-label mb-1.5">Start page after sign-in</p>
+                <Select value={startPage} onChange={(event) => setStartPage(event.target.value)}>
+                  <option value="/">Dashboard</option>
+                  {ALL_NAV_ITEMS.filter((item) => item.to !== '/').map((item) => (
+                    <option key={item.to} value={item.to}>
+                      {item.label}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="stat-label mb-1.5">Rows per page</p>
+                  <Select value={String(rowsPerPage)} onChange={(event) => setRowsPerPage(Number(event.target.value))}>
+                    {[10, 25, 50, 100, 200].map((size) => (
+                      <option key={size} value={String(size)}>
+                        {size}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div>
+                  <p className="stat-label mb-1.5">Display currency</p>
+                  <Select value={currency} onChange={(event) => setCurrency(event.target.value)}>
+                    {['USD', 'EUR', 'GBP', 'EGP', 'AED', 'SAR'].map((code) => (
+                      <option key={code} value={code}>
+                        {code}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              </div>
+              <div>
+                <p className="stat-label mb-1.5">Price alert threshold: {alertPct}%</p>
+                <input type="range" min={1} max={50} value={alertPct} onChange={(event) => setAlertPct(Number(event.target.value))} className="w-full accent-brand-600" aria-label="Price alert threshold" />
+              </div>
+              <Toggle checked={emailAlerts} onChange={setEmailAlerts} label="Email alerts" description="Send an email when an alert rule fires" />
+              <Toggle checked={weeklyDigest} onChange={setWeeklyDigest} label="Weekly digest" description="Monday summary of price movements" />
+            </div>
+            <div className="mt-4 flex justify-end">
+              <Button variant="primary" icon={<Save className="h-4 w-4" />} loading={saveProfile.isPending} onClick={() => saveProfile.mutate()}>
+                Save preferences
+              </Button>
+            </div>
+          </Card>
+          <Card>
+            <CardHeader title="Shortcuts & feature list" subtitle="Keyboard-first workflow plus everything this app ships" icon={<Eye className="h-4 w-4" />} />
+            <div className="space-y-2 text-sm">
+              <KeyValue label="Command palette" value="/ or Ctrl/Cmd-K" />
+              <KeyValue label="Toggle sidebar" value="Ctrl/Cmd-B" />
+              <KeyValue label="Collapse / expand rail" value="[ and ]" />
+              <KeyValue label="Close dialogs" value="Esc or ? for help" />
+              <KeyValue label="Locale / timezone" value={`${locale} · ${timezone}`} />
+              <KeyValue label="Catalogue" value="See the Features screen for the full 400+ list" />
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button variant="secondary" onClick={() => { localStore.set('account.startPage', startPage); toast.success('Preferences saved locally'); }}>
+                Save locally
+              </Button>
+              <Button variant="ghost" onClick={() => saveProfile.mutate()}>
+                Sync to server
+              </Button>
+            </div>
+            <p className="mt-3 text-xs text-muted">Preferences sync to your profile, so a new device or browser inherits them. Appearance (theme, accent, density, font, motion, direction) lives on the Appearance tab and uses the same sync.</p>
+          </Card>
+        </div>
       ) : null}
 
       {/* ------------------------------------------------------------- modals */}
