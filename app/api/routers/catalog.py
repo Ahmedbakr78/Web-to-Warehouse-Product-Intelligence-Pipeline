@@ -383,3 +383,50 @@ def import_products(
         "updated": updated,
         "total": created + updated,
     }
+
+
+#: Cap for the full-catalog download so the response stays in memory-safe bounds.
+EXPORT_MAX_ROWS = 10000
+
+
+@router.get("/export.csv", summary="Download every internal SKU as CSV")
+def export_products(session: DbSession, _user: ReadUser) -> PlainTextResponse:
+    """The exact inverse of the import: same columns, same order, all SKUs."""
+    rows = (
+        session.execute(
+            sa.text(
+                """
+            SELECT sku, name, brand, category, supplier, cost_price, list_price, currency,
+                   qty_on_hand, status, product_url
+            FROM catalog_product ORDER BY sku LIMIT :limit
+            """
+            ),
+            {"limit": EXPORT_MAX_ROWS},
+        )
+        .mappings()
+        .all()
+    )
+    buffer = io.StringIO()
+    writer = csv.DictWriter(buffer, fieldnames=list(IMPORT_COLUMNS))
+    writer.writeheader()
+    for row in rows:
+        writer.writerow(
+            {
+                "sku": row["sku"],
+                "name": row["name"],
+                "brand": row["brand"] or "",
+                "category": row["category"] or "",
+                "supplier": row["supplier"] or "",
+                "cost_price": row["cost_price"] if row["cost_price"] is not None else "",
+                "list_price": row["list_price"] if row["list_price"] is not None else "",
+                "currency": row["currency"] or "USD",
+                "qty_on_hand": row["qty_on_hand"] if row["qty_on_hand"] is not None else "",
+                "status": row["status"] or "active",
+                "product_url": row["product_url"] or "",
+            }
+        )
+    return PlainTextResponse(
+        buffer.getvalue(),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": 'attachment; filename="catalog-export.csv"'},
+    )

@@ -81,6 +81,11 @@ export default function Catalog() {
     onSuccess: () => toast.success('Template downloaded', 'Fill it in and import it back above.'),
     onError: (error: Error) => toast.error('Could not download the template', error.message),
   })
+  const exportSkus = useMutation({
+    mutationFn: () => downloadBinary('/catalog/export.csv', {}, 'catalog-export.csv'),
+    onSuccess: () => toast.success('Catalog exported', 'Every SKU with the import-compatible columns.'),
+    onError: (error: Error) => toast.error('Could not export the catalog', error.message),
+  })
 
   const rows = reconciliation.data?.items ?? []
   const filtered = debouncedSearch
@@ -134,6 +139,16 @@ export default function Catalog() {
             title="Download the CSV template with header and examples"
           >
             Template
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            icon={<FileDown className="h-4 w-4" />}
+            loading={exportSkus.isPending}
+            onClick={() => exportSkus.mutate()}
+            title="Download every SKU — same columns as the import template"
+          >
+            Export CSV
           </Button>
           {can('write') ? (
             <Button

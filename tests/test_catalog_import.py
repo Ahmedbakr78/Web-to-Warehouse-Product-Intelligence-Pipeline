@@ -94,3 +94,32 @@ def test_import_rejects_non_csv_and_viewer_is_refused(client, admin_token, viewe
         files={"file": ("catalog.csv", VALID_CSV, "text/csv")},
     )
     assert refused.status_code == 403
+
+
+def test_export_round_trips_imported_rows(client, admin_token, viewer_token):
+    for token in (admin_token, viewer_token):
+        response = client.get("/api/v1/catalog/export.csv", headers=auth(token))
+        assert response.status_code == 200, response.text[:200]
+        assert "text/csv" in response.headers["content-type"]
+        lines = response.text.splitlines()
+        assert lines[0].startswith("sku,name,")
+        assert any("TEST-IMPORT-1" in line for line in lines[1:])
+
+
+def test_builder_schema_includes_runs_and_alerts(client, admin_token):
+    schema = client.get("/api/v1/builder/schema", headers=auth(admin_token)).json()
+    names = {entity["entity"] for entity in schema["entities"]}
+    assert {"pipeline_runs", "alert_rules"} <= names
+
+    payload = {
+        "entity": "pipeline_runs",
+        "columns": ["status"],
+        "aggregates": [{"function": "count", "column": "run_id", "alias": "runs"}],
+        "group_by": ["status"],
+        "order_by": "runs",
+        "order_dir": "desc",
+        "limit": 10,
+    }
+    result = client.post("/api/v1/builder/query", headers=auth(admin_token), json=payload)
+    assert result.status_code == 200, result.text
+    assert "runs" in result.json()["columns"]

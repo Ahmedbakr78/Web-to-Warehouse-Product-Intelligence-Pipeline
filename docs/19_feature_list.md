@@ -670,3 +670,16 @@ Bulk-load the internal catalog from any spreadsheet, with the same validation th
 | F-418 | Import permission gate | Analyst/admin may import; viewers refused server-side with 403 | `app/api/deps.py` `WriteUser` `tests/test_catalog_import.py` |
 
 **Revised total: 418 features across 24 areas** (F-001 to F-418).
+
+## 25. Builder entities + export additions (4)
+
+Two more self-service entities and a closed import/export loop for the catalog.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-419 | Pipeline-runs builder entity | Group and aggregate etl_run: status, trigger, counters, DQ score | `app/api/routers/builder.py` `pipeline_runs` |
+| F-420 | Alert-rules builder entity | Group and aggregate app_alert_rule: metric, channel, trigger counts | `app/api/routers/builder.py` `alert_rules` |
+| F-421 | CSV catalog export | Every SKU in import-compatible columns, 10k cap, dated filename | `app/api/routers/catalog.py` `GET /catalog/export.csv` |
+| F-422 | Export button on Catalog | One-click download beside Template and Import with toasts | `frontend/src/pages/Catalog.tsx` `downloadBinary` |
+
+**Revised total: 422 features across 25 areas** (F-001 to F-422).

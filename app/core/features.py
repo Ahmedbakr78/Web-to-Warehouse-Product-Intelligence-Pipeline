@@ -327,6 +327,14 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "name": "Role-gated writes",
                 "detail": "Analyst and admin can import; viewers get a 403 on both UI and API",
             },
+            {
+                "name": "CSV catalog export",
+                "detail": "GET /catalog/export.csv downloads every SKU in import-compatible columns",
+            },
+            {
+                "name": "Import/export round-trip",
+                "detail": "Export, edit in a spreadsheet, re-import: same header, upsert by sku",
+            },
         ],
     },
     {
@@ -991,8 +999,8 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "summary": "Self-service analytics without raw SQL: 11 entities, 15 operators, 6 aggregates, chart preview, generated SQL and cURL.",
         "features": [
             {
-                "name": "11 builder entities",
-                "detail": "products, price_changes, new/removed, category_index, brand_summary, source_coverage, top_movers, availability, quality_latest, catalog_reconciliation",
+                "name": "13 builder entities",
+                "detail": "products, price_changes, new/removed, category_index, brand_summary, source_coverage, top_movers, availability, quality_latest, catalog_reconciliation, pipeline_runs, alert_rules",
             },
             {
                 "name": "Rows mode filters",
@@ -1057,6 +1065,14 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             {
                 "name": "Builder schema endpoint",
                 "detail": "GET /builder/schema drives entity/column/operator pickers — no hardcoded lists",
+            },
+            {
+                "name": "Pipeline-runs entity",
+                "detail": "Group and aggregate etl_run: status, trigger, counters, DQ score per run",
+            },
+            {
+                "name": "Alert-rules entity",
+                "detail": "Group and aggregate app_alert_rule: metric, channel, trigger counts",
             },
             {
                 "name": "Error envelope",
