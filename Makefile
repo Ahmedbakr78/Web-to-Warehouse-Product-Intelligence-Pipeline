@@ -295,6 +295,10 @@ docs-check: docs-validate stats-check ## Validate diagrams and check documentati
 infographic: ## Generate the DEPI project roadmap infographic (HTML + PNG)
 	$(PYBIN) scripts/make_infographic.py
 
+.PHONY: deck
+deck: ## Generate the 12-slide project presentation deck (HTML + PDF)
+	$(PYBIN) scripts/make_deck.py
+
 # ---------------------------------------------------------------- housekeeping
 .PHONY: check
 check: lint typecheck test ## Full static + unit verification (no services required)

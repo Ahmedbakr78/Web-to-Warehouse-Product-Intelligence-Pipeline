@@ -214,20 +214,36 @@ def build_html(stats: dict) -> str:
       <p class="lede">Collect permitted product data, standardise it, resolve duplicates, and load it
       into an analytical database that answers business questions.</p>
       <div class="grid g2">
-        {card("In scope", bullets([
-            "Scrape permitted structured product information",
-            "Respect robots.txt, rate limits and website terms",
-            "Clean names and categories; normalise currencies",
-            "Detect duplicates and compare against the internal catalogue",
-            "Load into PostgreSQL / MySQL with historical snapshots",
-            "Identify price, new, removed and category changes with SQL",
-            "Orchestrate with Airflow; expose the result over REST"]))}
-        {card("Deliberately out of scope", bullets([
-            "Bypassing any site's protections",
-            "Personal or behavioural data",
-            "Real-time streaming ingestion",
-            "Training a machine-learning model",
-            "Anything not evidenced by a test"]))}
+        {
+                card(
+                    "In scope",
+                    bullets(
+                        [
+                            "Scrape permitted structured product information",
+                            "Respect robots.txt, rate limits and website terms",
+                            "Clean names and categories; normalise currencies",
+                            "Detect duplicates and compare against the internal catalogue",
+                            "Load into PostgreSQL / MySQL with historical snapshots",
+                            "Identify price, new, removed and category changes with SQL",
+                            "Orchestrate with Airflow; expose the result over REST",
+                        ]
+                    ),
+                )
+            }
+        {
+                card(
+                    "Deliberately out of scope",
+                    bullets(
+                        [
+                            "Bypassing any site's protections",
+                            "Personal or behavioural data",
+                            "Real-time streaming ingestion",
+                            "Training a machine-learning model",
+                            "Anything not evidenced by a test",
+                        ]
+                    ),
+                )
+            }
       </div>
       """,
             "objective",
@@ -242,13 +258,13 @@ def build_html(stats: dict) -> str:
       <p class="lede">Nine stages, orchestrated by Airflow, each reporting progress and each
       writing evidence of what it did.</p>
       <div class="flow">
-        {''.join(f'<div class="step"><div class="t">{esc(name)}</div></div>' + ('<div class="arrow">&rarr;</div>' if i < 8 else '') for i, name in enumerate(['extract', 'stage', 'transform', 'resolve', 'load', 'detect', 'aggregate', 'reconcile', 'quality']))}
+        {"".join(f'<div class="step"><div class="t">{esc(name)}</div></div>' + ('<div class="arrow">&rarr;</div>' if i < 8 else "") for i, name in enumerate(["extract", "stage", "transform", "resolve", "load", "detect", "aggregate", "reconcile", "quality"]))}
       </div>
       <div class="grid g4" style="margin-top:6mm">
-        {tile(str(stats.get('ingestion_sources', 5)), 'permitted sources', ACCENT)}
-        {tile(str(stats.get('physical_tables', 28)), 'physical tables', PRIMARY)}
-        {tile(str(stats.get('analytical_views', 20)), 'analytical views', SECONDARY)}
-        {tile(str(stats.get('data_quality_rules', 12)), 'DQ rules', SUCCESS)}
+        {tile(str(stats.get("ingestion_sources", 5)), "permitted sources", ACCENT)}
+        {tile(str(stats.get("physical_tables", 28)), "physical tables", PRIMARY)}
+        {tile(str(stats.get("analytical_views", 20)), "analytical views", SECONDARY)}
+        {tile(str(stats.get("data_quality_rules", 12)), "DQ rules", SUCCESS)}
       </div>
       <p class="note">Every stage publishes progress to a leased job queue, so a slow run is
       visible rather than silent.</p>
@@ -264,16 +280,32 @@ def build_html(stats: dict) -> str:
       <h2>Compliance is evidence, not a claim</h2>
       <p class="lede">The ingestion layer is where a scraper earns the right to run.</p>
       <div class="grid g2">
-        {card("Enforced in the fetch layer", bullets([
-            "robots.txt parsed and its verdict recorded per request",
-            "Per-source rate limits and crawl-delay honoured",
-            "Conditional requests and an on-disk cache",
-            "An identifying User-Agent with a contact address"]))}
-        {card("Recorded as proof", bullets([
-            "Every request logged with URL, status and elapsed time",
-            "The robots verdict stored alongside each request",
-            "Cache hits distinguished from live fetches",
-            "One audit row per pipeline run, queryable by screen"]))}
+        {
+                card(
+                    "Enforced in the fetch layer",
+                    bullets(
+                        [
+                            "robots.txt parsed and its verdict recorded per request",
+                            "Per-source rate limits and crawl-delay honoured",
+                            "Conditional requests and an on-disk cache",
+                            "An identifying User-Agent with a contact address",
+                        ]
+                    ),
+                )
+            }
+        {
+                card(
+                    "Recorded as proof",
+                    bullets(
+                        [
+                            "Every request logged with URL, status and elapsed time",
+                            "The robots verdict stored alongside each request",
+                            "Cache hits distinguished from live fetches",
+                            "One audit row per pipeline run, queryable by screen",
+                        ]
+                    ),
+                )
+            }
       </div>
       <div class="kpi">A reviewer can reconstruct <b>what was fetched, when, and whether it was
       permitted</b> without reading the code.</div>
@@ -293,8 +325,8 @@ def build_html(stats: dict) -> str:
         {card("Facts", bullets(["fact_price_snapshot &mdash; the historical price table", "fact_catalog_snapshot &mdash; our own list prices", "chg_price_change &mdash; detected movements", "chg_product_event &mdash; lifecycle"]))}
         {card("Aggregates", bullets(["agg_category_daily", "agg_brand_monthly", "Materialised during the run"]))}
       </div>
-      <p class="note">Alembic creates all {esc(stats.get('physical_tables', 28))} tables and applies
-      all {esc(stats.get('analytical_views', 20))} views; <code>alembic check</code> fails the build
+      <p class="note">Alembic creates all {esc(stats.get("physical_tables", 28))} tables and applies
+      all {esc(stats.get("analytical_views", 20))} views; <code>alembic check</code> fails the build
       when the models and the migration disagree.</p>
       """,
             "warehouse",
@@ -331,11 +363,11 @@ def build_html(stats: dict) -> str:
         {card("Govern", bullets(["Roles and scoped API keys", "Two-factor authentication", "A full audit trail"]))}
       </div>
       <div class="grid g5" style="margin-top:5mm">
-        {tile('23', 'screens', PRIMARY)}
-        {tile(str(stats.get('rest_route_decorators', 173)), 'API operations', SECONDARY)}
-        {tile(str(group_total), 'catalogued features', ACCENT)}
-        {tile('5', 'themes, 12 accents', HIGHLIGHT)}
-        {tile('SSE', 'realtime updates', SUCCESS)}
+        {tile("23", "screens", PRIMARY)}
+        {tile(str(stats.get("rest_route_decorators", 173)), "API operations", SECONDARY)}
+        {tile(str(group_total), "catalogued features", ACCENT)}
+        {tile("5", "themes, 12 accents", HIGHLIGHT)}
+        {tile("SSE", "realtime updates", SUCCESS)}
       </div>
       """,
             "product",
@@ -350,14 +382,14 @@ def build_html(stats: dict) -> str:
       <p class="lede">What has to pass before this counts as working.</p>
       <table>
         <tr><th>Gate</th><th style="text-align:right">Result</th></tr>
-        <tr><td>pytest (unit + integration)</td><td class="num">{esc(stats.get('test_cases', 408))} passed</td></tr>
-        <tr><td>API smoke, against the running stack</td><td class="num">{esc(stats.get('api_smoke_checks', 104))} passed</td></tr>
+        <tr><td>pytest (unit + integration)</td><td class="num">{esc(stats.get("test_cases", 408))} passed</td></tr>
+        <tr><td>API smoke, against the running stack</td><td class="num">{esc(stats.get("api_smoke_checks", 104))} passed</td></tr>
         <tr><td>Ruff (app, tests, scripts, DAGs, migrations)</td><td class="num">clean</td></tr>
         <tr><td>mypy</td><td class="num">clean, 83 files</td></tr>
         <tr><td>TypeScript, ESLint at zero warnings, production build</td><td class="num">clean</td></tr>
         <tr><td>Render smoke test, every screen</td><td class="num">23 screens</td></tr>
         <tr><td>alembic check</td><td class="num">no drift</td></tr>
-        <tr><td>Mermaid diagrams rendered</td><td class="num">{esc(stats.get('mermaid_diagrams', 80))} of {esc(stats.get('mermaid_diagrams', 80))}</td></tr>
+        <tr><td>Mermaid diagrams rendered</td><td class="num">{esc(stats.get("mermaid_diagrams", 80))} of {esc(stats.get("mermaid_diagrams", 80))}</td></tr>
         <tr><td>Documentation links resolved</td><td class="num">1216</td></tr>
       </table>
       <p class="note">Structural figures are measured by <code>scripts/project_stats.py</code> and
@@ -380,9 +412,9 @@ def build_html(stats: dict) -> str:
         {card("Subsystems", bullets(["Forecasting", "Jobs and realtime", "Reporting", "Migrations", "Security and access control"]))}
       </div>
       <div class="grid g3" style="margin-top:5mm">
-        {tile(str(stats.get('documentation_documents', 30)), 'documents', PRIMARY)}
-        {tile(str(stats.get('mermaid_diagrams', 80)), 'Mermaid diagrams', SECONDARY)}
-        {tile('114', 'static site pages', ACCENT)}
+        {tile(str(stats.get("documentation_documents", 30)), "documents", PRIMARY)}
+        {tile(str(stats.get("mermaid_diagrams", 80)), "Mermaid diagrams", SECONDARY)}
+        {tile("114", "static site pages", ACCENT)}
       </div>
       """,
             "documentation",
@@ -395,16 +427,40 @@ def build_html(stats: dict) -> str:
             f"""
       <h2>What made it hard, and what was done about it</h2>
       <div class="grid g3">
-        {card("Duplicate resolution", bullets([
-            "The same product appears under three names on three sites",
-            "Blocking keys to bound the comparison set",
-            "A similarity threshold, with the strategy recorded per match"]))}
-        {card("Rebuilding a schema in place", bullets([
-            "create_all cannot express a change, a rollback or a history",
-            "Alembic adopted; Airflow metadata moved to its own database"]))}
-        {card("Realtime across workers", bullets([
-            "An in-memory broker only sees its own process",
-            "Events now also polled from a persisted log"]))}
+        {
+                card(
+                    "Duplicate resolution",
+                    bullets(
+                        [
+                            "The same product appears under three names on three sites",
+                            "Blocking keys to bound the comparison set",
+                            "A similarity threshold, with the strategy recorded per match",
+                        ]
+                    ),
+                )
+            }
+        {
+                card(
+                    "Rebuilding a schema in place",
+                    bullets(
+                        [
+                            "create_all cannot express a change, a rollback or a history",
+                            "Alembic adopted; Airflow metadata moved to its own database",
+                        ]
+                    ),
+                )
+            }
+        {
+                card(
+                    "Realtime across workers",
+                    bullets(
+                        [
+                            "An in-memory broker only sees its own process",
+                            "Events now also polled from a persisted log",
+                        ]
+                    ),
+                )
+            }
       </div>
       <div class="kpi">The one that was <b>not</b> caught by any static check: an external store
       returning a new snapshot object per call, which put every screen into an infinite
@@ -445,11 +501,15 @@ def build_html(stats: dict) -> str:
     # so it never competes with the track name.
     numbered = numbered.replace(
         '<div class="track">', '<div class="track" style="visibility:hidden">'
-    ).replace('</div>\n      ', '</div>\n      ')
-    footers = "".join(
-        f'<div class="pageno">{i}</div>' for i in range(1, len(slides) + 1)
+    ).replace("</div>\n      ", "</div>\n      ")
+    footers = "".join(f'<div class="pageno">{i}</div>' for i in range(1, len(slides) + 1))
+    numbered = (
+        numbered.replace(
+            "</section>", footers[len(f'<div class="pageno">{len(slides)}</div>') :] + "</section>"
+        )
+        if False
+        else numbered
     )
-    numbered = numbered.replace("</section>", footers[len(f'<div class="pageno">{len(slides)}</div>') :] + "</section>") if False else numbered
     # Append one page number per slide, in order.
     out: list[str] = []
     index = 0
@@ -463,12 +523,25 @@ def build_html(stats: dict) -> str:
     return f"<!doctype html><html><head><meta charset='utf-8'><style>{CSS}</style></head><body>{numbered}</body></html>"
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    import argparse
+
+    parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
+    parser.add_argument("--check", action="store_true", help="rebuild and fail if deck.html differs")
+    args = parser.parse_args(argv)
+
     OUT.mkdir(parents=True, exist_ok=True)
     stats = load_stats()
     markup = build_html(stats)
 
     html_path = OUT / "deck.html"
+    if args.check:
+        current = html_path.read_text(encoding="utf-8") if html_path.exists() else ""
+        if current != markup:
+            print("deck.html is stale; run `make deck` to regenerate")
+            return 1
+        print("deck.html is up to date")
+        return 0
     html_path.write_text(markup, encoding="utf-8")
 
     pdf_path = OUT / "deck.pdf"

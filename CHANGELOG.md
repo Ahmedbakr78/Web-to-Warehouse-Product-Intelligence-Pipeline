@@ -10,6 +10,29 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Nothing yet.
 
+## [1.6.1] - 2026-10-06
+
+### Fixed
+
+- **Theme flash on accent** — the pre-paint script now resolves `--brand-*` CSS variables before
+  first paint, so a non-default accent no longer flashes indigo on reload; `theme-color` metas are
+  resolved for the actual (possibly system-derived) mode both pre-paint and at runtime.
+- **Legacy motion value** — a stored `auto` motion preference is migrated to `full` instead of
+  silently falling back, matching the original meaning.
+- **Mobile drawer swipe-to-close** — the swipe-left-to-close gesture is wired to the drawer container
+  so it works from any drawer child; removed an invalid bare `outline-none` DOM attribute.
+- **Live job progress** — the queue derives streamed progress from the SSE event buffer (a real
+  reactive dependency) instead of a mutated ref, so progress bars move between the 15 s polls; row
+  expansion consistently uses `job_key`, matching the detail query.
+- **Forecast rebuild result** — the rebuild panel stays visible with its succeeded/failed outcome
+  instead of unmounting the moment the job finishes; a per-job guard keeps the completion effect
+  firing exactly once.
+- **Version drift** — the UI footer reads the version from `package.json` at build time
+  (`__APP_VERSION__`) instead of a hardcoded literal; README badges reconciled to measured counts
+  (28 tables, 173 operations, 104/104 smoke).
+- **Lint/format gate** — `ruff format` drift in six files resolved; `change_event_summary` exported
+  from `app.analytics.service`; `make_infographic.py` gains `--help`/`--check` like the other scripts.
+
 ## [1.4.0] - 2026-10-05
 
 ### Added
