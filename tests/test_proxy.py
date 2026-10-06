@@ -18,18 +18,9 @@ def test_explicit_proxy_applies():
 
 def test_no_proxy_hosts_bypass():
     proxy = "http://proxy.internal:3128"
-    assert (
-        resolve_proxy("http://localhost:8000/api", proxy_url=proxy, no_proxy="localhost,127.0.0.1")
-        is None
-    )
-    assert (
-        resolve_proxy("http://127.0.0.1:5432/db", proxy_url=proxy, no_proxy="localhost,127.0.0.1")
-        is None
-    )
-    assert (
-        resolve_proxy("https://example.com/a", proxy_url=proxy, no_proxy="localhost,127.0.0.1")
-        == proxy
-    )
+    assert resolve_proxy("http://localhost:8000/api", proxy_url=proxy, no_proxy="localhost,127.0.0.1") is None
+    assert resolve_proxy("http://127.0.0.1:5432/db", proxy_url=proxy, no_proxy="localhost,127.0.0.1") is None
+    assert resolve_proxy("https://example.com/a", proxy_url=proxy, no_proxy="localhost,127.0.0.1") == proxy
 
 
 def test_settings_reject_non_http_proxy():

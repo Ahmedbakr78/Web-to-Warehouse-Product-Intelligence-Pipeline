@@ -512,6 +512,18 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "name": "Activity CSV export",
                 "detail": "One-click CSV of the Account activity feed, same columns as the table",
             },
+            {
+                "name": "Audit-trail CSV export",
+                "detail": "One-click CSV of the application audit tab with user, action and timing columns",
+            },
+            {
+                "name": "Backtest CSV export",
+                "detail": "Forecast accuracy table to CSV with MAPE, MAE and RMSE per product",
+            },
+            {
+                "name": "Watchlist-aware product export",
+                "detail": "Products CSV/JSON follows the Watched filter with watchlist filenames",
+            },
         ],
     },
     {

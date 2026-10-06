@@ -741,3 +741,15 @@ Star products into a migration-free personal watchlist, plus compliance-log expo
 | F-440 | Dark infographic artefacts | 2560x1440 dark SVG plus PNG and PDF, freshness-gated | `docs/assets/infographic-dark.svg` `scripts/make_infographic.py` |
 
 **Revised total: 440 features across 29 areas** (F-001 to F-440).
+
+## 30. Export-everywhere Max (3)
+
+Every remaining table leaves the app as a file, and filtered views export what is shown.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-441 | Audit-trail CSV export | Application audit tab to CSV with user, action and timing columns | `frontend/src/pages/Audit.tsx` `application-audit-log.csv` |
+| F-442 | Backtest CSV export | Forecast accuracy to CSV with MAPE, MAE and RMSE per product | `frontend/src/pages/Forecast.tsx` `forecast-backtest.csv` |
+| F-443 | Watchlist-aware product export | Products CSV/JSON follows the Watched filter with watchlist filenames | `frontend/src/pages/Products.tsx` `displayRows` |
+
+**Revised total: 443 features across 30 areas** (F-001 to F-443).

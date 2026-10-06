@@ -34,7 +34,7 @@
 
 <p align="center">
   <b>173 REST operations</b> · <b>28 tables</b> · <b>20 analytical views</b> ·
-  <b>12 DQ rules</b> · <b>5+ compliant sources</b> · <b>440 catalogued features</b> ·
+  <b>12 DQ rules</b> · <b>5+ compliant sources</b> · <b>443 catalogued features</b> ·
   <b>435 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
 </p>
 
@@ -175,7 +175,7 @@ Everything is engineered like a production system, not a demo:
 12 data-quality rules across 6 dimensions, weighted score persisted per run
 6 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
 13 CLI commands  |  6 Docker Compose services  |  30 documents  |  80 Mermaid diagrams
-448 tests  |  104/104 API smoke checks  |  440 catalogued features
+448 tests  |  104/104 API smoke checks  |  443 catalogued features
 ```
 
 | Metric | Count |
@@ -192,7 +192,7 @@ Everything is engineered like a production system, not a demo:
 | Docker Compose services | 6 |
 | Numbered documents      | 30 |
 | Mermaid diagrams        | 80 |
-| Catalogued features     | 440 |
+| Catalogued features     | 443 |
 | Collected test cases    | 448 |
 | API smoke checks        | 104 |
 
@@ -1006,8 +1006,8 @@ are persisted per run in `dq_rule_result`, and the dashboard charts the score tr
 ## Feature catalogue
 
 The exhaustive, file-referenced inventory lives in
-[docs/19_feature_list.md](docs/19_feature_list.md) — 440 features in twenty-nine areas. It is also served as
-structured JSON by `GET /api/v1/meta/features` (360 entries in 30 groups) and rendered by the **Features** screen, both generated
+[docs/19_feature_list.md](docs/19_feature_list.md) — 443 features in thirty areas. It is also served as
+structured JSON by `GET /api/v1/meta/features` (363 entries in 30 groups) and rendered by the **Features** screen, both generated
 from `app/core/features.py`, so this section can never describe something the code does not do.
 Highlights by area:
 
@@ -1084,7 +1084,7 @@ Highlights by area:
 
 ### v1.3: discovery, aggregation and self-service
 
-- **Feature catalogue** — `GET /meta/features` + `/features` screen: 360 features, 30 groups, searchable
+- **Feature catalogue** — `GET /meta/features` + `/features` screen: 363 features, 30 groups, searchable
 - **Aggregate builder** — `POST /builder/query` + `/builder/schema`: 11 entities, 6 aggregates,
   15 operators, whitelist-assembled parameterised SQL, chart preview, generated SQL, cURL copy
 - **Filter builder Max** — 9 entities (products, price-changes, runs, quality, catalog, new, removed, movers, sources), SQL + cURL copy, CSV/JSON export, saved views, cross-entity join recipes
@@ -1228,7 +1228,7 @@ All configuration arrives through environment variables (`.env.example` document
 | **Sources** | registry cards with compliance metadata, robots.txt statistics, raw-versus-cleaned preview |
 | **Query Lab** | read-only SQL console over the 20 views, table inventory, starter examples, CSV export |
 | **Builder** | two modes: *filter & customise* (facets, columns, order, saved presets) and *group & aggregate* (11 entities, six measures, fifteen operators, bar chart, generated SQL, cURL copy, exports) |
-| **Features** | searchable, filterable catalogue of all 360 catalogued features in 30 groups, each with an icon and copy-to-clipboard |
+| **Features** | searchable, filterable catalogue of all 363 catalogued features in 30 groups, each with an icon and copy-to-clipboard |
 | **Alerts** | alert rules with thresholds and channels, notification feed, evaluate action |
 | **Webhooks** | outbound event subscriptions with HMAC-signed payloads, one-time secret reveal and rotation, test delivery, per-attempt delivery log |
 | **Account** | profile, preferences, appearance (theme, accent, density, motion), password change, API keys, **personal activity feed**, **data export**, **account deletion** |
@@ -1484,7 +1484,7 @@ published on GitHub.
 
 ### What's new in v1.3
 
-- **Feature catalogue** — `GET /meta/features` plus a `/features` screen render the 360 shipped
+- **Feature catalogue** — `GET /meta/features` plus a `/features` screen render the 363 shipped
   capabilities in 30 groups from `app/core/features.py`, so the API, the UI and the documentation
   describe exactly the same system.
 - **Aggregate builder** — a structured query surface with group-by, six aggregate functions and
