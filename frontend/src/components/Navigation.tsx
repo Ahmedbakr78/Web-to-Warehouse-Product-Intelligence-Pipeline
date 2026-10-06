@@ -208,9 +208,7 @@ export function ConnectionStrip({ collapsed }: { collapsed: boolean }) {
 export function BrandMark({ collapsed }: { collapsed: boolean }) {
   return (
     <div className={cn('flex h-14 shrink-0 items-center gap-2.5 border-b border-line px-4', collapsed && 'justify-center px-0')}>
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white">
-        <Database className="h-4 w-4" aria-hidden />
-      </div>
+      <img src="/logo.png" alt="Product Intelligence logo" className="h-8 w-8 shrink-0 rounded-lg" />
       {!collapsed ? (
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold leading-tight">Product Intelligence</p>
@@ -385,9 +383,7 @@ export function NavDrawer({ open, onClose, ref }: { open: boolean; onClose: () =
       <aside className="relative m-3 flex h-[calc(100%-1.5rem)] w-72 max-w-[calc(82vw-1.5rem)] flex-col overflow-hidden rounded-2xl border border-line bg-[var(--sidebar-bg)] shadow-xl pb-[env(safe-area-inset-bottom)]">
         <div className="flex h-14 shrink-0 items-center justify-between border-b border-line px-4">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-white">
-              <Database className="h-4 w-4" aria-hidden />
-            </div>
+            <img src="/logo.png" alt="Product Intelligence logo" className="h-8 w-8 rounded-lg" />
             <p className="text-sm font-semibold">Product Intelligence</p>
           </div>
           <IconButton label="Close menu" icon={<X className="h-4 w-4" />} onClick={onClose} />
