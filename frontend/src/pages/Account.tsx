@@ -808,12 +808,16 @@ export default function Account() {
           <Card>
             <CardHeader title="Shortcuts & feature list" subtitle="Keyboard-first workflow plus everything this app ships" icon={<Eye className="h-4 w-4" />} />
             <div className="space-y-2 text-sm">
-              <KeyValue label="Command palette" value="/ or Ctrl/Cmd-K" />
-              <KeyValue label="Toggle sidebar" value="Ctrl/Cmd-B" />
-              <KeyValue label="Collapse / expand rail" value="[ and ]" />
-              <KeyValue label="Close dialogs" value="Esc or ? for help" />
-              <KeyValue label="Locale / timezone" value={`${locale} · ${timezone}`} />
-              <KeyValue label="Catalogue" value="See the Features screen for the full 400+ list" />
+              <KeyValue
+                items={[
+                  { label: 'Command palette', value: '/ or Ctrl/Cmd-K' },
+                  { label: 'Toggle sidebar', value: 'Ctrl/Cmd-B' },
+                  { label: 'Collapse / expand rail', value: '[ and ]' },
+                  { label: 'Close dialogs', value: 'Esc or ? for help' },
+                  { label: 'Locale / timezone', value: `${locale} · ${timezone}` },
+                  { label: 'Catalogue', value: 'Features screen: full 400+ list' },
+                ]}
+              />
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
               <Button variant="secondary" onClick={() => { localStore.set('account.startPage', startPage); toast.success('Preferences saved locally'); }}>
