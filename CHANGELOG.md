@@ -18,6 +18,9 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Infographic dark variant + PDF** — the generator renders light and dark 2560×1440 sets (SVG + PNG)
   plus a PDF from one palette-parameterised builder, with `make infographic --check` and a CI step
   failing on stale artefacts.
+- **Public self-registration** — `POST /auth/register` creates a viewer account (role forced server-side,
+  409 on duplicates, 403 when `REGISTRATION_ENABLED=false`) and returns tokens immediately; the Login
+  screen gains a sign-in / sign-up mode switch with full-name validation.
 
 ## [1.7.0] - 2026-10-06
 

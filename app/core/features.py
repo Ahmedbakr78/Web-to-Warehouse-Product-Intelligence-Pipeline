@@ -430,6 +430,18 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "name": "Account self-service",
                 "detail": "Profile, password, preferences, data export, account deletion",
             },
+            {
+                "name": "Public self-registration",
+                "detail": "POST /auth/register creates a viewer and returns tokens; role forced server-side",
+            },
+            {
+                "name": "Registration kill-switch",
+                "detail": "REGISTRATION_ENABLED=false refuses signups with 403 for centrally-provisioned fleets",
+            },
+            {
+                "name": "Create-account screen",
+                "detail": "Sign-in / sign-up mode switch on Login with full-name validation and instant sign-in",
+            },
         ],
     },
     {

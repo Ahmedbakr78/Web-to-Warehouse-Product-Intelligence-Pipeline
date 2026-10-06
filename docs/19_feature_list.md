@@ -378,9 +378,14 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 | Builder entities + export additions | 4 |
 | History + activity export additions | 4 |
 | Excel export additions | 2 |
-| **Total** | **428** |
+| Proxy + ops additions | 3 |
+| Watchlist + personal tracking Max | 9 |
+| Export-everywhere Max | 3 |
+| Compare + export-all Max | 3 |
+| Self-registration Max | 3 |
+| **Total** | **449** |
 
-The numbering is continuous from F-001 to F-428 with no duplicate or missing identifier. Counts are measured from the rows themselves by `scripts/project_stats.py`, and each section heading states the same figure, so the three cannot quietly disagree. Sections 14–27 continue below with the same running sequence.
+The numbering is continuous from F-001 to F-449 with no duplicate or missing identifier. Counts are measured from the rows themselves by `scripts/project_stats.py`, and each section heading states the same figure, so the three cannot quietly disagree. Sections 14–32 continue below with the same running sequence.
 
 ---
 
@@ -765,3 +770,15 @@ Compare across pages and export beyond the visible page, with one-click watchlis
 | F-446 | One-click watchlist clear | Clear button plus DELETE /users/me/watchlist with removed count | `app/api/routers/users.py` `clear_watchlist` |
 
 **Revised total: 446 features across 31 areas** (F-001 to F-446).
+
+## 32. Self-registration Max (3)
+
+Public sign-up with server-enforced roles, a deployment kill-switch and a matching Login mode.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-447 | Public self-registration | POST /auth/register creates a viewer and returns tokens; 409 on duplicates | `app/api/routers/auth.py` `register` |
+| F-448 | Registration kill-switch | REGISTRATION_ENABLED=false refuses sign-ups with 403, covered by a dedicated test | `app/core/config.py` `registration_enabled` |
+| F-449 | Create-account screen | Sign-in / sign-up switch on Login with full-name validation and instant sign-in | `frontend/src/pages/Login.tsx` `useAuth.register` |
+
+**Revised total: 449 features across 32 areas** (F-001 to F-449).

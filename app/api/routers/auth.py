@@ -131,7 +131,9 @@ def register(payload: RegisterRequest, request: Request, session: DbSession) -> 
     email = str(payload.email).lower().strip()
     if session.execute(sa.select(AppUser).where(AppUser.email == email)).scalars().first() is not None:
         raise ConflictError(f"user '{email}' already exists")
-    role = settings.registration_default_role if settings.registration_default_role in ROLE_RIGHTS else "viewer"
+    role = (
+        settings.registration_default_role if settings.registration_default_role in ROLE_RIGHTS else "viewer"
+    )
     now = dt.datetime.now(dt.timezone.utc)
     user = AppUser(
         email=email,
