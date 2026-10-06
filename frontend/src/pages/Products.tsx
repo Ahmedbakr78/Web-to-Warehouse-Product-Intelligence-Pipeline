@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Braces, Columns3, Download, Filter, Package, RotateCcw, Star } from 'lucide-react'
+import { Braces, Columns3, Download, Filter, GitCompare, Package, RotateCcw, Star, Trash2 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import {
@@ -22,7 +22,7 @@ import {
   useToast,
 } from '@/components/ui'
 import { cn } from '@/lib/cn'
-import { endpoints } from '@/lib/api'
+import { downloadExport, endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { useDebounce } from '@/hooks/useDebounce'
 import { localStore } from '@/lib/session'
@@ -154,6 +154,42 @@ export default function Products() {
     },
     onError: (error: Error) => toast.error('Could not update the watchlist', error.message),
   })
+  const clearWatchlist = useMutation({
+    mutationFn: () => endpoints.watchClear(),
+    onSuccess: (result: any) => {
+      toast.success('Watchlist cleared', `${result?.cleared ?? 0} product(s) removed`)
+      void queryClient.invalidateQueries({ queryKey: ['watchlist'] })
+    },
+    onError: (error: Error) => toast.error('Could not clear the watchlist', error.message),
+  })
+
+  // Side-by-side comparison: up to 4 products, resolved server-side so the
+  // tray works across pages and filters.
+  const [comparedIds, setComparedIds] = useState<number[]>([])
+  const [showCompare, setShowCompare] = useState(false)
+  const comparison = useApiQuery(
+    ['compare', comparedIds],
+    () => endpoints.compare(comparedIds),
+    { enabled: showCompare && comparedIds.length >= 2 },
+  )
+  function toggleCompare(id: number) {
+    setComparedIds((current) =>
+      current.includes(id) ? current.filter((item) => item !== id) : [...current, id].slice(0, 4),
+    )
+  }
+
+  // Server-side full export honours the visible filters (not just the page).
+  const exportAll = useMutation({
+    mutationFn: () =>
+      downloadExport('products', 'csv', {
+        search: debouncedSearch || undefined,
+        category_name: category || undefined,
+        source_code: source || undefined,
+        availability: availability || undefined,
+      }),
+    onSuccess: () => toast.success('Full export downloaded', 'All filtered products, not just this page.'),
+    onError: (error: Error) => toast.error('Could not export products', error.message),
+  })
 
   const rows = products.data?.items ?? []
   const total = products.data?.total ?? 0
@@ -233,14 +269,46 @@ export default function Products() {
             >
               Watched{watchedIds.size ? ` (${watchedIds.size})` : ''}
             </Button>
+            {watchedOnly && watchedIds.size > 0 ? (
+              <Button
+                size="sm"
+                variant="ghost"
+                icon={<Trash2 className="h-4 w-4" />}
+                loading={clearWatchlist.isPending}
+                onClick={() => clearWatchlist.mutate()}
+                title="Remove every product from the watchlist"
+              >
+                Clear
+              </Button>
+            ) : null}
+            <Button
+              size="sm"
+              variant={comparedIds.length ? 'primary' : 'secondary'}
+              icon={<GitCompare className="h-4 w-4" />}
+              disabled={comparedIds.length < 2}
+              onClick={() => setShowCompare(true)}
+              title={comparedIds.length < 2 ? 'Select at least 2 products to compare' : `Compare ${comparedIds.length} products side by side`}
+            >
+              Compare{comparedIds.length ? ` (${comparedIds.length})` : ''}
+            </Button>
             <Button size="sm" variant={showFilters ? 'primary' : 'secondary'} icon={<Filter className="h-4 w-4" />} onClick={() => setShowFilters((value) => !value)}>
               Filters{activeFilterCount ? ` (${activeFilterCount})` : ''}
             </Button>
             <Button size="sm" variant="secondary" icon={<Columns3 className="h-4 w-4" />} onClick={() => setShowColumns(true)}>
               Columns
             </Button>
-            <Button size="sm" variant="secondary" icon={<Download className="h-4 w-4" />} onClick={exportCsv}>
+            <Button size="sm" variant="secondary" icon={<Download className="h-4 w-4" />} onClick={exportCsv} title="Export this page as CSV">
               CSV
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              icon={<Download className="h-4 w-4" />}
+              loading={exportAll.isPending}
+              onClick={() => exportAll.mutate()}
+              title="Download every filtered product from the server (up to 5,000 rows)"
+            >
+              Export all
             </Button>
             <Button size="sm" variant="ghost" icon={<Braces className="h-4 w-4" />} onClick={exportJson} aria-label="Export as JSON">
               JSON
@@ -332,6 +400,20 @@ export default function Products() {
             onSort={onSort}
             sort={{ by: sortBy, dir: sortDir }}
             columns={[
+              {
+                key: 'select',
+                header: '',
+                render: (row: any) => (
+                  <input
+                    type="checkbox"
+                    checked={comparedIds.includes(row.product_id)}
+                    onChange={() => toggleCompare(row.product_id)}
+                    aria-label={`Select ${row.canonical_name} for comparison`}
+                    title={comparedIds.includes(row.product_id) ? 'Remove from comparison' : 'Add to comparison (max 4)'}
+                    className="h-4 w-4 accent-brand-600"
+                  />
+                ),
+              },
               {
                 key: 'watch',
                 header: '',

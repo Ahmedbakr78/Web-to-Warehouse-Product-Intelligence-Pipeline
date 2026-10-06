@@ -238,6 +238,14 @@ def watch_product(product_id: int, session: DbSession, user: CurrentUser) -> dic
     return {"watched": True, "product_id": product_id, "count": len(ids)}
 
 
+@router.delete("/me/watchlist", summary="Clear my entire watchlist")
+def clear_watchlist(session: DbSession, user: CurrentUser) -> dict[str, Any]:
+    """One-shot reset: empties the list and reports how many were removed."""
+    removed = len(_watchlist_ids(user))
+    _save_watchlist(session, user, [])
+    return {"watched": False, "cleared": removed, "count": 0}
+
+
 @router.delete("/me/watchlist/{product_id}", summary="Remove a product from my watchlist")
 def unwatch_product(product_id: int, session: DbSession, user: CurrentUser) -> dict[str, Any]:
     """Idempotent remove: unwatching what was never watched still succeeds."""

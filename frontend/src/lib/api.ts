@@ -259,6 +259,7 @@ export const endpoints = {
   watchlist: () => api.get<any>('/users/me/watchlist'),
   watchAdd: (id: number) => api.post<any>(`/users/me/watchlist/${id}`),
   watchRemove: (id: number) => api.del<any>(`/users/me/watchlist/${id}`),
+  watchClear: () => api.del<any>('/users/me/watchlist'),
 
   sources: () => api.get<any[]>('/sources'),
   sourceRobots: () => api.get<any>('/sources/robots'),

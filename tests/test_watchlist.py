@@ -68,3 +68,12 @@ def test_viewers_can_keep_a_watchlist(client, viewer_token):
     assert client.post("/api/v1/users/me/watchlist/1", headers=auth(viewer_token)).status_code == 200
     assert client.get("/api/v1/users/me/watchlist", headers=auth(viewer_token)).json()["count"] == 1
     client.delete("/api/v1/users/me/watchlist/1", headers=auth(viewer_token))
+
+
+def test_clear_empties_the_watchlist(client, admin_token):
+    client.post("/api/v1/users/me/watchlist/1", headers=auth(admin_token))
+    cleared = client.delete("/api/v1/users/me/watchlist", headers=auth(admin_token))
+    assert cleared.status_code == 200, cleared.text
+    assert cleared.json()["count"] == 0
+    assert cleared.json()["cleared"] >= 1
+    assert client.get("/api/v1/users/me/watchlist", headers=auth(admin_token)).json()["count"] == 0

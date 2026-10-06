@@ -98,6 +98,11 @@ class Settings(BaseSettings):
     seed_viewer_email: str = "viewer@example.com"
     seed_viewer_password: str = "Viewer@12345"
     seed_demo_data: bool = True
+    #: Public self-registration. New accounts always start as viewers; an admin
+    #: promotes from the Users screen. Disable in production if accounts are
+    #: provisioned centrally (REGISTRATION_ENABLED=false).
+    registration_enabled: bool = True
+    registration_default_role: str = "viewer"
 
     # ---------------------------------------------------------------- ingestion
     ingest_user_agent: str = (

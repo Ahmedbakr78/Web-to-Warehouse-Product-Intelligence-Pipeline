@@ -156,6 +156,24 @@ class PasswordChangeRequest(BaseModel):
         return value
 
 
+class RegisterRequest(BaseModel):
+    """Public self-registration. The role is always forced server-side."""
+
+    email: EmailStr
+    full_name: str = Field(min_length=2, max_length=128)
+    password: str = Field(min_length=10, max_length=256)
+
+    @field_validator("password")
+    @classmethod
+    def _strong(cls, value: str) -> str:
+        from app.api.security import password_strength
+
+        ok, problems = password_strength(value)
+        if not ok:
+            raise ValueError("password too weak: " + ", ".join(problems))
+        return value
+
+
 class UserRead(ORMModel):
     user_id: int
     email: str
