@@ -3,7 +3,7 @@
   "airflow_tasks": 33,
   "analytical_views": 20,
   "api_smoke_checks": 104,
-  "catalogued_features": 451,
+  "catalogued_features": 454,
   "cli_commands": 13,
   "compose_services": 6,
   "data_quality_rules": 12,

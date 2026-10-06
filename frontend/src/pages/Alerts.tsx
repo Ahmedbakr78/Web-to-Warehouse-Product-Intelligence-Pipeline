@@ -28,6 +28,7 @@ import {
   type Column,
   type Tone,
 } from '@/components/ui'
+import { ExportButton } from '@/components/ExportButton'
 import { endpoints } from '@/lib/api'
 import { queryKeys, useApiQuery } from '@/hooks/useApi'
 import { formatDateTime, formatNumber, formatRelative, titleCase } from '@/lib/format'
@@ -441,6 +442,7 @@ export default function Alerts() {
           <Button size="sm" variant="primary" icon={<Plus className="h-4 w-4" />} onClick={openCreate}>
             New alert
           </Button>
+          <ExportButton dataset="alerts" />
         </div>
       </div>
 

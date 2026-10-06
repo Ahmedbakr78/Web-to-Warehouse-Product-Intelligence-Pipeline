@@ -541,6 +541,14 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "detail": "One-click CSV, Excel and JSON of the source coverage dataset on the Sources screen",
             },
             {
+                "name": "Alerts ExportButton",
+                "detail": "One-click CSV, Excel and JSON of every alert rule on the Alerts toolbar",
+            },
+            {
+                "name": "Runs ExportButton",
+                "detail": "One-click CSV, Excel and JSON of run history beside the status filter",
+            },
+            {
                 "name": "Side-by-side product comparison",
                 "detail": "Select up to 4 products for a live server-side attribute matrix",
             },
@@ -1354,6 +1362,10 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             {
                 "name": "One-command everything",
                 "detail": "install, env, databases, schema, demo data, pipeline, tests, frontend build",
+            },
+            {
+                "name": "One-command local runner",
+                "detail": "run-local.sh: version-gated preflight, foreign port-conflict guard, no-rebuild re-runs, logs/status/open actions",
             },
             {
                 "name": "Single canonical version",

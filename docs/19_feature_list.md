@@ -383,9 +383,12 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 | Export-everywhere Max | 3 |
 | Compare + export-all Max | 3 |
 | Self-registration Max | 3 |
-| **Total** | **449** |
+| Sources + projection export Max | 2 |
+| Local runner Max | 1 |
+| Export-button sweep Max | 2 |
+| **Total** | **454** |
 
-The numbering is continuous from F-001 to F-449 with no duplicate or missing identifier. Counts are measured from the rows themselves by `scripts/project_stats.py`, and each section heading states the same figure, so the three cannot quietly disagree. Sections 14–32 continue below with the same running sequence.
+The numbering is continuous from F-001 to F-454 with no duplicate or missing identifier. Counts are measured from the rows themselves by `scripts/project_stats.py`, and each section heading states the same figure, so the three cannot quietly disagree. Sections 14–35 continue below with the same running sequence.
 
 ---
 
@@ -793,3 +796,24 @@ The last two screens without a download get one: sources coverage and per-produc
 | F-451 | Projection CSV export | Per-product forecast points with confidence bounds from the projection card | `frontend/src/pages/Forecast.tsx` `forecast-product-*.csv` |
 
 **Revised total: 451 features across 33 areas** (F-001 to F-451).
+
+## 34. Local runner Max (1)
+
+One command to run everything locally, hardened for real machines.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-452 | Hardened run-local.sh | Version-gated preflight, foreign port-conflict guard, no-rebuild re-runs, logs/status/open actions, Airflow check | `run-local.sh` |
+
+**Revised total: 452 features across 34 areas** (F-001 to F-452).
+
+## 35. Export-button sweep Max (2)
+
+The last two toolbars without a download get one: alerts and run history.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-453 | Alerts ExportButton | CSV, Excel and JSON of every alert rule on the Alerts toolbar | `frontend/src/pages/Alerts.tsx` `ExportButton` |
+| F-454 | Runs ExportButton | CSV, Excel and JSON of run history beside the status filter | `frontend/src/pages/Pipeline.tsx` `ExportButton` |
+
+**Revised total: 454 features across 35 areas** (F-001 to F-454).

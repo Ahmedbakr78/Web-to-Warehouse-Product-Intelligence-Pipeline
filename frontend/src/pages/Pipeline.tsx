@@ -19,6 +19,7 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { BarSeries } from '@/components/charts'
+import { ExportButton } from '@/components/ExportButton'
 import JobQueue from '@/components/JobQueue'
 import {
   Badge,
@@ -164,7 +165,10 @@ export default function Pipeline() {
         <Card padded={false}>
           <div className="flex flex-wrap items-center gap-2 p-3">
             <Segmented options={STATUS_FILTERS} value={status} onChange={(value) => { setStatus(value); setPage(1) }} size="sm" />
-            <div className="ml-auto text-xs text-subtle">{formatNumber(runs.data?.total ?? 0)} runs</div>
+            <div className="ml-auto flex items-center gap-2">
+              <span className="text-xs text-subtle">{formatNumber(runs.data?.total ?? 0)} runs</span>
+              <ExportButton dataset="runs" />
+            </div>
           </div>
 
           {runs.isError ? (
