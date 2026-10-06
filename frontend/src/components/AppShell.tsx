@@ -119,7 +119,15 @@ export default function AppShell() {
       </div>
 
       {/* ---------------------------------------------------------------- content */}
-      <div className="flex min-w-0 flex-1 flex-col">
+      {/* The desktop rail is a floating card, so the content reserves its width
+          plus the surrounding gap; without this the fixed sidebar would cover
+          the header controls underneath it. */}
+      <div
+        className={cn(
+          'flex min-w-0 flex-1 flex-col',
+          !overlay && (collapsed ? 'lg:pl-24' : 'lg:pl-[17.5rem]'),
+        )}
+      >
         <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-line bg-[var(--surface)]/95 px-3 pt-[env(safe-area-inset-top)] backdrop-blur sm:px-4">
           <IconButton
             label="Open menu"

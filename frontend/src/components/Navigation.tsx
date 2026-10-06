@@ -309,7 +309,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
   return (
     <aside
       className={cn(
-        'fixed inset-y-0 left-0 z-40 hidden shrink-0 border-r border-line bg-[var(--sidebar-bg)] lg:flex lg:flex-col',
+        'fixed bottom-3 left-3 top-3 z-40 hidden shrink-0 flex-col overflow-hidden rounded-2xl border border-line bg-[var(--sidebar-bg)] shadow-lg lg:flex',
         collapsed ? 'w-[var(--sidebar-w-collapsed)]' : 'w-[var(--sidebar-w-expanded)]',
       )}
       style={
@@ -382,7 +382,7 @@ export function NavDrawer({ open, onClose, ref }: { open: boolean; onClose: () =
       tabIndex={-1}
     >
       <div className="absolute inset-0 bg-[var(--overlay)]" onClick={onClose} aria-hidden />
-      <aside className="relative flex h-full w-72 max-w-[82vw] flex-col border-r border-line bg-[var(--sidebar-bg)] pb-[env(safe-area-inset-bottom)]">
+      <aside className="relative m-3 flex h-[calc(100%-1.5rem)] w-72 max-w-[calc(82vw-1.5rem)] flex-col overflow-hidden rounded-2xl border border-line bg-[var(--sidebar-bg)] shadow-xl pb-[env(safe-area-inset-bottom)]">
         <div className="flex h-14 shrink-0 items-center justify-between border-b border-line px-4">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-white">

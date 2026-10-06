@@ -314,37 +314,26 @@
     color: var(--brand-900);
   }
 
-  /* --------------------------- modern scrollbars ---------------------------------- */
+  /* --------------------------- no scrollbars ------------------------------------ */
+  /* Scrollbars are removed entirely: every scrollable region keeps working with
+     wheel, touch, keyboard and drag, and scroll shadows remain as the position
+     affordance. `scrollbar-width: none` covers Firefox; the webkit rule covers
+     Chromium and Safari (including the overlay scrollbars on macOS/iOS). */
   * {
-    scrollbar-width: thin;
-    scrollbar-color: color-mix(in srgb, var(--text-subtle) 45%, transparent) transparent;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 
   ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    display: none;
+    width: 0;
+    height: 0;
   }
 
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background-color: color-mix(in srgb, var(--text-subtle) 38%, transparent);
-    border-radius: 999px;
-    border: 3px solid transparent;
-    background-clip: content-box;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background-color: color-mix(in srgb, var(--text-subtle) 70%, transparent);
-  }
-
-  ::-webkit-scrollbar-thumb:active {
-    background-color: var(--brand-500);
-  }
-
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-thumb,
   ::-webkit-scrollbar-corner {
+    display: none;
     background: transparent;
   }
 
@@ -382,19 +371,7 @@
     word-break: break-word;
   }
 
-  /* Slimmer scrollbars inside dense UI (sidebar, palettes, code blocks). */
-  aside ::-webkit-scrollbar,
-  .shadow-pop ::-webkit-scrollbar,
-  pre ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  aside ::-webkit-scrollbar-thumb,
-  .shadow-pop ::-webkit-scrollbar-thumb,
-  pre ::-webkit-scrollbar-thumb {
-    border-width: 2px;
-  }
+  /* Dense UI no longer needs slimmer scrollbars - there are no scrollbars. */
 
   /* Density switch used by the appearance settings */
   html[data-density='compact'] {
