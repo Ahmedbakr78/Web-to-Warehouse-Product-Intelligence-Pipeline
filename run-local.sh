@@ -183,23 +183,6 @@ check_version() { # name cmd min_major min_minor -- warns, never dies
 check_version "Python" "python3 --version" 3 12
 check_version "Node.js" "node --version" 20 0
 
-port_free() { # port label -- dies with a fix-it hint when something listens
-  local port="$1" label="$2" holder=""
-  if command -v ss >/dev/null 2>&1; then
-    holder="$(ss -ltn "sport = :$port" 2>/dev/null | tail -n +2 | head -1)"
-  elif command -v lsof >/dev/null 2>&1; then
-    holder="$(lsof -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null | head -1)"
-  fi
-  if [ -n "$holder" ]; then
-    die "port $port ($label) is already in use: $holder
-  Stop the other process, or pick a free port, e.g.: APP_PORT=8001 FRONTEND_PORT=5174 ./run-local.sh"
-  fi
-}
-
-for mapping in "$APP_PORT:API" "$FRONTEND_PORT:dashboard" "$AIRFLOW_PORT:Airflow"; do
-  port_free "${mapping%%:*}" "${mapping##*:}"
-done
-
 if command -v df >/dev/null 2>&1; then
   avail_kb="$(df -k --output=avail . 2>/dev/null | tail -1 | tr -d ' ')"
   if [ -n "$avail_kb" ] && [ "$avail_kb" -lt 5242880 ]; then
@@ -232,6 +215,52 @@ case "$ACTION" in
 esac
 
 # ----------------------------------------------------------------- one-time setup
+port_free() { # port label -- dies with a fix-it hint when something listens
+  local port="$1" label="$2" holder=""
+  if command -v ss >/dev/null 2>&1; then
+    holder="$(ss -ltn "sport = :$port" 2>/dev/null | tail -n +2 | head -1)"
+  elif command -v lsof >/dev/null 2>&1; then
+    holder="$(lsof -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null | head -1)"
+  fi
+  if [ -n "$holder" ]; then
+    die "port $port ($label) is already in use: $holder
+  Stop the other process, or pick a free port, e.g.: APP_PORT=8001 FRONTEND_PORT=5174 ./run-local.sh"
+  fi
+}
+
+#: Our own containers are allowed to hold the ports; anything else is a conflict.
+port_conflict() { # port label compose-service
+  local port="$1" label="$2" service="$3" holder=""
+  if command -v ss >/dev/null 2>&1; then
+    holder="$(ss -ltnp "sport = :$port" 2>/dev/null | tail -n +2 | head -1)"
+  elif command -v lsof >/dev/null 2>&1; then
+    holder="$(lsof -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null | head -1)"
+  fi
+  if [ -n "$holder" ] && ! printf '%s' "$holder" | grep -q "pip-\|docker\|containerd"; then
+    # ss -ltnp names the owning process; a foreign listener aborts the start.
+    if ! printf '%s' "$holder" | grep -q "users:((\"docker-proxy\""; then
+      die "port $port ($label) is already in use by something outside this stack.
+  Stop it, or pick a free port, e.g.: APP_PORT=8001 FRONTEND_PORT=5174 ./run-local.sh"
+    fi
+  fi
+  # Defensive second check: if OUR service is down but the port answers, it is foreign.
+  if ! service_healthy "$service" 2>/dev/null; then
+    if curl -fsS --max-time 2 "http://localhost:$port/" >/dev/null 2>&1; then
+      die "port $port ($label) answers but the '$service' container is not running it.
+  Stop the foreign process, or pick a free port, e.g.: APP_PORT=8001 FRONTEND_PORT=5174 ./run-local.sh"
+    fi
+  fi
+}
+
+port_conflict "$APP_PORT" "API" api
+port_conflict "$FRONTEND_PORT" "dashboard" frontend
+# Airflow starts minutes after everything else; only flag a foreign squatter.
+if curl -fsS --max-time 2 "$AIRFLOW_URL/health" >/dev/null 2>&1; then
+  if ! service_healthy airflow 2>/dev/null; then
+    die "port $AIRFLOW_PORT (Airflow) answers but our airflow container is not running it."
+  fi
+fi
+
 if [ ! -x "$PY" ]; then
   step "Creating the Python virtual environment"
   python3 -m venv "$VENV"

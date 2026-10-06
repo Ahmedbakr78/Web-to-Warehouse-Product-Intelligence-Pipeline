@@ -782,3 +782,14 @@ Public sign-up with server-enforced roles, a deployment kill-switch and a matchi
 | F-449 | Create-account screen | Sign-in / sign-up switch on Login with full-name validation and instant sign-in | `frontend/src/pages/Login.tsx` `useAuth.register` |
 
 **Revised total: 449 features across 32 areas** (F-001 to F-449).
+
+## 33. Sources + projection export Max (2)
+
+The last two screens without a download get one: sources coverage and per-product projections.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-450 | Sources ExportButton | CSV, Excel and JSON of the source coverage dataset on the Sources screen | `frontend/src/pages/Sources.tsx` `ExportButton` |
+| F-451 | Projection CSV export | Per-product forecast points with confidence bounds from the projection card | `frontend/src/pages/Forecast.tsx` `forecast-product-*.csv` |
+
+**Revised total: 451 features across 33 areas** (F-001 to F-451).
