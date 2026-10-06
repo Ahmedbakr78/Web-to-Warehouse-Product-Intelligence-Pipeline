@@ -80,12 +80,16 @@ export default function Forecast() {
   const job = useJob(rebuildJob)
   const jobStatus = String(job.job?.status ?? '')
   const jobRunning = Boolean(job.job) && !['succeeded', 'failed', 'cancelled'].includes(jobStatus)
+  // The last finished run stays visible (with its outcome) until the next rebuild;
+  // unmounting the panel on completion hid the result the moment it arrived.
+  const [finishedJob, setFinishedJob] = useState<{ key: string; status: string } | null>(null)
 
   // A rebuild writes new forecasts; refresh the panels once it lands, then stop
-  // tracking that job so the effect does not re-fire on every render.
+  // polling that job but keep the finished summary on screen.
   useEffect(() => {
     if (!['succeeded', 'failed'].includes(jobStatus)) return
     void queryClient.invalidateQueries({ queryKey: ['forecast-backtest'] })
+    setFinishedJob({ key: String((job.job as any)?.job_key ?? rebuildJob ?? ''), status: jobStatus })
     setRebuildJob(null)
   }, [jobStatus, queryClient])
 
@@ -113,6 +117,7 @@ export default function Forecast() {
   async function rebuild() {
     try {
       const response = await endpoints.rebuildForecasts(Number(horizon))
+      setFinishedJob(null)
       setRebuildJob(response.job_key)
       toast.success('Forecast rebuild queued', response.job_key)
     } catch (error) {
@@ -173,6 +178,20 @@ export default function Forecast() {
                 ))}
               </ul>
             ) : null}
+          </div>
+        ) : finishedJob ? (
+          <div className="mt-3 rounded-lg border border-line bg-surface-2 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+              <span className="font-medium text-ink">
+                {finishedJob.key} · {finishedJob.status}
+              </span>
+              <Badge tone={finishedJob.status === 'succeeded' ? 'success' : 'danger'}>{finishedJob.status}</Badge>
+            </div>
+            <p className="mt-1 text-[11px] text-subtle">
+              {finishedJob.status === 'succeeded'
+                ? 'The accuracy and projection panels above already reflect the rebuilt forecasts.'
+                : 'The rebuild failed - the panels above still show the previous forecasts.'}
+            </p>
           </div>
         ) : null}
       </Card>

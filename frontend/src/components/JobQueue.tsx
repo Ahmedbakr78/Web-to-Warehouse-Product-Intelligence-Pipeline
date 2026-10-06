@@ -78,7 +78,7 @@ export default function JobQueue() {
   // Progress pushed over the stream wins over the polled row, but only while the job
   // is still active - afterwards the database row is the source of truth.
   const live = useRef(new Map<string, Record<string, any>>())
-  const { state } = useEventStream(['job'], {
+  const { state, events: streamEvents } = useEventStream(['job'], {
     onEvent: (event) => {
       const reference = String(event.job_key ?? event.job_reference ?? '')
       if (!reference) return
@@ -112,7 +112,9 @@ export default function JobQueue() {
   const rows = useMemo(() => {
     const items = (jobs.data?.items ?? []) as any[]
     return items.map((row) => {
-      const push = live.current.get(row.reference)
+      // The stream keys events by job_key (falling back to a legacy reference);
+      // match either so pushed progress always lands on its row.
+      const push = live.current.get(row.job_key) ?? live.current.get(row.reference)
       if (!push || TERMINAL.includes(String(row.status))) return row
       return {
         ...row,
@@ -123,7 +125,9 @@ export default function JobQueue() {
         streamed: true,
       }
     })
-  }, [jobs.data])
+    // `streamEvents` is the re-render trigger: `live` is a ref mutated in place,
+    // so without it the merged progress would sit stale until the next 15 s poll.
+  }, [jobs.data, streamEvents])
 
   const active = rows.filter((row) => ACTIVE.includes(String(row.status)))
   const cancellable = new Set<string>(types.data?.cancellable ?? [])
@@ -184,7 +188,7 @@ export default function JobQueue() {
             rows={rows}
             rowKey={(row: any) => row.job_key}
             maxHeight={520}
-            onRowClick={(row: any) => setExpanded((current) => (current === row.reference ? null : row.reference))}
+            onRowClick={(row: any) => setExpanded((current) => (current === row.job_key ? null : row.job_key))}
             columns={[
               {
                 key: 'job_type',
