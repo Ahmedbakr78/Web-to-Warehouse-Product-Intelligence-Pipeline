@@ -335,9 +335,53 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
 }
 
 export function NavDrawer({ open, onClose, ref }: { open: boolean; onClose: () => void; ref?: React.Ref<HTMLDivElement> }) {
+  const localRef = useRef<HTMLDivElement | null>(null)
+  const attachRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      localRef.current = node
+      if (typeof ref === 'function') ref(node)
+      else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node
+    },
+    [ref],
+  )
+
+  /**
+   * Escape closes the drawer, and focus moves into it while it is open.
+   *
+   * `AppShell` also handles Escape globally, but a modal dialog that only closes when
+   * some ancestor happens to handle the key is not really modal: keyboard users would
+   * be stranded if this component were ever mounted on its own. Returning focus to
+   * whatever opened it is the other half of that contract.
+   */
+  useEffect(() => {
+    if (!open) return
+    const previouslyFocused = document.activeElement as HTMLElement | null
+    localRef.current?.focus()
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation()
+        onClose()
+      }
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      previouslyFocused?.focus?.()
+    }
+  }, [open, onClose])
+
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Navigation" ref={ref}>
+    <div
+      className="fixed inset-0 z-50 lg:hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Navigation"
+      ref={attachRef}
+      tabIndex={-1}
+      outline-none
+    >
       <div className="absolute inset-0 bg-[var(--overlay)]" onClick={onClose} aria-hidden />
       <aside className="relative flex h-full w-72 max-w-[82vw] flex-col border-r border-line bg-[var(--sidebar-bg)] pb-[env(safe-area-inset-bottom)]">
         <div className="flex h-14 shrink-0 items-center justify-between border-b border-line px-4">
