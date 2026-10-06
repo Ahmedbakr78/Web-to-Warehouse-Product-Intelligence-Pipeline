@@ -1155,6 +1155,14 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "detail": "Analytics and event entities render bare arrays; the empty-preview bug is gone",
             },
             {
+                "name": "Saved views for all 12 entities",
+                "detail": "The saved-view contract accepts every filter entity; unknown names still 422",
+            },
+            {
+                "name": "Entity-aware page shortcut",
+                "detail": "Open-as-a-page appears only where it resolves: the products entity",
+            },
+            {
                 "name": "Pipeline-runs entity",
                 "detail": "Group and aggregate etl_run: status, trigger, counters, DQ score per run",
             },

@@ -669,9 +669,11 @@ export default function Builder() {
             <Button size="sm" variant="ghost" icon={<Braces className="h-4 w-4" />} onClick={() => exportPreview('json')} disabled={!rows.length}>
               JSON
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => navigate(`/products?${new URLSearchParams(cleanParams(productParams)).toString()}`)}>
-              Open as a page
-            </Button>
+            {state.entity === 'products' ? (
+              <Button size="sm" variant="ghost" onClick={() => navigate(`/products?${new URLSearchParams(cleanParams(productParams)).toString()}`)}>
+                Open as a page
+              </Button>
+            ) : null}
           </div>
         </div>
         {preview.isError ? (

@@ -828,3 +828,14 @@ Three more filter entities plus the fix that un-blanks four existing previews.
 | F-456 | Array-preview normalisation | Bare-array entities render rows instead of an empty table; counts use rows.length | `frontend/src/pages/Builder.tsx` `displayRows` |
 
 **Revised total: 456 features across 36 areas** (F-001 to F-456).
+
+## 37. Saved-view contract Max (2)
+
+Every filter entity round-trips through saved views; the shortcut respects its scope.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-457 | Saved views for all 12 entities | Widened entity contract covers new, removed, movers, categories, brands, availability | `app/api/schemas.py` `SavedViewCreate` |
+| F-458 | Entity-aware page shortcut | Open-as-a-page renders only for the products entity it can resolve | `frontend/src/pages/Builder.tsx` |
+
+**Revised total: 458 features across 37 areas** (F-001 to F-458).

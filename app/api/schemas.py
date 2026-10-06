@@ -589,7 +589,23 @@ class SavedViewRead(ORMModel):
 
 class SavedViewCreate(BaseModel):
     name: str = Field(min_length=1, max_length=120)
-    entity: Literal["products", "changes", "runs", "quality", "catalog", "sources"]
+    #: Every entity the dashboard Builder can compose, plus the legacy "changes"
+    #: alias the filter mode sends for price-changes. Kept as a literal so the
+    #: API contract stays explicit rather than accepting arbitrary strings.
+    entity: Literal[
+        "products",
+        "changes",
+        "runs",
+        "quality",
+        "catalog",
+        "sources",
+        "new",
+        "removed",
+        "movers",
+        "categories",
+        "brands",
+        "availability",
+    ]
     description: str | None = None
     filters: dict[str, Any] = Field(default_factory=dict)
     sort_by: str | None = None
