@@ -368,9 +368,10 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 | Platform v1.2 additions | 8 |
 | Platform v1.3 additions | 37 |
 | Platform v1.4 additions | 40 |
-| **Total** | **311** |
+| Platform v1.6 additions | 6 |
+| **Total** | **317** |
 
-The numbering is continuous from F-001 to F-311 with no duplicate or missing identifier. Counts are measured from the rows themselves by `scripts/project_stats.py`, and each section heading states the same figure, so the three cannot quietly disagree.
+The numbering is continuous from F-001 to F-317 with no duplicate or missing identifier. Counts are measured from the rows themselves by `scripts/project_stats.py`, and each section heading states the same figure, so the three cannot quietly disagree.
 
 ---
 
@@ -499,4 +500,19 @@ Integrations (export, webhooks, backfill) and run comparison. Every row ships be
 **Final total: 295 features across 17 areas** (F-001 to F-295). Section 17 adds the
 export, webhook, backfill and run-comparison capabilities shipped in v1.4.
 
-**Revised total: 311 features across 17 areas** (F-001 to F-311, contiguous, with no duplicate or missing identifiers). Each section heading states its own count, matching the rows beneath it.
+**Revised total: 311 features across 17 areas** (F-001 to F-311, contiguous, with no duplicate or missing identifiers). Section 18 continues the sequence; see the count table below for the current totals.
+
+---
+
+## 18. Platform v1.6 additions (6)
+
+Navigation discoverability, flash-free appearance and generated artefacts with drift gates.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-312 | Header collapse control | Collapse or expand the sidebar rail from the top bar, with the state shared across tabs | `frontend/src/components/AppShell.tsx` |
+| F-313 | Shortcut reference dialog | Press `?` anywhere for every shortcut on one screen, also reachable from the command palette | `frontend/src/components/AppShell.tsx` `ShortcutsDialog` |
+| F-314 | Accent pre-paint | The accent palette resolves before first paint, so reload never flashes the default colour | `frontend/index.html` `frontend/src/lib/theme.ts` |
+| F-315 | Infographic freshness gate | `make_infographic.py --check` fails when the committed SVG differs from the generator | `scripts/make_infographic.py` |
+| F-316 | Presentation deck generator | `make deck` builds a 12-slide PDF from measured counts in the DEPI palette | `scripts/make_deck.py` `make deck` |
+| F-317 | Deck freshness gate | `make_deck.py --check` fails when the committed HTML differs from the generator | `scripts/make_deck.py` |

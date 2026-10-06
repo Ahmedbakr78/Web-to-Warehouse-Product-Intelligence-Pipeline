@@ -379,6 +379,14 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "detail": "Ctrl/Cmd-B toggles navigation, [ and ] collapse or expand the rail",
             },
             {
+                "name": "Shortcut reference dialog",
+                "detail": "Press ? anywhere for every shortcut on one screen, also in the palette",
+            },
+            {
+                "name": "Header collapse control",
+                "detail": "Collapse or expand the rail from the top bar, with the state shared across tabs",
+            },
+            {
                 "name": "Three-state sidebar",
                 "detail": "Expanded, icon rail, or off-canvas drawer; the choice is shared across tabs",
             },
@@ -444,6 +452,10 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             {
                 "name": "Rendered Mermaid diagrams",
                 "detail": "Every diagram in docs/ is rendered to SVG and embedded",
+            },
+            {
+                "name": "Presentation deck generator",
+                "detail": "make deck builds a 12-slide PDF from measured counts, with a --check drift gate",
             },
         ],
     },

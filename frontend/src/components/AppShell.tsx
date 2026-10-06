@@ -18,6 +18,8 @@ import {
   Menu,
   Moon,
   Package,
+  PanelLeftClose,
+  PanelLeftOpen,
   Search,
   Sun,
 } from 'lucide-react'
@@ -28,6 +30,7 @@ import { useTheme } from '@/lib/theme'
 import { endpoints, searchProducts, tokenStore } from '@/lib/api'
 import { useQuery } from '@tanstack/react-query'
 import { Badge, IconButton } from './ui'
+import { Modal } from './ui'
 import { initials, formatRelative, titleCase, formatPrice } from '@/lib/format'
 import { useAuth } from '@/hooks/useAuth'
 import { NavDrawer, PhoneTabBar, Sidebar, usePhoneLayout, useRailState } from './Navigation'
@@ -37,6 +40,7 @@ export default function AppShell() {
   const location = useLocation()
   const { isDark, toggle } = useTheme()
   const [paletteOpen, setPaletteOpen] = useState(false)
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
 
   const { collapsed, toggleRail, overlay, drawerOpen, setDrawerOpen, closeDrawer, drawerRef, onTouchStart, onTouchEnd } =
     useRailState()
@@ -79,8 +83,14 @@ export default function AppShell() {
         if (overlay) setDrawerOpen(false)
         else toggleRail()
       }
+      if (event.key === '?' && !typing && !mod) {
+        event.preventDefault()
+        setShortcutsOpen(true)
+        return
+      }
       if (event.key === 'Escape') {
         setPaletteOpen(false)
+        setShortcutsOpen(false)
         setDrawerOpen(false)
       }
     }
@@ -117,6 +127,16 @@ export default function AppShell() {
             onClick={() => setDrawerOpen(true)}
             className="lg:hidden"
           />
+          {/* Desktop rail collapse - the same control as the sidebar footer, but
+              always visible so the collapse is discoverable without scrolling. */}
+          {!overlay ? (
+            <IconButton
+              label={collapsed ? 'Expand sidebar ( [ )' : 'Collapse sidebar ( ] )'}
+              icon={collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+              onClick={toggleRail}
+              className="hidden lg:inline-flex"
+            />
+          ) : null}
           <div className="min-w-0 flex-1">
             <h1
               data-page-heading
@@ -145,6 +165,12 @@ export default function AppShell() {
             icon={isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             onClick={toggle}
           />
+          <IconButton
+            label="Keyboard shortcuts ( ? )"
+            icon={<Keyboard className="h-4 w-4" />}
+            onClick={() => setShortcutsOpen(true)}
+            className="hidden sm:inline-flex"
+          />
           {isPhone ? null : <NotificationBell />}
           <UserMenu />
         </header>
@@ -166,8 +192,66 @@ export default function AppShell() {
         onToggleTheme={toggle}
         onToggleSidebar={overlay ? () => setDrawerOpen((value) => !value) : toggleRail}
         toggleSidebarLabel={overlay ? 'Open navigation' : collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        onShowShortcuts={() => setShortcutsOpen(true)}
       />
+
+      <ShortcutsDialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
     </div>
+  )
+}
+
+/* =====================================================================================
+   Keyboard shortcut reference (opened with "?")
+   ===================================================================================== */
+const SHORTCUT_GROUPS: { title: string; rows: { keys: string[]; action: string }[] }[] = [
+  {
+    title: 'Search & navigate',
+    rows: [
+      { keys: ['Ctrl/⌘ K', '/'], action: 'Command palette - products, screens, actions' },
+      { keys: ['↑ ↓', '↵'], action: 'Move in the palette, open the highlighted result' },
+      { keys: ['?'], action: 'This shortcut reference' },
+      { keys: ['Esc'], action: 'Close dialogs, palette and drawer' },
+    ],
+  },
+  {
+    title: 'Sidebar',
+    rows: [
+      { keys: ['Ctrl/⌘ B'], action: 'Toggle navigation (drawer on small screens)' },
+      { keys: ['['], action: 'Collapse the sidebar rail' },
+      { keys: [']'], action: 'Expand the sidebar rail' },
+    ],
+  },
+]
+
+function ShortcutsDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  if (!open) return null
+  return (
+    <Modal open={open} onClose={onClose} title="Keyboard shortcuts" size="sm">
+      <div className="space-y-4">
+        {SHORTCUT_GROUPS.map((group) => (
+          <div key={group.title}>
+            <p className="stat-label mb-1.5">{group.title}</p>
+            <ul className="space-y-1.5">
+              {group.rows.map((row) => (
+                <li key={row.action} className="flex items-center justify-between gap-3 text-xs">
+                  <span className="text-muted">{row.action}</span>
+                  <span className="flex shrink-0 items-center gap-1">
+                    {row.keys.map((key) => (
+                      <kbd
+                        key={key}
+                        className="rounded border border-line bg-surface-3 px-1.5 py-0.5 font-mono text-[10px] text-ink"
+                      >
+                        {key}
+                      </kbd>
+                    ))}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </Modal>
   )
 }
 
@@ -185,12 +269,14 @@ function CommandPalette({
   onToggleTheme,
   onToggleSidebar,
   toggleSidebarLabel,
+  onShowShortcuts,
 }: {
   open: boolean
   onClose: () => void
   onToggleTheme: () => void
   onToggleSidebar: () => void
   toggleSidebarLabel: string
+  onShowShortcuts: () => void
 }) {
   const [query, setQuery] = useState('')
   const [cursor, setCursor] = useState(0)
@@ -262,6 +348,12 @@ function CommandPalette({
         },
         {
           kind: 'action' as const,
+          label: 'Keyboard shortcuts',
+          description: 'Every shortcut on one screen',
+          run: onShowShortcuts,
+        },
+        {
+          kind: 'action' as const,
           label: 'Sign out',
           description: 'End the current session',
           run: logout,
@@ -269,8 +361,8 @@ function CommandPalette({
       ] satisfies PaletteResult[]
     ).filter((action) => !term || action.label.toLowerCase().includes(term))
 
-    return [...productResults, ...nav, ...actions].slice(0, 12)
-  }, [query, products, onToggleTheme, onToggleSidebar, toggleSidebarLabel, logout])
+  return [...productResults, ...nav, ...actions].slice(0, 12)
+  }, [query, products, onToggleTheme, onToggleSidebar, toggleSidebarLabel, onShowShortcuts, logout])
 
   useEffect(() => setCursor(0), [results.length])
 
