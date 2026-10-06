@@ -390,7 +390,7 @@ The numbering is continuous from F-001 to F-403 with no duplicate or missing ide
 | F-223 | Zero-warning quality gates | ESLint runs with `--max-warnings 0`; strict TypeScript compile is part of every build; mirrored in CI | `frontend/package.json`, `.github/workflows/ci.yml` |
 | F-224 | GitHub Actions CI | Two jobs (backend: ruff + mypy + pytest; frontend: eslint + tsc + vite build) with artefact upload | `.github/workflows/ci.yml` |
 | F-225 | Iconography pass | Every screen action, empty state and navigation item carries a Lucide icon; aria-labels on all icon-only controls | `frontend/src/**` |
-| F-226 | Modern slim scrollbars | Thin rounded theme-aware scrollbars app-wide via `scrollbar-width`/`::-webkit-scrollbar` tokens | `frontend/src/styles/index.css` |
+| F-226 | Modern slim scrollbars (removed - see F-378) | Thin rounded theme-aware scrollbars app-wide via `scrollbar-width`/`::-webkit-scrollbar` tokens | `frontend/src/styles/index.css` |
 
 
 ---
@@ -440,7 +440,7 @@ beneath them.
 | F-256 | Account data & privacy tab | New Account tab with a data-export card and a danger-zone card; deletion requires the password and typing `DELETE` | `frontend/src/pages/Account.tsx` |
 | F-257 | Change-event summary service | Lifecycle counters plus the price-change timeline moved out of the router into `analytics.change_event_summary`, reused by the API and the Airflow report task | `app/analytics/service.py` |
 | F-258 | Stable scrollbar gutter | `scrollbar-gutter: stable` reserves the rail so content never shifts sideways when a page grows past the viewport | `frontend/src/styles/index.css` |
-| F-259 | Refined scrollbar system | Translucent rounded thumbs, a brand-coloured thumb while dragging, slimmer 8px rails inside the sidebar, popovers and code blocks, all theme-aware via `color-mix` | `frontend/src/styles/index.css` |
+| F-259 | Refined scrollbar system (removed - see F-378) | Translucent rounded thumbs, a brand-coloured thumb while dragging, slimmer 8px rails inside the sidebar, popovers and code blocks, all theme-aware via `color-mix` | `frontend/src/styles/index.css` |
 | F-260 | Scroll containment | `overscroll-behavior: contain` on the shell, sidebar nav, tables and scroll regions so scrolling a panel never drags the page behind it | `frontend/src/styles/index.css` |
 | F-261 | Mobile drawer scroll lock | Opening the off-canvas drawer locks background scrolling and restores the previous overflow on close | `frontend/src/components/AppShell.tsx` |
 | F-262 | Drawer accessibility | The mobile drawer is exposed as a modal dialog with an accessible name and respects the bottom safe-area inset for notched devices | `frontend/src/components/AppShell.tsx` |
@@ -596,12 +596,12 @@ Perfect white and dark, silent reloads, mobile.
 | F-370 | 3 motion levels | Full/reduced/none; none also stops spinners and progress bars | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
 | F-371 | Silent reload policy | No route transitions, no smooth scroll, 120ms functional transitions only | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
 | F-372 | Scroll restoration | Back restores offset, forward starts at top, focus moves to h1 | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
-| F-373 | Three-state sidebar | Expanded, icon rail, off-canvas drawer; choice shared across tabs | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+| F-373 | Three-state sidebar | Expanded, icon rail, off-canvas drawer; choice shared across tabs. Floating rounded card; content reserves its width | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` `frontend/src/components/Navigation.tsx` |
 | F-374 | Phone bottom tab bar | Five primary destinations under 640px with safe-area padding | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
 | F-375 | Card-view tables | Dense tables become stacked cards below 640px — no horizontal blowout | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
 | F-376 | Drawer scroll lock | Body locked while drawer/modal open, focus trapped, Esc closes | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
 | F-377 | Lucide icons everywhere | Nav, tabs, stats, empty states and toasts — no emoji, aria-hidden decorative | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
-| F-378 | Modern thin scrollbars | 10px track, rounded thumb, hover/active states, 8px in dense UI | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
+| F-378 | No scrollbars | Removed everywhere via scrollbar-width:none + webkit display:none; shadows carry position | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
 | F-379 | Scroll shadows | Top/bottom fades driven by scrollTop vs scrollHeight via data-scroll-shadow | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
 | F-380 | No scroll chaining | overscroll-behavior:contain on main, nav, table-wrap and scroll areas | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
 | F-381 | Stable gutter | scrollbar-gutter:stable stops sideways jumps when pages grow | `frontend/src/styles/index.css` `frontend/src/components/AppShell.tsx` |
