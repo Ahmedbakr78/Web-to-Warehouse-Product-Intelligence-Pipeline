@@ -38,7 +38,7 @@ export default function AppShell() {
   const { isDark, toggle } = useTheme()
   const [paletteOpen, setPaletteOpen] = useState(false)
 
-  const { collapsed, toggleRail, overlay, drawerOpen, setDrawerOpen, closeDrawer, drawerRef, edgeSwipe } =
+  const { collapsed, toggleRail, overlay, drawerOpen, setDrawerOpen, closeDrawer, drawerRef, onTouchStart, onTouchEnd } =
     useRailState()
   const isPhone = usePhoneLayout()
   useScrollRestoration()
@@ -74,7 +74,7 @@ export default function AppShell() {
         else toggleRail()
         return
       }
-      if (event.key === '] ' .trim() && !typing) {
+      if (event.key === ']' && !typing) {
         event.preventDefault()
         if (overlay) setDrawerOpen(false)
         else toggleRail()
@@ -97,13 +97,14 @@ export default function AppShell() {
   return (
     <div
       className="flex h-full min-h-[100dvh] bg-bg text-ink"
-      onTouchStart={overlay ? edgeSwipe : undefined}
     >
       {/* ---------------------------------------------------------- desktop rail */}
       {!overlay ? <Sidebar collapsed={collapsed} onToggle={toggleRail} /> : null}
 
       {/* --------------------------------------------------------- overlay drawer */}
-      <div className="lg:hidden" onTouchStart={edgeSwipe}>
+      {/* Swipe left on the drawer closes it; the handlers live on the wrapper so
+          the gesture works from any drawer child, not just the nav list. */}
+      <div className="lg:hidden" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         <NavDrawer open={drawerOpen} onClose={closeDrawer} ref={drawerRef} />
       </div>
 

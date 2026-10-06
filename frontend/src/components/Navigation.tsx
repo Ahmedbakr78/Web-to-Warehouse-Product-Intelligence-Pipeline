@@ -374,13 +374,12 @@ export function NavDrawer({ open, onClose, ref }: { open: boolean; onClose: () =
   if (!open) return null
   return (
     <div
-      className="fixed inset-0 z-50 lg:hidden"
+      className="fixed inset-0 z-50 outline-none lg:hidden"
       role="dialog"
       aria-modal="true"
       aria-label="Navigation"
       ref={attachRef}
       tabIndex={-1}
-      outline-none
     >
       <div className="absolute inset-0 bg-[var(--overlay)]" onClick={onClose} aria-hidden />
       <aside className="relative flex h-full w-72 max-w-[82vw] flex-col border-r border-line bg-[var(--sidebar-bg)] pb-[env(safe-area-inset-bottom)]">
