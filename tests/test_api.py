@@ -108,6 +108,63 @@ def test_login_validates_payload(client):
     assert response.json()["details"]["errors"]
 
 
+def test_register_creates_a_viewer_and_signs_in(client):
+    import uuid
+
+    email = f"newcomer-{uuid.uuid4().hex[:8]}@example.com"
+    response = client.post(
+        "/api/v1/auth/register",
+        json={"email": email, "full_name": "New Comer", "password": "Str0ng!Passw0rd"},
+    )
+    assert response.status_code == 201, response.text
+    payload = response.json()
+    assert payload["access_token"] and payload["refresh_token"]
+    assert payload["user"]["email"] == email
+    assert payload["user"]["role"] == "viewer"
+    assert "manage_users" not in payload["user"]["permissions"]
+
+    # The new account signs in with the same credentials.
+    again = client.post("/api/v1/auth/login", json={"email": email, "password": "Str0ng!Passw0rd"})
+    assert again.status_code == 200
+
+
+def test_register_rejects_duplicates_and_weak_passwords(client):
+    import uuid
+
+    email = f"dupe-{uuid.uuid4().hex[:8]}@example.com"
+    body = {"email": email, "full_name": "Dupe User", "password": "Str0ng!Passw0rd"}
+    assert client.post("/api/v1/auth/register", json=body).status_code == 201
+    assert client.post("/api/v1/auth/register", json=body).status_code == 409
+
+    weak = dict(body, email=f"weak-{uuid.uuid4().hex[:8]}@example.com", password="password123")
+    denied = client.post("/api/v1/auth/register", json=weak)
+    assert denied.status_code == 422
+
+    # No role escalation: extra fields are ignored, not honoured.
+    escalate = client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": f"escalate-{uuid.uuid4().hex[:8]}@example.com",
+            "full_name": "Escalate",
+            "password": "Str0ng!Passw0rd",
+            "role": "admin",
+        },
+    )
+    assert escalate.status_code == 201
+    assert escalate.json()["user"]["role"] == "viewer"
+
+
+def test_register_respects_the_kill_switch(client, monkeypatch):
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "registration_enabled", False)
+    response = client.post(
+        "/api/v1/auth/register",
+        json={"email": "nobody@example.com", "full_name": "No Body", "password": "Str0ng!Passw0rd"},
+    )
+    assert response.status_code == 403
+
+
 def test_me_requires_a_token(client):
     assert client.get("/api/v1/auth/me").status_code == 401
 
