@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import io
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -188,6 +190,19 @@ def test_csv_export(client, admin_token):
     assert response.status_code == 200
     assert "text/csv" in response.headers["content-type"]
     assert "product_id" in response.text.splitlines()[0]
+
+
+def test_xlsx_export(client, admin_token):
+    response = client.get("/api/v1/export/products.xlsx?limit=5", headers=auth(admin_token))
+    assert response.status_code == 200
+    assert "spreadsheetml.sheet" in response.headers["content-type"]
+    assert response.headers["Content-Disposition"].endswith('.xlsx"')
+    assert int(response.headers["X-Row-Count"]) >= 0
+    from openpyxl import load_workbook
+
+    sheet = load_workbook(filename=io.BytesIO(response.content)).active
+    assert sheet.max_row >= 1
+    assert "product_id" in [cell.value for cell in sheet[1]]
 
 
 # --------------------------------------------------------------------------------------

@@ -13,6 +13,7 @@ These cover the three features added on top of the original scope:
 from __future__ import annotations
 
 import datetime as dt
+import io
 import json
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -422,6 +423,41 @@ def test_to_csv_writes_header_and_rows():
 
 def test_to_csv_without_rows_is_empty():
     assert exporter.to_csv([]) == ""
+
+
+def test_to_xlsx_round_trips_values_and_types():
+    from openpyxl import load_workbook
+
+    rows = [
+        {"product_id": 1, "canonical_name": "Phone", "price_usd": 199.99, "in_stock": True},
+        {"product_id": 2, "canonical_name": "Tablet", "price_usd": None, "in_stock": False},
+    ]
+    workbook = load_workbook(filename=io.BytesIO(exporter.to_xlsx(rows)))
+    sheet = workbook.active
+    assert [cell.value for cell in sheet[1]] == ["product_id", "canonical_name", "price_usd", "in_stock"]
+    assert [cell.value for cell in sheet[2]] == [1, "Phone", 199.99, True]
+    assert [cell.value for cell in sheet[3]] == [2, "Tablet", None, False]
+    assert sheet.freeze_panes == "A2"
+    assert sheet.auto_filter.ref is not None
+
+
+def test_to_xlsx_without_rows_is_still_a_valid_workbook():
+    from openpyxl import load_workbook
+
+    sheet = load_workbook(filename=io.BytesIO(exporter.to_xlsx([]))).active
+    assert sheet.max_row == 1  # header only, opens cleanly in Excel
+
+
+def test_to_xlsx_keeps_native_dates_and_decimals():
+    from decimal import Decimal
+
+    from openpyxl import load_workbook
+
+    rows = [{"day": dt.date(2026, 1, 2), "amount": Decimal("19.95")}]
+    sheet = load_workbook(filename=io.BytesIO(exporter.to_xlsx(rows))).active
+    # openpyxl returns date cells as datetimes — compare calendar dates.
+    values = [cell.value.date() if isinstance(cell.value, dt.datetime) else cell.value for cell in sheet[2]]
+    assert values == [dt.date(2026, 1, 2), 19.95]
 
 
 def test_to_json_carries_an_envelope():

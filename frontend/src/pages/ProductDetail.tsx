@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   Building2,
   Copy,
+  Download,
   ExternalLink,
   Fingerprint,
   GitCompare,
@@ -12,6 +13,7 @@ import {
   Star,
   Tag,
 } from 'lucide-react'
+import { useMutation } from '@tanstack/react-query'
 
 import { AreaTrend, LineTrend } from '@/components/charts'
 import {
@@ -27,8 +29,9 @@ import {
   LoadingState,
   StatTile,
   Tabs,
+  useToast,
 } from '@/components/ui'
-import { endpoints } from '@/lib/api'
+import { downloadBinary, endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import {
   formatAvailability,
@@ -52,6 +55,12 @@ export default function ProductDetail() {
   })
   const duplicates = useApiQuery(['product-duplicates', productId], () => endpoints.productDuplicates(productId), {
     enabled: Number.isFinite(productId),
+  })
+  const toast = useToast()
+  const exportHistory = useMutation({
+    mutationFn: () => downloadBinary(`/products/${productId}/history.csv`, {}, `product-${productId}-history.csv`),
+    onSuccess: () => toast.success('History exported', 'Every snapshot with USD prices and changes.'),
+    onError: (error: Error) => toast.error('Could not export the history', error.message),
   })
 
   if (!Number.isFinite(productId)) {
@@ -190,7 +199,7 @@ export default function ProductDetail() {
 
       {/* ------------------------------------------------------------- tabs */}
       <Card padded={false}>
-        <div className="px-4 pt-4 sm:px-5">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-4 pt-4 sm:px-5">
           <Tabs
             active={tab}
             onChange={setTab}
@@ -202,6 +211,17 @@ export default function ProductDetail() {
               { id: 'catalog', label: 'Catalog', count: catalogRows.length, icon: <Building2 className="h-4 w-4" /> },
             ]}
           />
+          <Button
+            size="sm"
+            variant="ghost"
+            icon={<Download className="h-4 w-4" />}
+            loading={exportHistory.isPending}
+            disabled={!points.length}
+            onClick={() => exportHistory.mutate()}
+            title="Download every snapshot as CSV"
+          >
+            Export CSV
+          </Button>
         </div>
 
         {tab === 'history' ? (

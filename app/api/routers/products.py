@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import csv
 import datetime as dt
+import io
 from typing import Annotated, Any
 
 import sqlalchemy as sa
 from fastapi import APIRouter, Query
+from fastapi.responses import PlainTextResponse
 
 from app.analytics import service as analytics
 from app.api.deps import DbSession, PaginationDep, ReadUser
@@ -266,6 +269,46 @@ def product_history(product_id: int, session: DbSession, _user: ReadUser, limit:
         ),
         "history": rows,
     }
+
+
+#: Cap for the per-product history download; the JSON endpoint pages at 500.
+HISTORY_CSV_MAX_ROWS = 5000
+HISTORY_CSV_COLUMNS = (
+    "snapshot_id",
+    "captured_at",
+    "full_date",
+    "source_code",
+    "price",
+    "currency",
+    "price_usd",
+    "rating",
+    "availability",
+    "is_first_sighting",
+    "price_change_abs",
+    "price_change_pct",
+)
+
+
+@router.get("/{product_id}/history.csv", summary="Price history as CSV")
+def product_history_csv(
+    product_id: int, session: DbSession, _user: ReadUser, limit: int = 5000
+) -> PlainTextResponse:
+    """Every snapshot for one product, oldest first, in spreadsheet order."""
+    rows = analytics.price_history(session, product_id, limit=min(max(limit, 1), HISTORY_CSV_MAX_ROWS))
+    if not rows:
+        raise ProductNotFoundError(f"product {product_id} not found")
+    buffer = io.StringIO()
+    writer = csv.DictWriter(buffer, fieldnames=list(HISTORY_CSV_COLUMNS), extrasaction="ignore")
+    writer.writeheader()
+    for row in rows:
+        writer.writerow(
+            {column: ("" if row.get(column) is None else row.get(column)) for column in HISTORY_CSV_COLUMNS}
+        )
+    return PlainTextResponse(
+        buffer.getvalue(),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="product-{product_id}-history.csv"'},
+    )
 
 
 @router.get("/{product_id}/duplicates", summary="Similar products (duplicate candidates)")

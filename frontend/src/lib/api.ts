@@ -384,7 +384,7 @@ export const endpoints = {
  */
 export async function downloadExport(
   dataset: string,
-  format: 'csv' | 'json' = 'csv',
+  format: 'csv' | 'xlsx' | 'json' = 'csv',
   params: Record<string, QueryValue> = {},
   limit = 5000,
 ): Promise<void> {

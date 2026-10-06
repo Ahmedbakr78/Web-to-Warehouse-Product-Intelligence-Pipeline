@@ -410,6 +410,59 @@ def to_json(rows: list[dict[str, Any]], dataset: Dataset, row_limit: int) -> str
     return json.dumps(payload, indent=2, default=str)
 
 
+def _xlsx_cell(value: Any) -> Any:
+    """Excel-native cell: dates stay dates (sortable/filterable), not strings."""
+    if value is None:
+        return ""
+    if isinstance(value, Decimal):
+        return float(value)
+    if isinstance(value, (dt.datetime, dt.date, dt.time)):
+        return value
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float, str)):
+        return value
+    if isinstance(value, bytes):
+        return value.decode("utf-8", "replace")
+    return str(value)
+
+
+def to_xlsx(
+    rows: list[dict[str, Any]], columns: tuple[str, ...] | None = None, *, sheet_title: str = "data"
+) -> bytes:
+    """Serialise rows to a real .xlsx workbook (openpyxl, no templates).
+
+    Bold header, frozen top row, auto-filter and capped column widths, so the
+    file opens ready to analyse rather than as a raw dump. An empty row list
+    still yields a valid workbook with just the header.
+    """
+    from openpyxl import Workbook
+    from openpyxl.styles import Font
+    from openpyxl.utils import get_column_letter
+
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = sheet_title[:31]
+    header = list(columns) if columns else (list(rows[0].keys()) if rows else ["(no rows)"])
+    sheet.append(header)
+    for cell in sheet[1]:
+        cell.font = Font(bold=True)
+    for row in rows:
+        sheet.append([_xlsx_cell(row.get(col)) for col in header])
+    sheet.freeze_panes = "A2"
+    if sheet.max_row > 1:
+        sheet.auto_filter.ref = sheet.dimensions
+    for position, col in enumerate(header, start=1):
+        width = len(str(col))
+        for row in rows[:200]:
+            value = row.get(col)
+            width = max(width, min(len(str(value or "")), 60))
+        sheet.column_dimensions[get_column_letter(position)].width = min(max(width + 2, 10), 50)
+    buffer = io.BytesIO()
+    workbook.save(buffer)
+    return buffer.getvalue()
+
+
 def filename_for(dataset: Dataset, fmt: str, stamp: str | None = None) -> str:
     """Deterministic download filename, e.g. ``products-2026-10-05.csv``."""
     suffix = stamp or dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d")
@@ -428,4 +481,5 @@ __all__ = [
     "list_datasets",
     "to_csv",
     "to_json",
+    "to_xlsx",
 ]

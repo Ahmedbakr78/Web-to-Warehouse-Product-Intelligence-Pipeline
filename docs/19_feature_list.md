@@ -683,3 +683,27 @@ Two more self-service entities and a closed import/export loop for the catalog.
 | F-422 | Export button on Catalog | One-click download beside Template and Import with toasts | `frontend/src/pages/Catalog.tsx` `downloadBinary` |
 
 **Revised total: 422 features across 25 areas** (F-001 to F-422).
+
+## 26. History + activity export additions (4)
+
+Every personal and product-level dataset leaves the app as a file, not just the warehouse exports.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-423 | Per-product history CSV | Every snapshot with USD prices and changes, 5k cap, dated filename | `app/api/routers/products.py` `GET /products/{id}/history.csv` |
+| F-424 | Named file downloads | Content-Disposition filenames on CSV, PDF and template exports | `app/api/routers/products.py` `app/api/routers/catalog.py` |
+| F-425 | History Export button | One-click CSV on the product page snapshots tab | `frontend/src/pages/ProductDetail.tsx` `downloadBinary` |
+| F-426 | Activity CSV export | Account feed to CSV with the table columns, toast confirmation | `frontend/src/pages/Account.tsx` `downloadCsv` |
+
+**Revised total: 426 features across 26 areas** (F-001 to F-426).
+
+## 27. Excel export additions (2)
+
+Native spreadsheets for every dataset, alongside CSV and JSON.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-427 | Excel (.xlsx) dataset downloads | Native dates/decimals, bold header, freeze panes, autofilter, 10k naming | `app/services/exporter.py` `to_xlsx` `GET /export/{dataset}.xlsx` |
+| F-428 | Export format picker | CSV, Excel and JSON from one button on every dataset screen | `frontend/src/components/ExportButton.tsx` `downloadExport` |
+
+**Revised total: 428 features across 27 areas** (F-001 to F-428).

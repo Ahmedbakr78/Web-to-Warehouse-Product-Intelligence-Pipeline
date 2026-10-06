@@ -29,6 +29,14 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "detail": "GET /export/{dataset}.csv|.json with a date-stamped filename and a JSON envelope",
             },
             {
+                "name": "Excel (.xlsx) downloads",
+                "detail": "GET /export/{dataset}.xlsx with native dates/decimals, bold header, freeze + autofilter",
+            },
+            {
+                "name": "Export format picker",
+                "detail": "One ExportButton offers CSV, Excel and JSON on every dataset screen",
+            },
+            {
                 "name": "Filter-aware exports",
                 "detail": "Every dataset declares its filters (source, status, severity, search) and they are bound, never interpolated",
             },
@@ -391,6 +399,14 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "name": "View builder API",
                 "detail": "POST /builder/query: server-side group-by + aggregate + filter",
             },
+            {
+                "name": "Per-product history CSV",
+                "detail": "GET /products/{id}/history.csv: every snapshot with USD prices, 5k cap",
+            },
+            {
+                "name": "Named file downloads",
+                "detail": "Content-Disposition filenames on every CSV, PDF and template export",
+            },
         ],
     },
     {
@@ -483,6 +499,14 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             {
                 "name": "Feature catalogue screen",
                 "detail": "Searchable list of everything the platform ships, counts read from /meta/features",
+            },
+            {
+                "name": "History CSV on products",
+                "detail": "Export CSV button on every product page, disabled until snapshots load",
+            },
+            {
+                "name": "Activity CSV export",
+                "detail": "One-click CSV of the Account activity feed, same columns as the table",
             },
         ],
     },

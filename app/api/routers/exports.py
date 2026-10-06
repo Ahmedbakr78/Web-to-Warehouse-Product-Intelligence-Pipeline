@@ -1,4 +1,4 @@
-"""Dataset export endpoints: CSV and JSON downloads for every list surface.
+"""Dataset export endpoints: CSV, Excel and JSON downloads for every list surface.
 
 The dashboard exposes a download button wherever there is a table; this router is
 the single implementation behind all of them.
@@ -29,7 +29,7 @@ def datasets(_user: ReadUser) -> dict[str, Any]:
         groups.setdefault(item["group"], []).append(item["key"])
     return {
         "total": len(items),
-        "formats": ["csv", "json"],
+        "formats": ["csv", "xlsx", "json"],
         "max_rows": exporter.MAX_ROWS,
         "default_rows": exporter.DEFAULT_ROWS,
         "groups": groups,
@@ -85,6 +85,33 @@ def export_json(
         media_type="application/json",
         headers={
             "Content-Disposition": f'attachment; filename="{exporter.filename_for(spec, "json")}"',
+            "X-Row-Count": str(len(rows)),
+            "X-Export-Limit": str(limit),
+        },
+    )
+
+
+@router.get(
+    "/{dataset}.xlsx",
+    summary="Download a dataset as an Excel workbook",
+    response_class=Response,
+    responses={200: {"content": {"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {}}}},
+)
+def export_xlsx(
+    request: Request,
+    session: DbSession,
+    _user: ReadUser,
+    dataset: str,
+    limit: Annotated[int, Query(ge=1, le=exporter.MAX_ROWS)] = exporter.DEFAULT_ROWS,
+) -> Response:
+    spec = exporter.get_dataset(dataset)
+    _, rows = exporter.fetch_rows(session, dataset, filters=_query_filters(request, spec), row_limit=limit)
+    body = exporter.to_xlsx(rows)
+    return Response(
+        content=body,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": f'attachment; filename="{exporter.filename_for(spec, "xlsx")}"',
             "X-Row-Count": str(len(rows)),
             "X-Export-Limit": str(limit),
         },

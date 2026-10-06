@@ -61,7 +61,7 @@ import { useApiQuery } from '@/hooks/useApi'
 import { useAuth } from '@/hooks/useAuth'
 import { ALL_NAV_ITEMS } from '@/lib/nav'
 import { localStore } from '@/lib/session'
-import { formatDateTime, formatRelative, initials, titleCase, downloadJson } from '@/lib/format'
+import { formatDateTime, formatRelative, initials, titleCase, downloadCsv, downloadJson, toCsv } from '@/lib/format'
 import SecurityPanel from '@/components/SecurityPanel'
 import { AlertsPanel, PrivacyPanel } from '@/components/AccountPanels'
 
@@ -713,9 +713,33 @@ export default function Account() {
               subtitle="Everything you did in the last 90 days - sign-ins, key changes and settings updates"
               icon={<Activity className="h-4 w-4" />}
             />
-            <Button size="sm" variant="secondary" icon={<RefreshCw className="h-3.5 w-3.5" />} onClick={() => void activity.refetch()}>
-              Refresh
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                icon={<Download className="h-4 w-4" />}
+                disabled={!activity.data?.items?.length}
+                onClick={() => {
+                  const rows = (activity.data?.items ?? []).map((row: any) => [
+                    row.created_at ?? '',
+                    row.action ?? '',
+                    row.entity_type ? `${row.entity_type}${row.entity_id ? ` #${row.entity_id}` : ''}` : '',
+                    row.status ?? '',
+                    row.ip_address ?? '',
+                  ])
+                  downloadCsv(
+                    'my-activity.csv',
+                    toCsv(['when', 'action', 'target', 'status', 'ip'], rows),
+                  )
+                  toast.success('Activity exported', `${rows.length} rows saved as CSV.`)
+                }}
+              >
+                Export CSV
+              </Button>
+              <Button size="sm" variant="secondary" icon={<RefreshCw className="h-3.5 w-3.5" />} onClick={() => void activity.refetch()}>
+                Refresh
+              </Button>
+            </div>
           </div>
           {activity.data?.items?.length ? (
             <DataTable
