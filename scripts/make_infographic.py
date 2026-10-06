@@ -31,6 +31,7 @@ except Exception:  # pragma: no cover - generator must never crash on import
     def _measured_features() -> str:
         return "322"
 
+
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs" / "assets"
 
