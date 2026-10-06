@@ -1006,7 +1006,7 @@ are persisted per run in `dq_rule_result`, and the dashboard charts the score tr
 ## Feature catalogue
 
 The exhaustive, file-referenced inventory lives in
-[docs/19_feature_list.md](docs/19_feature_list.md) — 446 features in thirty-one areas. It is also served as
+[docs/19_feature_list.md](docs/19_feature_list.md) — 449 features in thirty-two areas. It is also served as
 structured JSON by `GET /api/v1/meta/features` (369 entries in 30 groups) and rendered by the **Features** screen, both generated
 from `app/core/features.py`, so this section can never describe something the code does not do.
 Highlights by area:
