@@ -8,7 +8,14 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- Nothing yet.
+- **Add sources from the GUI** — the Sources screen gains an *Add source* dialog: endpoint presets
+  (DummyJSON, FakeStore, Shopify `products.json`, Open Food Facts, Open Library), a live compliance
+  pre-check (SSRF guard + robots.txt verdict + JSON shape sniff), dot-path field mapping with three
+  pagination styles, and one-click save. New endpoints: `GET /sources/presets`, `POST /sources/check`,
+  `POST /sources`, `PATCH /sources/{code}`, `DELETE /sources/{code}` (admin-only mutations via the
+  `manage_sources` right; analysts can check and preview). Dashboard rows materialise as a generic
+  JSON adapter, join pipeline auto-selection, and support enable/disable plus history-guarded delete;
+  bundled sources are read-only.
 
 ## [1.6.1] - 2026-10-06
 

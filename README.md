@@ -30,8 +30,8 @@
 
 <p align="center">
   <b>173 REST operations</b> · <b>28 tables</b> · <b>20 analytical views</b> ·
-  <b>12 DQ rules</b> · <b>5 compliant sources</b> · <b>403 catalogued features</b> ·
-  <b>408 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
+  <b>12 DQ rules</b> · <b>5+ compliant sources</b> · <b>410 catalogued features</b> ·
+  <b>426 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
 </p>
 
 <p align="center">
@@ -167,11 +167,11 @@ Everything is engineered like a production system, not a demo:
 <!-- BEGIN:STATS -->
 
 ```text
-28 physical tables  |  20 analytical views  |  173 REST route decorators in 23 routers
+28 physical tables  |  20 analytical views  |  178 REST route decorators in 23 routers
 12 data-quality rules across 6 dimensions, weighted score persisted per run
-5 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
+6 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
 13 CLI commands  |  6 Docker Compose services  |  30 documents  |  80 Mermaid diagrams
-408 tests  |  104/104 API smoke checks  |  403 catalogued features
+426 tests  |  104/104 API smoke checks  |  410 catalogued features
 ```
 
 | Metric | Count |
@@ -179,17 +179,17 @@ Everything is engineered like a production system, not a demo:
 | Physical tables         | 28 |
 | Analytical views        | 20 |
 | REST routers            | 23 |
-| REST route decorators   | 173 |
+| REST route decorators   | 178 |
 | Data-quality rules      | 12 |
-| Ingestion sources       | 5 |
+| Ingestion sources       | 6 |
 | Airflow task callables  | 33 |
 | CLI commands            | 13 |
 | Pipeline stages         | 9 |
 | Docker Compose services | 6 |
 | Numbered documents      | 30 |
 | Mermaid diagrams        | 80 |
-| Catalogued features     | 403 |
-| Collected test cases    | 408 |
+| Catalogued features     | 410 |
+| Collected test cases    | 426 |
 | API smoke checks        | 104 |
 
 <!-- END:STATS -->
@@ -1002,8 +1002,8 @@ are persisted per run in `dq_rule_result`, and the dashboard charts the score tr
 ## Feature catalogue
 
 The exhaustive, file-referenced inventory lives in
-[docs/19_feature_list.md](docs/19_feature_list.md) — 403 features in twenty-two areas. It is also served as
-structured JSON by `GET /api/v1/meta/features` (322 entries in 28 groups) and rendered by the **Features** screen, both generated
+[docs/19_feature_list.md](docs/19_feature_list.md) — 410 features in twenty-three areas. It is also served as
+structured JSON by `GET /api/v1/meta/features` (329 entries in 29 groups) and rendered by the **Features** screen, both generated
 from `app/core/features.py`, so this section can never describe something the code does not do.
 Highlights by area:
 
@@ -1079,7 +1079,7 @@ Highlights by area:
 
 ### v1.3: discovery, aggregation and self-service
 
-- **Feature catalogue** — `GET /meta/features` + `/features` screen: 322 features, 28 groups, searchable
+- **Feature catalogue** — `GET /meta/features` + `/features` screen: 329 features, 29 groups, searchable
 - **Aggregate builder** — `POST /builder/query` + `/builder/schema`: 11 entities, 6 aggregates,
   15 operators, whitelist-assembled parameterised SQL, chart preview, generated SQL, cURL copy
 - **Filter builder Max** — 9 entities (products, price-changes, runs, quality, catalog, new, removed, movers, sources), SQL + cURL copy, CSV/JSON export, saved views, cross-entity join recipes
@@ -1223,7 +1223,7 @@ All configuration arrives through environment variables (`.env.example` document
 | **Sources** | registry cards with compliance metadata, robots.txt statistics, raw-versus-cleaned preview |
 | **Query Lab** | read-only SQL console over the 20 views, table inventory, starter examples, CSV export |
 | **Builder** | two modes: *filter & customise* (facets, columns, order, saved presets) and *group & aggregate* (11 entities, six measures, fifteen operators, bar chart, generated SQL, cURL copy, exports) |
-| **Features** | searchable, filterable catalogue of all 322 catalogued features in 28 groups, each with an icon and copy-to-clipboard |
+| **Features** | searchable, filterable catalogue of all 329 catalogued features in 29 groups, each with an icon and copy-to-clipboard |
 | **Alerts** | alert rules with thresholds and channels, notification feed, evaluate action |
 | **Webhooks** | outbound event subscriptions with HMAC-signed payloads, one-time secret reveal and rotation, test delivery, per-attempt delivery log |
 | **Account** | profile, preferences, appearance (theme, accent, density, motion), password change, API keys, **personal activity feed**, **data export**, **account deletion** |
@@ -1296,7 +1296,7 @@ trigger a pipeline run is denied.
 | --- | --- | --- |
 | Lint and format | `make lint` | ruff: all checks pass, zero warnings |
 | Static types | `make typecheck` | mypy: no issues in 83 source files |
-| Unit tests | `make test` | pytest: 408 passed (SQLite warehouse, no services required) |
+| Unit tests | `make test` | pytest: 426 passed (SQLite warehouse, no services required) |
 | API regression | `.venv/bin/python scripts/api_smoke.py` | 104/104 checks, including auth, RBAC and 404 paths |
 | Frontend | `cd frontend && npm run lint && npm run typecheck && npm run build` | ESLint at zero warnings, clean tsc, production build |
 | Cross-dialect | `make verify-dialects` | identical model and DQ score on PostgreSQL and MySQL |
@@ -1350,7 +1350,7 @@ scripts/
   run_analysis.py         runs the standalone SQL analyses
   make_infographic.py     generates the roadmap infographic
   diagrams.py            extract, validate and render all Mermaid diagrams
-tests/            pytest unit + integration suite (408 tests)
+tests/            pytest unit + integration suite (426 tests)
 website/          single-file project landing page (index.html) with light/dark themes
 .github/
   workflows/ci.yml        ruff, mypy, pytest, eslint, tsc, vite build
@@ -1393,7 +1393,7 @@ natively on GitHub; every structural number is tied to a runnable command.
 | 16 | User Manual | sign-in, every screen, filters, exports, alerts, admin, troubleshooting, FAQ |
 | 17 | Technical Documentation | module map, key algorithms, every configuration variable |
 | 18 | Presentation Outline | defence deck, Q&A preparation, demo script |
-| 19 | Feature Inventory | 403 features in twenty-two areas with file references |
+| 19 | Feature Inventory | 410 features in twenty-three areas with file references |
 | 20 | Feedback and Improvements | feedback template, 32 prioritised improvements, self-assessment |
 | 21 | **Architecture Deep Dive** | design drivers, decisions with rejected alternatives, request lifecycle, layering, known limitations |
 | 22 | **Data Dictionary** | every table, column, type and meaning; controlled vocabularies; view catalogue; dialect portability |
@@ -1480,7 +1480,7 @@ published on GitHub.
 ### What's new in v1.3
 
 - **Feature catalogue** — `GET /meta/features` plus a `/features` screen render the 118 shipped
-  capabilities in 28 groups from `app/core/features.py`, so the API, the UI and the documentation
+  capabilities in 29 groups from `app/core/features.py`, so the API, the UI and the documentation
   describe exactly the same system.
 - **Aggregate builder** — a structured query surface with group-by, six aggregate functions and
   fifteen filter operators over eleven entities, assembled from a server-side whitelist into a

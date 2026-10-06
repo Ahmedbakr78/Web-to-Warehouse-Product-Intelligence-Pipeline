@@ -3,7 +3,7 @@
 ## Purpose
 
 This document is the complete feature inventory of the Web-to-Warehouse Product Intelligence
-Pipeline: 403 features grouped into twenty-two areas, each with a one-line description and a reference
+Pipeline: 410 features grouped into twenty-three areas, each with a one-line description and a reference
 to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an
 endpoint, a CLI command or a documented design decision. Nothing here is aspirational.
 
@@ -373,9 +373,10 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 | Account Max additions | 22 |
 | Design, mobile and motion Max | 22 |
 | Platform and release Max | 20 |
-| **Total** | **403** |
+| GUI source onboarding | 7 |
+| **Total** | **410** |
 
-The numbering is continuous from F-001 to F-403 with no duplicate or missing identifier. Counts are measured from the rows themselves by `scripts/project_stats.py`, and each section heading states the same figure, so the three cannot quietly disagree. Sections 14–22 continue below with the same running sequence.
+The numbering is continuous from F-001 to F-410 with no duplicate or missing identifier. Counts are measured from the rows themselves by `scripts/project_stats.py`, and each section heading states the same figure, so the three cannot quietly disagree. Sections 14–23 continue below with the same running sequence.
 
 ---
 
@@ -635,4 +636,20 @@ Free unlimited operations and releases.
 | F-402 | Timing headers | X-Process-Time-Ms plus X-Database on every response | `Makefile` `scripts/project_stats.py` `website/index.html` |
 | F-403 | Free forever stack | No paid APIs: offline FX, seeded demo, SQLite-runnable tests | `Makefile` `scripts/project_stats.py` `website/index.html` |
 
-**Revised total: 403 features across 22 areas** (F-001 to F-403).
+---
+
+## 23. GUI source onboarding (7)
+
+Add a JSON feed from the dashboard, with compliance proven before anything is saved.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-404 | Add-source dialog | Name, code, endpoint, mapping and politeness on the Sources screen | `frontend/src/pages/Sources.tsx` |
+| F-405 | Endpoint presets | DummyJSON, FakeStore, Shopify, Open Food Facts, Open Library in one click | `app/ingestion/sources/generic_json.py` `PRESETS` |
+| F-406 | Compliance pre-check | SSRF guard plus a live robots.txt verdict before saving | `app/api/routers/sources.py` `POST /sources/check` |
+| F-407 | JSON shape sniff | One bounded GET reports item keys and counts for the mapping | `app/api/routers/sources.py` `_sniff_shape` |
+| F-408 | Generic JSON adapter | Dot-path fields, three pagination styles, URL templates | `app/ingestion/sources/generic_json.py` |
+| F-409 | Dynamic resolution | Registry first, dashboard rows second; pipeline auto-selects enabled rows | `app/ingestion/dynamic.py` `app/etl/pipeline.py` |
+| F-410 | Source lifecycle controls | Enable, disable, history-guarded delete; bundled rows read-only | `frontend/src/pages/Sources.tsx` `app/api/routers/sources.py` |
+
+**Revised total: 410 features across 23 areas** (F-001 to F-410).

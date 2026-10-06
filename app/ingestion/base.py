@@ -333,7 +333,8 @@ def list_sources(session: Any | None = None) -> list[dict[str, Any]]:
     """
     load_builtin_sources()
     merged = [
-        {**cls().health_check(), "managed": "code"} for cls in sorted(_REGISTRY.values(), key=lambda c: c.code)
+        {**cls().health_check(), "managed": "code"}
+        for cls in sorted(_REGISTRY.values(), key=lambda c: c.code)
     ]
     if session is not None:
         from app.ingestion.dynamic import dynamic_definitions

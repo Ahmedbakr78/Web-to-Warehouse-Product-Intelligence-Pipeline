@@ -87,6 +87,42 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         ],
     },
     {
+        "key": "gui_sources",
+        "title": "GUI source onboarding",
+        "icon": "globe",
+        "summary": "Add a JSON feed from the dashboard: compliance proof first, field mapping second, no deploy.",
+        "features": [
+            {
+                "name": "Add-source dialog",
+                "detail": "Name, code, endpoint, mapping and politeness on the Sources screen, one save away from enabled",
+            },
+            {
+                "name": "Endpoint presets",
+                "detail": "DummyJSON, FakeStore, Shopify products.json, Open Food Facts and Open Library mappings in one click",
+            },
+            {
+                "name": "Compliance pre-check",
+                "detail": "SSRF guard plus a live robots.txt verdict before anything is saved",
+            },
+            {
+                "name": "JSON shape sniff",
+                "detail": "One bounded GET reports item keys and counts so the mapping is filled from evidence",
+            },
+            {
+                "name": "Server-side re-check",
+                "detail": "Create re-verifies robots itself; a blocked endpoint is rejected even if the pre-check was skipped",
+            },
+            {
+                "name": "Generic JSON adapter",
+                "detail": "Dot-path fields, three pagination styles, URL templates; dashboard rows run the same pipeline",
+            },
+            {
+                "name": "Source lifecycle controls",
+                "detail": "Enable, disable and delete (guarded by run history) for dashboard rows; bundled rows are read-only",
+            },
+        ],
+    },
+    {
         "key": "observability",
         "title": "Run comparison & observability",
         "icon": "git-compare-arrows",
