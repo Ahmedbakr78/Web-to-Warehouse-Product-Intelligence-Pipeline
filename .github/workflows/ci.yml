@@ -142,6 +142,15 @@ jobs:
           python -m pip install --upgrade pip wheel
           pip install -e ".[postgres,dev]"
 
+      # WeasyPrint draws through pango/cairo, mirroring docker/api.Dockerfile.
+      # Without these the import fails and the report endpoints answer 501.
+      - name: Install PDF system libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libpango-1.0-0 libpangoft2-1.0-0 libcairo2 \
+            libgdk-pixbuf-2.0-0 libffi-dev shared-mime-info fonts-dejavu-core
+
       - name: Bootstrap and seed
         env:
           DATABASE_URL: postgresql+psycopg2://pip:pip@127.0.0.1:5432/pipeline
@@ -219,7 +228,10 @@ jobs:
       - name: Render every Mermaid diagram to SVG
         run: |
           npm install --prefix "$RUNNER_TEMP/mermaid" @mermaid-js/mermaid-cli
-          echo "MMDC_BIN=$RUNNER_TEMP/mermaid/node_modules/.bin/mmdc" >> "$GITHUB_ENV"
+          # GITHUB_ENV only applies to *later* steps, so export for this shell too.
+          export MMDC_BIN="$RUNNER_TEMP/mermaid/node_modules/.bin/mmdc"
+          echo "MMDC_BIN=$MMDC_BIN" >> "$GITHUB_ENV"
+          test -x "$MMDC_BIN" || { echo "::error::mmdc missing after install"; exit 1; }
           python3 scripts/diagrams.py render
 
       - name: Extract diagrams
