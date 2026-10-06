@@ -15,6 +15,7 @@ from app.api.schemas import (
     Message,
     PasswordChangeRequest,
     RefreshRequest,
+    RegisterRequest,
     TokenResponse,
     UserRead,
 )
@@ -28,7 +29,7 @@ from app.api.security import (
     verify_password,
 )
 from app.core.config import settings
-from app.core.errors import AuthenticationError
+from app.core.errors import AuthenticationError, ConflictError, PermissionDeniedError
 from app.core.logging import get_logger
 from app.models.app_users import AppAuditLog, AppNotification, AppSession, AppUser
 

@@ -606,6 +606,62 @@ export default function Products() {
         </>
       )}
 
+      {/* ------------------------------------------------------------- compare */}
+      <Modal
+        open={showCompare}
+        onClose={() => setShowCompare(false)}
+        title={`Compare ${comparedIds.length} products`}
+        description="Live server-side comparison: price, rating, availability and movement side by side."
+        size="lg"
+        footer={
+          <>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setComparedIds([])
+                setShowCompare(false)
+              }}
+            >
+              Clear selection
+            </Button>
+            <Button variant="primary" onClick={() => setShowCompare(false)}>
+              Done
+            </Button>
+          </>
+        }
+      >
+        {comparison.isLoading ? (
+          <LoadingState label="Loading comparison…" rows={4} />
+        ) : comparison.isError ? (
+          <ErrorState message={(comparison.error as Error)?.message} onRetry={() => comparison.refetch()} />
+        ) : !(comparison.data?.length) ? (
+          <EmptyState title="Nothing to compare" message="Select at least 2 products with the checkboxes." icon={<GitCompare className="h-6 w-6" />} />
+        ) : (
+          <DataTable
+            rows={[
+              { attr: 'Product', values: (comparison.data ?? []).map((row: any) => row.canonical_name) },
+              { attr: 'Brand', values: (comparison.data ?? []).map((row: any) => row.brand ?? '—') },
+              { attr: 'Category', values: (comparison.data ?? []).map((row: any) => row.category_name ?? '—') },
+              { attr: 'Price (USD)', values: (comparison.data ?? []).map((row: any) => (row.price_usd !== null && row.price_usd !== undefined ? formatPrice(row.price_usd, row.currency ?? 'USD') : '—')) },
+              { attr: 'Rating', values: (comparison.data ?? []).map((row: any) => (row.rating !== null && row.rating !== undefined ? Number(row.rating).toFixed(1) : '—')) },
+              { attr: 'Availability', values: (comparison.data ?? []).map((row: any) => row.availability ?? '—') },
+              { attr: 'Change %', values: (comparison.data ?? []).map((row: any) => (row.price_change_pct !== null && row.price_change_pct !== undefined ? `${Number(row.price_change_pct).toFixed(1)}%` : '—')) },
+              { attr: 'Source', values: (comparison.data ?? []).map((row: any) => row.source_code ?? '—') },
+              { attr: 'Last seen', values: (comparison.data ?? []).map((row: any) => (row.last_seen_at ? formatRelative(row.last_seen_at) : '—')) },
+            ]}
+            rowKey={(row: any) => row.attr}
+            columns={[
+              { key: 'attr', header: '', render: (row: any) => <span className="font-medium">{row.attr}</span> },
+              ...((comparison.data ?? []).map((row: any, index: number) => ({
+                key: `p${index}`,
+                header: String(row.canonical_name ?? `#${row.product_id}`).slice(0, 24),
+                render: (attrRow: any) => <span className="block max-w-[12rem] truncate">{attrRow.values[index]}</span>,
+              }))),
+            ]}
+          />
+        )}
+      </Modal>
+
       {/* ------------------------------------------------------------- column picker */}
       <Modal open={showColumns} onClose={() => setShowColumns(false)} title="Visible columns" description="Pick which columns appear in the table." size="sm">
         <div className="space-y-2">
