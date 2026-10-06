@@ -216,25 +216,18 @@ PRESETS: dict[str, dict[str, Any]] = {
         "params": {"search_terms": "", "json": "1"},
     },
     "openlibrary": {
-        "label": "Open Library Search",
-        "base_url": "https://openlibrary.org/search.json",
+        "label": "Open Library shelf",
+        "base_url": "https://openlibrary.org/subjects/bestsellers.json",
         "terms_url": "https://openlibrary.org/terms-of-use",
-        "license_note": "Free public API; be polite (≤100 req/5min).",
-        "items_path": "docs",
+        "license_note": "Free public API; be polite (≤100 req/5min). Note: /search.json is robots-blocked, shelves are allowed.",
+        "items_path": "works",
         "id_field": "key",
         "fields": {
             "name": "title",
-            "brand": "author_name.0",
-            "availability": "const:in_stock",
+            "brand": "authors.0.name",
         },
-        "pagination": {
-            "style": "skip_limit",
-            "page_size": 100,
-            "limit_param": "limit",
-            "offset_param": "offset",
-            "total_path": "numFound",
-        },
-        "params": {"q": "bestseller"},
+        "pagination": {"style": "none"},
+        "params": {"limit": "100"},
     },
 }
 
