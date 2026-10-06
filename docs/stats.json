@@ -3,7 +3,7 @@
   "airflow_tasks": 33,
   "analytical_views": 20,
   "api_smoke_checks": 104,
-  "catalogued_features": 443,
+  "catalogued_features": 446,
   "cli_commands": 13,
   "compose_services": 6,
   "data_quality_rules": 12,
@@ -12,8 +12,8 @@
   "mermaid_diagrams": 80,
   "physical_tables": 28,
   "pipeline_stages": 9,
-  "rest_route_decorators": 186,
+  "rest_route_decorators": 188,
   "rest_routers": 23,
-  "test_cases": 448,
-  "test_functions": 336
+  "test_cases": 449,
+  "test_functions": 337
 }
