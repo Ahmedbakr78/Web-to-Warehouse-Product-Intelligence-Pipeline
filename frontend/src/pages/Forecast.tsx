@@ -519,6 +519,7 @@ function ProductProjection({
   horizon: number
 }) {
   const productId = selected ?? products[0]?.product_id ?? null
+  const toast = useToast()
 
   const history = useApiQuery(
     ['forecast-history', productId],
