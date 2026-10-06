@@ -208,6 +208,10 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "name": "Source health checks",
                 "detail": "Registry metadata, rate limits, paging capability, live preview",
             },
+            {
+                "name": "Egress proxy support",
+                "detail": "Optional INGEST_PROXY_URL for all fetches with INGEST_NO_PROXY bypass list",
+            },
         ],
     },
     {
@@ -981,14 +985,14 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "and a smoke run against the live stack.",
         "features": [
             {
-                "name": "408 automated tests",
+                "name": "439 automated tests",
                 "detail": "Unit and integration, running against SQLite so no service is needed",
             },
             {
                 "name": "104-check API smoke run",
                 "detail": "Every endpoint exercised against the running stack, in the smoke script",
             },
-            {"name": "Strict typing", "detail": "mypy clean across 83 source files"},
+            {"name": "Strict typing", "detail": "mypy clean across 85 source files"},
             {"name": "Lint clean", "detail": "Ruff over app, tests, scripts, DAGs and migrations"},
             {
                 "name": "Schema drift gate",
@@ -1013,6 +1017,10 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             {
                 "name": "Documentation drift check",
                 "detail": "A measured count in the docs that stops matching the code fails the build",
+            },
+            {
+                "name": "Pre-commit hooks",
+                "detail": "Ruff, whitespace and the stats drift gate run at commit via make precommit",
             },
         ],
     },
@@ -1369,6 +1377,10 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "detail": "structlog with run_id, stage, duration and slow-request warnings",
             },
             {"name": "Timing headers", "detail": "X-Process-Time-Ms plus X-Database on every response"},
+            {
+                "name": "One-command backup",
+                "detail": "make backup snapshots postgres, mysql and sqlite into a timestamped folder",
+            },
             {
                 "name": "Free forever stack",
                 "detail": "No paid APIs: offline FX, seeded demo, SQLite-runnable tests",
