@@ -7,7 +7,7 @@
  * panel does not flicker back to "queued" between events.
  */
 
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Ban,
@@ -76,16 +76,19 @@ export default function JobQueue() {
   const types = useApiQuery(['jobs', 'types'], endpoints.jobTypes, { staleTime: 300_000 })
 
   // Progress pushed over the stream wins over the polled row, but only while the job
-  // is still active - afterwards the database row is the source of truth.
-  const live = useRef(new Map<string, Record<string, any>>())
-  const { state, events: streamEvents } = useEventStream(['job'], {
-    onEvent: (event) => {
-      const reference = String(event.job_key ?? event.job_reference ?? '')
-      if (!reference) return
-      if (TERMINAL.includes(String(event.status ?? ''))) live.current.delete(reference)
-      else live.current.set(reference, event)
-    },
-  })
+  // is still active - afterwards the database row is the source of truth. Derived
+  // from the event buffer (not a mutated ref) so the merge below re-renders live.
+  const { state, events: streamEvents } = useEventStream(['job'])
+  const live = useMemo(() => {
+    const map = new Map<string, Record<string, any>>()
+    for (const event of streamEvents) {
+      const key = String(event.job_key ?? event.job_reference ?? '')
+      if (!key) continue
+      if (TERMINAL.includes(String(event.status ?? ''))) map.delete(key)
+      else map.set(key, event)
+    }
+    return map
+  }, [streamEvents])
 
   const cancel = useMutation({
     mutationFn: endpoints.cancelJob,
@@ -114,7 +117,7 @@ export default function JobQueue() {
     return items.map((row) => {
       // The stream keys events by job_key (falling back to a legacy reference);
       // match either so pushed progress always lands on its row.
-      const push = live.current.get(row.job_key) ?? live.current.get(row.reference)
+      const push = live.get(row.job_key) ?? live.get(row.reference)
       if (!push || TERMINAL.includes(String(row.status))) return row
       return {
         ...row,
@@ -125,9 +128,7 @@ export default function JobQueue() {
         streamed: true,
       }
     })
-    // `streamEvents` is the re-render trigger: `live` is a ref mutated in place,
-    // so without it the merged progress would sit stale until the next 15 s poll.
-  }, [jobs.data, streamEvents])
+  }, [jobs.data, live])
 
   const active = rows.filter((row) => ACTIVE.includes(String(row.status)))
   const cancellable = new Set<string>(types.data?.cancellable ?? [])

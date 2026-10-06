@@ -7,7 +7,7 @@
  * any projection is the honest ordering.
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Activity,
@@ -83,15 +83,21 @@ export default function Forecast() {
   // The last finished run stays visible (with its outcome) until the next rebuild;
   // unmounting the panel on completion hid the result the moment it arrived.
   const [finishedJob, setFinishedJob] = useState<{ key: string; status: string } | null>(null)
+  // Guards the completion effect so it fires once per job, not on every render
+  // while the finished status is still the latest polled state.
+  const handledRef = useRef<string | null>(null)
 
   // A rebuild writes new forecasts; refresh the panels once it lands, then stop
   // polling that job but keep the finished summary on screen.
   useEffect(() => {
     if (!['succeeded', 'failed'].includes(jobStatus)) return
+    const key = String((job.job as any)?.job_key ?? rebuildJob ?? '')
+    if (key && handledRef.current === key) return
+    handledRef.current = key
     void queryClient.invalidateQueries({ queryKey: ['forecast-backtest'] })
-    setFinishedJob({ key: String((job.job as any)?.job_key ?? rebuildJob ?? ''), status: jobStatus })
+    setFinishedJob({ key, status: jobStatus })
     setRebuildJob(null)
-  }, [jobStatus, queryClient])
+  }, [job.job, jobStatus, queryClient, rebuildJob])
 
   // The accuracy distribution is the useful shape: one mean hides that a few products
   // are modelled badly.

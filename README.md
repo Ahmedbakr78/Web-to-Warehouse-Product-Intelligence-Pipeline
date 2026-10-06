@@ -8,12 +8,12 @@
   <img src="https://img.shields.io/badge/MySQL-8.4-4479A1?logo=mysql&logoColor=white" alt="MySQL 8.4"/>
   <img src="https://img.shields.io/badge/Airflow-2.10-017CEE?logo=apacheairflow&logoColor=white" alt="Airflow"/>
   <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker Compose"/>
-  <img src="https://img.shields.io/badge/tables-25-informational" alt="Tables"/>
+  <img src="https://img.shields.io/badge/tables-28-informational" alt="Tables"/>
   <img src="https://img.shields.io/badge/views-20-informational" alt="Views"/>
-  <img src="https://img.shields.io/badge/REST%20operations-128-success" alt="REST operations"/>
+  <img src="https://img.shields.io/badge/REST%20operations-173-success" alt="REST operations"/>
   <img src="https://img.shields.io/badge/DQ%20rules-12-success" alt="Data quality rules"/>
   <img src="https://img.shields.io/badge/unit%20tests-408%20passing-brightgreen" alt="Tests"/>
-  <img src="https://img.shields.io/badge/API%20smoke-86%2F86-brightgreen" alt="API smoke"/>
+  <img src="https://img.shields.io/badge/API%20smoke-104%2F104-brightgreen" alt="API smoke"/>
   <img src="https://img.shields.io/badge/ruff-0%20warnings-brightgreen" alt="ruff"/>
   <img src="https://img.shields.io/badge/CI-github%20actions-2088FF?logo=github-actions&logoColor=white" alt="CI"/>
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT"/>

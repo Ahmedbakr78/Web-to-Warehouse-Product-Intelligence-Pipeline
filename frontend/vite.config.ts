@@ -4,6 +4,11 @@ import path from 'node:path'
 
 export default defineConfig({
   plugins: [react()],
+  // Single source for the version shown in the UI (UserMenu footer). Read from
+  // package.json via the npm-injected env var so it can never drift from releases.
+  define: {
+    __APP_VERSION__: JSON.stringify(process.env.npm_package_version ?? 'dev'),
+  },
   resolve: {
     alias: { '@': path.resolve(__dirname, './src') },
   },
