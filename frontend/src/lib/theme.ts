@@ -124,6 +124,15 @@ export function getStoredTheme(): ThemeMode {
   return read<ThemeMode>(KEY.theme, THEME_MODES.map((m) => m.id), 'system')
 }
 
+/**
+ * Stored before `MotionMode` dropped the legacy `auto` value; treat it as the
+ * full-motion default it used to mean rather than falling back silently.
+ */
+export function getStoredMotion(): MotionMode {
+  const stored = read<string>(KEY.motion, [...MOTION_MODES.map((m) => m.id), 'auto'], 'full')
+  return stored === 'auto' ? 'full' : (stored as MotionMode)
+}
+
 /* ------------------------------------------------------------ apply (DOM) */
 
 export function applyTheme(mode: ThemeMode): boolean {
@@ -139,8 +148,13 @@ export function applyTheme(mode: ThemeMode): boolean {
 }
 
 function syncThemeColorMeta(dark: boolean): void {
-  const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
-  if (meta) meta.content = dark ? '#0b0f19' : '#ffffff'
+  // index.html ships media-queried metas (dark/light) so the OS chrome is right
+  // before first paint; update every one of them, since the browser - not the
+  // media query - decides which is active once the app theme diverges from the OS.
+  const metas = document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')
+  metas.forEach((meta) => {
+    meta.content = dark ? '#0b0f19' : '#ffffff'
+  })
 }
 
 export function applyDensity(density: Density): void {
@@ -215,7 +229,7 @@ export function initAppearance(): void {
   applyTheme(getStoredTheme())
   applyDensity(read<Density>(KEY.density, DENSITIES.map((d) => d.id), 'comfortable'))
   applyAccent(read(KEY.accent, ACCENT_KEYS, 'indigo'))
-  applyMotion(read<MotionMode>(KEY.motion, MOTION_MODES.map((m) => m.id), 'full'))
+  applyMotion(getStoredMotion())
   applyDirection(read<Direction>(KEY.direction, ['ltr', 'rtl'], 'ltr'))
   applyFontScale(read<FontScale>(KEY.fontScale, FONT_SCALES.map((f) => f.id), 'md'))
 }
@@ -255,7 +269,7 @@ function currentSnapshot(): Snapshot {
     isDark: document.documentElement.classList.contains('dark'),
     density: read<Density>(KEY.density, DENSITIES.map((d) => d.id), 'comfortable'),
     accent: read(KEY.accent, ACCENT_KEYS, 'indigo'),
-    motion: read<MotionMode>(KEY.motion, MOTION_MODES.map((m) => m.id), 'full'),
+    motion: getStoredMotion(),
     direction: document.documentElement.dataset.direction === 'rtl' ? 'rtl' : 'ltr',
     fontScale: read<FontScale>(KEY.fontScale, FONT_SCALES.map((f) => f.id), 'md'),
   }

@@ -38,6 +38,34 @@
           root.setAttribute('dir', direction)
 
           root.dataset.accent = localStorage.getItem('pip.accent') || 'indigo'
+
+          // Paint the accent before first paint too: the CSS variables are
+          // otherwise set only once React boots, flashing the default indigo.
+          var accents = {
+            indigo: ['#4f46e5', 'rgb(99 102 241 / 0.12)'],
+            blue: ['#2563eb', 'rgb(37 99 235 / 0.12)'],
+            sky: ['#0284c7', 'rgb(2 132 199 / 0.12)'],
+            cyan: ['#0891b2', 'rgb(8 145 178 / 0.12)'],
+            teal: ['#0d9488', 'rgb(13 148 136 / 0.12)'],
+            emerald: ['#059669', 'rgb(5 150 105 / 0.12)'],
+            green: ['#16a34a', 'rgb(22 163 74 / 0.12)'],
+            amber: ['#d97706', 'rgb(217 119 6 / 0.12)'],
+            orange: ['#ea580c', 'rgb(234 88 12 / 0.12)'],
+            rose: ['#e11d48', 'rgb(225 29 72 / 0.12)'],
+            pink: ['#db2777', 'rgb(219 39 119 / 0.12)'],
+            violet: ['#7c3aed', 'rgb(124 58 237 / 0.12)']
+          }
+          var accent = accents[root.dataset.accent] || accents.indigo
+          root.style.setProperty('--brand-500', accent[0])
+          root.style.setProperty('--brand-600', accent[0])
+          root.style.setProperty('--brand-500-soft', accent[1])
+
+          // The browser picks a theme-color meta by OS setting, not by app theme,
+          // so resolve it here for the actual (possibly system-derived) mode.
+          var metas = document.querySelectorAll('meta[name="theme-color"]')
+          for (var i = 0; i < metas.length; i++) {
+            metas[i].setAttribute('content', dark ? '#0b0f19' : '#ffffff')
+          }
         } catch (error) {
           /* storage blocked - fall back to the light default */
         }
