@@ -186,7 +186,7 @@ export default function Products() {
 
   function exportCsv() {
     const header = ['product_id', 'name', 'category', 'brand', 'price', 'currency', 'change_pct', 'rating', 'availability', 'source', 'last_seen']
-    const body = rows.map((row: any) => [
+    const body = displayRows.map((row: any) => [
       row.product_id,
       row.canonical_name,
       row.category_name ?? '',
@@ -199,11 +199,16 @@ export default function Products() {
       row.source_code ?? '',
       row.last_seen_at ?? '',
     ])
-    downloadCsv('products.csv', toCsv(header, body))
+    downloadCsv(watchedOnly ? 'watchlist.csv' : 'products.csv', toCsv(header, body))
   }
 
   function exportJson() {
-    downloadJson('products.json', { exported_at: new Date().toISOString(), total, rows })
+    downloadJson(watchedOnly ? 'watchlist.json' : 'products.json', {
+      exported_at: new Date().toISOString(),
+      watched_only: watchedOnly,
+      total: displayRows.length,
+      rows: displayRows,
+    })
   }
 
   const visible = (key: ColumnKey) => columns.includes(key)

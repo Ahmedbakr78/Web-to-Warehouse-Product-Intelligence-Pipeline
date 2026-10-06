@@ -453,6 +453,32 @@ export default function Audit() {
                 title="Application audit trail"
                 subtitle={`Every privileged action recorded in the last ${days} days`}
                 icon={<FileClock className="h-4 w-4" />}
+                action={
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    icon={<HardDriveDownload className="h-4 w-4" />}
+                    disabled={!auditRows.length}
+                    onClick={() => {
+                      const body = auditRows.map((row: AuditRow) => [
+                        row.created_at ?? '',
+                        row.user_email ?? '',
+                        row.action ?? '',
+                        row.entity_type ? `${row.entity_type}${row.entity_id ? ` #${row.entity_id}` : ''}` : '',
+                        row.status ?? '',
+                        row.ip_address ?? '',
+                        row.duration_ms ?? '',
+                      ])
+                      downloadCsv('application-audit-log.csv', toCsv(
+                        ['when', 'user', 'action', 'target', 'status', 'ip', 'duration_ms'],
+                        body,
+                      ))
+                      toast.success('Audit log exported', `${body.length} rows saved as CSV.`)
+                    }}
+                  >
+                    Export CSV
+                  </Button>
+                }
               />
             </div>
             <DataTable

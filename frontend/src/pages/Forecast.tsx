@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   Brain,
   CalendarRange,
+  Download,
   Gauge,
   LineChart,
   RefreshCw,
@@ -45,7 +46,7 @@ import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { useJob } from '@/lib/stream'
 import { useQueryClient } from '@tanstack/react-query'
-import { formatDate, formatNumber, formatPrice } from '@/lib/format'
+import { formatDate, formatNumber, formatPrice, downloadCsv, toCsv } from '@/lib/format'
 import { cn } from '@/lib/cn'
 
 const HORIZONS = [
@@ -252,6 +253,33 @@ export default function Forecast() {
               title="How accurate is the model?"
               subtitle="Holdout backtest across the catalogue"
               icon={<Gauge className="h-4 w-4" />}
+              action={
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  icon={<Download className="h-4 w-4" />}
+                  disabled={!backtest.data?.evaluated}
+                  onClick={() => {
+                    const best = ((backtest.data?.best ?? []) as any[])
+                    const worst = ((backtest.data?.worst ?? []) as any[])
+                    const body = [...best, ...worst].map((row: any) => [
+                      row.product_id ?? '',
+                      row.name ?? '',
+                      row.observations ?? '',
+                      row.mape_pct ?? '',
+                      row.mae ?? '',
+                      row.rmse ?? '',
+                    ])
+                    downloadCsv('forecast-backtest.csv', toCsv(
+                      ['product_id', 'name', 'observations', 'mape_pct', 'mae', 'rmse'],
+                      body,
+                    ))
+                    toast.success('Backtest exported', `${body.length} rows saved as CSV.`)
+                  }}
+                >
+                  Export CSV
+                </Button>
+              }
             />
             {backtest.isLoading ? (
               <LoadingState label="Backtesting the model…" rows={3} />

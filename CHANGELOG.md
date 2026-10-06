@@ -11,6 +11,13 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Excel exports** — every dataset downloads as a real `.xlsx` workbook (`GET /export/{dataset}.xlsx`):
   native dates/decimals, bold header, frozen top row, auto-filter and fitted columns. The ExportButton
   offers CSV, Excel and JSON on every dataset screen.
+- **Product watchlists** — star products into a migration-free personal list (`GET/POST/DELETE
+  /users/me/watchlist`, capped at 200, idempotent, synced with the profile and its export), with a
+  star column and watched-only filter on Products, a Watch toggle on the detail page, and a CSV
+  export of the Audit HTTP-compliance log.
+- **Infographic dark variant + PDF** — the generator renders light and dark 2560×1440 sets (SVG + PNG)
+  plus a PDF from one palette-parameterised builder, with `make infographic --check` and a CI step
+  failing on stale artefacts.
 
 ## [1.7.0] - 2026-10-06
 

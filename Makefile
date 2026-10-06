@@ -292,7 +292,7 @@ docs-check: docs-validate stats-check ## Validate diagrams and check documentati
 	$(PYBIN) scripts/check_slugify.py
 
 .PHONY: infographic
-infographic: ## Generate the DEPI project roadmap infographic (HTML + PNG)
+infographic: ## Generate the DEPI infographic (light+dark SVG/PNG/PDF + previews)
 	$(PYBIN) scripts/make_infographic.py
 
 .PHONY: deck

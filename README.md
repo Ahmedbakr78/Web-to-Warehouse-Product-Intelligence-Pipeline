@@ -1398,7 +1398,7 @@ natively on GitHub; every structural number is tied to a runnable command.
 | 16 | User Manual | sign-in, every screen, filters, exports, alerts, admin, troubleshooting, FAQ |
 | 17 | Technical Documentation | module map, key algorithms, every configuration variable |
 | 18 | Presentation Outline | defence deck, Q&A preparation, demo script |
-| 19 | Feature Inventory | 410 features in twenty-three areas with file references |
+| 19 | Feature Inventory | 440 features in twenty-nine areas with file references |
 | 20 | Feedback and Improvements | feedback template, 32 prioritised improvements, self-assessment |
 | 21 | **Architecture Deep Dive** | design drivers, decisions with rejected alternatives, request lifecycle, layering, known limitations |
 | 22 | **Data Dictionary** | every table, column, type and meaning; controlled vocabularies; view catalogue; dialect portability |
@@ -1485,7 +1485,7 @@ published on GitHub.
 ### What's new in v1.3
 
 - **Feature catalogue** — `GET /meta/features` plus a `/features` screen render the 360 shipped
-  capabilities in 29 groups from `app/core/features.py`, so the API, the UI and the documentation
+  capabilities in 30 groups from `app/core/features.py`, so the API, the UI and the documentation
   describe exactly the same system.
 - **Aggregate builder** — a structured query surface with group-by, six aggregate functions and
   fifteen filter operators over eleven entities, assembled from a server-side whitelist into a

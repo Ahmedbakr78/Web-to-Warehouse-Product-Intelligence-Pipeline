@@ -258,6 +258,11 @@ jobs:
             exit 1
           fi
 
+      # The infographic ships committed SVG/PNG/PDF artefacts; a stale commit
+      # would present last month's numbers as today's.
+      - name: Verify infographic artefacts are current
+        run: python3 scripts/make_infographic.py --check
+
       # The site builder is deliberately dependency-free, so a plain python3 works.
       - name: Build the documentation website
         run: python3 scripts/build_site.py --out /tmp/site
