@@ -234,6 +234,18 @@ jobs:
           test -x "$MMDC_BIN" || { echo "::error::mmdc missing after install"; exit 1; }
           python3 scripts/diagrams.py render
 
+      # extract() wipes docs/diagrams/out, so the SVG count must be checked
+      # before the extract steps below — otherwise there is nothing to count.
+      - name: Confirm every diagram rendered
+        run: |
+          rendered=$(ls -1 docs/diagrams/out/*.svg | wc -l)
+          sources=$(ls -1 docs/diagrams/out/*.mmd | wc -l)
+          echo "$rendered SVG(s) from $sources source(s)"
+          if [ "$rendered" -lt "$sources" ]; then
+            echo "::error::only $rendered of $sources diagrams rendered"
+            exit 1
+          fi
+
       - name: Extract diagrams
         run: python3 scripts/diagrams.py extract
 
@@ -243,16 +255,6 @@ jobs:
           if ! git diff --quiet -- docs/diagrams/out; then
             echo "::error::docs/diagrams/out/*.mmd is stale. Run 'make docs-diagrams' and commit."
             git --no-pager diff --stat -- docs/diagrams/out
-            exit 1
-          fi
-
-      - name: Confirm every diagram rendered
-        run: |
-          rendered=$(ls -1 docs/diagrams/out/*.svg | wc -l)
-          sources=$(ls -1 docs/diagrams/out/*.mmd | wc -l)
-          echo "$rendered SVG(s) from $sources source(s)"
-          if [ "$rendered" -lt "$sources" ]; then
-            echo "::error::only $rendered of $sources diagrams rendered"
             exit 1
           fi
 
