@@ -46,7 +46,7 @@ function jsonResponse(payload: unknown) {
 describe('Dashboard page', () => {
   beforeEach(() => {
     renders = 0
-    tokenStore.set('test-token', null)
+    tokenStore.set('test-token')
     localStorage.clear()
 
     vi.stubGlobal(
@@ -89,7 +89,7 @@ describe('Dashboard page', () => {
     expect(container.textContent).not.toMatch(/Minified React error/i)
 
     await waitFor(() => {
-      expect(screen.getByText('Products tracked')).toBeTruthy()
+      expect(screen.getByText("Products observed")).toBeTruthy()
     })
 
     // Settle, then confirm the count stopped moving. A re-render loop would keep

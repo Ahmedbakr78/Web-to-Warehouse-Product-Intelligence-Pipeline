@@ -23,8 +23,21 @@ function stubMatchMedia(matches: boolean) {
   })
 }
 
+/**
+ * jsdom implements neither `ResizeObserver` nor `matchMedia`'s media queries, and the
+ * chart library observes its container. A no-op observer is enough for a render test.
+ */
+class NoopResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
 beforeEach(() => {
   stubMatchMedia(false)
+  if (!('ResizeObserver' in globalThis)) {
+    vi.stubGlobal('ResizeObserver', NoopResizeObserver)
+  }
   localStorage.clear()
 })
 
