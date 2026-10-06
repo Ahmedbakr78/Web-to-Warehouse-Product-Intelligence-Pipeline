@@ -66,6 +66,7 @@ type AuthState = {
   ready: boolean
   authenticated: boolean
   login: (email: string, password: string, secondFactor?: { totp_code?: string; recovery_code?: string }) => Promise<void>
+  register: (email: string, fullName: string, password: string) => Promise<void>
   logout: () => void
   refresh: () => Promise<void>
   can: (permission: string) => boolean
@@ -77,6 +78,7 @@ const AuthContext = createContext<AuthState>({
   ready: false,
   authenticated: false,
   login: async () => {},
+  register: async () => {},
   logout: () => {},
   refresh: async () => {},
   can: () => false,
@@ -193,8 +195,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [queryClient],
   )
 
-  const logout = useCallback(() => {
-    const sessionKey = localStorage.getItem('pip.session') ?? undefined
+  const register = useCallback(
+    async (email: string, fullName: string, password: string) => {
+      const response = await endpoints.register(email, fullName, password)
+      tokenStore.set(response.access_token, response.refresh_token)
+      if (response.session_key) localStorage.setItem('pip.session', response.session_key)
+      setUser(response.user)
+      setReady(true)
+      queryClient.clear()
+    },
+    [queryClient],
+  )
+
+  const logout = useCallback(() => {    const sessionKey = localStorage.getItem('pip.session') ?? undefined
     void endpoints.logout(sessionKey).catch(() => undefined)
     localStorage.removeItem('pip.session')
     tokenStore.clear()
@@ -208,8 +221,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const value = useMemo<AuthState>(
-    () => ({ user, ready, authenticated: Boolean(user), login, logout, refresh: loadUser, can, saveAppearance }),
-    [user, ready, login, logout, loadUser, can, saveAppearance],
+    () => ({ user, ready, authenticated: Boolean(user), login, register, logout, refresh: loadUser, can, saveAppearance }),
+    [user, ready, login, register, logout, loadUser, can, saveAppearance],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

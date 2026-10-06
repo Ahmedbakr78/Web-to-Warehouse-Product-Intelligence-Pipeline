@@ -195,6 +195,8 @@ export const endpoints = {
   // first and only then checks the code, so no unauthenticated challenge is issued.
   login: (email: string, password: string, remember = true, secondFactor?: { totp_code?: string; recovery_code?: string }) =>
     api.post<any>('/auth/login', { email, password, remember, ...(secondFactor ?? {}) }),
+  register: (email: string, full_name: string, password: string) =>
+    api.post<any>('/auth/register', { email, full_name, password }),
   logout: (sessionKey?: string) =>
     api.post<any>(`/auth/logout${sessionKey ? `?session_key=${encodeURIComponent(sessionKey)}` : ''}`),
   me: () => api.get<any>('/auth/me'),

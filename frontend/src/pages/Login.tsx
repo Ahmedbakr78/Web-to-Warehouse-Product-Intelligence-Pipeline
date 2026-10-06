@@ -16,12 +16,14 @@ const FEATURES = [
 ]
 
 export default function LoginPage() {
-  const { authenticated, login, ready } = useAuth()
+  const { authenticated, login, register, ready } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const { isDark, toggle } = useTheme()
 
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [email, setEmail] = useState('admin@example.com')
+  const [fullName, setFullName] = useState('')
   const [password, setPassword] = useState('Admin@12345')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -50,6 +52,12 @@ export default function LoginPage() {
     setError(null)
     setSubmitting(true)
     try {
+      if (mode === 'signup') {
+        if (fullName.trim().length < 2) throw new Error('Enter your full name (at least 2 characters).')
+        await register(email.trim(), fullName.trim(), password)
+        navigate(localStore.get<string>('account.startPage', '/'), { replace: true })
+        return
+      }
       await login(email.trim(), password, {
         ...(code.trim() ? (useRecovery ? { recovery_code: code.trim() } : { totp_code: code.trim() }) : {}),
       })
@@ -129,10 +137,31 @@ export default function LoginPage() {
 
         <div className="flex flex-1 items-center justify-center px-4 pb-10">
           <div className="w-full max-w-sm">
-            <h2 className="text-xl font-semibold">Sign in</h2>
-            <p className="mt-1 text-sm text-muted">Use one of the documented demo accounts.</p>
+            <h2 className="text-xl font-semibold">{mode === 'signup' ? 'Create an account' : 'Sign in'}</h2>
+            <p className="mt-1 text-sm text-muted">
+              {mode === 'signup'
+                ? 'New accounts start as viewers; an admin can promote you later.'
+                : 'Use one of the documented demo accounts.'}
+            </p>
 
             <form onSubmit={submit} className="mt-6 space-y-3.5" noValidate>
+              {mode === 'signup' ? (
+                <div>
+                  <label htmlFor="fullname" className="stat-label mb-1.5 block">
+                    Full name
+                  </label>
+                  <input
+                    id="fullname"
+                    type="text"
+                    autoComplete="name"
+                    value={fullName}
+                    onChange={(event) => setFullName(event.target.value)}
+                    className="input"
+                    required
+                    minLength={2}
+                  />
+                </div>
+              ) : null}
               <div>
                 <label htmlFor="email" className="stat-label mb-1.5 block">
                   Email
@@ -221,9 +250,27 @@ export default function LoginPage() {
                 className="w-full"
                 icon={needsFactor ? <Smartphone className="h-4 w-4" /> : <KeyRound className="h-4 w-4" />}
               >
-                {needsFactor ? 'Verify and sign in' : 'Sign in'}
+                {mode === 'signup' ? 'Create account' : needsFactor ? 'Verify and sign in' : 'Sign in'}
               </Button>
             </form>
+
+            <p className="mt-4 text-center text-xs text-muted">
+              {mode === 'signup' ? (
+                <>
+                  Already have an account?{' '}
+                  <button type="button" onClick={() => { setMode('signin'); setError(null) }} className="link">
+                    Sign in
+                  </button>
+                </>
+              ) : (
+                <>
+                  New here?{' '}
+                  <button type="button" onClick={() => { setMode('signup'); setError(null); setNeedsFactor(false) }} className="link">
+                    Create an account
+                  </button>
+                </>
+              )}
+            </p>
 
             {demo?.accounts?.length ? (
               <div className="mt-6 rounded-xl border border-line bg-surface p-3">
