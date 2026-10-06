@@ -9,7 +9,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { Database, PanelLeftClose, PanelLeftOpen, Wifi, WifiOff, X, AlertTriangle } from 'lucide-react'
+import { PanelLeftClose, PanelLeftOpen, Wifi, WifiOff, X, AlertTriangle } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import type { LucideIcon } from 'lucide-react'
 

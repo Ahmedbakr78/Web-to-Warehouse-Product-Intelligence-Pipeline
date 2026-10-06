@@ -81,9 +81,7 @@ export default function LoginPage() {
         />
         <div className="relative">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600 text-white">
-              <Database className="h-5 w-5" aria-hidden />
-            </div>
+            <img src="/logo.png" alt="Product Intelligence logo" className="h-10 w-10 rounded-xl" />
             <div>
               <p className="text-base font-semibold leading-tight">Product Intelligence Pipeline</p>
               <p className="text-xs text-subtle">Web-to-Warehouse · DEPI Data Engineering</p>
@@ -119,9 +117,7 @@ export default function LoginPage() {
       <main className="flex w-full flex-col lg:w-1/2">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-2 lg:hidden">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-white">
-              <Database className="h-4 w-4" aria-hidden />
-            </div>
+            <img src="/logo.png" alt="Product Intelligence logo" className="h-8 w-8 rounded-lg" />
             <p className="text-sm font-semibold">Product Intelligence</p>
           </div>
           <IconButton
