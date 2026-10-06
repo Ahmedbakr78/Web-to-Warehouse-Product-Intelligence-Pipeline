@@ -708,6 +708,10 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "name": "Cold-start fallback",
                 "detail": "Too little history returns a flat series rather than a fabricated curve",
             },
+            {
+                "name": "Projection CSV export",
+                "detail": "Per-product forecast points with confidence bounds to CSV from the projection card",
+            },
         ],
     },
     {
