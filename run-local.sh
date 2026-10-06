@@ -133,6 +133,14 @@ OPEN=0
 ACTION=up
 LOGS_TARGET=""
 
+# A bare service name belongs to --logs regardless of position (`--logs api`,
+# `api --logs`, `--logs=api`): detect the mode before parsing anything else.
+for arg in "$@"; do
+  case "$arg" in
+    --logs|--logs=*) ACTION=logs ;;
+  esac
+done
+
 for arg in "$@"; do
   case "$arg" in
     --reset)    RESET=1 ;;
@@ -145,19 +153,10 @@ for arg in "$@"; do
     --logs)     ACTION=logs ;;
     --logs=*)   ACTION=logs; LOGS_TARGET="${arg#--logs=}" ;;
     -h|--help)  usage ;;
-    *)          die "unknown option '$arg' (try --help)" ;;
+    --*)        die "unknown option '$arg' (try --help)" ;;
+    *)          if [ "$ACTION" = "logs" ]; then LOGS_TARGET="$arg"; else die "unknown option '$arg' (try --help)"; fi ;;
   esac
 done
-
-# A bare service name after --logs: ./run-local.sh --logs api
-if [ "$ACTION" = "logs" ] && [ -z "$LOGS_TARGET" ] && [ $# -gt 0 ]; then
-  for arg in "$@"; do
-    case "$arg" in
-      --*|logs) ;;
-      *) LOGS_TARGET="$arg" ;;
-    esac
-  done
-fi
 
 # ------------------------------------------------------------- prerequisites
 need() {
