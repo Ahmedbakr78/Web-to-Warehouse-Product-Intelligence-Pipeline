@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Braces, Columns3, Download, Filter, Package, RotateCcw, Star } from 'lucide-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import {
   Badge,
@@ -18,6 +19,7 @@ import {
   Select,
   Toggle,
   type Tone,
+  useToast,
 } from '@/components/ui'
 import { cn } from '@/lib/cn'
 import { endpoints } from '@/lib/api'
@@ -133,9 +135,29 @@ export default function Products() {
 
   const products = useApiQuery(['products', params], () => endpoints.products(params))
   const facets = useApiQuery(['facets'], endpoints.facets, { staleTime: 300_000 })
+  const toast = useToast()
+  const queryClient = useQueryClient()
+  const [watchedOnly, setWatchedOnly] = useState(false)
+
+  const watchlist = useApiQuery(['watchlist'], () => endpoints.watchlist(), { staleTime: 60_000 })
+  const watchedIds = useMemo(
+    () => new Set<number>((watchlist.data?.product_ids ?? []) as number[]),
+    [watchlist.data],
+  )
+  const toggleWatch = useMutation({
+    mutationFn: (row: any) =>
+      watchedIds.has(row.product_id) ? endpoints.watchRemove(row.product_id) : endpoints.watchAdd(row.product_id),
+    onSuccess: (_result: any, row: any) => {
+      const watching = !watchedIds.has(row.product_id)
+      toast.success(watching ? 'Added to watchlist' : 'Removed from watchlist', row.canonical_name)
+      void queryClient.invalidateQueries({ queryKey: ['watchlist'] })
+    },
+    onError: (error: Error) => toast.error('Could not update the watchlist', error.message),
+  })
 
   const rows = products.data?.items ?? []
   const total = products.data?.total ?? 0
+  const displayRows = watchedOnly ? rows.filter((row: any) => watchedIds.has(row.product_id)) : rows
 
   const activeFilterCount = [category, brand, source, availability, priceMin, priceMax, minRating, stock].filter(Boolean).length
 
@@ -194,6 +216,18 @@ export default function Products() {
           <SearchInput value={search} onChange={setSearch} placeholder="Search name, brand or category…" className="min-w-[16rem] flex-1" />
           <ChipGroup options={STOCK_FILTERS} value={stock} onChange={setStock} />
           <div className="ml-auto flex items-center gap-2">
+            <Button
+              size="sm"
+              variant={watchedOnly ? 'primary' : 'secondary'}
+              icon={<Star className="h-4 w-4" fill={watchedOnly ? 'currentColor' : 'none'} />}
+              onClick={() => {
+                setWatchedOnly((value) => !value)
+                setPage(1)
+              }}
+              title="Show only starred products"
+            >
+              Watched{watchedIds.size ? ` (${watchedIds.size})` : ''}
+            </Button>
             <Button size="sm" variant={showFilters ? 'primary' : 'secondary'} icon={<Filter className="h-4 w-4" />} onClick={() => setShowFilters((value) => !value)}>
               Filters{activeFilterCount ? ` (${activeFilterCount})` : ''}
             </Button>
@@ -265,11 +299,15 @@ export default function Products() {
         <ErrorState message={(products.error as Error)?.message} onRetry={() => products.refetch()} />
       ) : products.isLoading && !products.data ? (
         <LoadingState label="Loading products…" rows={8} />
-      ) : rows.length === 0 ? (
+      ) : displayRows.length === 0 ? (
         <Card>
           <EmptyState
-            title="No products match these filters"
-            message="Try removing a filter, widening the price range or searching for a different term."
+            title={watchedOnly ? 'Watchlist is empty here' : 'No products match these filters'}
+            message={
+              watchedOnly
+                ? 'Star products with the ☆ button to pin them here, or turn off the Watched filter.'
+                : 'Try removing a filter, widening the price range or searching for a different term.'
+            }
             icon={<Package className="h-8 w-8" />}
             action={
               activeFilterCount || search ? (
@@ -283,12 +321,32 @@ export default function Products() {
       ) : (
         <>
           <DataTable
-            rows={rows}
+            rows={displayRows}
             rowKey={(row: any) => String(row.product_id)}
             loading={products.isFetching}
             onSort={onSort}
             sort={{ by: sortBy, dir: sortDir }}
             columns={[
+              {
+                key: 'watch',
+                header: '',
+                render: (row: any) => {
+                  const watched = watchedIds.has(row.product_id)
+                  return (
+                    <button
+                      onClick={() => toggleWatch.mutate(row)}
+                      aria-label={watched ? `Unwatch ${row.canonical_name}` : `Watch ${row.canonical_name}`}
+                      title={watched ? 'Remove from watchlist' : 'Add to watchlist'}
+                      className={cn(
+                        'rounded-md p-1.5',
+                        watched ? 'text-warning' : 'text-subtle hover:bg-surface-3 hover:text-ink',
+                      )}
+                    >
+                      <Star className="h-4 w-4" fill={watched ? 'currentColor' : 'none'} aria-hidden />
+                    </button>
+                  )
+                },
+              },
               ...(visible('name')
                 ? [
                     {

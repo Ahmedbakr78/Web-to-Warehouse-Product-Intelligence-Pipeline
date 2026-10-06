@@ -166,6 +166,86 @@ def export_me(session: DbSession, user: CurrentUser) -> dict[str, Any]:
     }
 
 
+#: Personal watchlist lives inside the profile preferences JSON, so it needs no
+#: migration, syncs to every device with the profile, and rides along in the
+#: portable data export. Capped so one account cannot grow the JSON unboundedly.
+WATCHLIST_MAX_ITEMS = 200
+WATCHLIST_KEY = "watchlist"
+
+
+def _watchlist_ids(user: AppUser) -> list[int]:
+    prefs = user.preferences or {}
+    raw = prefs.get(WATCHLIST_KEY, [])
+    seen: list[int] = []
+    for item in raw if isinstance(raw, list) else []:
+        try:
+            pid = int(item)
+        except (TypeError, ValueError):
+            continue
+        if pid not in seen:
+            seen.append(pid)
+    return seen[:WATCHLIST_MAX_ITEMS]
+
+
+def _save_watchlist(session: DbSession, user: AppUser, ids: list[int]) -> None:
+    prefs = dict(user.preferences or {})
+    prefs[WATCHLIST_KEY] = ids
+    user.preferences = prefs
+    session.flush()
+
+
+def _watchlist_products(session: DbSession, ids: list[int]) -> list[dict[str, Any]]:
+    if not ids:
+        return []
+    rows = (
+        session.execute(
+            sa.text(
+                """
+            SELECT product_id, canonical_name, brand, category_name, price_usd,
+                   currency, rating, availability, source_code, last_seen_at
+            FROM vw_product_current WHERE product_id IN :ids
+            """
+            ).bindparams(sa.bindparam("ids", expanding=True)),
+            {"ids": ids or [-1]},
+        )
+        .mappings()
+        .all()
+    )
+    by_id = {row["product_id"]: dict(row) for row in rows}
+    return [by_id[pid] for pid in ids if pid in by_id]
+
+
+@router.get("/me/watchlist", summary="My watched products with live summaries")
+def my_watchlist(session: DbSession, user: CurrentUser) -> dict[str, Any]:
+    """Starred products, resolved against the current warehouse view."""
+    ids = _watchlist_ids(user)
+    return {"count": len(ids), "product_ids": ids, "products": _watchlist_products(session, ids)}
+
+
+@router.post("/me/watchlist/{product_id}", summary="Star a product into my watchlist")
+def watch_product(product_id: int, session: DbSession, user: CurrentUser) -> dict[str, Any]:
+    """Idempotent add: watching twice is a no-op, unknown ids are 404."""
+    exists = session.execute(
+        sa.text("SELECT 1 FROM dim_product WHERE product_id = :pid"), {"pid": product_id}
+    ).first()
+    if exists is None:
+        raise ProductNotFoundError(f"product {product_id} not found", details={"product_id": product_id})
+    ids = _watchlist_ids(user)
+    if product_id not in ids:
+        ids.append(product_id)
+        ids = ids[-WATCHLIST_MAX_ITEMS:]
+        _save_watchlist(session, user, ids)
+    return {"watched": True, "product_id": product_id, "count": len(ids)}
+
+
+@router.delete("/me/watchlist/{product_id}", summary="Remove a product from my watchlist")
+def unwatch_product(product_id: int, session: DbSession, user: CurrentUser) -> dict[str, Any]:
+    """Idempotent remove: unwatching what was never watched still succeeds."""
+    ids = [pid for pid in _watchlist_ids(user) if pid != product_id]
+    _save_watchlist(session, user, ids)
+    return {"watched": False, "product_id": product_id, "count": len(ids)}
+
+
 @router.delete("/me", response_model=Message, summary="Delete my account (password confirmation)")
 def delete_me(payload: UserDeleteRequest, request: Request, session: DbSession, user: CurrentUser) -> Message:
     if not verify_password(payload.password, user.hashed_password):

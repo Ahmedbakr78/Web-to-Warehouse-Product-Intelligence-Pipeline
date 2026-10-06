@@ -16,6 +16,7 @@ import html
 import shutil
 import sys
 from pathlib import Path
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 try:
@@ -46,11 +47,33 @@ SECONDARY = "#7C3AED"
 ACCENT = "#06B6D4"
 HIGHLIGHT = "#F59E0B"
 SUCCESS = "#10B981"
-BG = "#F7F9FC"
-CARD = "#FFFFFF"
-INK = "#0F172A"
-MUTED = "#64748B"
-LINE = "#E2E8F0"
+
+#: Surface palettes. The brand ramp above is identical in both; only the
+#: surfaces adapt, mirroring the dashboard's own light/dark themes.
+PALETTES = {
+    "light": {
+        "bg": "#F7F9FC",
+        "card": "#FFFFFF",
+        "ink": "#0F172A",
+        "muted": "#64748B",
+        "line": "#E2E8F0",
+    },
+    "dark": {
+        "bg": "#0B1120",
+        "card": "#111A2E",
+        "ink": "#E8EEFC",
+        "muted": "#9AA8C7",
+        "line": "#22304D",
+    },
+}
+
+_active_palette = PALETTES["light"]
+
+
+def P(key: str) -> str:
+    """Active surface colour, so one builder renders both variants."""
+    return _active_palette[key]
+
 
 #: Exactly two rows of five: the grid geometry below is fixed, and an eleventh card
 #: would push the tech badges off the timeline.
@@ -176,18 +199,24 @@ def text(
     content: str,
     size: int,
     weight: int = 500,
-    fill: str = INK,
+    fill: str | None = None,
     anchor: str = "start",
     spacing: str = "0",
 ) -> str:
+    resolved = P("ink") if fill is None else fill
     return (
         f'<text x="{x:.0f}" y="{y:.0f}" font-family="Inter,Segoe UI,Arial,sans-serif" '
-        f'font-size="{size}" font-weight="{weight}" fill="{fill}" text-anchor="{anchor}" '
+        f'font-size="{size}" font-weight="{weight}" fill="{resolved}" text-anchor="{anchor}" '
         f'letter-spacing="{spacing}">{esc(content)}</text>'
     )
 
 
-def build_svg() -> str:
+def build_svg(palette: str = "light") -> str:
+    """Render the slide. ``palette`` selects the light or dark surfaces."""
+    global _active_palette
+    if palette not in PALETTES:
+        raise ValueError(f"unknown palette '{palette}'; expected one of {sorted(PALETTES)}")
+    _active_palette = PALETTES[palette]
     parts: list[str] = [
         f'<svg xmlns="{SVG_NS}" width="{W}" height="{H}" viewBox="0 0 {W} {H}" role="img" '
         f'aria-label="Web-to-Warehouse Product Intelligence Pipeline project infographic">',
@@ -200,14 +229,14 @@ def build_svg() -> str:
         '<filter id="soft" x="-8%" y="-8%" width="116%" height="116%">'
         '<feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#0F172A" flood-opacity="0.08"/></filter>',
         "</defs>",
-        f'<rect width="{W}" height="{H}" fill="{BG}"/>',
+        f'<rect width="{W}" height="{H}" fill="{P("bg")}"/>',
     ]
 
     # ---------------------------------------------------------------- header (about 8% height)
     hdr_h = 116
     parts.append(f'<rect x="0" y="0" width="{W}" height="{hdr_h}" rx="0" fill="url(#hdr)"/>')
-    # DEPI wordmark block
-    parts.append(rounded(70, 27, 62, 62, 14, CARD))
+    # DEPI wordmark block stays white in both variants so the DE/PI mark keeps its contrast.
+    parts.append(rounded(70, 27, 62, 62, 14, "#FFFFFF"))
     parts.append(text(101, 58, "DE", 21, 700, PRIMARY, anchor="middle"))
     parts.append(text(101, 82, "PI", 21, 700, SECONDARY, anchor="middle"))
     parts.append(text(158, 53, "DEPI  |  Digital Egypt Pioneers Initiative", 26, 600, "#FFFFFF"))
@@ -243,11 +272,11 @@ def build_svg() -> str:
     strip_x = (W - strip_w) // 2
     for index, (value, label, colour) in enumerate(numbers):
         x = strip_x + index * cell_w
-        parts.append(rounded(x + 8, strip_y, cell_w - 16, 118, 18, CARD, LINE))
+        parts.append(rounded(x + 8, strip_y, cell_w - 16, 118, 18, P("card"), P("line")))
         parts.append(f'<filter id="s{index}" filter="url(#soft)"/>')
         parts.append(rounded(x + 8, strip_y + 108, cell_w - 16, 10, 5, colour))
         parts.append(text(x + cell_w / 2, strip_y + 56, value, 40, 700, colour, anchor="middle"))
-        parts.append(text(x + cell_w / 2, strip_y + 90, label, 18, 500, MUTED, anchor="middle"))
+        parts.append(text(x + cell_w / 2, strip_y + 90, label, 18, 500, P("muted"), anchor="middle"))
 
     # ---------------------------------------------------------------- roadmap (left to right)
     road_y = strip_y + 196
@@ -266,16 +295,16 @@ def build_svg() -> str:
             x1 = road_x + (c + 1) * card_w + c * gap_x
             x2 = x1 + gap_x - 18
             parts.append(
-                f'<path d="M{x1:.0f} {y:.0f} H{x2:.0f}" stroke="{LINE}" stroke-width="3" fill="none"/>'
+                f'<path d="M{x1:.0f} {y:.0f} H{x2:.0f}" stroke="{P("line")}" stroke-width="3" fill="none"/>'
             )
-            parts.append(f'<path d="M{x2:.0f} {y:.0f} l-12 -7 v14 z" fill="{LINE}"/>')
+            parts.append(f'<path d="M{x2:.0f} {y:.0f} l-12 -7 v14 z" fill="{P("line")}"/>')
 
     for index, (title, subtitle, icon, keywords) in enumerate(ROADMAP):
         row_index, col_index = divmod(index, cols)
         x = road_x + col_index * (card_w + gap_x)
         y = road_y + row_index * (road_h / 2)
         step = index + 1
-        parts.append(rounded(x, y, card_w, road_h / 2 - 36, 22, CARD, LINE))
+        parts.append(rounded(x, y, card_w, road_h / 2 - 36, 22, P("card"), P("line")))
         parts.append(
             f'<path d="M{x:.0f} {y:.0f} h{card_w:.0f} a22 22 0 0 1 22 22 v36 h-{card_w + 44:.0f} v-36 a22 22 0 0 1 22 -22 z" '
             f'fill="url(#band)" opacity="0.97"/>'
@@ -292,11 +321,11 @@ def build_svg() -> str:
             dot_cx = x + 110
             dot_cy = icon_cy - 18 + k * 32
             parts.append(f'<circle cx="{dot_cx:.0f}" cy="{dot_cy:.0f}" r="5" fill="{ACCENT}"/>')
-            parts.append(text(dot_cx + 16, dot_cy + 6, keyword, 17, 500, INK))
+            parts.append(text(dot_cx + 16, dot_cy + 6, keyword, 17, 500, P("ink")))
 
     # ---------------------------------------------------------------- tech badges
     badge_y = road_y + road_h + 34
-    parts.append(text(road_x + 6, badge_y + 26, "TECH STACK", 17, 700, MUTED, spacing="2"))
+    parts.append(text(road_x + 6, badge_y + 26, "TECH STACK", 17, 700, P("muted"), spacing="2"))
     bx = road_x + 194
     by = badge_y
     bh = 44
@@ -316,7 +345,7 @@ def build_svg() -> str:
             count_in_row = 0
         parts.append(
             f'<rect x="{x_cursor:.0f}" y="{y_cursor:.0f}" width="{bw:.0f}" height="{bh}" rx="{bh // 2}" '
-            f'fill="#FFFFFF" stroke="{LINE}" stroke-width="1.5"/>'
+            f'fill="#FFFFFF" stroke="{P("line")}" stroke-width="1.5"/>'
         )
         parts.append(
             f'<circle cx="{x_cursor + 16:.0f}" cy="{y_cursor + bh / 2:.0f}" r="5" fill="{SECONDARY}"/>'
@@ -327,11 +356,13 @@ def build_svg() -> str:
 
     # ---------------------------------------------------------------- timeline
     timeline_y = y_cursor + bh + 74
-    parts.append(text(road_x + 6, timeline_y + 6, "DEVELOPMENT TIMELINE", 17, 700, MUTED, spacing="2"))
+    parts.append(text(road_x + 6, timeline_y + 6, "DEVELOPMENT TIMELINE", 17, 700, P("muted"), spacing="2"))
     tl_x1 = road_x + 6
     tl_x2 = road_x + total_w_of_road - 6
     tl_center = timeline_y + 64
-    parts.append(f'<path d="M{tl_x1} {tl_center} H{tl_x2}" stroke="{LINE}" stroke-width="4" fill="none"/>')
+    parts.append(
+        f'<path d="M{tl_x1} {tl_center} H{tl_x2}" stroke="{P("line")}" stroke-width="4" fill="none"/>'
+    )
     seg = (tl_x2 - tl_x1) / (len(TIMELINE) - 1)
     for i, phase in enumerate(TIMELINE):
         cx = tl_x1 + seg * i
@@ -341,17 +372,17 @@ def build_svg() -> str:
             f'<circle cx="{cx:.0f}" cy="{tl_center}" r="20" fill="none" stroke="{colour}" '
             f'stroke-opacity="0.28" stroke-width="3"/>'
         )
-        parts.append(text(cx, tl_center + 52, phase, 20, 600, INK, anchor="middle"))
+        parts.append(text(cx, tl_center + 52, phase, 20, 600, P("ink"), anchor="middle"))
 
     # ---------------------------------------------------------------- outcomes strip
     outcome_y = timeline_y + 142
-    parts.append(text(road_x + 6, outcome_y + 4, "PROJECT OUTCOMES", 17, 700, MUTED, spacing="2"))
+    parts.append(text(road_x + 6, outcome_y + 4, "PROJECT OUTCOMES", 17, 700, P("muted"), spacing="2"))
     cell_w_o = (total_w_of_road - 5 * 26) // 5
     for i, item in enumerate(OUTCOMES):
         row_index, col_index = divmod(i, 5)
         x = road_x + col_index * (cell_w_o + 26)
         y = outcome_y + 26 + row_index * (62 + 16)
-        parts.append(rounded(x, y + 14, cell_w_o, 62, 14, CARD, LINE))
+        parts.append(rounded(x, y + 14, cell_w_o, 62, 14, P("card"), P("line")))
         parts.append(f'<circle cx="{x + 30:.0f}" cy="{y + 45:.0f}" r="6" fill="{SUCCESS}"/>')
         parts.append(text(x + 50, y + 52, item, 19, 600, PRIMARY_LIGHT))
 
@@ -378,7 +409,8 @@ def build_svg() -> str:
     return "\n".join(parts)
 
 
-def build_html() -> str:
+def build_html(variant: str = "light") -> str:
+    svg_file = "infographic.svg" if variant == "light" else "infographic-dark.svg"
     return (
         "<!doctype html>\n"
         '<html lang="en">\n<head>\n<meta charset="utf-8">\n'
@@ -391,47 +423,71 @@ def build_html() -> str:
         "box-shadow:0 30px 90px rgba(0,0,0,.5)}\n"
         "svg{width:100%;height:100%;display:block}\n"
         "</style>\n</head>\n<body>\n<main>\n"
-        '<object type="image/svg+xml" data="infographic.svg" aria-label="Project infographic slide"></object>\n'
+        f'<object type="image/svg+xml" data="{svg_file}" aria-label="Project infographic slide"></object>\n'
         "</main>\n</body>\n</html>\n"
     )
+
+
+def _export_raster(svg: str, path: Any, fmt: str) -> bool:
+    """Render one raster/vector artefact; False (never raise) when skipped."""
+    try:
+        import cairosvg  # type: ignore[import-not-found]
+
+        render = cairosvg.svg2png if fmt == "png" else cairosvg.svg2pdf
+        kwargs: dict[str, Any] = {"bytestring": svg.encode("utf-8"), "write_to": str(path)}
+        if fmt == "png":
+            kwargs.update(output_width=W, output_height=H)
+        render(**kwargs)
+        return True
+    except Exception as exc:  # cairosvg optional - the SVG is the master
+        if path.exists():
+            path.unlink()
+        print(f"note: {fmt.upper()} export skipped ({type(exc).__name__}); SVG is the master copy")
+        return False
 
 
 def main(argv: list[str] | None = None) -> int:
     import argparse
 
     parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
-    parser.add_argument("--check", action="store_true", help="regenerate and fail if the SVG differs")
+    parser.add_argument("--check", action="store_true", help="regenerate and fail if an SVG differs")
     args = parser.parse_args(argv)
 
     OUT.mkdir(parents=True, exist_ok=True)
-    svg = build_svg()
-    svg_path = OUT / "infographic.svg"
+    rendered = {variant: build_svg(variant) for variant in ("light", "dark")}
+    paths = {
+        "light": OUT / "infographic.svg",
+        "dark": OUT / "infographic-dark.svg",
+    }
     if args.check:
-        current = svg_path.read_text(encoding="utf-8") if svg_path.exists() else ""
-        if current != svg:
-            print("infographic.svg is stale; run `make infographic` to regenerate")
+        stale = [
+            path.name
+            for variant, path in paths.items()
+            if (path.read_text(encoding="utf-8") if path.exists() else "") != rendered[variant]
+        ]
+        if stale:
+            print(f"{', '.join(stale)} is stale; run `make infographic` to regenerate")
             return 1
-        print("infographic.svg is up to date")
+        print("infographic SVGs are up to date")
         return 0
-    svg_path.write_text(svg, encoding="utf-8")
-    (OUT / "infographic.html").write_text(build_html(), encoding="utf-8")
 
-    png_path = OUT / "infographic.png"
-    try:
-        import cairosvg  # type: ignore[import-not-found]
+    for variant, path in paths.items():
+        path.write_text(rendered[variant], encoding="utf-8")
+    (OUT / "infographic.html").write_text(build_html("light"), encoding="utf-8")
+    (OUT / "infographic-dark.html").write_text(build_html("dark"), encoding="utf-8")
 
-        cairosvg.svg2png(
-            bytestring=svg.encode("utf-8"), write_to=str(png_path), output_width=W, output_height=H
-        )
-    except Exception as exc:  # cairosvg optional - the SVG is the master
-        if png_path.exists():
-            png_path.unlink()
-        print(f"note: PNG export skipped ({type(exc).__name__}); SVG is the master copy")
+    artefacts: list[str] = []
+    if _export_raster(rendered["light"], OUT / "infographic.png", "png"):
+        artefacts.append("infographic.png")
+    if _export_raster(rendered["dark"], OUT / "infographic-dark.png", "png"):
+        artefacts.append("infographic-dark.png")
+    if _export_raster(rendered["light"], OUT / "infographic.pdf", "pdf"):
+        artefacts.append("infographic.pdf")
 
-    print(f"infographic written: {svg_path.relative_to(ROOT)}")
-    print(f"preview: {svg_path.with_suffix('.html').relative_to(ROOT)}")
-    if png_path.exists():
-        print(f"png: {png_path.relative_to(ROOT)}")
+    print("infographic written: docs/assets/infographic.svg + infographic-dark.svg")
+    print("preview: docs/assets/infographic.html + infographic-dark.html")
+    for name in artefacts:
+        print(f"rendered: docs/assets/{name}")
     print(f"size: {shutil.get_terminal_size().columns or 80}")
     return 0
 

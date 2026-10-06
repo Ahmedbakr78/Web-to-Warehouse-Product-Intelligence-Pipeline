@@ -13,7 +13,7 @@ import {
   Star,
   Tag,
 } from 'lucide-react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { AreaTrend, LineTrend } from '@/components/charts'
 import {
@@ -57,6 +57,20 @@ export default function ProductDetail() {
     enabled: Number.isFinite(productId),
   })
   const toast = useToast()
+  const queryClient = useQueryClient()
+  const watchlist = useApiQuery(['watchlist'], () => endpoints.watchlist(), {
+    enabled: Number.isFinite(productId),
+    staleTime: 60_000,
+  })
+  const watched = ((watchlist.data?.product_ids ?? []) as number[]).includes(productId)
+  const toggleWatch = useMutation({
+    mutationFn: () => (watched ? endpoints.watchRemove(productId) : endpoints.watchAdd(productId)),
+    onSuccess: () => {
+      toast.success(watched ? 'Removed from watchlist' : 'Added to watchlist', data.canonical_name)
+      void queryClient.invalidateQueries({ queryKey: ['watchlist'] })
+    },
+    onError: (error: Error) => toast.error('Could not update the watchlist', error.message),
+  })
   const exportHistory = useMutation({
     mutationFn: () => downloadBinary(`/products/${productId}/history.csv`, {}, `product-${productId}-history.csv`),
     onSuccess: () => toast.success('History exported', 'Every snapshot with USD prices and changes.'),
@@ -118,6 +132,16 @@ export default function ProductDetail() {
           </div>
         </div>
         <div className="flex shrink-0 gap-2">
+          <Button
+            size="sm"
+            variant={watched ? 'primary' : 'secondary'}
+            icon={<Star className="h-4 w-4" fill={watched ? 'currentColor' : 'none'} />}
+            loading={toggleWatch.isPending}
+            onClick={() => toggleWatch.mutate()}
+            title={watched ? 'Remove from watchlist' : 'Add to watchlist'}
+          >
+            {watched ? 'Watched' : 'Watch'}
+          </Button>
           {data.product_url ? (
             <Button size="sm" variant="secondary" icon={<ExternalLink className="h-4 w-4" />} onClick={() => window.open(data.product_url, '_blank', 'noopener')}>
               Source page

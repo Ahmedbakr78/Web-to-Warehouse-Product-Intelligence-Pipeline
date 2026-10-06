@@ -37,6 +37,7 @@ import {
   StatTile,
   Tabs,
   type Column,
+  useToast,
 } from '@/components/ui'
 import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
@@ -46,8 +47,10 @@ import {
   formatDuration,
   formatNumber,
   formatRelative,
+  downloadCsv,
   statusTone,
   titleCase,
+  toCsv,
   truncate,
 } from '@/lib/format'
 
@@ -515,6 +518,32 @@ export default function Audit() {
                 icon={<Zap className="h-4 w-4" />}
                 action={
                   <div className="flex flex-wrap items-center justify-end gap-2">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      icon={<HardDriveDownload className="h-4 w-4" />}
+                      disabled={!httpRows.length}
+                      onClick={() => {
+                        const body = httpRows.map((row: HttpRow) => [
+                          row.created_at ?? '',
+                          row.source_code ?? '',
+                          row.method ?? '',
+                          row.url ?? '',
+                          row.status_code ?? '',
+                          row.robots_allowed === null || row.robots_allowed === undefined ? '' : String(row.robots_allowed),
+                          row.from_cache ? 'yes' : 'no',
+                          row.retry_count ?? 0,
+                          row.elapsed_ms ?? '',
+                        ])
+                        downloadCsv('http-compliance-log.csv', toCsv(
+                          ['when', 'source', 'method', 'url', 'status', 'robots_allowed', 'cached', 'retries', 'elapsed_ms'],
+                          body,
+                        ))
+                        toast.success('HTTP log exported', `${body.length} rows saved as CSV.`)
+                      }}
+                    >
+                      Export CSV
+                    </Button>
                     <Select
                       value={sourceCode}
                       aria-label="Filter by source"

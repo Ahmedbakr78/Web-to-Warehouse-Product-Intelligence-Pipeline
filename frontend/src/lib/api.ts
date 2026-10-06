@@ -256,6 +256,9 @@ export const endpoints = {
   catalogReconciliation: (params: Record<string, QueryValue>) => api.get<any>('/catalog/reconciliation', params),
   catalogSummary: (runId?: string) => api.get<any>('/catalog/summary', { run_id: runId }),
   catalogOpportunities: (limit = 20) => api.get<any[]>('/catalog/opportunities', { limit }),
+  watchlist: () => api.get<any>('/users/me/watchlist'),
+  watchAdd: (id: number) => api.post<any>(`/users/me/watchlist/${id}`),
+  watchRemove: (id: number) => api.del<any>(`/users/me/watchlist/${id}`),
 
   sources: () => api.get<any[]>('/sources'),
   sourceRobots: () => api.get<any>('/sources/robots'),
