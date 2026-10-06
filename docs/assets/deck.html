@@ -1,0 +1,299 @@
+<!doctype html><html><head><meta charset='utf-8'><style>
+@page { size: 338.67mm 190.5mm; margin: 0; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "DejaVu Sans", "Helvetica", Arial, sans-serif;
+        color: #0F172A; background: #F8FAFC; }
+.slide { width: 338.67mm; height: 190.5mm; padding: 11mm 13mm;
+          page-break-after: always; position: relative; overflow: hidden;
+          display: flex; flex-direction: column; }
+.slide:last-child { page-break-after: auto; }
+
+/* Every slide carries the DEPI mark and the track, so a stray printout is still
+   attributable. */
+.chrome { position: absolute; top: 0; left: 0; right: 0; height: 6mm;
+           background: linear-gradient(90deg, #1B3A8A, #7C3AED); }
+.mark { position: absolute; top: 8.4mm; left: 13mm; font-size: 8pt; color: #64748B;
+         letter-spacing: .09em; }
+.track { position: absolute; top: 8.4mm; right: 13mm; font-size: 8pt; color: #64748B;
+          letter-spacing: .09em; }
+.pageno { position: absolute; bottom: 6mm; right: 13mm; font-size: 8pt; color: #64748B; }
+
+h1 { font-size: 30pt; margin: 0 0 2mm; letter-spacing: -.4pt; }
+h2 { font-size: 20pt; margin: 0 0 1.5mm; letter-spacing: -.2pt; }
+.lede { font-size: 11pt; color: #64748B; margin: 0 0 5mm; }
+.body { font-size: 10pt; line-height: 1.55; }
+
+.title-slide { justify-content: center; background:
+   linear-gradient(135deg, #1B3A8A 0%, #2E4FA8 48%, #7C3AED 100%); color: #fff; }
+.title-slide h1 { font-size: 34pt; line-height: 1.12; max-width: 78%; }
+.title-slide .lede { color: #D6DEF5; font-size: 12pt; max-width: 74%; }
+.title-slide .badge { display: inline-block; padding: 2mm 4mm; border-radius: 2mm;
+   background: rgba(255,255,255,.16); font-size: 9.5pt; margin-right: 2mm; }
+
+.grid { display: grid; gap: 4mm; }
+.g2 { grid-template-columns: repeat(2, 1fr); }
+.g3 { grid-template-columns: repeat(3, 1fr); }
+.g4 { grid-template-columns: repeat(4, 1fr); }
+.g5 { grid-template-columns: repeat(5, 1fr); }
+
+.card { background: #fff; border: 1px solid #E2E8F0; border-radius: 3mm;
+         padding: 4mm; }
+.card h3 { font-size: 11pt; margin: 0 0 1.5mm; }
+.card p, .card li { font-size: 9pt; color: #64748B; line-height: 1.5; margin: 0; }
+.card ul { margin: 0; padding-left: 4mm; }
+
+.tile { background: #fff; border: 1px solid #E2E8F0; border-radius: 3mm;
+         padding: 4mm 3mm; text-align: center; }
+.tile .v { font-size: 20pt; font-weight: 700; }
+.tile .k { font-size: 8pt; color: #64748B; margin-top: .8mm; }
+
+table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+th { text-align: left; color: #64748B; font-weight: 600; padding: 1.6mm 2mm;
+      border-bottom: 1px solid #E2E8F0; }
+td { padding: 1.6mm 2mm; border-bottom: 1px solid #E2E8F0; }
+tr:last-child td { border-bottom: 0; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.flow { display: flex; align-items: stretch; gap: 0; }
+.flow .step { flex: 1; background: #fff; border: 1px solid #E2E8F0; border-radius: 3mm;
+   padding: 3mm 2.5mm; text-align: center; }
+.flow .arrow { align-self: center; padding: 0 1.6mm; color: #0891B2; font-size: 12pt; }
+.flow .step .t { font-size: 8.6pt; font-weight: 600; margin-top: 1mm; }
+
+.tag { display: inline-block; padding: 1.1mm 2.4mm; border-radius: 1.6mm;
+   background: #EEF2FF; color: #1B3A8A; font-size: 8pt; margin: 0 1mm 1.4mm 0; }
+
+.kpi { border-left: 2.4mm solid #7C3AED; padding-left: 3mm; margin-bottom: 3mm; }
+.kpi b { color: #7C3AED; }
+.note { font-size: 8.6pt; color: #64748B; margin-top: 3mm; }
+</style></head><body>
+    <section class="slide title-slide">
+      <div class="chrome"></div>
+      <h1>Web-to-Warehouse<br/>Product Intelligence Pipeline</h1>
+      <p class="lede">A compliance-first, orchestrated and testable ETL platform that turns permitted
+      public web sources into a dimensional warehouse with full price history, duplicate
+      resolution, catalog reconciliation and a measured data-quality posture.</p>
+      <p><span class="badge">DEPI &middot; Data Engineering</span>
+         <span class="badge">MIT licensed</span>
+         <span class="badge">Private repository</span></p>
+    <div class="pageno">1</div></section>
+    
+
+    <section class="slide">
+      <div class="chrome"></div>
+      <div class="mark">DEPI &middot; DIGITAL EGYPT PIONEERS INITIATIVE</div>
+      <div class="track" style="visibility:hidden">2 / 12</div>TRACK: DATA ENGINEERING</div>
+      
+      <h2>The problem</h2>
+      <p class="lede">Manual collection is slow, inconsistent, and destroys the history that makes
+      pricing decisions possible.</p>
+      <div class="grid g3">
+        <div class="card"><h3>Slow</h3><ul><li>Analyst hours spent copying prices into spreadsheets</li><li>A refresh cycle measured in days, not minutes</li></ul></div>
+        <div class="card"><h3>Inconsistent</h3><ul><li>Same product named three ways</li><li>Currencies and formats never normalised</li></ul></div>
+        <div class="card"><h3>Amnesiac</h3><ul><li>No history, so no trend</li><li>No audit trail, so no defensible claim</li></ul></div>
+      </div>
+      <div class="kpi"><b>The question nobody can answer:</b> what did this product cost last March,
+      and on whose authority?</div>
+      
+    <div class="pageno">2</div></section>
+    
+
+    <section class="slide">
+      <div class="chrome"></div>
+      <div class="mark">DEPI &middot; DIGITAL EGYPT PIONEERS INITIATIVE</div>
+      <div class="track" style="visibility:hidden">3 / 12</div>TRACK: DATA ENGINEERING</div>
+      
+      <h2>Objective and scope</h2>
+      <p class="lede">Collect permitted product data, standardise it, resolve duplicates, and load it
+      into an analytical database that answers business questions.</p>
+      <div class="grid g2">
+        <div class="card"><h3>In scope</h3><ul><li>Scrape permitted structured product information</li><li>Respect robots.txt, rate limits and website terms</li><li>Clean names and categories; normalise currencies</li><li>Detect duplicates and compare against the internal catalogue</li><li>Load into PostgreSQL / MySQL with historical snapshots</li><li>Identify price, new, removed and category changes with SQL</li><li>Orchestrate with Airflow; expose the result over REST</li></ul></div>
+        <div class="card"><h3>Deliberately out of scope</h3><ul><li>Bypassing any site&#x27;s protections</li><li>Personal or behavioural data</li><li>Real-time streaming ingestion</li><li>Training a machine-learning model</li><li>Anything not evidenced by a test</li></ul></div>
+      </div>
+      
+    <div class="pageno">3</div></section>
+    
+
+    <section class="slide">
+      <div class="chrome"></div>
+      <div class="mark">DEPI &middot; DIGITAL EGYPT PIONEERS INITIATIVE</div>
+      <div class="track" style="visibility:hidden">4 / 12</div>TRACK: DATA ENGINEERING</div>
+      
+      <h2>The pipeline, end to end</h2>
+      <p class="lede">Nine stages, orchestrated by Airflow, each reporting progress and each
+      writing evidence of what it did.</p>
+      <div class="flow">
+        <div class="step"><div class="t">extract</div></div><div class="arrow">&rarr;</div><div class="step"><div class="t">stage</div></div><div class="arrow">&rarr;</div><div class="step"><div class="t">transform</div></div><div class="arrow">&rarr;</div><div class="step"><div class="t">resolve</div></div><div class="arrow">&rarr;</div><div class="step"><div class="t">load</div></div><div class="arrow">&rarr;</div><div class="step"><div class="t">detect</div></div><div class="arrow">&rarr;</div><div class="step"><div class="t">aggregate</div></div><div class="arrow">&rarr;</div><div class="step"><div class="t">reconcile</div></div><div class="arrow">&rarr;</div><div class="step"><div class="t">quality</div></div>
+      </div>
+      <div class="grid g4" style="margin-top:6mm">
+        <div class="tile"><div class="v" style="color:#0891B2">5</div><div class="k">permitted sources</div></div>
+        <div class="tile"><div class="v" style="color:#1B3A8A">28</div><div class="k">physical tables</div></div>
+        <div class="tile"><div class="v" style="color:#7C3AED">20</div><div class="k">analytical views</div></div>
+        <div class="tile"><div class="v" style="color:#059669">12</div><div class="k">DQ rules</div></div>
+      </div>
+      <p class="note">Every stage publishes progress to a leased job queue, so a slow run is
+      visible rather than silent.</p>
+      
+    <div class="pageno">4</div></section>
+    
+
+    <section class="slide">
+      <div class="chrome"></div>
+      <div class="mark">DEPI &middot; DIGITAL EGYPT PIONEERS INITIATIVE</div>
+      <div class="track" style="visibility:hidden">5 / 12</div>TRACK: DATA ENGINEERING</div>
+      
+      <h2>Compliance is evidence, not a claim</h2>
+      <p class="lede">The ingestion layer is where a scraper earns the right to run.</p>
+      <div class="grid g2">
+        <div class="card"><h3>Enforced in the fetch layer</h3><ul><li>robots.txt parsed and its verdict recorded per request</li><li>Per-source rate limits and crawl-delay honoured</li><li>Conditional requests and an on-disk cache</li><li>An identifying User-Agent with a contact address</li></ul></div>
+        <div class="card"><h3>Recorded as proof</h3><ul><li>Every request logged with URL, status and elapsed time</li><li>The robots verdict stored alongside each request</li><li>Cache hits distinguished from live fetches</li><li>One audit row per pipeline run, queryable by screen</li></ul></div>
+      </div>
+      <div class="kpi">A reviewer can reconstruct <b>what was fetched, when, and whether it was
+      permitted</b> without reading the code.</div>
+      
+    <div class="pageno">5</div></section>
+    
+
+    <section class="slide">
+      <div class="chrome"></div>
+      <div class="mark">DEPI &middot; DIGITAL EGYPT PIONEERS INITIATIVE</div>
+      <div class="track" style="visibility:hidden">6 / 12</div>TRACK: DATA ENGINEERING</div>
+      
+      <h2>Warehouse and schema ownership</h2>
+      <p class="lede">A Kimball star schema, owned by a migration rather than by convention.</p>
+      <div class="grid g3">
+        <div class="card"><h3>Dimensions</h3><ul><li>dim_product</li><li>dim_category</li><li>dim_source</li><li>dim_date</li><li>dim_currency</li></ul></div>
+        <div class="card"><h3>Facts</h3><ul><li>fact_price_snapshot &amp;mdash; the historical price table</li><li>fact_catalog_snapshot &amp;mdash; our own list prices</li><li>chg_price_change &amp;mdash; detected movements</li><li>chg_product_event &amp;mdash; lifecycle</li></ul></div>
+        <div class="card"><h3>Aggregates</h3><ul><li>agg_category_daily</li><li>agg_brand_monthly</li><li>Materialised during the run</li></ul></div>
+      </div>
+      <p class="note">Alembic creates all 28 tables and applies
+      all 20 views; <code>alembic check</code> fails the build
+      when the models and the migration disagree.</p>
+      
+    <div class="pageno">6</div></section>
+    
+
+    <section class="slide">
+      <div class="chrome"></div>
+      <div class="mark">DEPI &middot; DIGITAL EGYPT PIONEERS INITIATIVE</div>
+      <div class="track" style="visibility:hidden">7 / 12</div>TRACK: DATA ENGINEERING</div>
+      
+      <h2>Beyond history: what the data says next</h2>
+      <p class="lede">History is already in the fact table. These three things are not.</p>
+      <div class="grid g3">
+        <div class="card"><h3>Forecasting</h3><ul><li>Damped Holt-Winters with two-sided bands</li><li>Accuracy measured on a held-out tail, never on the fit</li></ul></div>
+        <div class="card"><h3>Anomaly detection</h3><ul><li>MAD, 3&amp;sigma; and IQR fences run together</li><li>Two of three must agree, so an outlier cannot pass its own test</li></ul></div>
+        <div class="card"><h3>Pricing advice</h3><ul><li>Category elasticity</li><li>Raise, cut, hold or negotiate &amp;mdash; with the reason stated</li></ul></div>
+      </div>
+      <div class="kpi">Where the history is too short, the API returns a flat series with wide
+      bands rather than a confident-looking curve.</div>
+      
+    <div class="pageno">7</div></section>
+    
+
+    <section class="slide">
+      <div class="chrome"></div>
+      <div class="mark">DEPI &middot; DIGITAL EGYPT PIONEERS INITIATIVE</div>
+      <div class="track" style="visibility:hidden">8 / 12</div>TRACK: DATA ENGINEERING</div>
+      
+      <h2>What the user actually gets</h2>
+      <div class="grid g4">
+        <div class="card"><h3>Operate</h3><ul><li>Pipeline and run comparison</li><li>Live job queue with cancel and retry</li><li>Source health</li></ul></div>
+        <div class="card"><h3>Explore</h3><ul><li>Query lab</li><li>Aggregate builder</li><li>Saved views</li></ul></div>
+        <div class="card"><h3>Decide</h3><ul><li>Forecasts and anomalies</li><li>Catalog reconciliation</li><li>Reports as PDF or CSV</li></ul></div>
+        <div class="card"><h3>Govern</h3><ul><li>Roles and scoped API keys</li><li>Two-factor authentication</li><li>A full audit trail</li></ul></div>
+      </div>
+      <div class="grid g5" style="margin-top:5mm">
+        <div class="tile"><div class="v" style="color:#1B3A8A">23</div><div class="k">screens</div></div>
+        <div class="tile"><div class="v" style="color:#7C3AED">173</div><div class="k">API operations</div></div>
+        <div class="tile"><div class="v" style="color:#0891B2">233</div><div class="k">catalogued features</div></div>
+        <div class="tile"><div class="v" style="color:#F59E0B">5</div><div class="k">themes, 12 accents</div></div>
+        <div class="tile"><div class="v" style="color:#059669">SSE</div><div class="k">realtime updates</div></div>
+      </div>
+      
+    <div class="pageno">8</div></section>
+    
+
+    <section class="slide">
+      <div class="chrome"></div>
+      <div class="mark">DEPI &middot; DIGITAL EGYPT PIONEERS INITIATIVE</div>
+      <div class="track" style="visibility:hidden">9 / 12</div>TRACK: DATA ENGINEERING</div>
+      
+      <h2>Verification</h2>
+      <p class="lede">What has to pass before this counts as working.</p>
+      <table>
+        <tr><th>Gate</th><th style="text-align:right">Result</th></tr>
+        <tr><td>pytest (unit + integration)</td><td class="num">408 passed</td></tr>
+        <tr><td>API smoke, against the running stack</td><td class="num">104 passed</td></tr>
+        <tr><td>Ruff (app, tests, scripts, DAGs, migrations)</td><td class="num">clean</td></tr>
+        <tr><td>mypy</td><td class="num">clean, 83 files</td></tr>
+        <tr><td>TypeScript, ESLint at zero warnings, production build</td><td class="num">clean</td></tr>
+        <tr><td>Render smoke test, every screen</td><td class="num">23 screens</td></tr>
+        <tr><td>alembic check</td><td class="num">no drift</td></tr>
+        <tr><td>Mermaid diagrams rendered</td><td class="num">80 of 80</td></tr>
+        <tr><td>Documentation links resolved</td><td class="num">1216</td></tr>
+      </table>
+      <p class="note">Structural figures are measured by <code>scripts/project_stats.py</code> and
+      pinned by <code>scripts/check_stats.py</code>, which fails when a documented number stops
+      matching the code.</p>
+      
+    <div class="pageno">9</div></section>
+    
+
+    <section class="slide">
+      <div class="chrome"></div>
+      <div class="mark">DEPI &middot; DIGITAL EGYPT PIONEERS INITIATIVE</div>
+      <div class="track" style="visibility:hidden">10 / 12</div>TRACK: DATA ENGINEERING</div>
+      
+      <h2>Documentation as a deliverable</h2>
+      <div class="grid g4">
+        <div class="card"><h3>Planning</h3><ul><li>Proposal</li><li>Project plan</li><li>Roles and RACI</li><li>Risk register</li><li>KPIs</li></ul></div>
+        <div class="card"><h3>Design</h3><ul><li>Requirements</li><li>System analysis</li><li>Database design</li><li>DFDs and behaviour diagrams</li><li>UI/UX</li></ul></div>
+        <div class="card"><h3>Build</h3><ul><li>API reference</li><li>Testing strategy</li><li>User manual</li><li>Technical documentation</li><li>Feature inventory</li></ul></div>
+        <div class="card"><h3>Subsystems</h3><ul><li>Forecasting</li><li>Jobs and realtime</li><li>Reporting</li><li>Migrations</li><li>Security and access control</li></ul></div>
+      </div>
+      <div class="grid g3" style="margin-top:5mm">
+        <div class="tile"><div class="v" style="color:#1B3A8A">30</div><div class="k">documents</div></div>
+        <div class="tile"><div class="v" style="color:#7C3AED">80</div><div class="k">Mermaid diagrams</div></div>
+        <div class="tile"><div class="v" style="color:#0891B2">114</div><div class="k">static site pages</div></div>
+      </div>
+      
+    <div class="pageno">10</div></section>
+    
+
+    <section class="slide">
+      <div class="chrome"></div>
+      <div class="mark">DEPI &middot; DIGITAL EGYPT PIONEERS INITIATIVE</div>
+      <div class="track" style="visibility:hidden">11 / 12</div>TRACK: DATA ENGINEERING</div>
+      
+      <h2>What made it hard, and what was done about it</h2>
+      <div class="grid g3">
+        <div class="card"><h3>Duplicate resolution</h3><ul><li>The same product appears under three names on three sites</li><li>Blocking keys to bound the comparison set</li><li>A similarity threshold, with the strategy recorded per match</li></ul></div>
+        <div class="card"><h3>Rebuilding a schema in place</h3><ul><li>create_all cannot express a change, a rollback or a history</li><li>Alembic adopted; Airflow metadata moved to its own database</li></ul></div>
+        <div class="card"><h3>Realtime across workers</h3><ul><li>An in-memory broker only sees its own process</li><li>Events now also polled from a persisted log</li></ul></div>
+      </div>
+      <div class="kpi">The one that was <b>not</b> caught by any static check: an external store
+      returning a new snapshot object per call, which put every screen into an infinite
+      render loop. It is now pinned by a test.</div>
+      
+    <div class="pageno">11</div></section>
+    
+
+    <section class="slide title-slide">
+      <div class="chrome"></div>
+      <h1>Delivered</h1>
+      <p class="lede">A working pipeline, a dimensional warehouse with history, a measured
+      quality posture, a REST API, a dashboard, and documentation that a reviewer can
+      verify rather than take on trust.</p>
+      <p><span class="badge">Ingestion module</span>
+         <span class="badge">Database schema</span>
+         <span class="badge">Historical price table</span>
+         <span class="badge">ETL pipeline</span>
+         <span class="badge">Airflow DAG</span>
+         <span class="badge">Data-quality checks</span>
+         <span class="badge">SQL analysis</span>
+         <span class="badge">Visualisation</span>
+         <span class="badge">REST API</span>
+         <span class="badge">Documentation</span></p>
+    <div class="pageno">12</div></section>
+    </body></html>

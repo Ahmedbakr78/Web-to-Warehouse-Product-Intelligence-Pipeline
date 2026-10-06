@@ -513,12 +513,16 @@ def build_html(stats: dict) -> str:
     # Append one page number per slide, in order.
     out: list[str] = []
     index = 0
-    while "</section>" in numbered[index:]:
-        end = numbered.index("</section>", index)
+    page = 0
+    close = "</section>"
+    while close in numbered[index:]:
+        end = numbered.index(close, index)
         out.append(numbered[index:end])
-        out.append(f'<div class="pageno">{index // len("</section>") + 1}</div>')
-        index = end
-    numbered = "".join(out) + "</section>"
+        page += 1
+        out.append(f'<div class="pageno">{page}</div>')
+        out.append(close)
+        index = end + len(close)
+    numbered = "".join(out) + numbered[index:]
 
     return f"<!doctype html><html><head><meta charset='utf-8'><style>{CSS}</style></head><body>{numbered}</body></html>"
 
