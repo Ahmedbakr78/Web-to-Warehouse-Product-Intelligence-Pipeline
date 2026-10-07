@@ -314,56 +314,27 @@
     color: var(--brand-900);
   }
 
-  /* ------------------------ modern slim scrollbars ---------------------------- */
-  /* Slim, rounded, theme-aware scrollbars everywhere: thin track, subtle thumb
-     that strengthens on hover, fully driven by the CSS custom properties so
-     light / dark / midnight / high-contrast all stay readable. Firefox uses
-     `scrollbar-width: thin` + `scrollbar-color`; Chromium/Safari use the
-     webkit pseudo-elements. `scrollbar-gutter: stable` on <html> (above) keeps
-     content from jumping when a page grows past the viewport. */
+  /* --------------------------- no scrollbars ------------------------------------ */
+  /* Scrollbars are removed entirely: every scrollable region keeps working with
+     wheel, touch, keyboard and drag, and scroll shadows remain as the position
+     affordance. `scrollbar-width: none` covers Firefox; the webkit rule covers
+     Chromium and Safari (including the overlay scrollbars on macOS/iOS). */
   * {
-    scrollbar-width: thin;
-    scrollbar-color: var(--border-strong) transparent;
-    -ms-overflow-style: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    display: none;
+    width: 0;
+    height: 0;
   }
 
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: var(--border-strong);
-    border-radius: 999px;
-    border: 2px solid transparent;
-    background-clip: content-box;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--text-subtle);
-    border: 2px solid transparent;
-    background-clip: content-box;
-  }
-
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-thumb,
   ::-webkit-scrollbar-corner {
+    display: none;
     background: transparent;
-  }
-
-  .dark ::-webkit-scrollbar-thumb,
-  .theme-midnight ::-webkit-scrollbar-thumb {
-    background: var(--border-strong);
-    border: 2px solid transparent;
-    background-clip: content-box;
-  }
-
-  /* Opt-out for regions that prefer scroll shadows only (e.g. phone tab bar). */
-  .no-scrollbar {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
   }
 
   /* Stop scroll chaining so scrolling inside a panel, table or modal never
@@ -400,7 +371,7 @@
     word-break: break-word;
   }
 
-  /* Compact density pairs with the global slim scrollbars above. */
+  /* Dense UI no longer needs slimmer scrollbars - there are no scrollbars. */
 
   /* Density switch used by the appearance settings */
   html[data-density='compact'] {
@@ -673,15 +644,8 @@
     overflow: hidden;
   }
 
-  .no-scrollbar {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
   .no-scrollbar::-webkit-scrollbar {
     display: none;
-    width: 0;
-    height: 0;
   }
 }
 
