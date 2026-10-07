@@ -93,7 +93,7 @@ exec_status() {
   $COMPOSE ps
 
   step "API"
-  if curl -fsS "$API_URL/api/v1/health" 2>/dev/null | jsonpy -c "$HEALTH_SUMMARY"; then
+  if curl -fsS "$API_URL/api/v1/health" 2>/dev/null | jsonpy -c "$HEALTH_SUMMARY" 2>/dev/null; then
     ok "API healthy"
   else
     warn "API not responding on $API_URL"
