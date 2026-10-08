@@ -1,16 +1,21 @@
 """Pipeline resilience: cross-source duplicates and mid-run source failures.
 
-Regression tests for a production incident where two marketplace sources resolved
-to the same canonical product inside one run. The fact grain is one row per
-(product, run), so the second snapshot violated ``uq_fact_price_product_run``;
-worse, the failed flush poisoned the run-wide transaction, so the run died as
-``failed`` instead of continuing as ``partial``.
+Regression tests for production incidents where one bad source took down the
+whole run:
+
+* two marketplace sources resolving to the same canonical product violated the
+  one-row-per-(product, run) grain (UniqueViolation at flush);
+* a dead database connection mid-flush (server restart, network blip) poisoned
+  the run-wide transaction, so bookkeeping itself raised PendingRollbackError
+  and the run died as ``failed`` instead of continuing as ``partial``.
 
 Covered here:
 
 * a product observed by two sources in one run yields exactly one snapshot;
 * a source that explodes mid-run does not take the good sources (or the
-  ``etl_run`` row) down with it.
+  ``etl_run`` row) down with it;
+* a severed database connection mid-source is survived: rollback, reconnect,
+  and the run continues with earlier sources' data intact.
 """
 
 from __future__ import annotations
@@ -136,6 +141,56 @@ def test_exploding_source_does_not_kill_the_run(db):
     # The good source's snapshot survived: the failed source rolled back alone.
     assert len(_snapshots_for_run(db, result.run_id, SHARED_NAME)) == 1
     # And the run row itself was persisted with its partial status.
+    row = db.execute(
+        sa.text("SELECT status FROM etl_run WHERE run_id = :rid"), {"rid": result.run_id}
+    ).scalar()
+    assert row == "partial"
+
+
+@register_source
+class PytestResilienceCutterSource(ProductSource):
+    code: ClassVar[str] = "pytest_resilience_cutter"
+    name: ClassVar[str] = "pytest resilience cutter"
+    base_url: ClassVar[str] = "https://example.com"
+    terms_url: ClassVar[str | None] = "https://example.com/terms"
+    description: ClassVar[str] = "severs the database connection during staging"
+
+    def fetch(self, limit: int | None = None) -> Iterator[RawProduct]:
+        yield _raw(self.code, "CUTTER-1", name="pytest cutter widget")
+
+
+def test_severed_connection_mid_run_recovers_and_continues(db, monkeypatch):
+    """Transport death mid-source: rollback, reconnect, earlier data intact."""
+    from app.etl.loader import WarehouseLoader
+
+    real_stage = WarehouseLoader.stage
+    armed = {"kill": True}
+
+    def killer_stage(self, raw_records):
+        if armed["kill"] and raw_records and raw_records[0].source_code == "pytest_resilience_cutter":
+            armed["kill"] = False
+            # Simulate the database dropping the TCP connection mid-flush.
+            # The pooled connection is closed underneath the session; the next
+            # statement must fail, and the pipeline must recover from there.
+            self.session.connection().close()
+        return real_stage(self, raw_records)
+
+    monkeypatch.setattr(WarehouseLoader, "stage", killer_stage)
+
+    result = Pipeline(
+        PipelineConfig(
+            sources=["pytest_resilience_alpha", "pytest_resilience_cutter"],
+            limit_per_source=10,
+            skip_dq=True,
+            skip_catalog=True,
+        )
+    ).run()
+
+    assert result.status == "partial", result.error
+    assert "pytest_resilience_alpha" in result.sources_processed
+    assert "pytest_resilience_cutter" in result.sources_failed
+    # The good source committed before the connection died.
+    assert len(_snapshots_for_run(db, result.run_id, SHARED_NAME)) == 1
     row = db.execute(
         sa.text("SELECT status FROM etl_run WHERE run_id = :rid"), {"rid": result.run_id}
     ).scalar()

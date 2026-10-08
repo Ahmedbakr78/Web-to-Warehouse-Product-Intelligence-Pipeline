@@ -255,6 +255,22 @@ class Pipeline:
         result = self.result
         assert result is not None
         run_row = self._run_row(session)
+        # Persist the run row immediately so a later rollback of a single
+        # source can never wipe the run itself.
+        try:
+            session.commit()
+        except Exception:
+            try:
+                session.rollback()
+            except Exception:
+                pass
+            # Re-create in a fresh transaction; if the DB is down this will
+            # fail again and the outer run() will mark the run as failed.
+            run_row = self._run_row(session)
+            session.commit()
+        # Re-attach: commit expires nothing (expire_on_commit=False) but a
+        # rollback above may have detached the instance.
+        run_row = session.get(EtlRun, run_id) or run_row
         stats = LoadStats()
         dedupe = DedupeEngine(
             session,
@@ -270,6 +286,7 @@ class Pipeline:
 
         for code in self._source_codes():
             source_started = time.perf_counter()
+            seen_before = set(snapshotted)
             try:
                 source = resolve_source(session, code, run_id=run_id)
                 # Each source runs inside a savepoint: a failed flush (bad data,
@@ -279,56 +296,127 @@ class Pipeline:
                 # has a usable session.
                 with session.begin_nested():
                     source_stats = self._process_source(session, run_id, source, dedupe, snapshotted)
-                stats.merge(source_stats)
-                result.sources_processed.append(code)
                 self._register_source_dim(
                     session, source, source_stats, time.perf_counter() - source_started, success=True
                 )
+                # Durable per source: a later source (or the database itself)
+                # dying mid-run must not take down what already succeeded.
+                # Success is recorded only after the commit lands, so the
+                # in-memory result can never claim rows that rolled back.
+                session.commit()
+                stats.merge(source_stats)
+                result.sources_processed.append(code)
             except Exception as exc:
+                # Roll back to a clean session first. This also recovers from a
+                # dead connection (server restart, network blip): the pool opens
+                # a fresh one on the next statement, so bookkeeping below works
+                # and the run continues instead of dying as `failed`.
+                try:
+                    session.rollback()
+                except Exception:
+                    pass
+                snapshotted.clear()
+                snapshotted.update(seen_before)
+                # Drop any in-memory dedupe state for products that were rolled
+                # back, otherwise later sources could match a phantom product_id.
+                try:
+                    dedupe._fingerprint_cache.clear()
+                    dedupe._load_fingerprints()
+                except Exception:
+                    pass
                 message = f"{type(exc).__name__}: {str(exc).splitlines()[0][:220]}"
                 log.warning("source %s failed: %s", code, message, exc_info=settings.app_debug)
                 result.sources_failed.append(code)
                 result.warnings.append(f"{code}: {message}")
-                self._register_source_dim(
-                    session,
-                    None,
-                    LoadStats(),
-                    time.perf_counter() - source_started,
-                    success=False,
-                    code=code,
-                    message=message,
-                )
+                try:
+                    self._register_source_dim(
+                        session,
+                        None,
+                        LoadStats(),
+                        time.perf_counter() - source_started,
+                        success=False,
+                        code=code,
+                        message=message,
+                    )
+                    session.commit()
+                except Exception as book_exc:  # bookkeeping must never kill the run
+                    try:
+                        session.rollback()
+                    except Exception:
+                        pass
+                    log.warning("could not record failure for %s: %s", code, book_exc)
                 if self.config.strict or settings.pipeline_fail_fast:
                     raise
 
-        # ---- aggregates
-        with self._timer("aggregate") as meta:
-            loader = WarehouseLoader(session, run_id)
-            meta["rows"] = loader.refresh_category_daily()
-            meta["detail"] = f"{meta['rows']} category-day aggregates"
+        # ---- aggregates (non-fatal: a failed aggregate must not wipe the run)
+        try:
+            with self._timer("aggregate") as meta:
+                loader = WarehouseLoader(session, run_id)
+                meta["rows"] = loader.refresh_category_daily()
+                meta["detail"] = f"{meta['rows']} category-day aggregates"
+            session.commit()
+        except Exception as exc:
+            try:
+                session.rollback()
+            except Exception:
+                pass
+            result.warnings.append(f"aggregate: {type(exc).__name__}: {str(exc)[:180]}")
+            log.warning("aggregate stage failed: %s", exc, exc_info=settings.app_debug)
 
         # ---- catalog reconciliation
         reconciliation: dict[str, Any] | None = None
         if not self.config.skip_catalog:
-            with self._timer("reconcile") as meta:
-                reconciler = CatalogReconciler(session, run_id)
-                matches = reconciler.run(persist=not self.config.dry_run)
-                reconciliation = reconciliation_summary(matches)
-                meta["rows"] = len(matches)
-                meta["detail"] = f"{reconciliation['matched']}/{reconciliation['total']} catalog SKUs matched"
+            try:
+                with self._timer("reconcile") as meta:
+                    reconciler = CatalogReconciler(session, run_id)
+                    matches = reconciler.run(persist=not self.config.dry_run)
+                    reconciliation = reconciliation_summary(matches)
+                    meta["rows"] = len(matches)
+                    meta["detail"] = f"{reconciliation['matched']}/{reconciliation['total']} catalog SKUs matched"
+                session.commit()
+            except Exception as exc:
+                try:
+                    session.rollback()
+                except Exception:
+                    pass
+                result.warnings.append(f"reconcile: {type(exc).__name__}: {str(exc)[:180]}")
+                log.warning("reconcile stage failed: %s", exc, exc_info=settings.app_debug)
 
         # ---- data quality
         quality: dict[str, Any] | None = None
         if not self.config.skip_dq:
-            with self._timer("quality") as meta:
-                report: QualityReport = evaluate_quality(session, run_id)
-                quality = report.summary()
-                meta["rows"] = len(report.outcomes)
-                meta["detail"] = (
-                    f"score {report.score} ({report.passed} pass / {report.warned} warn / {report.failed} fail)"
-                )
+            try:
+                with self._timer("quality") as meta:
+                    report: QualityReport = evaluate_quality(session, run_id)
+                    quality = report.summary()
+                    meta["rows"] = len(report.outcomes)
+                    meta["detail"] = (
+                        f"score {report.score} ({report.passed} pass / {report.warned} warn / {report.failed} fail)"
+                    )
+                session.commit()
+            except Exception as exc:
+                try:
+                    session.rollback()
+                except Exception:
+                    pass
+                result.warnings.append(f"quality: {type(exc).__name__}: {str(exc)[:180]}")
+                log.warning("quality stage failed: %s", exc, exc_info=settings.app_debug)
 
-        # ---- finalise
+        # ---- finalise (re-fetch: earlier rollbacks may have detached the instance)
+        try:
+            session.rollback()
+        except Exception:
+            pass
+        fresh = session.get(EtlRun, run_id)
+        if fresh is not None:
+            run_row = fresh
+        else:
+            # Run row was lost with a rolled-back transaction; recreate it.
+            run_row = self._run_row(session)
+            try:
+                session.flush()
+            except Exception:
+                pass
         finished = dt.datetime.now(dt.timezone.utc)
         run_row.finished_at = finished
         run_row.duration_ms = int((finished - run_row.started_at).total_seconds() * 1000)
@@ -383,18 +471,22 @@ class Pipeline:
         limit = self.config.limit_per_source or settings.max_products_per_source
         loader = WarehouseLoader(session, run_id)
         stats = loader.stats
-        loader.preload_dimensions()
 
-        # The dimension row must exist before any fact references it (FK integrity).
-        sync_dim_source(session, source)
-        session.flush()
-
-        # ---- extract + stage
+        # ---- extract first, before any database touch. Slow network I/O must
+        # never hold an open transaction idle: under load the database (or any
+        # middlebox) can drop the connection, and the following flush would
+        # then die with the whole run instead of just this source.
         with self._timer("extract") as meta:
             raw_records = list(_safe_take(source.fetch(limit=limit), limit))
             meta["rows"] = len(raw_records)
             meta["detail"] = f"{source.code} -> {len(raw_records)} records in {source.http_calls} http calls"
 
+        # The dimension row must exist before any fact references it (FK integrity).
+        sync_dim_source(session, source)
+        session.flush()
+        loader.preload_dimensions()
+
+        # ---- stage
         with self._timer("stage") as meta:
             meta["rows"] = loader.stage(raw_records)
 

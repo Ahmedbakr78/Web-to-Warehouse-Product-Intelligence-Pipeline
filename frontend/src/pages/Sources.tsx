@@ -109,9 +109,13 @@ function SourceCard({
         </div>
         <div className="flex shrink-0 flex-wrap justify-end gap-1">
           <Badge tone={KIND_TONE[String(row.kind)] ?? 'neutral'}>{titleCase(row.kind)}</Badge>
-          <Badge tone={row.enabled ? 'success' : 'neutral'} dot={row.enabled}>
-            {row.enabled ? 'enabled' : 'disabled'}
-          </Badge>
+          {!row.terms_allowed ? (
+            <Badge tone="danger">blocked</Badge>
+          ) : (
+            <Badge tone={row.enabled ? 'success' : 'neutral'} dot={row.enabled}>
+              {row.enabled ? 'enabled' : 'disabled'}
+            </Badge>
+          )}
           <Badge tone={syncTone(row.sync_status)}>{titleCase(row.sync_status ?? 'unknown')}</Badge>
         </div>
       </div>
@@ -154,7 +158,9 @@ function SourceCard({
           <span>{formatNumber(row.total_records ?? 0)} records</span>
           <span>{formatNumber(row.products_seen ?? 0)} products</span>
           {neverRan ? (
-            <span>never run — joins the next pipeline run</span>
+            <span>
+              {row.terms_allowed ? 'never run — joins the next pipeline run' : 'never run — excluded by site terms'}
+            </span>
           ) : (
             <span>{formatDuration(Number(row.avg_duration_seconds ?? 0) * 1000)} avg</span>
           )}
@@ -895,7 +901,7 @@ export default function Sources() {
       .map(Number)
     return {
       registered: (registry.data ?? []).length,
-      enabled: rows.filter((row: any) => row.enabled).length,
+      enabled: rows.filter((row: any) => row.enabled && row.terms_allowed !== false).length,
       records: rows.reduce((sum: number, row: any) => sum + Number(row.total_records ?? 0), 0),
       success: rates.length ? rates.reduce((sum, value) => sum + value, 0) / rates.length : null,
       blocked: Number(robots.data?.stats?.blocked ?? 0),
