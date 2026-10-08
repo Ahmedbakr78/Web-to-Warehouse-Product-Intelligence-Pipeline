@@ -621,8 +621,11 @@ class SavedViewRead(ORMModel):
     visible_columns: list[str] | None = None
     is_shared: bool = False
     is_favorite: bool = False
+    is_default: bool = False
     use_count: int = 0
     user_id: int | None = None
+    created_at: dt.datetime | None = None
+    updated_at: dt.datetime | None = None
 
 
 class SavedViewCreate(BaseModel):
@@ -651,6 +654,19 @@ class SavedViewCreate(BaseModel):
     visible_columns: list[str] = Field(default_factory=list)
     is_shared: bool = False
     is_favorite: bool = False
+
+
+class SavedViewUpdate(BaseModel):
+    """Partial update: every field optional, only set fields are written."""
+
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    description: str | None = None
+    filters: dict[str, Any] | None = None
+    sort_by: str | None = None
+    sort_dir: Literal["asc", "desc"] | None = None
+    visible_columns: list[str] | None = None
+    is_shared: bool | None = None
+    is_favorite: bool | None = None
 
 
 class AlertRuleRead(ORMModel):

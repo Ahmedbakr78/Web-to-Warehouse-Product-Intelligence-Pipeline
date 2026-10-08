@@ -673,6 +673,13 @@ if ! wait_until "GET ${API_HEALTH_URL#http://}" "$HEALTH_TIMEOUT" api_ready; the
   die "The API did not become healthy within ${HEALTH_TIMEOUT}s."
 fi
 phase_ok "API responding · $(link "$API_DOCS_URL" "docs")"
+# The dashboard is already usable from here on; the phases below (migrations,
+# seed, pipeline) only fill it with data. Print the links now so nobody has
+# to wait for the long pipeline run to finish to find the URLs.
+info "Reachable now (click to open):"
+info "  dashboard  $(link "$DASH_URL")"
+info "  api docs   $(link "$API_DOCS_URL")"
+info "  airflow    $(link "$AIRFLOW_URL")  (web UI starts minutes after the API)"
 
 # ---------------------------------------------------------------------- schema
 phase "Applying migrations and creating the schema"

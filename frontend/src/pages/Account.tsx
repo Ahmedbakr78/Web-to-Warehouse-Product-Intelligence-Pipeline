@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   Activity,
   Bell,
+  Check,
   Copy,
   Download,
   Eye,
@@ -12,9 +13,11 @@ import {
   Moon,
   Palette,
   Pencil,
+  Plus,
   RefreshCw,
   RotateCw,
   Save,
+  X,
   Settings2,
   Shield,
   ShieldCheck,
@@ -723,7 +726,7 @@ export default function Account() {
               subtitle="Machine-to-machine credentials: send them as `Authorization: Bearer pip_…`"
               icon={<KeyRound className="h-4 w-4" />}
             />
-            <Button size="sm" variant="primary" onClick={() => setShowKeyModal(true)}>
+            <Button size="sm" variant="primary" icon={<Plus className="h-4 w-4" />} onClick={() => setShowKeyModal(true)}>
               New key
             </Button>
           </div>
@@ -961,10 +964,10 @@ export default function Account() {
               />
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
-              <Button variant="secondary" onClick={() => { localStore.set('account.startPage', startPage); toast.success('Preferences saved locally'); }}>
+              <Button variant="secondary" icon={<Save className="h-4 w-4" />} onClick={() => { localStore.set('account.startPage', startPage); toast.success('Preferences saved locally'); }}>
                 Save locally
               </Button>
-              <Button variant="ghost" onClick={() => saveProfile.mutate()}>
+              <Button variant="ghost" icon={<RefreshCw className="h-4 w-4" />} onClick={() => saveProfile.mutate()}>
                 Sync to server
               </Button>
             </div>
@@ -982,10 +985,10 @@ export default function Account() {
         size="sm"
         footer={
           <>
-            <Button variant="ghost" onClick={() => setShowKeyModal(false)}>
+            <Button variant="ghost" icon={<X className="h-4 w-4" />} onClick={() => setShowKeyModal(false)}>
               Cancel
             </Button>
-            <Button variant="primary" loading={createKey.isPending} disabled={!keyName.trim()} onClick={() => createKey.mutate()}>
+            <Button variant="primary" icon={<Plus className="h-4 w-4" />} loading={createKey.isPending} disabled={!keyName.trim()} onClick={() => createKey.mutate()}>
               Create key
             </Button>
           </>
@@ -1003,10 +1006,10 @@ export default function Account() {
         size="md"
         footer={
           <>
-            <Button variant="ghost" onClick={() => setEditingKey(null)}>
+            <Button variant="ghost" icon={<X className="h-4 w-4" />} onClick={() => setEditingKey(null)}>
               Cancel
             </Button>
-            <Button variant="primary" loading={saveKeyEdit.isPending} disabled={!editName.trim()} onClick={() => saveKeyEdit.mutate()}>
+            <Button variant="primary" icon={<Check className="h-4 w-4" />} loading={saveKeyEdit.isPending} disabled={!editName.trim()} onClick={() => saveKeyEdit.mutate()}>
               Save changes
             </Button>
           </>
@@ -1090,7 +1093,7 @@ export default function Account() {
         size="sm"
         footer={
           <>
-            <Button variant="ghost" onClick={() => setShowDeleteModal(false)}>
+            <Button variant="ghost" icon={<X className="h-4 w-4" />} onClick={() => setShowDeleteModal(false)}>
               Cancel
             </Button>
             <Button
