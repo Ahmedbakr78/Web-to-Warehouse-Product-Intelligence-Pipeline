@@ -173,8 +173,16 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "summary": "Permitted public sources collected politely: robots.txt, rate limits, retries, cache.",
         "features": [
             {
-                "name": "5 bundled sources",
-                "detail": "3 JSON APIs, 1 BeautifulSoup/LXML HTML scraper, 1 offline fixture",
+                "name": "7 bundled sources",
+                "detail": "4 JSON APIs, 2 BeautifulSoup/LXML HTML scrapers, 1 offline fixture",
+            },
+            {
+                "name": "ScrapeMe.live practice shop",
+                "detail": "WooCommerce sandbox: GBP prices, sale pairs, stock flags, category slugs",
+            },
+            {
+                "name": "Google Books API",
+                "detail": "Official Books API with optional free key (GOOGLE_BOOKS_API_KEY)",
             },
             {
                 "name": "robots.txt gate (RFC 9309)",

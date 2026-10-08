@@ -34,7 +34,7 @@
 
 <p align="center">
   <b>173 REST operations</b> · <b>28 tables</b> · <b>20 analytical views</b> ·
-  <b>12 DQ rules</b> · <b>5+ compliant sources</b> · <b>458 catalogued features</b> ·
+  <b>12 DQ rules</b> · <b>7 compliant sources</b> · <b>460 catalogued features</b> ·
   <b>454 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
 </p>
 
@@ -152,7 +152,7 @@ Everything is engineered like a production system, not a demo:
 
 | Component | Technology | Scale |
 | --- | --- | --- |
-| **Ingestion** | 5 source adapters (3 JSON APIs, 1 BeautifulSoup/lxml HTML scraper, 1 offline synthetic) | robots.txt gate, token-bucket rate limiter, sliding-window ceiling, circuit breaker, response cache, per-request audit log |
+| **Ingestion** | 7 source adapters (4 JSON APIs, 2 BeautifulSoup/lxml HTML scrapers, 1 offline synthetic) | robots.txt gate, token-bucket rate limiter, sliding-window ceiling, circuit breaker, response cache, per-request audit log |
 | **Cleaning** | 29-step normalisation engine | product names, categories, 18+ currencies converted to USD via an offline FX table, rating and availability vocabularies |
 | **Deduplication** | 4-signal fuzzy matcher | jaro-winkler, token-set, trigram and digit signatures, block-indexed for O(n) candidate pools |
 | **Warehouse** | SQLAlchemy 2.0 Core ORM | **25 physical tables, 20 analytical views**, identical schema on PostgreSQL 16 and MySQL 8.4 |
@@ -173,9 +173,9 @@ Everything is engineered like a production system, not a demo:
 ```text
 28 physical tables  |  20 analytical views  |  188 REST route decorators in 23 routers
 12 data-quality rules across 6 dimensions, weighted score persisted per run
-6 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
+8 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
 13 CLI commands  |  6 Docker Compose services  |  30 documents  |  80 Mermaid diagrams
-454 tests  |  104/104 API smoke checks  |  458 catalogued features
+463 tests  |  104/104 API smoke checks  |  460 catalogued features
 ```
 
 | Metric | Count |
@@ -185,15 +185,15 @@ Everything is engineered like a production system, not a demo:
 | REST routers            | 23 |
 | REST route decorators   | 188 |
 | Data-quality rules      | 12 |
-| Ingestion sources       | 6 |
+| Ingestion sources       | 8 |
 | Airflow task callables  | 33 |
 | CLI commands            | 13 |
 | Pipeline stages         | 9 |
 | Docker Compose services | 6 |
 | Numbered documents      | 30 |
 | Mermaid diagrams        | 80 |
-| Catalogued features     | 458 |
-| Collected test cases    | 454 |
+| Catalogued features     | 460 |
+| Collected test cases    | 463 |
 | API smoke checks        | 104 |
 
 <!-- END:STATS -->
@@ -292,7 +292,7 @@ flowchart LR
         RL["Rate limiter<br/>token bucket + window"]
         CB["Circuit breaker"]
         HC["Polite HTTP client<br/>retries + cache + audit"]
-        S["5 source adapters<br/>generators"]
+        S["7 source adapters<br/>generators"]
         R --> RL --> CB --> HC --> S
     end
 
@@ -1006,8 +1006,8 @@ are persisted per run in `dq_rule_result`, and the dashboard charts the score tr
 ## Feature catalogue
 
 The exhaustive, file-referenced inventory lives in
-[docs/19_feature_list.md](docs/19_feature_list.md) — 458 features in thirty-seven areas. It is also served as
-structured JSON by `GET /api/v1/meta/features` (378 entries in 30 groups) and rendered by the **Features** screen, both generated
+[docs/19_feature_list.md](docs/19_feature_list.md) — 460 features in thirty-seven areas. It is also served as
+structured JSON by `GET /api/v1/meta/features` (380 entries in 30 groups) and rendered by the **Features** screen, both generated
 from `app/core/features.py`, so this section can never describe something the code does not do.
 Highlights by area:
 

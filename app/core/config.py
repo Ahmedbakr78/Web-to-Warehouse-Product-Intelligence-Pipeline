@@ -120,6 +120,10 @@ class Settings(BaseSettings):
     ingest_proxy_url: str = ""
     #: Comma-separated hosts that bypass the proxy even when one is set.
     ingest_no_proxy: str = "localhost,127.0.0.1"
+    #: Free Google Books API key (Google Cloud Console, no billing). Keyless
+    #: access shares a small daily quota; without a key the source degrades to
+    #: per-subject warnings when HTTP 429 is returned. Empty means keyless.
+    google_books_api_key: str = ""
 
     # ---------------------------------------------------------------- API rate limiting
     #: Enforce a per-caller request budget on the REST API. `AppApiKey.rate_limit_per_minute`

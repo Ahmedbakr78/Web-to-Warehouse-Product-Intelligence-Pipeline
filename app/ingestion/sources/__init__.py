@@ -9,8 +9,10 @@ from app.ingestion.sources import (  # noqa: F401
     books_to_scrape,
     dummyjson,
     fakestore,
+    google_books,
     local_fixture,
     openlibrary,
+    scrapeme,
 )
 
 __all__ = [
@@ -18,5 +20,7 @@ __all__ = [
     "fakestore",
     "openlibrary",
     "books_to_scrape",
+    "google_books",
     "local_fixture",
+    "scrapeme",
 ]

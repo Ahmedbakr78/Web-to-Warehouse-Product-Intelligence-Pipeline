@@ -62,9 +62,11 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 | F-018 | Honest crawler identity | User agent names the bot and publishes a contact address | `app/core/config.py` `ingest_user_agent` |
 | F-019 | Source failure isolation | An exception in one source becomes a warning; the run continues as `partial` | `app/etl/pipeline.py` `_process_source` |
 | F-020 | Bounded extraction | `--limit` plus `_safe_take` prevents a misbehaving source from hanging a run | `app/etl/pipeline.py` |
-| F-021 | Five source adapters | DummyJSON, FakeStore, Open Library (APIs), books.toscrape.com (HTML), local demo (synthetic) | `app/ingestion/sources/` |
+| F-021 | Seven source adapters | DummyJSON, FakeStore, Open Library, Google Books (APIs), books.toscrape.com, ScrapeMe.live (HTML), local demo (synthetic) | `app/ingestion/sources/` |
 | F-022 | BeautifulSoup + lxml scraper | Listing → detail crawl, breadcrumb categories, price, stock count, star rating, UPC, image | `app/ingestion/sources/books_to_scrape.py` |
 | F-023 | Deterministic offline source | Seeded generator used for demos, tests and CI, with deliberate quality defects injected | `app/ingestion/sources/local_fixture.py` |
+| F-459 | ScrapeMe.live WooCommerce scraper | Practice-shop sandbox: listing cards carry price, sale pairs, stock flags and category slugs; detail fetch adds description and star rating; listing record kept when detail fails | `app/ingestion/sources/scrapeme.py` |
+| F-460 | Google Books API source | Official Books API with author, publisher, ratings and Google list prices; free key via `GOOGLE_BOOKS_API_KEY`, graceful 429 degradation per subject | `app/ingestion/sources/google_books.py` `app/core/config.py` |
 | F-024 | Source transparency endpoint | Fetch a few raw records and see them side by side with the cleaned result | `GET /api/v1/sources/{code}/preview` |
 
 ---

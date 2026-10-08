@@ -362,8 +362,10 @@ def load_builtin_sources() -> None:
         books_to_scrape,
         dummyjson,
         fakestore,
+        google_books,
         local_fixture,
         openlibrary,
+        scrapeme,
     )
 
 
