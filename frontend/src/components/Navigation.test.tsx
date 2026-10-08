@@ -14,7 +14,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { NavDrawer, Sidebar, usePhoneLayout } from '@/components/Navigation'
+import { NavDrawer, PhoneTabBar, Sidebar, useEdgeSwipeOpen, usePhoneLayout } from '@/components/Navigation'
 import { useRailState } from '@/components/Navigation'
 
 import { tokenStore } from '@/lib/api'
@@ -136,5 +136,114 @@ describe('responsive shell', () => {
     fireEvent.keyDown(document, { key: 'Escape' })
 
     expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('opens the full navigation from the tab bar More button', () => {
+    setViewport(PHONE)
+    const onMore = vi.fn()
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
+    render(
+      <QueryClientProvider client={client}>
+        <MemoryRouter initialEntries={['/']}>
+          <PhoneTabBar onMore={onMore} />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'All screens' }))
+    expect(onMore).toHaveBeenCalledTimes(1)
+  })
+
+  it('filters the drawer list as you type', () => {
+    setViewport(PHONE)
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
+    render(
+      <QueryClientProvider client={client}>
+        <MemoryRouter initialEntries={['/']}>
+          <NavDrawer open onClose={() => {}} />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+
+    // Sanity: several destinations are listed before filtering.
+    expect(screen.getByRole('link', { name: /dashboard/i })).not.toBeNull()
+    expect(screen.getByRole('link', { name: /products/i })).not.toBeNull()
+
+    fireEvent.change(screen.getByLabelText('Filter navigation screens'), { target: { value: 'dash' } })
+
+    expect(screen.getByRole('link', { name: /dashboard/i })).not.toBeNull()
+    expect(screen.queryByRole('link', { name: /products/i })).toBeNull()
+  })
+
+  it('traps Tab inside the open drawer', () => {
+    setViewport(PHONE)
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
+    render(
+      <QueryClientProvider client={client}>
+        <MemoryRouter initialEntries={['/']}>
+          <button type="button">outside</button>
+          <NavDrawer open onClose={() => {}} />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+
+    const drawer = screen.getByRole('dialog')
+    const focusables = drawer.querySelectorAll('a[href], button:not([disabled]), input:not([disabled])')
+    expect(focusables.length).toBeGreaterThan(1)
+    const last = focusables[focusables.length - 1] as HTMLElement
+    last.focus()
+
+    // Tab on the last element wraps to the first instead of leaving the dialog.
+    fireEvent.keyDown(document, { key: 'Tab' })
+    expect(drawer.contains(document.activeElement)).toBe(true)
+  })
+})
+
+describe('edge swipe to open', () => {
+  function SwipeHarness({ enabled, onOpen }: { enabled: boolean; onOpen: () => void }) {
+    const { onTouchStart, onTouchEnd } = useEdgeSwipeOpen(onOpen, enabled)
+    return <div data-testid="swipe-area" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} />
+  }
+
+  function renderSwipe(enabled: boolean, onOpen: () => void) {
+    return render(<SwipeHarness enabled={enabled} onOpen={onOpen} />)
+  }
+
+  const swipe = (element: HTMLElement, fromX: number, toX: number) => {
+    fireEvent.touchStart(element, { touches: [{ clientX: fromX, clientY: 300 }] })
+    fireEvent.touchEnd(element, { changedTouches: [{ clientX: toX, clientY: 305 }] })
+  }
+
+  it('opens the drawer on an inward swipe from the leading edge', () => {
+    const onOpen = vi.fn()
+    renderSwipe(true, onOpen)
+    swipe(screen.getByTestId('swipe-area'), 5, 120)
+    expect(onOpen).toHaveBeenCalledTimes(1)
+  })
+
+  it('ignores swipes that start away from the edge', () => {
+    const onOpen = vi.fn()
+    renderSwipe(true, onOpen)
+    swipe(screen.getByTestId('swipe-area'), 200, 320)
+    expect(onOpen).not.toHaveBeenCalled()
+  })
+
+  it('ignores outward swipes and vertical scrolls', () => {
+    const onOpen = vi.fn()
+    renderSwipe(true, onOpen)
+    const area = screen.getByTestId('swipe-area')
+    // Outward: starts at the edge but moves the wrong way.
+    swipe(area, 5, -60)
+    // Vertical: mostly up-down movement is a scroll, never a drawer gesture.
+    fireEvent.touchStart(area, { touches: [{ clientX: 5, clientY: 300 }] })
+    fireEvent.touchEnd(area, { changedTouches: [{ clientX: 10, clientY: 500 }] })
+    expect(onOpen).not.toHaveBeenCalled()
+  })
+
+  it('stays disarmed when disabled', () => {
+    const onOpen = vi.fn()
+    renderSwipe(false, onOpen)
+    swipe(screen.getByTestId('swipe-area'), 5, 120)
+    expect(onOpen).not.toHaveBeenCalled()
   })
 })
