@@ -768,6 +768,128 @@
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
+  /* --------------------------- SQL editor -------------------------------------
+     A real editor without a heavy dependency: a transparent textarea over a
+     highlighted <pre>. Both layers share font metrics so highlighting never
+     drifts from the caret; the gutter shows line numbers in sync. */
+  .sql-editor {
+    display: flex;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background-color: var(--surface-2);
+  }
+
+  .sql-editor:focus-within {
+    border-color: var(--brand-500);
+    box-shadow: 0 0 0 3px var(--ring);
+  }
+
+  .sql-gutter {
+    flex-shrink: 0;
+    overflow: hidden;
+    padding: 0.75rem 0.5rem;
+    text-align: right;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--text-subtle);
+    background-color: var(--surface-3);
+    border-right: 1px solid var(--border);
+    user-select: none;
+    min-width: 2.5rem;
+  }
+
+  .sql-gutter-line {
+    height: 1.6em;
+  }
+
+  .sql-body {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .sql-highlight,
+  .sql-textarea {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    line-height: 1.6;
+    padding: 0.75rem;
+    margin: 0;
+    white-space: pre;
+    tab-size: 2;
+  }
+
+  .sql-highlight {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    color: var(--text);
+  }
+
+  .sql-textarea {
+    position: relative;
+    display: block;
+    width: 100%;
+    min-height: 14rem;
+    height: 14rem;
+    max-height: 28rem;
+    overflow: auto;
+    resize: vertical;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: transparent;
+    caret-color: var(--text);
+  }
+
+  .sql-textarea::placeholder {
+    color: var(--text-subtle);
+  }
+
+  .sql-textarea::selection {
+    background: rgb(99 102 241 / 0.25);
+  }
+
+  .sql-comment {
+    color: var(--text-subtle);
+    font-style: italic;
+  }
+
+  .sql-string {
+    color: #0e9f6e;
+  }
+
+  .dark .sql-string,
+  .theme-midnight .sql-string {
+    color: #6ee7b7;
+  }
+
+  .sql-number {
+    color: #c678dd;
+  }
+
+  .sql-keyword {
+    color: var(--brand-600);
+    font-weight: 600;
+  }
+
+  .dark .sql-keyword,
+  .theme-midnight .sql-keyword {
+    color: #a5b4fc;
+  }
+
+  .sql-fn {
+    color: #0284c7;
+  }
+
+  .dark .sql-fn,
+  .theme-midnight .sql-fn {
+    color: #38bdf8;
+  }
 }
 
 @layer utilities {

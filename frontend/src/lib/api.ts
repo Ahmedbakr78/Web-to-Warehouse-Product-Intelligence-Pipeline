@@ -286,6 +286,9 @@ export const endpoints = {
     api.post<any>(`/queries/history/${historyId}/save`, { name }),
   deleteHistoryEntry: (historyId: number) => api.del<any>(`/queries/history/${historyId}`),
   clearHistory: () => api.del<any>('/queries/history'),
+  saveQuerySnippet: (id: number, name: string) => api.post<any>(`/queries/history/${id}/save`, { name }),
+  deleteQueryHistory: (id: number) => api.del<any>(`/queries/history/${id}`),
+  clearQueryHistory: () => api.del<any>('/queries/history'),
   builderSchema: () => api.get<any>('/builder/schema'),
   builderQuery: (payload: Record<string, unknown>) => api.post<any>('/builder/query', payload),
 
@@ -314,11 +317,6 @@ export const endpoints = {
   useSavedView: (id: number) => api.post<any>(`/saved-views/${id}/use`),
 
   queryHistory: (params: Record<string, QueryValue> = {}) => api.get<any[]>('/queries/history', params),
-  saveQuerySnippet: (id: number, name: string) => api.post<any>(`/queries/history/${id}/save`, { name }),
-  deleteQueryHistory: (id: number) => api.del<any>(`/queries/history/${id}`),
-  clearQueryHistory: () => api.del<any>('/queries/history'),
-
-  notifications: (pageSize = 25, unreadOnly = false) =>
     api.get<any>('/notifications', { page_size: pageSize, unread_only: unreadOnly }),
   markRead: (id: number) => api.post<any>(`/notifications/${id}/read`),
   markAllRead: () => api.post<any>('/notifications/read-all'),
