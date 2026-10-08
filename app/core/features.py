@@ -615,7 +615,7 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "key": "appearance",
         "title": "Appearance & personalisation",
         "icon": "palette",
-        "summary": "Six independent axes of personalisation, applied before the first paint.",
+        "summary": "Seven independent axes of personalisation, applied before the first paint.",
         "features": [
             {
                 "name": "Five palettes",
@@ -657,6 +657,15 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             {
                 "name": "RTL mirroring",
                 "detail": "Logical properties flip the layout without a second stylesheet",
+            },
+            {
+                "name": "Scrollbar presentation axis",
+                "detail": "Modern (slim theme-aware), auto (revealed on hover) and hidden modes, "
+                "stored as app_user.scrollbars and synced to the profile like every other axis",
+            },
+            {
+                "name": "Gutter-stable scrollbars",
+                "detail": "scrollbar-gutter is always reserved, so switching modes never shifts the layout",
             },
         ],
     },

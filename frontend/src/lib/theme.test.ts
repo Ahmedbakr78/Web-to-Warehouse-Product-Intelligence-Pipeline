@@ -59,7 +59,7 @@ describe('appearance store snapshot stability', () => {
   })
 
   it('reflects every appearance axis', async () => {
-    const { initAppearance, setTheme, setDensity, setAccent, setMotion, setDirection, setFontScale, __snapshotForTest } =
+    const { initAppearance, setTheme, setDensity, setAccent, setMotion, setDirection, setFontScale, setScrollbars, __snapshotForTest } =
       await import('@/lib/theme')
     initAppearance()
 
@@ -69,6 +69,7 @@ describe('appearance store snapshot stability', () => {
     setMotion('none')
     setDirection('rtl')
     setFontScale('lg')
+    setScrollbars('auto')
 
     const snapshot = __snapshotForTest()
     expect(snapshot.theme).toBe('midnight')
@@ -77,5 +78,26 @@ describe('appearance store snapshot stability', () => {
     expect(snapshot.motion).toBe('none')
     expect(snapshot.direction).toBe('rtl')
     expect(snapshot.fontScale).toBe('lg')
+    expect(snapshot.scrollbars).toBe('auto')
+    expect(document.documentElement.dataset.scrollbars).toBe('auto')
+  })
+
+  it('defaults scrollbars to modern and persists the choice', async () => {
+    const { initAppearance, setScrollbars, getStoredScrollbars, __snapshotForTest } = await import('@/lib/theme')
+    initAppearance()
+
+    expect(getStoredScrollbars()).toBe('modern')
+    expect(__snapshotForTest().scrollbars).toBe('modern')
+
+    const before = __snapshotForTest()
+    setScrollbars('hidden')
+    expect(getStoredScrollbars()).toBe('hidden')
+    expect(document.documentElement.dataset.scrollbars).toBe('hidden')
+    expect(Object.is(before, __snapshotForTest())).toBe(false)
+
+    // A no-op set keeps the snapshot reference stable.
+    const stable = __snapshotForTest()
+    setScrollbars('hidden')
+    expect(Object.is(stable, __snapshotForTest())).toBe(true)
   })
 })

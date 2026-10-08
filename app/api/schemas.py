@@ -317,6 +317,33 @@ class ApiKeyCreated(ApiKeyRead):
     api_key: str = Field(description="Shown once - store it now.")
 
 
+class ApiKeyUpdate(BaseModel):
+    """Partial API-key edit: rename, rescope, re-budget or re-expire.
+
+    `scopes=None` means "everything the owner can do" (same convention as
+    creation).  `expires_in_days` counts from *now*; `remove_expiry` clears any
+    expiry entirely.  Unset fields are left untouched.
+    """
+
+    name: str | None = Field(default=None, min_length=2, max_length=64)
+    scopes: list[str] | None = Field(default=None, max_length=32)
+    rate_limit_per_minute: int | None = Field(default=None, ge=1, le=100_000)
+    expires_in_days: int | None = Field(default=None, ge=1, le=3650)
+    remove_expiry: bool = False
+
+    @field_validator("scopes")
+    @classmethod
+    def _known_scopes(cls, value: list[str] | None) -> list[str] | None:
+        if value is None:
+            return None
+        unknown = sorted(set(value) - ALL_SCOPES)
+        if unknown:
+            raise ValueError(
+                f"unknown scope(s): {', '.join(unknown)}; valid: {', '.join(sorted(ALL_SCOPES))}"
+            )
+        return list(dict.fromkeys(value))
+
+
 # --------------------------------------------------------------------------------------
 # Products / analytics
 # --------------------------------------------------------------------------------------

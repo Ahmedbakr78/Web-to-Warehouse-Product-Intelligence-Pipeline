@@ -13,6 +13,7 @@ from app.api.schemas import (
     ApiKeyCreate,
     ApiKeyCreated,
     ApiKeyRead,
+    ApiKeyUpdate,
     Message,
     Page,
     PasswordChangeRequest,
@@ -463,15 +464,7 @@ def create_key(user_id: int, payload: ApiKeyCreate, session: DbSession, user: Cu
     plain, prefix, hashed = generate_api_key()
     # A key can never be granted more than its owner already has.
     owner = session.get(AppUser, user_id)
-    role_rights = ROLE_RIGHTS.get(owner.role if owner else "viewer", set())
-    requested = payload.scopes
-    if requested:
-        beyond = sorted(set(requested) - role_rights)
-        if beyond:
-            raise PermissionDeniedError(
-                f"cannot grant scope(s) the owner does not hold: {', '.join(beyond)}",
-                details={"owner_role": owner.role if owner else "viewer", "beyond_role": beyond},
-            )
+    _check_scopes_within_owner_rights(owner, payload.scopes)
     row = AppApiKey(
         user_id=user_id,
         name=payload.name,
@@ -500,3 +493,112 @@ def revoke_key(user_id: int, key_id: int, session: DbSession, user: CurrentUser)
         raise PermissionDeniedError("you can only revoke your own keys")
     session.delete(row)
     return Message(message="API key revoked")
+
+
+def _owned_key(key_id: int, user_id: int, session: DbSession, user: CurrentUser) -> AppApiKey:
+    """Fetch a key owned by `user_id`, enforcing self-or-admin visibility."""
+    row = session.get(AppApiKey, key_id)
+    if row is None or row.user_id != user_id:
+        raise ProductNotFoundError(f"api key {key_id} not found")
+    if user_id != user.user_id and not at_least(user.role, "admin"):
+        raise PermissionDeniedError("you can only manage your own keys")
+    return row
+
+
+def _check_scopes_within_owner_rights(owner: AppUser | None, requested: list[str] | None) -> None:
+    """A key can never be granted more than its owner already has."""
+    if not requested:
+        return
+    role_rights = ROLE_RIGHTS.get(owner.role if owner else "viewer", set())
+    beyond = sorted(set(requested) - role_rights)
+    if beyond:
+        raise PermissionDeniedError(
+            f"cannot grant scope(s) the owner does not hold: {', '.join(beyond)}",
+            details={"owner_role": owner.role if owner else "viewer", "beyond_role": beyond},
+        )
+
+
+@router.post(
+    "/{user_id}/api-keys/{key_id}/rotate",
+    response_model=ApiKeyCreated,
+    summary="Rotate an API key (old secret stops working immediately)",
+)
+def rotate_key(user_id: int, key_id: int, session: DbSession, user: CurrentUser) -> ApiKeyCreated:
+    """Atomic rotation: the old secret is revoked and a same-shaped key issued.
+
+    Name, scopes, rate budget and expiry instant are inherited, so callers can
+    swap the secret without re-typing policy. The new secret is returned once.
+    """
+    row = _owned_key(key_id, user_id, session, user)
+    plain, prefix, hashed = generate_api_key()
+    replacement = AppApiKey(
+        user_id=user_id,
+        name=row.name,
+        prefix=prefix,
+        hashed_key=hashed,
+        scopes=list(row.scopes) if row.scopes else None,
+        is_active=True,
+        expires_at=row.expires_at,
+        rate_limit_per_minute=row.rate_limit_per_minute,
+    )
+    session.add(replacement)
+    session.delete(row)
+    session.flush()
+    session.add(
+        AppAuditLog(
+            user_id=user.user_id,
+            user_email=user.email,
+            action="user.api_key_rotated",
+            entity_type="app_api_key",
+            entity_id=str(replacement.key_id),
+            details={"name": replacement.name, "rotated_from_key_id": key_id},
+        )
+    )
+    session.flush()
+    return ApiKeyCreated(api_key=plain, **ApiKeyRead.model_validate(replacement).model_dump())
+
+
+@router.patch(
+    "/{user_id}/api-keys/{key_id}",
+    response_model=ApiKeyRead,
+    summary="Rename, rescope, re-budget or re-expire an API key",
+)
+def update_key(
+    user_id: int, key_id: int, payload: ApiKeyUpdate, session: DbSession, user: CurrentUser
+) -> ApiKeyRead:
+    """Partial key edit. Unset fields are left untouched."""
+    row = _owned_key(key_id, user_id, session, user)
+    data = payload.model_dump(exclude_unset=True)
+    changed: list[str] = []
+    if data.get("name") is not None:
+        row.name = data["name"]
+        changed.append("name")
+    if "scopes" in data:
+        owner = session.get(AppUser, user_id)
+        _check_scopes_within_owner_rights(owner, data["scopes"])
+        row.scopes = sorted(data["scopes"]) if data["scopes"] else None
+        changed.append("scopes")
+    if data.get("rate_limit_per_minute") is not None:
+        row.rate_limit_per_minute = data["rate_limit_per_minute"]
+        changed.append("rate_limit_per_minute")
+    if data.get("remove_expiry"):
+        row.expires_at = None
+        changed.append("remove_expiry")
+    elif data.get("expires_in_days") is not None:
+        row.expires_at = dt.datetime.now(dt.timezone.utc) + dt.timedelta(days=data["expires_in_days"])
+        changed.append("expires_at")
+    if not changed:
+        raise ValidationError("nothing to update - send at least one field")
+    session.flush()
+    session.add(
+        AppAuditLog(
+            user_id=user.user_id,
+            user_email=user.email,
+            action="user.api_key_updated",
+            entity_type="app_api_key",
+            entity_id=str(row.key_id),
+            details={"changed": changed},
+        )
+    )
+    session.flush()
+    return ApiKeyRead.model_validate(row)
