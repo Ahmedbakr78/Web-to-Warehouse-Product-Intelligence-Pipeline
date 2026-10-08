@@ -9,7 +9,11 @@ export const DEFAULT_OPTIONS = {
   gcTime: 5 * 60_000,
   refetchOnWindowFocus: false,
   refetchOnReconnect: true,
-  retry: 1,
+  // A 401 is final: the token layer already refreshed-and-retried once, so a
+  // second attempt would only double the `401 (Unauthorized)` console lines
+  // that background pollers emit when a session lapses.
+  retry: (count: number, error: unknown) =>
+    (error as { status?: number } | undefined)?.status === 401 ? false : count < 1,
   placeholderData: (previous: unknown): any => previous,
 } as const
 

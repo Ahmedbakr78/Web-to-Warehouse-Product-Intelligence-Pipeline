@@ -1,7 +1,7 @@
 /** Auth context: login, session, permission helpers and silent token restore. */
 
-import { type ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { endpoints, tokenStore } from '@/lib/api'
+import { type ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { api, endpoints, getAccessExpiry, isAccessExpired, tokenStore } from '@/lib/api'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   ACCENT_KEYS,
@@ -93,6 +93,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [ready, setReady] = useState(false)
   const queryClient = useQueryClient()
+  const refreshTimer = useRef<number | null>(null)
+
+  const clearRefreshTimer = useCallback(() => {
+    if (refreshTimer.current !== null) {
+      window.clearTimeout(refreshTimer.current)
+      refreshTimer.current = null
+    }
+  }, [])
+
+  /**
+   * Rotate the access token at ~75% of its lifetime so an active session never
+   * waits for a 401 to discover it expired. A failed rotation means the refresh
+   * grant is gone, so the session ends the same way an unrecoverable 401 does.
+   */
+  const scheduleProactiveRefresh = useCallback(() => {
+    clearRefreshTimer()
+    const expiry = getAccessExpiry()
+    if (!tokenStore.getRefresh() || expiry === null) return
+    const lifetime = expiry - Date.now()
+    if (lifetime <= 0) return
+    const delay = Math.min(Math.max(Math.floor(lifetime * 0.75), 60_000), 12 * 3_600_000)
+    refreshTimer.current = window.setTimeout(() => {
+      void api
+        .refreshToken()
+        .then((ok) => {
+          if (ok) scheduleProactiveRefresh()
+          else window.dispatchEvent(new CustomEvent('pip:unauthorized'))
+        })
+        .catch(() => {
+          /* a transient network failure retries on the next request */
+        })
+    }, delay)
+  }, [clearRefreshTimer])
 
   const loadUser = useCallback(async () => {
     if (!tokenStore.get()) {
@@ -101,27 +134,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
     try {
+      // A stale access token with a live refresh grant rotates first, so boot
+      // never spends a doomed request (and its console 401) just to learn the
+      // token expired.
+      if (isAccessExpired(0) && tokenStore.getRefresh()) {
+        const ok = await api.refreshToken()
+        if (!ok) {
+          tokenStore.clear()
+          setUser(null)
+          setReady(true)
+          return
+        }
+      }
       const profile = await endpoints.me()
       setUser(profile)
+      scheduleProactiveRefresh()
     } catch {
       tokenStore.clear()
       setUser(null)
     } finally {
       setReady(true)
     }
-  }, [])
+  }, [scheduleProactiveRefresh])
 
   // Silent session restore on boot + hard logout on an unrecoverable 401.
   useEffect(() => {
     void loadUser()
     const onUnauthorized = () => {
+      clearRefreshTimer()
       tokenStore.clear()
       setUser(null)
       queryClient.clear()
     }
     window.addEventListener('pip:unauthorized', onUnauthorized)
-    return () => window.removeEventListener('pip:unauthorized', onUnauthorized)
-  }, [loadUser, queryClient])
+    return () => {
+      window.removeEventListener('pip:unauthorized', onUnauthorized)
+      clearRefreshTimer()
+    }
+  }, [loadUser, queryClient, clearRefreshTimer])
 
   // Keep two open tabs visually identical, and follow OS theme changes.
   useAppearanceSync()
@@ -200,8 +250,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(response.user)
       setReady(true)
       queryClient.clear()
+      scheduleProactiveRefresh()
     },
-    [queryClient],
+    [queryClient, scheduleProactiveRefresh],
   )
 
   const register = useCallback(
@@ -212,17 +263,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(response.user)
       setReady(true)
       queryClient.clear()
+      scheduleProactiveRefresh()
     },
-    [queryClient],
+    [queryClient, scheduleProactiveRefresh],
   )
 
-  const logout = useCallback(() => {    const sessionKey = localStorage.getItem('pip.session') ?? undefined
+  const logout = useCallback(() => {
+    const sessionKey = localStorage.getItem('pip.session') ?? undefined
     void endpoints.logout(sessionKey).catch(() => undefined)
+    clearRefreshTimer()
     localStorage.removeItem('pip.session')
     tokenStore.clear()
     setUser(null)
     queryClient.clear()
-  }, [queryClient])
+  }, [queryClient, clearRefreshTimer])
 
   const can = useCallback(
     (permission: string) => Boolean(user?.permissions?.includes(permission)),
