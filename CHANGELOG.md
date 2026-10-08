@@ -6,6 +6,54 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-10-08
+
+### Added
+
+- **Query power Max** — the builder speaks post-aggregation: `having` predicates over grouping
+  columns and aggregate aliases, per-request AND/OR `filter_logic` for WHERE filters, server-side
+  enforcement of the schema's `groupable` flag, a strict identifier shape for aggregate aliases,
+  deterministic ORDER BY on grouped queries, and a `supports` capability advertisement on
+  `GET /builder/schema` (all echoed back in the query response beside `sql_preview`).
+- **Saved-view lifecycle** — `GET /saved-views/{id}`, `PATCH` (clash-checked renames), server-side
+  `POST …/duplicate`, per-entity `POST …/default` pinning (the list sorts the default first),
+  visibility rules (private views 404 for others, shared views readable but immutable), and an
+  `app_audit_log` trail for every mutation.
+- **Server-side query history** — every console execution lands in `app_query_history`
+  (rows, duration, truncation; 200 unsaved runs kept per user) with `GET /queries/history`,
+  pin-as-snippet `POST …/save`, per-entry delete and clear-keeps-snippets; the QueryLab gains a
+  History & snippets panel with one-click reload, a client-side SQL formatter, and an offline-aware
+  error box. Secret tables (`app_user`, `app_api_key`, `app_session`, `app_webhook`) are refused
+  by name, and the row cap is wrapped into the SQL so the engine never materialises unbounded results.
+- **Server report CSV** — `GET /reports/{template}/csv` renders the same blocks as HTML/PDF:
+  a `section,kind,label,value` frame plus every table block as a real CSV sub-table.
+- **Type-safe setting writes** — `PUT /settings/{key}` preserves `value_type` when omitted and
+  accepts category/description/visibility; every change is stamped and audited.
+- **Scrollbar axis** — a seventh appearance dimension (`modern`/`auto`/`hidden`, `app_user.scrollbars`,
+  synced to the profile): slim theme-aware thumbs, hover-revealed auto mode, and full-hide, all
+  with a reserved gutter so switching never shifts layout; pre-paint script + Account control included.
+- **Mobile navigation** — drawer search with group filtering, full focus trap, edge-swipe to open
+  (RTL-aware), a More tab reaching every screen, and `100dvh` auth states against iOS URL-bar jitter.
+- **Icons everywhere** — contextual `EmptyState` kinds (chart, price, shield, globe, …) across every
+  screen plus icon buttons on toolbars, menus and dialogs.
+- **Full-max pass** (with the parallel session) — Steam Store + Open Food Facts + Kraken + Makeup +
+  Platzi + Yu-Gi-Oh! sources, GUI source onboarding, catalog CSV import, API key rotation/editing
+  with a grantable-scopes endpoint, multi-level sorting, column pinning, share-as-URL links,
+  watchlists, Excel exports, self-registration, and overlay scrollbars.
+
+### Fixed
+
+- **Full-suite rate limiting** — the test environment disables the API request budget
+  (`RATE_LIMIT_ENABLED=false` in `tests/conftest.py`) so file order can never 429 an unrelated
+  test; the limiter itself stays covered by unit tests.
+- **Migration completeness gate** — `app_query_history` ships inside the initial revision, keeping
+  the committed-migrations-build-everything test green.
+
+### Changed
+
+- Version 1.8.0 liberation: 496 catalogued features across 39 areas, 29 tables, 23 views,
+  203 route decorators, 525 backend tests green, frontend typecheck/lint/tests green.
+
 ### Added
 
 - **Excel exports** — every dataset downloads as a real `.xlsx` workbook (`GET /export/{dataset}.xlsx`):
