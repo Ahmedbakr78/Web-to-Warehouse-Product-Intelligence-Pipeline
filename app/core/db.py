@@ -58,16 +58,33 @@ def build_engine(url: str | None = None, **overrides: Any) -> Engine:
     options: dict[str, Any] = {"future": True, "pool_pre_ping": True, "echo": settings.db_echo}
 
     if dialect.startswith("postgres"):
+        timeout_ms = int(settings.db_statement_timeout_ms)
+        connect_args = overrides.pop("connect_args", {})
+        # Every pooled connection must inherit the timeout. Passing it via
+        # `options` applies at connection startup; the event listener below
+        # covers drivers that ignore `options`.
+        existing_options = str(connect_args.get("options", "") or "")
+        if "statement_timeout" not in existing_options:
+            timeout_opt = f"-c statement_timeout={timeout_ms}"
+            connect_args["options"] = f"{existing_options} {timeout_opt}".strip()
         options.update(
             pool_size=overrides.pop("pool_size", settings.db_pool_size),
             max_overflow=overrides.pop("max_overflow", settings.db_max_overflow),
             pool_recycle=overrides.pop("pool_recycle", settings.db_pool_recycle),
             pool_timeout=overrides.pop("pool_timeout", 30),
+            connect_args=connect_args,
         )
         options.update(overrides)
         engine = create_engine(target_url, **options)
-        with contextlib.suppress(Exception), engine.connect() as conn:
-            conn.execute(text(f"SET statement_timeout = {int(settings.db_statement_timeout_ms)}"))
+
+        @event.listens_for(engine, "connect")
+        def _set_statement_timeout(dbapi_connection: Any, connection_record: Any) -> None:
+            cursor = dbapi_connection.cursor()
+            try:
+                cursor.execute(f"SET statement_timeout = {timeout_ms}")
+            finally:
+                cursor.close()
+
         return engine
 
     if dialect == "mysql":

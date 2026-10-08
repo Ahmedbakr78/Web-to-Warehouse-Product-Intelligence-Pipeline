@@ -15,7 +15,7 @@ import datetime as dt
 import time
 import uuid
 from collections.abc import Callable, Iterable, Iterator
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -260,10 +260,8 @@ class Pipeline:
         try:
             session.commit()
         except Exception:
-            try:
+            with suppress(Exception):
                 session.rollback()
-            except Exception:
-                pass
             # Re-create in a fresh transaction; if the DB is down this will
             # fail again and the outer run() will mark the run as failed.
             run_row = self._run_row(session)
@@ -311,19 +309,15 @@ class Pipeline:
                 # dead connection (server restart, network blip): the pool opens
                 # a fresh one on the next statement, so bookkeeping below works
                 # and the run continues instead of dying as `failed`.
-                try:
+                with suppress(Exception):
                     session.rollback()
-                except Exception:
-                    pass
                 snapshotted.clear()
                 snapshotted.update(seen_before)
                 # Drop any in-memory dedupe state for products that were rolled
                 # back, otherwise later sources could match a phantom product_id.
-                try:
+                with suppress(Exception):
                     dedupe._fingerprint_cache.clear()
                     dedupe._load_fingerprints()
-                except Exception:
-                    pass
                 message = f"{type(exc).__name__}: {str(exc).splitlines()[0][:220]}"
                 log.warning("source %s failed: %s", code, message, exc_info=settings.app_debug)
                 result.sources_failed.append(code)
@@ -340,10 +334,8 @@ class Pipeline:
                     )
                     session.commit()
                 except Exception as book_exc:  # bookkeeping must never kill the run
-                    try:
+                    with suppress(Exception):
                         session.rollback()
-                    except Exception:
-                        pass
                     log.warning("could not record failure for %s: %s", code, book_exc)
                 if self.config.strict or settings.pipeline_fail_fast:
                     raise
@@ -356,10 +348,8 @@ class Pipeline:
                 meta["detail"] = f"{meta['rows']} category-day aggregates"
             session.commit()
         except Exception as exc:
-            try:
+            with suppress(Exception):
                 session.rollback()
-            except Exception:
-                pass
             result.warnings.append(f"aggregate: {type(exc).__name__}: {str(exc)[:180]}")
             log.warning("aggregate stage failed: %s", exc, exc_info=settings.app_debug)
 
@@ -403,20 +393,16 @@ class Pipeline:
                 log.warning("quality stage failed: %s", exc, exc_info=settings.app_debug)
 
         # ---- finalise (re-fetch: earlier rollbacks may have detached the instance)
-        try:
+        with suppress(Exception):
             session.rollback()
-        except Exception:
-            pass
         fresh = session.get(EtlRun, run_id)
         if fresh is not None:
             run_row = fresh
         else:
             # Run row was lost with a rolled-back transaction; recreate it.
             run_row = self._run_row(session)
-            try:
+            with suppress(Exception):
                 session.flush()
-            except Exception:
-                pass
         finished = dt.datetime.now(dt.timezone.utc)
         run_row.finished_at = finished
         run_row.duration_ms = int((finished - run_row.started_at).total_seconds() * 1000)

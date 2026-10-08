@@ -718,8 +718,17 @@ else
 fi
 
 phase "Running one pipeline run so the dashboard has live figures"
-"$PY" -m app.cli.main run-pipeline
-phase_ok "Pipeline run complete · see $(link "${DASH_URL}/pipeline")"
+# A partial run still leaves usable data (some sources are expected to be
+# blocked by robots.txt or rate limits). Never abort the whole launcher
+# because one source failed: record the outcome and continue to verification.
+PIPELINE_LIMIT="${PIPELINE_LIMIT:-100}"
+if "$PY" -m app.cli.main run-pipeline --limit "$PIPELINE_LIMIT"; then
+  phase_ok "Pipeline run complete · see $(link "${DASH_URL}/pipeline")"
+else
+  code="$?"
+  warn "Pipeline exited with code ${code} (partial data is still usable); continuing"
+  phase_ok "Pipeline attempted · see $(link "${DASH_URL}/pipeline")"
+fi
 
 # ------------------------------------------------------------------ sign in
 phase "Exchanging the demo credentials for a token"
