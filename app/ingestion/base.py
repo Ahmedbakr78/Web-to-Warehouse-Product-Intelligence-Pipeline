@@ -173,6 +173,7 @@ class ProductSource(abc.ABC):
             "enabled": self.enabled,
             "terms_allowed": self.terms_allowed,
             "terms_url": self.terms_url,
+            "license_note": self.license_note,
             "robots_respected": settings.respect_robots_txt,
             "rate_limit_per_minute": self.rate_limit_per_minute,
             "min_delay_seconds": self.min_delay_seconds,

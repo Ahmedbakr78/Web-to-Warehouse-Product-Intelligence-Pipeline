@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import {
   AlertTriangle,
+  Ban,
   Boxes,
   Clock,
   ExternalLink,
@@ -166,6 +167,16 @@ function SourceCard({
           <span className="min-w-0">
             {failures} consecutive failure{failures === 1 ? '' : 's'}
             {row.sync_message ? ` — ${truncate(String(row.sync_message), 120)}` : ''}
+          </span>
+        </p>
+      ) : null}
+
+      {!row.terms_allowed ? (
+        <p className="flex items-start gap-2 rounded-lg bg-warning-soft px-2.5 py-2 text-[11px] text-warning">
+          <Ban className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+          <span className="min-w-0">
+            Blocked by site terms — excluded from every run.
+            {registry.license_note ? ` ${registry.license_note}` : ''}
           </span>
         </p>
       ) : null}
