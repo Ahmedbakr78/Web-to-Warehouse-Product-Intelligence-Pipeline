@@ -9,8 +9,9 @@ the ``ENTITIES`` whitelist and every value arrives as a bind parameter.
 
 from __future__ import annotations
 
+import re
 import time
-from typing import Any
+from typing import Any, Literal
 
 import sqlalchemy as sa
 from fastapi import APIRouter
@@ -312,6 +313,10 @@ OPERATORS: dict[str, str] = {
 
 AGGREGATES = ("count", "count_distinct", "sum", "avg", "min", "max")
 
+#: Aggregate aliases are interpolated into the SQL text (bind parameters cannot
+#: stand in for identifiers), so they must match a strict identifier shape.
+ALIAS_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]{0,63}$")
+
 
 # --------------------------------------------------------------------------------------
 # Request models
@@ -342,6 +347,15 @@ class BuilderAggregate(BaseModel):
             raise ValueError(f"unknown aggregate '{value}'")
         return value
 
+    @field_validator("alias")
+    @classmethod
+    def _safe_alias(cls, value: str | None) -> str | None:
+        if value is not None and not ALIAS_RE.match(value):
+            raise ValueError(
+                "alias must start with a letter and contain only letters, digits and underscores"
+            )
+        return value
+
 
 class BuilderSort(BaseModel):
     column: str
@@ -359,8 +373,12 @@ class BuilderQuery(BaseModel):
     entity: str = Field(min_length=1, max_length=64)
     columns: list[str] = Field(default_factory=list, max_length=32)
     filters: list[BuilderFilter] = Field(default_factory=list, max_length=16)
+    #: How the WHERE filters combine. HAVING filters always combine with AND.
+    filter_logic: Literal["and", "or"] = "and"
     group_by: list[str] = Field(default_factory=list, max_length=8)
     aggregates: list[BuilderAggregate] = Field(default_factory=list, max_length=8)
+    #: Post-aggregation filters over grouping columns and aggregate aliases.
+    having: list[BuilderFilter] = Field(default_factory=list, max_length=8)
     sort: list[BuilderSort] = Field(default_factory=list, max_length=4)
     limit: int = Field(default=25, ge=1, le=1000)
     offset: int = Field(default=0, ge=0, le=100000)
@@ -378,11 +396,17 @@ def _entity(name: str) -> dict[str, Any]:
     return ENTITIES[name]
 
 
-def _check_column(entity: dict[str, Any], column: str, *, what: str) -> None:
+def _check_column(entity: dict[str, Any], column: str, *, what: str, groupable: bool = False) -> None:
     if column not in entity["columns"]:
         raise ValidationError(
             f"unknown {what} column '{column}'",
             details={"available": sorted(entity["columns"])},
+        )
+    if groupable and not entity["columns"][column][1]:
+        groupable_names = sorted(name for name, (_kind, flag) in entity["columns"].items() if flag)
+        raise ValidationError(
+            f"column '{column}' is not groupable",
+            details={"groupable": groupable_names},
         )
 
 
@@ -393,6 +417,26 @@ def _like_pattern(operator: str, value: Any) -> str:
     if operator == "starts_with":
         return f"{text}%"
     return f"%{text}"
+
+
+def _filter_clause(flt: BuilderFilter, bind: Any) -> str:
+    """Render one filter to SQL. The column must already be allow-listed."""
+    operator = flt.operator
+    if operator in ("empty", "not_empty"):
+        return f"{flt.column} {OPERATORS[operator]}"
+    if flt.value is None:
+        raise ValidationError(f"filter on '{flt.column}' requires a value")
+    if operator in ("in", "not_in"):
+        if not isinstance(flt.value, list) or not flt.value:
+            raise ValidationError(f"operator '{operator}' requires a non-empty list value")
+        return f"{flt.column} {OPERATORS[operator]} ({', '.join(bind(v) for v in flt.value)})"
+    if operator == "between":
+        if flt.value2 is None:
+            raise ValidationError("operator 'between' requires value and value2")
+        return f"{flt.column} BETWEEN {bind(flt.value)} AND {bind(flt.value2)}"
+    if operator in ("contains", "not_contains", "starts_with", "ends_with"):
+        return f"{flt.column} {OPERATORS[operator]} {bind(_like_pattern(operator, flt.value))}"
+    return f"{flt.column} {OPERATORS[operator]} {bind(flt.value)}"
 
 
 def _build_sql(query: BuilderQuery) -> tuple[str, dict[str, Any], dict[str, Any]]:
@@ -412,8 +456,9 @@ def _build_sql(query: BuilderQuery) -> tuple[str, dict[str, Any], dict[str, Any]
     if query.group_by or query.aggregates:
         selected: list[str] = []
         for name in query.group_by:
-            _check_column(entity, name, what="group_by")
+            _check_column(entity, name, what="group_by", groupable=True)
             selected.append(name)
+        aliases: list[str] = []
         for aggregate in query.aggregates:
             if aggregate.column:
                 _check_column(entity, aggregate.column, what="aggregate")
@@ -426,53 +471,54 @@ def _build_sql(query: BuilderQuery) -> tuple[str, dict[str, Any], dict[str, Any]
                     raise ValidationError(f"aggregate '{aggregate.function}' requires a column")
                 expression = "COUNT(*)"
             alias = aggregate.alias or f"{aggregate.function}_{aggregate.column or 'all'}"
+            aliases.append(alias)
             selected.append(f"{expression} AS {alias}")
         if not selected:
             raise ValidationError("group_by or aggregates requires at least one grouping column")
         projection = ", ".join(selected)
         group_clause = f" GROUP BY {', '.join(query.group_by)}" if query.group_by else ""
+        having_targets = set(query.group_by) | set(aliases)
+        for flt in query.having:
+            if flt.column not in having_targets:
+                raise ValidationError(
+                    f"unknown having column '{flt.column}'",
+                    details={"available": sorted(having_targets)},
+                )
+        having_parts = [_filter_clause(flt, bind) for flt in query.having]
+        having_clause = f" HAVING {' AND '.join(having_parts)}" if having_parts else ""
     else:
+        if query.having:
+            raise ValidationError("having requires group_by or aggregates")
         names = query.columns or [name for name, (_type, _flag) in columns.items()][:24]
         for name in names:
             _check_column(entity, name, what="select")
         projection = ", ".join(names)
         group_clause = ""
+        having_clause = ""
 
-    where_parts: list[str] = []
+    where_parts = []
     for flt in query.filters:
         _check_column(entity, flt.column, what="filter")
-        operator = flt.operator
-        if operator in ("empty", "not_empty"):
-            where_parts.append(f"{flt.column} {OPERATORS[operator]}")
-            continue
-        if flt.value is None:
-            raise ValidationError(f"filter on '{flt.column}' requires a value")
-        if operator in ("in", "not_in"):
-            if not isinstance(flt.value, list) or not flt.value:
-                raise ValidationError(f"operator '{operator}' requires a non-empty list value")
-            where_parts.append(
-                f"{flt.column} {OPERATORS[operator]} ({', '.join(bind(v) for v in flt.value)})"
-            )
-        elif operator == "between":
-            if flt.value2 is None:
-                raise ValidationError("operator 'between' requires value and value2")
-            where_parts.append(f"{flt.column} BETWEEN {bind(flt.value)} AND {bind(flt.value2)}")
-        elif operator in ("contains", "not_contains", "starts_with", "ends_with"):
-            where_parts.append(
-                f"{flt.column} {OPERATORS[operator]} {bind(_like_pattern(operator, flt.value))}"
-            )
-        else:
-            where_parts.append(f"{flt.column} {OPERATORS[operator]} {bind(flt.value)}")
-    where_clause = f" WHERE {' AND '.join(where_parts)}" if where_parts else ""
+        where_parts.append(_filter_clause(flt, bind))
+    joiner = " OR " if query.filter_logic == "or" else " AND "
+    where_clause = f" WHERE {joiner.join(where_parts)}" if where_parts else ""
 
     # Sort columns are validated by _validate_sort (they may be aggregate aliases).
     order_parts = [f"{rule.column} {rule.direction.upper()}" for rule in query.sort]
-    if not order_parts and not (query.group_by or query.aggregates):
-        default_column, default_direction = entity["default_sort"]
-        order_parts = [f"{default_column} {default_direction.upper()}"]
+    if not order_parts:
+        if query.group_by or query.aggregates:
+            # Grouped queries previously emitted no ORDER BY at all, which made
+            # OFFSET paging non-deterministic. Default to the first grouping
+            // aggregate so pages are stable.
+            fallback = (query.group_by or [aliases[0] if (aliases := [a.alias or f"{a.function}_{a.column or 'all'}" for a in query.aggregates]) else None])
+            if fallback[0]:
+                order_parts = [f"{fallback[0]} DESC"]
+        else:
+            default_column, default_direction = entity["default_sort"]
+            order_parts = [f"{default_column} {default_direction.upper()}"]
     order_clause = f" ORDER BY {', '.join(order_parts)}" if order_parts else ""
 
-    sql = f"SELECT {projection} FROM {entity['view']}{where_clause}{group_clause}{order_clause}"
+    sql = f"SELECT {projection} FROM {entity['view']}{where_clause}{group_clause}{having_clause}{order_clause}"
     return sql, params, {"projection": projection}
 
 
