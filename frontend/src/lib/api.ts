@@ -11,11 +11,13 @@ export const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined
 
 const TOKEN_KEY = 'pip.token'
 const REFRESH_KEY = 'pip.refresh'
+const SESSION_KEY = 'pip.session'
 
 /* ------------------------------------------------------------------ tokens */
 export const tokenStore = {
   get: () => localStorage.getItem(TOKEN_KEY),
   getRefresh: () => localStorage.getItem(REFRESH_KEY),
+  getSessionKey: () => localStorage.getItem(SESSION_KEY) ?? undefined,
   set: (access: string, refresh?: string) => {
     localStorage.setItem(TOKEN_KEY, access)
     if (refresh) localStorage.setItem(REFRESH_KEY, refresh)
@@ -23,7 +25,53 @@ export const tokenStore = {
   clear: () => {
     localStorage.removeItem(TOKEN_KEY)
     localStorage.removeItem(REFRESH_KEY)
+    localStorage.removeItem(SESSION_KEY)
   },
+}
+
+/**
+ * Routes that never need a credential. Anything else requested without a
+ * token fails locally instead of hitting the network, so a signed-out tab
+ * never litters the console with `401 (Unauthorized)` responses.
+ */
+const PUBLIC_PATHS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/refresh',
+  '/auth/demo-accounts',
+  '/health',
+  '/meta',
+  '/version',
+  '/ping',
+  '/stats/tables',
+  '/debug/db',
+]
+
+function isPublicPath(path: string): boolean {
+  const clean = path.split('?')[0]
+  return PUBLIC_PATHS.some((prefix) => clean === prefix || clean.startsWith(`${prefix}/`))
+}
+
+/**
+ * Read the `exp` claim of the stored access token without verifying it.
+ * Used only to schedule/trigger refreshes; the server remains the authority.
+ */
+export function getAccessExpiry(): number | null {
+  try {
+    const token = tokenStore.get()
+    if (!token) return null
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
+    return typeof payload?.exp === 'number' ? payload.exp * 1000 : null
+  } catch {
+    return null
+  }
+}
+
+/** True when there is no usable access token for the next request. */
+export function isAccessExpired(marginMs = 90_000): boolean {
+  const expiry = getAccessExpiry()
+  if (expiry === null) return true
+  return Date.now() >= expiry - marginMs
 }
 
 /* ------------------------------------------------------------------ errors */
@@ -51,6 +99,13 @@ export class ApiError extends Error {
   }
   get isOffline() {
     return this.status === 0
+  }
+  /** True when the server says the token itself expired (as opposed to merely missing). */
+  get isExpired() {
+    return this.status === 401 && (this.details as { reason?: string } | undefined)?.reason === 'expired'
+  }
+  get needsLogin() {
+    return this.status === 401
   }
 }
 
@@ -80,10 +135,15 @@ async function refreshToken(): Promise<boolean> {
   if (!refresh) return false
   refreshInFlight = (async () => {
     try {
+      // The session handle lets the server refuse refresh for revoked sessions;
+      // without it a "sign out this device" would only end the access token.
+      const body: Record<string, unknown> = { refresh_token: refresh }
+      const sessionKey = tokenStore.getSessionKey()
+      if (sessionKey) body.session_key = sessionKey
       const response = await fetch(`${API_BASE}/auth/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refresh_token: refresh }),
+        body: JSON.stringify(body),
       })
       if (!response.ok) {
         tokenStore.clear()
@@ -101,6 +161,18 @@ async function refreshToken(): Promise<boolean> {
   return refreshInFlight
 }
 
+/**
+ * Proactively rotate an expiring access token before the request goes out.
+ * A reactive 401-then-retry still exists below, but with background pollers on
+ * every screen the proactive path is what keeps `401 (Unauthorized)` lines out
+ * of the console during normal use.
+ */
+async function ensureFreshToken(): Promise<void> {
+  if (!tokenStore.get() || !tokenStore.getRefresh()) return
+  if (!isAccessExpired()) return
+  await refreshToken()
+}
+
 type RequestOptions = {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   body?: unknown
@@ -111,6 +183,10 @@ type RequestOptions = {
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, signal, retryOn401 = true } = options
+  if (!tokenStore.get() && !isPublicPath(path)) {
+    throw new ApiError(401, 'not_authenticated', 'Sign in required.', { hint: 'no access token stored' })
+  }
+  await ensureFreshToken()
   const token = tokenStore.get()
   const headers: Record<string, string> = { Accept: 'application/json' }
   if (body !== undefined) headers['Content-Type'] = 'application/json'
@@ -222,6 +298,11 @@ export const endpoints = {
     api.get<any[]>('/analytics/volatility', { limit, min_observations: minObservations }),
   discounts: (limit = 20) => api.get<any[]>('/analytics/discounts', { limit }),
   topRated: (limit = 20) => api.get<any[]>('/analytics/top-rated', { limit }),
+  priceBuckets: () => api.get<any[]>('/analytics/price-buckets'),
+  sourceSpread: (limit = 20) => api.get<any[]>('/analytics/source-spread', { limit }),
+  categoryMovers: (days = 30, limit = 20) =>
+    api.get<any[]>('/analytics/category-movers', { days, limit }),
+  eventTimeline: (days = 90) => api.get<any[]>('/analytics/event-timeline', { days }),
 
   products: (params: Record<string, QueryValue>) => api.get<any>('/products', params),
   product: (id: number, historyLimit = 400) => api.get<any>(`/products/${id}`, { history_limit: historyLimit }),
@@ -404,6 +485,33 @@ export const endpoints = {
 }
 
 /**
+ * Raw fetch with the same auth behaviour as `request()`: proactive refresh up
+ * front, one reactive retry after a refresh on 401. Used by the binary
+ * download/upload helpers and the stream utilities, which cannot go through
+ * the JSON `api` helper.
+ */
+export async function authFetch(input: string, init: RequestInit = {}): Promise<Response> {
+  if (!tokenStore.get()) {
+    throw new ApiError(401, 'not_authenticated', 'Sign in required.', { hint: 'no access token stored' })
+  }
+  await ensureFreshToken()
+  const headers = new Headers(init.headers)
+  const token = tokenStore.get()
+  if (token && !headers.has('Authorization')) headers.set('Authorization', `Bearer ${token}`)
+  let response = await fetch(input, { ...init, headers })
+  if (response.status === 401) {
+    const refreshed = await refreshToken()
+    if (refreshed) {
+      const retryHeaders = new Headers(init.headers)
+      const retryToken = tokenStore.get()
+      if (retryToken) retryHeaders.set('Authorization', `Bearer ${retryToken}`)
+      response = await fetch(input, { ...init, headers: retryHeaders })
+    }
+  }
+  return response
+}
+
+/**
  * Download an export dataset as a file.
  *
  * Uses fetch + an object URL so the browser saves the server-generated filename and the
@@ -416,9 +524,7 @@ export async function downloadExport(
   limit = 5000,
 ): Promise<void> {
   const query = buildQuery({ ...params, limit })
-  const response = await fetch(`${API_BASE}/export/${dataset}.${format}${query}`, {
-    headers: { Authorization: `Bearer ${tokenStore.get() ?? ''}` },
-  })
+  const response = await authFetch(`${API_BASE}/export/${dataset}.${format}${query}`)
   if (!response.ok) {
     let message = `Export failed (${response.status})`
     try {
@@ -446,9 +552,7 @@ export async function downloadBinary(
   params: Record<string, QueryValue> = {},
   fallbackName = 'download.bin',
 ): Promise<void> {
-  const response = await fetch(`${API_BASE}${path}${buildQuery(params)}`, {
-    headers: { Authorization: `Bearer ${tokenStore.get() ?? ''}` },
-  })
+  const response = await authFetch(`${API_BASE}${path}${buildQuery(params)}`)
   if (!response.ok) {
     let message = `Download failed (${response.status})`
     try {
@@ -487,9 +591,8 @@ async function saveBlob(response: Response, filename: string): Promise<void> {
 export async function uploadCatalogCsv(file: File): Promise<{ created: number; updated: number; total: number }> {
   const form = new FormData()
   form.append('file', file, file.name)
-  const response = await fetch(`${API_BASE}/catalog/import`, {
+  const response = await authFetch(`${API_BASE}/catalog/import`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${tokenStore.get() ?? ''}` },
     body: form,
   })
   if (!response.ok) {
