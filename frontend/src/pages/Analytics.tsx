@@ -197,7 +197,7 @@ export default function Analytics() {
             formatY="currency"
           />
         ) : (
-          <EmptyState title="No price index data" message="Run more pipeline cycles to build up history." />
+          <EmptyState kind="chart" title="No price index data" message="Run more pipeline cycles to build up history." />
         )}
       </Card>
 
@@ -291,7 +291,7 @@ export default function Analytics() {
                   height={280}
                 />
               ) : (
-                <EmptyState title="Not enough brands to compare" />
+                <EmptyState kind="products" title="Not enough brands to compare" />
               )}
             </Card>
             <Card>
@@ -303,7 +303,7 @@ export default function Analytics() {
                   height={80}
                 />
               ) : (
-                <EmptyState title="No density data" />
+                <EmptyState kind="chart" title="No density data" />
               )}
             </Card>
           </div>
@@ -340,7 +340,7 @@ export default function Analytics() {
                 </div>
               </>
             ) : (
-              <EmptyState title="No availability data" />
+              <EmptyState kind="products" title="No availability data" />
             )}
           </Card>
 
@@ -353,7 +353,7 @@ export default function Analytics() {
                 centerLabel="out of stock"
               />
             ) : (
-              <EmptyState title="No data" />
+              <EmptyState kind="chart" title="No data" />
             )}
           </Card>
         </div>

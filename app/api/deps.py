@@ -5,7 +5,7 @@ from __future__ import annotations
 import datetime as dt
 import re
 from collections.abc import Generator
-from typing import Annotated, Literal
+from typing import Annotated
 
 import sqlalchemy as sa
 from fastapi import Depends, Header, Query, Request
@@ -76,8 +76,16 @@ class Pagination:
         self,
         page: Annotated[int, Query(ge=1, le=10_000, description="1-based page number")] = 1,
         page_size: Annotated[int, Query(ge=1, le=200, description="Rows per page")] = 25,
-        sort_by: Annotated[str | None, Query(description="Field to sort by")] = None,
-        sort_dir: Annotated[Literal["asc", "desc"], Query(description="Sort direction")] = "desc",
+        sort_by: Annotated[
+            str | None, Query(description="Field to sort by; comma-separated for multi-level sort")
+        ] = None,
+        sort_dir: Annotated[
+            str,
+            Query(
+                pattern=r"^(asc|desc)(,(asc|desc)){0,2}$",
+                description="Direction per sort level, positional: desc, or asc,desc for two levels",
+            ),
+        ] = "desc",
     ) -> None:
         self.page = page
         self.page_size = page_size
@@ -96,11 +104,13 @@ class Pagination:
         clause, which was a latent SQL-injection footgun for any future caller.
         The column is now validated against `SORTABLE_COLUMNS` (identifier
         characters only) and falls back to `created_at`, and the direction is
-        constrained to ASC/DESC. Routers with a wider allow-list build their own
-        fragment from their `SORTABLE` map.
+        constrained to ASC/DESC. Only the first sort level applies here;
+        routers with a wider allow-list build their own fragment from their
+        `SORTABLE` map (see `app.api.sorting.build_order_by`).
         """
-        direction = "ASC" if str(self.sort_dir).lower() == "asc" else "DESC"
-        candidate = (self.sort_by or "created_at").strip()
+        first_dir = str(self.sort_dir).split(",")[0].strip().lower()
+        direction = "ASC" if first_dir == "asc" else "DESC"
+        candidate = (self.sort_by or "created_at").split(",")[0].strip()
         if not _SORTABLE_RE.fullmatch(candidate):
             candidate = "created_at"
         return f"{candidate} {direction}"

@@ -921,3 +921,63 @@ def test_session_refresh_tokens_are_stored_hashed():
     for (digest,) in rows:
         assert digest and len(digest) == 64
         assert not digest.startswith("eyJ"), "a JWT must never be stored in the clear"
+
+
+def test_build_order_by_allowlists_and_stacks_levels():
+    from app.api.sorting import build_order_by
+
+    allowed = {"price": "v.price_usd", "rating": "v.rating"}
+    assert build_order_by("price,rating", "asc,desc", allowed, "v.last_seen_at") == (
+        "(v.price_usd IS NULL) ASC, v.price_usd ASC, (v.rating IS NULL) ASC, v.rating DESC"
+    )
+    # Missing directions inherit the previous level; unknown fields are dropped.
+    assert build_order_by("price,bogus", "desc", allowed, "v.last_seen_at") == (
+        "(v.price_usd IS NULL) ASC, v.price_usd DESC"
+    )
+    # Hostile input collapses to the default.
+    assert build_order_by("price; DROP TABLE x--", "asc", allowed, "v.last_seen_at") == (
+        "(v.last_seen_at IS NULL) ASC, v.last_seen_at DESC"
+    )
+    assert build_order_by(None, None, allowed, "v.last_seen_at") == (
+        "(v.last_seen_at IS NULL) ASC, v.last_seen_at DESC"
+    )
+
+
+def test_products_multi_sort_orders_by_both_levels(client, admin_token):
+    headers = auth(admin_token)
+    response = client.get(
+        "/api/v1/products",
+        headers=headers,
+        params={"page_size": 100, "sort_by": "category_name,rating", "sort_dir": "asc,asc"},
+    )
+    assert response.status_code == 200
+    items = response.json()["items"]
+    assert len(items) > 5
+    cats = [str(item["category_name"] or "") for item in items]
+    assert cats == sorted(cats), "level 1 must order categories ascending"
+    for first, second in zip(items, items[1:]):
+        if (first["category_name"] or "") != (second["category_name"] or ""):
+            continue
+        left, right = first["rating"], second["rating"]
+        if left is None or right is None:
+            continue  # NULLS LAST: nulls sink below every real rating
+        assert left <= right, "level 2 must order ratings within a category"
+
+
+def test_products_sort_dir_rejects_garbage(client, admin_token):
+    response = client.get(
+        "/api/v1/products",
+        headers=auth(admin_token),
+        params={"sort_by": "price", "sort_dir": "sideways"},
+    )
+    assert response.status_code == 422
+
+
+def test_price_changes_multi_sort_orders_by_both_levels(client, admin_token):
+    response = client.get(
+        "/api/v1/changes/price",
+        headers=auth(admin_token),
+        params={"page_size": 50, "sort_by": "direction,change_pct", "sort_dir": "asc,desc"},
+    )
+    assert response.status_code == 200
+    assert isinstance(response.json()["items"], list)

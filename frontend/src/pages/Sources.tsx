@@ -345,6 +345,7 @@ function SourcePreviewModal({ code, onClose }: { code: string | null; onClose: (
             />
           ) : (
             <EmptyState
+              kind="globe"
               title="No records returned"
               message="The source responded but produced nothing cleanable. Check its rate limit and terms configuration."
             />

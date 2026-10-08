@@ -229,7 +229,7 @@ export default function QueryLab() {
               ))}
             </ul>
           ) : (
-            <EmptyState title="No starter query available" />
+            <EmptyState kind="file" title="No starter query available" />
           )}
         </Card>
 
@@ -256,7 +256,7 @@ export default function QueryLab() {
               ))}
             </div>
           ) : (
-            <EmptyState title="No analytical view found" message="The warehouse exposes no view yet." />
+            <EmptyState kind="database" title="No analytical view found" message="The warehouse exposes no view yet." />
           )}
         </Card>
 
@@ -294,7 +294,7 @@ export default function QueryLab() {
               </p>
             </div>
           ) : (
-            <EmptyState title="No schema published" message="The API returned no table group." />
+            <EmptyState kind="database" title="No schema published" message="The API returned no table group." />
           )}
         </Card>
       </div>
@@ -351,6 +351,7 @@ export default function QueryLab() {
           />
         ) : !rows.length ? (
           <EmptyState
+            kind="search"
             title="The statement returned no row"
             message="The SQL was accepted but matched nothing. Check the WHERE clause or widen the date window."
           />

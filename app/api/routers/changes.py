@@ -11,6 +11,7 @@ from fastapi import APIRouter, Query
 from app.analytics import service as analytics
 from app.api.deps import DbSession, PaginationDep, ReadUser
 from app.api.schemas import Page, PriceChangeRead
+from app.api.sorting import build_order_by
 from app.core.logging import get_logger
 
 log = get_logger(__name__)
@@ -52,14 +53,18 @@ def price_changes(
         params["min_abs"] = min_abs_change_pct
 
     clause = "WHERE " + " AND ".join(where)
-    sort = {
-        "change_pct": "pc.change_pct",
-        "detected_at": "pc.detected_at",
-        "name": "pc.canonical_name",
-        "previous_price": "pc.previous_price",
-        "new_price": "pc.new_price",
-    }.get((pagination.sort_by or "").lower(), "ABS(pc.change_pct)")
-    direction_sql = "ASC" if str(pagination.sort_dir).lower() == "asc" else "DESC"
+    order_by = build_order_by(
+        pagination.sort_by,
+        pagination.sort_dir,
+        {
+            "change_pct": "pc.change_pct",
+            "detected_at": "pc.detected_at",
+            "name": "pc.canonical_name",
+            "previous_price": "pc.previous_price",
+            "new_price": "pc.new_price",
+        },
+        "ABS(pc.change_pct)",
+    )
 
     total = (
         session.execute(sa.text(f"SELECT COUNT(*) FROM vw_price_changes pc {clause}"), params).scalar() or 0
@@ -73,7 +78,7 @@ def price_changes(
                    pc.new_price_usd, pc.change_abs, pc.change_pct, pc.direction,
                    pc.magnitude_band, pc.is_significant, pc.currency, pc.detected_at, pc.full_date
             FROM vw_price_changes pc {clause}
-            ORDER BY {sort} {direction_sql}
+            ORDER BY {order_by}
             LIMIT :limit OFFSET :offset
             """
             ),

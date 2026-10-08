@@ -6,7 +6,7 @@
 
 import { type ReactNode, useMemo, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Bell, BellRing, CheckCheck, Inbox, Pencil, Plus, RefreshCw, Trash2, Zap } from 'lucide-react'
+import { Bell, BellRing, Check, CheckCheck, Inbox, Pencil, Plus, RefreshCw, Trash2, Zap } from 'lucide-react'
 
 import {
   Badge,
@@ -520,6 +520,7 @@ export default function Alerts() {
                         <Button
                           size="sm"
                           variant="ghost"
+                          icon={<Check className="h-3.5 w-3.5" />}
                           loading={markRead.isPending && markRead.variables === item.notification_id}
                           onClick={() => markRead.mutate(item.notification_id)}
                         >
@@ -548,6 +549,7 @@ export default function Alerts() {
             <Button
               size="sm"
               variant="danger"
+              icon={<Trash2 className="h-4 w-4" />}
               loading={deleteRule.isPending}
               onClick={() => {
                 if (pendingDelete) deleteRule.mutate(pendingDelete.alert_id)
@@ -575,7 +577,7 @@ export default function Alerts() {
             <Button size="sm" variant="ghost" onClick={closeForm}>
               Cancel
             </Button>
-            <Button size="sm" variant="primary" loading={saving} onClick={submit}>
+            <Button size="sm" variant="primary" icon={editing ? <Pencil className="h-4 w-4" /> : <Plus className="h-4 w-4" />} loading={saving} onClick={submit}>
               {editing ? 'Save changes' : 'Create rule'}
             </Button>
           </>

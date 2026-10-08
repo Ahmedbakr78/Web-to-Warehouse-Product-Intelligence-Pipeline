@@ -200,7 +200,7 @@ export default function ProductDetail() {
               formatY="currency"
             />
           ) : (
-            <EmptyState title="Not enough history" message="This product has been observed only once." />
+            <EmptyState kind="chart" title="Not enough history" message="This product has been observed only once." />
           )}
         </Card>
 

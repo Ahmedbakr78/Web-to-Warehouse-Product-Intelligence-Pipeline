@@ -241,7 +241,7 @@ export default function Dashboard() {
               formatY="currency"
             />
           ) : (
-            <EmptyState title="No trend data yet" message="Run the pipeline to populate the warehouse." />
+            <EmptyState kind="chart" title="No trend data yet" message="Run the pipeline to populate the warehouse." />
           )}
         </Card>
 
@@ -265,7 +265,7 @@ export default function Dashboard() {
               </div>
             </>
           ) : (
-            <EmptyState title="No availability data" />
+            <EmptyState kind="products" title="No availability data" />
           )}
         </Card>
       </div>
@@ -294,7 +294,7 @@ export default function Dashboard() {
               stacked
             />
           ) : (
-            <EmptyState title="No price changes recorded in this window" />
+            <EmptyState kind="price" title="No price changes recorded in this window" />
           )}
         </Card>
 
@@ -339,7 +339,7 @@ export default function Dashboard() {
               ) : null}
             </div>
           ) : (
-            <EmptyState title="No runs recorded" message="Trigger a run from the Pipeline screen." />
+            <EmptyState kind="activity" title="No runs recorded" message="Trigger a run from the Pipeline screen." />
           )}
         </Card>
       </div>
@@ -453,7 +453,7 @@ export default function Dashboard() {
               </ul>
             </>
           ) : (
-            <EmptyState title="No quality report yet" message="Run the pipeline to evaluate the rules." />
+            <EmptyState kind="shield" title="No quality report yet" message="Run the pipeline to evaluate the rules." />
           )}
         </Card>
 

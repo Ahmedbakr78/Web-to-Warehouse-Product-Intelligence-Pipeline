@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Download, FolderTree, Layers, Package, Tags, TrendingUp } from 'lucide-react'
+import { Download, FolderTree, Layers, Package, Tags, TrendingUp, X } from 'lucide-react'
 
 import { BarSeries } from '@/components/charts'
 import {
@@ -285,13 +285,14 @@ export default function Categories() {
               <LoadingState label={'Loading taxonomy…'} rows={5} />
             </div>
           ) : !tree.data?.length ? (
-            <EmptyState title="No categories yet" message="Run the pipeline to build the category dimension." />
+            <EmptyState kind="search" title="No categories yet" message="Run the pipeline to build the category dimension." />
           ) : !visibleTree.length ? (
             <EmptyState
+              kind="search"
               title="No category matches this filter"
               message="Try a shorter term or clear the filter to see the whole taxonomy."
               action={
-                <Button size="sm" variant="secondary" onClick={() => setSearch('')}>
+                <Button size="sm" variant="secondary" icon={<X className="h-4 w-4" />} onClick={() => setSearch('')}>
                   Clear filter
                 </Button>
               }
@@ -360,7 +361,7 @@ export default function Categories() {
               onBarClick={(entry: any) => openCategory(entry?.full_name)}
             />
           ) : (
-            <EmptyState title="No price data yet" message="Prices appear once the first snapshots are loaded." />
+            <EmptyState kind="price" title="No price data yet" message="Prices appear once the first snapshots are loaded." />
           )}
         </Card>
       </div>

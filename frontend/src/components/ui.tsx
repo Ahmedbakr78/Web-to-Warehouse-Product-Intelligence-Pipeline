@@ -20,7 +20,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import { AlertCircle, Check, ChevronDown, ChevronLeft, ChevronRight, Inbox, Loader2, Search, X } from 'lucide-react'
+import { Activity, AlertCircle, BarChart3, Bell, CalendarRange, Check, ChevronDown, ChevronLeft, ChevronRight, Database, FileText, Globe, Inbox, KeyRound, Loader2, Package, RotateCcw, Search, Settings2, ShieldCheck, Tag, Users, Webhook, X } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
 /* =====================================================================================
@@ -420,6 +420,8 @@ export type Column<T> = {
   align?: 'left' | 'right' | 'center'
   width?: string
   hideBelow?: 'sm' | 'md' | 'lg' | 'xl'
+  /** Freeze the column to the left edge while the table scrolls horizontally. */
+  pinned?: boolean
 }
 
 export function DataTable<T>({
@@ -547,7 +549,12 @@ export function DataTable<T>({
                 <th
                   key={column.key}
                   style={column.width ? { width: column.width } : undefined}
-                  className={cn('th', alignment(column.align), column.hideBelow && hideClass[column.hideBelow])}
+                  className={cn(
+                    'th',
+                    alignment(column.align),
+                    column.hideBelow && hideClass[column.hideBelow],
+                    column.pinned && 'th-pinned',
+                  )}
                   aria-sort={isActive ? (sort?.dir === 'asc' ? 'ascending' : 'descending') : 'none'}
                 >
                   {column.sortValue && onSort ? (
@@ -578,7 +585,13 @@ export function DataTable<T>({
               {columns.map((column) => (
                 <td
                   key={column.key}
-                  className={cn('td', alignment(column.align), dense && '!py-1.5', column.hideBelow && hideClass[column.hideBelow])}
+                  className={cn(
+                    'td',
+                    alignment(column.align),
+                    dense && '!py-1.5',
+                    column.hideBelow && hideClass[column.hideBelow],
+                    column.pinned && 'td-pinned',
+                  )}
                 >
                   {column.render(row, index)}
                 </td>
@@ -765,7 +778,7 @@ export function ErrorState({
         {message ? <p className="mt-1 max-w-md text-xs text-muted">{message}</p> : null}
       </div>
       {onRetry ? (
-        <Button variant="secondary" size="sm" onClick={onRetry}>
+        <Button variant="secondary" size="sm" icon={<RotateCcw className="h-3.5 w-3.5" />} onClick={onRetry}>
           Try again
         </Button>
       ) : null}
@@ -773,20 +786,45 @@ export function ErrorState({
   )
 }
 
+/** Contextual empty-state illustration. `icon` overrides; otherwise `kind` picks one. */
+export const EMPTY_KINDS = {
+  inbox: Inbox,
+  search: Search,
+  chart: BarChart3,
+  products: Package,
+  price: Tag,
+  bell: Bell,
+  shield: ShieldCheck,
+  globe: Globe,
+  file: FileText,
+  users: Users,
+  settings: Settings2,
+  database: Database,
+  calendar: CalendarRange,
+  activity: Activity,
+  key: KeyRound,
+  webhook: Webhook,
+} as const
+
+export type EmptyKind = keyof typeof EMPTY_KINDS
+
 export function EmptyState({
   title = 'Nothing here yet',
   message,
   action,
   icon,
+  kind = 'inbox',
 }: {
   title?: string
   message?: ReactNode
   action?: ReactNode
   icon?: ReactNode
+  kind?: EmptyKind
 }) {
+  const KindIcon = EMPTY_KINDS[kind] ?? Inbox
   return (
     <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
-      <span className="text-subtle">{icon ?? <Inbox className="h-7 w-7" aria-hidden />}</span>
+      <span className="text-subtle">{icon ?? <KindIcon className="h-7 w-7" aria-hidden />}</span>
       <p className="text-sm font-medium text-ink">{title}</p>
       {message ? <p className="max-w-sm text-xs text-subtle">{message}</p> : null}
       {action}

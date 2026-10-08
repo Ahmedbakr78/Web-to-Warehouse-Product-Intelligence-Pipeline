@@ -378,7 +378,7 @@ export default function Users() {
           ) : stats.isLoading && !stats.data ? (
             <LoadingState label="Loading role mix…" rows={2} />
           ) : (
-            <EmptyState title="No users yet" />
+            <EmptyState kind="users" title="No users yet" />
           )}
         </Card>
 
@@ -413,7 +413,7 @@ export default function Users() {
               ))}
             </ul>
           ) : (
-            <EmptyState title="No sign-ins recorded yet" />
+            <EmptyState kind="activity" title="No sign-ins recorded yet" />
           )}
         </Card>
       </div>

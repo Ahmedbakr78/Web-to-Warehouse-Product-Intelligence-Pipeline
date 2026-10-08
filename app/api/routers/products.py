@@ -14,6 +14,7 @@ from fastapi.responses import PlainTextResponse
 from app.analytics import service as analytics
 from app.api.deps import DbSession, PaginationDep, ReadUser
 from app.api.schemas import Page, ProductDetail, ProductSummary
+from app.api.sorting import build_order_by
 from app.core.errors import ProductNotFoundError
 from app.ingestion.cleaning import normalise_name_key
 from app.models.dimensions import DimProduct
@@ -129,8 +130,7 @@ def list_products(
         params["seen_since"] = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=observed_within_days)
 
     clause = f"WHERE {' AND '.join(where)}" if where else ""
-    sort = SORTABLE.get((pagination.sort_by or "").lower(), "v.last_seen_at")
-    direction = "ASC" if str(pagination.sort_dir).lower() == "asc" else "DESC"
+    order_by = build_order_by(pagination.sort_by, pagination.sort_dir, SORTABLE, "v.last_seen_at")
 
     total = session.execute(sa.text(f"SELECT COUNT(*) {BASE_FROM} {clause}"), params).scalar() or 0
     rows = (
@@ -144,7 +144,7 @@ def list_products(
                    v.source_code, v.match_strategy, v.match_score
             {BASE_FROM} {clause}
             -- Portable "NULLs last" (MySQL has no NULLS LAST modifier).
-            ORDER BY ({sort} IS NULL) ASC, {sort} {direction}
+            ORDER BY {order_by}
             LIMIT :limit OFFSET :offset
             """
             ),

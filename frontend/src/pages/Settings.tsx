@@ -364,7 +364,7 @@ export default function Settings() {
                   />
                 </div>
               ) : (
-                <EmptyState title="No schedule configured" />
+                <EmptyState kind="calendar" title="No schedule configured" />
               )}
             </Card>
 
@@ -378,7 +378,7 @@ export default function Settings() {
                   height={220}
                 />
               ) : (
-                <EmptyState title="No runs recorded yet" message="Trigger a run to populate the mix." />
+                <EmptyState kind="activity" title="No runs recorded yet" message="Trigger a run to populate the mix." />
               )}
             </Card>
           </div>

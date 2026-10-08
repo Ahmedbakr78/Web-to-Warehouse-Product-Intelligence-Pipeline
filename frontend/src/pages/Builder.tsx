@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ArrowDown, ArrowUp, Bookmark, Braces, Copy, Download, Filter, Layers, Play, RotateCcw, Save, Sparkles, Wand2 } from 'lucide-react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { ArrowDown, ArrowUp, Bookmark, Braces, CheckCheck, Copy, Download, ExternalLink, Filter, Layers, Link2, Minus, Pin, PinOff, Play, RotateCcw, Save, Sparkles, Wand2, X } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import {
@@ -50,8 +50,12 @@ interface BuilderState {
   activeOnly: boolean
   sortBy: string
   sortDir: 'asc' | 'desc'
+  /** Extra sort levels (level 1 is sortBy/sortDir); honoured by multi-sort entities. */
+  multiSort: { by: string; dir: 'asc' | 'desc' }[]
   pageSize: number
   columns: string[]
+  /** Column keys frozen to the left edge of the preview table. */
+  pinned: string[]
 }
 
 const DEFAULT_STATE: BuilderState = {
@@ -72,8 +76,10 @@ const DEFAULT_STATE: BuilderState = {
   activeOnly: true,
   sortBy: 'last_seen_at',
   sortDir: 'desc',
+  multiSort: [],
   pageSize: 25,
   columns: ['name', 'category', 'brand', 'price', 'change', 'availability', 'last_seen'],
+  pinned: ['name'],
 }
 
 const ENTITY_COLUMNS: Record<Entity, { key: string; label: string }[]> = {
@@ -191,6 +197,21 @@ const ENTITY_HINTS: Record<Entity, string> = {
   brands: 'Brand leaderboard: product counts, average price and rating per brand.',
   availability: 'In-stock ratio per category with out-of-stock counts.',
 }
+
+const SORT_OPTIONS = [
+  { value: 'last_seen_at', label: 'Last seen' },
+  { value: 'first_seen_at', label: 'First seen' },
+  { value: 'canonical_name', label: 'Name' },
+  { value: 'price', label: 'Price' },
+  { value: 'price_change_pct', label: 'Change %' },
+  { value: 'rating', label: 'Rating' },
+  { value: 'observation_count', label: 'Observations' },
+]
+
+/** Entities whose endpoints accept comma-separated multi-level sort. */
+const MULTI_SORT_ENTITIES: Entity[] = ['products', 'price-changes']
+
+const MAX_EXTRA_SORTS = 2
 
 export default function Builder() {
   const [mode, setMode] = useState<'filters' | 'aggregate'>('filters')
@@ -603,10 +624,10 @@ export default function Builder() {
             })}
           </div>
           <div className="mt-3 flex gap-2 border-t border-line pt-3">
-            <Button size="sm" variant="ghost" onClick={() => patch({ columns: columns.map((column) => column.key) })}>
+            <Button size="sm" variant="ghost" icon={<CheckCheck className="h-4 w-4" />} onClick={() => patch({ columns: columns.map((column) => column.key) })}>
               All
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => patch({ columns: columns.slice(0, 3).map((column) => column.key) })}>
+            <Button size="sm" variant="ghost" icon={<Minus className="h-4 w-4" />} onClick={() => patch({ columns: columns.slice(0, 3).map((column) => column.key) })}>
               Minimal
             </Button>
           </div>
@@ -670,7 +691,7 @@ export default function Builder() {
               JSON
             </Button>
             {state.entity === 'products' ? (
-              <Button size="sm" variant="ghost" onClick={() => navigate(`/products?${new URLSearchParams(cleanParams(productParams)).toString()}`)}>
+              <Button size="sm" variant="ghost" icon={<ExternalLink className="h-4 w-4" />} onClick={() => navigate(`/products?${new URLSearchParams(cleanParams(productParams)).toString()}`)}>
                 Open as a page
               </Button>
             ) : null}
@@ -685,7 +706,7 @@ export default function Builder() {
             <LoadingState label="Running preview query…" rows={5} />
           </div>
         ) : rows.length === 0 ? (
-          <EmptyState title="No records match" message="Relax a filter or widen the price window." />
+          <EmptyState kind="search" title="No records match" message="Relax a filter or widen the price window." />
         ) : (
           <DataTable
             rows={rows}

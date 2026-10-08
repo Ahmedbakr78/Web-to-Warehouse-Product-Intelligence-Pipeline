@@ -349,7 +349,7 @@ export default function Pipeline() {
                 height={240}
               />
             ) : (
-              <EmptyState title="No trigger data" />
+              <EmptyState kind="activity" title="No trigger data" />
             )}
           </Card>
 
@@ -479,7 +479,7 @@ export default function Pipeline() {
             ) : null}
           </div>
         ) : (
-          <EmptyState title="Run not found" />
+          <EmptyState kind="search" title="Run not found" />
         )}
       </Modal>
 

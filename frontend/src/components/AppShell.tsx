@@ -22,6 +22,7 @@ import {
   PanelLeftOpen,
   Search,
   Sun,
+  UserCircle,
 } from 'lucide-react'
 
 import { PAGE_TITLES, ALL_NAV_ITEMS } from '@/lib/nav'
@@ -616,6 +617,7 @@ function UserMenu() {
               }}
               className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm hover:bg-surface-3"
             >
+              <UserCircle className="h-4 w-4" aria-hidden />
               Account settings
             </button>
             <button

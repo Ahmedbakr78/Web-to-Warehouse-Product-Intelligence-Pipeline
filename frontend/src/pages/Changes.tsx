@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Activity, ArrowDownRight, ArrowUpRight, Braces, Layers, Package, Tag, Trash2 } from 'lucide-react'
+import { Activity, ArrowDownRight, ArrowUpRight, Braces, Layers, Package, Tag, Trash2, Zap } from 'lucide-react'
 
 import { BarSeries, LineTrend } from '@/components/charts'
 import {
@@ -112,7 +112,7 @@ export default function Changes() {
             <option value="increase">Increases</option>
             <option value="decrease">Decreases</option>
           </Select>
-          <Button size="sm" variant={significantOnly ? 'primary' : 'secondary'} onClick={() => { setSignificantOnly((value) => !value); setPage(1) }}>
+          <Button size="sm" variant={significantOnly ? 'primary' : 'secondary'} icon={<Zap className="h-4 w-4" />} onClick={() => { setSignificantOnly((value) => !value); setPage(1) }}>
             Significant only
           </Button>
           <Button
@@ -164,7 +164,7 @@ export default function Changes() {
               height={240}
             />
           ) : (
-            <EmptyState title="No change activity in this window" />
+            <EmptyState kind="price" title="No change activity in this window" />
           )}
         </Card>
 
@@ -182,7 +182,7 @@ export default function Changes() {
               formatY="percent"
             />
           ) : (
-            <EmptyState title="No data" />
+            <EmptyState kind="price" title="No data" />
           )}
         </Card>
       </div>

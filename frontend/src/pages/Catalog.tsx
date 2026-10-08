@@ -385,7 +385,7 @@ export default function Catalog() {
                   centerLabel="opportunities"
                 />
               ) : (
-                <EmptyState title="No opportunities" />
+                <EmptyState kind="price" title="No opportunities" />
               )}
             </Card>
 
@@ -401,7 +401,7 @@ export default function Catalog() {
                   formatY="percent"
                 />
               ) : (
-                <EmptyState title="No supplier data" />
+                <EmptyState kind="products" title="No supplier data" />
               )}
             </Card>
 

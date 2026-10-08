@@ -172,7 +172,7 @@ export default function Quality() {
                   })}
                 </div>
               ) : (
-                <EmptyState title="No results recorded yet" message="Run the pipeline to evaluate the rules." />
+                <EmptyState kind="shield" title="No results recorded yet" message="Run the pipeline to evaluate the rules." />
               )}
             </Card>
 
@@ -185,7 +185,7 @@ export default function Quality() {
                   centerLabel="evaluations"
                 />
               ) : (
-                <EmptyState title="No data" />
+                <EmptyState kind="shield" title="No data" />
               )}
             </Card>
           </div>
