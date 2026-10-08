@@ -145,6 +145,70 @@ def event_timeline(
     return analytics.lifecycle_timeline(session, days=days)
 
 
+@router.get("/price-anomalies", summary="Listings priced far from their category rate")
+def price_anomalies(
+    session: DbSession,
+    _user: ReadUser,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    threshold_std: Annotated[float, Query(ge=0.5, le=10.0)] = 2.0,
+) -> list[dict[str, Any]]:
+    return analytics.price_anomalies(session, limit=limit, threshold_std=threshold_std)
+
+
+@router.get("/source-overlap", summary="Pairwise catalogue overlap between sources")
+def source_overlap(session: DbSession, _user: ReadUser) -> list[dict[str, Any]]:
+    return analytics.source_overlap(session)
+
+
+@router.get("/data-freshness", summary="Per-source freshness: last sighting and stale share")
+def data_freshness(
+    session: DbSession,
+    _user: ReadUser,
+    stale_days: Annotated[int, Query(ge=1, le=3650)] = 7,
+) -> list[dict[str, Any]]:
+    return analytics.data_freshness(session, stale_days=stale_days)
+
+
+@router.get("/inventory-risk", summary="Categories under stock pressure and rising prices")
+def inventory_risk(
+    session: DbSession, _user: ReadUser, limit: Annotated[int, Query(ge=1, le=100)] = 20
+) -> list[dict[str, Any]]:
+    return analytics.inventory_risk(session, limit=limit)
+
+
+@router.get("/currency-exposure", summary="Live catalogue mix by original listing currency")
+def currency_exposure(session: DbSession, _user: ReadUser) -> list[dict[str, Any]]:
+    return analytics.currency_exposure(session)
+
+
+@router.get("/best-value", summary="Top-rated cheapest listings by rating per USD")
+def best_value(
+    session: DbSession,
+    _user: ReadUser,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    min_rating: Annotated[float, Query(ge=0.0, le=5.0)] = 4.0,
+    min_votes: Annotated[int, Query(ge=1, le=100_000)] = 10,
+) -> list[dict[str, Any]]:
+    return analytics.best_value(session, limit=limit, min_rating=min_rating, min_votes=min_votes)
+
+
+@router.get("/brand-momentum", summary="Brands ranked by average signed price change")
+def brand_momentum(
+    session: DbSession,
+    _user: ReadUser,
+    days: Annotated[int, Query(ge=1, le=3650)] = 30,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+) -> list[dict[str, Any]]:
+    return analytics.brand_momentum(session, days=days, limit=limit)
+
+
+@router.get("/weekday-pattern", summary="Price-change activity by weekday")
+def weekday_pattern(
+    session: DbSession, _user: ReadUser, days: Annotated[int, Query(ge=1, le=3650)] = 90
+) -> list[dict[str, Any]]:
+    return analytics.weekday_pattern(session, days=days)
+
+
 @router.get("/report/price-changes", summary="SQL report: price changes")
 def report_price_changes(
     session: DbSession,

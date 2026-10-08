@@ -40,6 +40,14 @@ def test_registry_contains_every_bundled_source():
         "itunes_apps",
         "gutendex_books",
         "mmobomb_games",
+        "coincap_assets",
+        "scryfall_cards",
+        "pokemontcg_cards",
+        "bitstamp_tickers",
+        "coingecko_markets",
+        "stooq_quotes",
+        "itunes_ebooks",
+        "restful_objects",
     } <= codes
 
 
@@ -903,3 +911,419 @@ def test_mmobomb_single_shot_respects_limit_and_shape_errors():
     bad = MMOBombGamesSource(client=_BadClient())
     assert list(bad.fetch(limit=5)) == []
     assert bad.errors
+
+
+# --------------------------------------------------------------------------------------
+# CoinCap assets
+# --------------------------------------------------------------------------------------
+COINCAP_ITEM = {
+    "id": "bitcoin",
+    "rank": "1",
+    "symbol": "BTC",
+    "name": "Bitcoin",
+    "priceUsd": "67000.12",
+    "marketCapUsd": "1300000000000",
+    "volumeUsd24Hr": "30000000000",
+    "changePercent24Hr": "2.5",
+    "vwap24Hr": "66500.0",
+}
+
+
+def test_coincap_maps_price_rank_and_change():
+    from app.ingestion.sources.coincap import CoinCapAssetsSource
+
+    raw = CoinCapAssetsSource()._to_raw(COINCAP_ITEM)
+    assert raw is not None
+    assert raw.source_code == "coincap_assets"
+    assert raw.source_product_id == "bitcoin"
+    assert raw.name == "Bitcoin (BTC)"
+    assert raw.category == "Cryptocurrency"
+    assert raw.price_text == "67000.12"
+    assert raw.currency_hint == "USD"
+    assert raw.in_stock_flag is True
+    assert raw.payload["rank"] == "1"
+    assert CoinCapAssetsSource()._to_raw({}) is None
+    assert CoinCapAssetsSource()._to_raw({"name": "No price"}) is None
+
+
+def test_coincap_offset_paging_stops_on_short_page():
+    from app.ingestion.sources.coincap import CoinCapAssetsSource
+
+    calls: list[int] = []
+
+    class _StubClient:
+        def get_json(self, url, params=None):
+            calls.append((params or {}).get("offset", 0))
+            return {"data": [COINCAP_ITEM], "timestamp": 1}
+
+    source = CoinCapAssetsSource(client=_StubClient())
+    rows = list(source.fetch(limit=100))
+    assert [row.name for row in rows] == ["Bitcoin (BTC)"]
+    assert calls == [0]  # a short page ends pagination without a second request
+    assert not source.errors
+
+
+# --------------------------------------------------------------------------------------
+# Scryfall cards
+# --------------------------------------------------------------------------------------
+SCRYFALL_ITEM = {
+    "id": "abc-123",
+    "oracle_id": "oracle-1",
+    "name": "Lightning Bolt",
+    "set": "M10",
+    "set_name": "Magic 2010",
+    "rarity": "common",
+    "type_line": "Instant",
+    "prices": {"usd": "1.25", "usd_foil": "5.00"},
+    "image_uris": {"small": "https://example.local/small.jpg"},
+    "scryfall_uri": "https://scryfall.com/card/m10/1",
+    "edhrec_rank": 42,
+}
+
+
+def test_scryfall_maps_usd_and_foil_reference():
+    from app.ingestion.sources.scryfall import ScryfallCardsSource
+
+    raw = ScryfallCardsSource()._to_raw(SCRYFALL_ITEM)
+    assert raw is not None
+    assert raw.source_code == "scryfall_cards"
+    assert raw.price_text == "1.25"
+    assert raw.list_price_text == "5.00"
+    assert raw.brand == "Magic 2010"
+    assert raw.category == "Trading Cards"
+    assert ScryfallCardsSource()._to_raw({}) is None
+    assert ScryfallCardsSource()._to_raw({"name": "No price", "prices": {}}) is None
+
+
+def test_scryfall_follows_next_page_then_stops():
+    from app.ingestion.sources.scryfall import ScryfallCardsSource
+
+    class _StubClient:
+        def __init__(self):
+            self.calls = 0
+
+        def get_json(self, url, params=None):
+            self.calls += 1
+            if self.calls == 1:
+                assert params and params.get("q")
+                return {"data": [SCRYFALL_ITEM], "has_more": True, "next_page": "https://next.page"}
+            return {"data": [{**SCRYFALL_ITEM, "id": "def-456", "name": "Shock"}], "has_more": False}
+
+    client = _StubClient()
+    source = ScryfallCardsSource(client=client)
+    assert [row.name for row in source.fetch(limit=10)] == ["Lightning Bolt", "Shock"]
+    assert client.calls == 2
+    assert not source.errors
+
+
+# --------------------------------------------------------------------------------------
+# Pokemon TCG cards
+# --------------------------------------------------------------------------------------
+POKEMON_ITEM = {
+    "id": "xy1-1",
+    "name": "Venusaur-EX",
+    "rarity": "Rare Holo EX",
+    "types": ["Grass"],
+    "set": {"id": "xy1", "name": "XY"},
+    "tcgplayer": {
+        "url": "https://prices.pokemontcg.io/tcgplayer/xy1-1",
+        "prices": {
+            "holofoil": {"market": 12.5, "low": 8.0, "mid": 11.0, "high": 20.0},
+            "reverseHolofoil": {"market": 3.0, "low": 1.0, "mid": 2.5, "high": 6.0},
+        },
+    },
+    "cardmarket": {"prices": {"trendPrice": 9.99}},
+    "images": {"small": "https://example.local/poke.jpg"},
+}
+
+
+def test_pokemontcg_prefers_holofoil_market_price():
+    from app.ingestion.sources.pokemontcg import PokemonTcgCardsSource
+
+    raw = PokemonTcgCardsSource()._to_raw(POKEMON_ITEM)
+    assert raw is not None
+    assert raw.source_code == "pokemontcg_cards"
+    assert raw.price_text == "12.5"
+    assert raw.list_price_text == "20.0"
+    assert raw.brand == "XY"
+    assert raw.category == "Trading Cards - Grass"
+    assert raw.payload["price_kind"] == "holofoil"
+
+
+def test_pokemontcg_falls_back_across_price_bands():
+    from app.ingestion.sources.pokemontcg import PokemonTcgCardsSource
+
+    source = PokemonTcgCardsSource()
+    reverse_only = {**POKEMON_ITEM, "tcgplayer": {"prices": {"reverseHolofoil": {"market": 3.0, "high": 6.0}}}}
+    raw = source._to_raw(reverse_only)
+    assert raw is not None and raw.price_text == "3.0"
+    assert raw.payload["price_kind"] == "reverseHolofoil"
+    trend_only = {**POKEMON_ITEM, "tcgplayer": {}}
+    raw = source._to_raw(trend_only)
+    assert raw is not None and raw.price_text == "9.99"
+    assert raw.payload["price_kind"] == "cardmarket_trend"
+    assert source._to_raw({}) is None
+    # No price anywhere: still emitted as catalogue depth (like the
+    # price-less book/game sources) so DQ completeness records the gap.
+    priceless = source._to_raw({"name": "Priceless", "tcgplayer": {}, "cardmarket": {}})
+    assert priceless is not None and priceless.price_text is None
+    assert priceless.availability_text is None
+
+
+# --------------------------------------------------------------------------------------
+# Bitstamp tickers
+# --------------------------------------------------------------------------------------
+BITSTAMP_PAIRS = [
+    {"name": "BTC/USD", "url_symbol": "btcusd", "trading": "Enabled"},
+    {"name": "ETH/USD", "url_symbol": "ethusd", "trading": "Enabled"},
+    {"name": "BTC/EUR", "url_symbol": "btceur", "trading": "Enabled"},
+    {"name": "XRP/USD", "url_symbol": "xrpusd", "trading": "Disabled"},
+]
+
+BITSTAMP_TICKER = {
+    "high": "68000.0",
+    "last": "67000.0",
+    "timestamp": "1234567890",
+    "bid": "66999.0",
+    "vwap": "66500.0",
+    "volume": "1234.5",
+    "low": "65000.0",
+    "ask": "67001.0",
+    "open": "66000.0",
+}
+
+
+def test_bitstamp_enumerates_enabled_usd_pairs_only():
+    from app.ingestion.sources.bitstamp import BitstampTickersSource
+
+    class _StubClient:
+        def get_json(self, url, params=None):
+            return BITSTAMP_PAIRS
+
+    source = BitstampTickersSource(client=_StubClient())
+    assert source._usd_pairs() == [("btcusd", "BTC/USD"), ("ethusd", "ETH/USD")]
+
+
+def test_bitstamp_maps_ticker_with_24h_range():
+    from app.ingestion.sources.bitstamp import BitstampTickersSource
+
+    raw = BitstampTickersSource()._to_raw("btcusd", "BTC/USD", BITSTAMP_TICKER)
+    assert raw is not None
+    assert raw.source_code == "bitstamp_tickers"
+    assert raw.name == "BTC / USD"
+    assert raw.price_text == "67000.0"
+    assert raw.payload["high_24h"] == "68000.0"
+    assert raw.payload["open_24h"] == "66000.0"
+    assert BitstampTickersSource()._to_raw("btcusd", "BTC/USD", {}) is None
+    assert BitstampTickersSource()._to_raw("btcusd", "BTC/USD", None) is None
+
+
+def test_bitstamp_bad_pair_does_not_kill_the_run():
+    from app.ingestion.sources.bitstamp import BitstampTickersSource
+
+    class _StubClient:
+        def get_json(self, url, params=None):
+            if "trading-pairs" in url:
+                return BITSTAMP_PAIRS
+            if "ethusd" in url:
+                raise ConnectionError("boom")
+            return BITSTAMP_TICKER
+
+    source = BitstampTickersSource(client=_StubClient())
+    assert [row.name for row in source.fetch(limit=10)] == ["BTC / USD"]
+    assert source.errors
+
+
+# --------------------------------------------------------------------------------------
+# CoinGecko markets
+# --------------------------------------------------------------------------------------
+COINGECKO_ITEM = {
+    "id": "bitcoin",
+    "symbol": "btc",
+    "name": "Bitcoin",
+    "current_price": 67000.0,
+    "market_cap": 1300000000000,
+    "total_volume": 30000000000,
+    "high_24h": 68000.0,
+    "low_24h": 65000.0,
+    "price_change_percentage_24h": 2.5,
+    "ath": 73750.0,
+    "atl": 67.81,
+    "image": "https://example.local/btc.png",
+}
+
+
+def test_coingecko_maps_price_range_and_ath():
+    from app.ingestion.sources.coingecko import CoinGeckoMarketsSource
+
+    raw = CoinGeckoMarketsSource()._to_raw(COINGECKO_ITEM)
+    assert raw is not None
+    assert raw.source_code == "coingecko_markets"
+    assert raw.name == "Bitcoin (BTC)"
+    assert raw.price_text == "67000.0"
+    assert raw.payload["high_24h"] == 68000.0
+    assert raw.payload["ath"] == 73750.0
+    assert CoinGeckoMarketsSource()._to_raw({}) is None
+    assert CoinGeckoMarketsSource()._to_raw({"name": "No price"}) is None
+
+
+def test_coingecko_paging_stops_on_short_page():
+    from app.ingestion.sources.coingecko import CoinGeckoMarketsSource
+
+    calls: list[int] = []
+
+    class _StubClient:
+        def get_json(self, url, params=None):
+            calls.append((params or {}).get("page", 1))
+            return [COINGECKO_ITEM]
+
+    source = CoinGeckoMarketsSource(client=_StubClient())
+    assert [row.name for row in source.fetch(limit=100)] == ["Bitcoin (BTC)"]
+    assert calls == [1]
+    assert not source.errors
+
+
+# --------------------------------------------------------------------------------------
+# Stooq equity quotes
+# --------------------------------------------------------------------------------------
+STOOQ_CSV = (
+    "Symbol,Date,Time,Open,High,Low,Close,Volume\r\n"
+    "AAPL.US,2026-10-01,22:00:00,230.10,232.50,229.00,231.75,50000000\r\n"
+    "SAP.DE,2026-10-01,22:00:00,200.00,201.50,199.00,200.80,1000000\r\n"
+    "BAD.US,2026-10-01,22:00:00,N/D,N/D,N/D,N/D,0\r\n"
+)
+
+
+def test_stooq_parses_batched_csv_with_fx_hints():
+    from app.ingestion.sources.stooq import StooqQuotesSource
+
+    rows = list(StooqQuotesSource._parse(STOOQ_CSV))
+    assert [row["Symbol"] for row in rows] == ["AAPL.US", "SAP.DE", "BAD.US"]
+
+    source = StooqQuotesSource()
+    us = source._to_raw(rows[0])
+    assert us is not None and us.price_text == "231.75"
+    assert us.currency_hint == "USD" and us.brand == "Apple"
+    assert us.payload["high"] == "232.50"
+    eu = source._to_raw(rows[1])
+    assert eu is not None and eu.currency_hint == "EUR"
+    assert source._to_raw(rows[2]) is None  # N/D close
+    assert source._to_raw({}) is None
+
+
+def test_stooq_is_terms_blocked_with_documented_reasons():
+    """Stooq must stay out of every run until anonymous CSV access is restored.
+
+    Verified 2026-10-08: /q/l/ 404s, robots.txt disallows all crawling
+    (confirmed through the app's own robots gate), /q/d/l/ is JS-walled.
+    """
+    from app.ingestion.sources.stooq import StooqQuotesSource
+
+    assert StooqQuotesSource.terms_allowed is False
+    assert "robots.txt" in (StooqQuotesSource.license_note or "")
+    assert StooqQuotesSource().health_check()["terms_allowed"] is False
+    codes = [source["code"] for source in list_sources()]
+    assert "stooq_quotes" in codes  # still registered, just never auto-selected
+
+
+def test_stooq_single_batch_respects_limit():
+    from app.ingestion.sources.stooq import StooqQuotesSource
+
+    class _StubResponse:
+        text = STOOQ_CSV
+
+    class _StubClient:
+        def __init__(self):
+            self.calls = 0
+
+        def get(self, url, params=None):
+            self.calls += 1
+            assert "aapl.us" in (params or {}).get("s", "")
+            return _StubResponse()
+
+    client = _StubClient()
+    source = StooqQuotesSource(client=client)
+    assert [row.name for row in source.fetch(limit=1)] == ["Apple (AAPL.US)"]
+    assert client.calls == 1
+
+
+# --------------------------------------------------------------------------------------
+# iTunes ebooks
+# --------------------------------------------------------------------------------------
+ITUNES_EBOOK_ITEM = {
+    "trackId": 555,
+    "trackName": "Python Crash Course",
+    "artistName": "Eric Matthes",
+    "price": 9.99,
+    "currency": "USD",
+    "primaryGenreName": "Computers & Internet",
+    "averageUserRating": 4.5,
+    "userRatingCount": 1234,
+    "trackViewUrl": "https://example.local/ebook",
+    "artworkUrl100": "https://example.local/art.jpg",
+}
+
+
+def test_itunes_ebooks_maps_price_author_and_rating():
+    from app.ingestion.sources.itunes_ebooks import ITunesEbooksSource
+
+    raw = ITunesEbooksSource()._to_raw(ITUNES_EBOOK_ITEM)
+    assert raw is not None
+    assert raw.source_code == "itunes_ebooks"
+    assert raw.name == "Python Crash Course - Eric Matthes"
+    assert raw.price_text == "9.99"
+    assert raw.rating_text == "4.5 out of 5"
+    assert raw.brand == "Eric Matthes"
+    assert ITunesEbooksSource()._to_raw({}) is None
+    assert ITunesEbooksSource()._to_raw("nope") is None  # type: ignore[arg-type]
+
+
+def test_itunes_ebooks_dedupes_tracks_across_terms():
+    from app.ingestion.sources.itunes_ebooks import ITunesEbooksSource
+
+    class _StubClient:
+        def get_json(self, url, params=None):
+            assert (params or {}).get("entity") == "ebook"
+            term = (params or {}).get("term")
+            if term == "python programming":
+                return {"resultCount": 1, "results": [ITUNES_EBOOK_ITEM]}
+            return {"resultCount": 0, "results": []}
+
+    source = ITunesEbooksSource(client=_StubClient())
+    assert [row.source_product_id for row in source.fetch(limit=10)] == ["555"]
+    assert not source.errors
+
+
+# --------------------------------------------------------------------------------------
+# RESTful-API.dev objects
+# --------------------------------------------------------------------------------------
+RESTFUL_ITEM = {"id": "1", "name": "Google Pixel 6 Pro", "data": {"color": "Cloudy White", "capacity": "128 GB", "price": 899.99, "brand": "Google"}}
+
+
+def test_restful_objects_maps_sparse_prices():
+    from app.ingestion.sources.restful_objects import RestfulObjectsSource
+
+    raw = RestfulObjectsSource()._to_raw(RESTFUL_ITEM)
+    assert raw is not None
+    assert raw.source_code == "restful_objects"
+    assert raw.price_text == "899.99"
+    assert raw.brand == "Google"
+    assert raw.category == "Electronics"
+    assert RestfulObjectsSource._price("N/A") is None
+    assert RestfulObjectsSource._price(0) is None
+    assert RestfulObjectsSource._price(True) is None
+    # Priceless rows are still emitted for the missing-price DQ path.
+    priceless = RestfulObjectsSource()._to_raw({"id": "2", "name": "Nameless thing", "data": {}})
+    assert priceless is not None and priceless.price_text is None
+    assert RestfulObjectsSource()._to_raw({}) is None
+
+
+def test_restful_objects_single_shot_respects_limit():
+    from app.ingestion.sources.restful_objects import RestfulObjectsSource
+
+    class _StubClient:
+        def get_json(self, url, params=None):
+            return [RESTFUL_ITEM, {**RESTFUL_ITEM, "id": "2", "name": "Second"}]
+
+    source = RestfulObjectsSource(client=_StubClient())
+    assert [row.name for row in source.fetch(limit=1)] == ["Google Pixel 6 Pro"]

@@ -243,6 +243,14 @@ def examples(_user: QueryUser) -> list[dict[str, str]]:
             "title": "Catalogue price bands",
             "sql": "SELECT CASE WHEN price_usd IS NULL THEN 'no price' WHEN price_usd < 10 THEN 'under $10'\n            WHEN price_usd < 50 THEN '$10-$50' WHEN price_usd < 200 THEN '$50-$200'\n            WHEN price_usd < 1000 THEN '$200-$1k' ELSE 'over $1k' END AS band,\n       COUNT(*) AS listings\nFROM vw_product_current WHERE is_active GROUP BY band ORDER BY listings DESC;",
         },
+        {
+            "title": "Price anomalies vs category rate",
+            "sql": "SELECT v.canonical_name, v.category_name, v.source_code,\n       ROUND(v.price_usd, 2) AS price_usd, ROUND(cat.mean_price, 2) AS category_mean,\n       ROUND((v.price_usd - cat.mean_price) / cat.std_price, 2) AS z_score\nFROM vw_product_current v\nJOIN (SELECT category_name, AVG(price_usd) AS mean_price,\n             SQRT(CASE WHEN (AVG(price_usd) * AVG(price_usd) - AVG(price_usd * price_usd)) < 0 THEN 0\n                       ELSE (AVG(price_usd) * AVG(price_usd) - AVG(price_usd * price_usd)) END) AS std_price\n      FROM vw_product_current WHERE is_active AND price_usd IS NOT NULL AND category_name IS NOT NULL\n      GROUP BY category_name) cat ON cat.category_name = v.category_name\nWHERE v.is_active AND v.price_usd IS NOT NULL AND cat.std_price > 0\n  AND ABS((v.price_usd - cat.mean_price) / cat.std_price) >= 2.0\nORDER BY ABS((v.price_usd - cat.mean_price) / cat.std_price) DESC LIMIT 25;",
+        },
+        {
+            "title": "Source freshness check",
+            "sql": "SELECT source_code, COUNT(*) AS products,\n       SUM(CASE WHEN is_active THEN 1 ELSE 0 END) AS active_products,\n       MAX(last_seen_at) AS last_seen_at\nFROM dim_product GROUP BY source_code ORDER BY last_seen_at DESC;",
+        },
     ]
 
 

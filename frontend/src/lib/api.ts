@@ -303,6 +303,17 @@ export const endpoints = {
   categoryMovers: (days = 30, limit = 20) =>
     api.get<any[]>('/analytics/category-movers', { days, limit }),
   eventTimeline: (days = 90) => api.get<any[]>('/analytics/event-timeline', { days }),
+  priceAnomalies: (limit = 20, thresholdStd = 2.0) =>
+    api.get<any[]>('/analytics/price-anomalies', { limit, threshold_std: thresholdStd }),
+  sourceOverlap: () => api.get<any[]>('/analytics/source-overlap'),
+  dataFreshness: (staleDays = 7) => api.get<any[]>('/analytics/data-freshness', { stale_days: staleDays }),
+  inventoryRisk: (limit = 20) => api.get<any[]>('/analytics/inventory-risk', { limit }),
+  currencyExposure: () => api.get<any[]>('/analytics/currency-exposure'),
+  bestValue: (limit = 20, minRating = 4.0, minVotes = 10) =>
+    api.get<any[]>('/analytics/best-value', { limit, min_rating: minRating, min_votes: minVotes }),
+  brandMomentum: (days = 30, limit = 15) =>
+    api.get<any[]>('/analytics/brand-momentum', { days, limit }),
+  weekdayPattern: (days = 90) => api.get<any[]>('/analytics/weekday-pattern', { days }),
 
   products: (params: Record<string, QueryValue>) => api.get<any>('/products', params),
   product: (id: number, historyLimit = 400) => api.get<any>(`/products/${id}`, { history_limit: historyLimit }),

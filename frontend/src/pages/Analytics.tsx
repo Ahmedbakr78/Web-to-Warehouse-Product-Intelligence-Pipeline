@@ -63,6 +63,14 @@ export default function Analytics() {
   const spread = useApiQuery(['analytics-spread'], () => endpoints.sourceSpread(20), { staleTime: 300_000 })
   const movers = useApiQuery(['analytics-movers', windowDays], () => endpoints.categoryMovers(windowDays, 15), { staleTime: 300_000 })
   const lifecycle = useApiQuery(['analytics-lifecycle', windowDays], () => endpoints.eventTimeline(windowDays))
+  const anomalies = useApiQuery(['analytics-anomalies'], () => endpoints.priceAnomalies(15, 2.0), { staleTime: 300_000 })
+  const overlap = useApiQuery(['analytics-overlap'], endpoints.sourceOverlap, { staleTime: 300_000 })
+  const freshness = useApiQuery(['analytics-freshness'], () => endpoints.dataFreshness(7), { staleTime: 300_000 })
+  const risk = useApiQuery(['analytics-risk'], () => endpoints.inventoryRisk(12), { staleTime: 300_000 })
+  const currency = useApiQuery(['analytics-currency'], endpoints.currencyExposure, { staleTime: 300_000 })
+  const value = useApiQuery(['analytics-value'], () => endpoints.bestValue(12, 4.0, 10), { staleTime: 300_000 })
+  const momentum = useApiQuery(['analytics-momentum', windowDays], () => endpoints.brandMomentum(windowDays, 12), { staleTime: 300_000 })
+  const weekday = useApiQuery(['analytics-weekday', windowDays], () => endpoints.weekdayPattern(windowDays))
 
   const categoryNames = useMemo(
     () => (categories.data ?? []).slice(0, 12).map((row: any) => ({ id: row.category_name, label: row.category_name, count: row.observations })),
@@ -463,6 +471,149 @@ export default function Analytics() {
               <LoadingState label="Loading lifecycle…" rows={3} />
             ) : (
               <EmptyState kind="chart" title="No lifecycle data" />
+            )}
+          </Card>
+
+          <Card padded={false} className="xl:col-span-2">
+            <div className="p-4 sm:p-5">
+              <CardHeader title="Price anomalies" subtitle="Listings ≥2 stddev from their category rate" icon={<Activity className="h-4 w-4" />} />
+            </div>
+            <DataTable
+              rows={anomalies.data ?? []}
+              rowKey={(row: any) => `${row.product_id}-${row.source_code}`}
+              loading={anomalies.isFetching}
+              maxHeight={340}
+              onRowClick={(row: any) => navigate(`/products/${row.product_id}`)}
+              emptyMessage="No listing deviates that far from its category"
+              columns={[
+                { key: 'product', header: 'Product', render: (row: any) => <span className="font-medium">{row.canonical_name}</span> },
+                { key: 'z', header: 'Z-score', align: 'right', sortValue: (row: any) => Math.abs(row.z_score ?? 0), render: (row: any) => <Badge tone={Number(row.z_score ?? 0) > 0 ? 'danger' : 'warning'}>{Number(row.z_score ?? 0) > 0 ? '+' : ''}{Number(row.z_score ?? 0).toFixed(2)}σ</Badge> },
+                { key: 'price', header: 'Price', align: 'right', render: (row: any) => formatPrice(row.price_usd) },
+                { key: 'mean', header: 'Category mean', align: 'right', hideBelow: 'md', render: (row: any) => formatPrice(row.category_mean_usd) },
+                { key: 'source', header: 'Source', hideBelow: 'sm', render: (row: any) => <Badge tone="neutral">{row.source_code}</Badge> },
+              ]}
+            />
+          </Card>
+
+          <Card>
+            <CardHeader title="Source overlap" subtitle="Shared products between source pairs" icon={<Layers className="h-4 w-4" />} />
+            {(overlap.data ?? []).length ? (
+              <BarSeries
+                data={(overlap.data ?? []).slice(0, 10).map((row: any) => ({ name: `${row.source_a} × ${row.source_b}`, shared: Number(row.shared_products ?? 0) }))}
+                xKey="name"
+                bars={[{ key: 'shared', label: 'Shared products', color: 'var(--chart-2)' }]}
+                horizontal
+                height={280}
+              />
+            ) : overlap.isLoading ? (
+              <LoadingState label="Loading overlap…" rows={3} />
+            ) : (
+              <EmptyState kind="chart" title="No shared products" message="No two sources list the same fingerprint yet." />
+            )}
+          </Card>
+
+          <Card>
+            <CardHeader title="Inventory risk" subtitle="Stock pressure plus rising prices" icon={<Boxes className="h-4 w-4" />} />
+            {(risk.data ?? []).length ? (
+              <BarSeries
+                data={(risk.data ?? []).slice(0, 10).map((row: any) => ({ name: row.category_name ?? 'Uncategorised', oos: Number(row.out_of_stock_count ?? 0) }))}
+                xKey="name"
+                bars={[{ key: 'oos', label: 'Out of stock', color: 'var(--chart-5)' }]}
+                horizontal
+                height={280}
+                onBarClick={(row) => row?.name && navigateToCategory(navigate, row.name)}
+              />
+            ) : risk.isLoading ? (
+              <LoadingState label="Loading risk…" rows={3} />
+            ) : (
+              <EmptyState kind="chart" title="No stock pressure" />
+            )}
+          </Card>
+
+          <Card padded={false} className="xl:col-span-2">
+            <div className="p-4 sm:p-5">
+              <CardHeader title="Data freshness" subtitle="Last sighting and stale share per source (7-day window)" icon={<Activity className="h-4 w-4" />} />
+            </div>
+            <DataTable
+              rows={freshness.data ?? []}
+              rowKey={(row: any) => row.source_code}
+              loading={freshness.isFetching}
+              maxHeight={340}
+              emptyMessage="No source data"
+              columns={[
+                { key: 'source', header: 'Source', render: (row: any) => <Badge tone="neutral">{row.source_code}</Badge> },
+                { key: 'products', header: 'Products', align: 'right', sortValue: (row: any) => row.products, render: (row: any) => formatNumber(row.products ?? 0) },
+                { key: 'stale', header: 'Stale', align: 'right', sortValue: (row: any) => row.stale_pct, render: (row: any) => (row.stale_pct == null ? '—' : `${Number(row.stale_pct).toFixed(1)}%`) },
+                { key: 'seen', header: 'Last seen', align: 'right', hideBelow: 'md', render: (row: any) => <span className="text-xs text-muted">{row.last_seen_at ? formatDate(row.last_seen_at) : '—'}</span> },
+              ]}
+            />
+          </Card>
+
+          <Card padded={false} className="xl:col-span-2">
+            <div className="p-4 sm:p-5">
+              <CardHeader title="Best value" subtitle="Top-rated listings ranked by rating per dollar (≥4.0 ★, ≥10 votes)" icon={<Star className="h-4 w-4" />} />
+            </div>
+            <DataTable
+              rows={value.data ?? []}
+              rowKey={(row: any) => `${row.product_id}-${row.source_code}`}
+              loading={value.isFetching}
+              maxHeight={340}
+              onRowClick={(row: any) => navigate(`/products/${row.product_id}`)}
+              emptyMessage="No listing qualifies yet — ratings need more votes"
+              columns={[
+                { key: 'product', header: 'Product', render: (row: any) => <span className="font-medium">{row.canonical_name}</span> },
+                { key: 'score', header: 'Value', align: 'right', sortValue: (row: any) => row.value_score, render: (row: any) => <Badge tone="success">{Number(row.value_score ?? 0).toFixed(3)} ★/$</Badge> },
+                { key: 'rating', header: 'Rating', align: 'center', render: (row: any) => `${Number(row.rating ?? 0).toFixed(1)} ★ (${formatCompact(row.rating_count ?? 0)})` },
+                { key: 'price', header: 'Price', align: 'right', render: (row: any) => formatPrice(row.price_usd) },
+              ]}
+            />
+          </Card>
+
+          <Card>
+            <CardHeader title="Brand momentum" subtitle={`Winners and losers over ${days} days`} icon={<TrendingUp className="h-4 w-4" />} />
+            {(momentum.data ?? []).length ? (
+              <BarSeries
+                data={(momentum.data ?? []).slice(0, 10).map((row: any) => ({ name: row.brand ?? 'Unknown', momentum: Number(row.avg_change_pct ?? 0) }))}
+                xKey="name"
+                bars={[{ key: 'momentum', label: 'Avg change %', color: 'var(--chart-1)' }]}
+                horizontal
+                height={280}
+              />
+            ) : momentum.isLoading ? (
+              <LoadingState label="Loading momentum…" rows={3} />
+            ) : (
+              <EmptyState kind="chart" title="No brand movement" />
+            )}
+          </Card>
+
+          <Card>
+            <CardHeader title="Weekday pattern" subtitle={`Which days move prices over ${days} days`} icon={<Activity className="h-4 w-4" />} />
+            {(weekday.data ?? []).length ? (
+              <BarSeries
+                data={(weekday.data ?? []).map((row: any) => ({ name: String(row.day_name).slice(0, 3), changes: Number(row.changes ?? 0) }))}
+                xKey="name"
+                bars={[{ key: 'changes', label: 'Price changes', color: 'var(--chart-3)' }]}
+                height={280}
+              />
+            ) : weekday.isLoading ? (
+              <LoadingState label="Loading weekday pattern…" rows={3} />
+            ) : (
+              <EmptyState kind="chart" title="No weekday data" />
+            )}
+          </Card>
+
+          <Card className="xl:col-span-2">
+            <CardHeader title="Currency exposure" subtitle="Where FX normalisation matters: listings by original currency" icon={<Wallet className="h-4 w-4" />} />
+            {(currency.data ?? []).length ? (
+              <DonutChart
+                data={(currency.data ?? []).map((row: any) => ({ name: row.currency ?? 'Unknown', value: Number(row.listings ?? 0) }))}
+                height={260}
+                centerLabel="listings"
+              />
+            ) : currency.isLoading ? (
+              <LoadingState label="Loading currencies…" rows={3} />
+            ) : (
+              <EmptyState kind="chart" title="No currency data" />
             )}
           </Card>
         </div>

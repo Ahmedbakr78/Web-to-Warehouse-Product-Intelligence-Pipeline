@@ -201,6 +201,33 @@ def seed_saved_views_and_alerts(session: Session) -> int:
             "desc",
             ["name", "category", "price"],
         ),
+        (
+            analyst.user_id,
+            "Top rated value",
+            "products",
+            {"min_rating": 4.0},
+            "rating",
+            "desc",
+            ["name", "price", "rating"],
+        ),
+        (
+            analyst.user_id,
+            "Crypto watch",
+            "products",
+            {"category": "Cryptocurrency", "window": "7d"},
+            "price_change_pct",
+            "desc",
+            ["name", "price", "change"],
+        ),
+        (
+            admin.user_id,
+            "Trading cards",
+            "products",
+            {"category": "Trading Cards"},
+            "last_seen_at",
+            "desc",
+            ["name", "brand", "price"],
+        ),
     ]
     for user_id, name, entity, filters, sort_by, sort_dir, columns in views:
         session.add(
@@ -220,8 +247,10 @@ def seed_saved_views_and_alerts(session: Session) -> int:
     alerts = [
         (analyst.user_id, "Price drop > 10%", "price_change_pct", "lt", -10.0, None),
         (analyst.user_id, "New product in Electronics", "new_product", "eq", 0.0, "Electronics"),
+        (analyst.user_id, "New product in Cryptocurrency", "new_product", "eq", 0.0, "Cryptocurrency"),
         (admin.user_id, "DQ failure", "dq_failure", "eq", 1.0, None),
         (admin.user_id, "Rating below 2.5", "rating", "lt", 2.5, None),
+        (admin.user_id, "Stock-out spike", "stock_out", "gt", 5.0, None),
     ]
     for user_id, name, metric, operator, threshold, category in alerts:
         session.add(
@@ -338,6 +367,52 @@ def seed_catalog(session: Session, products: Iterable[SeedProduct], *, match_rat
         created += 1
     session.flush()
     log.info("seeded %d internal catalog rows", created)
+    return created
+
+
+def seed_extra_catalog_skus(session: Session, count: int = 60) -> int:
+    """Deepen the internal catalog with SKUs the market does not list.
+
+    Runs after :func:`seed_catalog` and is idempotent via the ``INT-X-`` SKU
+    namespace, so re-runs never duplicate. Internal-only SKUs are the other
+    half of reconciliation: they give the Catalog-match screen and the
+    ``unmatched``/``delisted`` analyses something to find. Cheap by design —
+    no snapshots or history, just catalog rows.
+    """
+    from app.models.catalog import CatalogProduct
+
+    rng = random.Random(f"{SEED_SALT}:extra-skus")
+    brands = ["House Brand", "Acme Select", "Globex Essentials", "Northwind Traders", "Contoso Home"]
+    categories = ["Electronics", "Home & Kitchen", "Sports", "Toys & Games", "Grocery", "Books"]
+    suppliers = ["Acme Imports", "Globex Supply", "Initech Wholesale", "Umbrella Ltd", "Hooli Logistics"]
+    created = 0
+    for index in range(count):
+        sku = f"INT-X-{index + 1:04d}"
+        if session.get(CatalogProduct, sku) is not None:
+            continue
+        brand = rng.choice(brands)
+        category = rng.choice(categories)
+        list_price = round(rng.uniform(5.0, 900.0), 2)
+        session.add(
+            CatalogProduct(
+                sku=sku,
+                name=f"{brand} Private Label Item {index + 1}",
+                normalized_name=normalise_name_key(f"{brand} private label item {index + 1}"),
+                brand=clean_brand(brand) or "House Brand",
+                category=category,
+                supplier=rng.choice(suppliers),
+                cost_price=round(list_price * rng.uniform(0.45, 0.65), 2),
+                list_price=list_price,
+                currency="USD",
+                qty_on_hand=rng.randint(0, 400),
+                status="active" if rng.random() > 0.1 else "discontinued",
+                product_url=f"https://internal.local/products/{sku}",
+            )
+        )
+        created += 1
+    session.flush()
+    if created:
+        log.info("seeded %d extra internal catalog SKUs", created)
     return created
 
 
@@ -769,18 +844,20 @@ def run_full_seed(
         users = seed_users(session)
         products = build_seed_products(count=count)
         catalog = seed_catalog(session, products)
+        extra_skus = seed_extra_catalog_skus(session)
         extras = seed_saved_views_and_alerts(session)
     history: dict[str, Any] = {}
     if with_history:
         with session_scope(database) as session:
             history = seed_history(session, days=days, count=count)
-    return {"users": users, "catalog": catalog, "saved": extras, "history": history}
+    return {"users": users, "catalog": catalog + extra_skus, "saved": extras, "history": history}
 
 
 __all__ = [
     "build_seed_products",
     "seed_users",
     "seed_catalog",
+    "seed_extra_catalog_skus",
     "seed_history",
     "run_full_seed",
     "seed_saved_views_and_alerts",

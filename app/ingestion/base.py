@@ -359,13 +359,17 @@ def load_builtin_sources() -> None:
         return
     _loaded = True
     from app.ingestion.sources import (  # noqa: F401  (import for side effects)
+        bitstamp,
         books_to_scrape,
         cheapshark,
+        coincap,
+        coingecko,
         dummyjson,
         fakestore,
         google_books,
         gutendex,
         itunes,
+        itunes_ebooks,
         kraken,
         local_fixture,
         makeup,
@@ -373,8 +377,12 @@ def load_builtin_sources() -> None:
         openfoodfacts_prices,
         openlibrary,
         platzi,
+        pokemontcg,
+        restful_objects,
         scrapeme,
+        scryfall,
         steam_store,
+        stooq,
         ygoprodeck,
     )
 

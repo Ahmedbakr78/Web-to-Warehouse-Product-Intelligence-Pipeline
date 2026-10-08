@@ -773,6 +773,14 @@ __all__ = [
     "cross_source_spread",
     "category_movers",
     "lifecycle_timeline",
+    "price_anomalies",
+    "source_overlap",
+    "data_freshness",
+    "inventory_risk",
+    "currency_exposure",
+    "best_value",
+    "brand_momentum",
+    "weekday_pattern",
 ]
 
 
@@ -1107,6 +1115,243 @@ def lifecycle_timeline(session: Session, days: int = 90) -> list[dict[str, Any]]
                 "price_changes": row["price_changes"],
             }
     return [by_date[key] for key in sorted(by_date)]
+
+
+def price_anomalies(
+    session: Session, limit: int = 20, threshold_std: float = 2.0
+) -> list[dict[str, Any]]:
+    """Live listings priced far from their own category's going rate.
+
+    The z-score is computed against the category mean/stddev derived inline,
+    so no extra table is needed. The portable variance expression is the same
+    one the category views use (SQLite has no STDDEV). Zero-variance
+    categories are excluded because every z-score there is undefined.
+    """
+    return _rows(
+        session,
+        sa.text(
+            """
+            SELECT v.product_id, v.canonical_name, v.brand, v.category_name, v.source_code,
+                   ROUND(CAST(v.price_usd AS DECIMAL(24,6)), 2) AS price_usd,
+                   ROUND(CAST(cat.mean_price AS DECIMAL(24,6)), 2) AS category_mean_usd,
+                   ROUND(CAST((v.price_usd - cat.mean_price) / cat.std_price AS DECIMAL(24,6)), 2) AS z_score
+            FROM vw_product_current v
+            JOIN (
+                SELECT category_name,
+                       AVG(price_usd) AS mean_price,
+                       SQRT(CASE WHEN (AVG(price_usd) * AVG(price_usd) - AVG(price_usd * price_usd)) < 0
+                                 THEN 0
+                                 ELSE (AVG(price_usd) * AVG(price_usd) - AVG(price_usd * price_usd))
+                            END) AS std_price
+                FROM vw_product_current
+                WHERE is_active AND price_usd IS NOT NULL AND category_name IS NOT NULL
+                GROUP BY category_name
+            ) cat ON cat.category_name = v.category_name
+            WHERE v.is_active AND v.price_usd IS NOT NULL
+              AND cat.std_price > 0
+              AND ABS((v.price_usd - cat.mean_price) / cat.std_price) >= :threshold
+            ORDER BY ABS((v.price_usd - cat.mean_price) / cat.std_price) DESC
+            LIMIT :limit
+            """
+        ),
+        {"threshold": threshold_std, "limit": limit},
+    )
+
+
+def source_overlap(session: Session) -> list[dict[str, Any]]:
+    """Pairwise catalogue overlap between sources, via the dedupe fingerprint.
+
+    One row per source pair that shares at least one product. The self-join
+    uses a strict ``>`` on the codes so each unordered pair appears exactly
+    once on every dialect.
+    """
+    return _rows(
+        session,
+        sa.text(
+            """
+            SELECT l.source_code AS source_a,
+                   r.source_code AS source_b,
+                   COUNT(*) AS shared_products
+            FROM dim_product l
+            JOIN dim_product r
+              ON r.fingerprint = l.fingerprint
+             AND r.source_code > l.source_code
+            GROUP BY l.source_code, r.source_code
+            HAVING COUNT(*) > 0
+            ORDER BY shared_products DESC
+            """
+        ),
+    )
+
+
+def data_freshness(session: Session, stale_days: int = 7) -> list[dict[str, Any]]:
+    """Per-source catalogue freshness: last sighting, stale share, product counts."""
+    return _rows(
+        session,
+        sa.text(
+            """
+            SELECT p.source_code,
+                   COUNT(*) AS products,
+                   SUM(CASE WHEN p.is_active THEN 1 ELSE 0 END) AS active_products,
+                   MAX(p.last_seen_at) AS last_seen_at,
+                   SUM(CASE WHEN p.last_seen_at < :cutoff THEN 1 ELSE 0 END) AS stale_products,
+                   ROUND(CAST(100.0 * SUM(CASE WHEN p.last_seen_at < :cutoff THEN 1 ELSE 0 END)
+                              / NULLIF(COUNT(*), 0) AS DECIMAL(24,6)), 2) AS stale_pct
+            FROM dim_product p
+            GROUP BY p.source_code
+            ORDER BY stale_pct DESC, products DESC
+            """
+        ),
+        {"cutoff": dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=stale_days)},
+    )
+
+
+def inventory_risk(session: Session, limit: int = 20) -> list[dict[str, Any]]:
+    """Categories under stock pressure: out-of-stock counts plus recent increases.
+
+    Joins the availability rollup to the price-change feed so a category that
+    is both hard to buy and getting more expensive surfaces first.
+    """
+    return _rows(
+        session,
+        sa.text(
+            """
+            SELECT a.category_name,
+                   a.observations,
+                   a.in_stock_count,
+                   a.in_stock_pct,
+                   a.out_of_stock_count,
+                   COALESCE(m.price_increases, 0) AS price_increases,
+                   m.avg_abs_change_pct AS avg_abs_change_pct
+            FROM vw_availability_summary a
+            LEFT JOIN (
+                SELECT c.name AS category_name,
+                       SUM(CASE WHEN pc.direction = 'increase' THEN 1 ELSE 0 END) AS price_increases,
+                       ROUND(CAST(AVG(ABS(pc.change_pct)) AS DECIMAL(24,6)), 2) AS avg_abs_change_pct
+                FROM vw_price_changes pc
+                JOIN dim_product p ON p.product_id = pc.product_id
+                LEFT JOIN dim_category c ON c.category_id = p.category_id
+                WHERE pc.change_pct IS NOT NULL
+                GROUP BY c.name
+            ) m ON m.category_name = a.category_name
+            ORDER BY a.out_of_stock_count DESC, COALESCE(m.price_increases, 0) DESC
+            LIMIT :limit
+            """
+        ),
+        {"limit": limit},
+    )
+
+
+def currency_exposure(session: Session) -> list[dict[str, Any]]:
+    """Live catalogue mix by original listing currency.
+
+    Shows where the warehouse's FX normalisation actually matters: how many
+    listings arrive in each currency and their average USD price.
+    """
+    return _rows(
+        session,
+        sa.text(
+            """
+            SELECT currency,
+                   COUNT(*) AS listings,
+                   COUNT(DISTINCT source_code) AS sources,
+                   SUM(CASE WHEN in_stock THEN 1 ELSE 0 END) AS in_stock_count,
+                   ROUND(CAST(AVG(price_usd) AS DECIMAL(24,6)), 2) AS avg_price_usd
+            FROM vw_product_current
+            WHERE is_active
+            GROUP BY currency
+            ORDER BY listings DESC
+            """
+        ),
+    )
+
+
+def best_value(
+    session: Session, limit: int = 20, min_rating: float = 4.0, min_votes: int = 10
+) -> list[dict[str, Any]]:
+    """Best value-for-money: highly rated listings ranked by rating per USD.
+
+    Only listings with enough votes qualify, so a lone 5-star review cannot
+    win. Free listings are excluded because their score is undefined.
+    """
+    return _rows(
+        session,
+        sa.text(
+            """
+            SELECT product_id, canonical_name, brand, category_name, source_code,
+                   price_usd, rating, rating_count, availability,
+                   ROUND(CAST(rating / NULLIF(price_usd, 0) AS DECIMAL(24,6)), 4) AS value_score
+            FROM vw_product_current
+            WHERE is_active AND price_usd IS NOT NULL AND price_usd > 0
+              AND rating IS NOT NULL AND rating >= :min_rating
+              AND rating_count IS NOT NULL AND rating_count >= :min_votes
+            ORDER BY rating / NULLIF(price_usd, 0) DESC
+            LIMIT :limit
+            """
+        ),
+        {"min_rating": min_rating, "min_votes": min_votes, "limit": limit},
+    )
+
+
+def brand_momentum(session: Session, days: int = 30, limit: int = 20) -> list[dict[str, Any]]:
+    """Brands ranked by average signed price change: winners first, losers last.
+
+    Unlike the magnitude-based movers, the sign is kept, so this answers
+    "which brands are getting more expensive" rather than "which move most".
+    """
+    return _rows(
+        session,
+        sa.text(
+            """
+            SELECT pc.brand AS brand,
+                   COUNT(*) AS changes,
+                   SUM(CASE WHEN pc.direction = 'increase' THEN 1 ELSE 0 END) AS increases,
+                   SUM(CASE WHEN pc.direction = 'decrease' THEN 1 ELSE 0 END) AS decreases,
+                   ROUND(CAST(AVG(pc.change_pct) AS DECIMAL(24,6)), 2) AS avg_change_pct,
+                   ROUND(CAST(AVG(ABS(pc.change_pct)) AS DECIMAL(24,6)), 2) AS avg_abs_change_pct
+            FROM vw_price_changes pc
+            WHERE pc.full_date >= :since AND pc.change_pct IS NOT NULL
+              AND pc.brand IS NOT NULL
+            GROUP BY pc.brand
+            ORDER BY avg_change_pct DESC
+            LIMIT :limit
+            """
+        ),
+        {"since": dt.date.today() - dt.timedelta(days=days), "limit": limit},
+    )
+
+
+def weekday_pattern(session: Session, days: int = 90) -> list[dict[str, Any]]:
+    """Price-change activity by weekday: which days move the market.
+
+    Monday-first ordering is produced by a CASE on the day name, which keeps
+    the query portable across PostgreSQL, MySQL and SQLite.
+    """
+    order = """
+        CASE d.day_name
+            WHEN 'Monday' THEN 0 WHEN 'Tuesday' THEN 1 WHEN 'Wednesday' THEN 2
+            WHEN 'Thursday' THEN 3 WHEN 'Friday' THEN 4 WHEN 'Saturday' THEN 5
+            WHEN 'Sunday' THEN 6 ELSE 7
+        END"""
+    return _rows(
+        session,
+        sa.text(
+            f"""
+            SELECT d.day_name AS day_name,
+                   MAX(CASE WHEN d.is_weekend THEN 1 ELSE 0 END) AS is_weekend,
+                   COUNT(*) AS changes,
+                   SUM(CASE WHEN pc.direction = 'increase' THEN 1 ELSE 0 END) AS increases,
+                   SUM(CASE WHEN pc.direction = 'decrease' THEN 1 ELSE 0 END) AS decreases,
+                   ROUND(CAST(AVG(ABS(pc.change_pct)) AS DECIMAL(24,6)), 2) AS avg_abs_change_pct
+            FROM chg_price_change pc
+            JOIN dim_date d ON d.date_id = pc.date_id
+            WHERE d.full_date >= :since AND pc.change_pct IS NOT NULL
+            GROUP BY d.day_name
+            ORDER BY MIN({order})
+            """
+        ),
+        {"since": dt.date.today() - dt.timedelta(days=days)},
+    )
 
 
 def _run_head(run: dict[str, Any]) -> dict[str, Any]:
