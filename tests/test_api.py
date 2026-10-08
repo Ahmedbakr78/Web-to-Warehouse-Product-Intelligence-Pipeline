@@ -292,7 +292,11 @@ def test_analytics_kpi(client, admin_token):
 
 def test_analytics_leader_endpoints(client, admin_token):
     headers = auth(admin_token)
-    for path in ("/api/v1/analytics/volatility", "/api/v1/analytics/discounts", "/api/v1/analytics/top-rated"):
+    for path in (
+        "/api/v1/analytics/volatility",
+        "/api/v1/analytics/discounts",
+        "/api/v1/analytics/top-rated",
+    ):
         response = client.get(f"{path}?limit=5", headers=headers)
         assert response.status_code == 200, path
         assert isinstance(response.json(), list), path
@@ -464,22 +468,17 @@ def test_api_key_rotation_replaces_secret_and_keeps_policy(client, admin_token):
     assert payload["prefix"] != created["prefix"]
     # The old key id is gone.
     assert (
-        client.delete(f"/api/v1/users/{uid}/api-keys/{created['key_id']}", headers=headers).status_code
-        == 404
+        client.delete(f"/api/v1/users/{uid}/api-keys/{created['key_id']}", headers=headers).status_code == 404
     )
     # Rotation of a ghost key is a 404 too.
-    assert (
-        client.post(f"/api/v1/users/{uid}/api-keys/999999/rotate", headers=headers).status_code == 404
-    )
+    assert client.post(f"/api/v1/users/{uid}/api-keys/999999/rotate", headers=headers).status_code == 404
 
 
 def test_api_key_update_rename_rescope_rebudget_and_expiry(client, admin_token):
     headers = auth(admin_token)
     profile = client.get("/api/v1/users/me", headers=headers).json()
     uid = profile["user_id"]
-    created = client.post(
-        f"/api/v1/users/{uid}/api-keys", headers=headers, json={"name": "patch-me"}
-    ).json()
+    created = client.post(f"/api/v1/users/{uid}/api-keys", headers=headers, json={"name": "patch-me"}).json()
     key_url = f"/api/v1/users/{uid}/api-keys/{created['key_id']}"
     updated = client.patch(
         key_url,
@@ -512,9 +511,7 @@ def test_api_key_update_rejects_other_users_keys(client, admin_token, viewer_tok
         403,
         404,
     }
-    assert (
-        client.post(key_url + "/rotate", headers=auth(viewer_token)).status_code in {403, 404}
-    )
+    assert client.post(key_url + "/rotate", headers=auth(viewer_token)).status_code in {403, 404}
 
 
 def test_my_scopes_lists_grantable_subset(client, admin_token):
@@ -559,8 +556,6 @@ APPEARANCE_PATCHES = [
     {"font_scale": "xl"},
     {"direction": "rtl"},
     {"accent": "teal"},
-    {"scrollbars": "auto"},
-    {"scrollbars": "hidden"},
 ]
 
 
@@ -580,9 +575,6 @@ def test_invalid_appearance_values_are_rejected(client, admin_token):
     bad_accent = client.patch("/api/v1/users/me", json={"accent": "chartreuse"}, headers=auth(admin_token))
     assert bad_accent.status_code == 422
     assert "accent must be one of" in bad_accent.text
-
-    bad_scrollbars = client.patch("/api/v1/users/me", json={"scrollbars": "chunky"}, headers=auth(admin_token))
-    assert bad_scrollbars.status_code == 422
 
 
 def test_appearance_palettes_match_frontend(client):
@@ -608,7 +600,7 @@ def test_appearance_palettes_match_frontend(client):
 
 def test_profile_exposes_every_appearance_axis(client, admin_token):
     profile = client.get("/api/v1/users/me", headers=auth(admin_token)).json()
-    for axis in ("theme", "accent", "density", "motion", "direction", "font_scale", "scrollbars"):
+    for axis in ("theme", "accent", "density", "motion", "direction", "font_scale"):
         assert axis in profile, f"profile is missing the '{axis}' appearance axis"
 
 

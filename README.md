@@ -1077,7 +1077,7 @@ Highlights by area:
 - mobile-first responsive: off-canvas sidebar drawer, sticky top bar, card grids on small screens,
   secondary table columns hidden instead of breaking layout
 - collapsible sidebar with persisted state, grouped and permission-aware navigation
-- slim modern scrollbars everywhere, spindle-thin and theme-aware
+- no scrollbars anywhere — wheel, touch, keyboard and scroll shadows carry navigation
 - silent-reload policy: no decorative animation, no route transitions, stale-while-revalidate data,
   120 ms functional transitions only, `prefers-reduced-motion` honoured
 - notification bell with unread counters, mark-one and mark-all read
@@ -1092,7 +1092,7 @@ Highlights by area:
   15 operators, whitelist-assembled parameterised SQL, chart preview, generated SQL, cURL copy
 - **Filter builder Max** — 12 entities (products, price-changes, runs, quality, catalog, new, removed, movers, sources, categories, brands, availability), SQL + cURL copy, CSV/JSON export, saved views, cross-entity join recipes
 - **Account self-service Max** — 9 tabs: profile, appearance, security, devices & 2FA, API keys, alerts, activity, data & privacy, preferences; `GET /users/me/export`, `DELETE /users/me`, `GET /audit/me`
-- **Interface polish** — stable scrollbar gutter, theme-aware rounded scrollbars, scroll containment,
+- **Interface polish** — stable scrollbar gutter, zero scrollbars, scroll containment,
   mobile drawer scroll lock and dialog semantics, safe-area insets, silent reload, phone tab bar
 
 ### Operations and developer experience
@@ -1478,7 +1478,7 @@ six-step guide with code is in docs/17.
 
 | Version | Theme | Highlights |
 | --- | --- | --- |
-| **Unreleased** | Full-max pass | Steam Store + Open Food Facts Prices sources (10 total), API key rotation/editing, multi-level sorting, builder pins/clone/share-links, preferences backup, overlay scrollbars, strict `tsc -b` — 476 features, 491 tests |
+| **Unreleased** | Full-max pass | Steam Store + Open Food Facts Prices sources (10 total), API key rotation/editing, multi-level sorting, builder pins/clone/share-links, preferences backup, scrollbar-free UI, strict `tsc -b` — 476 features, 491 tests |
 | **v1.7.0** | GUI source onboarding | Add-source dialog with compliance pre-check, endpoint presets, field mapping, enable/disable and history-guarded delete |
 | **v1.6.1** | Polish and fixes | Theme-flash fix, drawer swipe-to-close, live job progress, version-drift fix, lint/format gate |
 | **v1.4.0** | Run comparison and export | Run-vs-run diff with 12 metric deltas, universal dataset export (CSV/JSON/XLSX), product watchlists, self-registration |

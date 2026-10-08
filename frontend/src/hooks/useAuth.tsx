@@ -10,23 +10,20 @@ import {
   applyDirection,
   applyFontScale,
   applyMotion,
-  applyScrollbars,
   applyTheme,
   DENSITIES,
   FONT_SCALES,
   MOTION_MODES,
-  SCROLLBAR_MODES,
   setAccent,
   setDensity,
   setDirection,
   setFontScale,
   setMotion,
-  setScrollbars,
   setTheme,
   THEME_MODES,
   useAppearanceSync,
 } from '@/lib/theme'
-import type { Density, FontScale, MotionMode, ScrollbarMode, ThemeMode } from '@/lib/theme'
+import type { Density, FontScale, MotionMode, ThemeMode } from '@/lib/theme'
 
 /** Narrow an untrusted string against a list of allowed values. */
 function isOneOf(value: string | null | undefined, allowed: readonly string[]): value is string {
@@ -48,7 +45,6 @@ type User = {
   motion?: string | null
   direction?: string | null
   font_scale?: string | null
-  scrollbars?: string | null
   rows_per_page: number
   default_currency: string
   price_change_alert_pct: number
@@ -74,7 +70,7 @@ type AuthState = {
   logout: () => void
   refresh: () => Promise<void>
   can: (permission: string) => boolean
-  saveAppearance: (patch: Partial<Pick<User, 'theme' | 'accent' | 'density' | 'motion' | 'direction' | 'font_scale' | 'scrollbars'>>) => void
+  saveAppearance: (patch: Partial<Pick<User, 'theme' | 'accent' | 'density' | 'motion' | 'direction' | 'font_scale'>>) => void
 }
 
 const AuthContext = createContext<AuthState>({
@@ -193,7 +189,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (isOneOf(user.motion, MOTION_MODES.map((item) => item.id))) setMotion(user.motion as MotionMode)
     if (user.direction === 'rtl' || user.direction === 'ltr') setDirection(user.direction)
     if (isOneOf(user.font_scale, FONT_SCALES.map((item) => item.id))) setFontScale(user.font_scale as FontScale)
-    if (isOneOf(user.scrollbars, SCROLLBAR_MODES.map((item) => item.id))) setScrollbars(user.scrollbars as ScrollbarMode)
   }, [user])
 
   /**
@@ -203,7 +198,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * and persisted to the profile in the background so it survives a device change.
    */
   const saveAppearance = useCallback(
-    (patch: Partial<Pick<User, 'theme' | 'accent' | 'density' | 'motion' | 'direction' | 'font_scale' | 'scrollbars'>>) => {
+    (patch: Partial<Pick<User, 'theme' | 'accent' | 'density' | 'motion' | 'direction' | 'font_scale'>>) => {
       if (patch.theme) {
         applyTheme(patch.theme as ThemeMode)
         localStorage.setItem('pip.theme', patch.theme)
@@ -227,10 +222,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (patch.font_scale) {
         applyFontScale(patch.font_scale as FontScale)
         localStorage.setItem('pip.fontScale', patch.font_scale)
-      }
-      if (patch.scrollbars) {
-        applyScrollbars(patch.scrollbars as ScrollbarMode)
-        localStorage.setItem('pip.scrollbars', patch.scrollbars)
       }
       void endpoints
         .updateMe(patch as Record<string, unknown>)

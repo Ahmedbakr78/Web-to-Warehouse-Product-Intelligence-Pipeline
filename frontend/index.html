@@ -37,13 +37,6 @@
           root.dataset.direction = direction
           root.setAttribute('dir', direction)
 
-          // Scrollbar presentation mirrors src/lib/theme.ts: modern draws a slim
-          // theme-aware thumb, auto reveals it on hover, hidden removes it. Set
-          // before first paint so the gutter never shifts between reloads.
-          var scrollbars = localStorage.getItem('pip.scrollbars') || 'modern'
-          root.dataset.scrollbars =
-            scrollbars === 'auto' || scrollbars === 'hidden' ? scrollbars : 'modern'
-
           root.dataset.accent = localStorage.getItem('pip.accent') || 'indigo'
 
           // Paint the accent before first paint too: the CSS variables are

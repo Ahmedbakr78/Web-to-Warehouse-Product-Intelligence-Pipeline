@@ -50,7 +50,6 @@ import {
   DENSITIES,
   FONT_SCALES,
   MOTION_MODES,
-  SCROLLBAR_MODES,
   THEME_MODES,
 } from '@/lib/theme'
 
@@ -510,7 +509,6 @@ const LOCAL_PREF_ALLOWLIST: Record<string, readonly string[]> = {
   'pip.motion': MOTION_MODES.map((mode) => mode.id),
   'pip.direction': ['ltr', 'rtl'],
   'pip.fontScale': FONT_SCALES.map((mode) => mode.id),
-  'pip.scrollbars': SCROLLBAR_MODES.map((mode) => mode.id),
 }
 
 const SERVER_PREF_FIELDS = [
@@ -520,7 +518,6 @@ const SERVER_PREF_FIELDS = [
   'motion',
   'direction',
   'font_scale',
-  'scrollbars',
   'rows_per_page',
   'default_currency',
   'locale',
@@ -619,7 +616,7 @@ function PreferencesBackupPanel() {
           Download preferences
         </p>
         <p className="mt-1 text-[11px] leading-relaxed text-muted">
-          Theme, accent, density, font, motion, direction, scrollbars, start page, currency, locale and
+          Theme, accent, density, font, motion, direction, start page, currency, locale and
           alert defaults - everything that makes the app yours, in one file.
         </p>
         <Button className="mt-3" variant="secondary" icon={<Save className="h-4 w-4" />} onClick={exportPrefs}>

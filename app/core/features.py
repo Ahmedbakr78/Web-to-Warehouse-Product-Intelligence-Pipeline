@@ -663,7 +663,7 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "key": "appearance",
         "title": "Appearance & personalisation",
         "icon": "palette",
-        "summary": "Seven independent axes of personalisation, applied before the first paint.",
+        "summary": "Six independent axes of personalisation, applied before the first paint.",
         "features": [
             {
                 "name": "Five palettes",
@@ -705,15 +705,6 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             {
                 "name": "RTL mirroring",
                 "detail": "Logical properties flip the layout without a second stylesheet",
-            },
-            {
-                "name": "Scrollbar presentation axis",
-                "detail": "Modern (slim theme-aware), auto (revealed on hover) and hidden modes, "
-                "stored as app_user.scrollbars and synced to the profile like every other axis",
-            },
-            {
-                "name": "Gutter-stable scrollbars",
-                "detail": "scrollbar-gutter is always reserved, so switching modes never shifts the layout",
             },
         ],
     },
@@ -1424,7 +1415,7 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "key": "ux_mobile_max",
         "title": "Design system, mobile & motion Max",
         "icon": "smartphone",
-        "summary": "Perfect light and dark, silent reloads, fixed sidebar, Lucide icons everywhere and modern scrollbars.",
+        "summary": "Perfect light and dark, silent reloads, fixed sidebar, Lucide icons everywhere, no scrollbars.",
         "features": [
             {
                 "name": "Perfect white mode",
@@ -1491,10 +1482,6 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             {
                 "name": "Brand logo everywhere",
                 "detail": "One logo in the sidebar, login, favicons, PWA icons, README and website",
-            },
-            {
-                "name": "Modern overlay scrollbars",
-                "detail": "8px floating thumb, soft at rest, solid on approach; auto and hidden modes kept",
             },
             {
                 "name": "Skeleton-free refetch",
