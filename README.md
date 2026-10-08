@@ -34,7 +34,7 @@
 
 <p align="center">
   <b>195 REST operations</b> · <b>28 tables</b> · <b>20 analytical views</b> ·
-  <b>12 DQ rules</b> · <b>17 compliant sources</b> · <b>476 catalogued features</b> ·
+  <b>12 DQ rules</b> · <b>25 compliant sources</b> · <b>476 catalogued features</b> ·
   <b>491 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
 </p>
 
@@ -152,7 +152,7 @@ Everything is engineered like a production system, not a demo:
 
 | Component | Technology | Scale |
 | --- | --- | --- |
-| **Ingestion** | 17 source adapters (14 JSON APIs, 2 BeautifulSoup/lxml HTML scrapers, 1 offline synthetic) | robots.txt gate, token-bucket rate limiter, sliding-window ceiling, circuit breaker, response cache, per-request audit log, refused sources logged |
+| **Ingestion** | 25 source adapters (22 JSON APIs, 2 BeautifulSoup/lxml HTML scrapers, 1 offline synthetic) | robots.txt gate, token-bucket rate limiter, sliding-window ceiling, circuit breaker, response cache, per-request audit log, refused sources logged |
 | **Cleaning** | 29-step normalisation engine | product names, categories, 18+ currencies converted to USD via an offline FX table, rating and availability vocabularies |
 | **Deduplication** | 4-signal fuzzy matcher | jaro-winkler, token-set, trigram and digit signatures, block-indexed for O(n) candidate pools |
 | **Warehouse** | SQLAlchemy 2.0 Core ORM | **28 physical tables, 20 analytical views**, identical schema on PostgreSQL 16 and MySQL 8.4 |
@@ -171,11 +171,11 @@ Everything is engineered like a production system, not a demo:
 <!-- BEGIN:STATS -->
 
 ```text
-29 physical tables  |  23 analytical views  |  203 REST route decorators in 23 routers
+29 physical tables  |  23 analytical views  |  215 REST route decorators in 23 routers
 12 data-quality rules across 6 dimensions, weighted score persisted per run
-14 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
+26 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
 13 CLI commands  |  6 Docker Compose services  |  30 documents  |  80 Mermaid diagrams
-513 tests  |  104/104 API smoke checks  |  496 catalogued features
+557 tests  |  104/104 API smoke checks  |  498 catalogued features
 ```
 
 | Metric | Count |
@@ -183,17 +183,17 @@ Everything is engineered like a production system, not a demo:
 | Physical tables         | 29 |
 | Analytical views        | 23 |
 | REST routers            | 23 |
-| REST route decorators   | 203 |
+| REST route decorators   | 215 |
 | Data-quality rules      | 12 |
-| Ingestion sources       | 14 |
+| Ingestion sources       | 26 |
 | Airflow task callables  | 33 |
 | CLI commands            | 13 |
 | Pipeline stages         | 9 |
 | Docker Compose services | 6 |
 | Numbered documents      | 30 |
 | Mermaid diagrams        | 80 |
-| Catalogued features     | 496 |
-| Collected test cases    | 513 |
+| Catalogued features     | 498 |
+| Collected test cases    | 557 |
 | API smoke checks        | 104 |
 
 <!-- END:STATS -->

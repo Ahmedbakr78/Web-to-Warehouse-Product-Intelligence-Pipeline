@@ -262,12 +262,23 @@ class Pipeline:
             blocking_length=settings.dedupe_blocking_key_length,
             candidate_limit=settings.dedupe_candidate_limit,
         )
+        # Canonical products already snapshotted by an earlier source in this
+        # run. The fact grain is one row per (product, run), so a second source
+        # resolving to the same product skips its snapshot instead of violating
+        # the unique constraint.
+        snapshotted: set[int] = set()
 
         for code in self._source_codes():
             source_started = time.perf_counter()
             try:
                 source = resolve_source(session, code, run_id=run_id)
-                source_stats = self._process_source(session, run_id, source, dedupe)
+                # Each source runs inside a savepoint: a failed flush (bad data,
+                # a constraint hit) rolls back only this source's partial writes
+                # instead of poisoning the run-wide transaction, so the run can
+                # continue as `partial` and the failure bookkeeping below still
+                # has a usable session.
+                with session.begin_nested():
+                    source_stats = self._process_source(session, run_id, source, dedupe, snapshotted)
                 stats.merge(source_stats)
                 result.sources_processed.append(code)
                 self._register_source_dim(
@@ -360,7 +371,12 @@ class Pipeline:
 
     # ------------------------------------------------------------------ per source
     def _process_source(
-        self, session: Session, run_id: str, source: ProductSource, dedupe: DedupeEngine
+        self,
+        session: Session,
+        run_id: str,
+        source: ProductSource,
+        dedupe: DedupeEngine,
+        snapshotted: set[int] | None = None,
     ) -> LoadStats:
         result = self.result
         assert result is not None
@@ -421,18 +437,21 @@ class Pipeline:
 
         # ---- load snapshots + detect changes
         seen_products: set[int] = set()
+        run_snapshotted = snapshotted if snapshotted is not None else set()
         with self._timer("load") as meta:
             latest = loader.preload_latest({product.product_id for _r, _m, product in resolved}, source.code)
             skipped_duplicates = 0
             for record, _match, product in resolved:
                 # Two upstream rows can legitimately resolve to the same canonical
                 # product (that *is* duplicate detection working). The fact table grain
-                # is one row per product per run, so only the first one is stored.
-                if product.product_id in seen_products:
+                # is one row per product per run, so only the first one is stored —
+                # whether the twin came from this source or an earlier one.
+                if product.product_id in seen_products or product.product_id in run_snapshotted:
                     skipped_duplicates += 1
                     loader.stats.duplicates_merged += 1
                     continue
                 seen_products.add(product.product_id)
+                run_snapshotted.add(product.product_id)
                 previous = latest.get(product.product_id)
                 loader.insert_snapshot(product, record, previous=previous)
             loader.flush()

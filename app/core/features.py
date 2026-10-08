@@ -306,6 +306,14 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             },
             {"name": "Run history", "detail": "Status, counters, sources, trigger, actor"},
             {"name": "Failure isolation", "detail": "One dead source never kills the run"},
+            {
+                "name": "Run-scoped snapshot dedupe",
+                "detail": "One row per (product, run) even when two sources resolve to the same product",
+            },
+            {
+                "name": "Per-source savepoints",
+                "detail": "A failed source rolls back alone; the run transaction stays usable",
+            },
             {"name": "Manual trigger API", "detail": "Async or sync, any source mix, any dialect"},
             {"name": "CLI", "detail": "17 Typer commands: bootstrap, seed, verify, run, report..."},
         ],

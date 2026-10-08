@@ -395,9 +395,10 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 | Saved-view contract Max | 2 |
 | Full-max pass | 16 |
 | Query power + report CSV Max | 20 |
-| **Total** | **496** |
+| Pipeline resilience Max | 2 |
+| **Total** | **498** |
 
-The numbering is continuous from F-001 to F-496 with no duplicate or missing identifier. Counts are measured from the rows themselves by `scripts/project_stats.py`, and each section heading states the same figure, so the three cannot quietly disagree. Sections 14–39 continue below with the same running sequence.
+The numbering is continuous from F-001 to F-498 with no duplicate or missing identifier. Counts are measured from the rows themselves by `scripts/project_stats.py`, and each section heading states the same figure, so the three cannot quietly disagree. Sections 14–39 continue below with the same running sequence.
 
 ---
 
@@ -901,3 +902,16 @@ route for reports; and type-safe setting writes.
 | F-496 | Setting metadata + audit | Category, description and visibility settable; every change audited | `app/api/routers/settings.py` `setting.updated` |
 
 **Revised total: 496 features across 39 areas** (F-001 to F-496).
+
+## 40. Pipeline resilience Max (2)
+
+A production run died as `failed` when two marketplace sources resolved to the same canonical
+product inside one run: the second snapshot violated the one-row-per-(product, run) grain, and the
+failed flush poisoned the run-wide transaction. Both are fixed and covered by regression tests.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-497 | Run-scoped snapshot dedupe | A product snapshotted by an earlier source is skipped, not re-inserted | `app/etl/pipeline.py` `snapshotted` |
+| F-498 | Per-source savepoints | A failed source rolls back alone via `begin_nested`; the run continues partial | `app/etl/pipeline.py` `_execute` |
+
+**Revised total: 498 features across 40 areas** (F-001 to F-498).
