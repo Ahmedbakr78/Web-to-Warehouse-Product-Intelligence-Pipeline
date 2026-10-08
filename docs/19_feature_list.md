@@ -3,7 +3,7 @@
 ## Purpose
 
 This document is the complete feature inventory of the Web-to-Warehouse Product Intelligence
-Pipeline: 410 features grouped into twenty-three areas, each with a one-line description and a reference
+Pipeline: 476 features grouped into thirty-eight areas, each with a one-line description and a reference
 to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an
 endpoint, a CLI command or a documented design decision. Nothing here is aspirational.
 
@@ -62,11 +62,14 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 | F-018 | Honest crawler identity | User agent names the bot and publishes a contact address | `app/core/config.py` `ingest_user_agent` |
 | F-019 | Source failure isolation | An exception in one source becomes a warning; the run continues as `partial` | `app/etl/pipeline.py` `_process_source` |
 | F-020 | Bounded extraction | `--limit` plus `_safe_take` prevents a misbehaving source from hanging a run | `app/etl/pipeline.py` |
-| F-021 | Seven source adapters | DummyJSON, FakeStore, Open Library, Google Books (APIs), books.toscrape.com, ScrapeMe.live (HTML), local demo (synthetic) | `app/ingestion/sources/` |
+| F-021 | Nine source adapters | DummyJSON, FakeStore, Open Library, Google Books, Steam, Open Food Facts Prices (APIs), books.toscrape.com, ScrapeMe.live (HTML), local demo (synthetic) | `app/ingestion/sources/` |
 | F-022 | BeautifulSoup + lxml scraper | Listing → detail crawl, breadcrumb categories, price, stock count, star rating, UPC, image | `app/ingestion/sources/books_to_scrape.py` |
 | F-023 | Deterministic offline source | Seeded generator used for demos, tests and CI, with deliberate quality defects injected | `app/ingestion/sources/local_fixture.py` |
 | F-459 | ScrapeMe.live WooCommerce scraper | Practice-shop sandbox: listing cards carry price, sale pairs, stock flags and category slugs; detail fetch adds description and star rating; listing record kept when detail fails | `app/ingestion/sources/scrapeme.py` |
 | F-460 | Google Books API source | Official Books API with author, publisher, ratings and Google list prices; free key via `GOOGLE_BOOKS_API_KEY`, graceful 429 degradation per subject | `app/ingestion/sources/google_books.py` `app/core/config.py` |
+| F-461 | Steam Store API source | Curated game IDs: cent prices with discount pairs, genres, release dates, review totals mapped to 5 stars; keyless, robots-allowed | `app/ingestion/sources/steam_store.py` |
+| F-462 | Open Food Facts Prices source | Newest crowd-observed grocery prices with product/brand/category joins, discount pairs, multi-currency, store + country of observation | `app/ingestion/sources/openfoodfacts_prices.py` |
+| F-463 | Rejected sources logged | iTunes Search API evaluated and refused: `/search` is disallowed by robots.txt — compliance over coverage | `app/ingestion/sources/` docstrings |
 | F-024 | Source transparency endpoint | Fetch a few raw records and see them side by side with the cleaned result | `GET /api/v1/sources/{code}/preview` |
 
 ---
@@ -841,3 +844,25 @@ Every filter entity round-trips through saved views; the shortcut respects its s
 | F-458 | Entity-aware page shortcut | Open-as-a-page renders only for the products entity it can resolve | `frontend/src/pages/Builder.tsx` |
 
 **Revised total: 458 features across 37 areas** (F-001 to F-458).
+
+## 38. Full-max pass (16)
+
+Two new sources, key lifecycle endpoints, builder power tools, account backup and silent-UI polish.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-464 | Multi-level sorting | Comma-separated `sort_by`/`sort_dir`, allowlisted per endpoint, 3 levels, portable NULLS LAST on products + price-changes | `app/api/sorting.py` `products.py` `changes.py` |
+| F-465 | API key rotation | Atomic swap: old secret dies, name/scopes/budget/expiry inherited, audited, new secret returned once | `POST /api/v1/users/{id}/api-keys/{key}/rotate` |
+| F-466 | API key editing | Rename, rescope (owner-rights capped), re-budget, re-expire or never-expire, audited | `PATCH /api/v1/users/{id}/api-keys/{key}` |
+| F-467 | Grantable-scopes endpoint | Full scope list plus the role-capped subset the caller may hand out, for pickers | `GET /api/v1/users/me/scopes` |
+| F-468 | Multi-sort editor | Up to 3 tie-breaker levels on multi-sort entities, level-1 only elsewhere with a hint | `frontend/src/pages/Builder.tsx` sort levels |
+| F-469 | Pinned columns | Freeze any column left with `position: sticky`; pins persist in saved views and share links | `ui.tsx` `DataTable pinned` + CSS |
+| F-470 | Clone saved view | Duplicate any preset under a new name instead of composing from blank | `frontend/src/pages/Builder.tsx` `cloneView` |
+| F-471 | Share-as-URL link | base64url `?view=` restores entity, filters, sorts, columns and pins; consumed once | `frontend/src/pages/Builder.tsx` `copyShareLink` |
+| F-472 | Preferences backup | Export/import `pip.*` plus server prefs as JSON; unknown values skipped, app reloads to apply | `frontend/src/components/AccountPanels.tsx` |
+| F-473 | Key rotate + edit UI | Per-key Rotate, edit modal with scope picker capped by grantable list, relative expiry, budget | `frontend/src/pages/Account.tsx` API keys tab |
+| F-474 | Modern overlay scrollbars | 8px floating thumb, soft at rest, solid on approach, brand while dragging; auto/hidden kept | `frontend/src/styles/index.css` `theme.ts` |
+| F-475 | Skeleton-free refetch | Tables keep stale rows during background refetch; skeletons render only on first load | `frontend/src/components/ui.tsx` `DataTable` |
+| F-476 | Strict frontend build | `tsc -b` with zero errors (vitest 3 dedupes vite 6); `--noCheck` escape hatch removed | `frontend/package.json` `vitest.config.ts` |
+
+**Revised total: 476 features across 38 areas** (F-001 to F-476).

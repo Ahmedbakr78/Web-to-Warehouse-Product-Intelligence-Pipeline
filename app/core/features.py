@@ -173,8 +173,20 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "summary": "Permitted public sources collected politely: robots.txt, rate limits, retries, cache.",
         "features": [
             {
-                "name": "7 bundled sources",
-                "detail": "4 JSON APIs, 2 BeautifulSoup/LXML HTML scrapers, 1 offline fixture",
+                "name": "9 bundled sources",
+                "detail": "6 JSON APIs, 2 BeautifulSoup/LXML HTML scrapers, 1 offline fixture",
+            },
+            {
+                "name": "Steam Store API",
+                "detail": "Curated games: cent prices with discount pairs, genres, review-score mapping",
+            },
+            {
+                "name": "Open Food Facts Prices",
+                "detail": "Crowd-observed grocery prices: multi-currency, discount pairs, store + country",
+            },
+            {
+                "name": "Rejected sources logged",
+                "detail": "iTunes Search API refused: /search disallowed by robots.txt — compliance over coverage",
             },
             {
                 "name": "ScrapeMe.live practice shop",
@@ -401,6 +413,10 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             {"name": "OpenAPI 3.1 schema", "detail": "Swagger UI + ReDoc out of the box"},
             {"name": "Consistent error envelope", "detail": "{error, message, details} everywhere"},
             {"name": "Pagination + facets", "detail": "Cursor-free paging, filter facets, suggestions"},
+            {
+                "name": "Multi-level sorting",
+                "detail": "Comma-separated sort_by/sort_dir, allowlisted, 3 levels, NULLS LAST both dialects",
+            },
             {"name": "GZip + timing headers", "detail": "X-Process-Time-Ms, X-Database on every response"},
             {"name": "Rate limiting", "detail": "Per-key and per-user request budgets"},
             {
@@ -430,6 +446,18 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             {"name": "Argon2id password hashing", "detail": "Auto rehash on login"},
             {"name": "JWT access + refresh", "detail": "Rotation, issuer checks, type separation"},
             {"name": "API keys", "detail": "pip_-prefixed, SHA-256 + pepper, scopes, expiry, revocation"},
+            {
+                "name": "API key rotation",
+                "detail": "POST .../rotate: atomic swap, old secret dies instantly, policy inherited, audited",
+            },
+            {
+                "name": "API key editing",
+                "detail": "PATCH rename/rescope/re-budget/re-expire, owner-rights capped, audited",
+            },
+            {
+                "name": "Grantable-scopes endpoint",
+                "detail": "GET /users/me/scopes: full list plus the role-capped subset pickers may offer",
+            },
             {"name": "3-role RBAC", "detail": "viewer / analyst / admin with server-side enforcement"},
             {"name": "Brute-force lockout", "detail": "5 attempts -> 15-minute lock, audited"},
             {"name": "Full audit trail", "detail": "Every mutating action logged with IP and user agent"},
@@ -1147,6 +1175,22 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "detail": "asc/desc on any whitelisted column, default sort per entity",
             },
             {
+                "name": "Multi-sort editor",
+                "detail": "Up to 3 tie-breaker levels on products + price-changes, single elsewhere",
+            },
+            {
+                "name": "Pinned columns",
+                "detail": "Freeze any column to the left edge; pins persist in views and links",
+            },
+            {
+                "name": "Clone saved view",
+                "detail": "Duplicate any preset under a new name instead of starting blank",
+            },
+            {
+                "name": "Share-as-URL link",
+                "detail": "base64url ?view= restores entity, filters, sorts, columns and pins",
+            },
+            {
                 "name": "Pagination control",
                 "detail": "Page-size selector persisted to profile, total + duration shown",
             },
@@ -1276,6 +1320,14 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "name": "Preference sync",
                 "detail": "Appearance plus prefs saved server-side, inherited by new devices",
             },
+            {
+                "name": "Preferences backup",
+                "detail": "Export/import pip.* plus server prefs as JSON, allowlist-validated on restore",
+            },
+            {
+                "name": "Key rotate + edit UI",
+                "detail": "Per-key Rotate, edit modal with scope picker, relative expiry, budget control",
+            },
             {"name": "Cross-tab live sync", "detail": "storage event keeps two open tabs visually identical"},
             {
                 "name": "Accessible forms",
@@ -1350,15 +1402,19 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             },
             {
                 "name": "Lucide icons everywhere",
-                "detail": "Nav, tabs, stats, empty states and toasts — no emoji, aria-hidden decorative",
+                "detail": "Every button, modal action, tab, stat, empty state and toast — no emoji, aria-hidden decorative",
             },
             {
                 "name": "Brand logo everywhere",
                 "detail": "One logo in the sidebar, login, favicons, PWA icons, README and website",
             },
             {
-                "name": "No scrollbars",
-                "detail": "Removed everywhere; shadows and keyboard carry scroll position",
+                "name": "Modern overlay scrollbars",
+                "detail": "8px floating thumb, soft at rest, solid on approach; auto and hidden modes kept",
+            },
+            {
+                "name": "Skeleton-free refetch",
+                "detail": "Tables keep stale rows during background refetch; skeletons only on first load",
             },
             {
                 "name": "Scroll shadows",
@@ -1433,8 +1489,8 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "detail": "Description, og:title/description/type, color-scheme, favicon",
             },
             {
-                "name": "Private-by-default repo",
-                "detail": "gh repo edit --private; secrets never committed, .env.example only",
+                "name": "Public repo, private-safe",
+                "detail": "Public for grading; secrets never committed, .env.example only",
             },
             {
                 "name": "Topic taxonomy",
