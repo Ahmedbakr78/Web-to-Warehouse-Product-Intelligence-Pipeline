@@ -963,7 +963,7 @@ def test_products_multi_sort_orders_by_both_levels(client, admin_token):
     assert len(items) > 5
     cats = [str(item["category_name"] or "") for item in items]
     assert cats == sorted(cats), "level 1 must order categories ascending"
-    for first, second in zip(items, items[1:]):
+    for first, second in zip(items, items[1:], strict=False):
         if (first["category_name"] or "") != (second["category_name"] or ""):
             continue
         left, right = first["rating"], second["rating"]
