@@ -221,20 +221,38 @@ export default function Builder() {
   const [viewDescription, setViewDescription] = useState('')
   const [shared, setShared] = useState(false)
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const queryClient = useQueryClient()
   const toast = useToast()
   const debouncedSearch = useDebounce(state.search, 320)
 
-  // Restore the last working state so a reload never loses work.
+  // Restore priority: a shared `?view=` link wins, then the last working
+  // state from this browser, then defaults. The param is consumed once so a
+  // plain reload afterwards keeps working on the restored state.
   useEffect(() => {
+    const shared = searchParams.get('view')
+    if (shared) {
+      const restored = decodeShareState(shared)
+      if (restored) {
+        setState(restored)
+        toast.info('Shared view loaded', 'Filters, sort, columns and pins came from the link.')
+      } else {
+        toast.error('Could not open the shared view', 'The link is malformed or from another app version.')
+      }
+      searchParams.delete('view')
+      setSearchParams(searchParams, { replace: true })
+      return
+    }
     const stored = localStorage.getItem('pip.builder')
     if (stored) {
       try {
-        setState({ ...DEFAULT_STATE, ...JSON.parse(stored) })
+        const parsed = sanitizeBuilderState(JSON.parse(stored))
+        if (parsed) setState(parsed)
       } catch {
         /* ignore malformed state */
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -244,12 +262,16 @@ export default function Builder() {
   const facets = useApiQuery(['facets'], endpoints.facets, { staleTime: 300_000 })
   const savedViews = useApiQuery(['saved-views'], () => endpoints.savedViews(), { staleTime: 300_000 })
 
-  const productParams = useMemo(
-    () => ({
+  const productParams = useMemo(() => {
+    const levels = [{ by: state.sortBy, dir: state.sortDir }, ...state.multiSort]
+    const multi = MULTI_SORT_ENTITIES.includes(state.entity)
+    const sort_by = (multi ? levels : levels.slice(0, 1)).map((level) => level.by).join(',')
+    const sort_dir = (multi ? levels : levels.slice(0, 1)).map((level) => level.dir).join(',')
+    return {
       page: 1,
       page_size: state.pageSize,
-      sort_by: state.sortBy,
-      sort_dir: state.sortDir,
+      sort_by,
+      sort_dir,
       q: debouncedSearch || undefined,
       category: state.category || undefined,
       brand: state.brand || undefined,
@@ -263,9 +285,8 @@ export default function Builder() {
       max_change_pct: state.maxChangePct || undefined,
       new_since_days: state.newSinceDays || undefined,
       is_active: state.activeOnly || undefined,
-    }),
-    [state, debouncedSearch],
-  )
+    }
+  }, [state, debouncedSearch])
 
   const preview = useApiQuery(
     ['builder-preview', state.entity, productParams],
@@ -341,6 +362,62 @@ export default function Builder() {
     })
   }
 
+  /** Freeze or release a column at the left edge of the preview table. */
+  function togglePin(key: string) {
+    setState((current) => ({
+      ...current,
+      pinned: current.pinned.includes(key) ? current.pinned.filter((item) => item !== key) : [...current.pinned, key],
+    }))
+  }
+
+  /** Duplicate a saved view under a new name instead of starting from blank. */
+  function cloneView(view: any) {
+    applySavedView(view)
+    setViewName(`${view.name} (copy)`)
+    setViewDescription(view.description ?? '')
+    setShared(Boolean(view.is_shared))
+    setShowSave(true)
+  }
+
+  /** Share the whole composition — filters, sort levels, columns and pins. */
+  function copyShareLink() {
+    const payload = {
+      v: 1,
+      entity: state.entity,
+      filters: serialiseFilters(state),
+      sort_by: state.sortBy,
+      sort_dir: state.sortDir,
+      multi_sort: state.multiSort,
+      columns: state.columns,
+      pinned: state.pinned,
+    }
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))))
+      .replaceAll('+', '-')
+      .replaceAll('/', '_')
+      .replace(/=+$/, '')
+    const url = `${window.location.origin}/builder?view=${encoded}`
+    navigator.clipboard?.writeText(url).then(
+      () => toast.success('Share link copied', 'Anyone with access opens this exact composition.'),
+      () => toast.error('Clipboard unavailable', url),
+    )
+  }
+
+  /** Append another sort level (up to 3 total, level 1 is the Sort control). */
+  function addSortLevel() {
+    if (state.multiSort.length >= MAX_EXTRA_SORTS) return
+    const used = new Set([state.sortBy, ...state.multiSort.map((level) => level.by)])
+    const fallback = SORT_OPTIONS.find((option) => !used.has(option.value)) ?? SORT_OPTIONS[0]
+    patch({ multiSort: [...state.multiSort, { by: fallback.value, dir: 'desc' as const }] })
+  }
+
+  function patchSortLevel(index: number, changes: Partial<{ by: string; dir: 'asc' | 'desc' }>) {
+    patch({ multiSort: state.multiSort.map((level, position) => (position === index ? { ...level, ...changes } : level)) })
+  }
+
+  function removeSortLevel(index: number) {
+    patch({ multiSort: state.multiSort.filter((_, position) => position !== index) })
+  }
+
   /** Share the composed query as a ready-to-run REST call. */
   function copyCurlRequest() {
     const paths: Record<Entity, string> = {
@@ -401,14 +478,14 @@ export default function Builder() {
 
   function applySavedView(view: any) {
     const filters = view.filters ?? {}
-    setState({
-      ...DEFAULT_STATE,
+    const restored = sanitizeBuilderState({
       ...filters,
-      entity: (view.entity === 'changes' ? 'price-changes' : view.entity) as Entity,
-      sortBy: view.sort_by ?? DEFAULT_STATE.sortBy,
-      sortDir: (view.sort_dir as 'asc' | 'desc') ?? 'desc',
-      columns: view.visible_columns?.length ? view.visible_columns : DEFAULT_STATE.columns,
+      entity: view.entity === 'changes' ? 'price-changes' : view.entity,
+      sort_by: view.sort_by,
+      sort_dir: view.sort_dir,
+      columns: view.visible_columns,
     })
+    setState(restored ?? { ...DEFAULT_STATE, columns: DEFAULT_STATE.columns })
     toast.info('View applied', view.name)
   }
 
@@ -550,22 +627,56 @@ export default function Builder() {
               <p className="stat-label mb-1.5">New within (days)</p>
               <TextInput placeholder="e.g. 7" value={state.newSinceDays} onChange={(event) => patch({ newSinceDays: event.target.value })} inputMode="numeric" />
             </div>
-            <div>
-              <p className="stat-label mb-1.5">Sort</p>
-              <div className="flex gap-1">
-                <Select value={state.sortBy} onChange={(event) => patch({ sortBy: event.target.value })} className="flex-1">
-                  <option value="last_seen_at">Last seen</option>
-                  <option value="first_seen_at">First seen</option>
-                  <option value="canonical_name">Name</option>
-                  <option value="price">Price</option>
-                  <option value="price_change_pct">Change %</option>
-                  <option value="rating">Rating</option>
-                  <option value="observation_count">Observations</option>
-                </Select>
-                <Select value={state.sortDir} onChange={(event) => patch({ sortDir: event.target.value as 'asc' | 'desc' })} className="w-20">
-                  <option value="desc">Desc</option>
-                  <option value="asc">Asc</option>
-                </Select>
+            <div className="sm:col-span-2">
+              <p className="stat-label mb-1.5">
+                Sort levels
+                {!MULTI_SORT_ENTITIES.includes(state.entity) && state.multiSort.length ? (
+                  <span className="ml-1 font-normal normal-case text-subtle">— level 1 only for {titleCase(state.entity)}</span>
+                ) : null}
+              </p>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1">
+                  <span className="w-4 shrink-0 text-center font-mono text-[11px] text-subtle">1</span>
+                  <Select value={state.sortBy} onChange={(event) => patch({ sortBy: event.target.value })} className="flex-1">
+                    {SORT_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </Select>
+                  <Select value={state.sortDir} onChange={(event) => patch({ sortDir: event.target.value as 'asc' | 'desc' })} className="w-20">
+                    <option value="desc">Desc</option>
+                    <option value="asc">Asc</option>
+                  </Select>
+                </div>
+                {state.multiSort.map((level, index) => (
+                  <div key={`${level.by}-${index}`} className="flex items-center gap-1">
+                    <span className="w-4 shrink-0 text-center font-mono text-[11px] text-subtle">{index + 2}</span>
+                    <Select value={level.by} onChange={(event) => patchSortLevel(index, { by: event.target.value })} className="flex-1">
+                      {SORT_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </Select>
+                    <Select value={level.dir} onChange={(event) => patchSortLevel(index, { dir: event.target.value as 'asc' | 'desc' })} className="w-20">
+                      <option value="desc">Desc</option>
+                      <option value="asc">Asc</option>
+                    </Select>
+                    <button
+                      onClick={() => removeSortLevel(index)}
+                      aria-label={`Remove sort level ${index + 2}`}
+                      className="rounded-md p-1.5 text-subtle hover:bg-surface-3 hover:text-ink"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+                {state.multiSort.length < MAX_EXTRA_SORTS ? (
+                  <button onClick={addSortLevel} className="text-xs font-medium text-brand-500 hover:underline">
+                    + Add tie-breaker level
+                  </button>
+                ) : null}
               </div>
             </div>
             <div>
@@ -586,12 +697,13 @@ export default function Builder() {
         </Card>
 
         <Card>
-          <CardHeader title="Columns" subtitle={`${state.columns.length} visible`} icon={<Sparkles className="h-4 w-4" />} />
+          <CardHeader title="Columns" subtitle={`${state.columns.length} visible${state.pinned.length ? ` · ${state.pinned.length} pinned` : ''}`} icon={<Sparkles className="h-4 w-4" />} />
           <div className="max-h-80 space-y-1 overflow-auto pr-1">
             {columns.map((column) => {
               const visibleIndex = state.columns.indexOf(column.key)
               const canMoveUp = visibleIndex > 0
               const canMoveDown = column.key !== state.columns[state.columns.length - 1]
+              const isPinned = state.pinned.includes(column.key)
               return (
                 <div key={column.key} className="flex items-center gap-1 rounded-lg px-1 py-0.5 hover:bg-surface-2">
                   <div className="min-w-0 flex-1">
@@ -602,6 +714,15 @@ export default function Builder() {
                     />
                   </div>
                   <div className="flex shrink-0 gap-0.5">
+                    <button
+                      onClick={() => togglePin(column.key)}
+                      disabled={!state.columns.includes(column.key)}
+                      aria-label={isPinned ? `Unpin ${column.label}` : `Pin ${column.label} to the left edge`}
+                      title={isPinned ? 'Unpin' : 'Pin to the left edge'}
+                      className="rounded-md p-1 text-subtle hover:bg-surface-3 hover:text-ink disabled:opacity-30 disabled:hover:bg-transparent"
+                    >
+                      {isPinned ? <PinOff className="h-3.5 w-3.5 text-brand-500" /> : <Pin className="h-3.5 w-3.5" />}
+                    </button>
                     <button
                       onClick={() => moveColumn(column.key, -1)}
                       disabled={!state.columns.includes(column.key) || !canMoveUp}
@@ -640,19 +761,28 @@ export default function Builder() {
           <CardHeader title="Saved views" subtitle="Reusable presets you or a colleague created" icon={<Bookmark className="h-4 w-4" />} />
           <div className="flex flex-wrap gap-2">
             {savedViews.data.map((view: any) => (
-              <button
+              <div
                 key={view.view_id}
-                onClick={() => applySavedView(view)}
-                className="rounded-lg border border-line bg-surface-2 px-3 py-2 text-left hover:border-brand-400 dark:hover:border-brand-500"
+                className="flex items-stretch overflow-hidden rounded-lg border border-line bg-surface-2 hover:border-brand-400 dark:hover:border-brand-500"
               >
-                <p className="text-xs font-medium text-ink">
-                  {view.name}
-                  {view.is_favorite ? <span className="ml-1 text-warning">★</span> : null}
-                </p>
-                <p className="text-[11px] text-subtle">
-                  {titleCase(view.entity)} · used {view.use_count ?? 0}× · {formatRelative(view.created_at)}
-                </p>
-              </button>
+                <button onClick={() => applySavedView(view)} className="px-3 py-2 text-left" title="Apply this view">
+                  <p className="text-xs font-medium text-ink">
+                    {view.name}
+                    {view.is_favorite ? <span className="ml-1 text-warning">★</span> : null}
+                  </p>
+                  <p className="text-[11px] text-subtle">
+                    {titleCase(view.entity)} · used {view.use_count ?? 0}× · {formatRelative(view.created_at)}
+                  </p>
+                </button>
+                <button
+                  onClick={() => cloneView(view)}
+                  aria-label={`Duplicate ${view.name} under a new name`}
+                  title="Duplicate under a new name"
+                  className="border-l border-line px-2 text-subtle hover:bg-surface-3 hover:text-ink"
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                </button>
+              </div>
             ))}
           </div>
         </Card>
@@ -684,6 +814,9 @@ export default function Builder() {
             <Button size="sm" variant="ghost" icon={<Braces className="h-4 w-4" />} onClick={copyCurlRequest}>
               Copy cURL
             </Button>
+            <Button size="sm" variant="ghost" icon={<Link2 className="h-4 w-4" />} onClick={copyShareLink}>
+              Share link
+            </Button>
             <Button size="sm" variant="secondary" icon={<Download className="h-4 w-4" />} onClick={() => exportPreview('csv')} disabled={!rows.length}>
               CSV
             </Button>
@@ -712,7 +845,7 @@ export default function Builder() {
             rows={rows}
             rowKey={(row: any, index: number) => `${row.product_id ?? row.change_id ?? row.run_id ?? row.result_id ?? row.match_id ?? index}`}
             loading={preview.isFetching}
-            columns={buildColumns(state.entity, state.columns)}
+            columns={buildColumns(state.entity, state.columns, state.pinned)}
           />
         )}
       </Card>
@@ -732,7 +865,7 @@ export default function Builder() {
         open={showSave}
         onClose={() => setShowSave(false)}
         title="Save this view"
-        description="The current filters, sort order and columns are stored and become available as a preset."
+        description="The current filters, sort levels, columns and pins are stored and become available as a preset."
         footer={
           <>
             <Button variant="ghost" onClick={() => setShowSave(false)}>
@@ -936,7 +1069,79 @@ function serialiseFilters(state: BuilderState): Record<string, unknown> {
   Object.entries(map).forEach(([key, value]) => {
     if (value !== '' && value !== false) filters[key] = value
   })
+  // Layout travels with the view so Apply / Share restore the full composition.
+  if (state.pinned.length) filters.pinned_columns = [...state.pinned]
+  if (state.multiSort.length) filters.multi_sort = state.multiSort.map((level) => ({ ...level }))
   return filters
+}
+
+/** Validate an unknown blob (saved view, share link, old localStorage) into a
+ *  safe BuilderState, or return null when the entity itself is unusable. */
+function sanitizeBuilderState(candidate: any): BuilderState | null {
+  if (!candidate || typeof candidate !== 'object') return null
+  const entity = candidate.entity as Entity
+  if (!ENTITY_COLUMNS[entity]) return null
+  const validKeys = new Set(ENTITY_COLUMNS[entity].map((column) => column.key))
+  const sortValues = new Set(SORT_OPTIONS.map((option) => option.value))
+
+  const pickColumns = (value: unknown): string[] | null => {
+    if (!Array.isArray(value)) return null
+    const kept = value.filter((key): key is string => typeof key === 'string' && validKeys.has(key))
+    return kept.length ? kept : null
+  }
+  const sanitiseSort = (value: unknown): { by: string; dir: 'asc' | 'desc' }[] => {
+    if (!Array.isArray(value)) return []
+    return value
+      .filter(
+        (level): level is { by: string; dir: 'asc' | 'desc' } =>
+          Boolean(level) &&
+          typeof level === 'object' &&
+          typeof (level as any).by === 'string' &&
+          sortValues.has((level as any).by) &&
+          ((level as any).dir === 'asc' || (level as any).dir === 'desc'),
+      )
+      .slice(0, MAX_EXTRA_SORTS)
+      .map((level) => ({ by: level.by, dir: level.dir }))
+  }
+  const text = (value: unknown): string => (typeof value === 'string' ? value : '')
+  const flag = (value: unknown): boolean => value === true
+
+  return {
+    entity,
+    search: text(candidate.search),
+    category: text(candidate.category),
+    brand: text(candidate.brand),
+    source: text(candidate.source),
+    availability: text(candidate.availability),
+    inStock: ['true', 'false'].includes(candidate.in_stock) ? candidate.in_stock : '',
+    minPrice: text(candidate.min_price),
+    maxPrice: text(candidate.max_price),
+    minRating: text(candidate.min_rating),
+    minChangePct: text(candidate.min_change_pct),
+    maxChangePct: text(candidate.max_change_pct),
+    newSinceDays: text(candidate.new_since_days),
+    significantOnly: flag(candidate.significant_only),
+    activeOnly: candidate.active_only === undefined ? true : flag(candidate.active_only),
+    sortBy: typeof candidate.sort_by === 'string' && sortValues.has(candidate.sort_by) ? candidate.sort_by : 'last_seen_at',
+    sortDir: candidate.sort_dir === 'asc' ? 'asc' : 'desc',
+    multiSort: sanitiseSort(candidate.multi_sort),
+    pageSize: [10, 25, 50, 100].includes(candidate.page_size) ? candidate.page_size : 25,
+    columns: pickColumns(candidate.columns) ?? ENTITY_COLUMNS[entity].map((column) => column.key),
+    pinned: pickColumns(candidate.pinned_columns ?? candidate.pinned) ?? [],
+  }
+}
+
+/** Decode a `?view=` share link into a safe BuilderState. */
+function decodeShareState(encoded: string): BuilderState | null {
+  try {
+    const padded = encoded.replaceAll('-', '+').replaceAll('_', '/')
+    const json = decodeURIComponent(escape(atob(padded)))
+    const payload = JSON.parse(json)
+    if (!payload || typeof payload !== 'object' || payload.v !== 1) return null
+    return sanitizeBuilderState({ ...payload.filters, ...payload })
+  } catch {
+    return null
+  }
 }
 
 function cleanParams(params: Record<string, unknown>): Record<string, string> {
@@ -947,8 +1152,9 @@ function cleanParams(params: Record<string, unknown>): Record<string, string> {
   return output
 }
 
-function buildColumns(entity: Entity, visible: string[]): Column<any>[] {
+function buildColumns(entity: Entity, visible: string[], pinned: string[] = []): Column<any>[] {
   const has = (key: string) => visible.includes(key)
+  const isPinned = (key: string) => pinned.includes(key)
   const all: Record<Entity, Record<string, Column<any>>> = {
     products: {
       name: {
@@ -1062,5 +1268,5 @@ function buildColumns(entity: Entity, visible: string[]): Column<any>[] {
   }
   return Object.entries(all[entity])
     .filter(([key]) => has(key))
-    .map(([, column]) => column)
+    .map(([, column]) => (isPinned(column.key) ? { ...column, pinned: true } : column))
 }
