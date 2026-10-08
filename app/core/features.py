@@ -197,6 +197,30 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "detail": "Official Books API with optional free key (GOOGLE_BOOKS_API_KEY)",
             },
             {
+                "name": "FreeAPI demo products",
+                "detail": "100-item catalogue: price, brand, category, rating, stock, discount pairs",
+            },
+            {
+                "name": "Predic8 fruit shop",
+                "detail": "Listing-detail crawl, euro prices and vendor lists for grocery lines",
+            },
+            {
+                "name": "SampleAPIs coffee menu",
+                "detail": "Hot and iced cafe drinks with ingredients and images",
+            },
+            {
+                "name": "SampleAPIs Switch catalogue",
+                "detail": "1000+ titles in one call: genres, studios, publishers, release dates",
+            },
+            {
+                "name": "TheMealDB meals",
+                "detail": "Category discovery then per-category dishes with photos",
+            },
+            {
+                "name": "TheCocktailDB drinks",
+                "detail": "Three alcohol-option filters covering the whole menu",
+            },
+            {
                 "name": "robots.txt gate (RFC 9309)",
                 "detail": "Parsed once per host, cached, honoured per request",
             },

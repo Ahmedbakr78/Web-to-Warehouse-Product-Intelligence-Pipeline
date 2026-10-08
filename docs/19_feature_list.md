@@ -396,9 +396,10 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 | Full-max pass | 16 |
 | Query power + report CSV Max | 20 |
 | Pipeline resilience Max | 2 |
-| **Total** | **498** |
+| Second-wave sources + analysis Max | 13 |
+| **Total** | **511** |
 
-The numbering is continuous from F-001 to F-498 with no duplicate or missing identifier. Counts are measured from the rows themselves by `scripts/project_stats.py`, and each section heading states the same figure, so the three cannot quietly disagree. Sections 14–39 continue below with the same running sequence.
+The numbering is continuous from F-001 to F-511 with no duplicate or missing identifier. Counts are measured from the rows themselves by `scripts/project_stats.py`, and each section heading states the same figure, so the three cannot quietly disagree. Sections 14–41 continue below with the same running sequence.
 
 ---
 
@@ -915,3 +916,27 @@ failed flush poisoned the run-wide transaction. Both are fixed and covered by re
 | F-498 | Per-source savepoints | A failed source rolls back alone via `begin_nested`; the run continues partial | `app/etl/pipeline.py` `_execute` |
 
 **Revised total: 498 features across 40 areas** (F-001 to F-498).
+
+## 41. Second-wave sources + analysis Max (13)
+
+Six live-verified ingestion sources (robots, HTTP and JSON shape checked before any code was
+written; MercadoLibre and ITBookStore were rejected at verification like Stooq before them)
+plus seven SQL analyses proven against the production warehouse.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-499 | FreeAPI demo products | Paginated catalogue: price, brand, category, rating, stock, recovered was/now pairs | `app/ingestion/sources/freeapi.py` |
+| F-500 | Predic8 fruit shop | Listing-detail crawl with euro prices, units, vendors, images | `app/ingestion/sources/predic8.py` |
+| F-501 | SampleAPIs coffee menu | Hot + iced menus merged: names, ingredients, images | `app/ingestion/sources/sampleapis_coffee.py` |
+| F-502 | SampleAPIs Switch catalogue | 1000+ titles in one call: genres, studios, publishers, release dates | `app/ingestion/sources/sampleapis_switch.py` |
+| F-503 | TheMealDB meals | Category discovery then per-category dishes with photos | `app/ingestion/sources/mealdb.py` |
+| F-504 | TheCocktailDB drinks | Three alcohol-option filters covering the whole menu | `app/ingestion/sources/cocktaildb.py` |
+| F-505 | Brand price positioning | Premium/discount index per brand vs the market, with ratings | `db/analysis/09_brand_price_positioning.sql` |
+| F-506 | Source overlap report | Products seen by 2+ sources with best/worst price spread | `db/analysis/10_source_overlap.sql` |
+| F-507 | Rating value picks | Best-rated products priced below their category average | `db/analysis/11_rating_value_picks.sql` |
+| F-508 | Discount depth leaders | Deepest genuine was/now discounts by category | `db/analysis/12_discount_depth.sql` |
+| F-509 | Category concentration | Top-brand shelf share per category (single-brand shelves surface) | `db/analysis/13_category_concentration.sql` |
+| F-510 | New-product velocity | Assortment growth per day: products, categories, sources | `db/analysis/14_new_product_velocity.sql` |
+| F-511 | Stockout risk | Thinnest availability vs demand, unknown-status shelves excluded | `db/analysis/15_stockout_risk.sql` |
+
+**Revised total: 511 features across 41 areas** (F-001 to F-511).
