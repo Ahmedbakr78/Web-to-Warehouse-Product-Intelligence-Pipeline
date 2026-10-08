@@ -16,7 +16,7 @@
 <rect x="280" y="146" width="320" height="118" rx="18" ry="18" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
 <filter id="s0" filter="url(#soft)"/>
 <rect x="280" y="254" width="320" height="10" rx="5" ry="5" fill="#06B6D4"/>
-<text x="440" y="202" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="40" font-weight="700" fill="#06B6D4" text-anchor="middle" letter-spacing="0">5</text>
+<text x="440" y="202" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="40" font-weight="700" fill="#06B6D4" text-anchor="middle" letter-spacing="0">10</text>
 <text x="440" y="236" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="18" font-weight="500" fill="#64748B" text-anchor="middle" letter-spacing="0">ingestion sources</text>
 <rect x="616" y="146" width="320" height="118" rx="18" ry="18" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
 <filter id="s1" filter="url(#soft)"/>
@@ -31,17 +31,17 @@
 <rect x="1288" y="146" width="320" height="118" rx="18" ry="18" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
 <filter id="s3" filter="url(#soft)"/>
 <rect x="1288" y="254" width="320" height="10" rx="5" ry="5" fill="#7C3AED"/>
-<text x="1448" y="202" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="40" font-weight="700" fill="#7C3AED" text-anchor="middle" letter-spacing="0">173</text>
+<text x="1448" y="202" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="40" font-weight="700" fill="#7C3AED" text-anchor="middle" letter-spacing="0">195</text>
 <text x="1448" y="236" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="18" font-weight="500" fill="#64748B" text-anchor="middle" letter-spacing="0">REST operations</text>
 <rect x="1624" y="146" width="320" height="118" rx="18" ry="18" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
 <filter id="s4" filter="url(#soft)"/>
 <rect x="1624" y="254" width="320" height="10" rx="5" ry="5" fill="#F59E0B"/>
-<text x="1784" y="202" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="40" font-weight="700" fill="#F59E0B" text-anchor="middle" letter-spacing="0">378</text>
+<text x="1784" y="202" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="40" font-weight="700" fill="#F59E0B" text-anchor="middle" letter-spacing="0">476</text>
 <text x="1784" y="236" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="18" font-weight="500" fill="#64748B" text-anchor="middle" letter-spacing="0">catalogued features</text>
 <rect x="1960" y="146" width="320" height="118" rx="18" ry="18" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
 <filter id="s5" filter="url(#soft)"/>
 <rect x="1960" y="254" width="320" height="10" rx="5" ry="5" fill="#06B6D4"/>
-<text x="2120" y="202" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="40" font-weight="700" fill="#06B6D4" text-anchor="middle" letter-spacing="0">408</text>
+<text x="2120" y="202" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="40" font-weight="700" fill="#06B6D4" text-anchor="middle" letter-spacing="0">491</text>
 <text x="2120" y="236" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="18" font-weight="500" fill="#64748B" text-anchor="middle" letter-spacing="0">automated tests</text>
 <path d="M548 438 H578" stroke="#E2E8F0" stroke-width="3" fill="none"/>
 <path d="M578 438 l-12 -7 v14 z" fill="#E2E8F0"/>

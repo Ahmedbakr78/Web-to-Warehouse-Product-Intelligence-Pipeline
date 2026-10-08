@@ -23,18 +23,54 @@ try:
     from app.core.features import feature_catalogue as _feature_catalogue
 
     def _measured_features() -> str:
+        # The canonical inventory is docs/19_feature_list.md (F-IDs), snapshotted
+        # into docs/stats.json; the API catalogue is a subset, used as fallback.
+        try:
+            import json
+
+            snapshot = json.loads((ROOT / "docs" / "stats.json").read_text(encoding="utf-8"))
+            if isinstance(snapshot.get("catalogued_features"), int):
+                return str(snapshot["catalogued_features"])
+        except Exception:
+            pass
         try:
             return str(_feature_catalogue()["total_features"])
         except Exception:
-            return "322"
+            return "476"
 except Exception:  # pragma: no cover - generator must never crash on import
 
     def _measured_features() -> str:
-        return "322"
+        return "476"
 
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs" / "assets"
+
+
+def _measured_stats() -> dict[str, str]:
+    """Live counters from docs/stats.json (written by `make stats-update`).
+
+    The infographic must never quote a number the stats pipeline does not
+    measure; fallbacks preserve the last known values if the file is missing.
+    """
+    fallback = {
+        "ingestion_sources": "10",
+        "rest_route_decorators": "195",
+        "test_cases": "491",
+        "physical_tables": "28",
+        "analytical_views": "20",
+        "data_quality_rules": "12",
+    }
+    try:
+        import json
+
+        snapshot = json.loads((ROOT / "docs" / "stats.json").read_text(encoding="utf-8"))
+        for key in fallback:
+            if isinstance(snapshot.get(key), int):
+                fallback[key] = str(snapshot[key])
+    except Exception:
+        pass
+    return fallback
 
 W, H = 2560, 1440
 SVG_NS = "http://www.w3.org/2000/svg"
@@ -259,13 +295,18 @@ def build_svg(palette: str = "light") -> str:
 
     # ---------------------------------------------------------------- key-number strip
     strip_y = hdr_h + 30
+    measured = _measured_stats()
     numbers = [
-        ("5", "ingestion sources", ACCENT),
-        ("28/20", "tables / views", PRIMARY),
-        ("12x6", "DQ rules x dimensions", SUCCESS),
-        ("173", "REST operations", SECONDARY),
+        (measured["ingestion_sources"], "ingestion sources", ACCENT),
+        (
+            f"{measured['physical_tables']}/{measured['analytical_views']}",
+            "tables / views",
+            PRIMARY,
+        ),
+        (f"{measured['data_quality_rules']}x6", "DQ rules x dimensions", SUCCESS),
+        (measured["rest_route_decorators"], "REST operations", SECONDARY),
         (_measured_features(), "catalogued features", HIGHLIGHT),
-        ("408", "automated tests", ACCENT),
+        (measured["test_cases"], "automated tests", ACCENT),
     ]
     cell_w = 336
     strip_w = cell_w * len(numbers)
