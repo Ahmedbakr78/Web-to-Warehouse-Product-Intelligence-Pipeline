@@ -509,6 +509,13 @@ def test_api_key_update_rejects_other_users_keys(client, admin_token, viewer_tok
     )
 
 
+def test_my_scopes_lists_grantable_subset(client, admin_token):
+    payload = client.get("/api/v1/users/me/scopes", headers=auth(admin_token)).json()
+    assert set(payload["scopes"]) >= {"read", "write", "export", "manage_keys"}
+    assert set(payload["grantable"]) <= set(payload["scopes"])
+    assert payload["role"]
+
+
 def test_pipeline_trigger_requires_permission(client, viewer_token):
     response = client.post(
         "/api/v1/pipeline/run/sync", headers=auth(viewer_token), json={"limit_per_source": 1}

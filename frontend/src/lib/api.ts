@@ -288,6 +288,11 @@ export const endpoints = {
   apiKeys: (userId: number) => api.get<any[]>(`/users/${userId}/api-keys`),
   createApiKey: (userId: number, name: string) => api.post<any>(`/users/${userId}/api-keys`, { name }),
   revokeApiKey: (userId: number, keyId: number) => api.del<any>(`/users/${userId}/api-keys/${keyId}`),
+  rotateApiKey: (userId: number, keyId: number) =>
+    api.post<any>(`/users/${userId}/api-keys/${keyId}/rotate`),
+  updateApiKey: (userId: number, keyId: number, payload: Record<string, unknown>) =>
+    api.patch<any>(`/users/${userId}/api-keys/${keyId}`, payload),
+  myScopes: () => api.get<{ scopes: string[]; grantable: string[]; role: string }>('/users/me/scopes'),
 
   savedViews: (entity?: string) => api.get<any[]>('/saved-views', { entity }),
   createSavedView: (payload: Record<string, unknown>) => api.post<any>('/saved-views', payload),

@@ -90,8 +90,8 @@ if [ "$UTF8" -eq 1 ] && [ -z "${NO_COLOR:-}" ]; then
   GLYPH_ARROW=$'\342\206\222'     # →
   GLYPH_DOT=$'\342\227\217'       # ●
   GLYPH_RING=$'\342\227\213'      # ○
-  BOX_TL=$'\342\255\255'          # ╭
-  BOX_TR=$'\342\255\256'          # ╮
+  BOX_TL=$'\342\225\255'          # ╭
+  BOX_TR=$'\342\225\256'          # ╮
   BOX_BL=$'\342\225\260'          # ╰
   BOX_BR=$'\342\225\257'          # ╯
   BOX_H=$'\342\224\200'           # ─
@@ -106,7 +106,13 @@ else
 fi
 
 # A line of repeated characters, e.g. `hrule 70 "$BOX_H"`.
-hrule() { printf '%*s' "$1" '' | tr ' ' "$2"; }
+# (Built with a loop, not `tr`, because `tr` maps byte-for-byte and would
+# shred a multibyte fill character into invalid output under a C locale.)
+hrule() {
+  local n="$1" ch="$2" s="" i
+  for (( i = 0; i < n; i++ )); do s+="$ch"; done
+  printf '%s' "$s"
+}
 
 TERM_COLS="$(tput cols 2>/dev/null || echo 80)"
 WIDTH="$TERM_COLS"
@@ -418,7 +424,7 @@ banner() {
 # ------------------------------------------------------------------ actions
 exec_status() {
   step "Services"
-  printf '\n    %-16s %-24s %s\n' "SERVICE" "STATE" "LINK"
+  printf '\n    %-16s %-24s %s\n' "SERVICE" "STATE" "PROBE"
   local svc st code
   for svc in frontend api airflow airflow-scheduler postgres mysql; do
     st="$(service_state "$svc")"

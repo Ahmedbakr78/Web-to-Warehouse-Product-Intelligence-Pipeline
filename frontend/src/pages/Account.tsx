@@ -11,7 +11,9 @@ import {
   LogOut,
   Moon,
   Palette,
+  Pencil,
   RefreshCw,
+  RotateCw,
   Save,
   Settings2,
   Shield,
@@ -126,7 +128,13 @@ export default function Account() {
   const [showPassword, setShowPassword] = useState(false)
   const [keyName, setKeyName] = useState('')
   const [issuedKey, setIssuedKey] = useState<string | null>(null)
+  const [issuedKeyLabel, setIssuedKeyLabel] = useState('API key created')
   const [showKeyModal, setShowKeyModal] = useState(false)
+  const [editingKey, setEditingKey] = useState<any | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editScopes, setEditScopes] = useState<string[]>([])
+  const [editBudget, setEditBudget] = useState('')
+  const [editExpiry, setEditExpiry] = useState('keep')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deletePassword, setDeletePassword] = useState('')
   const [deleteConfirm, setDeleteConfirm] = useState('')
@@ -222,6 +230,7 @@ export default function Account() {
     mutationFn: () => endpoints.createApiKey(user!.user_id, keyName),
     onSuccess: (response: any) => {
       setIssuedKey(response.api_key)
+      setIssuedKeyLabel('API key created')
       setKeyName('')
       setShowKeyModal(false)
       void apiKeys.refetch()
@@ -236,6 +245,54 @@ export default function Account() {
       toast.success('API key revoked')
     },
     onError: (error: Error) => toast.error('Could not revoke the key', error.message),
+  })
+
+  const rotateKey = useMutation({
+    mutationFn: (keyId: number) => endpoints.rotateApiKey(user!.user_id, keyId),
+    onSuccess: (response: any) => {
+      setIssuedKey(response.api_key)
+      setIssuedKeyLabel('API key rotated - update your integrations')
+      void apiKeys.refetch()
+      toast.success('API key rotated', 'The old secret stopped working immediately.')
+    },
+    onError: (error: Error) => toast.error('Could not rotate the key', error.message),
+  })
+
+  const scopesQuery = useApiQuery(['scopes', 'account'], endpoints.myScopes, { staleTime: 300_000 })
+
+  const openKeyEditor = (row: any) => {
+    setEditingKey(row)
+    setEditName(row.name ?? '')
+    // `null` upstream means "everything the owner can do": expand it to the
+    // explicit grantable list so unchecking boxes can only narrow rights.
+    const grantable = scopesQuery.data?.grantable ?? scopesQuery.data?.scopes ?? []
+    setEditScopes(Array.isArray(row.scopes) ? [...row.scopes] : [...grantable])
+    setEditBudget(String(row.rate_limit_per_minute ?? ''))
+    setEditExpiry('keep')
+  }
+
+  const saveKeyEdit = useMutation({
+    mutationFn: () => {
+      const payload: Record<string, unknown> = {}
+      const name = editName.trim()
+      if (name && name !== editingKey?.name) payload.name = name
+      const budget = Number(editBudget)
+      if (editBudget.trim() && Number.isFinite(budget) && budget >= 1) payload.rate_limit_per_minute = Math.floor(budget)
+      const current = new Set(Array.isArray(editingKey?.scopes) ? editingKey.scopes : [])
+      const next = new Set(editScopes)
+      if (current.size !== next.size || [...current].some((scope) => !next.has(scope))) {
+        payload.scopes = [...next]
+      }
+      if (editExpiry === 'never') payload.remove_expiry = true
+      else if (editExpiry !== 'keep') payload.expires_in_days = Number(editExpiry)
+      return endpoints.updateApiKey(user!.user_id, editingKey.key_id, payload)
+    },
+    onSuccess: () => {
+      setEditingKey(null)
+      void apiKeys.refetch()
+      toast.success('API key updated')
+    },
+    onError: (error: Error) => toast.error('Could not update the key', error.message),
   })
 
   const passwordProblems = [
@@ -678,6 +735,22 @@ export default function Account() {
                 { key: 'name', header: 'Name', render: (row: any) => <span className="font-medium">{row.name}</span> },
                 { key: 'prefix', header: 'Prefix', render: (row: any) => <span className="font-mono text-xs">{row.prefix}…</span> },
                 {
+                  key: 'scopes',
+                  header: 'Scopes',
+                  hideBelow: 'lg',
+                  render: (row: any) =>
+                    Array.isArray(row.scopes) && row.scopes.length ? (
+                      <span className="flex max-w-56 flex-wrap gap-1">
+                        {row.scopes.slice(0, 3).map((scope: string) => (
+                          <Badge key={scope} tone="neutral">{scope}</Badge>
+                        ))}
+                        {row.scopes.length > 3 ? <Badge tone="neutral">+{row.scopes.length - 3}</Badge> : null}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-subtle">Full access</span>
+                    ),
+                },
+                {
                   key: 'status',
                   header: 'Status',
                   render: (row: any) => (
@@ -688,21 +761,47 @@ export default function Account() {
                 },
                 { key: 'usage', header: 'Requests', align: 'right', render: (row: any) => row.usage_count ?? 0 },
                 { key: 'last', header: 'Last used', align: 'right', render: (row: any) => (row.last_used_at ? formatRelative(row.last_used_at) : '—') },
-                { key: 'expires', header: 'Expires', align: 'right', hideBelow: 'md', render: (row: any) => formatDateTime(row.expires_at) },
+                {
+                  key: 'expires',
+                  header: 'Expires',
+                  align: 'right',
+                  hideBelow: 'md',
+                  render: (row: any) =>
+                    row.expires_at ? (
+                      <span title={formatDateTime(row.expires_at)}>{formatRelative(row.expires_at)}</span>
+                    ) : (
+                      <span className="text-xs text-subtle">Never</span>
+                    ),
+                },
                 {
                   key: 'actions',
                   header: '',
                   align: 'right',
                   render: (row: any) => (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      icon={<Trash2 className="h-3.5 w-3.5" />}
-                      loading={revokeKey.isPending}
-                      onClick={() => revokeKey.mutate(row.key_id)}
-                    >
-                      Revoke
-                    </Button>
+                    <span className="inline-flex items-center gap-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon={<RotateCw className="h-3.5 w-3.5" />}
+                        loading={rotateKey.isPending}
+                        title="Rotate: issue a new secret, revoke the old one"
+                        onClick={() => rotateKey.mutate(row.key_id)}
+                      >
+                        Rotate
+                      </Button>
+                      <Button size="sm" variant="ghost" icon={<Pencil className="h-3.5 w-3.5" />} onClick={() => openKeyEditor(row)}>
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon={<Trash2 className="h-3.5 w-3.5" />}
+                        loading={revokeKey.isPending}
+                        onClick={() => revokeKey.mutate(row.key_id)}
+                      >
+                        Revoke
+                      </Button>
+                    </span>
                   ),
                 },
               ]}
@@ -895,7 +994,73 @@ export default function Account() {
         <TextInput value={keyName} onChange={(event) => setKeyName(event.target.value)} placeholder="e.g. Airflow integration" autoFocus />
       </Modal>
 
-      <Modal open={Boolean(issuedKey)} onClose={() => setIssuedKey(null)} title="API key created" size="sm">
+      <Modal
+        open={Boolean(editingKey)}
+        onClose={() => setEditingKey(null)}
+        title={`Edit API key${editingKey?.name ? ` - ${editingKey.name}` : ''}`}
+        description="Rename, rescope, change the per-minute budget or move the expiry. Empty fields keep their current values."
+        size="md"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setEditingKey(null)}>
+              Cancel
+            </Button>
+            <Button variant="primary" loading={saveKeyEdit.isPending} disabled={!editName.trim()} onClick={() => saveKeyEdit.mutate()}>
+              Save changes
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div>
+            <p className="stat-label mb-1.5">Key name</p>
+            <TextInput value={editName} onChange={(event) => setEditName(event.target.value)} placeholder="e.g. Airflow integration" autoFocus />
+          </div>
+          <div>
+            <p className="stat-label mb-1.5">Scopes - empty means full access</p>
+            {scopesQuery.isLoading ? (
+              <p className="text-xs text-subtle">Loading scopes…</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 sm:grid-cols-3">
+                {(scopesQuery.data?.scopes ?? []).map((scope) => {
+                  const grantable = scopesQuery.data?.grantable?.includes(scope) ?? true
+                  return (
+                    <Checkbox
+                      key={scope}
+                      label={<span className={cn(!grantable && 'text-subtle')} title={grantable ? scope : `${scope} - beyond your ${scopesQuery.data?.role} role`}>{scope}</span>}
+                      checked={editScopes.includes(scope)}
+                      onChange={(next) =>
+                        setEditScopes((current) => (next ? [...current, scope] : current.filter((item) => item !== scope)))
+                      }
+                    />
+                  )
+                })}
+              </div>
+            )}
+            {!((scopesQuery.data?.grantable ?? []).length === (scopesQuery.data?.scopes ?? []).length) && (
+              <p className="mt-1.5 text-xs text-subtle">Greyed-out scopes sit above your {scopesQuery.data?.role} role and cannot be granted.</p>
+            )}
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <p className="stat-label mb-1.5">Requests per minute</p>
+              <TextInput value={editBudget} inputMode="numeric" onChange={(event) => setEditBudget(event.target.value.replace(/[^0-9]/g, ''))} placeholder="e.g. 240" />
+            </div>
+            <div>
+              <p className="stat-label mb-1.5">Expiry</p>
+              <Select value={editExpiry} onChange={(event) => setEditExpiry(event.target.value)}>
+                <option value="keep">Keep current</option>
+                <option value="30">30 days from now</option>
+                <option value="90">90 days from now</option>
+                <option value="365">1 year from now</option>
+                <option value="never">Never expires</option>
+              </Select>
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal open={Boolean(issuedKey)} onClose={() => setIssuedKey(null)} title={issuedKeyLabel} size="sm">
         <div className="space-y-3">
           <div className="rounded-lg border border-warning/40 bg-warning-soft p-3 text-xs text-warning">
             Copy this key now. For security reasons it is never displayed again - if you lose it, create a new one.

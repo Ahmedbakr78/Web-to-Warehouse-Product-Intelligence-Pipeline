@@ -10,6 +10,7 @@ from fastapi import APIRouter, Request
 
 from app.api.deps import AdminUser, CurrentUser, DbSession, PaginationDep, request_meta
 from app.api.schemas import (
+    ALL_SCOPES,
     ApiKeyCreate,
     ApiKeyCreated,
     ApiKeyRead,
@@ -17,6 +18,7 @@ from app.api.schemas import (
     Message,
     Page,
     PasswordChangeRequest,
+    ScopesRead,
     UserCreate,
     UserDeleteRequest,
     UserRead,
@@ -314,6 +316,16 @@ def set_password(payload: PasswordChangeRequest, session: DbSession, user: Curre
     )
     session.flush()
     return Message(message="Password updated. Existing sessions remain active.")
+
+
+@router.get("/me/scopes", response_model=ScopesRead, summary="Grantable API scopes")
+def my_scopes(user: CurrentUser) -> ScopesRead:
+    """Every scope an API key can carry, plus the subset this role may grant."""
+    return ScopesRead(
+        scopes=sorted(ALL_SCOPES),
+        grantable=sorted(ROLE_RIGHTS.get(user.role, set())),
+        role=user.role,
+    )
 
 
 @router.get("/stats", response_model=UserStats, summary="Usage statistics")

@@ -89,6 +89,14 @@ class Message(BaseModel):
     detail: dict[str, Any] | None = None
 
 
+class ScopesRead(BaseModel):
+    """Every grantable scope plus the subset the caller may actually hand out."""
+
+    scopes: list[str]
+    grantable: list[str]
+    role: str
+
+
 class ErrorResponse(BaseModel):
     error: str
     message: str
