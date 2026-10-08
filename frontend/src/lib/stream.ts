@@ -11,7 +11,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-import { tokenStore } from '@/lib/api'
+import { ApiError, authFetch, tokenStore } from '@/lib/api'
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) ?? '/api/v1'
 
@@ -132,18 +132,20 @@ export function useStreamSnapshot(days = 1, enabled = true) {
   const [snapshot, setSnapshot] = useState<Record<string, unknown> | null>(null)
 
   useEffect(() => {
-    if (!enabled) return
+    if (!enabled || !tokenStore.get()) return
     let cancelled = false
-    const token = tokenStore.get()
-    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {}
 
-    fetch(`${API_BASE}/stream/snapshot?days=${days}`, { headers })
+    authFetch(`${API_BASE}/stream/snapshot?days=${days}`)
       .then((response) => (response.ok ? response.json() : null))
       .then((payload) => {
         if (!cancelled && payload) setSnapshot(payload)
       })
-      .catch(() => {
-        /* the screen falls back to its normal query */
+      .catch((error) => {
+        // An expired session surfaces here as a local 401 without a network
+        // round-trip; the screen falls back to its normal query either way.
+        if (!(error instanceof ApiError && error.needsLogin)) {
+          /* the screen falls back to its normal query */
+        }
       })
 
     return () => {
@@ -161,16 +163,14 @@ export function useJob(jobKey: string | null, { enabled = true }: { enabled?: bo
   const [loading, setLoading] = useState(Boolean(jobKey))
 
   useEffect(() => {
-    if (!jobKey || !enabled) return
+    if (!jobKey || !enabled || !tokenStore.get()) return
     let cancelled = false
     let timer: ReturnType<typeof setTimeout> | null = null
-    const token = tokenStore.get()
-    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {}
     const terminal = ['succeeded', 'failed', 'cancelled']
 
     const poll = async () => {
       try {
-        const response = await fetch(`${API_BASE}/jobs/${jobKey}`, { headers })
+        const response = await authFetch(`${API_BASE}/jobs/${jobKey}`)
         if (!response.ok) {
           if (!cancelled) setLoading(false)
           return
