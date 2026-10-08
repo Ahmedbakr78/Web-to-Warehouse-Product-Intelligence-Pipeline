@@ -49,7 +49,7 @@ export const FONT_SCALES: { id: FontScale; label: string; px: string }[] = [
 ]
 
 export const SCROLLBAR_MODES: { id: ScrollbarMode; label: string; hint: string }[] = [
-  { id: 'modern', label: 'Modern', hint: 'Slim theme-aware scrollbars, always visible' },
+  { id: 'modern', label: 'Modern', hint: 'Slim floating overlay thumb, soft at rest' },
   { id: 'auto', label: 'Auto', hint: 'Scrollbars appear on hover or while scrolling' },
   { id: 'hidden', label: 'Hidden', hint: 'No scrollbars; wheel, touch and keyboard still scroll' },
 ]

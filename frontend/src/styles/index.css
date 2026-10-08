@@ -316,21 +316,24 @@
 
   /* --------------------------- scrollbars -------------------------------------
      Presentation is a first-class appearance axis (`Account > Appearance >
-     Scrollbars`) mirrored on `<html data-scrollbars>`:  `modern` draws a slim
-     theme-aware thumb everywhere, `auto` reveals it only while the pointer is
-     over the scrolling region, and `hidden` removes it entirely (wheel, touch,
-     keyboard and drag keep working). `scrollbar-gutter: stable` above reserves
-     the gutter so switching modes never shifts the layout. */
+     Scrollbars`) mirrored on `<html data-scrollbars>`:  `modern` is a slim
+     floating overlay thumb (soft at rest, solid on approach), `auto` reveals
+     it only while the pointer is over the scrolling region, and `hidden`
+     removes it entirely (wheel, touch, keyboard and drag keep working).
+     `scrollbar-gutter: stable` above reserves the gutter so switching modes
+     never shifts the layout. */
   html {
-    --sb-size: 10px;
+    --sb-size: 8px;
     --sb-radius: 8px;
     --sb-track: transparent;
-    --sb-thumb: color-mix(in srgb, var(--text-subtle) 42%, transparent);
+    --sb-thumb: color-mix(in srgb, var(--text-subtle) 38%, transparent);
     --sb-thumb-hover: color-mix(in srgb, var(--text-muted) 72%, transparent);
     --sb-thumb-active: var(--brand-500);
   }
 
-  /* Modern: slim theme-aware scrollbars, always visible. */
+  /* Modern overlay: an 8px theme-aware thumb that reads as floating chrome —
+     soft at rest, solid while the pointer is nearby, brand-coloured while
+     dragging. The reserved gutter keeps layout stable across modes. */
   html[data-scrollbars='modern'] {
     scrollbar-width: thin;
     scrollbar-color: var(--sb-thumb) var(--sb-track);
@@ -352,16 +355,17 @@
     background-clip: padding-box;
     min-height: 32px;
     min-width: 32px;
+    transition: background-color 120ms ease-out, border-width 120ms ease-out;
   }
 
-  html[data-scrollbars='modern'] ::-webkit-scrollbar-thumb:hover {
+  html[data-scrollbars='modern'] *:hover::-webkit-scrollbar-thumb {
     background-color: var(--sb-thumb-hover);
     border-width: 1px;
   }
 
   html[data-scrollbars='modern'] ::-webkit-scrollbar-thumb:active {
     background-color: var(--sb-thumb-active);
-    border-width: 1px;
+    border-width: 0;
   }
 
   html[data-scrollbars='modern'] ::-webkit-scrollbar-corner {

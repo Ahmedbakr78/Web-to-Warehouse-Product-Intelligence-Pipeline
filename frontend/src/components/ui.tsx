@@ -458,7 +458,7 @@ export function DataTable<T>({
   const alignment = (align?: Column<T>['align']) =>
     align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left'
 
-  if (loading) {
+  if (loading && !rows.length) {
     return (
       <div className="table-wrap" style={{ maxHeight }}>
         <table className="w-full">

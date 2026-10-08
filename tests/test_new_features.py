@@ -309,6 +309,123 @@ def test_builder_query_viewer_can_read(client, viewer_token):
     assert response.json()["row_count"] >= 1
 
 
+def test_builder_having_filters_post_aggregation(client, admin_token):
+    """HAVING narrows grouped rows by an aggregate alias."""
+    response = client.post(
+        "/api/v1/builder/query",
+        headers=auth(admin_token),
+        json={
+            "entity": "products",
+            "group_by": ["category_name"],
+            "aggregates": [{"function": "count", "alias": "n"}],
+            "having": [{"column": "n", "operator": "gte", "value": 1}],
+            "limit": 50,
+        },
+    )
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert "HAVING" in payload["sql_preview"]
+    assert payload["having"] == [{"column": "n", "operator": "gte", "value": 1, "value2": None}]
+    assert all(row[payload["columns"].index("n")] >= 1 for row in payload["rows"])
+
+
+def test_builder_having_rejects_unknown_targets_and_flat_queries(client, admin_token):
+    unknown = client.post(
+        "/api/v1/builder/query",
+        headers=auth(admin_token),
+        json={
+            "entity": "products",
+            "group_by": ["category_name"],
+            "aggregates": [{"function": "count"}],
+            "having": [{"column": "password_hash", "operator": "gte", "value": 1}],
+            "limit": 5,
+        },
+    )
+    assert unknown.status_code == 422
+    flat = client.post(
+        "/api/v1/builder/query",
+        headers=auth(admin_token),
+        json={
+            "entity": "products",
+            "columns": ["canonical_name"],
+            "having": [{"column": "canonical_name", "operator": "not_empty"}],
+            "limit": 5,
+        },
+    )
+    assert flat.status_code == 422
+    assert "having requires group_by" in flat.json()["message"]
+
+
+def test_builder_or_filter_logic(client, admin_token):
+    response = client.post(
+        "/api/v1/builder/query",
+        headers=auth(admin_token),
+        json={
+            "entity": "products",
+            "columns": ["canonical_name", "brand"],
+            "filters": [
+                {"column": "brand", "operator": "eq", "value": "no-such-brand-zzz"},
+                {"column": "category_name", "operator": "not_empty"},
+            ],
+            "filter_logic": "or",
+            "limit": 5,
+        },
+    )
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert " OR " in payload["sql_preview"]
+    assert payload["filter_logic"] == "or"
+    assert payload["row_count"] >= 1
+
+
+def test_builder_rejects_non_groupable_group_by(client, admin_token):
+    """`product_id` is selectable but must not be a grouping key."""
+    response = client.post(
+        "/api/v1/builder/query",
+        headers=auth(admin_token),
+        json={
+            "entity": "products",
+            "group_by": ["product_id"],
+            "aggregates": [{"function": "count"}],
+            "limit": 5,
+        },
+    )
+    assert response.status_code == 422
+    assert "not groupable" in response.json()["message"]
+
+
+def test_builder_rejects_unsafe_alias(client, admin_token):
+    """Aliases reach the SQL text, so only strict identifiers are accepted."""
+    for alias in ["avg price", "x; DROP TABLE vw_product_current; --", "0abc", "a-b"]:
+        response = client.post(
+            "/api/v1/builder/query",
+            headers=auth(admin_token),
+            json={
+                "entity": "products",
+                "group_by": ["category_name"],
+                "aggregates": [{"function": "avg", "column": "price_usd", "alias": alias}],
+                "limit": 5,
+            },
+        )
+        assert response.status_code == 422, alias
+
+
+def test_builder_grouped_query_has_stable_order(client, admin_token):
+    """Grouped queries without an explicit sort still emit ORDER BY."""
+    response = client.post(
+        "/api/v1/builder/query",
+        headers=auth(admin_token),
+        json={
+            "entity": "products",
+            "group_by": ["category_name"],
+            "aggregates": [{"function": "count"}],
+            "limit": 50,
+        },
+    )
+    assert response.status_code == 200, response.text
+    assert "ORDER BY" in response.json()["sql_preview"]
+
+
 # --------------------------------------------------------------------------------------
 # Rate limiting and API-key scopes
 # --------------------------------------------------------------------------------------

@@ -509,10 +509,10 @@ def _build_sql(query: BuilderQuery) -> tuple[str, dict[str, Any], dict[str, Any]
         if query.group_by or query.aggregates:
             # Grouped queries previously emitted no ORDER BY at all, which made
             # OFFSET paging non-deterministic. Default to the first grouping
-            // aggregate so pages are stable.
-            fallback = (query.group_by or [aliases[0] if (aliases := [a.alias or f"{a.function}_{a.column or 'all'}" for a in query.aggregates]) else None])
-            if fallback[0]:
-                order_parts = [f"{fallback[0]} DESC"]
+            # column (or the first aggregate) so pages are stable.
+            fallback = query.group_by[0] if query.group_by else aliases[0] if aliases else None
+            if fallback:
+                order_parts = [f"{fallback} DESC"]
         else:
             default_column, default_direction = entity["default_sort"]
             order_parts = [f"{default_column} {default_direction.upper()}"]
@@ -578,6 +578,8 @@ def schema(_user: QueryUser) -> dict[str, Any]:
             for key, value in OPERATORS.items()
         ],
         "aggregates": list(AGGREGATES),
+        "filter_logic": ["and", "or"],
+        "supports": ["having", "or_filters", "groupable_enforcement", "stable_grouped_order"],
         "max_limit": 1000,
     }
 
@@ -609,6 +611,8 @@ def run_query(payload: BuilderQuery, session: DbSession, _user: QueryUser) -> di
         "truncated": truncated,
         "group_by": payload.group_by,
         "aggregates": [agg.model_dump() for agg in payload.aggregates],
+        "having": [flt.model_dump() for flt in payload.having],
+        "filter_logic": payload.filter_logic,
         "sql_preview": sql,
         "duration_ms": duration,
     }
