@@ -46,15 +46,17 @@ import {
   DENSITIES,
   FONT_SCALES,
   MOTION_MODES,
+  SCROLLBAR_MODES,
   THEME_MODES,
   useAccent,
   useDensity,
   useDirection,
   useFontScale,
   useMotion,
+  useScrollbars,
   useTheme,
 } from '@/lib/theme'
-import type { Density, Direction, FontScale, MotionMode, ThemeMode } from '@/lib/theme'
+import type { Density, Direction, FontScale, MotionMode, ScrollbarMode, ThemeMode } from '@/lib/theme'
 import { cn } from '@/lib/cn'
 import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
@@ -88,6 +90,7 @@ export default function Account() {
   const { motion } = useMotion()
   const { direction } = useDirection()
   const { fontScale } = useFontScale()
+  const { scrollbars } = useScrollbars()
 
   /**
    * Appearance controls apply instantly (so the preview is live) and then persist
@@ -99,6 +102,7 @@ export default function Account() {
   const applyFontScaleOption = (next: FontScale) => saveAppearance({ font_scale: next })
   const applyMotionOption = (next: MotionMode) => saveAppearance({ motion: next })
   const applyDirectionOption = (next: Direction) => saveAppearance({ direction: next })
+  const applyScrollbarsOption = (next: ScrollbarMode) => saveAppearance({ scrollbars: next })
 
   const toast = useToast()
   const queryClient = useQueryClient()
@@ -551,6 +555,19 @@ export default function Account() {
                 </p>
               </div>
 
+              <div>
+                <p className="stat-label mb-1.5">Scrollbars</p>
+                <Segmented
+                  options={SCROLLBAR_MODES.map((option) => ({ id: option.id, label: option.label }))}
+                  value={scrollbars}
+                  onChange={(value) => applyScrollbarsOption(value as ScrollbarMode)}
+                />
+                <p className="mt-1.5 text-[11px] text-subtle">
+                  {SCROLLBAR_MODES.find((option) => option.id === scrollbars)?.hint}. The scrollbar
+                  gutter is always reserved, so switching never shifts the layout.
+                </p>
+              </div>
+
               <div className="rounded-lg bg-surface-2 p-3 text-[11px] leading-relaxed text-muted">
                 Appearance is applied before the first paint, so reloading never flashes the wrong theme. Every
                 choice is saved to your profile as well as this browser, so a new device or a new tab inherits it
@@ -851,7 +868,7 @@ export default function Account() {
                 Sync to server
               </Button>
             </div>
-            <p className="mt-3 text-xs text-muted">Preferences sync to your profile, so a new device or browser inherits them. Appearance (theme, accent, density, font, motion, direction) lives on the Appearance tab and uses the same sync.</p>
+            <p className="mt-3 text-xs text-muted">Preferences sync to your profile, so a new device or browser inherits them. Appearance (theme, accent, density, font, motion, direction, scrollbars) lives on the Appearance tab and uses the same sync.</p>
           </Card>
         </div>
       ) : null}

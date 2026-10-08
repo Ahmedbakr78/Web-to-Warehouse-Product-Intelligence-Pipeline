@@ -575,9 +575,9 @@ port_conflict() { # port label compose-service
 }
 
 MODE_DESC="seed ${DEMO_DAYS} days"
-[ "$SEED" -eq 0 ] && MODE_DESC="no seed"
-[ "$RESET" -eq 1 ] && MODE_DESC="${MODE_DESC}, reset"
-[ "$REBUILD" -eq 1 ] && MODE_DESC="${MODE_DESC}, rebuild"
+if [ "$SEED" -eq 0 ]; then MODE_DESC="no seed"; fi
+if [ "$RESET" -eq 1 ]; then MODE_DESC="${MODE_DESC}, reset"; fi
+if [ "$REBUILD" -eq 1 ]; then MODE_DESC="${MODE_DESC}, rebuild"; fi
 banner "$MODE_DESC"
 
 phase "Preparing the environment"
@@ -736,6 +736,6 @@ fi
 # ------------------------------------------------------------------- summary
 printf '\n'
 links_card "The stack is running"
-printf '\n  Finished in %s %s open the dashboard %s %s\n\n' \
+printf '\n  Finished in %s %s open the dashboard: %s\n\n' \
   "$(fmt_dur $(( SECONDS - STEP_START )))" \
-  "$GLYPH_ARROW" "$(link "$DASH_URL")" "$NC"
+  "$GLYPH_ARROW" "$(link "$DASH_URL")"
