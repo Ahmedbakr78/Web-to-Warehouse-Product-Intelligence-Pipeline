@@ -7,9 +7,9 @@
  * eases in or out, so opening the menu and switching screens feel instantaneous.
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { PanelLeftClose, PanelLeftOpen, Wifi, WifiOff, X, AlertTriangle } from 'lucide-react'
+import { Menu, PanelLeftClose, PanelLeftOpen, Search, Wifi, WifiOff, X, AlertTriangle } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import type { LucideIcon } from 'lucide-react'
 
@@ -85,16 +85,29 @@ export type NavProps = {
   /** Mark the item matching the current path as active. */
   variant?: 'rail' | 'drawer' | 'tabbar'
   onNavigate?: () => void
+  /** Free-text filter applied to labels and descriptions (drawer search). */
+  filter?: string
 }
 
-export function NavContent({ collapsed = false, showGroups = true, variant = 'drawer', onNavigate }: NavProps) {
+export function NavContent({ collapsed = false, showGroups = true, variant = 'drawer', onNavigate, filter = '' }: NavProps) {
   const { can } = useAuth()
+  const term = filter.trim().toLowerCase()
+  const visibleGroups = NAV_GROUPS.map((group) => ({
+    title: group.title,
+    items: group.items.filter(
+      (item) =>
+        (!item.permission || can(item.permission)) &&
+        (!term || item.label.toLowerCase().includes(term) || item.description.toLowerCase().includes(term)),
+    ),
+  })).filter((group) => group.items.length > 0)
 
   return (
     <div className={cn('flex flex-col', variant === 'rail' ? 'gap-4' : 'gap-0.5')}>
-      {NAV_GROUPS.map((group) => {
-        const items = group.items.filter((item) => !item.permission || can(item.permission))
-        if (!items.length) return null
+      {visibleGroups.length === 0 && term ? (
+        <p className="px-3 py-6 text-center text-xs text-subtle">No screens match “{filter.trim()}”.</p>
+      ) : null}
+      {visibleGroups.map((group) => {
+        const items = group.items
         return (
           <div key={group.title} className={variant === 'rail' ? '' : 'mb-4'}>
             {showGroups && !collapsed ? <p className="section-title mb-1.5 px-3">{group.title}</p> : null}
@@ -137,7 +150,7 @@ export function NavContent({ collapsed = false, showGroups = true, variant = 'dr
    Mobile bottom tab bar
    ===================================================================================== */
 
-export function PhoneTabBar() {
+export function PhoneTabBar({ onMore }: { onMore?: () => void }) {
   const { can } = useAuth()
   const tabs = PHONE_TABS.filter((tab) => {
     const match = NAV_GROUPS.flatMap((group) => group.items).find((item) => item.to === tab.to)
@@ -165,6 +178,17 @@ export function PhoneTabBar() {
           <span className="truncate">{tab.label}</span>
         </NavLink>
       ))}
+      {/* Every other screen lives behind this button: the drawer lists the full
+          grouped navigation with search, so the whole app is reachable by thumb. */}
+      <button
+        type="button"
+        onClick={onMore}
+        aria-label="All screens"
+        className="flex min-h-[56px] flex-1 flex-col items-center justify-center gap-0.5 px-1 py-2 text-[10px] font-medium text-subtle"
+      >
+        <Menu className="h-5 w-5" aria-hidden />
+        <span className="truncate">More</span>
+      </button>
     </nav>
   )
 }
@@ -289,14 +313,40 @@ export function useRailState() {
     drawerRef,
     onTouchStart,
     onTouchEnd,
-    edgeSwipe: useCallback(
-      (event: React.TouchEvent) => {
-        const touch = event.touches[0]
-        touchStart.current = { x: touch.clientX, y: touch.clientY }
-      },
-      [],
-    ),
   }
+}
+
+/**
+ * Swipe inward from the screen edge to open the drawer (touch devices).
+ *
+ * The gesture only starts within 28px of the leading edge and only fires on a
+ * mostly-horizontal swipe, so vertical scrolling and horizontal table pans never
+ * trigger it. Mirrors automatically in RTL via the `dir` attribute.
+ */
+export function useEdgeSwipeOpen(onOpen: () => void, enabled: boolean) {
+  const touchStart = useRef<{ x: number; y: number } | null>(null)
+  const onTouchStart = useCallback((event: React.TouchEvent) => {
+    const touch = event.touches[0]
+    touchStart.current = { x: touch.clientX, y: touch.clientY }
+  }, [])
+  const onTouchEnd = useCallback(
+    (event: React.TouchEvent) => {
+      const start = touchStart.current
+      touchStart.current = null
+      if (!enabled || !start) return
+      const touch = event.changedTouches[0]
+      const dx = touch.clientX - start.x
+      const dy = touch.clientY - start.y
+      // Horizontal intent only, so vertical scrolling is never hijacked.
+      if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return
+      const rtl = document.documentElement.getAttribute('dir') === 'rtl'
+      const fromEdge = rtl ? window.innerWidth - start.x : start.x
+      if (fromEdge > 28) return
+      if ((!rtl && dx > 0) || (rtl && dx < 0)) onOpen()
+    },
+    [enabled, onOpen],
+  )
+  return useMemo(() => ({ onTouchStart, onTouchEnd }), [onTouchStart, onTouchEnd])
 }
 
 /* =====================================================================================
@@ -334,6 +384,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
 
 export function NavDrawer({ open, onClose, ref }: { open: boolean; onClose: () => void; ref?: React.Ref<HTMLDivElement> }) {
   const localRef = useRef<HTMLDivElement | null>(null)
+  const [filter, setFilter] = useState('')
   const attachRef = useCallback(
     (node: HTMLDivElement | null) => {
       localRef.current = node
@@ -344,7 +395,8 @@ export function NavDrawer({ open, onClose, ref }: { open: boolean; onClose: () =
   )
 
   /**
-   * Escape closes the drawer, and focus moves into it while it is open.
+   * Escape closes the drawer, Tab cycles inside it, and focus moves into it
+   * while it is open.
    *
    * `AppShell` also handles Escape globally, but a modal dialog that only closes when
    * some ancestor happens to handle the key is not really modal: keyboard users would
@@ -354,12 +406,29 @@ export function NavDrawer({ open, onClose, ref }: { open: boolean; onClose: () =
   useEffect(() => {
     if (!open) return
     const previouslyFocused = document.activeElement as HTMLElement | null
+    setFilter('')
     localRef.current?.focus()
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.stopPropagation()
         onClose()
+        return
+      }
+      if (event.key !== 'Tab' || !localRef.current) return
+      const focusables = localRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select, [tabindex]:not([tabindex="-1"])',
+      )
+      if (!focusables.length) return
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
+      const active = document.activeElement as HTMLElement | null
+      if (event.shiftKey && (active === first || !localRef.current.contains(active))) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault()
+        first.focus()
       }
     }
     document.addEventListener('keydown', onKeyDown)
@@ -381,15 +450,27 @@ export function NavDrawer({ open, onClose, ref }: { open: boolean; onClose: () =
     >
       <div className="absolute inset-0 bg-[var(--overlay)]" onClick={onClose} aria-hidden />
       <aside className="relative m-3 flex h-[calc(100%-1.5rem)] w-72 max-w-[calc(82vw-1.5rem)] flex-col overflow-hidden rounded-2xl border border-line bg-[var(--sidebar-bg)] shadow-xl pb-[env(safe-area-inset-bottom)]">
-        <div className="flex h-14 shrink-0 items-center justify-between border-b border-line px-4">
-          <div className="flex items-center gap-2.5">
+        <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-line px-4">
+          <div className="flex min-w-0 items-center gap-2.5">
             <img src="/logo.png" alt="Product Intelligence logo" className="h-8 w-8 rounded-lg" />
-            <p className="text-sm font-semibold">Product Intelligence</p>
+            <p className="truncate text-sm font-semibold">Product Intelligence</p>
           </div>
           <IconButton label="Close menu" icon={<X className="h-4 w-4" />} onClick={onClose} />
         </div>
+        <div className="shrink-0 border-b border-line px-3 py-2">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-subtle" aria-hidden />
+            <input
+              value={filter}
+              onChange={(event) => setFilter(event.target.value)}
+              placeholder="Filter screens…"
+              aria-label="Filter navigation screens"
+              className="input h-8 py-0 pl-8 text-xs"
+            />
+          </div>
+        </div>
         <nav className="flex-1 overflow-y-auto px-2 py-3" aria-label="Mobile navigation">
-          <NavContent variant="drawer" onNavigate={onClose} />
+          <NavContent variant="drawer" onNavigate={onClose} filter={filter} showGroups={!filter.trim()} />
         </nav>
       </aside>
     </div>

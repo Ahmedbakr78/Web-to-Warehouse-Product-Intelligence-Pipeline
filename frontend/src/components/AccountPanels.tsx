@@ -8,19 +8,22 @@
  * worse than no tab.
  */
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import {
   Bell,
   BellOff,
   Database,
   FileDown,
+  FileJson,
   Gauge,
   HardDrive,
   Mail,
+  Save,
   ShieldCheck,
   Trash2,
   TriangleAlert,
+  Upload,
 } from 'lucide-react'
 
 import {
@@ -39,7 +42,17 @@ import {
 } from '@/components/ui'
 import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
-import { formatDateTime, formatRelative } from '@/lib/format'
+import { useAuth } from '@/hooks/useAuth'
+import { downloadJson, formatDateTime, formatRelative } from '@/lib/format'
+import { localStore } from '@/lib/session'
+import {
+  ACCENT_KEYS,
+  DENSITIES,
+  FONT_SCALES,
+  MOTION_MODES,
+  SCROLLBAR_MODES,
+  THEME_MODES,
+} from '@/lib/theme'
 
 const METRICS = [
   { id: 'price_change_pct', label: 'Price change %' },
@@ -422,6 +435,15 @@ export function PrivacyPanel({
 
       <Card>
         <CardHeader
+          title="Preferences backup"
+          subtitle="Move your look & feel to another browser"
+          icon={<Save className="h-4 w-4" />}
+        />
+        <PreferencesBackupPanel />
+      </Card>
+
+      <Card>
+        <CardHeader
           title="Export or delete"
           subtitle="Portability, or removal"
           icon={<HardDrive className="h-4 w-4" />}
@@ -466,6 +488,175 @@ export function PrivacyPanel({
           </div>
         </div>
       </Card>
+    </div>
+  )
+}
+
+/* --------------------------------------------------------------------------------------
+ * Preferences backup: export/import the appearance + workspace preferences as JSON.
+ *
+ * Server profile fields travel through the existing PATCH /users/me contract and
+ * browser appearance switches through the `pip.*` localStorage keys; nothing new
+ * is invented server-side. Unknown or out-of-range values are dropped on import
+ * so a hand-edited file can never corrupt the account.
+ * ------------------------------------------------------------------------------------ */
+
+const PREF_FILE_KIND = 'pip-preferences'
+
+const LOCAL_PREF_ALLOWLIST: Record<string, readonly string[]> = {
+  'pip.theme': THEME_MODES.map((mode) => mode.id),
+  'pip.density': DENSITIES.map((mode) => mode.id),
+  'pip.accent': ACCENT_KEYS,
+  'pip.motion': MOTION_MODES.map((mode) => mode.id),
+  'pip.direction': ['ltr', 'rtl'],
+  'pip.fontScale': FONT_SCALES.map((mode) => mode.id),
+  'pip.scrollbars': SCROLLBAR_MODES.map((mode) => mode.id),
+}
+
+const SERVER_PREF_FIELDS = [
+  'theme',
+  'accent',
+  'density',
+  'motion',
+  'direction',
+  'font_scale',
+  'scrollbars',
+  'rows_per_page',
+  'default_currency',
+  'locale',
+  'timezone',
+  'email_alerts_enabled',
+  'weekly_digest_enabled',
+  'price_change_alert_pct',
+  'avatar_color',
+] as const
+
+function PreferencesBackupPanel() {
+  const { user } = useAuth()
+  const toast = useToast()
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const exportPrefs = () => {
+    const local: Record<string, string> = {}
+    for (const key of Object.keys(LOCAL_PREF_ALLOWLIST)) {
+      const value = localStorage.getItem(key)
+      if (value != null) local[key] = value
+    }
+    const startPage = localStore.get('account.startPage', null as string | null)
+    if (typeof startPage === 'string' && startPage) local['pip.account.startPage'] = startPage
+    const server: Record<string, unknown> = {}
+    for (const field of SERVER_PREF_FIELDS) {
+      const value = (user as Record<string, unknown> | null)?.[field]
+      if (value !== undefined) server[field] = value
+    }
+    const preferences = (user as Record<string, unknown> | null)?.preferences
+    if (preferences && typeof preferences === 'object') server.preferences = preferences
+    downloadJson('pip-preferences.json', {
+      kind: PREF_FILE_KIND,
+      app: 'product-intelligence-dashboard',
+      exported_at: new Date().toISOString(),
+      local,
+      server,
+    })
+    toast.success('Preferences exported', 'Restore them on any browser with Import.')
+  }
+
+  const importPrefs = useMutation({
+    mutationFn: async (file: File) => {
+      const parsed: unknown = JSON.parse(await file.text())
+      if (!parsed || typeof parsed !== 'object') throw new Error('Not a preferences file.')
+      const bundle = parsed as Record<string, unknown>
+      if (bundle.kind !== PREF_FILE_KIND) throw new Error('Not a preferences file.')
+      const local = (bundle.local ?? {}) as Record<string, unknown>
+      const server = (bundle.server ?? {}) as Record<string, unknown>
+
+      let appliedLocal = 0
+      let skippedLocal = 0
+      for (const [key, value] of Object.entries(local)) {
+        if (key === 'pip.account.startPage') {
+          if (typeof value === 'string' && value.startsWith('/')) {
+            localStore.set('account.startPage', value)
+            appliedLocal += 1
+          } else skippedLocal += 1
+          continue
+        }
+        const allowed = LOCAL_PREF_ALLOWLIST[key]
+        if (allowed && typeof value === 'string' && allowed.includes(value)) {
+          localStorage.setItem(key, value)
+          appliedLocal += 1
+        } else skippedLocal += 1
+      }
+
+      const payload: Record<string, unknown> = {}
+      for (const field of SERVER_PREF_FIELDS) {
+        if (server[field] !== undefined) payload[field] = server[field]
+      }
+      if (server.preferences && typeof server.preferences === 'object') {
+        payload.preferences = server.preferences
+      }
+      let appliedServer = 0
+      if (Object.keys(payload).length) {
+        await endpoints.updateMe(payload)
+        appliedServer = Object.keys(payload).length
+      }
+      return { appliedLocal, skippedLocal, appliedServer }
+    },
+    onSuccess: ({ appliedLocal, skippedLocal, appliedServer }) => {
+      toast.success(
+        'Preferences imported',
+        `${appliedLocal} browser + ${appliedServer} server settings applied${skippedLocal ? `, ${skippedLocal} unknown values skipped` : ''}. Reloading…`,
+      )
+      window.setTimeout(() => window.location.reload(), 600)
+    },
+    onError: (error: Error) => toast.error('Could not import the preferences', error.message),
+  })
+
+  return (
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+      <div className="rounded-xl border border-line bg-surface-2 p-3">
+        <p className="flex items-center gap-2 text-sm font-medium">
+          <FileJson className="h-4 w-4 text-brand-500" aria-hidden />
+          Download preferences
+        </p>
+        <p className="mt-1 text-[11px] leading-relaxed text-muted">
+          Theme, accent, density, font, motion, direction, scrollbars, start page, currency, locale and
+          alert defaults - everything that makes the app yours, in one file.
+        </p>
+        <Button className="mt-3" variant="secondary" icon={<Save className="h-4 w-4" />} onClick={exportPrefs}>
+          Export preferences
+        </Button>
+      </div>
+      <div className="rounded-xl border border-line bg-surface-2 p-3">
+        <p className="flex items-center gap-2 text-sm font-medium">
+          <Upload className="h-4 w-4 text-brand-500" aria-hidden />
+          Restore preferences
+        </p>
+        <p className="mt-1 text-[11px] leading-relaxed text-muted">
+          Unknown or out-of-range values are skipped, then the app reloads so every screen picks them up.
+        </p>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="application/json,.json"
+          className="hidden"
+          aria-hidden
+          tabIndex={-1}
+          onChange={(event) => {
+            const file = event.target.files?.[0]
+            event.target.value = ''
+            if (file) importPrefs.mutate(file)
+          }}
+        />
+        <Button
+          className="mt-3"
+          variant="secondary"
+          icon={<Upload className="h-4 w-4" />}
+          loading={importPrefs.isPending}
+          onClick={() => fileRef.current?.click()}
+        >
+          Import from file
+        </Button>
+      </div>
     </div>
   )
 }

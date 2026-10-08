@@ -30,6 +30,7 @@ import {
   Button,
   Card,
   CardHeader,
+  Checkbox,
   DataTable,
   EmptyState,
   KeyValue,
@@ -278,8 +279,8 @@ export default function Account() {
       if (name && name !== editingKey?.name) payload.name = name
       const budget = Number(editBudget)
       if (editBudget.trim() && Number.isFinite(budget) && budget >= 1) payload.rate_limit_per_minute = Math.floor(budget)
-      const current = new Set(Array.isArray(editingKey?.scopes) ? editingKey.scopes : [])
-      const next = new Set(editScopes)
+      const current = new Set<string>(Array.isArray(editingKey?.scopes) ? editingKey.scopes : [])
+      const next = new Set<string>(editScopes)
       if (current.size !== next.size || [...current].some((scope) => !next.has(scope))) {
         payload.scopes = [...next]
       }
