@@ -362,13 +362,13 @@ class Pipeline:
                     matches = reconciler.run(persist=not self.config.dry_run)
                     reconciliation = reconciliation_summary(matches)
                     meta["rows"] = len(matches)
-                    meta["detail"] = f"{reconciliation['matched']}/{reconciliation['total']} catalog SKUs matched"
+                    meta["detail"] = (
+                        f"{reconciliation['matched']}/{reconciliation['total']} catalog SKUs matched"
+                    )
                 session.commit()
             except Exception as exc:
-                try:
+                with suppress(Exception):
                     session.rollback()
-                except Exception:
-                    pass
                 result.warnings.append(f"reconcile: {type(exc).__name__}: {str(exc)[:180]}")
                 log.warning("reconcile stage failed: %s", exc, exc_info=settings.app_debug)
 
@@ -385,10 +385,8 @@ class Pipeline:
                     )
                 session.commit()
             except Exception as exc:
-                try:
+                with suppress(Exception):
                     session.rollback()
-                except Exception:
-                    pass
                 result.warnings.append(f"quality: {type(exc).__name__}: {str(exc)[:180]}")
                 log.warning("quality stage failed: %s", exc, exc_info=settings.app_debug)
 

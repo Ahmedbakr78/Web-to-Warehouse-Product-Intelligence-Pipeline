@@ -314,7 +314,7 @@ def sources_status(session: DbSession, _user: OptionalUser) -> list[dict[str, An
             sa.text(
                 """
             SELECT s.source_code, s.name, s.kind, s.enabled, s.rate_limit_per_minute, s.min_delay_seconds,
-                   s.terms_allowed, s.robots_checked_at, s.last_run_at, s.last_run_id, s.total_records,
+                   s.terms_allowed, s.license_note, s.robots_checked_at, s.last_run_at, s.last_run_id, s.total_records,
                    s.total_runs, s.success_rate_pct, s.avg_duration_seconds, s.base_url, s.terms_url,
                    COALESCE(y.consecutive_failures, 0) AS consecutive_failures,
                    COALESCE(y.status, 'unknown') AS sync_status,
@@ -368,6 +368,7 @@ def sources_status(session: DbSession, _user: OptionalUser) -> list[dict[str, An
                 "terms_url": source.get("terms_url"),
                 "terms_allowed": source.get("terms_allowed", True),
                 "description": source.get("description", ""),
+                "license_note": source.get("license_note"),
                 "robots_respected": source.get("robots_respected", True),
                 "supports_paging": source.get("supports_paging", False),
                 "rate_limit_per_minute": source.get("rate_limit_per_minute", 0),

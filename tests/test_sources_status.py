@@ -63,6 +63,11 @@ def test_never_run_sources_keep_their_compliance_metadata(client, admin_token):
         # Truthiness, not identity: SQLite hands back 1/0 for boolean columns
         # where PostgreSQL returns a real bool, and the dashboard only ever
         # tests the value for truth.
+        if not row["terms_allowed"]:
+            # The one honest exception: a deliberately blocked source must say
+            # why (stooq: dead endpoint, robots disallow, JS wall).
+            assert row.get("license_note"), row["source_code"]
+            continue
         assert row["terms_allowed"], row["source_code"]
         assert row["rate_limit_per_minute"] > 0, row["source_code"]
         assert row["min_delay_seconds"] >= 0, row["source_code"]
