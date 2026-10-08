@@ -14,6 +14,13 @@ catalog price-gap, data-quality and compliance analysis.
 | `06_catalog_price_gaps.sql` | Are our list prices competitive? Which SKUs are missing from the market? |
 | `07_data_quality_posture.sql` | How trustworthy is the warehouse, and which rules keep failing? |
 | `08_market_and_compliance.sql` | Market overview per source, daily pulse, and robots.txt compliance evidence. |
+| `09_brand_price_positioning.sql` | Which brands price above or below the market, and do ratings justify it? |
+| `10_source_overlap.sql` | Products observed by more than one source: cross-feed dedupe proof with best/worst price. |
+| `11_rating_value_picks.sql` | Best-rated products priced below their category average. |
+| `12_discount_depth.sql` | Deepest genuine was/now discounts by category. |
+| `13_category_concentration.sql` | Top-brand shelf share per category (single-brand shelves surface here). |
+| `14_new_product_velocity.sql` | Assortment growth per day: new products, categories touched, sources reporting. |
+| `15_stockout_risk.sql` | Thinnest availability relative to observed demand, unknown-status shelves excluded. |
 
 ## Running them
 
