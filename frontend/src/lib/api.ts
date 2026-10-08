@@ -317,6 +317,8 @@ export const endpoints = {
   useSavedView: (id: number) => api.post<any>(`/saved-views/${id}/use`),
 
   queryHistory: (params: Record<string, QueryValue> = {}) => api.get<any[]>('/queries/history', params),
+
+  notifications: (pageSize = 25, unreadOnly = false) =>
     api.get<any>('/notifications', { page_size: pageSize, unread_only: unreadOnly }),
   markRead: (id: number) => api.post<any>(`/notifications/${id}/read`),
   markAllRead: () => api.post<any>('/notifications/read-all'),
