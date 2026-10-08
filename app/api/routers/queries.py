@@ -235,6 +235,14 @@ def examples(_user: QueryUser) -> list[dict[str, str]]:
             "title": "Data quality failures",
             "sql": "SELECT rule_code, rule_name, dimension, severity, status, message\nFROM dq_rule_result WHERE status <> 'pass' ORDER BY evaluated_at DESC LIMIT 50;",
         },
+        {
+            "title": "Cross-store price spread",
+            "sql": "SELECT v.canonical_name, COUNT(DISTINCT v.source_code) AS stores,\n       ROUND(MIN(v.price_usd), 2) AS min_usd, ROUND(MAX(v.price_usd), 2) AS max_usd\nFROM vw_product_current v\nJOIN dim_product p ON p.product_id = v.product_id\nWHERE v.is_active AND v.price_usd IS NOT NULL\nGROUP BY p.fingerprint\nHAVING COUNT(DISTINCT v.source_code) > 1\nORDER BY max_usd - min_usd DESC LIMIT 25;",
+        },
+        {
+            "title": "Catalogue price bands",
+            "sql": "SELECT CASE WHEN price_usd IS NULL THEN 'no price' WHEN price_usd < 10 THEN 'under $10'\n            WHEN price_usd < 50 THEN '$10-$50' WHEN price_usd < 200 THEN '$50-$200'\n            WHEN price_usd < 1000 THEN '$200-$1k' ELSE 'over $1k' END AS band,\n       COUNT(*) AS listings\nFROM vw_product_current WHERE is_active GROUP BY band ORDER BY listings DESC;",
+        },
     ]
 
 

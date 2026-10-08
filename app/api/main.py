@@ -201,6 +201,9 @@ def create_app() -> FastAPI:
     # ------------------------------------------------------------------ error handlers
     @app.exception_handler(PipelineError)
     async def pipeline_error_handler(request: Request, exc: PipelineError) -> JSONResponse:
+        # RFC 7235: a 401 names the auth scheme, so browser tooling and API
+        # clients can tell "session expired" from "forbidden".
+        headers = {"WWW-Authenticate": 'Bearer realm="pip"'} if exc.status_code == 401 else None
         return JSONResponse(
             status_code=exc.status_code,
             content={
@@ -209,6 +212,7 @@ def create_app() -> FastAPI:
                 "details": exc.details,
                 "path": request.url.path,
             },
+            headers=headers,
         )
 
     @app.exception_handler(RequestValidationError)

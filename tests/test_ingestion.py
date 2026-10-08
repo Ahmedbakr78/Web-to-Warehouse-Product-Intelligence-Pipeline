@@ -36,6 +36,10 @@ def test_registry_contains_every_bundled_source():
         "kraken_tickers",
         "makeup_products",
         "ygoprodeck_cards",
+        "cheapshark_deals",
+        "itunes_apps",
+        "gutendex_books",
+        "mmobomb_games",
     } <= codes
 
 
@@ -695,3 +699,207 @@ def test_ygoprodeck_falls_back_to_set_price_and_skips_bad_rows():
     assert source._to_raw(item).price_text is None
     assert source._to_raw({}) is None
     assert source._to_raw(None) is None  # type: ignore[arg-type]
+
+
+# --------------------------------------------------------------------------------------
+# CheapShark deals
+# --------------------------------------------------------------------------------------
+CHEAPSHARK_ITEM = {
+    "gameID": "612",
+    "storeID": "1",
+    "dealID": "abc123",
+    "title": "Portal 2",
+    "salePrice": "0.99",
+    "normalPrice": "9.99",
+    "savings": "90.09",
+    "steamRatingText": "Overwhelmingly Positive",
+    "steamRatingPercent": "97",
+    "steamRatingCount": "12345",
+    "thumb": "https://example.local/portal2.jpg",
+}
+
+
+def test_cheapshark_maps_discount_pair_and_rating():
+    from app.ingestion.sources.cheapshark import CheapSharkDealsSource
+
+    raw = CheapSharkDealsSource()._to_raw(CHEAPSHARK_ITEM)
+    assert raw is not None
+    assert raw.source_code == "cheapshark_deals"
+    assert raw.source_product_id == "612"
+    assert raw.name == "Portal 2"
+    assert raw.category == "Video Games"
+    assert raw.price_text == "0.99"
+    assert raw.list_price_text == "9.99"
+    assert raw.rating_text == "4.85 out of 5"
+    assert raw.rating_count_text == "12345"
+    assert raw.brand == "Steam"
+    assert "abc123" in (raw.url or "")
+    assert CheapSharkDealsSource._rating_text("0") is None
+    assert CheapSharkDealsSource._rating_text(None) is None
+    assert CheapSharkDealsSource()._to_raw({}) is None
+    assert CheapSharkDealsSource()._to_raw({"title": "No price"}) is None
+
+
+def test_cheapshark_paging_stops_on_empty_page():
+    from app.ingestion.sources.cheapshark import CheapSharkDealsSource
+
+    calls: list[int] = []
+
+    class _StubClient:
+        def get_json(self, url, params=None):
+            calls.append((params or {}).get("pageNumber", 0))
+            return [CHEAPSHARK_ITEM] if (params or {}).get("pageNumber", 0) == 0 else []
+
+    source = CheapSharkDealsSource(client=_StubClient())
+    rows = list(source.fetch(limit=100))
+    assert [row.name for row in rows] == ["Portal 2"]
+    assert calls == [0]  # a short page ends pagination without a second request
+    assert not source.errors
+
+
+# --------------------------------------------------------------------------------------
+# iTunes Search apps
+# --------------------------------------------------------------------------------------
+ITUNES_ITEM = {
+    "trackId": 12345,
+    "trackName": "Snapseed",
+    "bundleId": "com.example.snapseed",
+    "price": 0.0,
+    "currency": "USD",
+    "primaryGenreName": "Photo & Video",
+    "sellerName": "Google LLC",
+    "averageUserRating": 4.8,
+    "userRatingCount": 9876,
+    "trackViewUrl": "https://apps.apple.com/app/id12345",
+    "artworkUrl100": "https://example.local/art.jpg",
+}
+
+
+def test_itunes_maps_price_genre_seller_and_rating():
+    from app.ingestion.sources.itunes import ITunesAppsSource
+
+    raw = ITunesAppsSource()._to_raw(ITUNES_ITEM)
+    assert raw is not None
+    assert raw.source_code == "itunes_apps"
+    assert raw.source_product_id == "12345"
+    assert raw.category == "Photo & Video"
+    assert raw.price_text == "0.0"
+    assert raw.currency_hint == "USD"
+    assert raw.rating_text == "4.8 out of 5"
+    assert raw.rating_count_text == "9876"
+    assert raw.brand == "Google LLC"
+    assert ITunesAppsSource()._to_raw({}) is None
+    assert ITunesAppsSource()._to_raw("nope") is None  # type: ignore[arg-type]
+
+
+def test_itunes_dedupes_tracks_across_terms():
+    from app.ingestion.sources.itunes import ITunesAppsSource
+
+    class _StubClient:
+        def get_json(self, url, params=None):
+            term = (params or {}).get("term")
+            if term == "photo editor":
+                return {"resultCount": 1, "results": [ITUNES_ITEM]}
+            if term == "fitness tracker":
+                return {"resultCount": 2, "results": [ITUNES_ITEM, {**ITUNES_ITEM, "trackId": 999}]}
+            return {"resultCount": 0, "results": []}
+
+    source = ITunesAppsSource(client=_StubClient())
+    rows = list(source.fetch(limit=10))
+    assert [row.source_product_id for row in rows] == ["12345", "999"]
+    assert not source.errors
+
+
+# --------------------------------------------------------------------------------------
+# Gutendex books
+# --------------------------------------------------------------------------------------
+GUTENDEX_ITEM = {
+    "id": 1342,
+    "title": "Pride and Prejudice",
+    "authors": [{"name": "Austen, Jane"}],
+    "subjects": ["Love stories", "Domestic fiction"],
+    "bookshelves": ["Best Books Ever Listings"],
+    "languages": ["en"],
+    "download_count": 50000,
+    "summaries": ["A romantic novel of manners."],
+    "formats": {"image/jpeg": "https://example.local/cover.jpg"},
+}
+
+
+def test_gutendex_maps_author_shelf_and_links():
+    from app.ingestion.sources.gutendex import GutendexBooksSource
+
+    raw = GutendexBooksSource()._to_raw(GUTENDEX_ITEM)
+    assert raw is not None
+    assert raw.source_code == "gutendex_books"
+    assert raw.source_product_id == "1342"
+    assert raw.name == "Pride and Prejudice - Austen, Jane"
+    assert raw.category == "Love Stories"
+    assert raw.brand == "Austen, Jane"
+    assert raw.price_text is None  # public-domain catalogue: no price
+    assert raw.url == "https://www.gutenberg.org/ebooks/1342"
+    assert GutendexBooksSource._shelf([]) == "Books"
+    assert GutendexBooksSource()._to_raw({}) is None
+    assert GutendexBooksSource()._to_raw(None) is None  # type: ignore[arg-type]
+
+
+def test_gutendex_stops_when_next_is_null():
+    from app.ingestion.sources.gutendex import GutendexBooksSource
+
+    class _StubClient:
+        def get_json(self, url, params=None):
+            return {"results": [GUTENDEX_ITEM], "next": None}
+
+    source = GutendexBooksSource(client=_StubClient())
+    assert len(list(source.fetch(limit=10))) == 1
+    assert not source.errors
+
+
+# --------------------------------------------------------------------------------------
+# MMOBomb games
+# --------------------------------------------------------------------------------------
+MMOBOMB_ITEM = {
+    "id": 1,
+    "title": "Dauntless",
+    "genre": "Shooter",
+    "platform": "PC (Windows)",
+    "publisher": "Phoenix Labs",
+    "developer": "Phoenix Labs",
+    "thumbnail": "https://example.local/thumb.jpg",
+    "game_url": "https://example.local/play",
+    "short_description": "Slay Behemoths.",
+    "release_date": "2019-05-21",
+}
+
+
+def test_mmobomb_maps_genre_publisher_and_links():
+    from app.ingestion.sources.mmobomb import MMOBombGamesSource
+
+    raw = MMOBombGamesSource()._to_raw(MMOBOMB_ITEM)
+    assert raw is not None
+    assert raw.source_code == "mmobomb_games"
+    assert raw.category == "Shooter"
+    assert raw.brand == "Phoenix Labs"
+    assert raw.price_text is None  # free-to-play directory: no price
+    assert raw.url == "https://example.local/play"
+    assert MMOBombGamesSource()._to_raw({}) is None
+    assert MMOBombGamesSource()._to_raw(None) is None  # type: ignore[arg-type]
+
+
+def test_mmobomb_single_shot_respects_limit_and_shape_errors():
+    from app.ingestion.sources.mmobomb import MMOBombGamesSource
+
+    class _StubClient:
+        def get_json(self, url, params=None):
+            return [MMOBOMB_ITEM, {**MMOBOMB_ITEM, "id": 2, "title": "Second"}]
+
+    source = MMOBombGamesSource(client=_StubClient())
+    assert [row.name for row in source.fetch(limit=1)] == ["Dauntless"]
+
+    class _BadClient:
+        def get_json(self, url, params=None):
+            return {"unexpected": True}
+
+    bad = MMOBombGamesSource(client=_BadClient())
+    assert list(bad.fetch(limit=5)) == []
+    assert bad.errors

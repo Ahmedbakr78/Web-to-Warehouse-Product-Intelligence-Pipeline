@@ -46,8 +46,8 @@ function jsonResponse(payload: unknown) {
 describe('Dashboard page', () => {
   beforeEach(() => {
     renders = 0
-    tokenStore.set('test-token')
     localStorage.clear()
+    tokenStore.set('test-token')
 
     vi.stubGlobal(
       'fetch',

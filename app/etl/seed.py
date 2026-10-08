@@ -110,7 +110,8 @@ def seed_users(session: Session) -> int:
         ),
         (
             "pipeline.default_sources",
-            "local_demo,dummyjson_products,fakestore_products,books_to_scrape",
+            "local_demo,dummyjson_products,fakestore_products,books_to_scrape,"
+            "cheapshark_deals,itunes_apps,gutendex_books,mmobomb_games",
             "string",
             "pipeline",
             "Sources enabled for scheduled runs",
@@ -761,7 +762,7 @@ def _count(session: Session, model: Any) -> int:
 
 
 def run_full_seed(
-    database: str | None = None, *, days: int = 120, with_history: bool = True, count: int = 60
+    database: str | None = None, *, days: int = 120, with_history: bool = True, count: int = 90
 ) -> dict[str, Any]:
     """Seed users, catalog and history into one target database."""
     with session_scope(database) as session:

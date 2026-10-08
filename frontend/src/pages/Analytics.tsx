@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Activity, Braces, Boxes, Download, Layers, Package, Star, Tags, TrendingUp, Wallet } from 'lucide-react'
+import { Activity, Braces, Boxes, Download, Layers, Package, Scale, Star, Tags, TrendingUp, Wallet } from 'lucide-react'
 
 import { AreaTrend, BarSeries, DonutChart, LineTrend, RadarCompare, HeatmapStrip } from '@/components/charts'
 import {
@@ -30,6 +30,15 @@ const RANGES = [
   { id: '180', label: '180d' },
 ]
 
+const BUCKET_LABELS: Record<string, string> = {
+  under_10: 'Under $10',
+  from_10_to_50: '$10 – $50',
+  from_50_to_200: '$50 – $200',
+  from_200_to_1000: '$200 – $1k',
+  over_1000: 'Over $1k',
+  unknown: 'No price',
+}
+
 export default function Analytics() {
   const navigate = useNavigate()
   const [tab, setTab] = useState('categories')
@@ -50,6 +59,10 @@ export default function Analytics() {
   const volatility = useApiQuery(['analytics-volatility'], () => endpoints.volatility(20, 3), { staleTime: 300_000 })
   const discounts = useApiQuery(['analytics-discounts'], () => endpoints.discounts(20), { staleTime: 300_000 })
   const topRated = useApiQuery(['analytics-top-rated'], () => endpoints.topRated(20), { staleTime: 300_000 })
+  const buckets = useApiQuery(['analytics-buckets'], endpoints.priceBuckets, { staleTime: 300_000 })
+  const spread = useApiQuery(['analytics-spread'], () => endpoints.sourceSpread(20), { staleTime: 300_000 })
+  const movers = useApiQuery(['analytics-movers', windowDays], () => endpoints.categoryMovers(windowDays, 15), { staleTime: 300_000 })
+  const lifecycle = useApiQuery(['analytics-lifecycle', windowDays], () => endpoints.eventTimeline(windowDays))
 
   const categoryNames = useMemo(
     () => (categories.data ?? []).slice(0, 12).map((row: any) => ({ id: row.category_name, label: row.category_name, count: row.observations })),
@@ -152,6 +165,7 @@ export default function Analytics() {
             { id: 'categories', label: 'Categories', icon: <Tags className="h-4 w-4" /> },
             { id: 'brands', label: 'Brands', icon: <Star className="h-4 w-4" /> },
             { id: 'leaders', label: 'Leaders', icon: <TrendingUp className="h-4 w-4" /> },
+            { id: 'market', label: 'Market', icon: <Scale className="h-4 w-4" /> },
             { id: 'availability', label: 'Availability', icon: <Boxes className="h-4 w-4" /> },
             { id: 'sources', label: 'Source matrix', icon: <Layers className="h-4 w-4" /> },
           ]}
@@ -373,6 +387,83 @@ export default function Analytics() {
                 { key: 'brand', header: 'Brand', hideBelow: 'md', render: (row: any) => <span className="text-xs text-muted">{row.brand ?? '—'}</span> },
               ]}
             />
+          </Card>
+        </div>
+      ) : null}
+
+      {tab === 'market' ? (
+        <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+          <Card>
+            <CardHeader title="Price bands" subtitle="Live catalogue across USD price bands" icon={<Wallet className="h-4 w-4" />} />
+            {(buckets.data ?? []).length ? (
+              <DonutChart
+                data={(buckets.data ?? []).map((row: any) => ({ name: BUCKET_LABELS[row.bucket] ?? row.bucket, value: Number(row.listings ?? 0) }))}
+                height={280}
+                centerLabel="listings"
+              />
+            ) : buckets.isLoading ? (
+              <LoadingState label="Loading price bands…" rows={3} />
+            ) : (
+              <EmptyState kind="chart" title="No price band data" />
+            )}
+          </Card>
+
+          <Card>
+            <CardHeader title="Category movers" subtitle={`Biggest average moves over ${days} days`} icon={<TrendingUp className="h-4 w-4" />} />
+            {(movers.data ?? []).length ? (
+              <BarSeries
+                data={(movers.data ?? []).slice(0, 10).map((row: any) => ({ name: row.category_name ?? 'Uncategorised', move: Number(row.avg_abs_change_pct ?? 0) }))}
+                xKey="name"
+                bars={[{ key: 'move', label: 'Avg abs move %', color: 'var(--chart-4)' }]}
+                horizontal
+                height={280}
+                onBarClick={(row) => row?.name && navigateToCategory(navigate, row.name)}
+              />
+            ) : movers.isLoading ? (
+              <LoadingState label="Loading movers…" rows={3} />
+            ) : (
+              <EmptyState kind="chart" title="No movers yet" message="Run more pipeline cycles to observe price changes." />
+            )}
+          </Card>
+
+          <Card padded={false} className="xl:col-span-2">
+            <div className="p-4 sm:p-5">
+              <CardHeader title="Cross-source price spread" subtitle="Same product, several stores — ranked by disagreement" icon={<Scale className="h-4 w-4" />} />
+            </div>
+            <DataTable
+              rows={spread.data ?? []}
+              rowKey={(row: any, index) => `${row.canonical_name}-${index}`}
+              loading={spread.isFetching}
+              maxHeight={360}
+              emptyMessage="No product is listed by two sources yet"
+              columns={[
+                { key: 'product', header: 'Product', render: (row: any) => <span className="font-medium">{row.canonical_name}</span> },
+                { key: 'sources', header: 'Stores', align: 'center', sortValue: (row: any) => row.sources, render: (row: any) => <Badge tone="info">{row.sources}</Badge> },
+                { key: 'spread', header: 'Spread', align: 'right', sortValue: (row: any) => row.spread_pct, render: (row: any) => (row.spread_pct == null ? '—' : `${Number(row.spread_pct).toFixed(1)}%`) },
+                { key: 'minmax', header: 'Min – Max', align: 'right', hideBelow: 'md', render: (row: any) => `${formatPrice(row.min_price_usd)} – ${formatPrice(row.max_price_usd)}` },
+                { key: 'avg', header: 'Avg', align: 'right', render: (row: any) => formatPrice(row.avg_price_usd) },
+              ]}
+            />
+          </Card>
+
+          <Card className="xl:col-span-2">
+            <CardHeader title="Lifecycle timeline" subtitle={`Arrivals, removals and price changes per day over ${days} days`} icon={<Activity className="h-4 w-4" />} />
+            {(lifecycle.data ?? []).length ? (
+              <AreaTrend
+                data={(lifecycle.data ?? []).map((row: any) => ({ ...row, date: formatDate(row.full_date) }))}
+                xKey="date"
+                series={[
+                  { key: 'new_products', label: 'New' },
+                  { key: 'removed_products', label: 'Removed' },
+                  { key: 'price_changes', label: 'Price changes' },
+                ]}
+                height={240}
+              />
+            ) : lifecycle.isLoading ? (
+              <LoadingState label="Loading lifecycle…" rows={3} />
+            ) : (
+              <EmptyState kind="chart" title="No lifecycle data" />
+            )}
           </Card>
         </div>
       ) : null}

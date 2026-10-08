@@ -116,6 +116,35 @@ def category_index(
     return [dict(row) for row in rows]
 
 
+@router.get("/price-buckets", summary="Live catalogue histogram across USD price bands")
+def price_buckets(session: DbSession, _user: ReadUser) -> list[dict[str, Any]]:
+    return analytics.price_buckets(session)
+
+
+@router.get("/source-spread", summary="Same product across sources, ranked by price disagreement")
+def source_spread(
+    session: DbSession, _user: ReadUser, limit: Annotated[int, Query(ge=1, le=100)] = 20
+) -> list[dict[str, Any]]:
+    return analytics.cross_source_spread(session, limit=limit)
+
+
+@router.get("/category-movers", summary="Categories ranked by price-change magnitude")
+def category_movers(
+    session: DbSession,
+    _user: ReadUser,
+    days: Annotated[int, Query(ge=1, le=3650)] = 30,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+) -> list[dict[str, Any]]:
+    return analytics.category_movers(session, days=days, limit=limit)
+
+
+@router.get("/event-timeline", summary="Daily lifecycle events plus price-change counts")
+def event_timeline(
+    session: DbSession, _user: ReadUser, days: Annotated[int, Query(ge=1, le=3650)] = 90
+) -> list[dict[str, Any]]:
+    return analytics.lifecycle_timeline(session, days=days)
+
+
 @router.get("/report/price-changes", summary="SQL report: price changes")
 def report_price_changes(
     session: DbSession,

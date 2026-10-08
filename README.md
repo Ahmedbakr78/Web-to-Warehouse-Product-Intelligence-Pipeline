@@ -34,7 +34,7 @@
 
 <p align="center">
   <b>195 REST operations</b> · <b>28 tables</b> · <b>20 analytical views</b> ·
-  <b>12 DQ rules</b> · <b>10 compliant sources</b> · <b>476 catalogued features</b> ·
+  <b>12 DQ rules</b> · <b>17 compliant sources</b> · <b>476 catalogued features</b> ·
   <b>491 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
 </p>
 
@@ -152,7 +152,7 @@ Everything is engineered like a production system, not a demo:
 
 | Component | Technology | Scale |
 | --- | --- | --- |
-| **Ingestion** | 9 source adapters (6 JSON APIs, 2 BeautifulSoup/lxml HTML scrapers, 1 offline synthetic) | robots.txt gate, token-bucket rate limiter, sliding-window ceiling, circuit breaker, response cache, per-request audit log, refused sources logged |
+| **Ingestion** | 17 source adapters (14 JSON APIs, 2 BeautifulSoup/lxml HTML scrapers, 1 offline synthetic) | robots.txt gate, token-bucket rate limiter, sliding-window ceiling, circuit breaker, response cache, per-request audit log, refused sources logged |
 | **Cleaning** | 29-step normalisation engine | product names, categories, 18+ currencies converted to USD via an offline FX table, rating and availability vocabularies |
 | **Deduplication** | 4-signal fuzzy matcher | jaro-winkler, token-set, trigram and digit signatures, block-indexed for O(n) candidate pools |
 | **Warehouse** | SQLAlchemy 2.0 Core ORM | **28 physical tables, 20 analytical views**, identical schema on PostgreSQL 16 and MySQL 8.4 |

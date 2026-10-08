@@ -209,7 +209,7 @@ def bootstrap_cmd(
 def seed_demo(
     database: str = DB_OPTION,
     days: int = typer.Option(120, "--days", min=7, max=1095),
-    products: int = typer.Option(60, "--products", min=10, max=2000),
+    products: int = typer.Option(90, "--products", min=10, max=2000),
     users_only: bool = typer.Option(False, "--users-only"),
     catalog_only: bool = typer.Option(False, "--catalog-only"),
 ) -> None:

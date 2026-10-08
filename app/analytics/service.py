@@ -769,6 +769,10 @@ __all__ = [
     "query_explain",
     "list_views",
     "compare_runs",
+    "price_buckets",
+    "cross_source_spread",
+    "category_movers",
+    "lifecycle_timeline",
 ]
 
 
@@ -938,6 +942,171 @@ def compare_runs(
             "delta_pct": round((target_ms - base_ms) / base_ms * 100, 2) if base_ms else None,
         },
     }
+
+
+def price_buckets(session: Session) -> list[dict[str, Any]]:
+    """Histogram of the live catalogue across fixed USD price bands.
+
+    One row per band (plus an ``unknown`` row for priceless records), so the
+    dashboard can draw a donut without binning client-side. The band order is
+    produced by a repeated CASE rather than the alias, which keeps the query
+    portable across PostgreSQL, MySQL and SQLite.
+    """
+    band = """
+        CASE
+            WHEN price_usd IS NULL THEN 'unknown'
+            WHEN price_usd < 10 THEN 'under_10'
+            WHEN price_usd < 50 THEN 'from_10_to_50'
+            WHEN price_usd < 200 THEN 'from_50_to_200'
+            WHEN price_usd < 1000 THEN 'from_200_to_1000'
+            ELSE 'over_1000'
+        END"""
+    order = """
+        CASE
+            WHEN price_usd IS NULL THEN 5
+            WHEN price_usd < 10 THEN 0
+            WHEN price_usd < 50 THEN 1
+            WHEN price_usd < 200 THEN 2
+            WHEN price_usd < 1000 THEN 3
+            ELSE 4
+        END"""
+    return _rows(
+        session,
+        sa.text(
+            f"""
+            SELECT {band} AS bucket,
+                   COUNT(*) AS listings,
+                   SUM(CASE WHEN in_stock THEN 1 ELSE 0 END) AS in_stock_count,
+                   ROUND(CAST(AVG(rating) AS DECIMAL(24,6)), 2) AS avg_rating
+            FROM vw_product_current
+            WHERE is_active
+            GROUP BY {band}
+            ORDER BY MIN({order})
+            """
+        ),
+    )
+
+
+def cross_source_spread(session: Session, limit: int = 20) -> list[dict[str, Any]]:
+    """Products listed by two or more sources, ranked by price disagreement.
+
+    Rows are grouped by the dedupe fingerprint, so the same product sold in
+    several stores collapses to one line with min/max/average USD prices and a
+    spread percent. Zero-average groups (free apps) are excluded because their
+    spread is undefined.
+    """
+    return _rows(
+        session,
+        sa.text(
+            """
+            SELECT MIN(v.canonical_name) AS canonical_name,
+                   MIN(v.brand) AS brand,
+                   MIN(v.category_name) AS category_name,
+                   COUNT(DISTINCT v.source_code) AS sources,
+                   COUNT(*) AS listings,
+                   ROUND(CAST(MIN(v.price_usd) AS DECIMAL(24,6)), 2) AS min_price_usd,
+                   ROUND(CAST(MAX(v.price_usd) AS DECIMAL(24,6)), 2) AS max_price_usd,
+                   ROUND(CAST(AVG(v.price_usd) AS DECIMAL(24,6)), 2) AS avg_price_usd,
+                   ROUND(CAST((MAX(v.price_usd) - MIN(v.price_usd))
+                              / NULLIF(AVG(v.price_usd), 0) * 100 AS DECIMAL(24,6)), 2) AS spread_pct
+            FROM vw_product_current v
+            JOIN dim_product p ON p.product_id = v.product_id
+            WHERE v.is_active AND v.price_usd IS NOT NULL
+            GROUP BY p.fingerprint
+            HAVING COUNT(DISTINCT v.source_code) > 1 AND AVG(v.price_usd) > 0
+            ORDER BY spread_pct DESC
+            LIMIT :limit
+            """
+        ),
+        {"limit": limit},
+    )
+
+
+def category_movers(session: Session, days: int = 30, limit: int = 20) -> list[dict[str, Any]]:
+    """Categories ranked by average absolute price-change magnitude."""
+    return _rows(
+        session,
+        sa.text(
+            """
+            SELECT c.name AS category_name,
+                   COUNT(*) AS changes,
+                   SUM(CASE WHEN pc.direction = 'increase' THEN 1 ELSE 0 END) AS increases,
+                   SUM(CASE WHEN pc.direction = 'decrease' THEN 1 ELSE 0 END) AS decreases,
+                   ROUND(CAST(AVG(ABS(pc.change_pct)) AS DECIMAL(24,6)), 2) AS avg_abs_change_pct,
+                   ROUND(CAST(MAX(ABS(pc.change_pct)) AS DECIMAL(24,6)), 2) AS max_abs_change_pct
+            FROM vw_price_changes pc
+            JOIN dim_product p ON p.product_id = pc.product_id
+            LEFT JOIN dim_category c ON c.category_id = p.category_id
+            WHERE pc.full_date >= :since AND pc.change_pct IS NOT NULL
+            GROUP BY c.name
+            ORDER BY avg_abs_change_pct DESC
+            LIMIT :limit
+            """
+        ),
+        {"since": dt.date.today() - dt.timedelta(days=days), "limit": limit},
+    )
+
+
+def lifecycle_timeline(session: Session, days: int = 90) -> list[dict[str, Any]]:
+    """Daily lifecycle counts (new/removed/recategorised) plus price changes.
+
+    Lifecycle events and price changes live in different tables, so both are
+    aggregated per day and merged in Python over the union of observed dates.
+    """
+    events = _rows(
+        session,
+        sa.text(
+            """
+            SELECT d.full_date AS full_date,
+                   SUM(CASE WHEN e.event_type = 'new' THEN 1 ELSE 0 END) AS new_products,
+                   SUM(CASE WHEN e.event_type = 'removed' THEN 1 ELSE 0 END) AS removed_products,
+                   SUM(CASE WHEN e.event_type = 'category_changed' THEN 1 ELSE 0 END) AS recategorised,
+                   COUNT(*) AS total_events
+            FROM chg_product_event e
+            JOIN dim_date d ON d.date_id = e.date_id
+            WHERE d.full_date >= :since
+            GROUP BY d.full_date
+            """
+        ),
+        {"since": dt.date.today() - dt.timedelta(days=days)},
+    )
+    changes = _rows(
+        session,
+        sa.text(
+            """
+            SELECT d.full_date AS full_date, COUNT(*) AS price_changes
+            FROM chg_price_change pc
+            JOIN dim_date d ON d.date_id = pc.date_id
+            WHERE d.full_date >= :since
+            GROUP BY d.full_date
+            """
+        ),
+        {"since": dt.date.today() - dt.timedelta(days=days)},
+    )
+    by_date: dict[str, dict[str, Any]] = {}
+    for row in events:
+        by_date[str(row["full_date"])] = {
+            "full_date": row["full_date"],
+            "new_products": row["new_products"],
+            "removed_products": row["removed_products"],
+            "recategorised": row["recategorised"],
+            "total_events": row["total_events"],
+            "price_changes": 0,
+        }
+    for row in changes:
+        key = str(row["full_date"])
+        if key in by_date:
+            by_date[key]["price_changes"] = row["price_changes"]
+        else:
+            by_date[key] = {
+                "full_date": row["full_date"],
+                "new_products": 0,
+                "removed_products": 0,
+                "recategorised": 0,
+                "total_events": 0,
+                "price_changes": row["price_changes"],
+            }
+    return [by_date[key] for key in sorted(by_date)]
 
 
 def _run_head(run: dict[str, Any]) -> dict[str, Any]:

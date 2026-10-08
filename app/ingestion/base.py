@@ -360,12 +360,16 @@ def load_builtin_sources() -> None:
     _loaded = True
     from app.ingestion.sources import (  # noqa: F401  (import for side effects)
         books_to_scrape,
+        cheapshark,
         dummyjson,
         fakestore,
         google_books,
+        gutendex,
+        itunes,
         kraken,
         local_fixture,
         makeup,
+        mmobomb,
         openfoodfacts_prices,
         openlibrary,
         platzi,
