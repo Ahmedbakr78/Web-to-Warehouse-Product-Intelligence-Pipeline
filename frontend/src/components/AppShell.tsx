@@ -33,7 +33,7 @@ import { Badge, IconButton } from './ui'
 import { Modal } from './ui'
 import { initials, formatRelative, titleCase, formatPrice } from '@/lib/format'
 import { useAuth } from '@/hooks/useAuth'
-import { NavDrawer, PhoneTabBar, Sidebar, usePhoneLayout, useRailState } from './Navigation'
+import { NavDrawer, PhoneTabBar, Sidebar, useEdgeSwipeOpen, usePhoneLayout, useRailState } from './Navigation'
 import { useFocusHeading, useScrollRestoration } from '@/hooks/useScrollRestoration'
 
 export default function AppShell() {
@@ -45,6 +45,12 @@ export default function AppShell() {
   const { collapsed, toggleRail, overlay, drawerOpen, setDrawerOpen, closeDrawer, drawerRef, onTouchStart, onTouchEnd } =
     useRailState()
   const isPhone = usePhoneLayout()
+  // Swipe inward from the screen edge to open the drawer; only armed while the
+  // drawer is closed on an overlay layout, so content gestures never collide.
+  const edgeSwipe = useEdgeSwipeOpen(
+    () => setDrawerOpen(true),
+    overlay && !drawerOpen,
+  )
   useScrollRestoration()
   useFocusHeading()
 
@@ -127,6 +133,8 @@ export default function AppShell() {
           'flex min-w-0 flex-1 flex-col',
           !overlay && (collapsed ? 'lg:pl-24' : 'lg:pl-[17.5rem]'),
         )}
+        onTouchStart={overlay ? edgeSwipe.onTouchStart : undefined}
+        onTouchEnd={overlay ? edgeSwipe.onTouchEnd : undefined}
       >
         <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-line bg-[var(--surface)]/95 px-3 pt-[env(safe-area-inset-top)] backdrop-blur sm:px-4">
           <IconButton
@@ -191,7 +199,7 @@ export default function AppShell() {
         </main>
       </div>
 
-      <PhoneTabBar />
+      <PhoneTabBar onMore={() => setDrawerOpen(true)} />
 
       {/* ------------------------------------------------------------ command palette */}
       <CommandPalette
