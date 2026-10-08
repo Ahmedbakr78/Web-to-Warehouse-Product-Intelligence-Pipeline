@@ -437,6 +437,78 @@ def test_api_key_creation_and_revocation(client, admin_token):
     )
 
 
+def test_api_key_rotation_replaces_secret_and_keeps_policy(client, admin_token):
+    headers = auth(admin_token)
+    profile = client.get("/api/v1/users/me", headers=headers).json()
+    uid = profile["user_id"]
+    created = client.post(
+        f"/api/v1/users/{uid}/api-keys",
+        headers=headers,
+        json={"name": "rotate-me", "rate_limit_per_minute": 500},
+    ).json()
+    rotated = client.post(f"/api/v1/users/{uid}/api-keys/{created['key_id']}/rotate", headers=headers)
+    assert rotated.status_code == 200
+    payload = rotated.json()
+    assert payload["api_key"].startswith("pip_")
+    assert payload["api_key"] != created["api_key"]
+    assert payload["name"] == "rotate-me"
+    assert payload["rate_limit_per_minute"] == 500
+    assert payload["prefix"] != created["prefix"]
+    # The old key id is gone.
+    assert (
+        client.delete(f"/api/v1/users/{uid}/api-keys/{created['key_id']}", headers=headers).status_code
+        == 404
+    )
+    # Rotation of a ghost key is a 404 too.
+    assert (
+        client.post(f"/api/v1/users/{uid}/api-keys/999999/rotate", headers=headers).status_code == 404
+    )
+
+
+def test_api_key_update_rename_rescope_rebudget_and_expiry(client, admin_token):
+    headers = auth(admin_token)
+    profile = client.get("/api/v1/users/me", headers=headers).json()
+    uid = profile["user_id"]
+    created = client.post(
+        f"/api/v1/users/{uid}/api-keys", headers=headers, json={"name": "patch-me"}
+    ).json()
+    key_url = f"/api/v1/users/{uid}/api-keys/{created['key_id']}"
+    updated = client.patch(
+        key_url,
+        headers=headers,
+        json={"name": "patched", "rate_limit_per_minute": 1000, "expires_in_days": 30},
+    )
+    assert updated.status_code == 200
+    payload = updated.json()
+    assert payload["name"] == "patched"
+    assert payload["rate_limit_per_minute"] == 1000
+    assert payload["expires_at"] is not None
+    # Empty patch is rejected.
+    assert client.patch(key_url, headers=headers, json={}).status_code == 422
+    # Unknown scopes are rejected by schema validation.
+    assert client.patch(key_url, headers=headers, json={"scopes": ["nope"]}).status_code == 422
+    # Clearing the expiry works.
+    cleared = client.patch(key_url, headers=headers, json={"remove_expiry": True})
+    assert cleared.status_code == 200
+    assert cleared.json()["expires_at"] is None
+
+
+def test_api_key_update_rejects_other_users_keys(client, admin_token, viewer_token):
+    admin_headers = auth(admin_token)
+    profile = client.get("/api/v1/users/me", headers=admin_headers).json()
+    created = client.post(
+        f"/api/v1/users/{profile['user_id']}/api-keys", headers=admin_headers, json={"name": "not-yours"}
+    ).json()
+    key_url = f"/api/v1/users/{profile['user_id']}/api-keys/{created['key_id']}"
+    assert client.patch(key_url, headers=auth(viewer_token), json={"name": "hijack"}).status_code in {
+        403,
+        404,
+    }
+    assert (
+        client.post(key_url + "/rotate", headers=auth(viewer_token)).status_code in {403, 404}
+    )
+
+
 def test_pipeline_trigger_requires_permission(client, viewer_token):
     response = client.post(
         "/api/v1/pipeline/run/sync", headers=auth(viewer_token), json={"limit_per_source": 1}

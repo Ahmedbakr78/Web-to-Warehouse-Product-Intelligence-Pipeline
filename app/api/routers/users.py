@@ -470,7 +470,7 @@ def create_key(user_id: int, payload: ApiKeyCreate, session: DbSession, user: Cu
         name=payload.name,
         prefix=prefix,
         hashed_key=hashed,
-        scopes=sorted(requested) if requested else None,
+        scopes=sorted(payload.scopes) if payload.scopes else None,
         is_active=True,
         expires_at=(
             dt.datetime.now(dt.timezone.utc) + dt.timedelta(days=payload.expires_in_days)
