@@ -68,14 +68,6 @@ def latest_run(session: DbSession, _user: ReadUser) -> dict[str, Any]:
     return analytics.run_detail(session, row.run_id)
 
 
-@router.get("/runs/{run_id}", summary="Run detail with DQ, HTTP audit and reconciliation")
-def run_detail(run_id: str, session: DbSession, _user: ReadUser) -> dict[str, Any]:
-    detail = analytics.run_detail(session, run_id)
-    if not detail:
-        return {}
-    return detail
-
-
 @router.get(
     "/runs/compare",
     summary="Compare two runs (metric deltas, DQ regressions, catalogue and price movement)",
@@ -87,10 +79,21 @@ def compare_runs(
     target: str = Query(..., description="Run being judged (usually the newer one)"),
     sample_limit: int = Query(25, ge=1, le=200),
 ) -> dict[str, Any]:
+    # NOTE: this static route must stay above "/runs/{run_id}": Starlette matches
+    # routes in definition order, so otherwise "compare" is captured as a run_id
+    # and the UI receives {} (which crashes on diff.target.records_valid).
     diff = analytics.compare_runs(session, base, target, sample_limit=sample_limit)
     if not diff:
         raise NotFoundError("one or both runs were not found", details={"base": base, "target": target})
     return diff
+
+
+@router.get("/runs/{run_id}", summary="Run detail with DQ, HTTP audit and reconciliation")
+def run_detail(run_id: str, session: DbSession, _user: ReadUser) -> dict[str, Any]:
+    detail = analytics.run_detail(session, run_id)
+    if not detail:
+        return {}
+    return detail
 
 
 @router.get("/runs/{run_id}/dq", summary="DQ rule results for one run")

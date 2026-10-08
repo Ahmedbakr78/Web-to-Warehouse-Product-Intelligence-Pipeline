@@ -1367,4 +1367,6 @@ def _run_head(run: dict[str, Any]) -> dict[str, Any]:
         "finished_at": run.get("finished_at"),
         "duration_ms": run.get("duration_ms"),
         "dq_score": run.get("dq_score"),
+        "records_valid": run.get("records_valid"),
+        "records_extracted": run.get("records_extracted"),
     }

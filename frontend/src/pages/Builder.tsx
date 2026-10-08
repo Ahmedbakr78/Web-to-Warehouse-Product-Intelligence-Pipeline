@@ -932,13 +932,13 @@ function plainCell(entity: Entity, key: string, row: any): string {
       }
     case 'runs':
       switch (key) {
-        case 'run_id': return string(row.run_id)
-        case 'status': return string(row.status)
-        case 'trigger': return string(row.trigger)
-        case 'duration': return string(row.duration_ms)
-        case 'extracted': return string(row.records_extracted)
-        case 'loaded': return string(row.records_valid)
-        case 'dq': return string(row.dq_score)
+        case 'run_id': return string(row?.run_id)
+        case 'status': return string(row?.status)
+        case 'trigger': return string(row?.trigger)
+        case 'duration': return string(row?.duration_ms)
+        case 'extracted': return string(row?.records_extracted)
+        case 'loaded': return string(row?.records_valid)
+        case 'dq': return string(row?.dq_score)
         default: return ''
       }
     case 'quality':
@@ -1193,7 +1193,7 @@ function buildColumns(entity: Entity, visible: string[], pinned: string[] = []):
       trigger: { key: 'trigger', header: 'Trigger', hideBelow: 'sm', render: (row: any) => <Badge tone="neutral">{titleCase(row.trigger ?? 'manual')}</Badge> },
       duration: { key: 'duration', header: 'Duration', align: 'right', hideBelow: 'md', render: (row: any) => `${Math.round((row.duration_ms ?? 0) / 100) / 10}s` },
       extracted: { key: 'extracted', header: 'Extracted', align: 'right', render: (row: any) => formatNumber(row.records_extracted ?? 0) },
-      loaded: { key: 'loaded', header: 'Loaded', align: 'right', hideBelow: 'sm', render: (row: any) => formatNumber(row.records_valid ?? 0) },
+      loaded: { key: 'loaded', header: 'Loaded', align: 'right', hideBelow: 'sm', render: (row: any) => formatNumber(row?.records_valid ?? 0) },
       dq: { key: 'dq', header: 'DQ', align: 'right', render: (row: any) => (row.dq_score ?? '—') },
     },
     quality: {

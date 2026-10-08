@@ -202,7 +202,7 @@ export default function Pipeline() {
                   { key: 'started', header: 'Started', render: (row: any) => <span title={formatDateTime(row.started_at)}>{formatRelative(row.started_at)}</span> },
                   { key: 'duration', header: 'Duration', align: 'right', render: (row: any) => formatDuration(row.duration_ms) },
                   { key: 'extracted', header: 'Extracted', align: 'right', render: (row: any) => formatNumber(row.records_extracted ?? 0) },
-                  { key: 'loaded', header: 'Loaded', align: 'right', render: (row: any) => formatNumber(row.records_valid ?? 0) },
+                  { key: 'loaded', header: 'Loaded', align: 'right', render: (row: any) => formatNumber(row?.records_valid ?? 0) },
                   { key: 'yield', header: 'Yield', align: 'right', hideBelow: 'sm', render: (row: any) => `${row.yield_pct ?? 0}%` },
                   { key: 'merged', header: 'Merged', align: 'right', hideBelow: 'lg', render: (row: any) => formatNumber(row.duplicates_merged ?? 0) },
                   { key: 'changes', header: 'Changes', align: 'right', hideBelow: 'md', render: (row: any) => formatNumber(row.price_changes ?? 0) },
@@ -404,15 +404,15 @@ export default function Pipeline() {
             <KeyValue
               columns={3}
               items={[
-                { label: 'Extracted', value: formatNumber(runDetail.data.records_extracted ?? 0) },
-                { label: 'Valid', value: formatNumber(runDetail.data.records_valid ?? 0) },
-                { label: 'Rejected', value: formatNumber(runDetail.data.records_rejected ?? 0) },
-                { label: 'Inserted', value: formatNumber(runDetail.data.records_inserted ?? 0) },
-                { label: 'Updated', value: formatNumber(runDetail.data.records_updated ?? 0) },
-                { label: 'Duplicates merged', value: formatNumber(runDetail.data.duplicates_merged ?? 0) },
-                { label: 'New products', value: formatNumber(runDetail.data.new_products ?? 0) },
-                { label: 'Price changes', value: formatNumber(runDetail.data.price_changes ?? 0) },
-                { label: 'Removed', value: formatNumber(runDetail.data.removed_products ?? 0) },
+                { label: 'Extracted', value: formatNumber(runDetail.data?.records_extracted ?? 0) },
+                { label: 'Valid', value: formatNumber(runDetail.data?.records_valid ?? 0) },
+                { label: 'Rejected', value: formatNumber(runDetail.data?.records_rejected ?? 0) },
+                { label: 'Inserted', value: formatNumber(runDetail.data?.records_inserted ?? 0) },
+                { label: 'Updated', value: formatNumber(runDetail.data?.records_updated ?? 0) },
+                { label: 'Duplicates merged', value: formatNumber(runDetail.data?.duplicates_merged ?? 0) },
+                { label: 'New products', value: formatNumber(runDetail.data?.new_products ?? 0) },
+                { label: 'Price changes', value: formatNumber(runDetail.data?.price_changes ?? 0) },
+                { label: 'Removed', value: formatNumber(runDetail.data?.removed_products ?? 0) },
               ]}
             />
 
@@ -670,32 +670,32 @@ function RunCompare({ runs }: { runs: RunSummary[] }) {
           message={(comparison.error as Error)?.message}
           onRetry={() => void comparison.refetch()}
         />
-      ) : diff ? (
+      ) : diff?.target && diff?.base ? (
         <>
           <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
             <StatTile
               label="Records loaded"
-              value={formatNumber(diff.target.records_valid ?? 0)}
-              hint={`${diff.metrics.find((m) => m.metric === 'records_valid')?.delta ?? 0} vs base`}
+              value={formatNumber(diff.target?.records_valid ?? 0)}
+              hint={`${diff.metrics?.find((m) => m.metric === 'records_valid')?.delta ?? 0} vs base`}
               icon={<ListTree className="h-4 w-4" />}
             />
             <StatTile
               label="DQ score"
-              value={diff.dq.target_score ?? '—'}
-              hint={diff.dq.score_delta === null ? 'no score' : `${diff.dq.score_delta > 0 ? '+' : ''}${diff.dq.score_delta} vs base`}
+              value={diff.dq?.target_score ?? '—'}
+              hint={diff.dq?.score_delta == null ? 'no score' : `${(diff.dq.score_delta ?? 0) > 0 ? '+' : ''}${diff.dq.score_delta} vs base`}
               icon={<CheckCircle2 className="h-4 w-4" />}
-              tone={diff.dq.regressions.length ? 'warning' : 'success'}
+              tone={(diff.dq?.regressions?.length ?? 0) ? 'warning' : 'success'}
             />
             <StatTile
               label="Catalogue movement"
-              value={`+${diff.catalogue.added_count} / -${diff.catalogue.dropped_count}`}
+              value={`+${diff.catalogue?.added_count ?? 0} / -${diff.catalogue?.dropped_count ?? 0}`}
               hint="added / dropped"
               icon={<Boxes className="h-4 w-4" />}
             />
             <StatTile
               label="Runtime"
-              value={formatDuration(diff.performance.target_duration_ms)}
-              hint={diff.performance.delta_pct === null ? '' : `${diff.performance.delta_pct > 0 ? '+' : ''}${diff.performance.delta_pct}% vs base`}
+              value={formatDuration(diff.performance?.target_duration_ms)}
+              hint={diff.performance?.delta_pct == null ? '' : `${(diff.performance.delta_pct ?? 0) > 0 ? '+' : ''}${diff.performance.delta_pct}% vs base`}
               icon={<Timer className="h-4 w-4" />}
             />
           </div>
@@ -703,7 +703,7 @@ function RunCompare({ runs }: { runs: RunSummary[] }) {
           <Card>
             <CardHeader title="Metric deltas" subtitle="Target minus base" icon={<Gauge className="h-4 w-4" />} />
             <DataTable
-              rows={diff.metrics}
+              rows={diff.metrics ?? []}
               rowKey={(row) => row.metric}
               columns={[
                 { key: 'metric', header: 'Metric', render: (row) => METRIC_LABELS[row.metric] ?? titleCase(row.metric) },
@@ -737,10 +737,10 @@ function RunCompare({ runs }: { runs: RunSummary[] }) {
               <CardHeader title="Quality movement" subtitle="Rules that changed verdict" icon={<ShieldCheck className="h-4 w-4" />} />
               <div className="space-y-2 text-sm">
                 <div>
-                  <p className="font-medium text-danger">Regressions ({diff.dq.regressions.length})</p>
-                  {diff.dq.regressions.length ? (
+                  <p className="font-medium text-danger">Regressions ({diff.dq?.regressions?.length ?? 0})</p>
+                  {(diff.dq?.regressions?.length ?? 0) ? (
                     <ul className="mt-1 list-inside list-disc font-mono text-xs text-muted">
-                      {diff.dq.regressions.map((code) => (
+                      {(diff.dq?.regressions ?? []).map((code) => (
                         <li key={code}>{code}</li>
                       ))}
                     </ul>
@@ -749,10 +749,10 @@ function RunCompare({ runs }: { runs: RunSummary[] }) {
                   )}
                 </div>
                 <div>
-                  <p className="font-medium text-success">Fixed ({diff.dq.fixed.length})</p>
-                  {diff.dq.fixed.length ? (
+                  <p className="font-medium text-success">Fixed ({diff.dq?.fixed?.length ?? 0})</p>
+                  {(diff.dq?.fixed?.length ?? 0) ? (
                     <ul className="mt-1 list-inside list-disc font-mono text-xs text-muted">
-                      {diff.dq.fixed.map((code) => (
+                      {(diff.dq?.fixed ?? []).map((code) => (
                         <li key={code}>{code}</li>
                       ))}
                     </ul>
@@ -766,7 +766,7 @@ function RunCompare({ runs }: { runs: RunSummary[] }) {
             <Card>
               <CardHeader
                 title="Largest price moves"
-                subtitle={`${diff.prices.changed_count} products repriced`}
+                subtitle={`${diff.prices?.changed_count ?? 0} products repriced`}
                 icon={<TrendingUp className="h-4 w-4" />}
                 action={
                   <Button
@@ -782,11 +782,11 @@ function RunCompare({ runs }: { runs: RunSummary[] }) {
                   </Button>
                 }
               />
-              {diff.prices.moves.length === 0 ? (
+              {(diff.prices?.moves?.length ?? 0) === 0 ? (
                 <p className="text-sm text-muted">No price changed between these runs.</p>
               ) : (
                 <ul className="space-y-1 text-sm">
-                  {diff.prices.moves.slice(0, 8).map((move) => (
+                  {(diff.prices?.moves ?? []).slice(0, 8).map((move) => (
                     <li key={move.canonical_name} className="flex items-center justify-between gap-2">
                       <span className="truncate">{move.canonical_name}</span>
                       <DeltaPill value={move.delta_pct} />

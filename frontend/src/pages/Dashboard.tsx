@@ -312,19 +312,19 @@ export default function Dashboard() {
           {latestRun.data?.run_id ? (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Badge tone={statusTone(latestRun.data.status)} dot>
-                  {latestRun.data.status}
+                <Badge tone={statusTone(latestRun.data?.status)} dot>
+                  {latestRun.data?.status}
                 </Badge>
-                <span className="text-xs text-subtle">{formatRelative(latestRun.data.started_at)}</span>
+                <span className="text-xs text-subtle">{formatRelative(latestRun.data?.started_at)}</span>
               </div>
               <dl className="grid grid-cols-2 gap-2 text-xs">
                 {[
-                  ['Extracted', formatNumber(latestRun.data.records_extracted ?? 0)],
-                  ['Loaded', formatNumber(latestRun.data.records_valid ?? 0)],
-                  ['Merged duplicates', formatNumber(latestRun.data.duplicates_merged ?? 0)],
-                  ['Price changes', formatNumber(latestRun.data.price_changes ?? 0)],
-                  ['Duration', formatDuration(latestRun.data.duration_ms)],
-                  ['DQ score', String(latestRun.data.dq_score ?? '—')],
+                  ['Extracted', formatNumber(latestRun.data?.records_extracted ?? 0)],
+                  ['Loaded', formatNumber(latestRun.data?.records_valid ?? 0)],
+                  ['Merged duplicates', formatNumber(latestRun.data?.duplicates_merged ?? 0)],
+                  ['Price changes', formatNumber(latestRun.data?.price_changes ?? 0)],
+                  ['Duration', formatDuration(latestRun.data?.duration_ms)],
+                  ['DQ score', String(latestRun.data?.dq_score ?? '—')],
                 ].map(([label, value]) => (
                   <div key={label as string} className="rounded-lg border border-line bg-surface-2 px-2.5 py-2">
                     <dt className="text-[10px] uppercase tracking-wide text-subtle">{label}</dt>
@@ -332,9 +332,9 @@ export default function Dashboard() {
                   </div>
                 ))}
               </dl>
-              {latestRun.data.error_message ? (
+              {latestRun.data?.error_message ? (
                 <p className="rounded-lg bg-warning-soft px-2.5 py-2 text-[11px] text-warning">
-                  {String(latestRun.data.error_message).slice(0, 160)}
+                  {String(latestRun.data?.error_message).slice(0, 160)}
                 </p>
               ) : null}
             </div>
