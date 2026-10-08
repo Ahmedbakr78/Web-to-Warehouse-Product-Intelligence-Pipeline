@@ -335,6 +335,9 @@ def sources_status(session: DbSession, _user: OptionalUser) -> list[dict[str, An
         item["managed"] = "code" if row["source_code"] in registered else "database"
         item["description"] = registered.get(row["source_code"], {}).get("description", "")
         item["robots_respected"] = registered.get(row["source_code"], {}).get("robots_respected", True)
+        # Present on every row so the two branches of this payload share one
+        # shape and a consumer never has to guess which keys exist.
+        item["supports_paging"] = registered.get(row["source_code"], {}).get("supports_paging", False)
         # A source that has never run has no sync_state row, so the COALESCE
         # above yields 'unknown'. 'idle' is the honest label: registered and
         # ready, simply not exercised yet.
