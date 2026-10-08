@@ -60,7 +60,10 @@ def test_never_run_sources_keep_their_compliance_metadata(client, admin_token):
     never_ran = [row for row in rows if (row.get("total_runs") or 0) == 0 and row.get("managed") == "code"]
     assert never_ran, "expected at least one bundled source that has never run"
     for row in never_ran:
-        assert row["terms_allowed"] is True, row["source_code"]
+        # Truthiness, not identity: SQLite hands back 1/0 for boolean columns
+        # where PostgreSQL returns a real bool, and the dashboard only ever
+        # tests the value for truth.
+        assert row["terms_allowed"], row["source_code"]
         assert row["rate_limit_per_minute"] > 0, row["source_code"]
         assert row["min_delay_seconds"] >= 0, row["source_code"]
         assert row["base_url"], row["source_code"]
