@@ -335,20 +335,51 @@ def sources_status(session: DbSession, _user: OptionalUser) -> list[dict[str, An
         item["managed"] = "code" if row["source_code"] in registered else "database"
         item["description"] = registered.get(row["source_code"], {}).get("description", "")
         item["robots_respected"] = registered.get(row["source_code"], {}).get("robots_respected", True)
+        # A source that has never run has no sync_state row, so the COALESCE
+        # above yields 'unknown'. 'idle' is the honest label: registered and
+        # ready, simply not exercised yet.
+        if (item.get("total_runs") or 0) == 0 and item.get("sync_status") == "unknown":
+            item["sync_status"] = "idle"
         payload.append(item)
+
+    # Registered sources that have never run have no `dim_source` row at all.
+    # They still need the full row shape: the dashboard reads terms, rate
+    # limits and delays from this payload, and omitting them made every
+    # never-run source render as "terms restricted · 0 req/min · 0s delay",
+    # contradicting the compliance header built from the registry.
     for code, source in registered.items():
-        if code not in known:
-            payload.append(
-                {
-                    "source_code": code,
-                    "name": source["name"],
-                    "registered": True,
-                    "managed": "code",
-                    "enabled": source["enabled"],
-                    "kind": source["kind"],
-                    "products_seen": 0,
-                }
-            )
+        if code in known:
+            continue
+        payload.append(
+            {
+                "source_code": code,
+                "name": source["name"],
+                "kind": source["kind"],
+                "enabled": source["enabled"],
+                "registered": True,
+                "managed": "code",
+                "base_url": source.get("base_url"),
+                "terms_url": source.get("terms_url"),
+                "terms_allowed": source.get("terms_allowed", True),
+                "description": source.get("description", ""),
+                "robots_respected": source.get("robots_respected", True),
+                "supports_paging": source.get("supports_paging", False),
+                "rate_limit_per_minute": source.get("rate_limit_per_minute", 0),
+                "min_delay_seconds": source.get("min_delay_seconds", 0),
+                "robots_checked_at": None,
+                "last_run_at": None,
+                "last_run_id": None,
+                "total_runs": 0,
+                "total_records": 0,
+                "success_rate_pct": None,
+                "avg_duration_seconds": 0,
+                "products_seen": 0,
+                "consecutive_failures": 0,
+                "sync_status": "idle",
+                "sync_message": None,
+            }
+        )
+    payload.sort(key=lambda item: item["source_code"])
     return payload
 
 

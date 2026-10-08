@@ -95,6 +95,7 @@ function SourceCard({
   const registry = row.registry ?? {}
   const rate = row.success_rate_pct === null || row.success_rate_pct === undefined ? null : Number(row.success_rate_pct)
   const failures = Number(row.consecutive_failures ?? 0)
+  const neverRan = Number(row.total_runs ?? 0) === 0
 
   return (
     <Card className="flex flex-col gap-3">
@@ -141,12 +142,21 @@ function SourceCard({
           <span className="text-muted">Success rate</span>
           <span className="font-semibold tabular-nums">{rate === null ? '—' : `${rate.toFixed(1)}%`}</span>
         </div>
-        <ProgressBar value={rate ?? 0} tone={successTone(rate)} />
+        {neverRan ? (
+          // No run yet: a warning-orange empty bar would read as a failure.
+          <div className="h-2 w-full overflow-hidden rounded-full bg-surface-3" aria-hidden />
+        ) : (
+          <ProgressBar value={rate ?? 0} tone={successTone(rate)} />
+        )}
         <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-subtle">
           <span>{formatNumber(row.total_runs ?? 0)} runs</span>
           <span>{formatNumber(row.total_records ?? 0)} records</span>
           <span>{formatNumber(row.products_seen ?? 0)} products</span>
-          <span>{formatDuration(Number(row.avg_duration_seconds ?? 0) * 1000)} avg</span>
+          {neverRan ? (
+            <span>never run — joins the next pipeline run</span>
+          ) : (
+            <span>{formatDuration(Number(row.avg_duration_seconds ?? 0) * 1000)} avg</span>
+          )}
         </div>
       </div>
 
