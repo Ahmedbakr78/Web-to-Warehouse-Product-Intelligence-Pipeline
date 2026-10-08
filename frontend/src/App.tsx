@@ -45,7 +45,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
   render() {
     if (this.state.error) {
       return (
-        <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-bg p-6 text-center">
+        <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-3 bg-bg p-6 text-center">
           <h1 className="text-lg font-semibold text-ink">The dashboard hit an unexpected error</h1>
           <p className="max-w-lg text-sm text-muted">{this.state.error.message}</p>
           <div className="flex gap-2">
@@ -69,7 +69,7 @@ function RequireAuth({ children }: { children: ReactNode }) {
   const location = useLocation()
   if (!ready) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-bg">
+      <div className="flex min-h-[100dvh] items-center justify-center bg-bg">
         <LoadingState label="Restoring session…" rows={2} />
       </div>
     )
