@@ -21,6 +21,11 @@ os.environ.setdefault("REQUESTS_PER_SECOND", "1000")
 os.environ.setdefault("REQUESTS_PER_MINUTE", "60000")
 os.environ.setdefault("CRAWL_DELAY_FALLBACK_SECONDS", "0")
 os.environ.setdefault("CACHE_ENABLED", "false")
+# The API's per-caller request budget (240/min) is a production guard. A full
+# suite run issues thousands of requests as the same seed users within a few
+# minutes, so the middleware would 429 unrelated tests depending on file order.
+# The limiter itself is covered by unit tests in test_new_features.py.
+os.environ.setdefault("RATE_LIMIT_ENABLED", "false")
 
 import pytest  # noqa: E402
 

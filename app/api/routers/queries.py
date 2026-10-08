@@ -28,9 +28,11 @@ HISTORY_KEEP = 200
 
 
 def _forbid_secrets(statement: str) -> None:
-    normalized = re.sub(r"\s+", " ", statement.lower())
+    from app.api.query_guard import _scan
+
+    masked, _ = _scan(statement.lower())
     for table in FORBIDDEN_TABLES:
-        if re.search(rf"\b{re.escape(table)}\b", normalized):
+        if re.search(rf"\b{re.escape(table)}\b", masked):
             raise ValidationError(
                 f"querying '{table}' is not allowed from the query lab",
                 details={"forbidden": list(FORBIDDEN_TABLES)},
@@ -44,10 +46,19 @@ def _bounded(statement: str, limit: int) -> tuple[str, dict[str, Any]]:
     still made the database plan and materialise the unbounded result. Wrapping
     the statement pushes the cap into the engine. EXPLAIN plans describe a
     statement rather than returning its rows, so they run unwrapped.
+
+    The newline before the closing paren is load-bearing: the editor appends
+    ``-- reference: <table>`` comments, and without it the wrapper suffix
+    would be swallowed by a trailing line comment.
     """
-    if statement.lstrip().lower().startswith("explain"):
+    from app.api.query_guard import is_explain
+
+    if is_explain(statement):
         return statement, {}
-    return f"SELECT * FROM ({statement}) AS query_lab LIMIT :query_lab_limit", {"query_lab_limit": limit}
+    return (
+        f"SELECT * FROM ({statement}\n) AS query_lab LIMIT :query_lab_limit",
+        {"query_lab_limit": limit},
+    )
 
 
 def _record(
@@ -84,13 +95,33 @@ def _record(
 
 @router.post("/execute", response_model=QueryResponse, summary="Run a read-only SELECT")
 def execute(payload: QueryRequest, session: DbSession, user: QueryUser) -> QueryResponse:
+    from app.api.query_guard import clean_for_execution, validate_readonly
+
+    # Defense in depth: the Pydantic model already validated, but re-check here
+    # so direct calls can never bypass the guard.
+    try:
+        validate_readonly(payload.sql)
+    except ValueError as exc:
+        raise ValidationError(str(exc)) from exc
     _forbid_secrets(payload.sql)
-    statement = payload.sql.strip().rstrip(";")
+    statement = clean_for_execution(payload.sql)
+    if not statement:
+        raise ValidationError("SQL statement is empty")
     sql, params = _bounded(statement, payload.limit)
     started = time.perf_counter()
-    result = session.execute(sa.text(sql), params)
-    columns = list(result.keys())
-    rows = result.fetchmany(payload.limit + 1)
+    try:
+        result = session.execute(sa.text(sql), params)
+        columns = list(result.keys())
+        rows = result.fetchmany(payload.limit + 1)
+    except sa.exc.SQLAlchemyError as exc:
+        # Syntax errors, unknown tables/columns and dialect complaints become a
+        # 422 with the database message instead of a 500 internal_error, so the
+        # editor can tell the user which name to fix in the schema browser.
+        message = str(getattr(exc, "orig", exc) or exc).strip().splitlines()[0][:500]
+        raise ValidationError(
+            f"database refused the statement: {message}",
+            details={"hint": "check table and column names against the schema browser"},
+        ) from exc
     truncated = len(rows) > payload.limit
     rows = rows[: payload.limit]
     duration = round((time.perf_counter() - started) * 1000, 2)

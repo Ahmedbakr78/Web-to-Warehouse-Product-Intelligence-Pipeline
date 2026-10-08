@@ -877,27 +877,9 @@ class QueryRequest(BaseModel):
     @field_validator("sql")
     @classmethod
     def _readonly(cls, value: str) -> str:
-        stripped = value.strip().rstrip(";").lower()
-        allowed = ("select ", "with ", "explain ")
-        if not stripped.startswith(allowed):
-            raise ValueError("only SELECT / WITH / EXPLAIN statements are allowed")
-        forbidden = (
-            "insert ",
-            "update ",
-            "delete ",
-            "drop ",
-            "alter ",
-            "create ",
-            "truncate ",
-            "grant ",
-            "revoke ",
-            "commit ",
-            "rollback ",
-            "; --",
-            "/*",
-        )
-        if any(token in stripped for token in forbidden):
-            raise ValueError("statement contains a write or multiple statement")
+        from app.api.query_guard import validate_readonly
+
+        validate_readonly(value)
         return value
 
 

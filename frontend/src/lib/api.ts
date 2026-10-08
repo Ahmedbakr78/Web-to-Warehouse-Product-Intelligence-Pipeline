@@ -281,6 +281,11 @@ export const endpoints = {
   queryTables: () => api.get<any>('/queries/tables'),
   queryExamples: () => api.get<any[]>('/queries/examples'),
   executeQuery: (sql: string, limit = 200) => api.post<any>('/queries/execute', { sql, limit }),
+  queryHistory: (params: Record<string, QueryValue> = {}) => api.get<any[]>('/queries/history', params),
+  saveSnippet: (historyId: number, name: string) =>
+    api.post<any>(`/queries/history/${historyId}/save`, { name }),
+  deleteHistoryEntry: (historyId: number) => api.del<any>(`/queries/history/${historyId}`),
+  clearHistory: () => api.del<any>('/queries/history'),
   builderSchema: () => api.get<any>('/builder/schema'),
   builderQuery: (payload: Record<string, unknown>) => api.post<any>('/builder/query', payload),
 
@@ -300,8 +305,18 @@ export const endpoints = {
 
   savedViews: (entity?: string) => api.get<any[]>('/saved-views', { entity }),
   createSavedView: (payload: Record<string, unknown>) => api.post<any>('/saved-views', payload),
+  savedView: (id: number) => api.get<any>(`/saved-views/${id}`),
+  updateSavedView: (id: number, payload: Record<string, unknown>) => api.patch<any>(`/saved-views/${id}`, payload),
+  duplicateSavedView: (id: number) => api.post<any>(`/saved-views/${id}/duplicate`),
+  defaultSavedView: (id: number) => api.post<any>(`/saved-views/${id}/default`),
   deleteSavedView: (id: number) => api.del<any>(`/saved-views/${id}`),
   favoriteView: (id: number) => api.post<any>(`/saved-views/${id}/favorite`),
+  useSavedView: (id: number) => api.post<any>(`/saved-views/${id}/use`),
+
+  queryHistory: (params: Record<string, QueryValue> = {}) => api.get<any[]>('/queries/history', params),
+  saveQuerySnippet: (id: number, name: string) => api.post<any>(`/queries/history/${id}/save`, { name }),
+  deleteQueryHistory: (id: number) => api.del<any>(`/queries/history/${id}`),
+  clearQueryHistory: () => api.del<any>('/queries/history'),
 
   notifications: (pageSize = 25, unreadOnly = false) =>
     api.get<any>('/notifications', { page_size: pageSize, unread_only: unreadOnly }),
@@ -389,6 +404,8 @@ export const endpoints = {
   reportTemplates: () => api.get<any>('/reports/templates'),
   reportData: (template: string, params: Record<string, QueryValue> = {}) =>
     api.get<any>(`/reports/${template}/data`, params),
+  downloadReportCsv: (template: string, params: Record<string, QueryValue> = {}) =>
+    downloadBinary(`/reports/${template}/csv`, params, `${template}-report.csv`),
 }
 
 /**
