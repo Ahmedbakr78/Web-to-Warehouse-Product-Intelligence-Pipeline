@@ -402,6 +402,26 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "detail": "Products, price-change report, catalog report, compliance report",
             },
             {"name": "Read-only query lab", "detail": "SELECT/WITH/EXPLAIN console over all views"},
+            {
+                "name": "Query history",
+                "detail": "Every execution recorded to app_query_history with rows, duration and truncation",
+            },
+            {
+                "name": "Pinned snippets",
+                "detail": "Name any run to pin it; snippets survive pruning and clearing",
+            },
+            {
+                "name": "History panel",
+                "detail": "All/snippet filter, one-click reload into the editor, per-entry delete, clear-keeps-snippets",
+            },
+            {
+                "name": "Secret-table guard",
+                "detail": "app_user, app_api_key, app_session and app_webhook are unreadable from the console",
+            },
+            {
+                "name": "Server-side row cap",
+                "detail": "The LIMIT is wrapped into the SQL so the engine never materialises unbounded results",
+            },
         ],
     },
     {
@@ -918,6 +938,10 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "name": "Report builder screen",
                 "detail": "Template, window, section chips and HTML, CSV and PDF export",
             },
+            {
+                "name": "Server report CSV",
+                "detail": "GET /reports/{template}/csv: scalar facts frame plus every table block as a CSV sub-table",
+            },
         ],
     },
     {
@@ -1067,6 +1091,22 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             {
                 "name": "Key rotation",
                 "detail": "Revoke the old key and issue a new one, with no gap in access",
+            },
+            {
+                "name": "Type-preserving setting writes",
+                "detail": "A type-less PUT keeps the stored value_type instead of coercing to string",
+            },
+            {
+                "name": "Setting metadata writes",
+                "detail": "Category, description and visibility are settable through the API, not just the seed",
+            },
+            {
+                "name": "Setting audit trail",
+                "detail": "Every admin setting change and deletion lands in app_audit_log",
+            },
+            {
+                "name": "Test-env rate-limit bypass",
+                "detail": "The test suite disables the API budget so file order can never 429 an unrelated test",
             },
         ],
     },
@@ -1236,6 +1276,50 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "detail": "Unknown entity/column returns {error,message,details.available} with 422",
             },
             {"name": "Builder docs page", "detail": "docs plus QueryLab examples mirror the same whitelist"},
+            {
+                "name": "HAVING post-filters",
+                "detail": "Post-aggregation predicates over grouping columns and aggregate aliases",
+            },
+            {
+                "name": "AND/OR filter logic",
+                "detail": "WHERE filters combine with AND or OR per request; HAVING stays AND",
+            },
+            {
+                "name": "Groupable enforcement",
+                "detail": "The schema's groupable flag is enforced server-side, not just advertised",
+            },
+            {
+                "name": "Alias injection guard",
+                "detail": "Aggregate aliases must match a strict identifier shape before interpolation",
+            },
+            {
+                "name": "Stable grouped paging",
+                "detail": "Grouped queries without a sort still emit ORDER BY, so OFFSET pages are deterministic",
+            },
+            {
+                "name": "Capability advertisement",
+                "detail": "GET /builder/schema lists filter_logic values and supported capabilities",
+            },
+            {
+                "name": "Saved-view retrieve & update",
+                "detail": "GET and PATCH one view; renames are clash-checked per user",
+            },
+            {
+                "name": "Saved-view duplicate",
+                "detail": "POST /saved-views/{id}/duplicate copies filters, sort and columns under a fresh name",
+            },
+            {
+                "name": "Default view pinning",
+                "detail": "One default per entity per user; the list endpoint sorts it first",
+            },
+            {
+                "name": "View visibility rules",
+                "detail": "Private views 404 for other users; shared views are readable but never mutable",
+            },
+            {
+                "name": "Saved-view audit trail",
+                "detail": "Create, update, duplicate, default, delete land in app_audit_log",
+            },
         ],
     },
     {

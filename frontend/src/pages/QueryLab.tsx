@@ -336,7 +336,7 @@ export default function QueryLab() {
   const examples = useApiQuery(['query-examples'], endpoints.queryExamples)
 
   const run = useMutation({
-    mutationFn: () => endpoints.executeQuery(sql, limit),
+    mutationFn: (overrideSql?: string) => endpoints.executeQuery(overrideSql ?? sql, limit),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['query-history'] })
       try {
@@ -469,18 +469,25 @@ export default function QueryLab() {
   }
 
   function reference(name: string) {
-    // Insert the identifier where the cursor is (useful) and keep the
-    // "-- reference:" convention the screenshots document.
+    // Insert the view/table identifier where the cursor is so it can be
+    // queried immediately; the guard tolerates trailing "-- reference" notes.
     insertAtCursor(name)
   }
 
   function explain() {
-    if (/^\s*(--|---|\/\*)?[\s\S]*?\bexplain\b/i.test(sql) && validateClient(sql).ok) {
+    // Already an EXPLAIN plan request -> just run it. Otherwise prepend EXPLAIN
+    // and run the new text directly (setState is async, so the mutation takes
+    // the computed statement instead of reading the stale closure).
+    const leading = maskSql(sql).masked.trimStart().replace(/^\(+/, '').trimStart()
+    if (/^explain\b/i.test(leading) && validateClient(sql).ok) {
       execute()
       return
     }
-    setSql((current) => `EXPLAIN ${current.trim().replace(/^EXPLAIN\s+/i, '')}`)
-    requestAnimationFrame(() => execute())
+    const next = `EXPLAIN ${sql.trim().replace(/^EXPLAIN\s+/i, '')}`
+    setSql(next)
+    if (!validateClient(next).ok || run.isPending) return
+    setResultFilter('')
+    run.mutate(next)
   }
 
   function exportCsv() {
