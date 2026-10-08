@@ -33,9 +33,9 @@
 </p>
 
 <p align="center">
-  <b>173 REST operations</b> · <b>28 tables</b> · <b>20 analytical views</b> ·
-  <b>12 DQ rules</b> · <b>7 compliant sources</b> · <b>460 catalogued features</b> ·
-  <b>454 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
+  <b>195 REST operations</b> · <b>28 tables</b> · <b>20 analytical views</b> ·
+  <b>12 DQ rules</b> · <b>10 compliant sources</b> · <b>476 catalogued features</b> ·
+  <b>491 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
 </p>
 
 <p align="center">
@@ -152,17 +152,17 @@ Everything is engineered like a production system, not a demo:
 
 | Component | Technology | Scale |
 | --- | --- | --- |
-| **Ingestion** | 7 source adapters (4 JSON APIs, 2 BeautifulSoup/lxml HTML scrapers, 1 offline synthetic) | robots.txt gate, token-bucket rate limiter, sliding-window ceiling, circuit breaker, response cache, per-request audit log |
+| **Ingestion** | 9 source adapters (6 JSON APIs, 2 BeautifulSoup/lxml HTML scrapers, 1 offline synthetic) | robots.txt gate, token-bucket rate limiter, sliding-window ceiling, circuit breaker, response cache, per-request audit log, refused sources logged |
 | **Cleaning** | 29-step normalisation engine | product names, categories, 18+ currencies converted to USD via an offline FX table, rating and availability vocabularies |
 | **Deduplication** | 4-signal fuzzy matcher | jaro-winkler, token-set, trigram and digit signatures, block-indexed for O(n) candidate pools |
-| **Warehouse** | SQLAlchemy 2.0 Core ORM | **25 physical tables, 20 analytical views**, identical schema on PostgreSQL 16 and MySQL 8.4 |
+| **Warehouse** | SQLAlchemy 2.0 Core ORM | **28 physical tables, 20 analytical views**, identical schema on PostgreSQL 16 and MySQL 8.4 |
 | **ETL** | 9-stage Python pipeline | stage timings, counters, warnings, resumable staging table, idempotent loads |
 | **Orchestration** | Apache Airflow 2.10 DAG | 13 tasks, branch-on-changes, alert fan-out, report publication, sync-run API for demos |
 | **Data quality** | 12-rule framework over 6 dimensions | completeness, validity, uniqueness, accuracy, consistency, timeliness, weighted score |
 | **Change detection** | SQL plus an event engine | price changes banded by magnitude, new and removed products, category drift, lifecycle events |
-| **REST API** | FastAPI | **173 operations in 23 routers**, JWT and API-key auth, RBAC (admin / analyst / viewer), OpenAPI docs, gzip, timing headers |
-| **Dashboard** | React 19 + TypeScript + Tailwind + ReCharts | 21 screens, light/dark/system themes, 6 accent colours, 3 densities, command palette, installable PWA, responsive from 320 px |
-| **CLI** | Typer, 12 commands | bootstrap, seed, run, report, verify, quality, sources preview |
+| **REST API** | FastAPI | **195 operations in 23 routers**, JWT and API-key auth, RBAC (admin / analyst / viewer), key rotation + editing, multi-level sorting, OpenAPI docs, gzip, timing headers |
+| **Dashboard** | React 19 + TypeScript + Tailwind + ReCharts | 24 screens, 5 themes, 12 accent colours, 3 densities, command palette, installable PWA, responsive from 320 px |
+| **CLI** | Typer, 13 commands | bootstrap, seed, run, report, verify, quality, sources preview |
 | **Ops** | Docker Compose (6 services), Makefile (30+ targets), GitHub Actions CI | one-command everything |
 
 **Measured facts.** These are not maintained by hand — run `make stats` to regenerate them, and
@@ -1006,8 +1006,8 @@ are persisted per run in `dq_rule_result`, and the dashboard charts the score tr
 ## Feature catalogue
 
 The exhaustive, file-referenced inventory lives in
-[docs/19_feature_list.md](docs/19_feature_list.md) — 460 features in thirty-seven areas. It is also served as
-structured JSON by `GET /api/v1/meta/features` (380 entries in 30 groups) and rendered by the **Features** screen, both generated
+[docs/19_feature_list.md](docs/19_feature_list.md) — 476 features in thirty-eight areas. It is also served as
+structured JSON by `GET /api/v1/meta/features` (396 entries across the catalogue groups) and rendered by the **Features** screen, both generated
 from `app/core/features.py`, so this section can never describe something the code does not do.
 Highlights by area:
 
@@ -1017,7 +1017,10 @@ Highlights by area:
 - token-bucket rate limiter, sliding-window per-minute ceiling, circuit breaker
 - exponential backoff, `Retry-After` handling (delta seconds and HTTP-date), on-disk response cache
 - per-request HTTP audit log: URL, status, latency, bytes, robots decision, retries
-- five pluggable source adapters behind one abstract contract, registered by decorator
+- nine pluggable source adapters behind one abstract contract, registered by decorator
+- Steam Store API (curated games: cent prices with discount pairs, review-score mapping) and
+  Open Food Facts Prices (crowd-observed multi-currency grocery prices with store attribution)
+- rejected sources are logged: the iTunes Search API was refused because `/search` is disallowed by robots.txt
 - bounded extraction (`--limit` plus generator guards) with per-source failure isolation
 
 ### Cleaning and normalisation
@@ -1475,6 +1478,10 @@ six-step guide with code is in docs/17.
 
 | Version | Theme | Highlights |
 | --- | --- | --- |
+| **Unreleased** | Full-max pass | Steam Store + Open Food Facts Prices sources (10 total), API key rotation/editing, multi-level sorting, builder pins/clone/share-links, preferences backup, overlay scrollbars, strict `tsc -b` — 476 features, 491 tests |
+| **v1.7.0** | GUI source onboarding | Add-source dialog with compliance pre-check, endpoint presets, field mapping, enable/disable and history-guarded delete |
+| **v1.6.1** | Polish and fixes | Theme-flash fix, drawer swipe-to-close, live job progress, version-drift fix, lint/format gate |
+| **v1.4.0** | Run comparison and export | Run-vs-run diff with 12 metric deltas, universal dataset export (CSV/JSON/XLSX), product watchlists, self-registration |
 | **v1.3.0** | Discovery and self-service | Feature-catalogue API and screen, aggregate builder (`POST /builder/query` over 11 entities), account data export and deletion, personal activity feed, refined scrollbars, mobile drawer polish, container healthcheck fix, secret removed from the template |
 | **v1.2.0** | Platform | Command palette, PWA install, saved views, alert rules, notification centre, Settings and Users administration, audit trail |
 | **v1.1.0** | Dashboard experience | Light/dark/system themes, 6 accents, 3 densities, responsive shell, builder, query lab |

@@ -399,7 +399,7 @@ cp .env.example .env
 
 # Option A - the full Docker stack (API, PostgreSQL, MySQL, Airflow, dashboard)
 make up            # start every service
-make bootstrap     # create the 23 tables and 20 views
+make bootstrap     # create the 28 tables and 20 views
 make demo-postgres # load a realistic demo dataset
 
 # Option B - local virtualenv for the backend, npm for the frontend
@@ -420,16 +420,16 @@ make frontend-dev  # dashboard on :5173</pre>
   <div class="wrap">
     <div class="sec-head">
       <span class="kicker">Feature catalogue</span>
-      <h2>460 features, 30 groups — same source as the app</h2>
-      <p style="color:var(--muted);max-width:62ch">The dashboard's Features screen, <code>GET /api/v1/meta/features</code> and this page all read <code>app/core/features.py</code>. New in Max: 9-tab Account, 9-entity Builder with SQL + cURL, perfect white/dark, silent reloads, phone tab bar, no scrollbars, GUI source onboarding, CSV catalog import, watchlist, compare tray, self-registration.</p>
+      <h2>476 features, 38 areas — same source as the app</h2>
+      <p style="color:var(--muted);max-width:62ch">The dashboard's Features screen, <code>GET /api/v1/meta/features</code> and this page all read <code>app/core/features.py</code>. New in Max: 9-tab Account with key rotation and preferences backup, 12-entity Builder with pins, clone, share-links and multi-sort, Steam + Open Food Facts sources (10 total), overlay scrollbars, skeleton-free refetch, icons on every button, strict type-clean build.</p>
     </div>
     <div class="badges">
-      <span class="badge">Builder Max <b>22</b></span>
-      <span class="badge">Account Max <b>22</b></span>
+      <span class="badge">Builder Max <b>32</b></span>
+      <span class="badge">Account Max <b>24</b></span>
       <span class="badge">Catalog import <b>new</b></span>
-      <span class="badge">Design &amp; mobile Max <b>22</b></span>
+      <span class="badge">Design &amp; mobile Max <b>25</b></span>
       <span class="badge">Platform Max <b>20</b></span>
-      <span class="badge">Forecasting <b>15</b></span>
+      <span class="badge">Forecasting <b>16</b></span>
       <span class="badge">Jobs <b>11</b></span>
       <span class="badge">Realtime <b>10</b></span>
       <span class="badge">Reports <b>14</b></span>
@@ -444,12 +444,12 @@ make frontend-dev  # dashboard on :5173</pre>
       <h2>Compliance-first, warehouse-grade, free forever</h2>
     </div>
     <div class="card">
-      <p style="margin:0;color:var(--muted)">A retailer needs the market picture every morning. This pipeline replaces manual copy-paste with robots-gated ingestion, 29-step cleaning, fuzzy dedupe, a Kimball star on PostgreSQL + MySQL, 12 DQ rules, Airflow orchestration, forecasting, webhooks, backfill and a 21-screen React dashboard — no paid APIs, SQLite-runnable tests, one-command verification.</p>
+      <p style="margin:0;color:var(--muted)">A retailer needs the market picture every morning. This pipeline replaces manual copy-paste with robots-gated ingestion, 29-step cleaning, fuzzy dedupe, a Kimball star on PostgreSQL + MySQL, 12 DQ rules, Airflow orchestration, forecasting, webhooks, backfill and a 24-screen React dashboard — no paid APIs, SQLite-runnable tests, one-command verification.</p>
       <div class="badges" style="margin-top:14px">
         <span class="badge">Topics <b>etl · airflow · fastapi · react · postgres · mysql · data-quality · scraping · warehouse · dashboard</b></span>
         <span class="badge">Releases <b>v1.6.1 → v1.7.0 Max</b></span>
         <span class="badge">License <b>MIT</b></span>
-        <span class="badge">Visibility <b>private-safe</b></span>
+        <span class="badge">Visibility <b>public</b></span>
       </div>
     </div>
   </div>
@@ -458,7 +458,7 @@ make frontend-dev  # dashboard on :5173</pre>
 <footer>
   <div class="wrap foot-in">
     <span>Web-to-Warehouse Product Intelligence Pipeline · built for a retailer's morning market picture.</span>
-    <span>MIT licensed · DEPI Data Engineering · 454 features · 28 tables · 20 views · 173 API ops</span>
+    <span>MIT licensed · DEPI Data Engineering · 476 features · 28 tables · 20 views · 195 API ops</span>
   </div>
 </footer>
 
