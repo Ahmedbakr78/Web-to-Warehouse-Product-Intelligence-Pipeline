@@ -109,6 +109,24 @@ class AppSavedView(Base, TimestampMixin):
     __table_args__ = (sa.Index("ix_app_saved_view_entity", "entity"),)
 
 
+class AppQueryHistory(Base, TimestampMixin):
+    """Query-lab execution history: every run is recorded, and a run can be pinned as a named snippet."""
+
+    __tablename__ = "app_query_history"
+
+    history_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(sa.Integer, sa.ForeignKey("app_user.user_id", ondelete="CASCADE"))
+    name: Mapped[str | None] = mapped_column(MediumStr)
+    sql: Mapped[str] = mapped_column(sa.Text, nullable=False)
+    limit: Mapped[int] = mapped_column(sa.Integer, default=200)
+    row_count: Mapped[int] = mapped_column(sa.Integer, default=0)
+    duration_ms: Mapped[float] = mapped_column(sa.Float, default=0.0)
+    truncated: Mapped[bool] = mapped_column(sa.Boolean, default=False)
+    is_saved: Mapped[bool] = mapped_column(sa.Boolean, default=False)
+
+    __table_args__ = (sa.Index("ix_app_query_history_user_saved", "user_id", "is_saved"),)
+
+
 class AppAlertRule(Base, TimestampMixin):
     """User-defined alert (price drop, rating drop, new product in category...)."""
 

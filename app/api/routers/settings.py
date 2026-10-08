@@ -25,23 +25,57 @@ def list_settings(session: DbSession, user: OptionalUser) -> list[SettingRead]:
 
 
 @router.put("/{key}", response_model=SettingRead, summary="Upsert a setting (admin)")
-def upsert(key: str, payload: SettingUpdate, session: DbSession, _admin: AdminUser) -> SettingRead:
+def upsert(key: str, payload: SettingUpdate, session: DbSession, admin: AdminUser) -> SettingRead:
+    from app.models.app_users import AppAuditLog
+
     row = session.get(AppSetting, key)
     if row is None:
-        row = AppSetting(key=key, value=payload.value, value_type=payload.value_type)
+        row = AppSetting(key=key, value=payload.value, value_type=payload.value_type or "string")
         session.add(row)
+        session.flush()
     row.value = payload.value
-    row.value_type = payload.value_type
+    if payload.value_type is not None:
+        row.value_type = payload.value_type
+    if payload.category is not None:
+        row.category = payload.category
+    if payload.description is not None:
+        row.description = payload.description
+    if payload.is_public is not None:
+        row.is_public = payload.is_public
+    row.updated_by = admin.email
+    session.flush()
+    session.add(
+        AppAuditLog(
+            user_id=admin.user_id,
+            user_email=admin.email,
+            action="setting.updated",
+            entity_type="app_setting",
+            entity_id=key,
+            details={"value_type": row.value_type, "category": row.category},
+        )
+    )
     session.flush()
     return SettingRead.model_validate(row)
 
 
 @router.delete("/{key}", response_model=Message, summary="Delete a setting (admin)")
-def delete(key: str, session: DbSession, _admin: AdminUser) -> Message:
+def delete(key: str, session: DbSession, admin: AdminUser) -> Message:
+    from app.models.app_users import AppAuditLog
+
     row = session.get(AppSetting, key)
     if row is None:
         raise ProductNotFoundError(f"setting '{key}' not found")
+    session.add(
+        AppAuditLog(
+            user_id=admin.user_id,
+            user_email=admin.email,
+            action="setting.deleted",
+            entity_type="app_setting",
+            entity_id=key,
+        )
+    )
     session.delete(row)
+    session.flush()
     return Message(message=f"Setting '{key}' deleted")
 
 

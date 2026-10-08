@@ -209,6 +209,7 @@ def bootstrap_cmd(
 def seed_demo(
     database: str = DB_OPTION,
     days: int = typer.Option(120, "--days", min=7, max=1095),
+    products: int = typer.Option(60, "--products", min=10, max=2000),
     users_only: bool = typer.Option(False, "--users-only"),
     catalog_only: bool = typer.Option(False, "--catalog-only"),
 ) -> None:
@@ -218,13 +219,13 @@ def seed_demo(
 
     with session_scope(database) as session:
         users = seed_users(session)
-        catalog = 0 if users_only else seed_catalog(session, build_seed_products())
+        catalog = 0 if users_only else seed_catalog(session, build_seed_products(count=products))
     history: dict[str, Any] = {}
     if not (users_only or catalog_only):
         with session_scope(database) as session:
             from app.etl.seed import seed_history
 
-            history = seed_history(session, days=days)
+            history = seed_history(session, days=days, count=products)
     _kv_table(
         "Seeded",
         {

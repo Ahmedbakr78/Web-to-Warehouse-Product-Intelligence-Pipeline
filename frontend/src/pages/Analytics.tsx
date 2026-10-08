@@ -47,6 +47,9 @@ export default function Analytics() {
   )
   const matrix = useApiQuery(['analytics-matrix'], endpoints.sourceMatrix, { staleTime: 600_000 })
   const trend = useApiQuery(['analytics-trend', windowDays], () => endpoints.trend(windowDays))
+  const volatility = useApiQuery(['analytics-volatility'], () => endpoints.volatility(20, 3), { staleTime: 300_000 })
+  const discounts = useApiQuery(['analytics-discounts'], () => endpoints.discounts(20), { staleTime: 300_000 })
+  const topRated = useApiQuery(['analytics-top-rated'], () => endpoints.topRated(20), { staleTime: 300_000 })
 
   const categoryNames = useMemo(
     () => (categories.data ?? []).slice(0, 12).map((row: any) => ({ id: row.category_name, label: row.category_name, count: row.observations })),
@@ -148,6 +151,7 @@ export default function Analytics() {
           tabs={[
             { id: 'categories', label: 'Categories', icon: <Tags className="h-4 w-4" /> },
             { id: 'brands', label: 'Brands', icon: <Star className="h-4 w-4" /> },
+            { id: 'leaders', label: 'Leaders', icon: <TrendingUp className="h-4 w-4" /> },
             { id: 'availability', label: 'Availability', icon: <Boxes className="h-4 w-4" /> },
             { id: 'sources', label: 'Source matrix', icon: <Layers className="h-4 w-4" /> },
           ]}
@@ -310,6 +314,69 @@ export default function Analytics() {
         </div>
       ) : null}
 
+      {tab === 'leaders' ? (
+        <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+          <Card padded={false} className="xl:col-span-2">
+            <div className="p-4 sm:p-5">
+              <CardHeader title="Price volatility" subtitle="Widest price range relative to average (min 3 observations)" icon={<Activity className="h-4 w-4" />} />
+            </div>
+            <DataTable
+              rows={volatility.data ?? []}
+              rowKey={(row: any) => `${row.product_id}-${row.source_code}`}
+              loading={volatility.isFetching}
+              maxHeight={380}
+              onRowClick={(row: any) => navigate(`/products/${row.product_id}`)}
+              columns={[
+                { key: 'product', header: 'Product', render: (row: any) => <span className="font-medium">{row.canonical_name}</span> },
+                { key: 'source', header: 'Source', hideBelow: 'sm', render: (row: any) => <Badge tone="neutral">{row.source_code}</Badge> },
+                { key: 'range', header: 'Range', align: 'right', sortValue: (row: any) => row.range_pct, render: (row: any) => (row.range_pct == null ? '—' : `${Number(row.range_pct).toFixed(1)}%`) },
+                { key: 'avg', header: 'Avg', align: 'right', hideBelow: 'md', render: (row: any) => formatPrice(row.avg_price_usd) },
+                { key: 'minmax', header: 'Min – Max', align: 'right', hideBelow: 'lg', render: (row: any) => `${formatPrice(row.min_price_usd)} – ${formatPrice(row.max_price_usd)}` },
+                { key: 'obs', header: 'Obs', align: 'right', render: (row: any) => formatNumber(row.observations ?? 0) },
+              ]}
+            />
+          </Card>
+
+          <Card padded={false}>
+            <div className="p-4 sm:p-5">
+              <CardHeader title="Discount leaders" subtitle="Deepest cuts off list price right now" icon={<Wallet className="h-4 w-4" />} />
+            </div>
+            <DataTable
+              rows={discounts.data ?? []}
+              rowKey={(row: any) => `${row.product_id}-${row.source_code}`}
+              loading={discounts.isFetching}
+              maxHeight={380}
+              onRowClick={(row: any) => navigate(`/products/${row.product_id}`)}
+              columns={[
+                { key: 'product', header: 'Product', render: (row: any) => <span className="font-medium">{row.canonical_name}</span> },
+                { key: 'off', header: 'Off', align: 'right', sortValue: (row: any) => row.discount_pct, render: (row: any) => <Badge tone="success">-{Number(row.discount_pct ?? 0).toFixed(0)}%</Badge> },
+                { key: 'price', header: 'Price', align: 'right', render: (row: any) => formatPrice(row.price_usd) },
+                { key: 'was', header: 'Was', align: 'right', hideBelow: 'md', render: (row: any) => formatPrice(row.list_price) },
+              ]}
+            />
+          </Card>
+
+          <Card padded={false}>
+            <div className="p-4 sm:p-5">
+              <CardHeader title="Top rated" subtitle="Best ratings, damped by vote count" icon={<Star className="h-4 w-4" />} />
+            </div>
+            <DataTable
+              rows={topRated.data ?? []}
+              rowKey={(row: any) => `${row.product_id}-${row.source_code}`}
+              loading={topRated.isFetching}
+              maxHeight={380}
+              onRowClick={(row: any) => navigate(`/products/${row.product_id}`)}
+              columns={[
+                { key: 'product', header: 'Product', render: (row: any) => <span className="font-medium">{row.canonical_name}</span> },
+                { key: 'rating', header: 'Rating', align: 'center', sortValue: (row: any) => row.damped_score, render: (row: any) => (row.rating == null ? '—' : `${Number(row.rating).toFixed(1)} ★ (${formatCompact(row.rating_count ?? 0)})`) },
+                { key: 'price', header: 'Price', align: 'right', render: (row: any) => formatPrice(row.price_usd) },
+                { key: 'brand', header: 'Brand', hideBelow: 'md', render: (row: any) => <span className="text-xs text-muted">{row.brand ?? '—'}</span> },
+              ]}
+            />
+          </Card>
+        </div>
+      ) : null}
+
       {tab === 'availability' ? (
         <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
           <Card>
@@ -390,7 +457,7 @@ export default function Analytics() {
       />
 
       <p className="text-[11px] text-subtle">
-        Every figure on this screen is produced by a SQL query over the 20 analytical views in{' '}
+        Every figure on this screen is produced by a SQL query over the 23 analytical views in{' '}
         <code className="rounded bg-surface-3 px-1">db/views.sql</code>.{' '}
         <Link to="/query" className="link">
           Inspect the queries

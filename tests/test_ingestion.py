@@ -32,6 +32,10 @@ def test_registry_contains_every_bundled_source():
         "google_books",
         "steam_store",
         "openfoodfacts_prices",
+        "platzi_products",
+        "kraken_tickers",
+        "makeup_products",
+        "ygoprodeck_cards",
     } <= codes
 
 
@@ -509,3 +513,185 @@ def test_off_prices_tags_are_humanised():
 
     assert OpenFoodFactsPricesSource._clean_tag("en:salty-spreads") == "Salty Spreads"
     assert OpenFoodFactsPricesSource._clean_tag("whole-milk") == "Whole Milk"
+
+
+# --------------------------------------------------------------------------------------
+# New sources: platzi, kraken, makeup, ygoprodeck
+# --------------------------------------------------------------------------------------
+PLATZI_ITEM = {
+    "id": 8,
+    "title": "Classic Red Jogger Sweatpants",
+    "price": 98,
+    "description": "Soft joggers.",
+    "category": {"id": 1, "name": "Clothes", "image": "https://example.com/c.png"},
+    "images": ["https://example.com/p.png"],
+    "slug": "classic-red-jogger-sweatpants",
+}
+
+KRAKEN_PAIRS = {
+    "error": [],
+    "result": {
+        "XXBTZUSD": {"quote": "ZUSD", "status": "online"},
+        "XETHZUSD": {"quote": "ZUSD", "status": "online"},
+        "XXBTZEUR": {"quote": "ZEUR", "status": "online"},
+        "OFFLINE": {"quote": "ZUSD", "status": "offline"},
+    },
+}
+
+KRAKEN_TICKERS = {
+    "error": [],
+    "result": {
+        "XXBTZUSD": {"c": ["82846.0", "1.2"], "h": ["84340.0", "84340.0"], "l": ["82823.0", "82823.0"], "o": "84100.0"},
+        "XETHZUSD": {"c": ["3100.5", "3.0"], "h": ["3200.0", "3200.0"], "l": ["3050.0", "3050.0"], "o": "3150.0"},
+    },
+}
+
+MAKEUP_ITEM = {
+    "id": 97,
+    "brand": "maybelline",
+    "name": "Maybelline Vivid Matte Liquid Lip Colour",
+    "price": "12.99",
+    "price_sign": "$",
+    "currency": None,
+    "image_link": "https://example.com/lip.png",
+    "product_link": "https://example.com/lip",
+    "description": "Bold vivid colour.",
+    "rating": 4.2,
+    "product_type": "lipstick",
+    "tag_list": ["matte"],
+}
+
+YGO_ITEM = {
+    "id": 46986414,
+    "name": "Dark Magician",
+    "type": "Normal Monster",
+    "race": "Spellcaster",
+    "attribute": "DARK",
+    "archetype": "Dark Magician",
+    "desc": "The ultimate wizard.",
+    "ygoprodeck_url": "https://ygoprodeck.com/card/dark-magician-4003",
+    "card_images": [{"image_url": "https://example.com/dm.png"}],
+    "card_sets": [{"set_name": "2016 Mega-Tins", "set_price": "6.97"}],
+    "card_prices": [{"tcgplayer_price": "7.50", "cardmarket_price": "5.10"}],
+}
+
+
+def test_platzi_maps_paged_product():
+    from app.ingestion.sources.platzi import PlatziProductsSource
+
+    raw = PlatziProductsSource()._to_raw(PLATZI_ITEM)
+    assert raw is not None
+    assert raw.source_code == "platzi_products"
+    assert raw.source_product_id == "8"
+    assert raw.name == "Classic Red Jogger Sweatpants"
+    assert raw.category == "Clothes"
+    assert raw.price_text == "98"
+    assert raw.currency_hint == "USD"
+    assert raw.image_url == "https://example.com/p.png"
+    assert raw.in_stock_flag is True
+    assert PlatziProductsSource()._to_raw({}) is None
+    assert PlatziProductsSource()._to_raw(None) is None  # type: ignore[arg-type]
+
+
+def test_platzi_fetch_pages_until_short_page():
+    from app.ingestion.sources.platzi import PlatziProductsSource
+
+    def _page(ids):
+        return [{**PLATZI_ITEM, "id": i} for i in ids]
+
+    pages = [_page(range(50)), _page((50, 51, 52))]
+
+    class _StubClient:
+        def get_json(self, url, params=None):
+            return pages.pop(0)
+
+    raws = list(PlatziProductsSource(client=_StubClient()).fetch(limit=60))
+    assert [r.source_product_id for r in raws] == [str(i) for i in list(range(50)) + [50, 51, 52]]
+
+
+def test_kraken_keeps_online_usd_pairs_and_batches_tickers():
+    from app.ingestion.sources.kraken import KrakenTickersSource
+
+    calls = []
+
+    class _StubClient:
+        def get_json(self, url, params=None):
+            calls.append(url)
+            if "AssetPairs" in url:
+                return KRAKEN_PAIRS
+            assert params["pair"] == "XETHZUSD,XXBTZUSD"
+            return KRAKEN_TICKERS
+
+    raws = list(KrakenTickersSource(client=_StubClient()).fetch(limit=10))
+    assert [r.source_product_id for r in raws] == ["XETHZUSD", "XXBTZUSD"]
+    assert len(calls) == 2  # one pair listing + one ticker batch
+
+
+def test_kraken_maps_ticker_price_and_ranges():
+    from app.ingestion.sources.kraken import KrakenTickersSource
+
+    raw = KrakenTickersSource()._to_raw("XXBTZUSD", KRAKEN_TICKERS["result"]["XXBTZUSD"])
+    assert raw is not None
+    assert raw.source_code == "kraken_tickers"
+    assert raw.category == "Cryptocurrency"
+    assert raw.price_text == "82846.0"
+    assert raw.currency_hint == "USD"
+    assert raw.payload["high_24h"] == "84340.0"
+    assert raw.payload["open_24h"] == "84100.0"
+    assert KrakenTickersSource()._to_raw("X", None) is None
+    assert KrakenTickersSource()._to_raw("X", {"c": []}) is None
+
+
+def test_kraken_api_errors_are_recorded_not_raised():
+    from app.ingestion.sources.kraken import KrakenTickersSource
+
+    class _StubClient:
+        def get_json(self, url, params=None):
+            return {"error": ["EQuery:Unknown asset pair"], "result": {}}
+
+    source = KrakenTickersSource(client=_StubClient())
+    assert list(source.fetch(limit=5)) == []
+    assert source.errors
+
+
+def test_makeup_maps_price_brand_and_rating():
+    from app.ingestion.sources.makeup import MakeupProductsSource
+
+    raw = MakeupProductsSource()._to_raw(MAKEUP_ITEM)
+    assert raw is not None
+    assert raw.source_code == "makeup_products"
+    assert raw.price_text == "12.99"
+    assert raw.currency_hint == "USD"
+    assert raw.brand == "Maybelline"
+    assert raw.category == "Lipstick"
+    assert raw.rating_text == "4.2 out of 5"
+    assert MakeupProductsSource._price("0.0") is None
+    assert MakeupProductsSource._price(None) is None
+    assert MakeupProductsSource._rating(0) is None
+    assert MakeupProductsSource()._to_raw({}) is None
+
+
+def test_ygoprodeck_prefers_tcgplayer_market_price():
+    from app.ingestion.sources.ygoprodeck import YGOProDeckCardsSource
+
+    raw = YGOProDeckCardsSource()._to_raw(YGO_ITEM)
+    assert raw is not None
+    assert raw.source_code == "ygoprodeck_cards"
+    assert raw.source_product_id == "46986414"
+    assert raw.category == "Spellcaster"
+    assert raw.brand == "Dark Magician"
+    assert raw.price_text == "7.50"
+    assert raw.url == "https://ygoprodeck.com/card/dark-magician-4003"
+    assert raw.image_url == "https://example.com/dm.png"
+
+
+def test_ygoprodeck_falls_back_to_set_price_and_skips_bad_rows():
+    from app.ingestion.sources.ygoprodeck import YGOProDeckCardsSource
+
+    source = YGOProDeckCardsSource()
+    item = {**YGO_ITEM, "card_prices": [{"tcgplayer_price": "0.00"}]}
+    assert source._to_raw(item).price_text == "6.97"  # set-price fallback
+    item = {**YGO_ITEM, "card_prices": [], "card_sets": []}
+    assert source._to_raw(item).price_text is None
+    assert source._to_raw({}) is None
+    assert source._to_raw(None) is None  # type: ignore[arg-type]

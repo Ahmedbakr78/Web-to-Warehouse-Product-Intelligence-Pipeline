@@ -41,6 +41,9 @@ def test_analytical_views_are_created(db):
         "vw_catalog_reconciliation",
         "vw_category_price_index",
         "vw_availability_summary",
+        "vw_price_volatility",
+        "vw_discount_leaders",
+        "vw_rating_leaders",
     }
     assert expected <= views, f"missing views: {sorted(expected - views)}"
 
@@ -218,7 +221,18 @@ def test_analytics_helpers_return_rows(db):
     assert analytics.price_change_timeline(db, days=365)
     assert analytics.category_breakdown(db)
     assert analytics.brand_leaderboard(db)
-    assert analytics.source_health(db)
+def test_new_leader_helpers_return_rows(db):
+    volatility = analytics.price_volatility(db)
+    assert volatility
+    row = volatility[0]
+    assert row["range_pct"] is not None and row["range_pct"] >= 0
+    assert row["observations"] >= 3
+    discounts = analytics.discount_leaders(db)
+    assert discounts
+    assert all((d["discount_pct"] or 0) > 0 for d in discounts)
+    rated = analytics.rating_leaders(db)
+    assert rated
+    assert all(r["rating"] is not None for r in rated)
     assert analytics.availability_summary(db)
     assert analytics.category_tree(db)
     assert analytics.category_drift_report(db, days=365)

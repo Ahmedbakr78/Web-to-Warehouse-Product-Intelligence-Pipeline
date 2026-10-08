@@ -829,7 +829,12 @@ class SettingRead(ORMModel):
 
 class SettingUpdate(BaseModel):
     value: str
-    value_type: Literal["string", "number", "boolean", "json"] = "string"
+    #: When omitted the stored type is kept, so a UI write never coerces a
+    #: number/boolean/json setting back to a string.
+    value_type: Literal["string", "number", "boolean", "json"] | None = None
+    category: str | None = Field(default=None, max_length=128)
+    description: str | None = Field(default=None, max_length=512)
+    is_public: bool | None = None
 
 
 class AuditLogRead(ORMModel):
@@ -902,6 +907,24 @@ class QueryResponse(BaseModel):
     row_count: int
     duration_ms: float
     truncated: bool = False
+
+
+class QueryHistoryRead(ORMModel):
+    history_id: int
+    name: str | None = None
+    sql: str
+    limit: int = 200
+    row_count: int = 0
+    duration_ms: float = 0.0
+    truncated: bool = False
+    is_saved: bool = False
+    created_at: dt.datetime | None = None
+
+
+class QueryHistorySave(BaseModel):
+    """Pin a history entry as a named snippet."""
+
+    name: str = Field(min_length=1, max_length=120)
 
 
 TokenResponse.model_rebuild()

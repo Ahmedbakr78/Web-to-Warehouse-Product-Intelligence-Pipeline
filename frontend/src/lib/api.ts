@@ -218,6 +218,10 @@ export const endpoints = {
   categoryIndex: (days = 60, category?: string) => api.get<any[]>('/analytics/category-index', { days, category }),
   compliance: (days = 30) => api.get<any>('/analytics/report/compliance', { days }),
   sourceMatrix: () => api.get<any[]>('/analytics/report/source-matrix'),
+  volatility: (limit = 20, minObservations = 3) =>
+    api.get<any[]>('/analytics/volatility', { limit, min_observations: minObservations }),
+  discounts: (limit = 20) => api.get<any[]>('/analytics/discounts', { limit }),
+  topRated: (limit = 20) => api.get<any[]>('/analytics/top-rated', { limit }),
 
   products: (params: Record<string, QueryValue>) => api.get<any>('/products', params),
   product: (id: number, historyLimit = 400) => api.get<any>(`/products/${id}`, { history_limit: historyLimit }),

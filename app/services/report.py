@@ -834,11 +834,81 @@ def render_report_pdf(report: dict[str, Any]) -> bytes:
     return to_pdf(render_report(report))
 
 
+def render_report_csv(report: dict[str, Any]) -> str:
+    """Flatten a built report to CSV.
+
+    Two shapes share the file. Scalar facts (tiles, bars, callouts, prose,
+    forecast points) form a `section, kind, label, value` frame at the top;
+    every `table` block is then appended as a real CSV sub-table behind a `#`
+    separator line carrying the section title. Readers that choke on the
+    separators can drop every line starting with `#`.
+    """
+    import csv
+    import io
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["section", "kind", "label", "value"])
+    tables: list[tuple[str, list[str], list[list[Any]]]] = []
+    section = report.get("title", "")
+
+    for block in report.get("blocks", []):
+        kind = block.get("type")
+        if kind == "heading":
+            section = str(block.get("title") or section)
+        elif kind == "tiles":
+            for tile in block.get("tiles", []):
+                writer.writerow([section, "metric", tile.get("label"), _csv_cell(tile.get("value"))])
+        elif kind == "bars":
+            for item in block.get("items", []):
+                writer.writerow([section, "bar", item.get("label"), _csv_cell(item.get("value"))])
+        elif kind == "callout":
+            writer.writerow([section, "note", block.get("title"), block.get("body")])
+        elif kind == "text":
+            writer.writerow([section, "text", "", block.get("body")])
+        elif kind == "forecast":
+            for point in block.get("points", []):
+                if isinstance(point, dict):
+                    label = point.get("date") or point.get("period") or point.get("label") or ""
+                    value = point.get("value", point.get("price", ""))
+                else:
+                    label, value = "", point
+                writer.writerow([section, "forecast", label, _csv_cell(value)])
+        elif kind == "table":
+            columns = block.get("columns", [])
+            labels = [str(column.get("label", column.get("key", ""))) for column in columns]
+            keys = [str(column.get("key", "")) for column in columns]
+            rows = [
+                [_csv_cell(row.get(key) if isinstance(row, dict) else row) for key in keys]
+                for row in block.get("rows", [])
+            ]
+            tables.append((section, labels, rows))
+
+    for section_title, labels, rows in tables:
+        output.write(f"# table: {section_title}\n")
+        table_writer = csv.writer(output)
+        if labels:
+            table_writer.writerow(labels)
+        table_writer.writerows(rows)
+    return output.getvalue()
+
+
+def _csv_cell(value: Any) -> Any:
+    if value is None:
+        return ""
+    if isinstance(value, float) and (value != value or value in (float("inf"), float("-inf"))):
+        return ""
+    if isinstance(value, (dt.datetime, dt.date)):
+        return value.isoformat()
+    return value
+
+
 __all__ = [
     "TEMPLATE_KEYS",
     "TEMPLATES",
     "build_report",
     "render_report",
+    "render_report_csv",
     "render_report_pdf",
     "template_list",
 ]

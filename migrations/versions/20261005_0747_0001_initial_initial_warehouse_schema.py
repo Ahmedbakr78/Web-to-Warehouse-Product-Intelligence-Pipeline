@@ -497,6 +497,30 @@ def upgrade() -> None:
         batch_op.create_index("ix_app_saved_view_entity", ["entity"], unique=False)
 
     op.create_table(
+        "app_query_history",
+        sa.Column("history_id", sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("name", sa.String(length=512), nullable=True),
+        sa.Column("sql", sa.Text(), nullable=False),
+        sa.Column("limit", sa.Integer(), nullable=False),
+        sa.Column("row_count", sa.Integer(), nullable=False),
+        sa.Column("duration_ms", sa.Float(), nullable=False),
+        sa.Column("truncated", sa.Boolean(), nullable=False),
+        sa.Column("is_saved", sa.Boolean(), nullable=False),
+        sa.Column("created_at", app.models.base.UTCDateTime(timezone=True), nullable=False),
+        sa.Column("updated_at", app.models.base.UTCDateTime(timezone=True), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["user_id"],
+            ["app_user.user_id"],
+            name=op.f("fk_app_query_history_user_id_app_user"),
+            ondelete="CASCADE",
+        ),
+        sa.PrimaryKeyConstraint("history_id", name=op.f("pk_app_query_history")),
+    )
+    with op.batch_alter_table("app_query_history", schema=None) as batch_op:
+        batch_op.create_index("ix_app_query_history_user_saved", ["user_id", "is_saved"], unique=False)
+
+    op.create_table(
         "app_session",
         sa.Column("session_id", sa.Integer(), autoincrement=True, nullable=False),
         sa.Column("user_id", sa.Integer(), nullable=False),
@@ -987,6 +1011,10 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f("ix_app_session_created_at"))
 
     op.drop_table("app_session")
+    with op.batch_alter_table("app_query_history", schema=None) as batch_op:
+        batch_op.drop_index("ix_app_query_history_user_saved")
+
+    op.drop_table("app_query_history")
     with op.batch_alter_table("app_saved_view", schema=None) as batch_op:
         batch_op.drop_index("ix_app_saved_view_entity")
 

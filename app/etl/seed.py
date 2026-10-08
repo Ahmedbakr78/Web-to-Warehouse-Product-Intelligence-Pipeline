@@ -384,7 +384,12 @@ def _lifecycle(index: int, days: int) -> tuple[int, int | None]:
 
 
 def seed_history(
-    session: Session, days: int = 120, *, source_code: str = "local_demo", batch: int = 500
+    session: Session,
+    days: int = 120,
+    *,
+    source_code: str = "local_demo",
+    batch: int = 500,
+    count: int = 60,
 ) -> dict[str, int]:
     """Backfill ``days`` of snapshots, price changes and lifecycle events."""
     from app.etl.bootstrap import date_id, ensure_date_range
@@ -397,7 +402,7 @@ def seed_history(
         return {}
 
     ensure_date_range(session, days_back=days + 10, days_forward=2)
-    products = build_seed_products()
+    products = build_seed_products(count=count)
     today = dt.date.today()
 
     # ---- dimensions -------------------------------------------------------------
@@ -529,6 +534,14 @@ def seed_history(
             change_abs = (
                 None if (previous_price is None or price is None) else round(price - previous_price, 2)
             )
+            # Every third product carries a standing list-price markup so the
+            # discount analytics have real findings (deterministic per product).
+            list_price = None
+            discount_pct = None
+            if price is not None and index % 3 == 0:
+                markup = 1 + ((index * 13) % 25 + 5) / 100
+                list_price = round(price * markup, 2)
+                discount_pct = round((1 - price / list_price) * 100, 2)
             change_pct = percent_change(previous_price, price) if price is not None else None
 
             snapshot_rows.append(
@@ -539,11 +552,11 @@ def seed_history(
                     "date_id": date_id(run_date),
                     "captured_at": captured_at,
                     "price": price,
-                    "list_price": None,
+                    "list_price": list_price,
                     "currency": product.currency,
                     "fx_rate_to_usd": fx,
                     "price_usd": price_usd,
-                    "discount_pct": None,
+                    "discount_pct": discount_pct,
                     "rating": rating,
                     "rating_count": rng.randint(3, 2400),
                     "availability": availability,
@@ -748,18 +761,18 @@ def _count(session: Session, model: Any) -> int:
 
 
 def run_full_seed(
-    database: str | None = None, *, days: int = 120, with_history: bool = True
+    database: str | None = None, *, days: int = 120, with_history: bool = True, count: int = 60
 ) -> dict[str, Any]:
     """Seed users, catalog and history into one target database."""
     with session_scope(database) as session:
         users = seed_users(session)
-        products = build_seed_products()
+        products = build_seed_products(count=count)
         catalog = seed_catalog(session, products)
         extras = seed_saved_views_and_alerts(session)
     history: dict[str, Any] = {}
     if with_history:
         with session_scope(database) as session:
-            history = seed_history(session, days=days)
+            history = seed_history(session, days=days, count=count)
     return {"users": users, "catalog": catalog, "saved": extras, "history": history}
 
 

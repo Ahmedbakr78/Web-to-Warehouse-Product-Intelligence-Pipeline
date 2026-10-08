@@ -10,11 +10,15 @@ from app.ingestion.sources import (  # noqa: F401
     dummyjson,
     fakestore,
     google_books,
+    kraken,
     local_fixture,
+    makeup,
     openfoodfacts_prices,
     openlibrary,
+    platzi,
     scrapeme,
     steam_store,
+    ygoprodeck,
 )
 
 __all__ = [
@@ -22,9 +26,13 @@ __all__ = [
     "dummyjson",
     "fakestore",
     "google_books",
+    "kraken",
     "local_fixture",
+    "makeup",
     "openfoodfacts_prices",
     "openlibrary",
+    "platzi",
     "scrapeme",
     "steam_store",
+    "ygoprodeck",
 ]

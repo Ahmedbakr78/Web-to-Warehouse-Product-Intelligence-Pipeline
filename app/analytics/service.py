@@ -667,6 +667,66 @@ def query_explain(session: Session, view_name: str) -> list[dict[str, Any]]:
         return []
 
 
+def price_volatility(
+    session: Session, limit: int = 20, min_observations: int = 3
+) -> list[dict[str, Any]]:
+    """Most volatile products: widest price range relative to their average."""
+    return _rows(
+        session,
+        sa.text(
+            """
+            SELECT product_id, canonical_name, brand, category_name, source_code,
+                   observations, avg_price_usd, min_price_usd, max_price_usd,
+                   range_pct, price_stddev, changes_observed, last_observation_at
+            FROM vw_price_volatility
+            WHERE observations >= :min_observations
+            -- Portable NULLS LAST: MySQL has no NULLS LAST syntax.
+            ORDER BY range_pct IS NULL, range_pct DESC, price_stddev DESC
+            LIMIT :limit
+            """
+        ),
+        {"limit": limit, "min_observations": min_observations},
+    )
+
+
+def discount_leaders(session: Session, limit: int = 20) -> list[dict[str, Any]]:
+    """Deepest current discounts off list price."""
+    return _rows(
+        session,
+        sa.text(
+            """
+            SELECT product_id, canonical_name, brand, category_name, source_code,
+                   price, list_price, currency, price_usd, discount_pct,
+                   savings_amount, availability, in_stock, last_seen_at
+            FROM vw_discount_leaders
+            ORDER BY discount_pct DESC
+            LIMIT :limit
+            """
+        ),
+        {"limit": limit},
+    )
+
+
+def rating_leaders(session: Session, limit: int = 20) -> list[dict[str, Any]]:
+    """Best-rated products, damped by vote count so one 5-star review cannot win."""
+    return _rows(
+        session,
+        sa.text(
+            """
+            SELECT product_id, canonical_name, brand, category_name, source_code,
+                   price_usd, rating, rating_count, damped_score,
+                   availability, in_stock, observation_count, last_seen_at
+            FROM vw_rating_leaders
+            -- Portable NULLS LAST: products with a rating but no vote count
+            -- (damped_score NULL) sink below genuinely top-rated ones.
+            ORDER BY damped_score IS NULL, damped_score DESC, rating_count DESC
+            LIMIT :limit
+            """
+        ),
+        {"limit": limit},
+    )
+
+
 def list_views(session: Session) -> list[dict[str, Any]]:
     """Enumerate the analytical views available in the current database."""
     if session.bind is None:
@@ -688,6 +748,9 @@ __all__ = [
     "category_breakdown",
     "brand_leaderboard",
     "source_health",
+    "price_volatility",
+    "discount_leaders",
+    "rating_leaders",
     "availability_summary",
     "category_tree",
     "change_event_summary",

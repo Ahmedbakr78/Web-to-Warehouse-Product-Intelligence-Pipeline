@@ -70,6 +70,27 @@ def data(
     return JSONResponse(json.loads(json.dumps(payload, default=str)))
 
 
+@router.get("/{template}/csv", summary="Download a report as CSV")
+def csv(
+    template: str,
+    session: DbSession,
+    _user: ReadUser,
+    days: Annotated[int, Query(ge=1, le=365)] = 30,
+    horizon: Annotated[int, Query(ge=1, le=60)] = 14,
+    product_id: Annotated[int | None, Query(ge=1)] = None,
+    sections: Annotated[str | None, Query()] = None,
+) -> Response:
+    """The scalar facts as a `section, kind, label, value` frame, with every
+    table block appended as a real CSV sub-table behind a `#` separator line."""
+    payload = _build(session, template, days, horizon, product_id, sections)
+    body = reports.render_report_csv(payload)
+    return Response(
+        content=body,
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{template}-report.csv"'},
+    )
+
+
 @router.get("/{template}/pdf", summary="Download a report as PDF")
 def pdf(
     template: str,

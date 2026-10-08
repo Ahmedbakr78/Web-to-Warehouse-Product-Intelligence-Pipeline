@@ -48,6 +48,30 @@ def brands(
     return analytics.brand_leaderboard(session, limit=limit)
 
 
+@router.get("/volatility", summary="Most volatile products by price range")
+def volatility(
+    session: DbSession,
+    _user: ReadUser,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    min_observations: Annotated[int, Query(ge=2, le=1000)] = 3,
+) -> list[dict[str, Any]]:
+    return analytics.price_volatility(session, limit=limit, min_observations=min_observations)
+
+
+@router.get("/discounts", summary="Deepest current discounts off list price")
+def discounts(
+    session: DbSession, _user: ReadUser, limit: Annotated[int, Query(ge=1, le=100)] = 20
+) -> list[dict[str, Any]]:
+    return analytics.discount_leaders(session, limit=limit)
+
+
+@router.get("/top-rated", summary="Best-rated products, damped by vote count")
+def top_rated(
+    session: DbSession, _user: ReadUser, limit: Annotated[int, Query(ge=1, le=100)] = 20
+) -> list[dict[str, Any]]:
+    return analytics.rating_leaders(session, limit=limit)
+
+
 @router.get("/availability", summary="In-stock ratio per category")
 def availability(session: DbSession, _user: ReadUser) -> list[dict[str, Any]]:
     return analytics.availability_summary(session)

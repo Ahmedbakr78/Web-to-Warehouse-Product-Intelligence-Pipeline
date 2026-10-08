@@ -485,3 +485,76 @@ SELECT c.category_id,
        (SELECT ROUND(CAST(AVG(s.price_usd) AS DECIMAL(24,6)), 2) FROM fact_price_snapshot s WHERE s.product_id IN
             (SELECT p3.product_id FROM dim_product p3 WHERE p3.category_id = c.category_id AND p3.is_active)) AS avg_price_usd
 FROM dim_category c;
+
+-- -------------------------------------------------------------------------------------
+-- 21. Price volatility per product+source (range and portable stddev).
+-- -------------------------------------------------------------------------------------
+CREATE VIEW vw_price_volatility AS
+SELECT s.product_id,
+       p.canonical_name,
+       p.brand,
+       c.name AS category_name,
+       s.source_code,
+       COUNT(*) AS observations,
+       ROUND(CAST(AVG(s.price_usd) AS DECIMAL(24,6)), 4) AS avg_price_usd,
+       ROUND(CAST(MIN(s.price_usd) AS DECIMAL(24,6)), 4) AS min_price_usd,
+       ROUND(CAST(MAX(s.price_usd) AS DECIMAL(24,6)), 4) AS max_price_usd,
+       CASE
+           WHEN AVG(s.price_usd) IS NULL OR AVG(s.price_usd) = 0 THEN NULL
+           ELSE ROUND(CAST(100.0 * (MAX(s.price_usd) - MIN(s.price_usd)) / AVG(s.price_usd) AS DECIMAL(24,6)), 2)
+       END AS range_pct,
+       -- Portable population stddev (same derivation as vw_category_price_index:
+       -- SQLite has no STDDEV, MySQL/PG differ in name).
+       ROUND(CAST(SQRT(CASE WHEN (AVG(s.price_usd) * AVG(s.price_usd) - AVG(s.price_usd * s.price_usd)) < 0
+                                   THEN 0
+                                   ELSE (AVG(s.price_usd) * AVG(s.price_usd) - AVG(s.price_usd * s.price_usd))
+                              END) AS DECIMAL(24,6)), 4) AS price_stddev,
+       SUM(CASE WHEN s.price_change_pct IS NOT NULL THEN 1 ELSE 0 END) AS changes_observed,
+       MAX(s.captured_at) AS last_observation_at
+FROM fact_price_snapshot s
+JOIN dim_product p ON p.product_id = s.product_id
+LEFT JOIN dim_category c ON c.category_id = p.category_id
+WHERE s.price_usd IS NOT NULL
+GROUP BY s.product_id, p.canonical_name, p.brand, c.name, s.source_code;
+
+-- -------------------------------------------------------------------------------------
+-- 22. Discount leaders: current products with the deepest list-price discounts.
+-- -------------------------------------------------------------------------------------
+CREATE VIEW vw_discount_leaders AS
+SELECT product_id,
+       canonical_name,
+       brand,
+       category_name,
+       source_code,
+       price,
+       list_price,
+       currency,
+       price_usd,
+       discount_pct,
+       ROUND(CAST(list_price - price AS DECIMAL(24,6)), 2) AS savings_amount,
+       availability,
+       in_stock,
+       last_seen_at
+FROM vw_product_current
+WHERE discount_pct IS NOT NULL AND discount_pct > 0;
+
+-- -------------------------------------------------------------------------------------
+-- 23. Rating leaders: best-rated products with a vote-damped score.
+-- -------------------------------------------------------------------------------------
+CREATE VIEW vw_rating_leaders AS
+SELECT product_id,
+       canonical_name,
+       brand,
+       category_name,
+       source_code,
+       price_usd,
+       rating,
+       rating_count,
+       -- Damped score: a lone 5-star review must not outrank 500 4.6-star ones.
+       ROUND(CAST(rating * rating_count / (rating_count + 10) AS DECIMAL(24,6)), 4) AS damped_score,
+       availability,
+       in_stock,
+       observation_count,
+       last_seen_at
+FROM vw_product_current
+WHERE rating IS NOT NULL;

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import time
 from typing import Any
 
@@ -9,25 +10,92 @@ import sqlalchemy as sa
 from fastapi import APIRouter
 
 from app.analytics import service as analytics
-from app.api.deps import DbSession, QueryUser
-from app.api.schemas import QueryRequest, QueryResponse
+from app.api.deps import CurrentUser, DbSession, QueryUser
+from app.api.schemas import Message, QueryHistoryRead, QueryHistorySave, QueryRequest, QueryResponse
+from app.core.errors import NotFoundError, ValidationError
 from app.core.logging import get_logger
 
 log = get_logger(__name__)
 
 router = APIRouter(prefix="/queries", tags=["query-lab"])
 
+#: Tables that hold secrets and are never readable from the query lab, even
+#: though the read-only validator would otherwise let a SELECT through.
+FORBIDDEN_TABLES = ("app_user", "app_api_key", "app_session", "app_webhook")
+
+#: Unsaved history kept per user; pinned snippets (`is_saved`) are exempt.
+HISTORY_KEEP = 200
+
+
+def _forbid_secrets(statement: str) -> None:
+    normalized = re.sub(r"\s+", " ", statement.lower())
+    for table in FORBIDDEN_TABLES:
+        if re.search(rf"\b{re.escape(table)}\b", normalized):
+            raise ValidationError(
+                f"querying '{table}' is not allowed from the query lab",
+                details={"forbidden": list(FORBIDDEN_TABLES)},
+            )
+
+
+def _bounded(statement: str, limit: int) -> tuple[str, dict[str, Any]]:
+    """Enforce the row cap inside the SQL itself.
+
+    The previous implementation fetched `limit + 1` rows client-side, which
+    still made the database plan and materialise the unbounded result. Wrapping
+    the statement pushes the cap into the engine. EXPLAIN plans describe a
+    statement rather than returning its rows, so they run unwrapped.
+    """
+    if statement.lstrip().lower().startswith("explain"):
+        return statement, {}
+    return f"SELECT * FROM ({statement}) AS query_lab LIMIT :query_lab_limit", {"query_lab_limit": limit}
+
+
+def _record(
+    session: DbSession, user: CurrentUser, sql: str, limit: int, row_count: int, duration: float, truncated: bool
+) -> None:
+    from app.models.app_users import AppQueryHistory
+
+    session.add(
+        AppQueryHistory(
+            user_id=user.user_id,
+            sql=sql,
+            limit=limit,
+            row_count=row_count,
+            duration_ms=duration,
+            truncated=truncated,
+        )
+    )
+    session.flush()
+    # Prune unsaved runs past the keep window; pinned snippets are never pruned.
+    stale = (
+        session.execute(
+            sa.select(AppQueryHistory.history_id)
+            .where(AppQueryHistory.user_id == user.user_id, AppQueryHistory.is_saved.is_(False))
+            .order_by(AppQueryHistory.history_id.desc())
+            .offset(HISTORY_KEEP)
+        )
+        .scalars()
+        .all()
+    )
+    if stale:
+        session.execute(sa.delete(AppQueryHistory).where(AppQueryHistory.history_id.in_(stale)))
+        session.flush()
+
 
 @router.post("/execute", response_model=QueryResponse, summary="Run a read-only SELECT")
-def execute(payload: QueryRequest, session: DbSession, _user: QueryUser) -> QueryResponse:
-    started = time.perf_counter()
+def execute(payload: QueryRequest, session: DbSession, user: QueryUser) -> QueryResponse:
+    _forbid_secrets(payload.sql)
     statement = payload.sql.strip().rstrip(";")
-    result = session.execute(sa.text(statement))
+    sql, params = _bounded(statement, payload.limit)
+    started = time.perf_counter()
+    result = session.execute(sa.text(sql), params)
     columns = list(result.keys())
     rows = result.fetchmany(payload.limit + 1)
     truncated = len(rows) > payload.limit
     rows = rows[: payload.limit]
     duration = round((time.perf_counter() - started) * 1000, 2)
+    log.info("query lab user=%s rows=%d duration_ms=%s", user.user_id, len(rows), duration)
+    _record(session, user, statement, payload.limit, len(rows), duration, truncated)
     return QueryResponse(
         columns=columns,
         rows=[[_jsonify(value) for value in row] for row in rows],
@@ -35,6 +103,70 @@ def execute(payload: QueryRequest, session: DbSession, _user: QueryUser) -> Quer
         duration_ms=duration,
         truncated=truncated,
     )
+
+
+@router.get("/history", response_model=list[QueryHistoryRead], summary="My query history and snippets")
+def history(
+    session: DbSession,
+    user: CurrentUser,
+    saved_only: bool = False,
+    limit: int = 50,
+) -> list[QueryHistoryRead]:
+    from app.models.app_users import AppQueryHistory
+
+    limit = max(1, min(limit, HISTORY_KEEP))
+    conditions = [AppQueryHistory.user_id == user.user_id]
+    if saved_only:
+        conditions.append(AppQueryHistory.is_saved.is_(True))
+    rows = (
+        session.execute(
+            sa.select(AppQueryHistory)
+            .where(*conditions)
+            .order_by(AppQueryHistory.is_saved.desc(), AppQueryHistory.history_id.desc())
+            .limit(limit)
+        )
+        .scalars()
+        .all()
+    )
+    return [QueryHistoryRead.model_validate(row) for row in rows]
+
+
+@router.post("/history/{history_id}/save", response_model=QueryHistoryRead, summary="Pin as a named snippet")
+def save_snippet(history_id: int, payload: QueryHistorySave, session: DbSession, user: CurrentUser) -> QueryHistoryRead:
+    from app.models.app_users import AppQueryHistory
+
+    row = session.get(AppQueryHistory, history_id)
+    if row is None or row.user_id != user.user_id:
+        raise NotFoundError(f"query {history_id} not found")
+    row.name = payload.name
+    row.is_saved = True
+    session.flush()
+    return QueryHistoryRead.model_validate(row)
+
+
+@router.delete("/history/{history_id}", response_model=Message, summary="Delete one history entry")
+def delete_entry(history_id: int, session: DbSession, user: CurrentUser) -> Message:
+    from app.models.app_users import AppQueryHistory
+
+    row = session.get(AppQueryHistory, history_id)
+    if row is None or row.user_id != user.user_id:
+        raise NotFoundError(f"query {history_id} not found")
+    session.delete(row)
+    session.flush()
+    return Message(message=f"Query {history_id} deleted")
+
+
+@router.delete("/history", response_model=Message, summary="Clear unsaved history")
+def clear_history(session: DbSession, user: CurrentUser) -> Message:
+    from app.models.app_users import AppQueryHistory
+
+    result = session.execute(
+        sa.delete(AppQueryHistory).where(
+            AppQueryHistory.user_id == user.user_id, AppQueryHistory.is_saved.is_(False)
+        )
+    )
+    session.flush()
+    return Message(message=f"Cleared {result.rowcount or 0} unsaved querie(s); snippets kept")
 
 
 @router.get("/views", summary="Analytical views available for querying")
@@ -89,3 +221,6 @@ def _jsonify(value: Any) -> Any:
     if isinstance(value, (bytes, bytearray)):
         return f"<{len(value)} bytes>"
     return value
+
+
+__all__ = ["FORBIDDEN_TABLES", "HISTORY_KEEP"]

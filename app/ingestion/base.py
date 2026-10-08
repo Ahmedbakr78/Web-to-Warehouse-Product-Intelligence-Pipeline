@@ -363,11 +363,15 @@ def load_builtin_sources() -> None:
         dummyjson,
         fakestore,
         google_books,
+        kraken,
         local_fixture,
+        makeup,
         openfoodfacts_prices,
         openlibrary,
+        platzi,
         scrapeme,
         steam_store,
+        ygoprodeck,
     )
 
 

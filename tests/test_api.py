@@ -290,6 +290,14 @@ def test_analytics_kpi(client, admin_token):
     assert payload["counts"]["fact_price_snapshot"] > 0
 
 
+def test_analytics_leader_endpoints(client, admin_token):
+    headers = auth(admin_token)
+    for path in ("/api/v1/analytics/volatility", "/api/v1/analytics/discounts", "/api/v1/analytics/top-rated"):
+        response = client.get(f"{path}?limit=5", headers=headers)
+        assert response.status_code == 200, path
+        assert isinstance(response.json(), list), path
+
+
 def test_pipeline_runs_and_detail(client, admin_token):
     runs = client.get("/api/v1/pipeline/runs?page_size=3", headers=auth(admin_token)).json()
     assert runs["items"]
