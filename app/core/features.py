@@ -338,6 +338,18 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "name": "Per-source savepoints",
                 "detail": "A failed source rolls back alone; the run transaction stays usable",
             },
+            {
+                "name": "Per-source commit",
+                "detail": "Each source is durable before the next starts; later deaths lose nothing",
+            },
+            {
+                "name": "Rollback-and-reconnect",
+                "detail": "Dead connections recover via pool refresh; the run continues partial",
+            },
+            {
+                "name": "Fetch-before-transaction",
+                "detail": "Slow HTTP never holds an open transaction idle during a run",
+            },
             {"name": "Manual trigger API", "detail": "Async or sync, any source mix, any dialect"},
             {"name": "CLI", "detail": "17 Typer commands: bootstrap, seed, verify, run, report..."},
         ],

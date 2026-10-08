@@ -397,9 +397,10 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 | Query power + report CSV Max | 20 |
 | Pipeline resilience Max | 2 |
 | Second-wave sources + analysis Max | 13 |
-| **Total** | **511** |
+| Transport-death survival Max | 6 |
+| **Total** | **517** |
 
-The numbering is continuous from F-001 to F-511 with no duplicate or missing identifier. Counts are measured from the rows themselves by `scripts/project_stats.py`, and each section heading states the same figure, so the three cannot quietly disagree. Sections 14–41 continue below with the same running sequence.
+The numbering is continuous from F-001 to F-517 with no duplicate or missing identifier. Counts are measured from the rows themselves by `scripts/project_stats.py`, and each section heading states the same figure, so the three cannot quietly disagree. Sections 14–41 continue below with the same running sequence.
 
 ---
 
@@ -940,3 +941,21 @@ plus seven SQL analyses proven against the production warehouse.
 | F-511 | Stockout risk | Thinnest availability vs demand, unknown-status shelves excluded | `db/analysis/15_stockout_risk.sql` |
 
 **Revised total: 511 features across 41 areas** (F-001 to F-511).
+
+## 42. Transport-death survival Max (6)
+
+A production run died as `failed` when PostgreSQL closed a connection mid-flush:
+the savepoint could not fix a dead connection, and bookkeeping itself raised
+`PendingRollbackError`. The run now commits per source, recovers dead
+connections, and never holds a transaction open during network I/O.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-512 | Per-source commit | Each source's work is durable before the next starts; a later death loses nothing committed | `app/etl/pipeline.py` `_execute` |
+| F-513 | Rollback-and-reconnect | Any source failure rolls back and resumes on a fresh pooled connection | `app/etl/pipeline.py` `_execute` |
+| F-514 | Fetch-before-transaction | Slow HTTP never holds an open transaction idle during the run | `app/etl/pipeline.py` `_process_source` |
+| F-515 | Run-row durability | The run row commits upfront and is re-fetched after rollbacks | `app/etl/pipeline.py` `_execute` |
+| F-516 | Stage guards + finalise | Aggregate, reconcile and quality stages fail to warnings, never to run death | `app/etl/pipeline.py` `_execute` |
+| F-517 | License notes on status rows | Blocked sources explain themselves on the Sources screen | `GET /api/v1/pipeline/sources/status` |
+
+**Revised total: 517 features across 42 areas** (F-001 to F-517).

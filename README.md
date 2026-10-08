@@ -175,7 +175,7 @@ Everything is engineered like a production system, not a demo:
 12 data-quality rules across 6 dimensions, weighted score persisted per run
 32 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
 13 CLI commands  |  6 Docker Compose services  |  30 documents  |  80 Mermaid diagrams
-567 tests  |  104/104 API smoke checks  |  511 catalogued features
+568 tests  |  104/104 API smoke checks  |  517 catalogued features
 ```
 
 | Metric | Count |
@@ -192,8 +192,8 @@ Everything is engineered like a production system, not a demo:
 | Docker Compose services | 6 |
 | Numbered documents      | 30 |
 | Mermaid diagrams        | 80 |
-| Catalogued features     | 511 |
-| Collected test cases    | 567 |
+| Catalogued features     | 517 |
+| Collected test cases    | 568 |
 | API smoke checks        | 104 |
 
 <!-- END:STATS -->
