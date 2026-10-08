@@ -74,17 +74,6 @@ const WRITE_KEYWORDS = [
 ] as const
 
 type ResultRow = Record<string, unknown>
-type HistoryEntry = {
-  history_id: number
-  name?: string | null
-  sql: string
-  limit: number
-  row_count: number
-  duration_ms: number
-  truncated: boolean
-  is_saved: boolean
-  created_at?: string | null
-}
 
 /* ------------------------------------------------------- client-side guard
    Mirrors app/api/query_guard.py so the editor can warn before the round-trip.
@@ -522,9 +511,14 @@ export default function QueryLab() {
   }))
 
   const groups: [string, string[]][] = Object.entries(tables.data?.groups ?? {})
-  const historyEntries = (history.data ?? []).filter((entry) =>
-    historyTab === 'saved' ? entry.is_saved : true,
-  )
+
+  function loadHistorySql(nextSql: string) {
+    setSql(nextSql)
+    setSortBy(undefined)
+    setResultFilter('')
+    run.reset()
+    editorRef.current?.focus()
+  }
 
   return (
     <div className="grid grid-cols-1 items-start gap-3 xl:grid-cols-[minmax(0,24rem)_minmax(0,1fr)]">
@@ -786,125 +780,7 @@ export default function QueryLab() {
           )}
         </Card>
 
-        <Card>
-          <CardHeader
-            title="History & snippets"
-            subtitle="Every run is recorded; pin the good ones"
-            icon={<History className="h-4 w-4" />}
-            action={
-              <div className="flex gap-1">
-                <button
-                  onClick={() => setHistoryTab('all')}
-                  className={`rounded-md px-2 py-1 text-[11px] font-medium ${historyTab === 'all' ? 'bg-surface-3 text-ink' : 'text-subtle hover:text-ink'}`}
-                >
-                  All
-                </button>
-                <button
-                  onClick={() => setHistoryTab('saved')}
-                  className={`rounded-md px-2 py-1 text-[11px] font-medium ${historyTab === 'saved' ? 'bg-surface-3 text-ink' : 'text-subtle hover:text-ink'}`}
-                >
-                  Saved
-                </button>
-              </div>
-            }
-          />
-          {history.isError ? (
-            <ErrorState
-              title="History unavailable"
-              message={(history.error as Error)?.message}
-              onRetry={() => history.refetch()}
-            />
-          ) : history.isLoading && !history.data ? (
-            <LoadingState label="Loading history…" rows={2} />
-          ) : historyEntries.length ? (
-            <div className="space-y-1.5">
-              <ul className="max-h-64 space-y-1.5 overflow-auto">
-                {historyEntries.map((entry) => (
-                  <li key={entry.history_id} className="rounded-lg border border-line px-3 py-2">
-                    <button onClick={() => loadExample({ sql: entry.sql })} className="block w-full text-left">
-                      <span className="block truncate font-mono text-[11px] text-ink">{entry.sql}</span>
-                      <span className="mt-0.5 block text-[10px] text-subtle">
-                        {formatNumber(entry.row_count)} rows · {formatDuration(entry.duration_ms)}
-                        {entry.truncated ? ' · truncated' : ''}
-                        {entry.name ? ` · ${entry.name}` : ''}
-                      </span>
-                    </button>
-                    <span className="mt-1.5 flex flex-wrap gap-1.5">
-                      {!entry.is_saved ? (
-                        <span className="flex flex-1 items-center gap-1">
-                          <input
-                            value={entry.history_id === historyEntries[0]?.history_id ? snippetName : ''}
-                            onChange={(event) => setSnippetName(event.target.value)}
-                            placeholder="Snippet name…"
-                            aria-label="Snippet name"
-                            className="input h-7 flex-1 py-0 text-[11px]"
-                          />
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            icon={<BookmarkPlus className="h-3.5 w-3.5" />}
-                            onClick={() => {
-                              const name = snippetName.trim() || `snippet ${entry.history_id}`
-                              void endpoints
-                                .saveSnippet(entry.history_id, name)
-                                .then(() => {
-                                  setSnippetName('')
-                                  void queryClient.invalidateQueries({ queryKey: ['query-history'] })
-                                })
-                                .catch(() => {})
-                            }}
-                          >
-                            Pin
-                          </Button>
-                        </span>
-                      ) : (
-                        <Badge tone="brand">
-                          <Bookmark className="h-3 w-3" /> {entry.name ?? 'saved'}
-                        </Badge>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        icon={<Trash2 className="h-3.5 w-3.5" />}
-                        onClick={() => {
-                          void endpoints
-                            .deleteHistoryEntry(entry.history_id)
-                            .then(() => queryClient.invalidateQueries({ queryKey: ['query-history'] }))
-                            .catch(() => {})
-                        }}
-                      >
-                        Delete
-                      </Button>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <Button
-                size="sm"
-                variant="ghost"
-                icon={<FileClock className="h-3.5 w-3.5" />}
-                onClick={() => {
-                  void endpoints
-                    .clearHistory()
-                    .then(() => queryClient.invalidateQueries({ queryKey: ['query-history'] }))
-                    .catch(() => {})
-                }}
-              >
-                Clear unsaved
-              </Button>
-            </div>
-          ) : (
-            <EmptyState
-              kind="file"
-              title={historyTab === 'saved' ? 'No snippet pinned yet' : 'No query run yet'}
-              message={
-                historyTab === 'saved'
-                  ? 'Run a statement, then pin it with a name to keep it here.'
-                  : 'Run a statement and it will appear here automatically.'
-              }
-            />
-          )}
-        </Card>
+        <QueryHistoryPanel onLoad={loadHistorySql} />
       </div>
 
       {/* ------------------------------------------------------------ results */}
