@@ -31,7 +31,7 @@ export default function QueryHistoryPanel({ onLoad }: { onLoad: (sql: string) =>
 
   const saveSnippet = useMutation({
     mutationFn: ({ id, snippetName }: { id: number; snippetName: string }) =>
-      endpoints.saveQuerySnippet(id, snippetName),
+      endpoints.saveSnippet(id, snippetName),
     onSuccess: () => {
       setNaming(null)
       setName('')
@@ -42,7 +42,7 @@ export default function QueryHistoryPanel({ onLoad }: { onLoad: (sql: string) =>
   })
 
   const remove = useMutation({
-    mutationFn: (id: number) => endpoints.deleteQueryHistory(id),
+    mutationFn: (id: number) => endpoints.deleteHistoryEntry(id),
     onSuccess: () => {
       invalidate()
       toast.success('Entry deleted')
@@ -51,7 +51,7 @@ export default function QueryHistoryPanel({ onLoad }: { onLoad: (sql: string) =>
   })
 
   const clear = useMutation({
-    mutationFn: () => endpoints.clearQueryHistory(),
+    mutationFn: () => endpoints.clearHistory(),
     onSuccess: (payload: any) => {
       invalidate()
       toast.success('History cleared', payload?.message ?? 'Snippets were kept.')
