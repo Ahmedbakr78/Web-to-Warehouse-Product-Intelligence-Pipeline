@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Braces, Columns3, Download, Filter, GitCompare, Package, RotateCcw, Star, Trash2 } from 'lucide-react'
+import { Braces, Check, Columns3, Download, Filter, GitCompare, Package, RotateCcw, Star, Trash2, X } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import {
@@ -384,7 +384,7 @@ export default function Products() {
             icon={<Package className="h-8 w-8" />}
             action={
               activeFilterCount || search ? (
-                <Button size="sm" variant="secondary" onClick={resetFilters}>
+                <Button size="sm" variant="secondary" icon={<RotateCcw className="h-4 w-4" />} onClick={resetFilters}>
                   Clear all filters
                 </Button>
               ) : null
@@ -617,6 +617,7 @@ export default function Products() {
           <>
             <Button
               variant="ghost"
+              icon={<X className="h-4 w-4" />}
               onClick={() => {
                 setComparedIds([])
                 setShowCompare(false)
@@ -624,7 +625,7 @@ export default function Products() {
             >
               Clear selection
             </Button>
-            <Button variant="primary" onClick={() => setShowCompare(false)}>
+            <Button variant="primary" icon={<Check className="h-4 w-4" />} onClick={() => setShowCompare(false)}>
               Done
             </Button>
           </>
@@ -676,10 +677,10 @@ export default function Products() {
             />
           ))}
           <div className="flex justify-between border-t border-line pt-3">
-            <Button size="sm" variant="ghost" onClick={() => setColumns(ALL_COLUMNS.map((column) => column.key))}>
+            <Button size="sm" variant="ghost" icon={<Check className="h-3.5 w-3.5" />} onClick={() => setColumns(ALL_COLUMNS.map((column) => column.key))}>
               Select all
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => setColumns(['name', 'category', 'price'])}>
+            <Button size="sm" variant="ghost" icon={<Columns3 className="h-3.5 w-3.5" />} onClick={() => setColumns(['name', 'category', 'price'])}>
               Minimal
             </Button>
           </div>

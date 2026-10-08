@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowDown, ArrowUp, Bookmark, Braces, CheckCheck, Copy, Download, ExternalLink, Filter, Layers, Link2, Minus, Pin, PinOff, Play, RotateCcw, Save, Sparkles, Wand2, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, Bookmark, Braces, Check, CheckCheck, Copy, Download, ExternalLink, Filter, Layers, Link2, Minus, Pin, PinOff, Play, RotateCcw, Save, Sparkles, Wand2, X } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import {
@@ -868,10 +868,10 @@ export default function Builder() {
         description="The current filters, sort levels, columns and pins are stored and become available as a preset."
         footer={
           <>
-            <Button variant="ghost" onClick={() => setShowSave(false)}>
+            <Button variant="ghost" icon={<X className="h-4 w-4" />} onClick={() => setShowSave(false)}>
               Cancel
             </Button>
-            <Button variant="primary" loading={saveView.isPending} disabled={!viewName.trim()} onClick={() => saveView.mutate()}>
+            <Button variant="primary" icon={<Check className="h-4 w-4" />} loading={saveView.isPending} disabled={!viewName.trim()} onClick={() => saveView.mutate()}>
               Save view
             </Button>
           </>

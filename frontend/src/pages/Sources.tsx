@@ -8,9 +8,13 @@ import {
   LayoutGrid,
   Plus,
   Rows3,
+  Check,
+  Eye,
+  Power,
   ShieldCheck,
   Table as TableIcon,
   Trash2,
+  X,
 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
@@ -179,6 +183,7 @@ function SourceCard({
               <Button
                 size="sm"
                 variant="ghost"
+                icon={<Power className="h-3.5 w-3.5" />}
                 disabled={busy}
                 onClick={() => onToggle(row)}
               >
@@ -195,7 +200,7 @@ function SourceCard({
               </Button>
             </>
           ) : null}
-          <Button size="sm" variant="secondary" onClick={() => onPreview(row.source_code)}>
+          <Button size="sm" variant="secondary" icon={<Eye className="h-4 w-4" />} onClick={() => onPreview(row.source_code)}>
             Preview raw records
           </Button>
         </div>
@@ -583,18 +588,19 @@ function AddSourceModal({ onClose, onCreated }: { onClose: () => void; onCreated
       size="lg"
       footer={
         <>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="ghost" icon={<X className="h-4 w-4" />} onClick={onClose}>
             Cancel
           </Button>
           <Button
             variant="secondary"
+            icon={<ShieldCheck className="h-4 w-4" />}
             loading={checking}
             disabled={!baseUrl.trim()}
             onClick={runCheck}
           >
             Check compliance
           </Button>
-          <Button variant="primary" loading={saving} disabled={!canSave} onClick={save}>
+          <Button variant="primary" icon={<Check className="h-4 w-4" />} loading={saving} disabled={!canSave} onClick={save}>
             Save & enable
           </Button>
         </>
@@ -1227,11 +1233,12 @@ export default function Sources() {
         size="sm"
         footer={
           <>
-            <Button variant="ghost" onClick={() => setDeleteCode(null)}>
+            <Button variant="ghost" icon={<X className="h-4 w-4" />} onClick={() => setDeleteCode(null)}>
               Cancel
             </Button>
             <Button
               variant="danger"
+              icon={<Trash2 className="h-4 w-4" />}
               loading={deleteSource.isPending}
               onClick={() => deleteCode && deleteSource.mutate(deleteCode)}
             >

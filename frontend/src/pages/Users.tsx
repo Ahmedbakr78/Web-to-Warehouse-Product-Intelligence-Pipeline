@@ -17,11 +17,13 @@ import {
   LogIn,
   Plus,
   ShieldAlert,
+  Check,
   Trash2,
   UserCheck,
   UserPlus,
   UserX,
   Users as UsersIcon,
+  X,
 } from 'lucide-react'
 
 import { CHART_SERIES, DonutChart } from '@/components/charts'
@@ -469,10 +471,10 @@ export default function Users() {
         description="The account is active immediately and can sign in with this password."
         footer={
           <>
-            <Button size="sm" variant="ghost" onClick={() => setFormOpen(false)}>
+            <Button size="sm" variant="ghost" icon={<X className="h-4 w-4" />} onClick={() => setFormOpen(false)}>
               Cancel
             </Button>
-            <Button size="sm" variant="primary" loading={createUser.isPending} onClick={submit}>
+            <Button size="sm" variant="primary" icon={<UserPlus className="h-4 w-4" />} loading={createUser.isPending} onClick={submit}>
               Create user
             </Button>
           </>
@@ -632,12 +634,13 @@ export default function Users() {
         size="sm"
         footer={
           <>
-            <Button size="sm" variant="ghost" onClick={() => setKeyFormOpen(false)}>
+            <Button size="sm" variant="ghost" icon={<X className="h-4 w-4" />} onClick={() => setKeyFormOpen(false)}>
               Cancel
             </Button>
             <Button
               size="sm"
               variant="primary"
+              icon={<KeyRound className="h-4 w-4" />}
               loading={createKey.isPending}
               onClick={() => {
                 if (keyName.trim().length < 2) {
@@ -665,7 +668,7 @@ export default function Users() {
         title="API key created"
         description="Copy the key now — the full value is never shown again."
         footer={
-          <Button size="sm" variant="primary" onClick={() => setIssued(null)}>
+          <Button size="sm" variant="primary" icon={<Check className="h-4 w-4" />} onClick={() => setIssued(null)}>
             I have stored it
           </Button>
         }

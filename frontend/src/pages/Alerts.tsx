@@ -6,7 +6,7 @@
 
 import { type ReactNode, useMemo, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Bell, BellRing, Check, CheckCheck, Inbox, Pencil, Plus, RefreshCw, Trash2, Zap } from 'lucide-react'
+import { Bell, BellRing, Check, CheckCheck, Inbox, Pencil, Plus, RefreshCw, Trash2, X, Zap } from 'lucide-react'
 
 import {
   Badge,
@@ -543,7 +543,7 @@ export default function Alerts() {
         size="sm"
         footer={
           <>
-            <Button size="sm" variant="ghost" onClick={() => setPendingDelete(null)}>
+            <Button size="sm" variant="ghost" icon={<X className="h-4 w-4" />} onClick={() => setPendingDelete(null)}>
               Cancel
             </Button>
             <Button
@@ -574,7 +574,7 @@ export default function Alerts() {
         description="Rules are evaluated after every pipeline run."
         footer={
           <>
-            <Button size="sm" variant="ghost" onClick={closeForm}>
+            <Button size="sm" variant="ghost" icon={<X className="h-4 w-4" />} onClick={closeForm}>
               Cancel
             </Button>
             <Button size="sm" variant="primary" icon={editing ? <Pencil className="h-4 w-4" /> : <Plus className="h-4 w-4" />} loading={saving} onClick={submit}>

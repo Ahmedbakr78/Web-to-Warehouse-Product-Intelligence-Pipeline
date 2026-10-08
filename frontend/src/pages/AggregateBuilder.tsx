@@ -7,7 +7,7 @@
  */
 
 import { useMemo, useState } from 'react'
-import { BarChart3, Copy, Download, Layers, Play, Plus, RotateCcw, Terminal, Trash2 } from 'lucide-react'
+import { BarChart3, Copy, Download, FileJson, Layers, Play, Plus, RotateCcw, Terminal, Trash2 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 
 import { useDebounce } from '@/hooks/useDebounce'
@@ -447,7 +447,7 @@ export default function AggregateBuilder() {
               <Button size="sm" variant="secondary" icon={<Download className="h-3.5 w-3.5" />} onClick={() => exportResult('csv')} disabled={!result?.row_count}>
                 CSV
               </Button>
-              <Button size="sm" variant="ghost" onClick={() => exportResult('json')} disabled={!result?.row_count}>
+              <Button size="sm" variant="ghost" icon={<FileJson className="h-3.5 w-3.5" />} onClick={() => exportResult('json')} disabled={!result?.row_count}>
                 JSON
               </Button>
             </div>

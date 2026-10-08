@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Building2, FileDown, GitCompare, Play, RefreshCw, TrendingDown, TrendingUp, Upload } from 'lucide-react'
+import { Building2, FileDown, Filter, GitCompare, Play, RefreshCw, TrendingDown, TrendingUp, Upload } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { BarSeries, DonutChart } from '@/components/charts'
@@ -218,7 +218,7 @@ export default function Catalog() {
                 <option value="matched">Matched</option>
                 <option value="unmatched">Unmatched</option>
               </Select>
-              <Button size="sm" variant={onlyMismatches ? 'primary' : 'secondary'} onClick={() => { setOnlyMismatches((value) => !value); setPage(1) }}>
+              <Button size="sm" variant={onlyMismatches ? 'primary' : 'secondary'} icon={<Filter className="h-4 w-4" />} onClick={() => { setOnlyMismatches((value) => !value); setPage(1) }}>
                 Price mismatches only
               </Button>
               <div className="ml-auto text-xs text-subtle">{formatNumber(reconciliation.data?.total ?? 0)} matches</div>

@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { Database, Download, Play, ScanSearch, Table2, Terminal } from 'lucide-react'
+import { Database, Download, Play, ScanSearch, Table2, Terminal, X } from 'lucide-react'
 
 import {
   Badge,
@@ -331,10 +331,10 @@ export default function QueryLab() {
           <div className="space-y-2 p-4">
             <QueryError error={run.error} />
             <div className="flex flex-wrap gap-2">
-              <Button size="sm" variant="secondary" onClick={execute}>
+              <Button size="sm" variant="secondary" icon={<Play className="h-4 w-4" />} onClick={execute}>
                 Run again
               </Button>
-              <Button size="sm" variant="ghost" onClick={() => run.reset()}>
+              <Button size="sm" variant="ghost" icon={<X className="h-4 w-4" />} onClick={() => run.reset()}>
                 Dismiss
               </Button>
             </div>

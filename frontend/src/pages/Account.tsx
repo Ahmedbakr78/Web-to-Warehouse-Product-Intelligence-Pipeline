@@ -1098,6 +1098,7 @@ export default function Account() {
             </Button>
             <Button
               variant="danger"
+              icon={<Trash2 className="h-4 w-4" />}
               loading={deleteAccount.isPending}
               disabled={!deletePassword || deleteConfirm !== 'DELETE'}
               onClick={() => deleteAccount.mutate()}

@@ -240,7 +240,7 @@ export default function Reports() {
             <Button variant="secondary" icon={<Download className="h-4 w-4" />} loading={csv.isPending} onClick={() => csv.mutate()}>
               CSV
             </Button>
-            <Button variant="ghost" onClick={openHtml}>
+            <Button variant="ghost" icon={<FileText className="h-4 w-4" />} onClick={openHtml}>
               HTML
             </Button>
           </div>

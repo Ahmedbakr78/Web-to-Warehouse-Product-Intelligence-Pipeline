@@ -15,9 +15,11 @@ import {
   Plus,
   RefreshCw,
   RotateCw,
+  Check,
   Send,
   Trash2,
   Webhook as WebhookIcon,
+  X,
   XCircle,
 } from 'lucide-react'
 
@@ -328,7 +330,7 @@ export default function Webhooks() {
             icon={<WebhookIcon className="h-6 w-6" />}
             title="No webhooks yet"
             message="Create one to receive signed pipeline events in your own application."
-            action={<Button onClick={() => setCreating(true)}>Create the first webhook</Button>}
+            action={<Button icon={<Plus className="h-4 w-4" />} onClick={() => setCreating(true)}>Create the first webhook</Button>}
           />
         ) : (
           <DataTable columns={columns} rows={hooks.data ?? []} rowKey={(row) => String(row.webhook_id)} />
@@ -414,10 +416,11 @@ export default function Webhooks() {
             </label>
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="secondary" onClick={() => setCreating(false)}>
+            <Button variant="secondary" icon={<X className="h-4 w-4" />} onClick={() => setCreating(false)}>
               Cancel
             </Button>
             <Button
+              icon={<Plus className="h-4 w-4" />}
               onClick={() => void create()}
               disabled={busy === 1 || !form.name.trim() || !form.target_url.trim()}
             >
@@ -455,7 +458,7 @@ export default function Webhooks() {
               >
                 Copy
               </Button>
-              <Button onClick={() => setRevealed(null)}>Done</Button>
+              <Button icon={<Check className="h-4 w-4" />} onClick={() => setRevealed(null)}>Done</Button>
             </div>
           </div>
         )}

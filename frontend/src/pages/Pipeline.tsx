@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   Timer,
   TrendingUp,
+  X,
   Zap,
 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -491,7 +492,7 @@ export default function Pipeline() {
         description="Executes the full ETL synchronously: extract → stage → transform → dedupe → load → detect → reconcile → quality."
         footer={
           <>
-            <Button variant="ghost" onClick={() => setShowTrigger(false)}>
+            <Button variant="ghost" icon={<X className="h-4 w-4" />} onClick={() => setShowTrigger(false)}>
               Cancel
             </Button>
             <Button variant="primary" loading={trigger.isPending} onClick={() => trigger.mutate()} icon={<Play className="h-4 w-4" />}>
