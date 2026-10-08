@@ -391,9 +391,13 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 | Sources + projection export Max | 2 |
 | Local runner Max | 1 |
 | Export-button sweep Max | 2 |
-| **Total** | **454** |
+| Builder filter-mode Max | 2 |
+| Saved-view contract Max | 2 |
+| Full-max pass | 16 |
+| Query power + report CSV Max | 20 |
+| **Total** | **496** |
 
-The numbering is continuous from F-001 to F-454 with no duplicate or missing identifier. Counts are measured from the rows themselves by `scripts/project_stats.py`, and each section heading states the same figure, so the three cannot quietly disagree. Sections 14–35 continue below with the same running sequence.
+The numbering is continuous from F-001 to F-496 with no duplicate or missing identifier. Counts are measured from the rows themselves by `scripts/project_stats.py`, and each section heading states the same figure, so the three cannot quietly disagree. Sections 14–39 continue below with the same running sequence.
 
 ---
 
@@ -866,3 +870,34 @@ Two new sources, key lifecycle endpoints, builder power tools, account backup an
 | F-476 | Strict frontend build | `tsc -b` with zero errors (vitest 3 dedupes vite 6); `--noCheck` escape hatch removed | `frontend/package.json` `vitest.config.ts` |
 
 **Revised total: 476 features across 38 areas** (F-001 to F-476).
+
+## 39. Query power + report CSV Max (20)
+
+Post-aggregation predicates, OR logic and hardened identifiers in the builder; full saved-view
+lifecycle with visibility rules and audit; server-side query history with snippets; a real CSV
+route for reports; and type-safe setting writes.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-477 | HAVING post-filters | Post-aggregation predicates over grouping columns and aggregate aliases | `app/api/routers/builder.py` `having` |
+| F-478 | AND/OR filter logic | WHERE filters combine with AND or OR per request; HAVING stays AND | `app/api/routers/builder.py` `filter_logic` |
+| F-479 | Groupable enforcement | The schema's groupable flag is enforced server-side, not just advertised | `app/api/routers/builder.py` `_check_column` |
+| F-480 | Alias injection guard | Aggregate aliases must match a strict identifier shape before interpolation | `app/api/routers/builder.py` `ALIAS_RE` |
+| F-481 | Stable grouped paging | Grouped queries without a sort still emit ORDER BY, so OFFSET pages are deterministic | `app/api/routers/builder.py` `_build_sql` |
+| F-482 | Capability advertisement | Schema lists filter_logic values and supported capabilities | `GET /api/v1/builder/schema` `supports` |
+| F-483 | Saved-view retrieve | GET one view; private views 404 for other users | `GET /api/v1/saved-views/{id}` |
+| F-484 | Saved-view partial update | PATCH name, filters, sort, columns, sharing; renames clash-checked per user | `PATCH /api/v1/saved-views/{id}` |
+| F-485 | Server-side duplicate | Copy filters, sort and columns under a fresh auto-numbered name | `POST /api/v1/saved-views/{id}/duplicate` |
+| F-486 | Default view pinning | One default per entity per user; the list endpoint sorts it first | `POST /api/v1/saved-views/{id}/default` `is_default` |
+| F-487 | View visibility rules | Shared views readable but never mutable by others; 404 preferred over 403 for existence | `app/api/routers/saved_views.py` `_visible` `_owned` |
+| F-488 | Saved-view audit trail | Create, update, duplicate, default and delete land in app_audit_log | `app/api/routers/saved_views.py` `_audit` |
+| F-489 | Query history table | Every execution recorded with rows, duration and truncation; per-user, pruned past 200 | `app_query_history` `GET /api/v1/queries/history` |
+| F-490 | Pinned snippets | Name any run to pin it; snippets survive pruning and clearing | `POST /api/v1/queries/history/{id}/save` |
+| F-491 | History panel | All/snippets filter, one-click reload, per-entry delete, clear-keeps-snippets | `frontend/src/components/QueryHistoryPanel.tsx` |
+| F-492 | Secret-table guard | app_user, app_api_key, app_session, app_webhook unreadable from the console | `app/api/routers/queries.py` `FORBIDDEN_TABLES` |
+| F-493 | Server-side row cap | The LIMIT wraps the statement so the engine never materialises unbounded results | `app/api/routers/queries.py` `_bounded` |
+| F-494 | Server report CSV | Scalar facts frame plus every table block as a CSV sub-table | `GET /api/v1/reports/{template}/csv` |
+| F-495 | Type-preserving setting writes | A type-less PUT keeps the stored value_type instead of coercing to string | `PUT /api/v1/settings/{key}` |
+| F-496 | Setting metadata + audit | Category, description and visibility settable; every change audited | `app/api/routers/settings.py` `setting.updated` |
+
+**Revised total: 496 features across 39 areas** (F-001 to F-496).
