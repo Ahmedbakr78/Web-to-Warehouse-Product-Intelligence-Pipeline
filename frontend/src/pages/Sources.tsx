@@ -934,22 +934,23 @@ export default function Sources() {
       key: 'health',
       header: 'Health',
       width: '9rem',
-      render: (row) => (
-        <span className="block min-w-[7rem]">
-          <span className="mb-1 flex items-center justify-between gap-2 text-[11px]">
-            <span className="truncate text-subtle">{titleCase(row.sync_status ?? 'unknown')}</span>
-            <span className="tabular-nums">
-              {row.success_rate_pct === null || row.success_rate_pct === undefined
-                ? '—'
-                : `${Number(row.success_rate_pct).toFixed(0)}%`}
+      render: (row) => {
+        const neverRan = Number(row.total_runs ?? 0) === 0
+        const hasRate = row.success_rate_pct !== null && row.success_rate_pct !== undefined
+        return (
+          <span className="block min-w-[7rem]">
+            <span className="mb-1 flex items-center justify-between gap-2 text-[11px]">
+              <span className="truncate text-subtle">{titleCase(row.sync_status ?? 'unknown')}</span>
+              <span className="tabular-nums">{hasRate ? `${Number(row.success_rate_pct).toFixed(0)}%` : '—'}</span>
             </span>
+            {neverRan ? (
+              <span className="block h-2 w-full rounded-full bg-surface-3" aria-hidden />
+            ) : (
+              <ProgressBar value={Number(row.success_rate_pct ?? 0)} tone={successTone(hasRate ? Number(row.success_rate_pct) : null)} />
+            )}
           </span>
-          <ProgressBar
-            value={Number(row.success_rate_pct ?? 0)}
-            tone={successTone(row.success_rate_pct === null || row.success_rate_pct === undefined ? null : Number(row.success_rate_pct))}
-          />
-        </span>
-      ),
+        )
+      },
     },
     {
       key: 'products',
