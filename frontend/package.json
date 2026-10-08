@@ -6,7 +6,7 @@
   "description": "React dashboard for the Web-to-Warehouse Product Intelligence Pipeline",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b --noCheck && vite build",
+    "build": "tsc -b && vite build",
     "build:strict": "tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0 --port 4173",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
@@ -45,6 +45,6 @@
     "typescript": "~5.6.3",
     "typescript-eslint": "^8.18.1",
     "vite": "^6.0.5",
-    "vitest": "^2.1.9"
+    "vitest": "^3.2.7"
   }
 }
