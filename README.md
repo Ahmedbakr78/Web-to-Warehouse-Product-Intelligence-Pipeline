@@ -292,7 +292,7 @@ flowchart LR
         RL["Rate limiter<br/>token bucket + window"]
         CB["Circuit breaker"]
         HC["Polite HTTP client<br/>retries + cache + audit"]
-        S["7 source adapters<br/>generators"]
+        S["9 source adapters<br/>generators"]
         R --> RL --> CB --> HC --> S
     end
 
