@@ -110,8 +110,8 @@ hrule() { printf '%*s' "$1" '' | tr ' ' "$2"; }
 
 TERM_COLS="$(tput cols 2>/dev/null || echo 80)"
 WIDTH="$TERM_COLS"
-[ "$WIDTH" -gt 88 ] && WIDTH=88
-[ "$WIDTH" -lt 60 ] && WIDTH=60
+if [ "$WIDTH" -gt 88 ]; then WIDTH=88; fi
+if [ "$WIDTH" -lt 60 ]; then WIDTH=60; fi
 # Row layout: │ + space + INNER chars + space + │  →  INNER = WIDTH - 4.
 BOX_INNER=$(( WIDTH - 4 ))
 [ "$UTF8" -eq 1 ] && ELLIPSIS=$'\342\200\246' || ELLIPSIS='+'  # …
@@ -137,7 +137,7 @@ hyperlinks_ok() {
   return 1
 }
 LINKS=0
-hyperlinks_ok && LINKS=1
+if hyperlinks_ok; then LINKS=1; fi
 
 #: link URL [label] — a clickable local link on capable terminals, the plain
 #: URL everywhere else (still clickable via terminal URL detection).
@@ -283,11 +283,11 @@ state_dot() {
 # ------------------------------------------------------------------ spinner
 SPIN_PID=""
 SPIN_FRAMES=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
-[ "$UTF8" -eq 0 ] && SPIN_FRAMES=('|' '/' '-' '\')
+if [ "$UTF8" -eq 0 ]; then SPIN_FRAMES=('|' '/' '-' '\'); fi
 
 spin_start() {
   local msg="$1"
-  [ -n "$SPIN_PID" ] && return 0
+  if [ -n "$SPIN_PID" ]; then return 0; fi
   if [ "$TTY" -eq 0 ]; then
     printf '    %s %s ' "..." "$msg"
     return 0
