@@ -30,6 +30,8 @@ def test_registry_contains_every_bundled_source():
         "books_to_scrape",
         "scrapeme_products",
         "google_books",
+        "steam_store",
+        "openfoodfacts_prices",
     } <= codes
 
 
@@ -347,3 +349,163 @@ def test_google_books_params_include_key_only_when_configured(monkeypatch):
     assert "key" not in source._params("fiction", 10)
     monkeypatch.setattr(settings, "google_books_api_key", "TESTKEY")
     assert source._params("fiction", 10)["key"] == "TESTKEY"
+
+
+# --------------------------------------------------------------------------------------
+# Steam Store API
+# --------------------------------------------------------------------------------------
+STEAM_DETAIL = {
+    "steam_appid": 550,
+    "name": "Left 4 Dead 2",
+    "type": "game",
+    "is_free": False,
+    "header_image": "https://cdn.example.local/header.jpg",
+    "short_description": "Co-operative zombie shooter.",
+    "developers": ["Valve"],
+    "publishers": ["Valve"],
+    "price_overview": {
+        "currency": "USD",
+        "initial": 999,
+        "final": 199,
+        "discount_percent": 80,
+    },
+    "genres": [{"id": "1", "description": "Action"}],
+    "release_date": {"coming_soon": False, "date": "Nov 16, 2009"},
+}
+
+STEAM_SUMMARY = {
+    "review_score_desc": "Overwhelmingly Positive",
+    "total_positive": 1036290,
+    "total_negative": 26359,
+    "total_reviews": 1062649,
+}
+
+
+def _steam_source():
+    from app.ingestion.sources.steam_store import SteamStoreSource
+
+    return SteamStoreSource()
+
+
+def test_steam_maps_cents_price_discount_and_rating():
+    raw = _steam_source()._to_raw(STEAM_DETAIL, STEAM_SUMMARY, 550)
+    assert raw is not None
+    assert raw.source_product_id == "550"
+    assert raw.name == "Left 4 Dead 2"
+    assert raw.price_text == "1.99"  # final cents -> dollars
+    assert raw.list_price_text == "9.99"  # initial cents -> dollars
+    assert raw.currency_hint == "USD"
+    assert raw.category == "Action"
+    assert raw.in_stock_flag is True
+    assert raw.brand == "Valve"
+    assert raw.url == "https://store.steampowered.com/app/550/"
+    assert raw.payload["discount_percent"] == 80
+    # 1036290 / 1062649 * 5 = 4.876...
+    assert raw.rating_text == "4.88 out of 5"
+    assert raw.rating_count_text == "1062649"
+
+
+def test_steam_free_title_maps_zero_price_without_rating():
+    detail = {**STEAM_DETAIL, "steam_appid": 440, "name": "Team Fortress 2", "is_free": True}
+    detail.pop("price_overview", None)
+    raw = _steam_source()._to_raw(detail, None, 440)
+    assert raw is not None
+    assert raw.price_text == "0"
+    assert raw.list_price_text is None
+    assert raw.rating_text is None
+    assert raw.in_stock_flag is True
+
+
+def test_steam_coming_soon_maps_preorder():
+    detail = {**STEAM_DETAIL, "release_date": {"coming_soon": True, "date": "2027"}}
+    detail.pop("price_overview", None)
+    detail["is_free"] = False
+    raw = _steam_source()._to_raw(detail, STEAM_SUMMARY, 550)
+    assert raw is not None
+    assert raw.availability_text == "preorder"
+    assert raw.in_stock_flag is False
+
+
+def test_steam_malformed_payloads_are_skipped():
+    source = _steam_source()
+    assert source._to_raw({}, STEAM_SUMMARY, 1) is None  # no name
+    assert source._to_raw({"name": ""}, STEAM_SUMMARY, 1) is None  # empty name
+    assert source._to_raw("not-a-dict", STEAM_SUMMARY, 1) is None  # type: ignore[arg-type]
+    assert source._to_raw(None, STEAM_SUMMARY, 1) is None  # type: ignore[arg-type]
+    assert source._cents("bogus") is None
+    assert source._cents(999) == "9.99"
+
+
+# --------------------------------------------------------------------------------------
+# Open Food Facts Prices
+# --------------------------------------------------------------------------------------
+OFF_PRICE_ITEM = {
+    "id": 342476,
+    "product_id": 3883915,
+    "price": 2.39,
+    "price_is_discounted": False,
+    "price_without_discount": None,
+    "currency": "AUD",
+    "date": "2026-10-08",
+    "product": {
+        "code": "4061459104981",
+        "product_name": "CREAM CHEESE SPREADABLE",
+        "brands": "WESTACRE DAIRY",
+        "categories_tags": ["en:salty-spreads"],
+        "image_url": "https://images.openfoodfacts.org/front.jpg",
+        "quantity": "250g",
+        "nutriscore_grade": "unknown",
+    },
+    "location": {
+        "osm_name": "Woodgrove Shopping Centre",
+        "osm_address_city": "Melbourne",
+        "osm_address_country": "Australia",
+    },
+}
+
+
+def _off_source():
+    from app.ingestion.sources.openfoodfacts_prices import OpenFoodFactsPricesSource
+
+    return OpenFoodFactsPricesSource()
+
+
+def test_off_prices_maps_product_price_store_and_category():
+    raw = _off_source()._to_raw(OFF_PRICE_ITEM)
+    assert raw is not None
+    assert raw.source_product_id == "4061459104981"
+    assert raw.name == "CREAM CHEESE SPREADABLE"
+    assert raw.price_text == "2.39"
+    assert raw.currency_hint == "AUD"
+    assert raw.category == "Salty Spreads"
+    assert raw.brand == "WESTACRE DAIRY"
+    assert raw.in_stock_flag is True
+    assert raw.list_price_text is None
+    assert raw.url == "https://world.openfoodfacts.org/product/4061459104981"
+    assert "Melbourne" in (raw.description or "")
+    assert raw.payload["country"] == "Australia"
+
+
+def test_off_prices_discount_yields_list_price():
+    item = {**OFF_PRICE_ITEM, "price": 4.5, "price_is_discounted": True, "price_without_discount": 6.0}
+    raw = _off_source()._to_raw(item)
+    assert raw is not None
+    assert raw.price_text == "4.5"
+    assert raw.list_price_text == "6.0"
+
+
+def test_off_prices_missing_name_or_price_are_skipped():
+    source = _off_source()
+    item = {**OFF_PRICE_ITEM, "product": {**OFF_PRICE_ITEM["product"], "product_name": ""}}
+    assert source._to_raw(item) is None
+    item = {**OFF_PRICE_ITEM, "price": None}
+    assert source._to_raw(item) is None
+    assert source._to_raw({}) is None
+    assert source._to_raw(None) is None  # type: ignore[arg-type]
+
+
+def test_off_prices_tags_are_humanised():
+    from app.ingestion.sources.openfoodfacts_prices import OpenFoodFactsPricesSource
+
+    assert OpenFoodFactsPricesSource._clean_tag("en:salty-spreads") == "Salty Spreads"
+    assert OpenFoodFactsPricesSource._clean_tag("whole-milk") == "Whole Milk"

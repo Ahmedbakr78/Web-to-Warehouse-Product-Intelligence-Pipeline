@@ -472,6 +472,8 @@ APPEARANCE_PATCHES = [
     {"font_scale": "xl"},
     {"direction": "rtl"},
     {"accent": "teal"},
+    {"scrollbars": "auto"},
+    {"scrollbars": "hidden"},
 ]
 
 
@@ -491,6 +493,9 @@ def test_invalid_appearance_values_are_rejected(client, admin_token):
     bad_accent = client.patch("/api/v1/users/me", json={"accent": "chartreuse"}, headers=auth(admin_token))
     assert bad_accent.status_code == 422
     assert "accent must be one of" in bad_accent.text
+
+    bad_scrollbars = client.patch("/api/v1/users/me", json={"scrollbars": "chunky"}, headers=auth(admin_token))
+    assert bad_scrollbars.status_code == 422
 
 
 def test_appearance_palettes_match_frontend(client):
@@ -516,7 +521,7 @@ def test_appearance_palettes_match_frontend(client):
 
 def test_profile_exposes_every_appearance_axis(client, admin_token):
     profile = client.get("/api/v1/users/me", headers=auth(admin_token)).json()
-    for axis in ("theme", "accent", "density", "motion", "direction", "font_scale"):
+    for axis in ("theme", "accent", "density", "motion", "direction", "font_scale", "scrollbars"):
         assert axis in profile, f"profile is missing the '{axis}' appearance axis"
 
 

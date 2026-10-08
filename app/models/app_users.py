@@ -34,6 +34,10 @@ class AppUser(Base, TimestampMixin):
     motion: Mapped[str] = mapped_column(ShortStr, default="full")
     direction: Mapped[str] = mapped_column(ShortStr, default="ltr")
     font_scale: Mapped[str] = mapped_column(ShortStr, default="md")
+    # Scrollbar presentation: `modern` draws a slim theme-aware thumb, `auto`
+    # reveals it only while the pointer is over the scrolling region, `hidden`
+    # removes it entirely (wheel, touch and keyboard scrolling keep working).
+    scrollbars: Mapped[str] = mapped_column(ShortStr, default="modern")
     is_active: Mapped[bool] = mapped_column(sa.Boolean, default=True)
     is_verified: Mapped[bool] = mapped_column(sa.Boolean, default=False)
     rows_per_page: Mapped[int] = mapped_column(sa.Integer, default=25)

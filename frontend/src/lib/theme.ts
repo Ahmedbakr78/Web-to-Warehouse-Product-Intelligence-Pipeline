@@ -18,6 +18,7 @@ export type Density = 'compact' | 'comfortable' | 'spacious'
 export type MotionMode = 'full' | 'reduced' | 'none'
 export type Direction = 'ltr' | 'rtl'
 export type FontScale = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+export type ScrollbarMode = 'modern' | 'auto' | 'hidden'
 
 export const THEME_MODES: { id: ThemeMode; label: string; hint: string }[] = [
   { id: 'light', label: 'Light', hint: 'Bright, high-contrast daylight UI' },
@@ -47,6 +48,12 @@ export const FONT_SCALES: { id: FontScale; label: string; px: string }[] = [
   { id: 'xl', label: 'XL', px: '19px' },
 ]
 
+export const SCROLLBAR_MODES: { id: ScrollbarMode; label: string; hint: string }[] = [
+  { id: 'modern', label: 'Modern', hint: 'Slim theme-aware scrollbars, always visible' },
+  { id: 'auto', label: 'Auto', hint: 'Scrollbars appear on hover or while scrolling' },
+  { id: 'hidden', label: 'Hidden', hint: 'No scrollbars; wheel, touch and keyboard still scroll' },
+]
+
 export type Accent = {
   name: string
   /** 600-ish shade used for solid buttons and active states. */
@@ -64,12 +71,14 @@ const KEY = {
   motion: 'pip.motion',
   direction: 'pip.direction',
   fontScale: 'pip.fontScale',
+  scrollbars: 'pip.scrollbars',
 } as const
 
 export const THEME_KEY = KEY.theme
 export const DENSITY_KEY = KEY.density
 export const ACCENT_KEY = KEY.accent
 export const MOTION_KEY = KEY.motion
+export const SCROLLBARS_KEY = KEY.scrollbars
 
 /* ---------------------------------------------------------------- accents */
 
@@ -133,6 +142,10 @@ export function getStoredMotion(): MotionMode {
   return stored === 'auto' ? 'full' : (stored as MotionMode)
 }
 
+export function getStoredScrollbars(): ScrollbarMode {
+  return read<ScrollbarMode>(KEY.scrollbars, SCROLLBAR_MODES.map((m) => m.id), 'modern')
+}
+
 /* ------------------------------------------------------------ apply (DOM) */
 
 export function applyTheme(mode: ThemeMode): boolean {
@@ -186,6 +199,10 @@ export function applyDirection(direction: Direction): void {
   root.setAttribute('dir', direction)
 }
 
+export function applyScrollbars(mode: ScrollbarMode): void {
+  document.documentElement.dataset.scrollbars = mode
+}
+
 /* ----------------------------------------------------------- apply (store) */
 
 export function setTheme(mode: ThemeMode): void {
@@ -224,6 +241,12 @@ export function setFontScale(scale: FontScale): void {
   emit()
 }
 
+export function setScrollbars(mode: ScrollbarMode): void {
+  write(KEY.scrollbars, mode)
+  applyScrollbars(mode)
+  emit()
+}
+
 /** Apply every stored preference. Called once before React mounts, and on boot. */
 export function initAppearance(): void {
   applyTheme(getStoredTheme())
@@ -232,6 +255,7 @@ export function initAppearance(): void {
   applyMotion(getStoredMotion())
   applyDirection(read<Direction>(KEY.direction, ['ltr', 'rtl'], 'ltr'))
   applyFontScale(read<FontScale>(KEY.fontScale, FONT_SCALES.map((f) => f.id), 'md'))
+  applyScrollbars(read<ScrollbarMode>(KEY.scrollbars, SCROLLBAR_MODES.map((m) => m.id), 'modern'))
 }
 
 /* -------------------------------------------------------- change broadcast */
@@ -249,6 +273,7 @@ type Snapshot = {
   motion: MotionMode
   direction: Direction
   fontScale: FontScale
+  scrollbars: ScrollbarMode
 }
 
 const listeners = new Set<() => void>()
@@ -272,6 +297,7 @@ function currentSnapshot(): Snapshot {
     motion: getStoredMotion(),
     direction: document.documentElement.dataset.direction === 'rtl' ? 'rtl' : 'ltr',
     fontScale: read<FontScale>(KEY.fontScale, FONT_SCALES.map((f) => f.id), 'md'),
+    scrollbars: getStoredScrollbars(),
   }
 
   if (
@@ -282,7 +308,8 @@ function currentSnapshot(): Snapshot {
     cached.accent === next.accent &&
     cached.motion === next.motion &&
     cached.direction === next.direction &&
-    cached.fontScale === next.fontScale
+    cached.fontScale === next.fontScale &&
+    cached.scrollbars === next.scrollbars
   ) {
     return cached
   }
@@ -347,6 +374,11 @@ export function useDirection() {
 export function useFontScale() {
   const { fontScale } = useAppearance()
   return { fontScale, setFontScale }
+}
+
+export function useScrollbars() {
+  const { scrollbars } = useAppearance()
+  return { scrollbars, setScrollbars }
 }
 
 /* -------------------------------------------------------- cross-tab sync */

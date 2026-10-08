@@ -190,6 +190,7 @@ class UserRead(ORMModel):
     motion: str = "full"
     direction: str = "ltr"
     font_scale: str = "md"
+    scrollbars: str = "modern"
     is_active: bool = True
     is_verified: bool = False
     rows_per_page: int = 25
@@ -224,6 +225,8 @@ class UserUpdate(BaseModel):
     direction: Literal["ltr", "rtl"] | None = None
     # Root font size, independent of density.
     font_scale: Literal["xs", "sm", "md", "lg", "xl"] | None = None
+    # Scrollbar presentation (see AppUser.scrollbars).
+    scrollbars: Literal["modern", "auto", "hidden"] | None = None
     rows_per_page: int | None = Field(default=None, ge=5, le=500)
     default_currency: str | None = None
     price_change_alert_pct: float | None = Field(default=None, ge=0, le=100)

@@ -364,8 +364,10 @@ def load_builtin_sources() -> None:
         fakestore,
         google_books,
         local_fixture,
+        openfoodfacts_prices,
         openlibrary,
         scrapeme,
+        steam_store,
     )
 
 
