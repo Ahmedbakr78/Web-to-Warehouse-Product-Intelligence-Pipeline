@@ -319,7 +319,12 @@ class Pipeline:
                     dedupe._fingerprint_cache.clear()
                     dedupe._load_fingerprints()
                 message = f"{type(exc).__name__}: {str(exc).splitlines()[0][:220]}"
-                log.warning("source %s failed: %s", code, message, exc_info=settings.app_debug)
+                # Concise one-line warning only: full tracebacks in normal runs
+                # scare operators and flood run-local.sh output. Details stay in
+                # the EtlRun warnings and in the debug log when APP_DEBUG=true.
+                log.warning("source %s failed: %s", code, message)
+                if settings.app_debug:
+                    log.debug("source %s traceback", code, exc_info=True)
                 result.sources_failed.append(code)
                 result.warnings.append(f"{code}: {message}")
                 try:
@@ -351,7 +356,7 @@ class Pipeline:
             with suppress(Exception):
                 session.rollback()
             result.warnings.append(f"aggregate: {type(exc).__name__}: {str(exc)[:180]}")
-            log.warning("aggregate stage failed: %s", exc, exc_info=settings.app_debug)
+            log.warning("aggregate stage failed: %s", exc)
 
         # ---- catalog reconciliation
         reconciliation: dict[str, Any] | None = None
@@ -370,7 +375,7 @@ class Pipeline:
                 with suppress(Exception):
                     session.rollback()
                 result.warnings.append(f"reconcile: {type(exc).__name__}: {str(exc)[:180]}")
-                log.warning("reconcile stage failed: %s", exc, exc_info=settings.app_debug)
+                log.warning("reconcile stage failed: %s", exc)
 
         # ---- data quality
         quality: dict[str, Any] | None = None
@@ -388,7 +393,7 @@ class Pipeline:
                 with suppress(Exception):
                     session.rollback()
                 result.warnings.append(f"quality: {type(exc).__name__}: {str(exc)[:180]}")
-                log.warning("quality stage failed: %s", exc, exc_info=settings.app_debug)
+                log.warning("quality stage failed: %s", exc)
 
         # ---- finalise (re-fetch: earlier rollbacks may have detached the instance)
         with suppress(Exception):

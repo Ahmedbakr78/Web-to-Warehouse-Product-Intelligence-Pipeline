@@ -60,7 +60,9 @@ class RobotsCache:
                 body = response.read().decode("utf-8", errors="replace")
         except urllib.error.HTTPError as exc:
             if exc.code in (401, 403):
-                log.warning("robots.txt forbidden (treat as disallow) url=%s", robots_url)
+                # 401/403 for robots.txt means "no crawling" per RFC 9309, but it
+                # is an expected compliance outcome, not an operator error.
+                log.info("robots.txt disallows crawling url=%s (HTTP %s)", robots_url, exc.code)
                 self.stats["errors"] += 1
                 return None, ()
             if 400 <= exc.code < 500:
@@ -72,7 +74,9 @@ class RobotsCache:
             self.stats["errors"] += 1
             return None, ()
         except Exception as exc:  # pragma: no cover - network dependent
-            log.warning("robots.txt fetch failed url=%s error=%s", robots_url, exc)
+            # Unreachable robots.txt (DNS, TLS, reset) falls back to allow with a
+            # cached decision, so this is informational, not a failure.
+            log.info("robots.txt unreachable, allowing url=%s error=%s", robots_url, exc)
             self.stats["errors"] += 1
             return None, ()
 
