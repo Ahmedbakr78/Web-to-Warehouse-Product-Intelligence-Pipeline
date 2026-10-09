@@ -132,7 +132,8 @@ class RateLimiter:
         with self._lock:
             state = self._state(host)
             state.cooldown_until = max(state.cooldown_until, time.monotonic() + max(0.0, seconds))
-        log.warning("host throttled host=%s seconds=%.1f", host, seconds)
+        # Informational: backoff is normal operation, not an operator error.
+        log.info("host throttled host=%s seconds=%.1f", host, seconds)
 
     def set_crawl_delay(self, host: str, seconds: float) -> None:
         """Apply a ``Crawl-delay`` advertised in ``robots.txt``."""
@@ -183,7 +184,8 @@ class CircuitBreaker:
             self._failures[key] = count
             if count >= self.failure_threshold:
                 self._opened_at[key] = time.monotonic()
-                log.error("circuit opened key=%s failures=%d", key, count)
+                log.warning("circuit opened for host %s after %d failures; cooling down %.0fs",
+                            key, count, self.reset_seconds)
 
     def is_open(self, key: str) -> bool:
         with self._lock:
