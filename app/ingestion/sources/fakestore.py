@@ -36,7 +36,11 @@ class FakeStoreProductsSource(ProductSource):
     def fetch(self, limit: int | None = None) -> Iterator[RawProduct]:
         limit = limit or settings.max_products_per_source
         self._count_request()
-        items = self.client.get_json(self.base_url) or []
+        try:
+            items = self.client.get_json(self.base_url) or []
+        except Exception as exc:  # without the catalogue there is nothing to do
+            self.errors.append(f"catalogue: {exc}")
+            return
         for item in items[:limit]:
             yield self._to_raw(item)
 

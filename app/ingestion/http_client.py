@@ -297,7 +297,10 @@ class CompliantHttpClient:
                         last_error,
                     )
                     if attempt < settings.max_retries and response.status_code in RETRYABLE_STATUS:
-                        time.sleep(settings.retry_backoff_seconds * (2**attempt))
+                        # No extra sleep here: penalise() already pushed the
+                        # host cooldown, and acquire() on the next attempt
+                        # enforces it. Sleeping as well tripled waits (e.g.
+                        # Google Books: 5 subjects x 4 retries ~= 90s).
                         continue
                     self.breaker.record_failure(host)
                     if response.status_code == 429:
