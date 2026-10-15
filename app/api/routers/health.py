@@ -15,6 +15,7 @@ from app.core.config import settings
 from app.core.db import ping
 from app.core.features import feature_catalogue, feature_names
 from app.core.logging import get_logger
+from app.core.team import team
 from app.etl.bootstrap import expected_view_names
 from app.ingestion.base import list_sources
 from app.models import table_count
@@ -145,6 +146,11 @@ def meta() -> dict[str, Any]:
 @router.get("/meta/features", summary="Structured feature catalogue (groups, icons, features)")
 def meta_features() -> dict[str, Any]:
     return feature_catalogue()
+
+
+@router.get("/meta/team", summary="Team, roles, weights and function ownership")
+def meta_team() -> dict[str, Any]:
+    return team()
 
 
 @router.get("/meta/tables", summary="Physical tables managed by the ORM")

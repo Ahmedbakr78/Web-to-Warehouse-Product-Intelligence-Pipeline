@@ -62,6 +62,17 @@ def test_readiness_and_meta(client):
     assert len(meta["features"]) >= 10
 
 
+def test_meta_team_names_the_lead_and_sums_to_100(client):
+    payload = client.get("/api/v1/meta/team").json()
+    assert payload["program"] == "DEPI Digital Egypt Pioneers Initiative"
+    assert payload["lead"] == "Ahmedbakr78"
+    assert payload["total_weight"] == 100
+    assert payload["member_count"] == len(payload["members"]) == 6
+    lead = next(m for m in payload["members"] if m["lead"])
+    assert lead["github"] == "Ahmedbakr78" and lead["weight"] == 28
+    assert len(lead["functions"]) >= max(len(m["functions"]) for m in payload["members"])
+
+
 def test_openapi_schema_is_complete(client):
     schema = client.get("/openapi.json").json()
     assert len(schema["paths"]) > 50
