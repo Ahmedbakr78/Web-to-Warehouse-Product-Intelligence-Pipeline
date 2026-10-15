@@ -3,7 +3,7 @@
 ## Purpose
 
 This document is the complete feature inventory of the Web-to-Warehouse Product Intelligence
-Pipeline: 531 features grouped into forty-three areas, each with a one-line description and a reference
+Pipeline: 535 features grouped into forty-four areas, each with a one-line description and a reference
 to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an
 endpoint, a CLI command or a documented design decision. Nothing here is aspirational.
 
@@ -983,3 +983,18 @@ scrollbars, Account Sessions/Watchlist/Shortcuts tabs and per-source aggregates.
 | F-531 | Team & weights documented | 6 members, roles and 28/15/14/14/15/14 split | `CONTRIBUTORS.md`, `docs/00_team.md` |
 
 **Revised total: 531 features across 43 areas** (F-001 to F-531).
+
+## 44. v1.9 real-data hardening (4)
+
+Live-verification round (2026-10-15): every adapter probed against the network
+through the robots gate — 24 return live records, 6 honestly report empty
+(dead host, key-gated API, robots-blocked path), and the pipeline proves it.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-532 | Open Library subjects feed | `/search.json` is robots-disallowed — switched to the allowed `/subjects/<subject>.json` feed (verified ALLOW via the app's own gate) | `app/ingestion/sources/openlibrary.py` |
+| F-533 | Dead-host removal | `fakestore_products` unreachable (TCP + HTTP timeout) — removed from DAG and seed defaults; failure isolation already covers future outages | `dags/product_intelligence_pipeline.py`, `app/etl/seed.py` |
+| F-534 | Real-only auto-select | Bare `run-pipeline` excludes `local_demo` — synthetic rows only ever load when explicitly requested | `app/etl/pipeline.py` `_source_codes` |
+| F-535 | One-command real verification | `./run-full-app.sh`: lint → tests → live-source smoke → real SQLite pipeline → frontend → compose, with a `--offline` synthetic fallback | `run-full-app.sh` |
+
+**Revised total: 535 features across 44 areas** (F-001 to F-535).

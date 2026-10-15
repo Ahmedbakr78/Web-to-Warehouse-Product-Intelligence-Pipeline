@@ -6,6 +6,20 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed (2026-10-15 — real-data hardening)
+
+- **Open Library robots block** — `/search.json` is disallowed by robots.txt (the gate
+  correctly refused it, yielding 0 records). Switched to the allowed
+  `/subjects/<subject>.json` feed; live records flow again with honest
+  missing-price/availability flags for the DQ completeness rules.
+- **Dead host** — `fakestore_products` unreachable (TCP + HTTP timeout). Removed from the
+  DAG and seed defaults; per-source failure isolation already covers future outages.
+- **Real-only auto-select** — a bare `run-pipeline` (no `--sources`) now excludes the
+  synthetic `local_demo` source; fake rows only load when explicitly requested.
+- **Proven with `./run-full-app.sh`** — one command runs lint, backend suites, a live
+  3-source fetch smoke, a real SQLite pipeline (28 products / 28 snapshots, zero
+  `local_demo` rows), frontend typecheck/lint/vitest/build and compose validation.
+
 ## [1.9.0] - 2026-10-15
 
 ### Fixed

@@ -1753,6 +1753,22 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "name": "Team & weights documented",
                 "detail": "CONTRIBUTORS.md + docs/00_team.md with 6 members, roles and 28/15/14/14/15/14 split",
             },
+            {
+                "name": "Open Library subjects feed",
+                "detail": "Switched from robots-blocked /search.json to allowed /subjects/<subject>.json — live records again",
+            },
+            {
+                "name": "Dead-host removal",
+                "detail": "fakestore_products unreachable, removed from DAG/seed defaults; isolation covers future outages",
+            },
+            {
+                "name": "Real-only auto-select",
+                "detail": "Bare run-pipeline excludes local_demo; synthetic rows only load when explicitly requested",
+            },
+            {
+                "name": "One-command real verification",
+                "detail": "run-full-app.sh: lint, tests, live smoke, real pipeline, frontend, compose — FULL APP TEST: PASS",
+            },
         ],
     },
 ]

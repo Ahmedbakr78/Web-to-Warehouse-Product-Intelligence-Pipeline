@@ -1,6 +1,8 @@
 """Open Library Books API source (Internet Archive, free and open).
 
-Endpoint: https://openlibrary.org/search.json?q=subject:electronics&limit=50&fields=...
+Endpoint: https://openlibrary.org/subjects/<subject>.json (robots-allowed; the
+``/search.json`` and ``/api/books`` paths are disallowed by robots.txt, so this
+source deliberately uses the subject feed instead).
 Terms:    https://openlibrary.org/terms - open data, CC0 for bibliographic metadata.
 
 This source intentionally publishes *no* availability information and often *no*
@@ -16,7 +18,6 @@ from typing import Any, ClassVar
 from app.core.config import settings
 from app.ingestion.base import ProductSource, RawProduct, register_source
 
-DEFAULT_FIELDS = "key,title,author_name,first_publish_year,edition_count,ratings_average,price,currency,isbn,subject,number_of_pages_median"
 DEFAULT_SUBJECTS = ("electronics", "computers", "cooking", "history", "science")
 
 
@@ -27,7 +28,7 @@ class OpenLibraryBooksSource(ProductSource):
     code: ClassVar[str] = "openlibrary_books"
     name: ClassVar[str] = "Open Library Books API"
     kind: ClassVar[str] = "api"
-    base_url: ClassVar[str] = "https://openlibrary.org/search.json"
+    base_url: ClassVar[str] = "https://openlibrary.org/subjects"
     terms_url: ClassVar[str] = "https://openlibrary.org/terms"
     license_note: ClassVar[str] = "Open Library / Internet Archive - open bibliographic data."
     default_currency: ClassVar[str] = "USD"
@@ -35,8 +36,8 @@ class OpenLibraryBooksSource(ProductSource):
     min_delay_seconds: ClassVar[float] = 1.2
     supports_paging: ClassVar[bool] = True
     description: ClassVar[str] = (
-        "Search API returning books with author, publish year, ratings and optional "
-        "prices. Multi-currency prices and missing availability are expected."
+        "Subject feed returning books with author, publish year and edition "
+        "counts. Missing prices/availability are expected."
     )
 
     def fetch(self, limit: int | None = None) -> Iterator[RawProduct]:
@@ -50,13 +51,8 @@ class OpenLibraryBooksSource(ProductSource):
             self._count_request()
             try:
                 payload = self.client.get_json(
-                    self.base_url,
-                    params={
-                        "q": f"subject:{subject}",
-                        "fields": DEFAULT_FIELDS,
-                        "limit": per_subject,
-                        "page": 1,
-                    },
+                    f"{self.base_url}/{subject}.json",
+                    params={"limit": per_subject},
                 )
             except Exception as exc:  # a failing subject must not kill the run
                 self.errors.append(f"{subject}: {exc}")
@@ -68,7 +64,7 @@ class OpenLibraryBooksSource(ProductSource):
                     break
                 continue
 
-            for item in payload.get("docs") or []:
+            for item in payload.get("works") or []:
                 if emitted >= limit:
                     break
                 raw = self._to_raw(item, subject)
@@ -81,35 +77,26 @@ class OpenLibraryBooksSource(ProductSource):
         title = item.get("title")
         if not title:
             return None
-        price = item.get("price")
-        if isinstance(price, list):
-            price = price[0] if price else None
-        authors = item.get("author_name") or []
-        author = authors[0] if isinstance(authors, list) and authors else None
-        subjects = item.get("subject") or []
-        category = subjects[0] if isinstance(subjects, list) and subjects else subject
-        rating = item.get("ratings_average")
+        authors = item.get("authors") or []
+        author = None
+        if authors and isinstance(authors[0], dict):
+            author = authors[0].get("name")
+        key = str(item.get("key") or title)
         return RawProduct(
             source_code=self.code,
-            source_product_id=str(
-                item.get("key") or item.get("isbn", [""])[0] if item.get("isbn") else title
-            ),
+            source_product_id=key,
             name=f"{title} - {author}" if author else str(title),
-            category=str(category).title(),
-            price_text=str(price) if price not in (None, "") else None,
-            currency_hint=str(item.get("currency") or self.default_currency),
-            rating_text=f"{rating} out of 5" if rating else None,
-            rating_count_text=str(item.get("ratings_count")) if item.get("ratings_count") else None,
-            availability_text="in_stock",  # a physical book on sale
-            in_stock_flag=True,
-            url=f"https://openlibrary.org{item.get('key')}"
-            if str(item.get("key", "")).startswith("/")
-            else None,
+            category=subject.title(),
+            price_text=None,
+            currency_hint=self.default_currency,
+            rating_text=None,
+            rating_count_text=str(item.get("edition_count")) if item.get("edition_count") else None,
+            availability_text=None,
+            in_stock_flag=None,
+            url=f"https://openlibrary.org{key}" if key.startswith("/") else None,
             brand=author,
             description=(
-                f"{item.get('first_publish_year', '')} edition, "
-                f"{item.get('edition_count', 0)} editions, "
-                f"{item.get('number_of_pages_median', 'n/a')} pages"
+                f"{item.get('first_publish_year', '')} edition, {item.get('edition_count', 0)} editions"
             ),
             payload=item,
         )

@@ -79,7 +79,8 @@ DEFAULT_ARGS: dict[str, Any] = {
 #: synthetic) is intentionally NOT in the default set — it stays available for
 #: tests, CI and offline demos via explicit `params.sources`, but production
 #: runs are real-network only. `books_to_scrape` stays opt-in (HTML scrape).
-DEFAULT_SOURCES = ["dummyjson_products", "fakestore_products", "openlibrary_books"]
+#: (`fakestore_products` was removed 2026-10-15: the host is unreachable.)
+DEFAULT_SOURCES = ["dummyjson_products", "gutendex_books", "openlibrary_books"]
 REQUESTS_PER_SOURCE = int(os.environ.get("PIP_REQUESTS_PER_SOURCE", "120"))
 
 

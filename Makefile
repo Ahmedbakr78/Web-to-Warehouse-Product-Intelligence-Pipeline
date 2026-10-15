@@ -176,6 +176,18 @@ frontend-build: ## Type-check and build the production bundle
 frontend-preview: ## Preview the production bundle locally
 	cd frontend && npm run preview
 
+.PHONY: run-full
+run-full: ## Full real-data verification: lint, tests, live sources, pipeline, frontend (./run-full-app.sh)
+	./run-full-app.sh
+
+.PHONY: run-full-offline
+run-full-offline: ## Same verification with the synthetic local_demo source (no network)
+	./run-full-app.sh --offline
+
+.PHONY: run-full-quick
+run-full-quick: ## Fast smoke: subset of tests, no frontend build
+	./run-full-app.sh --quick
+
 # ---------------------------------------------------------------- analysis
 .PHONY: analysis
 analysis: ## Run the SQL analysis scripts in db/analysis (ANALYSIS=<prefix> runs one)

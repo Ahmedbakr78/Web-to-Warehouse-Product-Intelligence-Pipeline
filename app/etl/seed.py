@@ -110,8 +110,8 @@ def seed_users(session: Session) -> int:
         ),
         (
             "pipeline.default_sources",
-            "dummyjson_products,fakestore_products,openlibrary_books,books_to_scrape,"
-            "cheapshark_deals,gutendex_books,mmobomb_games",
+            "dummyjson_products,gutendex_books,openlibrary_books,books_to_scrape,"
+            "cheapshark_deals,mmobomb_games",
             "string",
             "pipeline",
             "Real permitted sources enabled for scheduled runs (local_demo is test-only)",
