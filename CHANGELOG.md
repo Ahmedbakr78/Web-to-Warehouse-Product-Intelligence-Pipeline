@@ -6,6 +6,38 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-10-15
+
+### Fixed
+
+- **Source registry drift** — `load_builtin_sources()` now imports the `app.ingestion.sources`
+  package once, so all 31 bundled adapters (cocktaildb, freeapi, mealdb, predic8,
+  sampleapis_coffee, sampleapis_switch included) are visible on cold start.
+- **Seed data correctness** — `unknown_availability` defect no longer overwritten by the RNG;
+  null prices now carry null USD; `seed_catalog` is O(n) with no generator consumption.
+- **Per-source aggregates** — `refresh_category_daily(source_code)` scopes SQL and storage by
+  source instead of ignoring the argument.
+- **Pipeline docstring** — stage order now matches `STAGE_NAMES`
+  (`… detect → aggregate → reconcile → quality`).
+- **Theme toggle memory** — header toggle restores the last dark variant (`pip.last-dark`);
+  high-contrast follows the OS so light-HC and dark-HC palettes are both reachable.
+- **Nav icon consistency** — Categories=FolderTree and Audit=Filter match the icon registry;
+  `iconFor` warns in dev on unknown names.
+
+### Added
+
+- **Real-only production defaults** — DAG and `pipeline.default_sources` default to
+  `dummyjson_products, fakestore_products, openlibrary_books`; `local_demo` stays for
+  tests/CI/offline demos only (F-519).
+- **Modern theme-aware scrollbars** — thin rounded thumbs on all scroll containers plus
+  `.no-scrollbar` / `.scroll-thin` utilities (F-525).
+- **Account Max tabs** — Watchlist (count badge + JSON export), Sessions (device table with
+  current-device badge) and Shortcuts (keyboard-first reference) alongside the existing 9 tabs.
+- **Feature catalogue v1.9** — 14 new entries (F-518…F-531); `docs/19_feature_list.md` totals
+  531 features across 43 areas; `CONTRIBUTORS.md` + `docs/00_team.md` record the 6-member split.
+- **README + Team polish** — corrected 29 tables / 23 views / 215 ops / 568 tests badges and hero,
+  full 6-member team table, and copy-paste GitHub About/topics/private/release instructions.
+
 ## [1.8.0] - 2026-10-08
 
 ### Added

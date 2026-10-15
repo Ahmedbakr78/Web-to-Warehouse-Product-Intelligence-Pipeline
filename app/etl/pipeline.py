@@ -196,10 +196,17 @@ class Pipeline:
         from app.ingestion.base import list_sources
         from app.ingestion.dynamic import enabled_dynamic_codes
 
+        # Real-only auto-selection: `local_demo` is synthetic/offline and is
+        # only ever used when explicitly requested (tests, CI, --offline demos).
+        # A bare `run-pipeline` / DAG-without-params therefore collects real
+        # permitted sources and never mixes fake rows into production data.
+        OFFLINE_ONLY = {"local_demo"}
         codes = [
             source["code"]
             for source in list_sources()
-            if source.get("enabled") and source.get("terms_allowed", True)
+            if source.get("enabled")
+            and source.get("terms_allowed", True)
+            and source["code"] not in OFFLINE_ONLY
         ]
         # Dashboard-defined rows live in the database, not the registry, so they
         # are unioned here; _process_source resolves each code through the same
