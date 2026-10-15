@@ -7,7 +7,7 @@
   "cli_commands": 13,
   "compose_services": 6,
   "data_quality_rules": 12,
-  "documentation_documents": 30,
+  "documentation_documents": 31,
   "ingestion_sources": 32,
   "mermaid_diagrams": 80,
   "physical_tables": 29,
