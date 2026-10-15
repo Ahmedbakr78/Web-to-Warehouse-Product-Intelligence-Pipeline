@@ -3,14 +3,14 @@
 ## Purpose
 
 This document is the complete feature inventory of the Web-to-Warehouse Product Intelligence
-Pipeline: 476 features grouped into thirty-eight areas, each with a one-line description and a reference
+Pipeline: 531 features grouped into forty-three areas, each with a one-line description and a reference
 to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an
 endpoint, a CLI command or a documented design decision. Nothing here is aspirational.
 
-**Scale of the system, measured:** 5 ingestion sources · 27 physical tables · 20 analytical views ·
-12 data-quality rules across 6 dimensions · 131 REST route decorators (128 documented in OpenAPI plus
-3 internal probes) in 18 routers · 9 pipeline stages · 14 Airflow tasks · 6 Docker Compose services ·
-23 numbered documents · 66 Mermaid diagrams · 321 automated tests · 86 end-to-end API smoke checks.
+**Scale of the system, measured:** 32 ingestion sources · 29 physical tables · 23 analytical views ·
+12 data-quality rules across 6 dimensions · 215 REST route decorators in 23 routers · 9 pipeline stages ·
+33 Airflow task callables · 6 Docker Compose services · 31 numbered documents · 80 Mermaid diagrams ·
+568 automated tests · 104 end-to-end API smoke checks.
 
 Regenerate the numbers above with `python3 scripts/project_stats.py`.
 
