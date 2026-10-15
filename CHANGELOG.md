@@ -6,6 +6,15 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Sources robots panel showed 0 total with "No decision yet"** — it read only the
+  API worker's in-memory counters, which stay zero until that exact process
+  fetches something. `GET /sources/robots` now also returns durable `log` totals
+  (`allowed`/`blocked`/`total` from `ingestion_http_log`, cross-process and
+  restart-proof), and the dashboard prefers them whenever any verdict exists.
+  Empty state now tells the user how to record the first verdict.
+
 ## [1.10.0] - 2026-10-15
 
 ### Fixed (real-data hardening)
