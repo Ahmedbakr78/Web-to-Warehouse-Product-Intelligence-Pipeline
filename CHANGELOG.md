@@ -8,12 +8,14 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
-- **Sources robots panel showed 0 total with "No decision yet"** — it read only the
-  API worker's in-memory counters, which stay zero until that exact process
-  fetches something. `GET /sources/robots` now also returns durable `log` totals
-  (`allowed`/`blocked`/`total` from `ingestion_http_log`, cross-process and
-  restart-proof), and the dashboard prefers them whenever any verdict exists.
-  Empty state now tells the user how to record the first verdict.
+- **DQ007 crashed on SQLite with `AttributeError: 'str' object has no attribute
+  'tzinfo'`** — raw SQL returns DATETIME columns as text on SQLite (no native
+  type), and the freshness rule called `.tzinfo` on it; the suite masked the
+  crash as a failed rule. Timestamps are now parsed with `fromisoformat`
+  (naive → UTC), with an honest `warn` verdict if unparseable. Covered by
+  `test_dq007_freshness_handles_sqlite_text_timestamps`.
+- **Crawler contact is now real** — `INGEST_USER_AGENT` uses
+  `ahmedbakr78102@gmail.com` instead of the placeholder address.
 
 ## [1.10.0] - 2026-10-15
 

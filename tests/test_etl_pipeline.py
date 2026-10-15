@@ -162,6 +162,19 @@ def test_rule_catalogue_is_complete():
     assert set(RULES_BY_CODE) == {rule.code for rule in RULES}
 
 
+def test_dq007_freshness_handles_sqlite_text_timestamps(db):
+    """Raw SQL returns DATETIME columns as str on SQLite (no native type).
+
+    Regression: `_freshness` called `.tzinfo` on the raw scalar and died with
+    AttributeError, which the suite then masked as a failed rule. The seeded
+    sqlite warehouse must yield a real hours-old verdict instead.
+    """
+    outcome = RULES_BY_CODE["DQ007"].run(db, {})
+    assert "rule evaluation error" not in outcome.message
+    assert isinstance(outcome.observed_value, float) and outcome.observed_value >= 0
+    assert outcome.status in {"pass", "warn", "fail"}
+
+
 def test_quality_evaluation_persists_one_row_per_rule(db):
     run = db.execute(sa.text("SELECT run_id FROM etl_run ORDER BY started_at DESC LIMIT 1")).scalar()
     report = evaluate_quality(db, run)

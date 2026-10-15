@@ -106,7 +106,7 @@ class Settings(BaseSettings):
 
     # ---------------------------------------------------------------- ingestion
     ingest_user_agent: str = (
-        "ProductIntelligenceBot/1.0 (+https://github.com/Ahmedbakr78; contact: data-team@example.local)"
+        "ProductIntelligenceBot/1.0 (+https://github.com/Ahmedbakr78; contact: ahmedbakr78102@gmail.com)"
     )
     respect_robots_txt: bool = True
     request_timeout_seconds: float = 20.0

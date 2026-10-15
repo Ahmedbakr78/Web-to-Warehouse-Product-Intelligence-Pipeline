@@ -355,6 +355,23 @@ def _freshness(session: Session, ctx: dict[str, Any]) -> RuleOutcome:
             threshold=48.0,
         )
     now = dt.datetime.now(dt.timezone.utc)
+    if isinstance(latest, str):
+        # Raw SQL on SQLite returns DATETIME columns as text (no native type);
+        # PostgreSQL returns real datetimes. Parse so both dialects work.
+        try:
+            latest = dt.datetime.fromisoformat(latest)
+        except ValueError:
+            return RuleOutcome(
+                rule_code="DQ007",
+                rule_name="Data freshness",
+                dimension=DIMENSION_TIMELINESS,
+                severity=SEVERITY_WARN,
+                status="warn",
+                message=f"newest snapshot timestamp is unparseable: {latest!r}",
+                observed_value=None,
+                expected_value=48.0,
+                threshold=48.0,
+            )
     if latest.tzinfo is None:
         latest = latest.replace(tzinfo=dt.timezone.utc)
     hours = round((now - latest).total_seconds() / 3600, 3)
