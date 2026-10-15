@@ -464,10 +464,16 @@ class WarehouseLoader:
 
     # ------------------------------------------------------------------ aggregates
     def refresh_category_daily(self, source_code: str | None = None) -> int:
-        """Rebuild ``agg_category_daily`` for the dates touched by this run."""
-        rows = self.session.execute(
-            sa.text(
-                """
+        """Rebuild ``agg_category_daily`` for the dates touched by this run.
+
+        When ``source_code`` is given, aggregates are scoped to that source and
+        stored with the same ``source_code``; otherwise a global (``NULL``)
+        aggregate is written. This keeps per-source and global views consistent.
+        """
+        if source_code is not None:
+            rows = self.session.execute(
+                sa.text(
+                    """
                 SELECT s.date_id,
                        p.category_id,
                        COUNT(*)                       AS product_count,
@@ -481,30 +487,55 @@ class WarehouseLoader:
                        AVG(s.price_change_pct)        AS avg_change_pct
                 FROM fact_price_snapshot s
                 JOIN dim_product p ON p.product_id = s.product_id
+                WHERE s.run_id = :run_id AND s.source_code = :source_code
+                GROUP BY s.date_id, p.category_id
+                """
+                ),
+                {"run_id": self.run_id, "source_code": source_code},
+            ).all()
+        else:
+            rows = self.session.execute(
+                sa.text(
+                    """
+                SELECT s.date_id,
+                       p.category_id,
+                       COUNT(*)                       AS product_count,
+                       AVG(s.price_usd)               AS avg_price,
+                       MIN(s.price_usd)               AS min_price,
+                       MAX(s.price_usd)               AS max_price,
+                       AVG(s.rating)                  AS avg_rating,
+                       COALESCE(SUM(CASE WHEN s.is_first_sighting THEN 1 ELSE 0 END), 0) AS new_count,
+                       COALESCE(SUM(CASE WHEN s.price_change_pct IS NOT NULL AND s.price_change_pct <> 0
+                                          THEN 1 ELSE 0 END), 0) AS change_count,
+                       AVG(s.price_change_pct)        AS avg_change_pct
+                FROM fact_price_snapshot s
+                JOIN dim_product p ON p.product_id = s.product_id
                 WHERE s.run_id = :run_id
                 GROUP BY s.date_id, p.category_id
                 """
-            ),
-            {"run_id": self.run_id},
-        ).all()
+                ),
+                {"run_id": self.run_id},
+            ).all()
 
         written = 0
         for row in rows:
-            existing = (
-                self.session.execute(
-                    sa.select(AggCategoryDaily).where(
-                        AggCategoryDaily.date_id == row[0],
-                        AggCategoryDaily.category_id == row[1],
-                        AggCategoryDaily.source_code.is_(None),
-                    )
+            if source_code is None:
+                cond = sa.and_(
+                    AggCategoryDaily.date_id == row[0],
+                    AggCategoryDaily.category_id == row[1],
+                    AggCategoryDaily.source_code.is_(None),
                 )
-                .scalars()
-                .first()
-            )
+            else:
+                cond = sa.and_(
+                    AggCategoryDaily.date_id == row[0],
+                    AggCategoryDaily.category_id == row[1],
+                    AggCategoryDaily.source_code == source_code,
+                )
+            existing = self.session.execute(sa.select(AggCategoryDaily).where(cond)).scalars().first()
             values = {
                 "date_id": row[0],
                 "category_id": row[1],
-                "source_code": None,
+                "source_code": source_code,
                 "product_count": int(row[2] or 0),
                 "new_product_count": int(row[6] or 0),
                 "avg_price": row[3],

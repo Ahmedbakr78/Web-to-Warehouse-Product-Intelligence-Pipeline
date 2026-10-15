@@ -3,7 +3,7 @@
 Stages (each one is independently callable and instrumented):
 
 ``extract`` -> ``stage`` -> ``transform`` -> ``resolve`` -> ``load`` ->
-``detect`` -> ``reconcile`` -> ``quality`` -> ``aggregate``
+``detect`` -> ``aggregate`` -> ``reconcile`` -> ``quality``
 
 The orchestrator is used by the CLI, the REST API (manual trigger) and the Airflow
 DAG, so behaviour is identical no matter how the run was started.

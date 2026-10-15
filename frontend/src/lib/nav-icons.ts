@@ -134,9 +134,13 @@ export const ICONS = {
 
 export type IconName = keyof typeof ICONS
 
-/** Resolve an icon by name, falling back to the checklist glyph. */
+/** Resolve an icon by name, falling back to the checklist glyph (warns in dev). */
 export function iconFor(name: string): LucideIcon {
-  return ICONS[name as IconName] ?? ListChecks
+  const found = ICONS[name as IconName]
+  if (!found && typeof console !== 'undefined' && process.env.NODE_ENV !== 'production') {
+    console.warn(`[icons] unknown icon "${name}", falling back to checklist`)
+  }
+  return found ?? ListChecks
 }
 
 /** Names used directly by the navigation config and feature payloads. */

@@ -64,6 +64,7 @@ const KEY = {
   motion: 'pip.motion',
   direction: 'pip.direction',
   fontScale: 'pip.fontScale',
+  lastDark: 'pip.last-dark',
 } as const
 
 export const THEME_KEY = KEY.theme
@@ -113,9 +114,10 @@ function systemPrefersDark(): boolean {
   return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
 }
 
-/** "midnight" and "high-contrast" are dark; everything else resolves by mode. */
+/** "midnight" is always dark; "high-contrast" follows the OS so both light-HC and dark-HC are reachable. */
 export function resolveDark(mode: ThemeMode): boolean {
-  if (mode === 'dark' || mode === 'midnight' || mode === 'high-contrast') return true
+  if (mode === 'dark' || mode === 'midnight') return true
+  if (mode === 'high-contrast') return systemPrefersDark()
   if (mode === 'system') return systemPrefersDark()
   return false
 }
@@ -190,6 +192,13 @@ export function applyDirection(direction: Direction): void {
 
 export function setTheme(mode: ThemeMode): void {
   write(KEY.theme, mode)
+  if (mode === 'dark' || mode === 'midnight') {
+    try {
+      localStorage.setItem(KEY.lastDark, mode)
+    } catch {
+      /* ignore */
+    }
+  }
   applyTheme(mode)
   emit()
 }
@@ -319,9 +328,26 @@ export function useTheme() {
   const snapshot = useAppearance()
   const update = useCallback((next: ThemeMode) => setTheme(next), [])
   const toggle = useCallback(() => {
-    setTheme(resolveDark(snapshot.theme) ? 'light' : 'dark')
+    const current = snapshot.theme
+    if (resolveDark(current)) {
+      setTheme('light')
+    } else {
+      let lastDark: ThemeMode = 'dark'
+      try {
+        const stored = localStorage.getItem(KEY.lastDark)
+        if (stored === 'midnight' || stored === 'dark') lastDark = stored
+      } catch {
+        /* ignore */
+      }
+      setTheme(lastDark)
+    }
   }, [snapshot.theme])
-  return { mode: snapshot.theme, isDark: snapshot.isDark, setMode: update, toggle }
+  const cycle = useCallback(() => {
+    const order: ThemeMode[] = ['light', 'dark', 'midnight', 'system']
+    const idx = order.indexOf(snapshot.theme)
+    setTheme(order[(idx + 1 + order.length) % order.length])
+  }, [snapshot.theme])
+  return { mode: snapshot.theme, isDark: snapshot.isDark, setMode: update, toggle, cycle }
 }
 
 export function useDensity() {

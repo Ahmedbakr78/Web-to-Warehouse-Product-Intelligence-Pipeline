@@ -9,7 +9,9 @@ import {
   EyeOff,
   FileDown,
   KeyRound,
+  Keyboard,
   LogOut,
+  Monitor,
   Moon,
   Palette,
   Pencil,
@@ -17,6 +19,7 @@ import {
   RefreshCw,
   RotateCw,
   Save,
+  Star,
   X,
   Settings2,
   Shield,
@@ -144,6 +147,12 @@ export default function Account() {
   const activity = useApiQuery(['my-activity'], () => endpoints.myActivity({ page: 1, page_size: 25, days: 90 }), {
     staleTime: 60_000,
   })
+  const watchlist = useApiQuery(['watchlist', 'account'], () => endpoints.watchlist(), { staleTime: 60_000 })
+  const sessions = useApiQuery(
+    ['sessions', 'account'],
+    () => endpoints.sessions(localStorage.getItem('pip.session') ?? undefined),
+    { staleTime: 30_000 },
+  )
 
   const exportData = useMutation({
     mutationFn: () => endpoints.exportMyData(),
@@ -366,6 +375,9 @@ export default function Account() {
           { id: 'devices', label: 'Devices & 2FA', icon: <ShieldCheck className="h-4 w-4" /> },
           { id: 'api', label: 'API keys', count: apiKeys.data?.length ?? 0, icon: <KeyRound className="h-4 w-4" /> },
           { id: 'alerts', label: 'Alerts', count: alerts.data?.length ?? 0, icon: <Bell className="h-4 w-4" /> },
+          { id: 'watchlist', label: 'Watchlist', count: (watchlist.data?.product_ids ?? []).length, icon: <Star className="h-4 w-4" /> },
+          { id: 'sessions', label: 'Sessions', count: sessions.data?.active ?? 0, icon: <Monitor className="h-4 w-4" /> },
+          { id: 'shortcuts', label: 'Shortcuts', icon: <Keyboard className="h-4 w-4" /> },
           { id: 'activity', label: 'Activity', icon: <Activity className="h-4 w-4" /> },
           { id: 'data', label: 'Data & privacy', icon: <Download className="h-4 w-4" /> },
           { id: 'prefs', label: 'Preferences', icon: <Settings2 className="h-4 w-4" /> },

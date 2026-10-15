@@ -110,11 +110,11 @@ def seed_users(session: Session) -> int:
         ),
         (
             "pipeline.default_sources",
-            "local_demo,dummyjson_products,fakestore_products,books_to_scrape,"
-            "cheapshark_deals,itunes_apps,gutendex_books,mmobomb_games",
+            "dummyjson_products,fakestore_products,openlibrary_books,books_to_scrape,"
+            "cheapshark_deals,gutendex_books,mmobomb_games",
             "string",
             "pipeline",
-            "Sources enabled for scheduled runs",
+            "Real permitted sources enabled for scheduled runs (local_demo is test-only)",
         ),
         ("dq.min_quality_score", "80", "number", "quality", "Fail the run below this weighted DQ score"),
         (
@@ -318,10 +318,12 @@ def seed_catalog(session: Session, products: Iterable[SeedProduct], *, match_rat
     if session.execute(sa.select(CatalogProduct).limit(1)).scalars().first() is not None:
         return 0
 
+    product_list = list(products)
+    match_count = int(len(product_list) * match_ratio)
     rng = random.Random(SEED_SALT)
     created = 0
-    for index, product in enumerate(products):
-        should_match = index < int(len(list(products)) * match_ratio)
+    for index, product in enumerate(product_list):
+        should_match = index < match_count
         if not should_match:
             # Internal-only SKU (something the market does not list).
             session.add(
@@ -600,21 +602,21 @@ def seed_history(
             price_usd, fx = convert_to_usd(price, product.currency)
             rating = round(rng.uniform(2.8, 4.9), 1)
             flags: list[str] = []
+            availability = rng.choices(
+                ["in_stock", "in_stock", "in_stock", "limited_stock", "out_of_stock", "preorder"],
+                weights=[40, 22, 14, 8, 11, 5],
+            )[0]
             # Deterministic quality defects so the DQ framework has real findings.
             if (index * 37 + offset * 11) % 211 == 5:
                 rating = 9.9  # out-of-range rating
                 flags.append("out_of_range_rating")
             if (index * 53 + offset * 7) % 431 == 11:
                 price = None  # unparseable price upstream
-                price_usd, fx = convert_to_usd(product.base_price, product.currency)
+                price_usd = None
                 flags.append("missing_price")
             if (index * 29 + offset * 13) % 617 == 3:
                 availability = "unknown"
                 flags.append("unknown_availability")
-            availability = rng.choices(
-                ["in_stock", "in_stock", "in_stock", "limited_stock", "out_of_stock", "preorder"],
-                weights=[40, 22, 14, 8, 11, 5],
-            )[0]
             captured_at = dt.datetime.combine(run_date, dt.time(3, 8), tzinfo=dt.timezone.utc)
             change_abs = (
                 None if (previous_price is None or price is None) else round(price - previous_price, 2)
@@ -806,7 +808,7 @@ def seed_history(
 
     stats = {
         "products": len(products),
-        "snapshots": sum(1 for _ in products) and _count(session, FactPriceSnapshot),
+        "snapshots": _count(session, FactPriceSnapshot),
         "price_changes": _count(session, ChgPriceChange),
         "events": _count(session, ChgProductEvent),
         "runs": days,

@@ -162,13 +162,42 @@
 
   /* --------------------------------------------------------- high contrast
      WCAG AAA-leaning text contrast with heavier borders and stronger focus rings.
-     Built on top of whichever base is active, so it also works over dark. */
+     Works as an overlay on top of the active base (light, dark or midnight):
+     `.theme-high-contrast` boosts borders/rings while the base palette stays. */
   .theme-high-contrast {
     --success: #047857;
     --warning: #a16207;
     --danger: #b91c1c;
     --info: #0369a1;
     --ring: var(--brand-600);
+    --border-strong: #0f172a;
+  }
+
+  .dark.theme-high-contrast,
+  html[data-theme='high-contrast'].dark {
+    --bg: #000000;
+    --bg-alt: #0a0f1e;
+    --surface: #0a0f1e;
+    --surface-2: #111a2e;
+    --surface-3: #1a2540;
+
+    --text: #ffffff;
+    --text-muted: #e2e8f0;
+    --text-subtle: #cbd5e1;
+
+    --border: #94a3b8;
+    --border-strong: #ffffff;
+    --ring: #93c5fd;
+
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --info: #7dd3fc;
+
+    --chart-grid: #334155;
+    --shadow-card: 0 0 0 2px var(--border-strong);
+    --shadow-card-hover: 0 0 0 3px var(--brand-500);
+    --shadow-pop: 0 0 0 2px #ffffff, 0 16px 40px rgb(0 0 0 / 0.6);
   }
 
   html[data-theme='high-contrast']:not(.dark) {
@@ -314,27 +343,63 @@
     color: var(--brand-900);
   }
 
-  /* --------------------------- no scrollbars ------------------------------------
-     Scrollbars are removed entirely: every scrollable region keeps working with
-     wheel, touch, keyboard and drag, and scroll shadows remain as the position
-     affordance. `scrollbar-width: none` covers Firefox; the webkit rule covers
-     Chromium and Safari (including the overlay scrollbars on macOS/iOS). */
+  /* --------------------------- modern scrollbars ------------------------------
+     Thin, rounded, theme-aware scrollbars everywhere (Firefox + WebKit).
+     Keyboard, wheel and touch keep working; the thumb uses the theme border
+     tokens so light/dark/midnight/HC all stay legible. */
   * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+    min-height: 32px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-subtle);
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Utility: hide scrollbars in a specific scroll container (e.g. tab strips)
+     while keeping it scrollable. Prefer this over a global hide. */
+  .no-scrollbar {
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
 
-  ::-webkit-scrollbar {
+  .no-scrollbar::-webkit-scrollbar {
     display: none;
     width: 0;
     height: 0;
   }
 
-  ::-webkit-scrollbar-track,
-  ::-webkit-scrollbar-thumb,
-  ::-webkit-scrollbar-corner {
-    display: none;
-    background: transparent;
+  /* Slim variant for dense panels. */
+  .scroll-thin {
+    scrollbar-width: thin;
+  }
+
+  .scroll-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
   }
 
   /* Stop scroll chaining so scrolling inside a panel, table or modal never

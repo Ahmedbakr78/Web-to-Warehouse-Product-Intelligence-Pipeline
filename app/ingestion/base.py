@@ -354,38 +354,17 @@ _loaded = False
 
 
 def load_builtin_sources() -> None:
-    """Import the bundled source modules exactly once."""
+    """Import the bundled source modules exactly once.
+
+    Imports the ``app.ingestion.sources`` package which registers every
+    bundled adapter as a side effect. This is the single canonical loader
+    so ``get_source*``/``list_sources`` never drift from the package.
+    """
     global _loaded
     if _loaded:
         return
     _loaded = True
-    from app.ingestion.sources import (  # noqa: F401  (import for side effects)
-        bitstamp,
-        books_to_scrape,
-        cheapshark,
-        coincap,
-        coingecko,
-        dummyjson,
-        fakestore,
-        google_books,
-        gutendex,
-        itunes,
-        itunes_ebooks,
-        kraken,
-        local_fixture,
-        makeup,
-        mmobomb,
-        openfoodfacts_prices,
-        openlibrary,
-        platzi,
-        pokemontcg,
-        restful_objects,
-        scrapeme,
-        scryfall,
-        steam_store,
-        stooq,
-        ygoprodeck,
-    )
+    import app.ingestion.sources  # noqa: F401  (import for side effects)
 
 
 __all__ = [

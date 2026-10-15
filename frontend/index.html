@@ -15,7 +15,8 @@
           var stored = localStorage.getItem('pip.theme') || 'system'
           var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
           var dark =
-            stored === 'dark' || stored === 'midnight' || stored === 'high-contrast' ||
+            stored === 'dark' || stored === 'midnight' ||
+            (stored === 'high-contrast' && prefersDark) ||
             (stored === 'system' && prefersDark)
           root.classList.toggle('dark', dark)
           root.classList.toggle('theme-midnight', stored === 'midnight')
