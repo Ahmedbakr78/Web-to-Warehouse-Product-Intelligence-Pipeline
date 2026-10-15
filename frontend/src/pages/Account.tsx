@@ -820,6 +820,96 @@ export default function Account() {
 
       {tab === 'alerts' ? <AlertsPanel /> : null}
 
+      {tab === 'watchlist' ? (
+        <Card padded={false}>
+          <div className="flex flex-wrap items-center justify-between gap-2 p-4 sm:p-5">
+            <CardHeader
+              title="Watchlist"
+              subtitle="Starred products — manage from Products or the detail screen, export here"
+              icon={<Star className="h-4 w-4" />}
+            />
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                icon={<Download className="h-4 w-4" />}
+                disabled={!(watchlist.data?.product_ids ?? []).length}
+                onClick={() => {
+                  downloadJson('watchlist.json', watchlist.data)
+                  toast.success('Watchlist exported', `${(watchlist.data?.product_ids ?? []).length} products saved.`)
+                }}
+              >
+                Export JSON
+              </Button>
+              <Button size="sm" variant="secondary" icon={<RefreshCw className="h-3.5 w-3.5" />} onClick={() => void watchlist.refetch()}>
+                Refresh
+              </Button>
+            </div>
+          </div>
+          {(watchlist.data?.product_ids ?? []).length ? (
+            <div className="px-4 pb-5">
+              <KeyValue
+                items={[
+                  { label: 'Watched products', value: String((watchlist.data?.product_ids ?? []).length) },
+                  { label: 'Tip', value: 'Open Products, filter by “Watched only”, then export CSV for price tracking.' },
+                ]}
+              />
+            </div>
+          ) : (
+            <div className="px-4 pb-6">
+              <EmptyState title="No watched products" message="Star products to track their prices here." icon={<Star className="h-6 w-6" />} />
+            </div>
+          )}
+        </Card>
+      ) : null}
+
+      {tab === 'sessions' ? (
+        <Card padded={false}>
+          <div className="flex flex-wrap items-center justify-between gap-2 p-4 sm:p-5">
+            <CardHeader
+              title="Sessions"
+              subtitle="Every device signed in as you — revoke anything unfamiliar"
+              icon={<Monitor className="h-4 w-4" />}
+            />
+            <Button size="sm" variant="secondary" icon={<RefreshCw className="h-3.5 w-3.5" />} onClick={() => void sessions.refetch()}>
+              Refresh
+            </Button>
+          </div>
+          {sessions.data?.sessions?.length ? (
+            <DataTable
+              rows={sessions.data.sessions}
+              rowKey={(row: any, i: number) => row.session_key ?? i}
+              emptyMessage="No sessions"
+              columns={[
+                { key: 'device', header: 'Device', render: (row: any) => <span className="font-medium">{row.user_agent?.slice(0, 48) ?? 'Unknown device'}</span> },
+                { key: 'ip', header: 'IP', hideBelow: 'md', render: (row: any) => <span className="font-mono text-xs">{row.ip_address ?? '—'}</span> },
+                { key: 'seen', header: 'Last seen', align: 'right', render: (row: any) => (row.last_seen_at ? formatRelative(row.last_seen_at) : '—') },
+                { key: 'cur', header: 'Current', align: 'right', render: (row: any) => (row.is_current ? <Badge tone="success">this device</Badge> : <Badge tone="neutral">active</Badge>) },
+              ]}
+            />
+          ) : (
+            <div className="px-4 pb-6">
+              <EmptyState title="No other sessions" message="Only this device is signed in." icon={<Monitor className="h-6 w-6" />} />
+            </div>
+          )}
+        </Card>
+      ) : null}
+
+      {tab === 'shortcuts' ? (
+        <Card>
+          <CardHeader title="Keyboard shortcuts" subtitle="Silent, keyboard-first navigation — no animations, no page flashes" icon={<Keyboard className="h-4 w-4" />} />
+          <KeyValue
+            items={[
+              { label: '/', value: 'Open command palette (screens + live products + actions)' },
+              { label: 'Ctrl/⌘ K', value: 'Same as / — quick jump anywhere' },
+              { label: 'Esc', value: 'Close drawer, modal or palette' },
+              { label: 'Click a column header', value: 'Sort any table; state persists per screen' },
+              { label: 'Tip', value: 'Palette actions: toggle theme, collapse sidebar, sign out — all without reload.' },
+            ]}
+          />
+        </Card>
+      ) : null}
+
       {tab === 'activity' ? (
         <Card padded={false}>
           <div className="flex flex-wrap items-center justify-between gap-2 p-4 sm:p-5">
