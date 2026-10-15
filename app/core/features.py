@@ -1691,6 +1691,70 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             },
         ],
     },
+    {
+        "key": "v19_polish",
+        "title": "v1.9 polish: real-only defaults, theme memory & modern scrollbars",
+        "icon": "sparkles",
+        "summary": "Production hardening: real-network defaults, lossless theme toggle, theme-aware scrollbars, Account Sessions/Watchlist/Shortcuts tabs and per-source aggregates.",
+        "features": [
+            {
+                "name": "Single canonical source loader",
+                "detail": "load_builtin_sources imports the package once — registry can never drift from disk (31 adapters)",
+            },
+            {
+                "name": "Real-only production defaults",
+                "detail": "DAG + pipeline.default_sources default to dummyjson/fakestore/openlibrary; local_demo stays test/CI-only",
+            },
+            {
+                "name": "Seed availability fix",
+                "detail": "Unknown-availability defect no longer overwritten by RNG; null prices carry null USD",
+            },
+            {
+                "name": "Seed catalog O(n) fix",
+                "detail": "seed_catalog materialises the iterable once — no generator consumption, no quadratic len()",
+            },
+            {
+                "name": "Per-source category aggregates",
+                "detail": "refresh_category_daily(source_code) scopes and stores per-source rows instead of ignoring the arg",
+            },
+            {
+                "name": "Lossless theme toggle",
+                "detail": "Toggle remembers last dark variant (dark/midnight) in pip.last-dark; new cycle() helper",
+            },
+            {
+                "name": "Light + dark high-contrast",
+                "detail": "High-contrast follows the OS so both light-HC and dark-HC palettes are reachable",
+            },
+            {
+                "name": "Modern theme-aware scrollbars",
+                "detail": "Thin rounded thumbs via scrollbar-width + ::-webkit-scrollbar; .no-scrollbar/.scroll-thin utilities",
+            },
+            {
+                "name": "Consistent nav icons",
+                "detail": "Categories=FolderTree and Audit=Filter in nav.ts match the nav-icons registry",
+            },
+            {
+                "name": "Icon typo guard",
+                "detail": "iconFor warns in dev on unknown names instead of silently falling back",
+            },
+            {
+                "name": "Account Watchlist tab",
+                "detail": "Starred-product count badge, export JSON, watched-only guidance",
+            },
+            {
+                "name": "Account Sessions tab",
+                "detail": "Active-device table with current-device badge from /account/sessions",
+            },
+            {
+                "name": "Account Shortcuts tab",
+                "detail": "Keyboard-first reference: palette, Esc, sortable headers, silent reload policy",
+            },
+            {
+                "name": "Team & weights documented",
+                "detail": "CONTRIBUTORS.md + docs/00_team.md with 6 members, roles and 28/15/14/14/15/14 split",
+            },
+        ],
+    },
 ]
 
 
