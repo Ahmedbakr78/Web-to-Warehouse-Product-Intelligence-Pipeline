@@ -73,6 +73,15 @@ def test_meta_team_names_the_lead_and_sums_to_100(client):
     assert len(lead["functions"]) >= max(len(m["functions"]) for m in payload["members"])
 
 
+def test_sources_robots_carries_durable_log_totals(client, viewer_token):
+    payload = client.get("/api/v1/sources/robots", headers=auth(viewer_token)).json()
+    assert set(payload) >= {"stats", "user_agent", "ttl_seconds", "log"}
+    log = payload["log"]
+    assert set(log) == {"allowed", "blocked", "total"}
+    assert log["total"] == log["allowed"] + log["blocked"]
+    assert log["total"] >= 0
+
+
 def test_openapi_schema_is_complete(client):
     schema = client.get("/openapi.json").json()
     assert len(schema["paths"]) > 50

@@ -899,12 +899,16 @@ export default function Sources() {
       .map((row: any) => row.success_rate_pct)
       .filter((value: unknown) => value !== null && value !== undefined)
       .map(Number)
+    // Durable cross-run evidence wins over this worker's in-memory counters,
+    // which read zero until the API process itself fetches something.
+    const log = robots.data?.log ?? {}
+    const hasLog = Number(log.total ?? 0) > 0
     return {
       registered: (registry.data ?? []).length,
       enabled: rows.filter((row: any) => row.enabled && row.terms_allowed !== false).length,
       records: rows.reduce((sum: number, row: any) => sum + Number(row.total_records ?? 0), 0),
       success: rates.length ? rates.reduce((sum, value) => sum + value, 0) / rates.length : null,
-      blocked: Number(robots.data?.stats?.blocked ?? 0),
+      blocked: Number(hasLog ? (log.blocked ?? 0) : (robots.data?.stats?.blocked ?? 0)),
       avgDuration: rows.length
         ? rows.reduce((sum: number, row: any) => sum + Number(row.avg_duration_seconds ?? 0), 0) / rows.length
         : 0,
@@ -1063,9 +1067,14 @@ export default function Sources() {
   }
 
   const stats = robots.data?.stats ?? {}
-  const allowed = Number(stats.allowed ?? 0)
-  const blocked = Number(stats.blocked ?? 0)
-  const decided = allowed + blocked
+  const verdictLog = robots.data?.log ?? {}
+  // The API worker's in-memory counters start at zero and only grow when that
+  // process fetches. The audited log covers every run in every process, so it
+  // wins whenever it holds any verdict.
+  const hasLog = Number(verdictLog.total ?? 0) > 0
+  const allowed = Number((hasLog ? verdictLog.allowed : stats.allowed) ?? 0)
+  const blocked = Number((hasLog ? verdictLog.blocked : stats.blocked) ?? 0)
+  const decided = hasLog ? Number(verdictLog.total ?? 0) : allowed + blocked
   const respectsRobots = Boolean(registry.data?.length) && (registry.data ?? []).every((row: any) => row.robots_respected !== false)
 
   return (
@@ -1130,8 +1139,10 @@ export default function Sources() {
               <ProgressBar value={decided ? (allowed / decided) * 100 : 0} tone={blocked && !allowed ? 'danger' : 'success'} />
               <p className="mt-1.5 text-[11px] text-subtle">
                 {decided
-                  ? `${formatNumber(allowed)} allowed · ${formatNumber(blocked)} refused by robots.txt and never sent upstream`
-                  : 'No robots.txt decision has been taken yet.'}
+                  ? hasLog
+                    ? `${formatNumber(allowed)} allowed · ${formatNumber(blocked)} refused by robots.txt and never sent upstream — across ${formatNumber(decided)} audited requests from all runs`
+                    : `${formatNumber(allowed)} allowed · ${formatNumber(blocked)} refused by robots.txt and never sent upstream`
+                  : 'No robots.txt decision has been taken yet. Run the pipeline or preview a source to record the first verdict.'}
               </p>
             </div>
           </div>
