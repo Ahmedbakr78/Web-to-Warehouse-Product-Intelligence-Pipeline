@@ -425,7 +425,7 @@ def build_svg(palette: str = "light") -> str:
     outcome_y = timeline_y + 142
     parts.append(text(road_x + 6, outcome_y + 4, "PROJECT OUTCOMES", 17, 700, P("muted"), spacing="2"))
     cell_w_o = (total_w_of_road - 5 * 26) // 5
-    for i, item in enumerate(OUTCOMES):
+    for i, item in enumerate(outcomes(measured)):
         row_index, col_index = divmod(i, 5)
         x = road_x + col_index * (cell_w_o + 26)
         y = outcome_y + 26 + row_index * (62 + 16)
