@@ -4,9 +4,9 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Web-to-Warehouse Product Intelligence Pipeline</title>
-<meta name="description" content="A compliance-first product intelligence platform: permitted web ingestion, deduplication, a Kimball star warehouse on PostgreSQL and MySQL, 12 data-quality rules, Airflow orchestration, a 110-operation FastAPI and a React 19 analytics dashboard." />
+<meta name="description" content="A compliance-first product intelligence platform: 34 permitted web sources, deduplication, a 29-table Kimball star warehouse on PostgreSQL and MySQL, 12 data-quality rules, Airflow orchestration, a 216-operation FastAPI and a React 19 analytics dashboard." />
 <meta property="og:title" content="Web-to-Warehouse Product Intelligence Pipeline" />
-<meta property="og:description" content="Compliant scraping to a dimensional warehouse, with change detection, data quality and a full analytics stack." />
+<meta property="og:description" content="Compliant scraping from 34 sources to a dimensional warehouse, with change detection, data quality and a full analytics stack." />
 <meta property="og:type" content="website" />
 <meta name="color-scheme" content="light dark" />
 <link rel="icon" type="image/png" href="favicon.png" />
@@ -101,13 +101,14 @@
 
   /* flow */
   .flow { display:grid; gap:10px; grid-template-columns:1fr }
-  @media (min-width:820px){ .flow{grid-template-columns:repeat(7,1fr); align-items:stretch} }
-  .step { position:relative; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; box-shadow:var(--shadow) }
-  .step .n { display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:8px; background:var(--brand-600); color:#fff; font-size:12px; font-weight:700 }
-  .step h3 { margin:10px 0 4px; font-size:14px }
-  .step p { margin:0; font-size:12px; color:var(--muted); line-height:1.45 }
+  @media (min-width:680px){ .flow{grid-template-columns:repeat(3,1fr)} }
+  @media (min-width:1100px){ .flow{grid-template-columns:repeat(9,1fr)} }
+  .step { position:relative; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px; box-shadow:var(--shadow) }
+  .step .n { display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:8px; background:var(--brand-600); color:#fff; font-size:11px; font-weight:700 }
+  .step h3 { margin:8px 0 4px; font-size:13px }
+  .step p { margin:0; font-size:11.5px; color:var(--muted); line-height:1.45 }
   .step .arrow { display:none }
-  @media (min-width:820px){
+  @media (min-width:1100px){
     .step .arrow { display:block; position:absolute; top:50%; right:-11px; transform:translateY(-50%); color:var(--brand-400); z-index:2; font-size:16px }
     .step:last-child .arrow { display:none }
   }
@@ -157,11 +158,12 @@
     </div>
     <nav class="nav-links">
       <a href="#pipeline">Pipeline</a>
+      <a href="#sources">Sources</a>
       <a href="#warehouse">Warehouse</a>
       <a href="#quality">Quality</a>
       <a href="#api">API</a>
       <a href="#dashboard">Dashboard</a>
-      <a href="#stack">Stack</a>
+      <a href="#team">Team</a>
       <a href="#quickstart">Quick start</a>
     </nav>
     <div class="spacer"></div>
@@ -190,10 +192,14 @@
     </div>
 
     <div class="stats">
-      <div class="stat"><b>23</b><span>Warehouse tables</span></div>
-      <div class="stat"><b>20</b><span>Analytical views</span></div>
-      <div class="stat"><b>110</b><span>REST operations</span></div>
-      <div class="stat"><b>255</b><span>Automated tests</span></div>
+      <div class="stat"><b>29</b><span>Warehouse tables</span></div>
+      <div class="stat"><b>23</b><span>Analytical views</span></div>
+      <div class="stat"><b>216</b><span>REST operations</span></div>
+      <div class="stat"><b>583</b><span>Automated tests</span></div>
+      <div class="stat"><b>34</b><span>Ingestion sources</span></div>
+      <div class="stat"><b>550</b><span>Catalogued features</span></div>
+      <div class="stat"><b>12</b><span>Data-quality rules</span></div>
+      <div class="stat"><b>v1.10</b><span>Current release</span></div>
     </div>
   </div>
 </div>
@@ -202,18 +208,65 @@
   <div class="wrap">
     <div class="sec-head">
       <span class="kicker">The pipeline</span>
-      <h2>Seven stages from retrieval to insight</h2>
+      <h2>Nine stages from retrieval to insight</h2>
       <p>Every stage is idempotent, timed and auditable. A failing source never kills a run, and each
          run writes a single row of counters, timings and quality results.</p>
     </div>
     <div class="flow">
-      <div class="step"><span class="n">1</span><span class="arrow">→</span><h3>Retrieve</h3><p>robots.txt gate (RFC 9309), token-bucket rate limits, circuit breaker, response cache, per-request audit.</p></div>
-      <div class="step"><span class="n">2</span><span class="arrow">→</span><h3>Clean</h3><p>29-step cleaner: names, categories, prices in 18+ currencies, offline FX to USD, ratings, availability.</p></div>
-      <div class="step"><span class="n">3</span><span class="arrow">→</span><h3>Dedupe</h3><p>Fingerprints plus Levenshtein, Jaro-Winkler, token-set and trigram similarity at a 0.90 threshold.</p></div>
-      <div class="step"><span class="n">4</span><span class="arrow">→</span><h3>Load</h3><p>Staged, idempotent loads into 5 dimensions and 5 fact/change tables on PostgreSQL or MySQL.</p></div>
-      <div class="step"><span class="n">5</span><span class="arrow">→</span><h3>Detect</h3><p>Price changes with magnitude bands, new and removed products, category changes and drift.</p></div>
-      <div class="step"><span class="n">6</span><span class="arrow">→</span><h3>Validate</h3><p>12 data-quality rules across six dimensions produce a 0–100 score and a blocking gate.</p></div>
-      <div class="step"><span class="n">7</span><span class="arrow"></span><h3>Serve</h3><p>FastAPI (110 operations) and a React 19 dashboard over 20 views, orchestrated daily by Airflow.</p></div>
+      <div class="step"><span class="n">1</span><span class="arrow">→</span><h3>Extract</h3><p>robots.txt gate (RFC 9309), rate limits, circuit breaker, ETag revalidation, per-request audit.</p></div>
+      <div class="step"><span class="n">2</span><span class="arrow">→</span><h3>Stage</h3><p>Raw payloads land resumably with validity flags and reject reasons.</p></div>
+      <div class="step"><span class="n">3</span><span class="arrow">→</span><h3>Transform</h3><p>29-step cleaner: names, categories, 18+ currencies to USD, ratings, availability.</p></div>
+      <div class="step"><span class="n">4</span><span class="arrow">→</span><h3>Resolve</h3><p>Fingerprints plus 4-signal fuzzy matching at a 0.90 threshold.</p></div>
+      <div class="step"><span class="n">5</span><span class="arrow">→</span><h3>Load</h3><p>Idempotent upserts into 5 dimensions; append-only price snapshots.</p></div>
+      <div class="step"><span class="n">6</span><span class="arrow">→</span><h3>Detect</h3><p>Price changes with magnitude bands, new/removed products, category drift.</p></div>
+      <div class="step"><span class="n">7</span><span class="arrow">→</span><h3>Aggregate</h3><p>Per-category daily rollups, global and per-source.</p></div>
+      <div class="step"><span class="n">8</span><span class="arrow">→</span><h3>Reconcile</h3><p>Internal catalog SKUs matched to market listings with price gaps.</p></div>
+      <div class="step"><span class="n">9</span><span class="arrow"></span><h3>Quality</h3><p>12 rules across six dimensions; weighted 0–100 score persisted per run.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="sources">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Ingestion</span>
+      <h2>34 sources, one compliance gate</h2>
+      <p>Every adapter — JSON APIs, two HTML scrapers and one offline fallback — passes the same
+         robots.txt check, rate limiter, circuit breaker and audit log. Verified live: 27 return
+         records, 5 are honestly empty, 1 refused by its own terms, 1 synthetic fallback.</p>
+    </div>
+    <div class="grid three">
+      <div class="card">
+        <h3>Retail &amp; grocery</h3>
+        <ul class="ticks">
+          <li>DummyJSON products + recipes, Platzi, Makeup, CheapShark, Steam</li>
+          <li>Predic8, Open Food Facts Prices, FreeAPI, RESTful Objects</li>
+          <li>ScrapeMe.live sandbox (WooCommerce practice shop)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Books &amp; texts</h3>
+        <ul class="ticks">
+          <li>Gutendex, Open Library (subjects feed), Google Books (key)</li>
+          <li>Internet Archive texts (advancedsearch feed)</li>
+          <li>books.toscrape.com — BeautifulSoup <b>and</b> Scrapy engines</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Media, games &amp; cards</h3>
+        <ul class="ticks">
+          <li>TVMaze shows, iTunes apps &amp; ebooks, MMOBomb</li>
+          <li>Pokemon TCG, Scryfall, YGOPRODeck, Switch catalogue, coffee menus</li>
+          <li>CocktailDB, MealDB, Kraken tickers</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <p style="margin:0">Rejected with evidence — MercadoLibre (robots <code class="mono">Disallow: /</code>),
+      ITBookStore (all endpoints 404), Jikan (unreachable), BoardGameGeek (refuses programmatic access),
+      Stooq (terms forbid), FakeStore (dead host, dropped from defaults). An empty or refused source
+      degrades a run to <code class="mono">partial</code>, never to failure. Full table in the README
+      source catalog.</p>
     </div>
   </div>
 </section>
@@ -239,7 +292,7 @@
         </ul>
       </div>
       <div class="card">
-        <h3>20 analytical views</h3>
+        <h3>23 analytical views</h3>
         <ul class="ticks">
           <li><b>vw_product_current / vw_price_history</b> — current state and full trajectories</li>
           <li><b>vw_price_changes / vw_top_movers</b> — movement with significance bands</li>
@@ -286,7 +339,7 @@
   <div class="wrap">
     <div class="sec-head">
       <span class="kicker">API</span>
-      <h2>110 documented operations, two query surfaces</h2>
+      <h2>216 documented operations, two query surfaces</h2>
       <p>FastAPI with OpenAPI 3.1, consistent error envelopes, pagination, facets, GZip, request timing
          headers, rate limiting, JWT rotation, API keys and three-role RBAC.</p>
     </div>
@@ -294,7 +347,7 @@
       <div class="card">
         <h3>Read-only query lab</h3>
         <p>Run <code class="mono">SELECT</code>, <code class="mono">WITH</code> and
-           <code class="mono">EXPLAIN</code> over all 20 views. Writes and multi-statement payloads are
+           <code class="mono">EXPLAIN</code> over all 23 views. Writes and multi-statement payloads are
            rejected before execution.</p>
         <pre style="margin-top:12px">curl -H "Authorization: Bearer $TOKEN" \
   "http://localhost:8000/api/v1/analytics/kpi?days=30"
@@ -354,6 +407,44 @@ curl -X POST http://localhost:8000/api/v1/queries/execute \
   </div>
 </section>
 
+<section id="team">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Team</span>
+      <h2>DEPI Data Engineering · six members, one lead</h2>
+      <p>The team is served as structured data (<code class="mono">GET /api/v1/meta/team</code>) from
+         <code class="mono">app/core/team.py</code> — the same catalogue-as-code pattern as the features.</p>
+    </div>
+    <div class="grid three">
+      <div class="card">
+        <h3>👑 Ahmed (78102) — 28%</h3>
+        <p>Team Lead + Backend/API + Documentation + 9 ETL Stages Owner. FastAPI platform, 9-stage ETL,
+           integration transport, catalogues as code, 31 docs, releases, quality gates, every review.</p>
+      </div>
+      <div class="card">
+        <h3>Ahmed Abd alla — 15%</h3>
+        <p>Ingestion &amp; Compliance Lead. robots.txt gate, 34 adapters, rate limiting, conditional GET, audit log.</p>
+      </div>
+      <div class="card">
+        <h3>Ahmed Medhat — 14%</h3>
+        <p>ETL &amp; Cleaning Lead. 29-step cleaner, 18+ currencies, 4-signal fuzzy dedupe.</p>
+      </div>
+      <div class="card">
+        <h3>Eng. Alaa Nasser — 14%</h3>
+        <p>Database &amp; Data Quality Lead. 29 tables, 23 views, 12 DQ rules, change detection.</p>
+      </div>
+      <div class="card">
+        <h3>legecy007 — 15%</h3>
+        <p>Frontend / Dashboard Lead. React 19, 21 screens, PWA, four themes, mobile-first.</p>
+      </div>
+      <div class="card">
+        <h3>Mennatullah Ahmed — 14%</h3>
+        <p>DevOps &amp; Orchestration Lead. Airflow DAG, Docker stack, CI/CD, run scripts.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="stack">
   <div class="wrap">
     <div class="sec-head">
@@ -370,6 +461,7 @@ curl -X POST http://localhost:8000/api/v1/queries/execute \
       <span class="badge">Airflow <b>2.10</b></span>
       <span class="badge">Docker Compose</span>
       <span class="badge">BeautifulSoup <b>&amp; lxml</b></span>
+      <span class="badge">Scrapy <b>spider engine</b></span>
       <span class="badge">httpx</span>
       <span class="badge">React <b>19</b></span>
       <span class="badge">TypeScript <b>5</b></span>
@@ -395,6 +487,10 @@ curl -X POST http://localhost:8000/api/v1/queries/execute \
       <pre>git clone &lt;this-repository&gt; web-to-warehouse &amp;&amp; cd web-to-warehouse
 cp .env.example .env
 
+# The one file: verify with real data, then launch the stack
+./run.sh              # full verify + Docker stack + live data
+./run.sh --verify-only --quick   # verify only, no Docker
+
 # Option A - the full Docker stack (API, PostgreSQL, MySQL, Airflow, dashboard)
 make up            # start every service
 make bootstrap     # create the 29 tables and 23 views
@@ -418,8 +514,8 @@ make frontend-dev  # dashboard on :5173</pre>
   <div class="wrap">
     <div class="sec-head">
       <span class="kicker">Feature catalogue</span>
-      <h2>517 features, 42 areas — same source as the app</h2>
-      <p style="color:var(--muted);max-width:62ch">The dashboard's Features screen, <code>GET /api/v1/meta/features</code> and this page all read <code>app/core/features.py</code>. New in Max: 9-tab Account with key rotation and preferences backup, 12-entity Builder with pins, clone, share-links and multi-sort, Steam + Open Food Facts sources (14 total), no scrollbars anywhere, skeleton-free refetch, icons on every button, strict type-clean build. New in Query power: HAVING + OR logic, saved-view lifecycle with defaults, server-side query history with snippets, report CSV route, type-safe setting writes.</p>
+      <h2>550 features, 46 areas — same source as the app</h2>
+      <p style="color:var(--muted);max-width:62ch">The dashboard's Features screen, <code>GET /api/v1/meta/features</code> and this page all read <code>app/core/features.py</code>. Latest: TVMaze + Internet Archive + DummyJSON recipes (34 adapters), a Scrapy engine beside BeautifulSoup, conditional-GET revalidation, real-only pipeline defaults, a 12-tab Account, lossless theme memory, modern scrollbars, one-command <code>./run.sh</code> verification and a team API.</p>
     </div>
     <div class="badges">
       <span class="badge">Builder Max <b>32</b></span>
@@ -442,12 +538,12 @@ make frontend-dev  # dashboard on :5173</pre>
       <h2>Compliance-first, warehouse-grade, free forever</h2>
     </div>
     <div class="card">
-      <p style="margin:0;color:var(--muted)">A retailer needs the market picture every morning. This pipeline replaces manual copy-paste with robots-gated ingestion, 29-step cleaning, fuzzy dedupe, a Kimball star on PostgreSQL + MySQL, 12 DQ rules, Airflow orchestration, forecasting, webhooks, backfill and a 24-screen React dashboard — no paid APIs, SQLite-runnable tests, one-command verification.</p>
+      <p style="margin:0;color:var(--muted)">A retailer needs the market picture every morning. This pipeline replaces manual copy-paste with robots-gated ingestion from 34 sources, 29-step cleaning, fuzzy dedupe, a 29-table Kimball star on PostgreSQL + MySQL, 12 DQ rules, Airflow orchestration, forecasting, webhooks, backfill and a 21-screen React dashboard — no paid APIs, SQLite-runnable tests, one-command verification.</p>
       <div class="badges" style="margin-top:14px">
         <span class="badge">Topics <b>etl · airflow · fastapi · react · postgres · mysql · data-quality · scraping · warehouse · dashboard</b></span>
-        <span class="badge">Releases <b>v1.6.1 → v1.7.0 Max</b></span>
+        <span class="badge">Releases <b>v1.9.0 → v1.10.0</b></span>
         <span class="badge">License <b>MIT</b></span>
-        <span class="badge">Visibility <b>public</b></span>
+        <span class="badge">Track <b>DEPI Data Engineering</b></span>
       </div>
     </div>
   </div>
@@ -456,7 +552,7 @@ make frontend-dev  # dashboard on :5173</pre>
 <footer>
   <div class="wrap foot-in">
     <span>Web-to-Warehouse Product Intelligence Pipeline · built for a retailer's morning market picture.</span>
-    <span>MIT licensed · DEPI Data Engineering · 517 features · 29 tables · 23 views · 215 API ops</span>
+    <span>MIT licensed · DEPI Data Engineering · 550 features · 29 tables · 23 views · 216 API ops · 34 sources</span>
   </div>
 </footer>
 

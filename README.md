@@ -1097,11 +1097,86 @@ Highlights by area:
 
 ### Operations and developer experience
 
-- Airflow DAG with 13 tasks, branch-on-changes, notify and report fan-out
+- Airflow DAG with 14 operators, branch-on-changes, notify and report fan-out
 - six-service Docker Compose stack; Nginx front-end with API proxy
-- Makefile with 30+ targets; Typer CLI with 12 commands; GitHub Actions CI
+- Makefile with 30+ targets; Typer CLI with 13 commands; GitHub Actions CI
 - liveness and readiness endpoints, structured logging, slow-request warnings
-- 20-document documentation set with Mermaid diagrams rendered natively by GitHub
+- 31-document documentation set with Mermaid diagrams rendered natively by GitHub
+
+---
+
+## Ingestion source catalog
+
+34 registered adapters (35 files on disk plus the dynamic JSON onboarding), every
+one behind the same robots gate, rate limiter, circuit breaker and audit log.
+Status verified live on 2026-10-15: **27 return records, 5 honestly empty**
+(dead host, key-gated API or market-hours feed), 1 refused by its own terms,
+1 synthetic offline fallback. An empty source never fails a run — the run
+finishes `partial` and the evidence lands in `ingestion_http_log`.
+
+```mermaid
+flowchart LR
+    subgraph Live["Live — 27 adapters"]
+        direction TB
+        RETAIL["Retail & grocery<br/>dummyjson, fakestore*, platzi,<br/>makeup, cheapshark, steam,<br/>predic8, openfoodfacts,<br/>freeapi, restful_objects"]
+        BOOKS["Books & texts<br/>gutendex, openlibrary,<br/>google_books*, archive_texts,<br/>books.toscrape, scrapeme"]
+        MEDIA["Media & games<br/>mmobomb, itunes apps/ebooks,<br/>pokemontcg, scryfall,<br/>ygoprodeck, tvmaze,<br/>sampleapis switch/coffee,<br/>cocktaildb, mealdb, kraken"]
+    end
+    subgraph Edge["Honest edge cases"]
+        EMPTY["Empty but enabled<br/>bitstamp, coincap,<br/>coingecko, google_books"]
+        DEAD["Dead host<br/>fakestore (removed<br/>from defaults)"]
+        REFUSED["Refused by terms<br/>stooq (BLOCKED)"]
+        SYNTH["Offline fallback<br/>local_demo (explicit only)"]
+    end
+    Live --> WH[("Warehouse<br/>dim_product + facts")]
+    Edge -.partial runs only.-> WH
+```
+
+> `*` fakestore is unreachable and excluded from defaults; google_books needs an
+> optional API key and yields nothing without one. MercadoLibre, ITBookStore,
+> Jikan and BoardGameGeek were evaluated and rejected with evidence
+> (robots refusal, dead endpoints, unreachable host).
+
+| Code | Kind | Status | Shelf |
+| --- | --- | --- | --- |
+| `archive_texts` | api | live | Books |
+| `books_to_scrape` | scrape | live | Books (sandbox + Scrapy engine) |
+| `cheapshark_deals` | api | live | Games |
+| `cocktaildb_drinks` | api | live | Grocery |
+| `dummyjson_products` | api | live | Retail |
+| `dummyjson_recipes` | api | live | Grocery |
+| `freeapi_products` | api | live | Retail |
+| `gutendex_books` | api | live | Books |
+| `itunes_apps` | api | live | Media |
+| `itunes_ebooks` | api | live | Books |
+| `kraken_tickers` | api | live | Crypto |
+| `makeup_products` | api | live | Beauty |
+| `mealdb_meals` | api | live | Grocery |
+| `mmobomb_games` | api | live | Games |
+| `openfoodfacts_prices` | api | live | Grocery |
+| `openlibrary_books` | api | live | Books (subjects feed) |
+| `platzi_products` | api | live | Retail |
+| `pokemontcg_cards` | api | live | Trading Cards |
+| `predic8_grocery` | api | live | Grocery |
+| `restful_objects` | api | live | Retail |
+| `sampleapis_coffee` | api | live | Grocery |
+| `sampleapis_switch` | api | live | Games |
+| `scrapeme_products` | scrape | live | Retail (sandbox) |
+| `scryfall_cards` | api | live | Trading Cards |
+| `steam_store` | api | live | Games |
+| `tvmaze_shows` | api | live | Media |
+| `ygoprodeck_cards` | api | live | Trading Cards |
+| `bitstamp_tickers` | api | empty | Crypto (feed idle at probe) |
+| `coincap_assets` | api | empty | Crypto (feed idle at probe) |
+| `coingecko_markets` | api | empty | Crypto (feed idle at probe) |
+| `google_books` | api | empty | Books (needs `GOOGLE_BOOKS_API_KEY`) |
+| `fakestore_products` | api | dead host | Retail (excluded from defaults) |
+| `stooq_quotes` | api | refused | `terms_allowed=False`, never fetched |
+| `local_demo` | synthetic | offline | Explicit `--offline` / tests / CI only |
+
+Browse them live: `GET /api/v1/sources`, preview raw-vs-clean with
+`GET /api/v1/sources/{code}/preview`, or
+`python -m app.cli.main sources preview {code} --limit 5`.
 
 ---
 
@@ -1531,20 +1606,54 @@ Next (full prioritised list in docs/20):
 
 ## Team
 
-Built by the **DEPI Data Engineering graduation team** (Track: Data Engineering):
+Built by the **DEPI Data Engineering graduation team** (Track: Data Engineering).
+The team itself is served as structured data — `GET /api/v1/meta/team` reads
+`app/core/team.py`, the same single-source-of-truth pattern as the feature
+catalogue — so this table can never drift from the shipped record.
 
 | # | Member | GitHub | Role | Weight |
 |---|--------|--------|------|-------|
-| 1 | Ahmed (78102) | [@Ahmedbakr78](https://github.com/Ahmedbakr78) | Team Lead + Backend/API + Documentation + 9 ETL Stages Owner | 28% |
+| 1 | Ahmed (78102) | [@Ahmedbakr78](https://github.com/Ahmedbakr78) | 👑 Team Lead + Backend/API + Documentation + 9 ETL Stages Owner | 28% |
 | 2 | Ahmed Abd alla | [@01124758140](https://github.com/01124758140) | Ingestion & Compliance Lead | 15% |
 | 3 | Ahmed Medhat | [@AhmedMedhatFarouk](https://github.com/AhmedMedhatFarouk) | ETL & Cleaning Lead | 14% |
 | 4 | Eng. Alaa Nasser | [@AlaaNasser-tech](https://github.com/AlaaNasser-tech) | Database & Data Quality Lead | 14% |
 | 5 | legecy007 | [@legecy007](https://github.com/legecy007) | Frontend / Dashboard Lead | 15% |
 | 6 | Mennatullah Ahmed | [@mennatullahahmed01-debug](https://github.com/mennatullahahmed01-debug) | DevOps & Orchestration Lead | 14% |
 
+### Lead functions — Ahmed (78102), the biggest scope
+
+Ahmed carries the architecture end to end: every layer below is his direct
+ownership, and every merge in the repository passes his review.
+
+- **FastAPI platform** — 23 routers and 216 operations: auth (JWT rotation +
+  API keys), RBAC (admin/analyst/viewer), exports, webhooks, backfill, builder,
+  query lab, forecast, reports, saved views, notifications, audit.
+- **9-stage ETL orchestrator** — one `Pipeline.run()` used identically by the
+  CLI, the REST trigger and the Airflow DAG: extract → stage → transform →
+  resolve → load → detect → aggregate → reconcile → quality.
+- **Integration transport** — the in-process/API fallback that lets Airflow 2.10
+  (SQLAlchemy 1.4) drive an app that requires SQLAlchemy 2.0 without sharing
+  an interpreter.
+- **Catalogues as code** — `app/core/features.py` → `GET /meta/features` and
+  `app/core/team.py` → `GET /meta/team`: the dashboard, docs and website read
+  the code, never a stale copy.
+- **Documentation architecture** — 31 numbered documents, 80+ Mermaid diagrams,
+  data dictionary, README/website/docs alignment, stats-drift CI that fails the
+  build when prose and code disagree.
+- **Release management** — semantic versioning, Keep-a-Changelog, annotated
+  tags, GitHub releases; see [docs/31_releases.md](docs/31_releases.md).
+- **Quality gates** — ruff, mypy, pytest (579 tests), API smoke (104 checks),
+  cross-dialect parity, frontend typecheck/lint/vitest/build.
+
 Full file-level responsibility map: [CONTRIBUTORS.md](CONTRIBUTORS.md) · RACI matrix:
 [docs/03_roles_and_responsibilities.md](docs/03_roles_and_responsibilities.md) · team sheet:
 [docs/00_team.md](docs/00_team.md).
+
+```bash
+# the team, as the running API sees it
+curl -s localhost:8000/api/v1/meta/team | python3 -c \
+  "import json,sys; t=json.load(sys.stdin); print(t['lead'], t['total_weight'])"
+```
 
 ### GitHub repo polish (About, topics, visibility, releases)
 

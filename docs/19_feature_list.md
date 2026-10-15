@@ -3,7 +3,7 @@
 ## Purpose
 
 This document is the complete feature inventory of the Web-to-Warehouse Product Intelligence
-Pipeline: 545 features grouped into forty-five areas, each with a one-line description and a reference
+Pipeline: 550 features grouped into forty-six areas, each with a one-line description and a reference
 to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an
 endpoint, a CLI command or a documented design decision. Nothing here is aspirational.
 
@@ -1021,3 +1021,19 @@ bandwidth-saving revalidation.
 | F-545 | Offline-proof test suites | 5 mocked-transport conditional-GET tests + 7 adapter/spider mapping tests | `tests/test_conditional_get.py`, `tests/test_new_sources.py` |
 
 **Revised total: 545 features across 45 areas** (F-001 to F-545).
+
+## 46. v1.10 lead & repo Max: team API, source catalog, releases (5)
+
+The lead (Ahmed) gets a machine-readable credit surface and the repository gets
+longer, diagram-rich documentation: a team catalogue with the same guarantees as
+the feature catalogue, a full 34-adapter source catalog, and a release playbook.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-546 | Team catalogue as code | Members, roles, weights, functions in one module (weights sum to 100) | `app/core/team.py` |
+| F-547 | Team API endpoint | `GET /meta/team` serves lead, weights and function ownership | `app/api/routers/health.py` |
+| F-548 | Source catalog section | 34-adapter table with live/empty/dead/refused status + landscape diagram | `README.md` |
+| F-549 | Releases playbook | Versioning, tagging, About/topics/visibility paste-ins, release history | `docs/31_releases.md` |
+| F-550 | Ownership diagram | Lead-vs-lanes Mermaid map in the team sheet | `docs/00_team.md` |
+
+**Revised total: 550 features across 46 areas** (F-001 to F-550).

@@ -1795,6 +1795,22 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             },
         ],
     },
+    {
+        "key": "team",
+        "title": "Team catalogue as code",
+        "icon": "users",
+        "summary": "Members, roles, weights and function ownership served live — the credit surface cannot drift.",
+        "features": [
+            {
+                "name": "Team module",
+                "detail": "TEAM list with 6 members, roles, weights (sum 100) and function inventories",
+            },
+            {
+                "name": "Team API endpoint",
+                "detail": "GET /meta/team serves lead, weights and function ownership",
+            },
+        ],
+    },
 ]
 
 
