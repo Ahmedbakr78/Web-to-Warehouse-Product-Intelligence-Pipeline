@@ -46,6 +46,17 @@ The API exposes the analytical warehouse built from permitted public web sources
 * `jobs` - durable background queue with progress, cancellation and live streaming
 * `stream` - Server-Sent Events and a WebSocket for live run and KPI updates
 * `users` / `settings` / `audit` - account, preference and compliance management
+* `system` - health, readiness, `/meta` inventory, `/meta/team` credits and the
+  feature catalogue (no authentication required)
+
+### Live inventory
+
+Counts change with every release, so this page never hard-codes them — ask the
+API itself: `GET /api/v1/meta` (tables, views, operations, sources, limits),
+`GET /api/v1/meta/features` (feature catalogue), `GET /api/v1/meta/team`
+(team and roles), `GET /api/v1/sources` (34 permitted adapters with robots
+verdicts). Ingestion is robots-gated with ETag revalidation, and every verdict
+is audited per request.
 
 ### Authentication
 
