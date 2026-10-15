@@ -68,6 +68,12 @@ class GoogleBooksSource(ProductSource):
                 )
             except Exception as exc:  # a failing subject must not kill the run
                 self.errors.append(f"{subject}: {exc}")
+                # Rate limits / circuit / robots apply host-wide: if one subject
+                # is throttled or blocked, the rest will be too. Fail fast so a
+                # single run does not spend ~90s retrying every subject.
+                message = str(exc).lower()
+                if any(marker in message for marker in ("rate limited", "circuit", "robots", "429")):
+                    break
                 continue
 
             for item in payload.get("items") or []:

@@ -474,8 +474,17 @@ def seed_history(
     from app.models.operations import EtlRun
 
     if session.execute(sa.select(FactPriceSnapshot).limit(1)).scalars().first() is not None:
+        # Idempotent re-run: report real totals instead of an empty dict so the
+        # bootstrap table does not show a misleading row of zeros.
         log.info("history already seeded - skipping")
-        return {}
+        return {
+            "products": _count(session, DimProduct),
+            "snapshots": _count(session, FactPriceSnapshot),
+            "price_changes": _count(session, ChgPriceChange),
+            "events": _count(session, ChgProductEvent),
+            "runs": session.execute(sa.select(sa.func.count()).select_from(EtlRun)).scalar() or 0,
+            "skipped": True,
+        }
 
     ensure_date_range(session, days_back=days + 10, days_forward=2)
     products = build_seed_products(count=count)
@@ -839,13 +848,29 @@ def _count(session: Session, model: Any) -> int:
 def run_full_seed(
     database: str | None = None, *, days: int = 120, with_history: bool = True, count: int = 90
 ) -> dict[str, Any]:
-    """Seed users, catalog and history into one target database."""
+    """Seed users, catalog and history into one target database.
+
+    Idempotent: re-runs create nothing new but report live totals (not zeros)
+    so the bootstrap summary never shows a misleading empty dataset.
+    """
     with session_scope(database) as session:
         users = seed_users(session)
         products = build_seed_products(count=count)
         catalog = seed_catalog(session, products)
         extra_skus = seed_extra_catalog_skus(session)
         extras = seed_saved_views_and_alerts(session)
+        # When nothing was created, report existing totals for the summary.
+        if users == 0 or catalog + extra_skus == 0 or extras == 0:
+            from app.models.app_users import AppAlertRule, AppSavedView, AppUser
+            from app.models.catalog import CatalogProduct
+
+            if users == 0:
+                users = _count(session, AppUser)
+            if catalog + extra_skus == 0:
+                catalog = _count(session, CatalogProduct)
+                extra_skus = 0
+            if extras == 0:
+                extras = _count(session, AppSavedView) + _count(session, AppAlertRule)
     history: dict[str, Any] = {}
     if with_history:
         with session_scope(database) as session:

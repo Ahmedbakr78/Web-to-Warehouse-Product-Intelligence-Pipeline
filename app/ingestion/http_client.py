@@ -301,6 +301,11 @@ class CompliantHttpClient:
                         # host cooldown, and acquire() on the next attempt
                         # enforces it. Sleeping as well tripled waits (e.g.
                         # Google Books: 5 subjects x 4 retries ~= 90s).
+                        # 429 means quota exhausted: retrying immediately never
+                        # helps, so fail fast and let the source skip the rest.
+                        if response.status_code == 429:
+                            self.breaker.record_failure(host)
+                            raise RateLimitError(f"rate limited by {host}", details={"url": full_url})
                         continue
                     self.breaker.record_failure(host)
                     if response.status_code == 429:

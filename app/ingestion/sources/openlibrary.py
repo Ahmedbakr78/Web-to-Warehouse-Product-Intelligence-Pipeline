@@ -60,6 +60,12 @@ class OpenLibraryBooksSource(ProductSource):
                 )
             except Exception as exc:  # a failing subject must not kill the run
                 self.errors.append(f"{subject}: {exc}")
+                # robots.txt / circuit decisions are host-wide: one block means
+                # every subject will be blocked. Fail fast instead of logging
+                # the same block five times.
+                message = str(exc).lower()
+                if any(marker in message for marker in ("robots", "circuit", "rate limited", "429")):
+                    break
                 continue
 
             for item in payload.get("docs") or []:

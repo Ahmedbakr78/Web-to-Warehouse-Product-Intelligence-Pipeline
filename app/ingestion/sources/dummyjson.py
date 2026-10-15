@@ -43,7 +43,11 @@ class DummyJsonProductsSource(ProductSource):
         while emitted < limit:
             page = min(PAGE_SIZE, limit - emitted)
             self._count_request()
-            payload = self.client.get_json(self.base_url, params={"limit": page, "skip": skip})
+            try:
+                payload = self.client.get_json(self.base_url, params={"limit": page, "skip": skip})
+            except Exception as exc:  # a failing page must not kill the run
+                self.errors.append(f"page skip={skip}: {exc}")
+                return
             products: list[dict[str, Any]] = payload.get("products") or []
             if total is None:
                 total = int(payload.get("total") or 0)
