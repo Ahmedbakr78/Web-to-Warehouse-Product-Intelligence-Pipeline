@@ -13,9 +13,10 @@ from typing import Any
 
 import httpx
 from fastapi import APIRouter
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.api.deps import DbSession, ReadUser, SourceManagerUser, WriteUser
+from app.api.deps import DbOptional, DbSession, ReadUser, SourceManagerUser, WriteUser
 from app.api.schemas import SourceCheckRequest, SourceCreate, SourceUpdate
 from app.core.config import settings
 from app.core.errors import ConflictError, SourceNotFoundError, ValidationError
@@ -47,9 +48,38 @@ def presets(_user: ReadUser) -> dict[str, Any]:
 
 
 @router.get("/robots", summary="robots.txt decisions cached by the ingestion layer")
-def robots(_user: ReadUser) -> dict[str, Any]:
+def robots(_user: ReadUser, session: DbOptional) -> dict[str, Any]:
     cache = get_robots_cache()
-    return {"stats": dict(cache.stats), "user_agent": cache.user_agent, "ttl_seconds": cache.ttl_seconds}
+    return {
+        "stats": dict(cache.stats),
+        "user_agent": cache.user_agent,
+        "ttl_seconds": cache.ttl_seconds,
+        # The in-memory counters above only cover THIS worker process, so a
+        # fresh API worker reports zeros until it fetches something itself.
+        # `log` is the durable, cross-process evidence: every run in every
+        # process records its robots verdict per request in ingestion_http_log.
+        "log": _robots_log_totals(session),
+    }
+
+
+def _robots_log_totals(session: Session | None) -> dict[str, int]:
+    """Allowed vs blocked verdicts across all audited runs (durable evidence)."""
+    totals = {"allowed": 0, "blocked": 0, "total": 0}
+    if session is None:
+        return totals
+    try:
+        rows = session.execute(
+            text(
+                "SELECT robots_allowed, COUNT(*) "
+                "FROM ingestion_http_log GROUP BY robots_allowed"
+            )
+        ).all()
+    except Exception:  # noqa: BLE001 - empty DB / missing table must not break the panel
+        return totals
+    for allowed, count in rows:
+        totals["allowed" if allowed else "blocked"] += int(count or 0)
+    totals["total"] = totals["allowed"] + totals["blocked"]
+    return totals
 
 
 def _safe_url(raw_url: str) -> str:
