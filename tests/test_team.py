@@ -16,9 +16,7 @@ def test_lead_is_ahmed_with_most_functions():
     lead = next(m for m in catalogue["members"] if m["lead"])
     assert lead["member"] == "Ahmed (78102)"
     assert lead["weight"] == max(m["weight"] for m in catalogue["members"])
-    assert len(lead["functions"]) >= max(
-        len(m["functions"]) for m in catalogue["members"] if not m["lead"]
-    )
+    assert len(lead["functions"]) >= max(len(m["functions"]) for m in catalogue["members"] if not m["lead"])
 
 
 def test_every_member_has_github_role_and_functions():
