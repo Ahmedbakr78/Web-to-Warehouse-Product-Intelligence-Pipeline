@@ -164,6 +164,7 @@
       <a href="#api">API</a>
       <a href="#dashboard">Dashboard</a>
       <a href="#team">Team</a>
+      <a href="#faq">FAQ</a>
       <a href="#quickstart">Quick start</a>
     </nav>
     <div class="spacer"></div>
@@ -528,6 +529,59 @@ make frontend-dev  # dashboard on :5173</pre>
       <span class="badge">Realtime <b>10</b></span>
       <span class="badge">Reports <b>14</b></span>
     </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">FAQ</span>
+      <h2>Asked in every review</h2>
+      <p>Full answers with SQL in <code class="mono">docs/23_glossary_and_faq.md</code>.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>Does it actually respect robots.txt?</h3>
+        <p>Yes — and the evidence is queryable. Every attempt, including blocked ones, lands in
+           <code class="mono">ingestion_http_log</code>. A row with <code class="mono">robots_allowed = false</code>
+           and no status code is a request the crawler declined to make. The Audit screen shows the same data.</p>
+      </div>
+      <div class="card">
+        <h3>What happens if a source fails?</h3>
+        <p>The run continues as <code class="mono">partial</code> with a warning. Five consecutive host
+           failures trip the circuit breaker (zero further network I/O). Open Library's old
+           <code class="mono">/search.json</code> path was refused this way — the source now uses the
+           allowed <code class="mono">/subjects</code> feed instead.</p>
+      </div>
+      <div class="card">
+        <h3>Can I re-run a pipeline safely?</h3>
+        <p>Yes. Dimensions merge on natural keys, staging is per-run, facts are keyed by grain and DQ
+           verdicts by <code class="mono">(run_id, rule_id)</code>. Re-running merges, never duplicates.</p>
+      </div>
+      <div class="card">
+        <h3>Is the Query Lab safe?</h3>
+        <p>Yes. Only <code class="mono">SELECT</code>, <code class="mono">WITH</code> and
+           <code class="mono">EXPLAIN</code> over the 23 analytical views; writes and multi-statements
+           are rejected before execution, rows are capped.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="releases">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Releases</span>
+      <h2>Versioned, tagged, reproducible</h2>
+      <p>Semantic versions, Keep-a-Changelog, annotated tags and GitHub releases. Full playbook in
+         <code class="mono">docs/31_releases.md</code>.</p>
+    </div>
+    <div class="table-wrap"><table>
+      <tr><th>Version</th><th>Theme</th></tr>
+      <tr><td><span class="pill">v1.10.0</span></td><td>Ingestion Max (TVMaze, Archive.org, recipes), Scrapy engine, conditional GET, team API</td></tr>
+      <tr><td><span class="pill">v1.9.0</span></td><td>Real-only defaults, theme memory, modern scrollbars, Account Max, run.sh</td></tr>
+      <tr><td><span class="pill">v1.8.0</span></td><td>Query power Max (HAVING, OR logic, saved-view lifecycle, query history)</td></tr>
+    </table></div>
   </div>
 </section>
 

@@ -105,18 +105,20 @@
 7. [Data model](#data-model)
 8. [Data quality](#data-quality)
 9. [Feature catalogue](#feature-catalogue)
-10. [Configuration reference](#configuration-reference)
-11. [Screens](#screens)
-12. [Security](#security)
-13. [Testing and verification](#testing-and-verification)
-14. [Performance](#performance)
-15. [Repository layout](#repository-layout)
-16. [Documentation](#documentation)
-17. [FAQ and troubleshooting](#faq-and-troubleshooting)
-18. [Releases](#releases)
-19. [Roadmap](#roadmap)
-20. [Team](#team)
-21. [License](#license)
+10. [Ingestion source catalog](#ingestion-source-catalog)
+11. [Configuration reference](#configuration-reference)
+12. [Screens](#screens)
+13. [Security](#security)
+14. [Testing and verification](#testing-and-verification)
+15. [Performance](#performance)
+16. [Repository layout](#repository-layout)
+17. [Documentation](#documentation)
+18. [FAQ and troubleshooting](#faq-and-troubleshooting)
+19. [Releases](#releases)
+20. [Roadmap](#roadmap)
+21. [Team](#team)
+22. [Acknowledgements](#acknowledgements)
+23. [License](#license)
 
 ---
 
@@ -1317,6 +1319,9 @@ Every screen is reachable from the sidebar (which becomes an off-canvas drawer o
 the command palette (<kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>K</kbd> or <kbd>/</kbd>), and from the mobile
 menu. Nothing depends on hover, and every icon-only control carries an accessible label.
 
+Light + dark captures follow the procedure in [docs/screenshots/](docs/screenshots/) (one PNG per
+screen per theme, 1440×900, sidebar expanded).
+
 ---
 
 ## Security
@@ -1680,6 +1685,23 @@ git push origin v1.10.0
 gh release create v1.10.0 --title "v1.10.0" --notes-file CHANGELOG.md
 ```
 Full playbook: [docs/31_releases.md](docs/31_releases.md).
+
+---
+
+## Acknowledgements
+
+- The **DEPI Digital Egypt Pioneers Initiative** and its mentors, for the Data
+  Engineering track, the graduation-project framework and the review feedback
+  that shaped the documentation standard of this repository.
+- The operators of every free source in the [source catalog](#ingestion-source-catalog) —
+  DummyJSON, Project Gutenberg/Gutendex, Internet Archive, Open Library, TVMaze,
+  CheapShark, Steam, the TCG APIs and the scrape sandboxes — for keeping open,
+  keyless endpoints that make a project like this possible without a budget.
+- The open-source projects this stack stands on: FastAPI, SQLAlchemy, Pydantic,
+  Airflow, PostgreSQL, MySQL, React, Vite, Tailwind, TanStack Query, Recharts,
+  httpx, BeautifulSoup, Scrapy, pytest, Ruff and GitHub Actions.
+- Everyone who runs `./run.sh --verify-only` and files an issue with the output
+  attached — that loop is how the honest edge-case tables in these docs were built.
 
 ---
 
