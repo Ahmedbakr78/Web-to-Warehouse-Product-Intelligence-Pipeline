@@ -959,3 +959,27 @@ connections, and never holds a transaction open during network I/O.
 | F-517 | License notes on status rows | Blocked sources explain themselves on the Sources screen | `GET /api/v1/pipeline/sources/status` |
 
 **Revised total: 517 features across 42 areas** (F-001 to F-517).
+
+## 43. v1.9 polish: real-only defaults, theme memory & modern scrollbars (14)
+
+Production hardening — real-network defaults, lossless theme toggle, theme-aware
+scrollbars, Account Sessions/Watchlist/Shortcuts tabs and per-source aggregates.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-518 | Single canonical source loader | `load_builtin_sources` imports the package once — registry never drifts from disk | `app/ingestion/base.py` |
+| F-519 | Real-only production defaults | DAG + `pipeline.default_sources` default to real APIs; `local_demo` stays test/CI-only | `dags/product_intelligence_pipeline.py`, `app/etl/seed.py` |
+| F-520 | Seed availability fix | Unknown-availability defect no longer overwritten; null prices carry null USD | `app/etl/seed.py` `seed_history` |
+| F-521 | Seed catalog O(n) fix | `seed_catalog` materialises the iterable once — no generator consumption | `app/etl/seed.py` `seed_catalog` |
+| F-522 | Per-source category aggregates | `refresh_category_daily(source_code)` scopes and stores per-source rows | `app/etl/loader.py` |
+| F-523 | Lossless theme toggle | Toggle remembers last dark variant in `pip.last-dark`; new `cycle()` helper | `frontend/src/lib/theme.ts` |
+| F-524 | Light + dark high-contrast | High-contrast follows the OS so both light-HC and dark-HC palettes apply | `frontend/src/lib/theme.ts`, `index.html` |
+| F-525 | Modern theme-aware scrollbars | Thin rounded thumbs; `.no-scrollbar` / `.scroll-thin` utilities | `frontend/src/styles/index.css` |
+| F-526 | Consistent nav icons | Categories=FolderTree, Audit=Filter match the icon registry | `frontend/src/lib/nav.ts` |
+| F-527 | Icon typo guard | `iconFor` warns in dev on unknown names instead of silent fallback | `frontend/src/lib/nav-icons.ts` |
+| F-528 | Account Watchlist tab | Count badge, JSON export, watched-only guidance | `frontend/src/pages/Account.tsx` |
+| F-529 | Account Sessions tab | Active-device table with current-device badge | `frontend/src/pages/Account.tsx` |
+| F-530 | Account Shortcuts tab | Keyboard-first reference for palette, Esc and silent reload policy | `frontend/src/pages/Account.tsx` |
+| F-531 | Team & weights documented | 6 members, roles and 28/15/14/14/15/14 split | `CONTRIBUTORS.md`, `docs/00_team.md` |
+
+**Revised total: 531 features across 43 areas** (F-001 to F-531).
