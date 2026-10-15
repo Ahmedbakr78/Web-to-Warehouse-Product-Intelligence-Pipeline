@@ -71,7 +71,8 @@ def _robots_log_totals(session: Session | None) -> dict[str, int]:
         rows = session.execute(
             text(
                 "SELECT robots_allowed, COUNT(*) "
-                "FROM ingestion_http_log GROUP BY robots_allowed"
+                "FROM ingestion_http_log WHERE robots_allowed IS NOT NULL "
+                "GROUP BY robots_allowed"
             )
         ).all()
     except Exception:  # noqa: BLE001 - empty DB / missing table must not break the panel
