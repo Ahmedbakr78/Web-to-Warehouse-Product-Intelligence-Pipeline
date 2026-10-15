@@ -176,6 +176,14 @@ frontend-build: ## Type-check and build the production bundle
 frontend-preview: ## Preview the production bundle locally
 	cd frontend && npm run preview
 
+.PHONY: run
+run: ## ONE command: verify with real data, then launch the full Docker stack (./run.sh)
+	./run.sh
+
+.PHONY: run-verify
+run-verify: ## Verify only, no Docker (lint, tests, live sources, real pipeline, frontend)
+	./run.sh --verify-only
+
 .PHONY: run-full
 run-full: ## Full real-data verification: lint, tests, live sources, pipeline, frontend (./run-full-app.sh)
 	./run-full-app.sh

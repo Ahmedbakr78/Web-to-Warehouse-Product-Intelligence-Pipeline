@@ -3,7 +3,7 @@
 ## Purpose
 
 This document is the complete feature inventory of the Web-to-Warehouse Product Intelligence
-Pipeline: 535 features grouped into forty-four areas, each with a one-line description and a reference
+Pipeline: 536 features grouped into forty-four areas, each with a one-line description and a reference
 to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an
 endpoint, a CLI command or a documented design decision. Nothing here is aspirational.
 
@@ -996,5 +996,6 @@ through the robots gate — 24 return live records, 6 honestly report empty
 | F-533 | Dead-host removal | `fakestore_products` unreachable (TCP + HTTP timeout) — removed from DAG and seed defaults; failure isolation already covers future outages | `dags/product_intelligence_pipeline.py`, `app/etl/seed.py` |
 | F-534 | Real-only auto-select | Bare `run-pipeline` excludes `local_demo` — synthetic rows only ever load when explicitly requested | `app/etl/pipeline.py` `_source_codes` |
 | F-535 | One-command real verification | `./run-full-app.sh`: lint → tests → live-source smoke → real SQLite pipeline → frontend → compose, with a `--offline` synthetic fallback | `run-full-app.sh` |
+| F-536 | Single entrypoint for everything | `./run.sh` verifies with real data then launches the Docker stack; `--verify-only`, `--offline`, `--quick`, `--stop/--clean/--status` | `run.sh` |
 
-**Revised total: 535 features across 44 areas** (F-001 to F-535).
+**Revised total: 536 features across 44 areas** (F-001 to F-536).

@@ -1769,6 +1769,10 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "name": "One-command real verification",
                 "detail": "run-full-app.sh: lint, tests, live smoke, real pipeline, frontend, compose — FULL APP TEST: PASS",
             },
+            {
+                "name": "Single entrypoint for everything",
+                "detail": "./run.sh verifies with real data then launches the stack; verify-only/offline/quick/stop/clean/status flags",
+            },
         ],
     },
 ]

@@ -19,6 +19,8 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Proven with `./run-full-app.sh`** — one command runs lint, backend suites, a live
   3-source fetch smoke, a real SQLite pipeline (28 products / 28 snapshots, zero
   `local_demo` rows), frontend typecheck/lint/vitest/build and compose validation.
+- **Single entrypoint `./run.sh`** — verifies with real data, then launches the Docker
+  stack (`make run`); `--verify-only`, `--offline`, `--quick`, `--stop/--clean/--status`.
 
 ## [1.9.0] - 2026-10-15
 
