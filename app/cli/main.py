@@ -605,9 +605,23 @@ def sources_list() -> None:
 def sources_preview(
     code: str = typer.Argument(..., help="Source code"),
     limit: int = typer.Option(5, "--limit", "-n", min=1, max=25),
+    engine: str = typer.Option(
+        "bs4",
+        "--engine",
+        help="HTML engine for books_to_scrape: bs4 (default) or scrapy (needs .[scrapy])",
+    ),
 ) -> None:
     """Fetch a few raw records and show the cleaned result."""
     from app.ingestion.base import get_source, transform_product
+
+    if engine == "scrapy":
+        if code != "books_to_scrape":
+            console.print("[yellow]--engine scrapy only applies to books_to_scrape; using bs4.[/yellow]")
+        else:
+            from app.ingestion.scrapy_spider import crawl_books
+
+            _preview_records([transform_product(raw) for raw in crawl_books(limit)], code, limit)
+            return
 
     source = get_source(code)
     table = Table(title=f"{source.name} - first {limit} records", header_style="bold cyan")
@@ -620,22 +634,45 @@ def sources_preview(
     table.add_column("availability")
     table.add_column("flags")
     try:
+        records = []
         for index, raw in enumerate(source.fetch(limit=limit)):
             if index >= limit:
                 break
-            record = transform_product(raw)
-            table.add_row(
-                record.source_product_id,
-                record.canonical_name[:38],
-                record.category[:24],
-                str(record.price),
-                str(record.price_usd),
-                str(record.rating),
-                record.availability,
-                ",".join(record.quality_flags) or "-",
-            )
+            records.append(transform_product(raw))
     finally:
         source.close()
+    _preview_records(records, code, limit, table=table)
+
+
+def _preview_records(records: list, code: str, limit: int, table: Table | None = None) -> None:
+    """Render cleaned records as the preview table (shared by both HTML engines)."""
+    from app.ingestion.base import get_source
+
+    if table is None:
+        try:
+            title = get_source(code).name
+        except Exception:  # noqa: BLE001 - preview must never fail on a name lookup
+            title = code
+        table = Table(title=f"{title} - first {limit} records", header_style="bold cyan")
+        table.add_column("id")
+        table.add_column("name", overflow="ellipsis", max_width=38)
+        table.add_column("category", overflow="ellipsis", max_width=24)
+        table.add_column("price", justify="right")
+        table.add_column("USD", justify="right")
+        table.add_column("rating", justify="right")
+        table.add_column("availability")
+        table.add_column("flags")
+    for record in records:
+        table.add_row(
+            record.source_product_id,
+            record.canonical_name[:38],
+            record.category[:24],
+            str(record.price),
+            str(record.price_usd),
+            str(record.rating),
+            record.availability,
+            ",".join(record.quality_flags) or "-",
+        )
     console.print(table)
 
 

@@ -48,6 +48,9 @@ def test_registry_contains_every_bundled_source():
         "stooq_quotes",
         "itunes_ebooks",
         "restful_objects",
+        "tvmaze_shows",
+        "archive_texts",
+        "dummyjson_recipes",
     } <= codes
 
 

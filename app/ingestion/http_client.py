@@ -51,6 +51,8 @@ class FetchResult:
     headers: dict[str, str] = field(default_factory=dict)
     elapsed_ms: float = 0.0
     from_cache: bool = False
+    #: True when the body came from cache after a 304 revalidation (wire saved).
+    revalidated: bool = False
     retries: int = 0
     robots_allowed: bool = True
     robots_rule: str | None = None
@@ -174,7 +176,7 @@ class CompliantHttpClient:
         host = (urlparse(url).netloc or "unknown").replace(":", "_")
         return self.cache_dir / host / f"{digest}.json"
 
-    def _read_cache(self, url: str) -> FetchResult | None:
+    def _read_cache(self, url: str, *, allow_expired: bool = False) -> FetchResult | None:
         path = self._cache_path(url)
         if not path.exists():
             return None
@@ -183,8 +185,12 @@ class CompliantHttpClient:
         except Exception:
             path.unlink(missing_ok=True)
             return None
-        if (time.time() - payload.get("stored_at", 0)) > settings.cache_ttl_seconds:
-            path.unlink(missing_ok=True)
+        if not allow_expired and (time.time() - payload.get("stored_at", 0)) > settings.cache_ttl_seconds:
+            # Expired body: keep the file when it carries validators — the next
+            # request can still revalidate (304) instead of downloading fully.
+            headers = {str(k).lower() for k in (payload.get("headers") or {})}
+            if not ({"etag", "last-modified"} & headers):
+                path.unlink(missing_ok=True)
             return None
         return FetchResult(
             url=url,
@@ -195,6 +201,30 @@ class CompliantHttpClient:
             from_cache=True,
             robots_rule="cache",
         )
+
+    def _read_validators(self, url: str) -> dict[str, str]:
+        """Return stored ETag/Last-Modified for conditional requests.
+
+        Unlike the body (TTL-capped), validators survive body expiry for up to
+        30 days: a stale body can still be revalidated with one cheap 304
+        instead of a full download.
+        """
+        path = self._cache_path(url)
+        if not path.exists():
+            return {}
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            return {}
+        if (time.time() - payload.get("stored_at", 0)) > 30 * 24 * 3600:
+            return {}
+        headers = {str(k).lower(): v for k, v in (payload.get("headers") or {}).items()}
+        validators: dict[str, str] = {}
+        if headers.get("etag"):
+            validators["If-None-Match"] = str(headers["etag"])
+        if headers.get("last-modified"):
+            validators["If-Modified-Since"] = str(headers["last-modified"])
+        return validators
 
     def _write_cache(self, result: FetchResult) -> None:
         if not self.use_cache or not result.ok:
@@ -244,6 +274,16 @@ class CompliantHttpClient:
         if decision.crawl_delay:
             self.limiter.set_crawl_delay(host, decision.crawl_delay)
 
+        # Conditional GET: validators from a previous response let the server
+        # answer 304 (no body) when nothing changed. Validators are read
+        # BEFORE the fresh-body check because an expired body deletes its file
+        # (and would take the validators with it). Caller headers always win.
+        conditional: dict[str, str] = {}
+        if not force_refresh:
+            conditional = self._read_validators(full_url)
+            if headers:
+                conditional = {k: v for k, v in conditional.items() if k not in headers}
+
         if not force_refresh:
             cached = self._read_cache(full_url)
             if cached is not None:
@@ -268,8 +308,32 @@ class CompliantHttpClient:
             self.limiter.acquire(host, self.policy)
             started = time.perf_counter()
             try:
-                response = self._client.get(full_url, headers=headers)
+                merged = {**conditional, **(headers or {})}
+                response = self._client.get(full_url, headers=merged or None)
                 elapsed = (time.perf_counter() - started) * 1000
+                if response.status_code == 304:
+                    # The server confirms our cached body is still current, so
+                    # even a TTL-expired body is safe to serve (zero bytes down).
+                    cached = self._read_cache(full_url, allow_expired=True)
+                    if cached is not None:
+                        cached.revalidated = True
+                        cached.robots_allowed = decision.allowed
+                        cached.robots_rule = "revalidated"
+                        self._record(
+                            full_url,
+                            "GET",
+                            304,
+                            elapsed,
+                            0,
+                            decision.allowed,
+                            "revalidated",
+                            True,
+                            attempt,
+                        )
+                        return cached
+                    # Validators without a usable body: retry unconditionally.
+                    conditional = {}
+                    continue
                 result = FetchResult(
                     url=full_url,
                     status_code=response.status_code,

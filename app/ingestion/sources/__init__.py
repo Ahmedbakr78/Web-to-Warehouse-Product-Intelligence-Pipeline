@@ -6,6 +6,7 @@ Importing this package registers every source with the global registry.
 from __future__ import annotations
 
 from app.ingestion.sources import (  # noqa: F401
+    archive,
     bitstamp,
     books_to_scrape,
     cheapshark,
@@ -13,6 +14,7 @@ from app.ingestion.sources import (  # noqa: F401
     coincap,
     coingecko,
     dummyjson,
+    dummyjson_recipes,
     fakestore,
     freeapi,
     google_books,
@@ -36,10 +38,12 @@ from app.ingestion.sources import (  # noqa: F401
     scryfall,
     steam_store,
     stooq,
+    tvmaze,
     ygoprodeck,
 )
 
 __all__ = [
+    "archive",
     "bitstamp",
     "books_to_scrape",
     "cheapshark",
@@ -47,6 +51,7 @@ __all__ = [
     "coincap",
     "coingecko",
     "dummyjson",
+    "dummyjson_recipes",
     "fakestore",
     "freeapi",
     "google_books",
@@ -70,5 +75,6 @@ __all__ = [
     "scryfall",
     "steam_store",
     "stooq",
+    "tvmaze",
     "ygoprodeck",
 ]

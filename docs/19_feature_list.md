@@ -3,7 +3,7 @@
 ## Purpose
 
 This document is the complete feature inventory of the Web-to-Warehouse Product Intelligence
-Pipeline: 536 features grouped into forty-four areas, each with a one-line description and a reference
+Pipeline: 545 features grouped into forty-five areas, each with a one-line description and a reference
 to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an
 endpoint, a CLI command or a documented design decision. Nothing here is aspirational.
 
@@ -999,3 +999,25 @@ through the robots gate — 24 return live records, 6 honestly report empty
 | F-536 | Single entrypoint for everything | `./run.sh` verifies with real data then launches the Docker stack; `--verify-only`, `--offline`, `--quick`, `--stop/--clean/--status` | `run.sh` |
 
 **Revised total: 536 features across 44 areas** (F-001 to F-536).
+
+## 45. v1.10 ingestion Max: 3 sources, Scrapy engine, conditional GET (9)
+
+Live-verification round (2026-10-15): MercadoLibre refused by robots, ITBookStore
+dead (all endpoints 404), Jikan unreachable, BoardGameGeek refusing programmatic
+access — all logged as rejected, compliance over coverage.
+Three permitted sources added and proven live, plus a second HTML engine and
+bandwidth-saving revalidation.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-537 | TVMaze shows source | 250-show pages: genres, network, posters, /10 ratings rescaled to /5 | `app/ingestion/sources/tvmaze.py` |
+| F-538 | Internet Archive texts source | 50M+ public-domain texts via the robots-allowed advancedsearch feed | `app/ingestion/sources/archive.py` |
+| F-539 | DummyJSON recipes source | Grocery-shelf depth: ratings, review counts, tags, meal types, ingredients | `app/ingestion/sources/dummyjson_recipes.py` |
+| F-540 | Scrapy crawling engine | `BookSpider`: listing → detail crawl with robots middleware, autothrottle, item cap; identical `RawProduct` output | `app/ingestion/scrapy_spider.py` |
+| F-541 | CLI engine switch | `sources preview books_to_scrape --engine scrapy` vs default bs4 | `app/cli/main.py` |
+| F-542 | Conditional GET (304) | ETag / Last-Modified validators sent automatically; 304 serves cache with zero bytes down | `app/ingestion/http_client.py` |
+| F-543 | Validator survival | Validators outlive body TTL (30d) and survive expiry cleanup for revalidation | `app/ingestion/http_client.py` |
+| F-544 | Revalidation audit | 304s logged with `robots_rule='revalidated'` — bandwidth savings are queryable | `ingestion_http_log` |
+| F-545 | Offline-proof test suites | 5 mocked-transport conditional-GET tests + 7 adapter/spider mapping tests | `tests/test_conditional_get.py`, `tests/test_new_sources.py` |
+
+**Revised total: 545 features across 45 areas** (F-001 to F-545).

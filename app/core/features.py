@@ -1773,6 +1773,26 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "name": "Single entrypoint for everything",
                 "detail": "./run.sh verifies with real data then launches the stack; verify-only/offline/quick/stop/clean/status flags",
             },
+            {
+                "name": "TVMaze shows source",
+                "detail": "250-show pages: genres, network, posters, /10 ratings rescaled — live verified",
+            },
+            {
+                "name": "Internet Archive texts source",
+                "detail": "Public-domain texts via the robots-allowed advancedsearch feed — live verified",
+            },
+            {
+                "name": "DummyJSON recipes source",
+                "detail": "Grocery depth: ratings, review counts, tags, meal types — live verified",
+            },
+            {
+                "name": "Scrapy crawling engine",
+                "detail": "BookSpider with robots middleware, autothrottle and item cap; --engine scrapy on preview",
+            },
+            {
+                "name": "Conditional GET revalidation",
+                "detail": "ETag/Last-Modified validators, 304 serves cache with zero bytes, audited as revalidated",
+            },
         ],
     },
 ]

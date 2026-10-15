@@ -22,6 +22,21 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Single entrypoint `./run.sh`** — verifies with real data, then launches the Docker
   stack (`make run`); `--verify-only`, `--offline`, `--quick`, `--stop/--clean/--status`.
 
+### Added (2026-10-15 — ingestion Max)
+
+- **Three live-verified sources (31 → 34 adapters):** TVMaze shows, Internet Archive
+  texts (robots-allowed advancedsearch feed), DummyJSON recipes — all proven with
+  real records through cleaning. Rejected with evidence: MercadoLibre (robots
+  `Disallow: /`), ITBookStore (all endpoints 404), Jikan (unreachable), BoardGameGeek
+  (refuses programmatic access).
+- **Scrapy crawling engine** — `BookSpider` (listing → detail, robots middleware,
+  autothrottle, item cap) emitting identical `RawProduct` rows; `sources preview
+  books_to_scrape --engine scrapy` (needs `pip install -e ".[scrapy]"`).
+- **Conditional GET** — ETag / Last-Modified validators on every cached response;
+  304 revalidations serve cache with zero bytes down and are audited as
+  `revalidated`; validators outlive body TTL (30d). Covered by 5 mocked-transport
+  tests + 7 adapter/spider mapping tests.
+
 ## [1.9.0] - 2026-10-15
 
 ### Fixed
