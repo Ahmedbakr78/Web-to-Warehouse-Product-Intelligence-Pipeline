@@ -6,7 +6,9 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-### Fixed (2026-10-15 — real-data hardening)
+## [1.10.0] - 2026-10-15
+
+### Fixed (real-data hardening)
 
 - **Open Library robots block** — `/search.json` is disallowed by robots.txt (the gate
   correctly refused it, yielding 0 records). Switched to the allowed
@@ -22,7 +24,7 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Single entrypoint `./run.sh`** — verifies with real data, then launches the Docker
   stack (`make run`); `--verify-only`, `--offline`, `--quick`, `--stop/--clean/--status`.
 
-### Added (2026-10-15 — ingestion Max)
+### Added (ingestion Max)
 
 - **Three live-verified sources (31 → 34 adapters):** TVMaze shows, Internet Archive
   texts (robots-allowed advancedsearch feed), DummyJSON recipes — all proven with
@@ -36,6 +38,12 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   304 revalidations serve cache with zero bytes down and are audited as
   `revalidated`; validators outlive body TTL (30d). Covered by 5 mocked-transport
   tests + 7 adapter/spider mapping tests.
+- **Team catalogue as code** — `app/core/team.py` + `GET /api/v1/meta/team`: Ahmed
+  (78102) credited with 8 lead function groups; weights sum to 100, tested.
+- **Longer repo surface** — README source catalog (34 adapters + landscape diagram),
+  lead-functions section, refreshed website (team + sources sections, v1.10 numbers),
+  `docs/31_releases.md` playbook, ownership diagram in `docs/00_team.md`.
+  550 features across 46 areas.
 
 ## [1.9.0] - 2026-10-15
 
