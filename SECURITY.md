@@ -15,7 +15,7 @@
 This is a private repository, but reports are still handled as confidential so that a fix lands
 before any detail becomes visible in the issue tracker.
 
-Report a vulnerability by email to **ahmed.bakr@depi.local**, or via GitHub's private reporting:
+Report a vulnerability by email to **ahmedbakr78102@gmail.com**, or via GitHub's private reporting:
 
 1. Open the repository → **Security** → **Advisories** → **Report a vulnerability**.
 2. Include the affected component, the reproduction steps, and the impact you observed.

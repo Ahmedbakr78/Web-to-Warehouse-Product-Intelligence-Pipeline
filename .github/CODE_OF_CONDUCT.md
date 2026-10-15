@@ -47,7 +47,7 @@ officially representing the community in public spaces.
 ## Reporting
 
 Instances of abusive, harassing, or otherwise unacceptable behaviour may be reported to the
-project maintainers at **ahmed.bakr@depi.local**. All complaints will be reviewed and investigated
+project maintainers at **ahmedbakr78102@gmail.com**. All complaints will be reviewed and investigated
 promptly and fairly.
 
 All maintainers are obligated to respect the privacy and security of the reporter of any incident.

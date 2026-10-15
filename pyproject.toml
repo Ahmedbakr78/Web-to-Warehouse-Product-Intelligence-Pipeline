@@ -5,7 +5,7 @@ description = "Web-to-Warehouse Product Intelligence Pipeline: compliant scrapin
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [{ name = "Ahmed Abobakr", email = "ahmed.bakr@depi.local" }]
+authors = [{ name = "Ahmed Abobakr", email = "ahmedbakr78102@gmail.com" }]
 keywords = ["etl", "scraping", "airflow", "data-warehouse", "fastapi", "data-quality"]
 
 dependencies = [
