@@ -60,6 +60,8 @@ def _measured_stats() -> dict[str, str]:
         "physical_tables": "28",
         "analytical_views": "20",
         "data_quality_rules": "12",
+        "documentation_documents": "30",
+        "mermaid_diagrams": "80",
     }
     try:
         import json
@@ -112,49 +114,52 @@ def P(key: str) -> str:
 
 
 #: Exactly two rows of five: the grid geometry below is fixed, and an eleventh card
-#: would push the tech badges off the timeline.
-ROADMAP = [
-    (
-        "Overview",
-        "Web-to-Warehouse product intelligence",
-        "box",
-        ["permitted web sources", "retailer catalog"],
-    ),
-    ("Problem", "Manual collection is slow and inconsistent", "alert", ["stale spreadsheets", "no history"]),
-    ("Solution", "Compliance-first ETL pipeline", "gauge", ["robots.txt aware", "deduplicated"]),
-    ("Architecture", "Airflow orchestrates 9 stages", "flow", ["ingest, clean, load", "detect, reconcile"]),
-    (
-        "Warehouse",
-        "28 tables, 20 analytical views",
-        "db",
-        ["Alembic-managed schema", "PostgreSQL and MySQL twins"],
-    ),
-    ("Data Quality", "12 rules across 6 dimensions", "shield", ["score persisted per run", "98.26 measured"]),
-    (
-        "Forecasting",
-        "Prices, anomalies, advice",
-        "flow",
-        ["damped Holt-Winters", "MAD, sigma and IQR detectors"],
-    ),
-    (
-        "Operations",
-        "173 REST operations, 23 routers",
-        "api",
-        ["JWT, TOTP and scoped keys", "leased jobs and SSE"],
-    ),
-    (
-        "Dashboard",
-        "20 screens, 5 themes, 4 report formats",
-        "screen",
-        ["command palette, installable PWA", "HTML, JSON, CSV and PDF"],
-    ),
-    (
-        "Evidence",
-        "408 tests, 104 smoke checks, CI green",
-        "cloud",
-        ["mypy and Ruff clean", "30 documents, 80 diagrams"],
-    ),
-]
+#: would push the tech badges off the timeline. Subtitles are built from the
+#: measured stats so the slide can never quote a stale number.
+def roadmap(measured: dict[str, str]) -> list:
+    tables_views = f"{measured['physical_tables']} tables, {measured['analytical_views']} analytical views"
+    return [
+        (
+            "Overview",
+            "Web-to-Warehouse product intelligence",
+            "box",
+            ["permitted web sources", "retailer catalog"],
+        ),
+        ("Problem", "Manual collection is slow and inconsistent", "alert", ["stale spreadsheets", "no history"]),
+        ("Solution", "Compliance-first ETL pipeline", "gauge", ["robots.txt aware", "deduplicated"]),
+        ("Architecture", "Airflow orchestrates 9 stages", "flow", ["ingest, clean, load", "detect, reconcile"]),
+        (
+            "Warehouse",
+            tables_views,
+            "db",
+            ["Alembic-managed schema", "PostgreSQL and MySQL twins"],
+        ),
+        ("Data Quality", "12 rules across 6 dimensions", "shield", ["score persisted per run", "98.26 measured"]),
+        (
+            "Forecasting",
+            "Prices, anomalies, advice",
+            "flow",
+            ["damped Holt-Winters", "MAD, sigma and IQR detectors"],
+        ),
+        (
+            "Operations",
+            f"{measured['rest_route_decorators']} REST operations, 23 routers",
+            "api",
+            ["JWT, TOTP and scoped keys", "leased jobs and SSE"],
+        ),
+        (
+            "Dashboard",
+            "21 screens, 5 themes, 4 report formats",
+            "screen",
+            ["command palette, installable PWA", "HTML, JSON, CSV and PDF"],
+        ),
+        (
+            "Evidence",
+            f"{measured['test_cases']} tests, 104 smoke checks, CI green",
+            "cloud",
+            ["mypy and Ruff clean", f"{measured['documentation_documents']} documents, {measured['mermaid_diagrams']} diagrams"],
+        ),
+    ]
 
 TECH_BADGES = [
     "Python 3.12",
@@ -179,18 +184,19 @@ TECH_BADGES = [
 
 TIMELINE = ["Plan", "Design", "Build", "Test", "Deploy", "Maintain"]
 
-OUTCOMES = [
-    "Working pipeline",
-    "28-table warehouse, 20 views",
-    "12-rule DQ gate",
-    "REST API, 173 operations",
-    "408 automated tests",
-    "104 API smoke checks",
-    "React dashboard, 20 screens",
-    "Alembic-managed schema",
-    "30 documents, 80 diagrams",
-    "PDF and CSV reports",
-]
+def outcomes(measured: dict[str, str]) -> list:
+    return [
+        "Working pipeline",
+        f"{measured['physical_tables']}-table warehouse, {measured['analytical_views']} views",
+        "12-rule DQ gate",
+        f"REST API, {measured['rest_route_decorators']} operations",
+        f"{measured['test_cases']} automated tests",
+        "104 API smoke checks",
+        "React dashboard, 21 screens",
+        "Alembic-managed schema",
+        f"{measured['documentation_documents']} documents, {measured['mermaid_diagrams']} diagrams",
+        "PDF and CSV reports",
+    ]
 
 ICON_PATHS = {
     "box": "M4 8l8-4 8 4-8 4-8-4zm0 0v8l8 4 8-4V8",
@@ -340,7 +346,7 @@ def build_svg(palette: str = "light") -> str:
             )
             parts.append(f'<path d="M{x2:.0f} {y:.0f} l-12 -7 v14 z" fill="{P("line")}"/>')
 
-    for index, (title, subtitle, icon, keywords) in enumerate(ROADMAP):
+    for index, (title, subtitle, icon, keywords) in enumerate(roadmap(measured)):
         row_index, col_index = divmod(index, cols)
         x = road_x + col_index * (card_w + gap_x)
         y = road_y + row_index * (road_h / 2)
