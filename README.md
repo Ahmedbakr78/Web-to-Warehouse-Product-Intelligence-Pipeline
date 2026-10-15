@@ -12,11 +12,11 @@
   <img src="https://img.shields.io/badge/MySQL-8.4-4479A1?logo=mysql&logoColor=white" alt="MySQL 8.4"/>
   <img src="https://img.shields.io/badge/Airflow-2.10-017CEE?logo=apacheairflow&logoColor=white" alt="Airflow"/>
   <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker Compose"/>
-  <img src="https://img.shields.io/badge/tables-28-informational" alt="Tables"/>
-  <img src="https://img.shields.io/badge/views-20-informational" alt="Views"/>
-  <img src="https://img.shields.io/badge/REST%20operations-173-success" alt="REST operations"/>
+  <img src="https://img.shields.io/badge/tables-29-informational" alt="Tables"/>
+  <img src="https://img.shields.io/badge/views-23-informational" alt="Views"/>
+  <img src="https://img.shields.io/badge/REST%20operations-215-success" alt="REST operations"/>
   <img src="https://img.shields.io/badge/DQ%20rules-12-success" alt="Data quality rules"/>
-  <img src="https://img.shields.io/badge/unit%20tests-408%20passing-brightgreen" alt="Tests"/>
+  <img src="https://img.shields.io/badge/unit%20tests-568%20passing-brightgreen" alt="Tests"/>
   <img src="https://img.shields.io/badge/API%20smoke-104%2F104-brightgreen" alt="API smoke"/>
   <img src="https://img.shields.io/badge/ruff-0%20warnings-brightgreen" alt="ruff"/>
   <img src="https://img.shields.io/badge/CI-github%20actions-2088FF?logo=github-actions&logoColor=white" alt="CI"/>
@@ -33,9 +33,9 @@
 </p>
 
 <p align="center">
-  <b>195 REST operations</b> · <b>28 tables</b> · <b>20 analytical views</b> ·
-  <b>12 DQ rules</b> · <b>25 compliant sources</b> · <b>476 catalogued features</b> ·
-  <b>491 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
+  <b>215 REST operations</b> · <b>29 tables</b> · <b>23 analytical views</b> ·
+  <b>12 DQ rules</b> · <b>32 sources (31 live + 1 dynamic)</b> · <b>531 catalogued features</b> ·
+  <b>568 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
 </p>
 
 <p align="center">
@@ -155,7 +155,7 @@ Everything is engineered like a production system, not a demo:
 | **Ingestion** | 25 source adapters (22 JSON APIs, 2 BeautifulSoup/lxml HTML scrapers, 1 offline synthetic) | robots.txt gate, token-bucket rate limiter, sliding-window ceiling, circuit breaker, response cache, per-request audit log, refused sources logged |
 | **Cleaning** | 29-step normalisation engine | product names, categories, 18+ currencies converted to USD via an offline FX table, rating and availability vocabularies |
 | **Deduplication** | 4-signal fuzzy matcher | jaro-winkler, token-set, trigram and digit signatures, block-indexed for O(n) candidate pools |
-| **Warehouse** | SQLAlchemy 2.0 Core ORM | **28 physical tables, 20 analytical views**, identical schema on PostgreSQL 16 and MySQL 8.4 |
+| **Warehouse** | SQLAlchemy 2.0 Core ORM | **29 physical tables, 23 analytical views**, identical schema on PostgreSQL 16 and MySQL 8.4 |
 | **ETL** | 9-stage Python pipeline | stage timings, counters, warnings, resumable staging table, idempotent loads |
 | **Orchestration** | Apache Airflow 2.10 DAG | 13 tasks, branch-on-changes, alert fan-out, report publication, sync-run API for demos |
 | **Data quality** | 12-rule framework over 6 dimensions | completeness, validity, uniqueness, accuracy, consistency, timeliness, weighted score |
@@ -227,7 +227,7 @@ cp .env.example .env              # then edit secrets, or keep the demo defaults
 make up                           # postgres + mysql + api + airflow + frontend
 make db-wait                      # block until both databases are healthy
 
-# one-time: schema + 20 views + demo users + 120 days of demo data
+# one-time: schema + 23 views + demo users + 120 days of demo data
 make bootstrap
 make demo-postgres                # use --database mysql for the MySQL twin
 
@@ -315,7 +315,7 @@ flowchart LR
 
     subgraph Ops["Operations"]
         AF["Airflow DAG<br/>13 tasks"]
-        API["FastAPI REST<br/>173 operations"]
+        API["FastAPI REST<br/>215 operations"]
         DQ["12-rule DQ framework"]
     end
 
@@ -358,7 +358,7 @@ flowchart TB
     end
     subgraph Server["FastAPI monolith, modular"]
         MW["CORS - gzip - timing headers"]
-        RT["23 routers, 173 operations"]
+        RT["23 routers, 215 operations"]
         SV["analytics + ETL services"]
         SEC["JWT + API keys - RBAC - audit"]
         MW --> RT --> SV
@@ -563,7 +563,7 @@ flowchart LR
     E -->|"RawProduct"| V["Validator + Cleaner"]
     V -->|"clean rows + flags"| ST["stg_raw_observation"]
     ST -->|"valid staged rows"| L["Warehouse loader"]
-    L -->|"dims + facts"| WH[("28 tables, 20 views")]
+    L -->|"dims + facts"| WH[("29 tables, 23 views")]
     WH --> CD["Change detector"]
     CD -->|"chg_price_change<br/>chg_product_event"| AN["Analytics engine"]
     WH -->|"agg_category_daily"| AN
@@ -655,7 +655,7 @@ The run receives a weighted score; the dashboard charts the 90-day trend.
 
 ### 6 - Serve
 
-The FastAPI app (173 operations) exposes products, changes, analytics, pipeline operations, quality,
+The FastAPI app (215 operations) exposes products, changes, analytics, pipeline operations, quality,
 catalog, sources, the read-only query lab, saved views, notifications, settings and audit. The React
 dashboard consumes it, and both endpoints and UI offer CSV and JSON exports. Airflow triggers the
 whole cycle daily; the API's sync endpoint and the CLI produce the identical `etl_run` record.
@@ -798,7 +798,7 @@ graph TB
         PAL["Command palette<br/>Ctrl/Cmd-K"]
     end
     subgraph Edge["FastAPI application"]
-        ROUTES["23 routers<br/>173 operations"]
+        ROUTES["23 routers<br/>215 operations"]
         AUTH["Security layer<br/>Argon2id · JWT · API keys · RBAC"]
         GUARD["Guards<br/>error envelope · GZip · timing · rate limit"]
         BUILDER["Builder DSL<br/>whitelist → parameterised SELECT"]
@@ -808,11 +808,11 @@ graph TB
         ING["Ingestion<br/>robots · rate limit · cache"]
         ETL["ETL pipeline<br/>9 stages"]
         DQ["Data quality<br/>12 rules / 6 dimensions"]
-        AN["Analytics<br/>20 views + reports"]
+        AN["Analytics<br/>23 views + reports"]
         REC["Catalog reconciler"]
     end
     subgraph Store["Warehouse"]
-        PG[("PostgreSQL 16<br/>28 tables · 20 views")]
+        PG[("PostgreSQL 16<br/>29 tables · 23 views")]
         MY[("MySQL 8.4<br/>same schema")]
     end
     subgraph Sources["Permitted sources"]
@@ -1006,7 +1006,7 @@ are persisted per run in `dq_rule_result`, and the dashboard charts the score tr
 ## Feature catalogue
 
 The exhaustive, file-referenced inventory lives in
-[docs/19_feature_list.md](docs/19_feature_list.md) — 476 features in thirty-eight areas. It is also served as
+[docs/19_feature_list.md](docs/19_feature_list.md) — 531 features in forty-three areas. It is also served as
 structured JSON by `GET /api/v1/meta/features` (396 entries across the catalogue groups) and rendered by the **Features** screen, both generated
 from `app/core/features.py`, so this section can never describe something the code does not do.
 Highlights by area:
@@ -1039,7 +1039,7 @@ Highlights by area:
 
 ### Warehouse and ETL
 
-- Kimball star schema, 28 tables, dialect-portable to MySQL
+- Kimball star schema, 29 tables, dialect-portable to MySQL
 - staged, idempotent, resumable loads with per-stage timings and counters
 - every run recorded with more than 15 counters plus warnings
 
@@ -1061,7 +1061,7 @@ Highlights by area:
 
 - JWT access and refresh rotation, API keys (`pip_...`), Argon2id password hashing
 - role-based access control: admin, analyst, viewer, enforced per route server-side
-- 173 operations, OpenAPI and ReDoc documentation, gzip compression, `X-Process-Time-Ms` headers
+- 215 operations, OpenAPI and ReDoc documentation, gzip compression, `X-Process-Time-Ms` headers
 - CSV and JSON exports on the API and in the dashboard
 - one consistent error envelope (`error`, `message`, `details`) with validation detail
 
@@ -1229,7 +1229,7 @@ All configuration arrives through environment variables (`.env.example` document
 | **Quality** | latest report, rule catalogue, results with filters, 90-day score trend |
 | **Catalog** | internal SKUs versus scraped market prices, reconciliation summary, pricing opportunities |
 | **Sources** | registry cards with compliance metadata, robots.txt statistics, raw-versus-cleaned preview |
-| **Query Lab** | read-only SQL console over the 20 views, table inventory, starter examples, CSV export |
+| **Query Lab** | read-only SQL console over the 23 views, table inventory, starter examples, CSV export |
 | **Builder** | two modes: *filter & customise* (facets, columns, order, saved presets) and *group & aggregate* (11 entities, six measures, fifteen operators, bar chart, generated SQL, cURL copy, exports) |
 | **Features** | searchable, filterable catalogue of all 378 catalogued features in 30 groups, each with an icon and copy-to-clipboard |
 | **Alerts** | alert rules with thresholds and channels, notification feed, evaluate action |
@@ -1324,7 +1324,7 @@ Measured on a laptop container stack (the harness is in docs/05):
 | --- | --- | --- |
 | API p95 latency (12 hot endpoints) | 200 ms | 38.2 ms |
 | Pipeline run (demo plus cached sources) | 60 s | about 3.5 s |
-| Bootstrap (schema plus 20 views) | 10 s | about 4 s |
+| Bootstrap (schema plus 23 views) | 10 s | about 4 s |
 | Dashboard first load (lazy chunked routes) | 2 s | about 0.9 s gzipped |
 | Repeat run with warm response cache | any | zero outbound requests |
 
@@ -1344,7 +1344,7 @@ app/
   models/         SQLAlchemy models: dimensions, facts, operations, app
 dags/             Airflow DAG: product_intelligence_pipeline
 db/
-  views.sql       20 analytical views (PostgreSQL and MySQL)
+  views.sql       23 analytical views (PostgreSQL and MySQL)
   analysis/       8 standalone SQL analyses + README (price, new, removed, drift, ...)
 frontend/         React 19 dashboard: 21 screens, PWA, design system
   public/         manifest, icons
@@ -1396,7 +1396,7 @@ natively on GitHub; every structural number is tied to a runnable command.
 | 11 | Behaviour Diagrams | sequence, activity, three state diagrams, class diagram |
 | 12 | UI/UX Design | screen wireframes, design system with contrast ratios, WCAG 2.1 AA |
 | 13 | Deployment | stack, deployment and component diagrams, environment matrix, CI/CD, backups |
-| 14 | API Documentation | auth flow, role matrix, all 173 operations, worked examples |
+| 14 | API Documentation | auth flow, role matrix, all 215 operations, worked examples |
 | 15 | Testing Strategy | test pyramid, case plan, UAT, coverage targets, quality gates |
 | 16 | User Manual | sign-in, every screen, filters, exports, alerts, admin, troubleshooting, FAQ |
 | 17 | Technical Documentation | module map, key algorithms, every configuration variable |
@@ -1509,7 +1509,7 @@ published on GitHub.
 Delivered across the three releases:
 
 - compliance-first ingestion: robots.txt, rate limits, circuit breaker, cache, audit
-- Kimball warehouse on two SQL dialects with 20 views
+- Kimball warehouse on two SQL dialects with 23 views
 - 12-rule data-quality framework with historical trend
 - change detection: price, new, removed, category
 - catalog reconciliation with price-gap analysis and pricing opportunities
@@ -1531,9 +1531,45 @@ Next (full prioritised list in docs/20):
 
 ## Team
 
-Built by the **DEPI Data Engineering graduation team** — project lead and engineer
-[Ahmed Abobakr](https://github.com/Ahmedbakr78), advised by the DEPI programme mentors. The full
-role breakdown and RACI matrix are in [docs/03_roles_and_responsibilities.md](docs/03_roles_and_responsibilities.md).
+Built by the **DEPI Data Engineering graduation team** (Track: Data Engineering):
+
+| # | Member | GitHub | Role | Weight |
+|---|--------|--------|------|-------|
+| 1 | Ahmed (78102) | [@Ahmedbakr78](https://github.com/Ahmedbakr78) | Team Lead + Backend/API + Documentation + 9 ETL Stages Owner | 28% |
+| 2 | Ahmed Abd alla | [@01124758140](https://github.com/01124758140) | Ingestion & Compliance Lead | 15% |
+| 3 | Ahmed Medhat | [@AhmedMedhatFarouk](https://github.com/AhmedMedhatFarouk) | ETL & Cleaning Lead | 14% |
+| 4 | Eng. Alaa Nasser | [@AlaaNasser-tech](https://github.com/AlaaNasser-tech) | Database & Data Quality Lead | 14% |
+| 5 | legecy007 | [@legecy007](https://github.com/legecy007) | Frontend / Dashboard Lead | 15% |
+| 6 | Mennatullah Ahmed | [@mennatullahahmed01-debug](https://github.com/mennatullahahmed01-debug) | DevOps & Orchestration Lead | 14% |
+
+Full file-level responsibility map: [CONTRIBUTORS.md](CONTRIBUTORS.md) · RACI matrix:
+[docs/03_roles_and_responsibilities.md](docs/03_roles_and_responsibilities.md) · team sheet:
+[docs/00_team.md](docs/00_team.md).
+
+### GitHub repo polish (About, topics, visibility, releases)
+
+> Repo: `https://github.com/Ahmedbakr78/Web-to-Warehouse-Product-Intelligence-Pipeline`
+
+**Description (paste into About):**
+> End-to-end product intelligence pipeline: permitted web/API ingestion → cleaning → duplicate detection → PostgreSQL warehouse with price history → SQL analytics → Airflow orchestration → FastAPI + dashboard. DEPI Data Engineering capstone.
+
+**Topics (About → ⚙ → Topics):**
+`web-scraping, beautifulsoup, scrapy, etl, data-engineering, airflow, postgresql, fastapi, python, data-quality, deduplication, price-tracking, data-warehouse, docker, plotly, streamlit, rest-api, depi, data-pipeline, sql-analytics`
+
+**Make private (the owner runs this — nobody else can click it for you):**
+```bash
+gh auth login
+gh repo edit Ahmedbakr78/Web-to-Warehouse-Product-Intelligence-Pipeline \
+  --visibility private --accept-visibility-change-consequences
+```
+Or: Repo → Settings → General → Danger Zone → Change visibility → Make private.
+
+**Cut a release:**
+```bash
+git tag -a v1.9.0 -m "v1.9.0 — real-only defaults, theme memory, modern scrollbars, Account Max"
+git push origin v1.9.0
+gh release create v1.9.0 --title "v1.9.0" --notes-file CHANGELOG.md
+```
 
 ---
 
