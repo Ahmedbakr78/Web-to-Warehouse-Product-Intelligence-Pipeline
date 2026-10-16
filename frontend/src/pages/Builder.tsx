@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowDown, ArrowUp, Bookmark, Braces, Check, CheckCheck, Copy, Download, ExternalLink, Filter, Layers, Link2, Minus, Pin, PinOff, Play, RotateCcw, Save, Sparkles, Wand2, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, Bookmark, Braces, Check, CheckCheck, Copy, Download, ExternalLink, Filter, Layers, Link2, Minus, Pin, PinOff, Play, RotateCcw, Save, Sparkles, Terminal, Wand2, X, Zap } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import {
@@ -211,7 +211,38 @@ const SORT_OPTIONS = [
 /** Entities whose endpoints accept comma-separated multi-level sort. */
 const MULTI_SORT_ENTITIES: Entity[] = ['products', 'price-changes']
 
-const MAX_EXTRA_SORTS = 2
+const BUILDER_PRESETS: { name: string; entity: Entity; patch: Partial<BuilderState> }[] = [
+  {
+    name: '🔥 Flash Drops (≥ 15%)',
+    entity: 'price-changes',
+    patch: { minChangePct: '-15', significantOnly: true, sortBy: 'price_change_pct', sortDir: 'asc' },
+  },
+  {
+    name: '⚠️ Out of Stock',
+    entity: 'products',
+    patch: { availability: 'out_of_stock', inStock: 'false', sortBy: 'last_seen_at', sortDir: 'desc' },
+  },
+  {
+    name: '✨ New Arrivals (7d)',
+    entity: 'new',
+    patch: { newSinceDays: '7', activeOnly: true, sortBy: 'first_seen_at', sortDir: 'desc' },
+  },
+  {
+    name: '💎 Luxury Tier ($100+)',
+    entity: 'products',
+    patch: { minPrice: '100', sortBy: 'price', sortDir: 'desc' },
+  },
+  {
+    name: '⭐ Top Rated (4.5+ ★)',
+    entity: 'products',
+    patch: { minRating: '4.5', sortBy: 'rating', sortDir: 'desc' },
+  },
+  {
+    name: '🚀 Top Movers',
+    entity: 'movers',
+    patch: { sortBy: 'price_change_pct', sortDir: 'desc' },
+  },
+]
 
 export default function Builder() {
   const [mode, setMode] = useState<'filters' | 'aggregate'>('filters')
@@ -465,6 +496,44 @@ export default function Builder() {
       () => toast.success('API request copied', 'Send it with `Authorization: Bearer <token>`.'),
       () => toast.error('Clipboard unavailable', url),
     )
+  }
+
+  /** Copy the equivalent SQL query to clipboard for Query Lab or external clients */
+  function copySqlQuery() {
+    let sql = ''
+    if (state.entity === 'products' || state.entity === 'new') {
+      const wheres: string[] = []
+      if (state.activeOnly) wheres.push('is_active = TRUE')
+      if (state.category) wheres.push(`category_name = '${state.category.replace(/'/g, "''")}'`)
+      if (state.brand) wheres.push(`brand = '${state.brand.replace(/'/g, "''")}'`)
+      if (state.source) wheres.push(`source_code = '${state.source.replace(/'/g, "''")}'`)
+      if (state.availability) wheres.push(`availability = '${state.availability.replace(/'/g, "''")}'`)
+      if (state.minPrice) wheres.push(`current_price >= ${Number(state.minPrice) || 0}`)
+      if (state.maxPrice) wheres.push(`current_price <= ${Number(state.maxPrice) || 999999}`)
+      if (state.minRating) wheres.push(`rating >= ${Number(state.minRating) || 0}`)
+      if (state.search) wheres.push(`(canonical_name ILIKE '%${state.search.replace(/'/g, "''")}%' OR brand ILIKE '%${state.search.replace(/'/g, "''")}%')`)
+      if (state.newSinceDays) wheres.push(`first_seen_at >= NOW() - INTERVAL '${Number(state.newSinceDays)} days'`)
+      const whereClause = wheres.length ? `\nWHERE ${wheres.join('\n  AND ')}` : ''
+      sql = `SELECT canonical_name, brand, category_name, current_price, currency, rating, availability, source_code, last_seen_at\nFROM dim_product${whereClause}\nORDER BY ${state.sortBy} ${state.sortDir.toUpperCase()}\nLIMIT ${state.pageSize};`
+    } else if (state.entity === 'price-changes') {
+      sql = `SELECT product_id, previous_price, new_price, price_change_pct, change_direction, detected_at\nFROM fact_price_change\nORDER BY ${state.sortBy} ${state.sortDir.toUpperCase()}\nLIMIT ${state.pageSize};`
+    } else {
+      sql = `SELECT * FROM ${state.entity === 'quality' ? 'fact_quality_result' : state.entity === 'runs' ? 'etl_run_log' : 'dim_product'}\nLIMIT ${state.pageSize};`
+    }
+    navigator.clipboard?.writeText(sql).then(
+      () => toast.success('SQL query copied', 'Ready to paste into Query Lab or PostgreSQL / MySQL console.'),
+      () => toast.error('Clipboard unavailable', sql),
+    )
+  }
+
+  function applyPreset(preset: typeof BUILDER_PRESETS[0]) {
+    setState({
+      ...DEFAULT_STATE,
+      columns: DEFAULT_STATE.columns,
+      entity: preset.entity,
+      ...preset.patch,
+    })
+    toast.info('Template applied', preset.name)
   }
 
   /** Current rows, flattening each visible column back to its plain-text value. */

@@ -35,8 +35,11 @@
     --shadow:0 1px 2px rgb(0 0 0 / .4); --shadow-lg:0 16px 40px rgb(0 0 0 / .6);
     --ring:rgb(129 140 248 / .5);
   }
-  * { box-sizing:border-box; border-color:var(--border); scrollbar-width:none; -ms-overflow-style:none }
-  ::-webkit-scrollbar { display:none; width:0; height:0 }
+  * { box-sizing:border-box; border-color:var(--border); scrollbar-width:thin; scrollbar-color:var(--border-strong) transparent }
+  ::-webkit-scrollbar { width:8px; height:8px }
+  ::-webkit-scrollbar-track { background:transparent }
+  ::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:999px; border:2px solid transparent; background-clip:content-box }
+  ::-webkit-scrollbar-thumb:hover { background:var(--subtle); border:2px solid transparent; background-clip:content-box }
   html { scrollbar-gutter:stable; scroll-behavior:auto }
   [data-smooth-scroll] { scroll-behavior:smooth }
   body {
