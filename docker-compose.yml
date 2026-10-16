@@ -76,6 +76,7 @@ services:
     volumes:
       - ./app:/srv/app/app:ro
       - ./db:/srv/app/db:ro
+      - ./VERSION:/srv/app/VERSION:ro
     depends_on:
       postgres: {condition: service_healthy}
       mysql: {condition: service_healthy}
