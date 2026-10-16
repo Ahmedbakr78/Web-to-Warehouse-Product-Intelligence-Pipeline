@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Activity,
   Bell,
   Check,
   Copy,
   Download,
+  ExternalLink,
   Eye,
   EyeOff,
   FileDown,
@@ -19,6 +21,7 @@ import {
   RefreshCw,
   RotateCw,
   Save,
+  Sparkles,
   Star,
   X,
   Settings2,
@@ -124,6 +127,11 @@ export default function Account() {
   const [alertPct, setAlertPct] = useState(user?.price_change_alert_pct ?? 5)
   const [emailAlerts, setEmailAlerts] = useState(user?.email_alerts_enabled ?? false)
   const [weeklyDigest, setWeeklyDigest] = useState(user?.weekly_digest_enabled ?? false)
+  const navigate = useNavigate()
+  const [autoRefresh, setAutoRefresh] = useState(() => (user?.preferences?.auto_refresh as string) ?? 'off')
+  const [defaultExportFormat, setDefaultExportFormat] = useState(() => (user?.preferences?.default_export_format as string) ?? 'csv')
+  const [silentReload, setSilentReload] = useState(() => (user?.preferences?.silent_reload as boolean) ?? true)
+  const [copyCodeOnClick, setCopyCodeOnClick] = useState(() => (user?.preferences?.copy_code_on_click as boolean) ?? true)
 
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -186,6 +194,12 @@ export default function Account() {
     setEmailAlerts(user.email_alerts_enabled)
     setWeeklyDigest(user.weekly_digest_enabled)
     setAvatarColor(user.avatar_color ?? AVATAR_COLORS[0])
+    if (user.preferences) {
+      if (user.preferences.auto_refresh) setAutoRefresh(user.preferences.auto_refresh as string)
+      if (user.preferences.default_export_format) setDefaultExportFormat(user.preferences.default_export_format as string)
+      if (typeof user.preferences.silent_reload === 'boolean') setSilentReload(user.preferences.silent_reload)
+      if (typeof user.preferences.copy_code_on_click === 'boolean') setCopyCodeOnClick(user.preferences.copy_code_on_click)
+    }
   }, [user])
 
   const apiKeys = useApiQuery(['api-keys', user?.user_id], () => endpoints.apiKeys(user!.user_id), {
@@ -213,6 +227,10 @@ export default function Account() {
           ...user?.preferences,
           start_page: startPage,
           motion,
+          auto_refresh: autoRefresh,
+          default_export_format: defaultExportFormat,
+          silent_reload: silentReload,
+          copy_code_on_click: copyCodeOnClick,
         } as Record<string, unknown>,
       }),
     onSuccess: async () => {
@@ -1021,10 +1039,32 @@ export default function Account() {
                   </Select>
                 </div>
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="stat-label mb-1.5">Background data refresh</p>
+                  <Select value={autoRefresh} onChange={(event) => setAutoRefresh(event.target.value)}>
+                    <option value="off">Off (Manual only)</option>
+                    <option value="30s">Every 30s (Fast)</option>
+                    <option value="60s">Every 60s (Standard)</option>
+                    <option value="120s">Every 2m (Relaxed)</option>
+                    <option value="300s">Every 5m (Conserve)</option>
+                  </Select>
+                </div>
+                <div>
+                  <p className="stat-label mb-1.5">Default export format</p>
+                  <Select value={defaultExportFormat} onChange={(event) => setDefaultExportFormat(event.target.value)}>
+                    <option value="csv">CSV (.csv)</option>
+                    <option value="xlsx">Excel (.xlsx)</option>
+                    <option value="json">JSON (.json)</option>
+                  </Select>
+                </div>
+              </div>
               <div>
                 <p className="stat-label mb-1.5">Price alert threshold: {alertPct}%</p>
                 <input type="range" min={1} max={50} value={alertPct} onChange={(event) => setAlertPct(Number(event.target.value))} className="w-full accent-brand-600" aria-label="Price alert threshold" />
               </div>
+              <Toggle checked={silentReload} onChange={setSilentReload} label="Silent app reload" description="Update data silently in background without decorative animations or layout shift" />
+              <Toggle checked={copyCodeOnClick} onChange={setCopyCodeOnClick} label="One-click code copy" description="Clicking any code snippet, API token, or SQL preview copies it to clipboard" />
               <Toggle checked={emailAlerts} onChange={setEmailAlerts} label="Email alerts" description="Send an email when an alert rule fires" />
               <Toggle checked={weeklyDigest} onChange={setWeeklyDigest} label="Weekly digest" description="Monday summary of price movements" />
             </div>
@@ -1035,7 +1075,7 @@ export default function Account() {
             </div>
           </Card>
           <Card>
-            <CardHeader title="Shortcuts & feature list" subtitle="Keyboard-first workflow plus everything this app ships" icon={<Eye className="h-4 w-4" />} />
+            <CardHeader title="Shortcuts & feature list" subtitle="Keyboard-first workflow plus full platform feature catalogue" icon={<Sparkles className="h-4 w-4" />} />
             <div className="space-y-2 text-sm">
               <KeyValue
                 items={[
@@ -1043,13 +1083,17 @@ export default function Account() {
                   { label: 'Toggle sidebar', value: 'Ctrl/Cmd-B' },
                   { label: 'Collapse / expand rail', value: '[ and ]' },
                   { label: 'Close dialogs', value: 'Esc or ? for help' },
+                  { label: 'Silent reload mode', value: silentReload ? 'Active (zero flicker)' : 'Disabled' },
                   { label: 'Locale / timezone', value: `${locale} · ${timezone}` },
-                  { label: 'Catalogue', value: 'Features screen: full 400+ list' },
+                  { label: 'Catalogue', value: 'Features screen: 550+ live features' },
                 ]}
               />
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
-              <Button variant="secondary" icon={<Save className="h-4 w-4" />} onClick={() => { localStore.set('account.startPage', startPage); toast.success('Preferences saved locally'); }}>
+              <Button variant="secondary" icon={<ExternalLink className="h-4 w-4" />} onClick={() => navigate('/features')}>
+                Explore Feature Catalogue
+              </Button>
+              <Button variant="ghost" icon={<Save className="h-4 w-4" />} onClick={() => { localStore.set('account.startPage', startPage); toast.success('Preferences saved locally'); }}>
                 Save locally
               </Button>
               <Button variant="ghost" icon={<RefreshCw className="h-4 w-4" />} onClick={() => saveProfile.mutate()}>

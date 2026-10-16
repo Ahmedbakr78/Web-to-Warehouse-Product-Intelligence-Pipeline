@@ -211,6 +211,8 @@ const SORT_OPTIONS = [
 /** Entities whose endpoints accept comma-separated multi-level sort. */
 const MULTI_SORT_ENTITIES: Entity[] = ['products', 'price-changes']
 
+const MAX_EXTRA_SORTS = 2
+
 const BUILDER_PRESETS: { name: string; entity: Entity; patch: Partial<BuilderState> }[] = [
   {
     name: '🔥 Flash Drops (≥ 15%)',
@@ -614,6 +616,22 @@ export default function Builder() {
             {activeFilters} active {activeFilters === 1 ? 'filter' : 'filters'}
           </span>
         </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-line/60 pt-3">
+          <span className="flex items-center gap-1 text-[11px] font-medium text-subtle mr-1">
+            <Zap className="h-3.5 w-3.5 text-brand-500" />
+            Quick Presets:
+          </span>
+          {BUILDER_PRESETS.map((preset) => (
+            <button
+              key={preset.name}
+              onClick={() => applyPreset(preset)}
+              className="rounded-full border border-line bg-surface-2 px-2.5 py-1 text-[11px] font-medium text-muted hover:border-brand-500 hover:text-ink transition-colors"
+            >
+              {preset.name}
+            </button>
+          ))}
+        </div>
       </Card>
 
       {/* ------------------------------------------------------------- controls */}
@@ -882,6 +900,9 @@ export default function Builder() {
             </Button>
             <Button size="sm" variant="ghost" icon={<Braces className="h-4 w-4" />} onClick={copyCurlRequest}>
               Copy cURL
+            </Button>
+            <Button size="sm" variant="ghost" icon={<Terminal className="h-4 w-4" />} onClick={copySqlQuery}>
+              Copy SQL
             </Button>
             <Button size="sm" variant="ghost" icon={<Link2 className="h-4 w-4" />} onClick={copyShareLink}>
               Share link
