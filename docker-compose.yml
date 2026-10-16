@@ -169,6 +169,8 @@ services:
     restart: unless-stopped
     ports:
       - "${FRONTEND_PORT:-5173}:80"
+    volumes:
+      - ./frontend/dist:/usr/share/nginx/html:ro
     depends_on:
       api: {condition: service_started}
     networks: [pipnet]
