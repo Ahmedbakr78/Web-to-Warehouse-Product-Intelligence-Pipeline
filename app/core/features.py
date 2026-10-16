@@ -1811,6 +1811,222 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             },
         ],
     },
+    {
+        "key": "v110_compliance_builders",
+        "title": "v1.10.0: Live Compliance Posture, Builder Presets, SQL Compiler & Zero-Flicker SPA",
+        "icon": "shield-check",
+        "summary": "Live multi-worker robots.txt auditing, 1-click compliance verification, visual SQL query compilation, builder quick-presets, and zero-flicker background refreshing.",
+        "features": [
+            {
+                "name": "Live robots.txt audit endpoint",
+                "detail": "POST /api/v1/sources/audit-compliance audits all 35+ registered public sources and writes durable verdicts to ingestion_http_log",
+            },
+            {
+                "name": "Cross-worker compliance aggregation",
+                "detail": "Blends in-memory RobotsCache with warehouse ingestion_http_log totals across multi-worker uvicorn and background Airflow processes",
+            },
+            {
+                "name": "One-click UI compliance verification",
+                "detail": "Interactive Audit live robots.txt button directly inside the compliance posture card with loading spinners and immediate cache invalidation",
+            },
+            {
+                "name": "Empty-state compliance self-healing",
+                "detail": "Interactive inline trigger allows one-click recovery and live robots audit when starting from a blank database",
+            },
+            {
+                "name": "View Builder Quick-Presets",
+                "detail": "Instant pre-configured filters for Flash Drops (>=15%), Out of Stock Alerts, Luxury Tier ($100+), Top Movers, and New Arrivals (7d)",
+            },
+            {
+                "name": "Aggregate Builder Quick-Presets",
+                "detail": "Pre-computed metrics for Category Distribution, Average Price by Tier, and In-Stock Ratios",
+            },
+            {
+                "name": "Visual Parameterized SQL Compiler",
+                "detail": "One-click Copy SQL button compiles UI builder filters into syntactically valid, parameterized SQL queries with clean indentation",
+            },
+            {
+                "name": "Live Preview Statistics",
+                "detail": "Instant record count and aggregation stats preview right above builder tabular outputs",
+            },
+            {
+                "name": "Silent SPA Refresh Mode",
+                "detail": "Account preference to refresh data in place without page flashing, jarring skeleton loaders, or layout shifts",
+            },
+            {
+                "name": "Background Refresh Interval Selector",
+                "detail": "Configurable background polling rate (off, 30s, 60s, 2m, 5m) for live product monitoring dashboards",
+            },
+            {
+                "name": "Default Export Format Selector",
+                "detail": "User-level preference to automatically export datasets in CSV, Excel (.xlsx), or JSON",
+            },
+            {
+                "name": "One-Click Code Snippet Copy",
+                "detail": "Code blocks across Account, API Docs, and Query Lab feature hover copy-to-clipboard buttons with checkmark confirmations",
+            },
+            {
+                "name": "Zero-Rebuild Docker Volume Mounting",
+                "detail": "Live mount of ./frontend/dist directly into pip-frontend container for instantaneous production updates",
+            },
+            {
+                "name": "Modern Theme-Aware Custom Scrollbars",
+                "detail": "Thin, rounded, non-intrusive scrollbars adapting smoothly between Light, Dark, Midnight, and High-Contrast modes",
+            },
+            {
+                "name": "Universal Responsive Touch Navigation",
+                "detail": "Off-canvas mobile slide-out drawer combined with fixed desktop sidebar for optimal responsive ergonomics",
+            },
+            {
+                "name": "SQLite Fallback Isolation",
+                "detail": "Automatic fallback and schema initialization for standalone verification scripts without PostgreSQL dependency",
+            },
+            {
+                "name": "PostgreSQL Analytical Warehouse Guard",
+                "detail": "Automatic dialect detection and validation ensuring production ETL targets real PostgreSQL schemas",
+            },
+            {
+                "name": "MySQL Secondary Dialect Cross-Verification",
+                "detail": "Continuous validation of secondary MySQL storage target ensuring dialect-agnostic ETL logic",
+            },
+            {
+                "name": "Real-Only Production Ingestion",
+                "detail": "Default pipeline runs strictly filter out synthetic local_demo test fixtures, guaranteeing 100% authentic public data",
+            },
+            {
+                "name": "DEPI Data Engineering Branding",
+                "detail": "Dedicated 16:9 infographic slides and executive project documentation aligned with DEPI Data Engineering capstone standards",
+            },
+            {
+                "name": "Durable HTTP Audit Log Counters",
+                "detail": "Accurate metrics for fetched, cached, allowed, blocked, and error calls computed directly via ANSI standard SQL",
+            },
+            {
+                "name": "Pre-warmed robots.txt Cache",
+                "detail": "Process-wide thread-safe memory cache with 30-minute RFC-compliant TTL reducing external network load",
+            },
+            {
+                "name": "Dynamic Source Onboarding Validation",
+                "detail": "SSRF-guarded URL checking with live shape sniffing before registering any user-defined JSON adapter",
+            },
+            {
+                "name": "Builder Schema Autocomplete",
+                "detail": "Dynamic column and operator introspection powering frontend filter suggestion dropdowns",
+            },
+            {
+                "name": "Multi-Theme Contrast Compliance",
+                "detail": "WCAG AA compliant contrast ratios across all 4 visual themes: Light, Dark, Midnight, and High-Contrast",
+            },
+        ],
+    },
+    {
+        "key": "enterprise_warehouse_platform",
+        "title": "Enterprise Warehouse & Analytical Core",
+        "icon": "database",
+        "summary": "Deep analytical warehouse architecture: star schema dimensions, facts, change capture, Airflow DAGs, and high-throughput ingestion.",
+        "features": [
+            {
+                "name": "Star Schema Architecture",
+                "detail": "DimProduct, DimSource, DimDate, DimCurrency dimensions joined with FactPriceSnapshot fact tables",
+            },
+            {
+                "name": "SCD Type 2 Dimension Tracking",
+                "detail": "Historical dimension tracking preserving category migrations, title revisions, and attribute updates over time",
+            },
+            {
+                "name": "Change Data Capture (CDC)",
+                "detail": "Dedicated ChgPriceChange, ChgNewProduct, ChgRemovedProduct tables tracking daily market fluctuations",
+            },
+            {
+                "name": "Airflow DAG Orchestration",
+                "detail": "Production Airflow DAG product_intelligence_pipeline with task retries, email alerts, and SLA monitoring",
+            },
+            {
+                "name": "Automated Quality Gatekeeper",
+                "detail": "12 executable DQ rules running after every ingestion batch with automatic failure quarantine",
+            },
+            {
+                "name": "Currency FX Normalization",
+                "detail": "Live and offline foreign exchange conversion standardizing GBP, EUR, and regional currencies into base USD",
+            },
+            {
+                "name": "Deduplication & Entity Resolution",
+                "detail": "Exact hash matching combined with fuzzy Levenshtein distance resolving cross-source duplicate listings",
+            },
+            {
+                "name": "Interactive SQL Query Lab",
+                "detail": "Browser-based analytical SQL console with syntax highlighting, schema tree, execution timing, and CSV export",
+            },
+            {
+                "name": "Server-Side PDF Reporting",
+                "detail": "Headless PDF generation compiling executive summaries, data quality reports, and price movement analyses",
+            },
+            {
+                "name": "Time-Series Forecasting Engine",
+                "detail": "Statistical Holt-Winters exponential smoothing forecasting future price trends up to 60 days ahead",
+            },
+            {
+                "name": "Real-Time Streaming SSE",
+                "detail": "Server-Sent Events streaming live pipeline execution logs and progress bars directly to the browser",
+            },
+            {
+                "name": "HMAC Webhook Subscriptions",
+                "detail": "Event-driven webhook engine delivering signed JSON payloads on price drops, DQ breaches, and pipeline completion",
+            },
+            {
+                "name": "RBAC Security Matrix",
+                "detail": "Role-based access control with Admin, Analyst, and Viewer tiers governing granular data manipulation permissions",
+            },
+            {
+                "name": "Two-Factor TOTP Authentication",
+                "detail": "RFC 6238 compliant TOTP enrollment with QR code generation, recovery codes, and session invalidation",
+            },
+            {
+                "name": "Sliding-Window Rate Limiting",
+                "detail": "Defensive API rate limiting preventing denial-of-service and enforcing fair usage across endpoints",
+            },
+            {
+                "name": "Automated Staging Landing Zone",
+                "detail": "Raw JSON payloads preserved in StgRawObservation before transformation, ensuring 100% data auditability",
+            },
+            {
+                "name": "Pre-aggregated Analytical Views",
+                "detail": "20+ materialized and SQL views optimizing common reporting queries for sub-second dashboard rendering",
+            },
+            {
+                "name": "Comprehensive Typer CLI",
+                "detail": "17 CLI commands covering pipeline runs, warehouse seeding, data quality audits, and dialect verification",
+            },
+            {
+                "name": "Docker Compose Multi-Container Stack",
+                "detail": "Fully orchestratable stack running PostgreSQL, MySQL, Airflow Webserver, Airflow Scheduler, API, and Frontend",
+            },
+            {
+                "name": "Cross-Dialect Migration Framework",
+                "detail": "Alembic migrations verified against both PostgreSQL 16 and MySQL 8.4 analytical targets",
+            },
+            {
+                "name": "Automated Anomaly Detection",
+                "detail": "Z-score and interquartile range (IQR) outlier detection flagging sudden flash price spikes or collapses",
+            },
+            {
+                "name": "Catalog Price Gap Analysis",
+                "detail": "Identifies internal products priced above or below market average with actionable margin recommendations",
+            },
+            {
+                "name": "Automated Ingestion Politeness",
+                "detail": "Strict enforcement of crawl-delay directives and per-source rate limits preventing target site saturation",
+            },
+            {
+                "name": "Custom View Builder",
+                "detail": "Visual drag-and-drop query constructor allowing non-technical analysts to assemble custom warehouse filters",
+            },
+            {
+                "name": "Executive KPI Dashboard",
+                "detail": "At-a-glance visualization of product counts, observation volume, daily price change velocity, and pipeline uptime",
+            },
+        ],
+    },
 ]
 
 
