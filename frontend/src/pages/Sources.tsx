@@ -918,7 +918,19 @@ export default function Sources() {
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: ['sources'] })
     void queryClient.invalidateQueries({ queryKey: ['pipeline-source-status'] })
+    void queryClient.invalidateQueries({ queryKey: ['sources-robots'] })
   }
+
+  const auditComplianceMutation = useMutation({
+    mutationFn: () => endpoints.auditCompliance(),
+    onSuccess: (data: any) => {
+      refresh()
+      toast.success('Compliance audit complete', `Evaluated ${data.audited ?? 0} registered source robots.txt rules`)
+    },
+    onError: (error: any) => {
+      toast.error('Audit failed', (error as Error)?.message || 'Could not verify robots.txt')
+    },
+  })
 
   const toggleSource = useMutation({
     mutationFn: (row: any) => endpoints.updateSource(row.source_code, { enabled: !row.enabled }),
@@ -1077,6 +1089,14 @@ export default function Sources() {
   const decided = hasLog ? Number(verdictLog.total ?? 0) : allowed + blocked
   const respectsRobots = Boolean(registry.data?.length) && (registry.data ?? []).every((row: any) => row.robots_respected !== false)
 
+  const effectiveCounters: Record<string, number> = {
+    fetched: Math.max(Number(stats.fetched ?? 0), Number(verdictLog.fetched ?? 0)),
+    cached: Math.max(Number(stats.cached ?? 0), Number(verdictLog.cached ?? 0)),
+    allowed: Math.max(Number(stats.allowed ?? 0), Number(verdictLog.allowed ?? 0)),
+    blocked: Math.max(Number(stats.blocked ?? 0), Number(verdictLog.blocked ?? 0)),
+    errors: Math.max(Number(stats.errors ?? 0), Number(verdictLog.errors ?? 0)),
+  }
+
   return (
     <div className="space-y-4">
       {/* --------------------------------------------------------- compliance */}
@@ -1086,15 +1106,26 @@ export default function Sources() {
           subtitle="robots.txt decisions, politeness cache and the terms registered with every source"
           icon={<ShieldCheck className="h-4 w-4" />}
           action={
-            respectsRobots ? (
-              <Badge tone="success" dot>
-                robots.txt respected
-              </Badge>
-            ) : (
-              <Badge tone="warning" dot>
-                robots.txt not enforced
-              </Badge>
-            )
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => auditComplianceMutation.mutate()}
+                loading={auditComplianceMutation.isPending}
+                icon={<ShieldCheck className="h-3.5 w-3.5" />}
+              >
+                Audit live robots.txt
+              </Button>
+              {respectsRobots ? (
+                <Badge tone="success" dot>
+                  robots.txt respected
+                </Badge>
+              ) : (
+                <Badge tone="warning" dot>
+                  robots.txt not enforced
+                </Badge>
+              )}
+            </div>
           }
         />
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -1126,7 +1157,7 @@ export default function Sources() {
                 <div key={counter.label} className="rounded-lg border border-line bg-surface-2 px-3 py-2">
                   <p className="stat-label">{counter.label}</p>
                   <p className={cn('mt-0.5 text-lg font-semibold tabular-nums', counter.tone)}>
-                    {formatNumber(Number(stats[counter.key] ?? 0))}
+                    {formatNumber(Number(effectiveCounters[counter.key] ?? 0))}
                   </p>
                 </div>
               ))}
@@ -1142,7 +1173,20 @@ export default function Sources() {
                   ? hasLog
                     ? `${formatNumber(allowed)} allowed · ${formatNumber(blocked)} refused by robots.txt and never sent upstream — across ${formatNumber(decided)} audited requests from all runs`
                     : `${formatNumber(allowed)} allowed · ${formatNumber(blocked)} refused by robots.txt and never sent upstream`
-                  : 'No robots.txt decision has been taken yet. Run the pipeline or preview a source to record the first verdict.'}
+                  : (
+                    <span className="flex items-center gap-1.5">
+                      <span>No robots.txt decision taken in this session yet.</span>
+                      <button
+                        type="button"
+                        onClick={() => auditComplianceMutation.mutate()}
+                        disabled={auditComplianceMutation.isPending}
+                        className="link underline font-medium hover:text-brand"
+                      >
+                        Audit live robots.txt now
+                      </button>
+                      <span>or preview a source to record the first verdict.</span>
+                    </span>
+                  )}
               </p>
             </div>
           </div>
