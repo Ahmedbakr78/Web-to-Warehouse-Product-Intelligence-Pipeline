@@ -110,6 +110,7 @@ def _robots_log_totals(session: Session | None) -> dict[str, int]:
 def audit_compliance(session: DbSession, _user: WriteUser) -> dict[str, Any]:
     """Evaluate robots.txt and record durable audit entries in ingestion_http_log."""
     import uuid
+
     from app.models.operations import IngestionHttpLog
 
     sources_list = list_sources(session)
