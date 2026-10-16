@@ -368,6 +368,7 @@ export const endpoints = {
   updateSource: (code: string, payload: Record<string, unknown>) =>
     api.patch<any>(`/sources/${code}`, payload),
   deleteSource: (code: string) => api.del<any>(`/sources/${code}`),
+  auditCompliance: () => api.post<any>('/sources/audit-compliance'),
 
   views: () => api.get<any[]>('/queries/views'),
   queryTables: () => api.get<any>('/queries/tables'),

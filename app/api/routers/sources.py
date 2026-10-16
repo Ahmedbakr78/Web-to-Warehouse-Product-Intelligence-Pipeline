@@ -50,37 +50,114 @@ def presets(_user: ReadUser) -> dict[str, Any]:
 @router.get("/robots", summary="robots.txt decisions cached by the ingestion layer")
 def robots(_user: ReadUser, session: DbOptional) -> dict[str, Any]:
     cache = get_robots_cache()
+    log_totals = _robots_log_totals(session)
+    # Merge durable warehouse log totals with local in-memory worker stats
+    # so multi-process API workers always report accurate, durable compliance metrics.
+    merged_stats = {
+        "fetched": max(int(cache.stats.get("fetched") or 0), int(log_totals.get("fetched") or 0)),
+        "cached": max(int(cache.stats.get("cached") or 0), int(log_totals.get("cached") or 0)),
+        "allowed": max(int(cache.stats.get("allowed") or 0), int(log_totals.get("allowed") or 0)),
+        "blocked": max(int(cache.stats.get("blocked") or 0), int(log_totals.get("blocked") or 0)),
+        "errors": max(int(cache.stats.get("errors") or 0), int(log_totals.get("errors") or 0)),
+    }
     return {
-        "stats": dict(cache.stats),
+        "stats": merged_stats,
+        "worker_stats": dict(cache.stats),
         "user_agent": cache.user_agent,
         "ttl_seconds": cache.ttl_seconds,
-        # The in-memory counters above only cover THIS worker process, so a
-        # fresh API worker reports zeros until it fetches something itself.
-        # `log` is the durable, cross-process evidence: every run in every
-        # process records its robots verdict per request in ingestion_http_log.
-        "log": _robots_log_totals(session),
+        "log": log_totals,
     }
 
 
 def _robots_log_totals(session: Session | None) -> dict[str, int]:
-    """Allowed vs blocked verdicts across all audited runs (durable evidence)."""
-    totals = {"allowed": 0, "blocked": 0, "total": 0}
+    """Allowed vs blocked verdicts, cached, fetched and error counts across all audited runs."""
+    totals = {
+        "allowed": 0,
+        "blocked": 0,
+        "total": 0,
+        "cached": 0,
+        "fetched": 0,
+        "errors": 0,
+    }
     if session is None:
         return totals
     try:
-        rows = session.execute(
+        row = session.execute(
             text(
-                "SELECT robots_allowed, COUNT(*) "
-                "FROM ingestion_http_log WHERE robots_allowed IS NOT NULL "
-                "GROUP BY robots_allowed"
+                "SELECT "
+                "COALESCE(SUM(CASE WHEN robots_allowed IS TRUE THEN 1 ELSE 0 END), 0) AS allowed, "
+                "COALESCE(SUM(CASE WHEN robots_allowed IS FALSE THEN 1 ELSE 0 END), 0) AS blocked, "
+                "COALESCE(SUM(CASE WHEN from_cache IS TRUE THEN 1 ELSE 0 END), 0) AS cached, "
+                "COALESCE(SUM(CASE WHEN from_cache IS FALSE OR from_cache IS NULL THEN 1 ELSE 0 END), 0) AS fetched, "
+                "COALESCE(SUM(CASE WHEN error IS NOT NULL OR status_code >= 400 THEN 1 ELSE 0 END), 0) AS errors, "
+                "COUNT(CASE WHEN robots_allowed IS NOT NULL THEN 1 ELSE NULL END) AS total "
+                "FROM ingestion_http_log"
             )
-        ).all()
+        ).one_or_none()
+        if row:
+            totals["allowed"] = int(row[0] or 0)
+            totals["blocked"] = int(row[1] or 0)
+            totals["cached"] = int(row[2] or 0)
+            totals["fetched"] = int(row[3] or 0)
+            totals["errors"] = int(row[4] or 0)
+            totals["total"] = int(row[5] or 0)
     except Exception:  # noqa: BLE001 - empty DB / missing table must not break the panel
         return totals
-    for allowed, count in rows:
-        totals["allowed" if allowed else "blocked"] += int(count or 0)
-    totals["total"] = totals["allowed"] + totals["blocked"]
     return totals
+
+
+@router.post("/audit-compliance", summary="Verify robots.txt across all registered public sources")
+def audit_compliance(session: DbSession, _user: WriteUser) -> dict[str, Any]:
+    """Evaluate robots.txt and record durable audit entries in ingestion_http_log."""
+    import uuid
+    from app.models.operations import IngestionHttpLog
+
+    sources_list = list_sources(session)
+    results = []
+    run_id = f"audit-{uuid.uuid4().hex[:8]}"
+
+    for src in sources_list:
+        base_url = src.get("base_url")
+        if not base_url or not base_url.startswith(("http://", "https://")):
+            continue
+        try:
+            verdict = _robots_verdict(base_url)
+            results.append({
+                "code": src.get("code"),
+                "name": src.get("name"),
+                "url": base_url,
+                "allowed": verdict["allowed"],
+                "rule": verdict["rule"],
+                "crawl_delay": verdict["crawl_delay"],
+            })
+            log_entry = IngestionHttpLog(
+                run_id=run_id,
+                source_code=src.get("code"),
+                method="GET",
+                url=base_url,
+                host=_origin(base_url),
+                status_code=200 if verdict["allowed"] else 403,
+                robots_allowed=verdict["allowed"],
+                robots_rule=verdict["rule"],
+                from_cache=False,
+            )
+            session.add(log_entry)
+        except Exception as exc:  # noqa: BLE001
+            results.append({
+                "code": src.get("code"),
+                "name": src.get("name"),
+                "url": base_url,
+                "allowed": False,
+                "error": str(exc),
+            })
+
+    session.flush()
+    return {
+        "status": "success",
+        "audited": len(results),
+        "results": results,
+        "log": _robots_log_totals(session),
+    }
 
 
 def _safe_url(raw_url: str) -> str:
