@@ -218,7 +218,7 @@ class Pipeline:
                     if code not in codes:
                         codes.append(code)
         except Exception as exc:  # noqa: BLE001 - a dynamic lookup must not kill the run
-            log.warning("dynamic source lookup failed: %s", exc)
+            log.debug("dynamic source lookup skipped: %s", exc)
         return codes
 
     # ------------------------------------------------------------------ main

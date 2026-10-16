@@ -245,7 +245,9 @@ class Settings(BaseSettings):
                 raise RuntimeError("MYSQL_URL is required to target MySQL")
             return self.mysql_url
         if target in {"sqlite", "file"}:
-            return self.database_url
+            if self.database_url.startswith("sqlite"):
+                return self.database_url
+            return f"sqlite:///{DEFAULT_SQLITE_PATH}"
         return target
 
     def ensure_directories(self) -> None:
