@@ -1,0 +1,10 @@
+
+flowchart LR
+  raw[(28 base tables)] --> facts[(fact_* tables)]
+  raw --> dims[(dim_* tables)]
+  facts --> views[20 analytical views]
+  dims --> views
+  views --> api[REST API]
+  views --> reports[reports]
+  views --> query[query lab]
+  views --> forecast[forecasting]

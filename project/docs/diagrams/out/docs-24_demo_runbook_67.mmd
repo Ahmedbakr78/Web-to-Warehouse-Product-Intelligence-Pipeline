@@ -1,0 +1,14 @@
+
+flowchart LR
+    A["0:00 Dashboard<br/>scope in 10 seconds"] --> B["0:45 Products<br/>dedupe + snapshot history"]
+    B --> C["2:00 Changes<br/>the business question"]
+    C --> D["3:00 Catalog match<br/>where it pays for itself"]
+    D --> E["4:00 Runs<br/>orchestration + idempotency"]
+    E --> F["4:45 Data quality<br/>measured, not assumed"]
+    F --> G["5:30 Query lab<br/>self-service, read-only"]
+    G --> H["6:00 Audit<br/>the compliance proof"]
+    H --> I["7:00 Questions"]
+
+    style A fill:#e7ecff,stroke:#3b5bdb
+    style D fill:#e7ecff,stroke:#3b5bdb
+    style H fill:#e7ecff,stroke:#3b5bdb

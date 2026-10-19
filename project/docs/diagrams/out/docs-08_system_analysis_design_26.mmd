@@ -1,0 +1,61 @@
+
+flowchart TB
+    subgraph EXT["External actors"]
+        A1["Pricing analyst"]
+        A2["Category manager"]
+        A3["Data platform lead"]
+        A4["System administrator"]
+        A5["Compliance officer"]
+        A6["Upstream source<br/>API or website"]
+        A7["Scheduler<br/>(Airflow / cron)"]
+        A8["Academic supervisor"]
+    end
+
+    subgraph SYS["Web-to-Warehouse Product Intelligence Pipeline"]
+        direction TB
+        UC1(["UC-01 Register source"])
+        UC2(["UC-02 Collect products"])
+        UC3(["UC-03 Clean and normalise"])
+        UC4(["UC-04 Resolve duplicates"])
+        UC5(["UC-05 Load price snapshot"])
+        UC6(["UC-06 Detect removals"])
+        UC7(["UC-07 Evaluate data quality"])
+        UC8(["UC-08 Reconcile with catalog"])
+        UC9(["UC-09 Refresh aggregate"])
+        UC10(["UC-10 Authenticate"])
+        UC11(["UC-11 Browse catalogue"])
+        UC12(["UC-12 Inspect product"])
+        UC13(["UC-13 Review changes"])
+        UC14(["UC-14 Run read-only query"])
+        UC15(["UC-15 Manage accounts"])
+        UC16(["UC-16 Define alerts"])
+        UC17(["UC-17 Compliance evidence"])
+        UC18(["UC-18 Trigger run"])
+        UC19(["UC-19 Verify dialects"])
+    end
+
+    A1 --> UC11
+    A1 --> UC12
+    A1 --> UC13
+    A1 --> UC14
+    A2 --> UC13
+    A2 --> UC8
+    A3 --> UC1
+    A3 --> UC2
+    A3 --> UC7
+    A3 --> UC18
+    A3 --> UC19
+    A4 --> UC10
+    A4 --> UC15
+    A5 --> UC17
+    A6 --> UC2
+    A7 --> UC2
+    A8 --> UC19
+
+    UC2 --> UC3
+    UC3 --> UC4
+    UC4 --> UC5
+    UC5 --> UC6
+    UC5 --> UC9
+    UC5 --> UC7
+    UC9 --> UC8

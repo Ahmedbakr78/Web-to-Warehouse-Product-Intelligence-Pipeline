@@ -1,0 +1,9 @@
+
+flowchart TD
+  models[SQLAlchemy models] --> autogen[alembic revision --autogenerate]
+  live[(live database)] --> autogen
+  autogen --> exclude[exclude foreign tables]
+  exclude --> revision[revision file, reviewed by hand]
+  revision --> apply[alembic upgrade head]
+  apply --> tables[28 tables]
+  apply --> views[20 views]

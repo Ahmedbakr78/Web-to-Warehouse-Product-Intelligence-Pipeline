@@ -1,0 +1,14 @@
+
+sequenceDiagram
+    participant C as Client
+    participant M as Rate limit middleware
+    participant A as API
+    C->>M: request
+    M->>M: drop timestamps older than the window
+    M->>M: count within window
+    alt over budget
+        M-->>C: 429 + Retry-After + X-RateLimit-Reset
+    else within budget
+        M->>A: request
+        A-->>C: response + X-RateLimit-* headers
+    end

@@ -1,0 +1,333 @@
+"""FastAPI dependencies: database session, pagination, authentication and RBAC."""
+
+from __future__ import annotations
+
+import datetime as dt
+import re
+from collections.abc import Generator
+from typing import Annotated
+
+import sqlalchemy as sa
+from fastapi import Depends, Header, Query, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.orm import Session
+
+from app.api.security import (
+    ROLE_RIGHTS,
+    decode_token,
+    has_right,
+    hash_api_key,
+    verify_api_key,
+)
+from app.core.config import settings
+from app.core.db import get_session_factory
+from app.core.errors import AuthenticationError, PermissionDeniedError
+from app.core.logging import get_logger
+from app.models.app_users import AppApiKey, AppUser
+
+log = get_logger(__name__)
+
+bearer_scheme = HTTPBearer(auto_error=False, description="JWT access token (Bearer) or API key")
+
+# A bare, optionally schema-qualified SQL identifier: letters, digits, underscore
+# and at most one dot. Anything else can never reach an ORDER BY clause.
+_SORTABLE_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)?")
+
+
+# --------------------------------------------------------------------------------------
+# Database
+# --------------------------------------------------------------------------------------
+def get_db() -> Generator[Session, None, None]:
+    """Yield a transactional session bound to the active database."""
+    session = get_session_factory()()
+    try:
+        yield session
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
+
+DbSession = Annotated[Session, Depends(get_db)]
+
+
+def get_optional_db() -> Generator[Session, None, None]:
+    """Session for endpoints that must answer even when the DB is down."""
+    session = get_session_factory()()
+    try:
+        yield session
+    finally:
+        session.rollback()
+        session.close()
+
+
+DbOptional = Annotated[Session, Depends(get_optional_db)]
+
+
+# --------------------------------------------------------------------------------------
+# Pagination / sorting
+# --------------------------------------------------------------------------------------
+class Pagination:
+    """``?page=&page_size=&sort_by=&sort_dir=`` with sane upper bounds."""
+
+    def __init__(
+        self,
+        page: Annotated[int, Query(ge=1, le=10_000, description="1-based page number")] = 1,
+        page_size: Annotated[int, Query(ge=1, le=200, description="Rows per page")] = 25,
+        sort_by: Annotated[
+            str | None, Query(description="Field to sort by; comma-separated for multi-level sort")
+        ] = None,
+        sort_dir: Annotated[
+            str,
+            Query(
+                pattern=r"^(asc|desc)(,(asc|desc)){0,2}$",
+                description="Direction per sort level, positional: desc, or asc,desc for two levels",
+            ),
+        ] = "desc",
+    ) -> None:
+        self.page = page
+        self.page_size = page_size
+        self.sort_by = sort_by
+        self.sort_dir = sort_dir
+
+    @property
+    def offset(self) -> int:
+        return (self.page - 1) * self.page_size
+
+    @property
+    def order(self) -> str:
+        """A safe ORDER BY fragment.
+
+        The previous implementation interpolated `sort_by` straight into the
+        clause, which was a latent SQL-injection footgun for any future caller.
+        The column is now validated against `SORTABLE_COLUMNS` (identifier
+        characters only) and falls back to `created_at`, and the direction is
+        constrained to ASC/DESC. Only the first sort level applies here;
+        routers with a wider allow-list build their own fragment from their
+        `SORTABLE` map (see `app.api.sorting.build_order_by`).
+        """
+        first_dir = str(self.sort_dir).split(",")[0].strip().lower()
+        direction = "ASC" if first_dir == "asc" else "DESC"
+        candidate = (self.sort_by or "created_at").split(",")[0].strip()
+        if not _SORTABLE_RE.fullmatch(candidate):
+            candidate = "created_at"
+        return f"{candidate} {direction}"
+
+
+PaginationDep = Annotated[Pagination, Depends(Pagination)]
+
+
+# --------------------------------------------------------------------------------------
+# Authentication
+# --------------------------------------------------------------------------------------
+def _resolve_token(session: Session, credentials: HTTPAuthorizationCredentials | None) -> AppUser:
+    if credentials is None or not credentials.credentials:
+        raise AuthenticationError(
+            "authentication required", details={"hint": "send an 'Authorization: Bearer <token>' header"}
+        )
+    token = credentials.credentials
+
+    # API key authentication (machine clients)
+    if token.startswith("pip_"):
+        digest = hash_api_key(token)
+        row = (
+            session.execute(
+                sa.select(AppApiKey).where(AppApiKey.hashed_key == digest, AppApiKey.is_active.is_(True))
+            )
+            .scalars()
+            .first()
+        )
+        if row is None:
+            raise AuthenticationError("invalid API key")
+        if row.expires_at and row.expires_at < dt.datetime.now(dt.timezone.utc):
+            raise AuthenticationError("API key expired")
+        user = session.get(AppUser, row.user_id)
+        if user is None or not user.is_active:
+            raise AuthenticationError("API key owner is not active")
+        row.usage_count = (row.usage_count or 0) + 1
+        row.last_used_at = dt.datetime.now(dt.timezone.utc)
+        return user
+
+    payload = decode_token(token, expected_type="access")
+    user = session.get(AppUser, int(payload["sub"]))
+    if user is None or not user.is_active:
+        raise AuthenticationError("user not found or deactivated")
+    return user
+
+
+def get_current_user(
+    session: DbSession,
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)] = None,
+) -> AppUser:
+    return _resolve_token(session, credentials)
+
+
+CurrentUser = Annotated[AppUser, Depends(get_current_user)]
+
+
+def get_current_user_optional(
+    session: DbSession,
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)] = None,
+) -> AppUser | None:
+    try:
+        return _resolve_token(session, credentials)
+    except AuthenticationError:
+        return None
+
+
+OptionalUser = Annotated[AppUser | None, Depends(get_current_user_optional)]
+
+
+def stream_user(
+    session: DbSession,
+    request: Request,
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)] = None,
+    token: Annotated[str | None, Query(description="JWT or API key; EventSource cannot send headers")] = None,
+) -> AppUser:
+    """Authenticate a Server-Sent Events request.
+
+    `EventSource` offers no way to set an `Authorization` header, so a browser can
+    only authenticate by putting the credential in the query string. That is normally
+    a bad idea - query strings end up in proxy and access logs - so it is accepted
+    *only* on the SSE routes, and only as a fallback for the header. The rights and
+    API-key scope checks are identical to a normal read, so this widens the transport
+    and not the permissions.
+    """
+
+    # The header wins when both are present, so a header-based client can never be
+    # downgraded to a query credential.
+    if credentials is None and token:
+        credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+    user = _resolve_token(session, credentials)
+    missing = [right for right in ("read",) if not has_right(user.role, right)]
+    if missing:
+        raise PermissionDeniedError(
+            f"role '{user.role}' lacks the required permission(s): {', '.join(missing)}",
+            details={
+                "role": user.role,
+                "missing": missing,
+                "granted": sorted(ROLE_RIGHTS.get(user.role, set())),
+            },
+        )
+    key_row, owner = _api_key_context(request)
+    enforce_scope(key_row, owner or user, "read")
+    return user
+
+
+StreamUser = Annotated[AppUser, Depends(stream_user)]
+
+
+def require_rights(*rights: str):
+    """Dependency factory: require every listed right on the caller's role.
+
+    A route is authorised twice when the caller authenticated with an API key: once
+    against the owner's role (above) and once against the key's own `scopes`. Without
+    the second check `AppApiKey.scopes` was decorative - stored on creation and never
+    read - so a narrowly scoped machine key could call anything its owner could.
+    """
+
+    def dependency(user: CurrentUser, request: Request) -> AppUser:
+        missing = [right for right in rights if not has_right(user.role, right)]
+        if missing:
+            raise PermissionDeniedError(
+                f"role '{user.role}' lacks the required permission(s): {', '.join(missing)}",
+                details={
+                    "role": user.role,
+                    "missing": missing,
+                    "granted": sorted(ROLE_RIGHTS.get(user.role, set())),
+                },
+            )
+        key_row, owner = _api_key_context(request)
+        for right in rights:
+            enforce_scope(key_row, owner or user, right)
+        return user
+
+    return dependency
+
+
+ReadUser = Annotated[AppUser, Depends(require_rights("read"))]
+WriteUser = Annotated[AppUser, Depends(require_rights("write"))]
+AdminUser = Annotated[AppUser, Depends(require_rights("manage_users"))]
+PipelineUser = Annotated[AppUser, Depends(require_rights("run_pipeline"))]
+QueryUser = Annotated[AppUser, Depends(require_rights("query"))]
+SourceManagerUser = Annotated[AppUser, Depends(require_rights("manage_sources"))]
+
+
+def enforce_scope(key_row: AppApiKey | None, owner: AppUser | None, required: str) -> None:
+    """Narrow an API key's scopes against its owner's role, and refuse if insufficient."""
+    if key_row is None:
+        return
+    from app.api.ratelimit import effective_scopes
+
+    granted = effective_scopes(key_row, owner)
+    if required not in granted:
+        raise PermissionDeniedError(
+            f"this API key does not carry the '{required}' scope",
+            details={"required_scope": required, "granted_scopes": sorted(granted)},
+        )
+
+
+def _api_key_context(request: Request) -> tuple[AppApiKey | None, AppUser | None]:
+    """Resolve the API key behind the current request, if the caller used one."""
+    header = request.headers.get("authorization", "")
+    if not header.lower().startswith("bearer "):
+        return None, None
+    token = header[7:].strip()
+    if not token.startswith("pip_"):
+        return None, None
+    session = get_session_factory()()
+    try:
+        row = (
+            session.execute(sa.select(AppApiKey).where(AppApiKey.hashed_key == hash_api_key(token)))
+            .scalars()
+            .first()
+        )
+        owner = session.get(AppUser, row.user_id) if row is not None else None
+        return row, owner
+    finally:
+        session.close()
+
+
+def client_ip(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def request_meta(request: Request) -> dict[str, str]:
+    """Values stored in the audit log."""
+    return {
+        "ip_address": client_ip(request),
+        "user_agent": request.headers.get("user-agent", "")[:255],
+    }
+
+
+__all__ = [
+    "get_db",
+    "get_optional_db",
+    "DbSession",
+    "DbOptional",
+    "Pagination",
+    "PaginationDep",
+    "get_current_user",
+    "get_current_user_optional",
+    "CurrentUser",
+    "OptionalUser",
+    "require_rights",
+    "enforce_scope",
+    "ReadUser",
+    "StreamUser",
+    "stream_user",
+    "WriteUser",
+    "AdminUser",
+    "PipelineUser",
+    "QueryUser",
+    "client_ip",
+    "request_meta",
+    "verify_api_key",
+    "settings",
+    "Header",
+]

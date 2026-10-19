@@ -1,0 +1,297 @@
+"""Analytics endpoints: KPIs, trends, leaderboards and SQL reports."""
+
+from __future__ import annotations
+
+from typing import Annotated, Any
+
+import sqlalchemy as sa
+from fastapi import APIRouter, Query, Response
+
+from app.analytics import service as analytics
+from app.api.deps import DbSession, ReadUser
+
+router = APIRouter(prefix="/analytics", tags=["analytics"])
+
+
+@router.get("/kpi", summary="Headline KPI cards")
+def kpi(
+    session: DbSession, _user: ReadUser, days: Annotated[int, Query(ge=1, le=3650)] = 30
+) -> dict[str, Any]:
+    return analytics.kpi_summary(session, days=days)
+
+
+@router.get("/trend", summary="Daily KPI trend")
+def trend(
+    session: DbSession, _user: ReadUser, days: Annotated[int, Query(ge=1, le=3650)] = 90
+) -> list[dict[str, Any]]:
+    return analytics.daily_trend(session, days=days)
+
+
+@router.get("/price-trend", summary="Daily price-change trend")
+def price_trend(
+    session: DbSession, _user: ReadUser, days: Annotated[int, Query(ge=1, le=3650)] = 90
+) -> list[dict[str, Any]]:
+    return analytics.price_change_timeline(session, days=days)
+
+
+@router.get("/categories", summary="Category breakdown")
+def categories(
+    session: DbSession, _user: ReadUser, limit: Annotated[int, Query(ge=1, le=100)] = 20
+) -> list[dict[str, Any]]:
+    return analytics.category_breakdown(session, limit=limit)
+
+
+@router.get("/brands", summary="Brand leaderboard")
+def brands(
+    session: DbSession, _user: ReadUser, limit: Annotated[int, Query(ge=1, le=100)] = 20
+) -> list[dict[str, Any]]:
+    return analytics.brand_leaderboard(session, limit=limit)
+
+
+@router.get("/volatility", summary="Most volatile products by price range")
+def volatility(
+    session: DbSession,
+    _user: ReadUser,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    min_observations: Annotated[int, Query(ge=2, le=1000)] = 3,
+) -> list[dict[str, Any]]:
+    return analytics.price_volatility(session, limit=limit, min_observations=min_observations)
+
+
+@router.get("/discounts", summary="Deepest current discounts off list price")
+def discounts(
+    session: DbSession, _user: ReadUser, limit: Annotated[int, Query(ge=1, le=100)] = 20
+) -> list[dict[str, Any]]:
+    return analytics.discount_leaders(session, limit=limit)
+
+
+@router.get("/top-rated", summary="Best-rated products, damped by vote count")
+def top_rated(
+    session: DbSession, _user: ReadUser, limit: Annotated[int, Query(ge=1, le=100)] = 20
+) -> list[dict[str, Any]]:
+    return analytics.rating_leaders(session, limit=limit)
+
+
+@router.get("/availability", summary="In-stock ratio per category")
+def availability(session: DbSession, _user: ReadUser) -> list[dict[str, Any]]:
+    return analytics.availability_summary(session)
+
+
+@router.get("/sources", summary="Source coverage and reliability")
+def sources(session: DbSession, _user: ReadUser) -> list[dict[str, Any]]:
+    return analytics.source_health(session)
+
+
+@router.get("/category-index", summary="Daily category price index")
+def category_index(
+    session: DbSession,
+    _user: ReadUser,
+    days: Annotated[int, Query(ge=1, le=3650)] = 60,
+    category: str | None = None,
+) -> list[dict[str, Any]]:
+    params: dict[str, Any] = {"since": None}
+    where = ""
+    if category:
+        where = "AND category_name = :category"
+        params["category"] = category
+    import datetime as dt
+
+    params["since"] = dt.date.today() - dt.timedelta(days=days)
+    rows = (
+        session.execute(
+            sa.text(
+                f"""
+            SELECT date_id, full_date, category_id, category_name, observation_count,
+                   avg_price_usd, min_price_usd, max_price_usd, avg_rating, price_stddev, distinct_products
+            FROM vw_category_price_index
+            WHERE full_date >= :since {where}
+            ORDER BY full_date, category_name
+            """
+            ),
+            params,
+        )
+        .mappings()
+        .all()
+    )
+    return [dict(row) for row in rows]
+
+
+@router.get("/price-buckets", summary="Live catalogue histogram across USD price bands")
+def price_buckets(session: DbSession, _user: ReadUser) -> list[dict[str, Any]]:
+    return analytics.price_buckets(session)
+
+
+@router.get("/source-spread", summary="Same product across sources, ranked by price disagreement")
+def source_spread(
+    session: DbSession, _user: ReadUser, limit: Annotated[int, Query(ge=1, le=100)] = 20
+) -> list[dict[str, Any]]:
+    return analytics.cross_source_spread(session, limit=limit)
+
+
+@router.get("/category-movers", summary="Categories ranked by price-change magnitude")
+def category_movers(
+    session: DbSession,
+    _user: ReadUser,
+    days: Annotated[int, Query(ge=1, le=3650)] = 30,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+) -> list[dict[str, Any]]:
+    return analytics.category_movers(session, days=days, limit=limit)
+
+
+@router.get("/event-timeline", summary="Daily lifecycle events plus price-change counts")
+def event_timeline(
+    session: DbSession, _user: ReadUser, days: Annotated[int, Query(ge=1, le=3650)] = 90
+) -> list[dict[str, Any]]:
+    return analytics.lifecycle_timeline(session, days=days)
+
+
+@router.get("/price-anomalies", summary="Listings priced far from their category rate")
+def price_anomalies(
+    session: DbSession,
+    _user: ReadUser,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    threshold_std: Annotated[float, Query(ge=0.5, le=10.0)] = 2.0,
+) -> list[dict[str, Any]]:
+    return analytics.price_anomalies(session, limit=limit, threshold_std=threshold_std)
+
+
+@router.get("/source-overlap", summary="Pairwise catalogue overlap between sources")
+def source_overlap(session: DbSession, _user: ReadUser) -> list[dict[str, Any]]:
+    return analytics.source_overlap(session)
+
+
+@router.get("/data-freshness", summary="Per-source freshness: last sighting and stale share")
+def data_freshness(
+    session: DbSession,
+    _user: ReadUser,
+    stale_days: Annotated[int, Query(ge=1, le=3650)] = 7,
+) -> list[dict[str, Any]]:
+    return analytics.data_freshness(session, stale_days=stale_days)
+
+
+@router.get("/inventory-risk", summary="Categories under stock pressure and rising prices")
+def inventory_risk(
+    session: DbSession, _user: ReadUser, limit: Annotated[int, Query(ge=1, le=100)] = 20
+) -> list[dict[str, Any]]:
+    return analytics.inventory_risk(session, limit=limit)
+
+
+@router.get("/currency-exposure", summary="Live catalogue mix by original listing currency")
+def currency_exposure(session: DbSession, _user: ReadUser) -> list[dict[str, Any]]:
+    return analytics.currency_exposure(session)
+
+
+@router.get("/best-value", summary="Top-rated cheapest listings by rating per USD")
+def best_value(
+    session: DbSession,
+    _user: ReadUser,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    min_rating: Annotated[float, Query(ge=0.0, le=5.0)] = 4.0,
+    min_votes: Annotated[int, Query(ge=1, le=100_000)] = 10,
+) -> list[dict[str, Any]]:
+    return analytics.best_value(session, limit=limit, min_rating=min_rating, min_votes=min_votes)
+
+
+@router.get("/brand-momentum", summary="Brands ranked by average signed price change")
+def brand_momentum(
+    session: DbSession,
+    _user: ReadUser,
+    days: Annotated[int, Query(ge=1, le=3650)] = 30,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+) -> list[dict[str, Any]]:
+    return analytics.brand_momentum(session, days=days, limit=limit)
+
+
+@router.get("/weekday-pattern", summary="Price-change activity by weekday")
+def weekday_pattern(
+    session: DbSession, _user: ReadUser, days: Annotated[int, Query(ge=1, le=3650)] = 90
+) -> list[dict[str, Any]]:
+    return analytics.weekday_pattern(session, days=days)
+
+
+@router.get("/report/price-changes", summary="SQL report: price changes")
+def report_price_changes(
+    session: DbSession,
+    _user: ReadUser,
+    days: Annotated[int, Query(ge=1, le=3650)] = 30,
+    limit: Annotated[int, Query(ge=1, le=500)] = 50,
+) -> list[dict[str, Any]]:
+    return analytics.price_change_report(session, days=days, limit=limit)
+
+
+@router.get("/report/catalog", summary="SQL report: scraped vs internal catalog")
+def report_catalog(session: DbSession, _user: ReadUser, run_id: str | None = None) -> list[dict[str, Any]]:
+    return analytics.catalog_reconciliation(session, run_id=run_id, limit=500)
+
+
+@router.get("/report/compliance", summary="SQL report: robots.txt / rate-limit compliance evidence")
+def report_compliance(
+    session: DbSession, _user: ReadUser, days: Annotated[int, Query(ge=1, le=365)] = 7
+) -> dict[str, Any]:
+    return analytics.compliance_report(session, days=days)
+
+
+@router.get("/report/source-matrix", summary="SQL report: source x category coverage matrix")
+def source_matrix(session: DbSession, _user: ReadUser) -> list[dict[str, Any]]:
+    rows = (
+        session.execute(
+            sa.text(
+                """
+            SELECT s.source_code,
+                   p.category_id,
+                   c.name AS category_name,
+                   COUNT(DISTINCT p.product_id) AS products,
+                   ROUND(CAST(AVG(s.price_usd) AS DECIMAL(24,6)), 2) AS avg_price_usd
+            FROM fact_price_snapshot s
+            JOIN dim_product p ON p.product_id = s.product_id
+            LEFT JOIN dim_category c ON c.category_id = p.category_id
+            GROUP BY s.source_code, p.category_id, c.name
+            ORDER BY s.source_code, products DESC
+            """
+            )
+        )
+        .mappings()
+        .all()
+    )
+    return [dict(row) for row in rows]
+
+
+@router.get(
+    "/export/products.csv",
+    summary="Export the current product list as CSV",
+    response_class=Response,
+    responses={200: {"content": {"text/csv": {}}}},
+)
+def export_products(
+    session: DbSession, _user: ReadUser, limit: Annotated[int, Query(ge=1, le=50_000)] = 5_000
+) -> Response:
+    import csv
+    import io
+
+    rows = (
+        session.execute(
+            sa.text(
+                """
+            SELECT product_id, canonical_name, brand, category_name, availability, price, price_usd,
+                   currency, rating, price_change_pct, last_seen_at, source_code, product_url
+            FROM vw_product_current ORDER BY product_id LIMIT :limit
+            """
+            ),
+            {"limit": limit},
+        )
+        .mappings()
+        .all()
+    )
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    if rows:
+        columns = list(rows[0].keys())
+        writer.writerow(columns)
+        for row in rows:
+            writer.writerow([row[column] for column in columns])
+    buffer.seek(0)
+    return Response(
+        content=buffer.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="products.csv"'},
+    )

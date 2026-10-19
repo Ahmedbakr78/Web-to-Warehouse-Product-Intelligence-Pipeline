@@ -1,0 +1,12 @@
+
+flowchart TD
+  change[price change] --> mad{MAD detector}
+  change --> sigma{3 sigma detector}
+  change --> iqr{IQR fence detector}
+  mad --> votes[votes]
+  sigma --> votes
+  iqr --> votes
+  votes --> flagged{majority flags?}
+  flagged -->|yes| severity[severity from z-score]
+  flagged -->|no| quiet[recorded, not alerted]
+  severity --> alert[notification]

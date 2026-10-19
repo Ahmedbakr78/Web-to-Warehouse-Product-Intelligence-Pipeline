@@ -1,0 +1,313 @@
+"""Central application configuration.
+
+Every runtime knob lives here so that the CLI, the Airflow DAG, the tests and the
+FastAPI app all read the exact same values.  Values are loaded from (in order of
+precedence) real environment variables, a local ``.env`` file and the defaults
+declared on :class:`Settings`.
+"""
+
+from __future__ import annotations
+
+import functools
+import os
+from functools import lru_cache
+from pathlib import Path
+from typing import Any, Literal
+
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# --------------------------------------------------------------------------------------
+# Paths
+# --------------------------------------------------------------------------------------
+ROOT_DIR = Path(__file__).resolve().parents[2]
+APP_DIR = ROOT_DIR / "app"
+DB_DIR = ROOT_DIR / "db"
+DOCS_DIR = ROOT_DIR / "docs"
+FRONTEND_DIR = ROOT_DIR / "frontend"
+VAR_DIR = ROOT_DIR / "var"
+DEFAULT_SQLITE_PATH = VAR_DIR / "pipeline.sqlite3"
+VERSION_FILE = ROOT_DIR / "VERSION"
+ALEMBIC_INI = ROOT_DIR / "alembic.ini"
+ALEMBIC_DIR = ROOT_DIR / "migrations"
+
+
+def alembic_ini() -> Path:
+    """The Alembic configuration file, if this checkout has one."""
+    return ALEMBIC_INI if ALEMBIC_INI.exists() else ROOT_DIR / "alembic.ini"
+
+
+def canonical_version() -> str:
+    """The single source of truth for the project version.
+
+    Read from the ``VERSION`` file so `pyproject.toml`, the FastAPI `/meta` and
+    `/version` endpoints, the CLI and the dashboard can never drift apart.
+    """
+    try:
+        value = VERSION_FILE.read_text(encoding="utf-8").strip()
+    except OSError:
+        return "0.0.0"
+    return value or "0.0.0"
+
+
+class Settings(BaseSettings):
+    """Typed, validated application settings."""
+
+    model_config = SettingsConfigDict(
+        env_file=(ROOT_DIR / ".env"),
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+    )
+
+    # ---------------------------------------------------------------- identity
+    app_name: str = "Product Intelligence Pipeline"
+    app_env: Literal["development", "testing", "production"] = "development"
+    app_debug: bool = True
+    app_host: str = "0.0.0.0"
+    app_port: int = 8000
+    app_timezone: str = "UTC"
+    app_log_level: str = "INFO"
+    app_log_format: Literal["text", "json"] = "text"
+    # Defaults to the canonical VERSION file at the project root so the API, the
+    # CLI and the packaging metadata can never disagree. APP_VERSION still wins
+    # when explicitly set in the environment.
+    app_version: str = Field(default_factory=canonical_version)
+
+    # ---------------------------------------------------------------- database
+    database_url: str = f"sqlite:///{DEFAULT_SQLITE_PATH}"
+    mysql_url: str = ""
+    active_database: Literal["postgres", "mysql", "sqlite"] = "postgres"
+    db_schema: str = "public"
+    db_echo: bool = False
+    db_pool_size: int = 10
+    db_max_overflow: int = 20
+    db_pool_recycle: int = 1800
+    db_statement_timeout_ms: int = 30_000
+
+    # ---------------------------------------------------------------- security
+    secret_key: str = "dev-only-insecure-key-change-me-please-32ch"
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 720
+    refresh_token_expire_days: int = 30
+    cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
+    seed_admin_email: str = "admin@example.com"
+    seed_admin_password: str = "Admin@12345"
+    seed_analyst_email: str = "analyst@example.com"
+    seed_analyst_password: str = "Analyst@12345"
+    seed_viewer_email: str = "viewer@example.com"
+    seed_viewer_password: str = "Viewer@12345"
+    seed_demo_data: bool = True
+    #: Public self-registration. New accounts always start as viewers; an admin
+    #: promotes from the Users screen. Disable in production if accounts are
+    #: provisioned centrally (REGISTRATION_ENABLED=false).
+    registration_enabled: bool = True
+    registration_default_role: str = "viewer"
+
+    # ---------------------------------------------------------------- ingestion
+    ingest_user_agent: str = (
+        "ProductIntelligenceBot/1.0 (+https://github.com/Ahmedbakr78; contact: ahmedbakr78102@gmail.com)"
+    )
+    respect_robots_txt: bool = True
+    request_timeout_seconds: float = 20.0
+    max_retries: int = 3
+    retry_backoff_seconds: float = 1.5
+    requests_per_second: float = 1.0
+    requests_per_minute: int = 30
+    #: Optional egress proxy for every ingestion request, e.g.
+    #: ``http://proxy.internal:3128``. Empty means direct connections (httpx
+    #: still honours the standard ``HTTP_PROXY``/``HTTPS_PROXY`` environment).
+    ingest_proxy_url: str = ""
+    #: Comma-separated hosts that bypass the proxy even when one is set.
+    ingest_no_proxy: str = "localhost,127.0.0.1"
+    #: Free Google Books API key (Google Cloud Console, no billing). Keyless
+    #: access shares a small daily quota; without a key the source degrades to
+    #: per-subject warnings when HTTP 429 is returned. Empty means keyless.
+    google_books_api_key: str = ""
+
+    # ---------------------------------------------------------------- API rate limiting
+    #: Enforce a per-caller request budget on the REST API. `AppApiKey.rate_limit_per_minute`
+    #: overrides this for machine clients.
+    rate_limit_enabled: bool = True
+    #: Requests per minute for a session token (or for an unauthenticated caller by IP).
+    api_rate_limit_per_minute: int = 240
+    crawl_delay_fallback_seconds: float = 2.0
+    max_concurrent_requests: int = 4
+    cache_enabled: bool = True
+    cache_ttl_seconds: int = 1800
+    respect_terms_whitelist: bool = True
+
+    # ---------------------------------------------------------------- pipeline
+    pipeline_batch_size: int = 500
+    pipeline_fail_fast: bool = False
+    dedupe_similarity_threshold: float = 0.90
+    dedupe_blocking_key_length: int = 4
+    dedupe_candidate_limit: int = 25
+    max_products_per_source: int = 400
+
+    # ---------------------------------------------------------------- runtime
+    cache_dir: Path = VAR_DIR / "http-cache"
+    log_dir: Path = VAR_DIR / "logs"
+    artifacts_dir: Path = VAR_DIR / "artifacts"
+
+    # ---------------------------------------------------------------- migrations
+    #: Table Alembic records its revision in. Named so it cannot collide with a
+    #: warehouse table.
+    alembic_version_table: str = "alembic_version"
+
+    # ---------------------------------------------------------------- background jobs
+    #: Run the in-process job worker thread. Disable in tests and in any process that
+    #: should enqueue work without consuming it (the worker will pick the jobs up later).
+    job_worker_enabled: bool = True
+    #: Claimed jobs whose lease expires are returned to the queue.
+    job_lease_seconds: int = 120
+
+    # ---------------------------------------------------------------- validators
+    @field_validator("db_schema")
+    @classmethod
+    def _normalise_schema(cls, value: str) -> str:
+        """MySQL has no schemas, everything lives in the connection's database."""
+        return value.strip() or "public"
+
+    @field_validator("dedupe_similarity_threshold")
+    @classmethod
+    def _clamp_threshold(cls, value: float) -> float:
+        if not 0.0 <= value <= 1.0:
+            raise ValueError("dedupe_similarity_threshold must be between 0.0 and 1.0")
+        return value
+
+    @field_validator("ingest_proxy_url")
+    @classmethod
+    def _clean_proxy(cls, value: str) -> str:
+        """Only plain http(s) proxy URLs are accepted — never empty-space or socks."""
+        cleaned = value.strip()
+        if not cleaned:
+            return ""
+        if not cleaned.startswith(("http://", "https://")):
+            raise ValueError("ingest_proxy_url must start with http:// or https://")
+        return cleaned.rstrip("/")
+
+    @field_validator("cors_origins")
+    @classmethod
+    def _clean_origins(cls, value: str) -> str:
+        return ",".join(item.strip().rstrip("/") for item in value.split(",") if item.strip())
+
+    # ---------------------------------------------------------------- helpers
+    @property
+    def is_production(self) -> bool:
+        return self.app_env == "production"
+
+    @property
+    def is_testing(self) -> bool:
+        return self.app_env == "testing"
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        """CORS allow-list as a list (handles the ``*`` wildcard gracefully)."""
+        origins = [item for item in self.cors_origins.split(",") if item]
+        return origins or ["http://localhost:5173"]
+
+    @property
+    def sqlalchemy_url(self) -> str:
+        """Active SQLAlchemy URL derived from :attr:`active_database`."""
+        if self.active_database == "postgres":
+            return self.database_url
+        if self.active_database == "mysql":
+            if not self.mysql_url:
+                raise RuntimeError("ACTIVE_DATABASE=mysql but MYSQL_URL is not configured")
+            return self.mysql_url
+        return self.database_url
+
+    @property
+    def is_sqlite(self) -> bool:
+        return self.sqlalchemy_url.startswith("sqlite")
+
+    @property
+    def dialect_name(self) -> str:
+        url = self.sqlalchemy_url
+        for name in ("postgresql", "mysql", "sqlite"):
+            if url.startswith(name):
+                return name
+        return url.split(":", 1)[0]
+
+    def url_for(self, database: str | None = None) -> str:
+        """Resolve a SQLAlchemy URL for a named target database.
+
+        ``postgres``/``postgresql`` -> ``DATABASE_URL``
+        ``mysql``                   -> ``MYSQL_URL``
+        anything else (e.g. a raw URL) is passed through untouched.
+        """
+        target = (database or self.active_database).strip().lower()
+        if target in {"postgres", "postgresql"}:
+            return self.database_url
+        if target in {"mysql", "mariadb"}:
+            if not self.mysql_url:
+                raise RuntimeError("MYSQL_URL is required to target MySQL")
+            return self.mysql_url
+        if target in {"sqlite", "file"}:
+            if self.database_url.startswith("sqlite"):
+                return self.database_url
+            return f"sqlite:///{DEFAULT_SQLITE_PATH}"
+        return target
+
+    def ensure_directories(self) -> None:
+        """Create writable runtime directories (idempotent)."""
+        for directory in (VAR_DIR, self.cache_dir, self.log_dir, self.artifacts_dir):
+            directory.mkdir(parents=True, exist_ok=True)
+        DEFAULT_SQLITE_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+
+@lru_cache(maxsize=1)
+def get_settings() -> Settings:
+    """Cached settings singleton (fast - env parsing happens once)."""
+    return Settings()
+
+
+settings = get_settings()
+
+
+def reload_settings() -> Settings:
+    """Clear the cache and re-read the environment (used by tests and the CLI)."""
+    get_settings.cache_clear()
+    global settings
+    settings = get_settings()
+    return settings
+
+
+def describe_target(database: str | None = None) -> str:
+    """Human readable, secret-free description of a database target."""
+    url = settings.url_for(database)
+    redacted = url
+    if "@" in redacted:
+        scheme, _, host = redacted.partition("://")
+        creds, _, hostpart = host.partition("@")
+        redacted = f"{scheme}://***:***@{hostpart}"
+    return redacted
+
+
+def python_path_entries() -> list[str]:
+    """Directories that must be importable for Airflow/CLI execution."""
+    entries = [str(ROOT_DIR)]
+    existing = os.environ.get("PYTHONPATH", "")
+    if existing:
+        entries.append(existing)
+    return entries
+
+
+__all__: list[str] = [
+    "ROOT_DIR",
+    "APP_DIR",
+    "DB_DIR",
+    "DOCS_DIR",
+    "FRONTEND_DIR",
+    "VAR_DIR",
+    "DEFAULT_SQLITE_PATH",
+    "Settings",
+    "settings",
+    "get_settings",
+    "reload_settings",
+    "describe_target",
+    "functools",
+    "Any",
+    "Field",
+]

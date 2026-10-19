@@ -1,0 +1,66 @@
+
+flowchart TD
+    A(["Run requested by CLI, Airflow or API"]) --> B["Create etl_run row: status running, trigger, params"]
+    B --> C["Resolve the source list: enabled and terms_allowed"]
+    C --> D{"Any source?"}
+    D -->|"no"| Z(["Status failed: no usable source"])
+    D -->|"yes"| E["Preload dimension caches and ensure dim_source rows"]
+
+    E --> F["Extract: fetch limit records under the compliance gate"]
+    F --> G{"Robots decision?"}
+    G -->|"deny"| H["Log refusal, raise ComplianceError, warn"] --> I
+    G -->|"allow"| I["Cache lookup"]
+    I -->|"hit"| J["Reuse stored response"]
+    I -->|"miss"| K["Rate-limit acquire, GET with retry and backoff"]
+    K --> L{"HTTP status?"}
+    L -->|"2xx"| M["Store in cache, write audit row"]
+    L -->|"429 or 5xx"| N["Penalise host, retry or raise"] --> K
+    L -->|"other 4xx"| O["Record error, stop this source"] --> I
+
+    M --> P["Parse payload into RawProduct"]
+    J --> P
+    P --> Q["Stage raw payloads into the landing zone"]
+    Q --> R["Clean name, category, price, currency, rating, availability"]
+    R --> S{"Record valid?"}
+    S -->|"no"| T["Mark invalid with reject_reason, count as rejected"] --> Y
+    S -->|"yes"| U["Compute fingerprint and blocking key"]
+    U --> V{"Match found?"}
+    V -->|"exact"| W["Reuse canonical product"]
+    V -->|"fuzzy"| X["Update canonical product and count the merge"]
+    V -->|"none"| Y["Insert new dim_product and emit new event"]
+    W --> Z1["Append fact_price_snapshot for this product and run"]
+    X --> Z1
+    Y --> Z1
+    Z1 --> ZA{"Price changed?"}
+    ZA -->|"yes"| ZB["Insert chg_price_change with band and significance"]
+    ZA -->|"no"| ZC["Emit recurring event"]
+    ZB --> ZD["Update dim_product current and previous price"]
+    ZC --> ZD
+    T --> Y
+    ZD --> ZE["Product already loaded in this run?"]
+    ZE -->|"yes"| ZF["Skip snapshot, count as duplicate merge"]
+    ZE -->|"no"| ZG["Continue with the next record"]
+
+    ZG --> ZH{"More records?"}
+    ZF --> ZH
+    ZH -->|"yes"| U
+    ZH -->|"no"| ZI{"More sources?"}
+    ZI -->|"yes"| F
+    ZI -->|"no"| ZJ["Detect products unseen for the staleness window"]
+    ZJ --> ZK["Refresh the category-day aggregate"]
+    ZK --> ZL{"Catalog populated and reconciliation enabled?"}
+    ZL -->|"yes"| ZM["Match SKUs, compute price gaps, persist"]
+    ZL -->|"no"| ZN["Skip reconciliation"]
+    ZM --> ZO{"DQ enabled?"}
+    ZN --> ZO
+    ZO -->|"yes"| ZP["Evaluate 12 rules in savepoints, persist outcomes"]
+    ZO -->|"no"| ZQ["Skip quality evaluation"]
+    ZP --> ZR["Compute the severity-weighted score"]
+    ZQ --> ZS["Finalise: counters, duration, warnings"]
+    ZR --> ZS
+    ZS --> ZT{"Blocking critical failure?"}
+    ZT -->|"yes"| ZU(["Status failed"])
+    ZT -->|"no"| ZV{"Any source failed?"}
+    ZV -->|"yes"| ZW(["Status partial"])
+    ZV -->|"no"| ZX(["Status success"])
+    ZX --> ZY(["Return PipelineResult to the caller"])
