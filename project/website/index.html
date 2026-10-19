@@ -1,0 +1,654 @@
+<!doctype html>
+<html lang="en" data-theme="system">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Web-to-Warehouse Product Intelligence Pipeline</title>
+<meta name="description" content="A compliance-first product intelligence platform: 34 permitted web sources, deduplication, a 29-table Kimball star warehouse on PostgreSQL and MySQL, 12 data-quality rules, Airflow orchestration, a 216-operation FastAPI and a React 19 analytics dashboard." />
+<meta property="og:title" content="Web-to-Warehouse Product Intelligence Pipeline" />
+<meta property="og:description" content="Compliant scraping from 34 sources to a dimensional warehouse, with change detection, data quality and a full analytics stack." />
+<meta property="og:type" content="website" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" type="image/png" href="favicon.png" />
+<meta property="og:image" content="logo.png" />
+<style>
+  :root {
+    --brand-50:#eef2ff; --brand-100:#e0e7ff; --brand-200:#c7d2fe; --brand-300:#a5b4fc;
+    --brand-400:#818cf8; --brand-500:#6366f1; --brand-600:#4f46e5; --brand-700:#4338ca;
+    --brand-800:#3730a3; --brand-900:#312e81;
+    --success:#10b981; --success-soft:#d1fae5;
+    --warning:#f59e0b; --warning-soft:#fef3c7;
+    --info:#0ea5e9; --info-soft:#e0f2fe;
+    --bg:#f6f7fb; --surface:#ffffff; --surface-2:#fbfcfe; --surface-3:#f1f4f9;
+    --text:#0f172a; --muted:#475569; --subtle:#64748b; --border:#e2e8f0; --border-strong:#cbd5e1;
+    --shadow:0 1px 2px rgb(15 23 42 / .05), 0 1px 3px rgb(15 23 42 / .06);
+    --shadow-lg:0 12px 32px rgb(15 23 42 / .10);
+    --ring:rgb(99 102 241 / .45);
+  }
+  html[data-theme="dark"] {
+    --bg:#070b18; --surface:#0f1629; --surface-2:#131c33; --surface-3:#1b2540;
+    --text:#e8eefc; --muted:#9aa8c7; --subtle:#7b8aad; --border:#1e2b4d; --border-strong:#2b3a63;
+    --success:#34d399; --success-soft:rgb(16 185 129 / .16);
+    --warning:#fbbf24; --warning-soft:rgb(245 158 11 / .16);
+    --info:#38bdf8; --info-soft:rgb(14 165 233 / .16);
+    --brand-100:rgb(99 102 241 / .18); --brand-200:rgb(99 102 241 / .28);
+    --shadow:0 1px 2px rgb(0 0 0 / .4); --shadow-lg:0 16px 40px rgb(0 0 0 / .6);
+    --ring:rgb(129 140 248 / .5);
+  }
+  * { box-sizing:border-box; border-color:var(--border); scrollbar-width:thin; scrollbar-color:var(--border-strong) transparent }
+  ::-webkit-scrollbar { width:8px; height:8px }
+  ::-webkit-scrollbar-track { background:transparent }
+  ::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:999px; border:2px solid transparent; background-clip:content-box }
+  ::-webkit-scrollbar-thumb:hover { background:var(--subtle); border:2px solid transparent; background-clip:content-box }
+  html { scrollbar-gutter:stable; scroll-behavior:auto }
+  [data-smooth-scroll] { scroll-behavior:smooth }
+  body {
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings:'cv02','cv03','cv04','tnum'; -webkit-font-smoothing:antialiased; line-height:1.6;
+  }
+  * { transition: background-color .12s ease, border-color .12s ease, color .12s ease }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior:auto } * { transition:none !important } }
+  .wrap { max-width:1180px; margin:0 auto; padding:0 20px }
+  a { color:var(--brand-600); text-decoration:none }
+  html[data-theme="dark"] a { color:var(--brand-300) }
+  a:hover { text-decoration:underline }
+  code, .mono { font-family:ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace }
+
+  /* nav */
+  header.nav { position:sticky; top:0; z-index:50; background:color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter:blur(10px); border-bottom:1px solid var(--border) }
+  .nav-in { display:flex; align-items:center; gap:16px; height:60px }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:700; color:var(--text); min-width:0 }
+  .brand svg { width:30px; height:30px; flex:none }
+  .brand small { display:block; font-weight:500; font-size:11px; color:var(--subtle); line-height:1 }
+  .nav-links { display:none; gap:4px; margin-left:auto; align-items:center }
+  @media (min-width:900px){ .nav-links{display:flex} }
+  .nav-links a { color:var(--muted); font-size:13.5px; font-weight:500; padding:6px 10px; border-radius:8px }
+  .nav-links a:hover { background:var(--surface-3); color:var(--text); text-decoration:none }
+  .spacer { margin-left:auto }
+  @media (min-width:900px){ .spacer{margin-left:12px} }
+  .icon-btn { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:9px; border:1px solid var(--border); background:var(--surface); color:var(--muted); cursor:pointer }
+  .icon-btn:hover { background:var(--surface-3); color:var(--text) }
+
+  /* hero */
+  .hero { padding:72px 0 56px; text-align:center;
+    background:
+      radial-gradient(1000px 400px at 50% -80px, color-mix(in srgb, var(--brand-500) 22%, transparent), transparent),
+      radial-gradient(700px 320px at 90% 0%, color-mix(in srgb, var(--info) 14%, transparent), transparent);
+  }
+  .eyebrow { display:inline-flex; align-items:center; gap:8px; padding:5px 12px; border-radius:999px; background:var(--brand-100); color:var(--brand-700); font-size:12px; font-weight:600; letter-spacing:.02em }
+  html[data-theme="dark"] .eyebrow { color:var(--brand-300) }
+  .hero h1 { margin:18px 0 0; font-size:clamp(2rem, 5.2vw, 3.4rem); line-height:1.08; letter-spacing:-.025em; font-weight:800; max-width:19ch; margin-inline:auto }
+  .hero .grad { background:linear-gradient(100deg, var(--brand-500), var(--info)); -webkit-background-clip:text; background-clip:text; color:transparent }
+  .hero p.lead { margin:18px auto 0; max-width:62ch; color:var(--muted); font-size:clamp(1rem,1.6vw,1.13rem) }
+  .cta { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:28px }
+  .btn { display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:10px; font-weight:600; font-size:14px; border:1px solid transparent }
+  .btn-primary { background:var(--brand-600); color:#fff }
+  .btn-primary:hover { background:var(--brand-700); text-decoration:none }
+  .btn-ghost { background:var(--surface); color:var(--text); border-color:var(--border) }
+  .btn-ghost:hover { background:var(--surface-3); text-decoration:none }
+
+  /* stats */
+  .stats { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:44px }
+  @media (min-width:760px){ .stats{grid-template-columns:repeat(4,1fr)} }
+  .stat { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px; box-shadow:var(--shadow) }
+  .stat b { display:block; font-size:1.85rem; line-height:1.1; font-variant-numeric:tabular-nums; letter-spacing:-.02em }
+  .stat span { font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--subtle); font-weight:600 }
+
+  section { padding:52px 0 }
+  .sec-head { max-width:66ch; margin-bottom:26px }
+  .sec-head h2 { margin:0; font-size:clamp(1.4rem,2.8vw,1.9rem); letter-spacing:-.02em; line-height:1.2 }
+  .sec-head p { margin:8px 0 0; color:var(--muted) }
+  .kicker { font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--brand-600) }
+  html[data-theme="dark"] .kicker { color:var(--brand-300) }
+
+  /* flow */
+  .flow { display:grid; gap:10px; grid-template-columns:1fr }
+  @media (min-width:680px){ .flow{grid-template-columns:repeat(3,1fr)} }
+  @media (min-width:1100px){ .flow{grid-template-columns:repeat(9,1fr)} }
+  .step { position:relative; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px; box-shadow:var(--shadow) }
+  .step .n { display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:8px; background:var(--brand-600); color:#fff; font-size:11px; font-weight:700 }
+  .step h3 { margin:8px 0 4px; font-size:13px }
+  .step p { margin:0; font-size:11.5px; color:var(--muted); line-height:1.45 }
+  .step .arrow { display:none }
+  @media (min-width:1100px){
+    .step .arrow { display:block; position:absolute; top:50%; right:-11px; transform:translateY(-50%); color:var(--brand-400); z-index:2; font-size:16px }
+    .step:last-child .arrow { display:none }
+  }
+
+  /* grid cards */
+  .grid { display:grid; gap:12px; grid-template-columns:1fr }
+  @media (min-width:680px){ .grid{grid-template-columns:repeat(2,1fr)} }
+  @media (min-width:1024px){ .grid.three{grid-template-columns:repeat(3,1fr)} }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px; box-shadow:var(--shadow) }
+  .card h3 { margin:12px 0 6px; font-size:15px }
+  .card p { margin:0; font-size:13px; color:var(--muted); line-height:1.55 }
+  .ico { display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:11px; background:var(--brand-100); color:var(--brand-600) }
+  html[data-theme="dark"] .ico { color:var(--brand-300) }
+  .ico svg { width:19px; height:19px }
+  ul.ticks { margin:10px 0 0; padding:0; list-style:none; display:grid; gap:6px }
+  ul.ticks li { position:relative; padding-left:20px; font-size:12.5px; color:var(--muted) }
+  ul.ticks li::before { content:''; position:absolute; left:2px; top:7px; width:8px; height:8px; border-radius:3px; background:var(--success) }
+
+  /* badges */
+  .badges { display:flex; flex-wrap:wrap; gap:7px }
+  .badge { display:inline-flex; align-items:center; gap:6px; padding:6px 11px; border-radius:9px; background:var(--surface); border:1px solid var(--border); font-size:12.5px; font-weight:600; color:var(--muted) }
+  .badge b { color:var(--text); font-weight:700 }
+
+  /* table */
+  .table-wrap { overflow:auto; border:1px solid var(--border); border-radius:14px; background:var(--surface); box-shadow:var(--shadow) }
+  table { width:100%; border-collapse:collapse; min-width:640px }
+  th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--subtle); padding:12px 14px; border-bottom:1px solid var(--border); background:var(--surface-3); white-space:nowrap }
+  td { padding:12px 14px; font-size:13px; border-bottom:1px solid var(--border); vertical-align:top }
+  tr:last-child td { border-bottom:0 }
+  td .mono { font-size:12px; color:var(--muted) }
+  .pill { display:inline-block; padding:3px 9px; border-radius:999px; font-size:11px; font-weight:600; background:var(--surface-3); color:var(--muted) }
+
+  pre { margin:0; padding:14px; border-radius:12px; background:var(--surface-3); overflow:auto; font-size:12px; line-height:1.6; color:var(--muted) }
+  .cols { display:grid; gap:12px; grid-template-columns:1fr }
+  @media (min-width:900px){ .cols{grid-template-columns:1fr 1fr} }
+
+  footer { border-top:1px solid var(--border); padding:30px 0 40px; color:var(--subtle); font-size:13px }
+  .foot-in { display:flex; gap:14px; flex-wrap:wrap; align-items:center; justify-content:space-between }
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="wrap nav-in">
+    <div class="brand">
+      <img src="logo.png" alt="Product Intelligence logo" width="30" height="30" style="width:30px;height:30px;flex:none;border-radius:8px" />
+      <span>Product Intelligence<small>Web-to-Warehouse Pipeline</small></span>
+    </div>
+    <nav class="nav-links">
+      <a href="#pipeline">Pipeline</a>
+      <a href="#sources">Sources</a>
+      <a href="#warehouse">Warehouse</a>
+      <a href="#quality">Quality</a>
+      <a href="#api">API</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#team">Team</a>
+      <a href="#faq">FAQ</a>
+      <a href="#quickstart">Quick start</a>
+    </nav>
+    <div class="spacer"></div>
+    <button class="icon-btn" id="theme" aria-label="Toggle colour theme" title="Toggle light / dark / system">
+      <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="17" height="17"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <span class="eyebrow">DEPI · Data Engineering · MIT licensed</span>
+    <h1>From the public web to a <span class="grad">dimensional warehouse</span></h1>
+    <p class="lead">
+      A compliance-first product intelligence platform. It collects permitted product data from public
+      APIs and websites, standardises and deduplicates it, loads a Kimball star schema on PostgreSQL
+      and MySQL, measures quality across 12 rules, answers the market questions with SQL, and serves
+      everything through a documented REST API and a React analytics dashboard.
+    </p>
+    <div class="cta">
+      <a class="btn btn-primary" href="#quickstart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><path d="m5 3 14 9-14 9z"/></svg>
+        Run it locally
+      </a>
+      <a class="btn btn-ghost" href="#api">Explore the API</a>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><b>29</b><span>Warehouse tables</span></div>
+      <div class="stat"><b>23</b><span>Analytical views</span></div>
+      <div class="stat"><b>216</b><span>REST operations</span></div>
+      <div class="stat"><b>583</b><span>Automated tests</span></div>
+      <div class="stat"><b>34</b><span>Ingestion sources</span></div>
+      <div class="stat"><b>550</b><span>Catalogued features</span></div>
+      <div class="stat"><b>12</b><span>Data-quality rules</span></div>
+      <div class="stat"><b>v1.10</b><span>Current release</span></div>
+    </div>
+  </div>
+</div>
+
+<section id="pipeline">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">The pipeline</span>
+      <h2>Nine stages from retrieval to insight</h2>
+      <p>Every stage is idempotent, timed and auditable. A failing source never kills a run, and each
+         run writes a single row of counters, timings and quality results.</p>
+    </div>
+    <div class="flow">
+      <div class="step"><span class="n">1</span><span class="arrow">→</span><h3>Extract</h3><p>robots.txt gate (RFC 9309), rate limits, circuit breaker, ETag revalidation, per-request audit.</p></div>
+      <div class="step"><span class="n">2</span><span class="arrow">→</span><h3>Stage</h3><p>Raw payloads land resumably with validity flags and reject reasons.</p></div>
+      <div class="step"><span class="n">3</span><span class="arrow">→</span><h3>Transform</h3><p>29-step cleaner: names, categories, 18+ currencies to USD, ratings, availability.</p></div>
+      <div class="step"><span class="n">4</span><span class="arrow">→</span><h3>Resolve</h3><p>Fingerprints plus 4-signal fuzzy matching at a 0.90 threshold.</p></div>
+      <div class="step"><span class="n">5</span><span class="arrow">→</span><h3>Load</h3><p>Idempotent upserts into 5 dimensions; append-only price snapshots.</p></div>
+      <div class="step"><span class="n">6</span><span class="arrow">→</span><h3>Detect</h3><p>Price changes with magnitude bands, new/removed products, category drift.</p></div>
+      <div class="step"><span class="n">7</span><span class="arrow">→</span><h3>Aggregate</h3><p>Per-category daily rollups, global and per-source.</p></div>
+      <div class="step"><span class="n">8</span><span class="arrow">→</span><h3>Reconcile</h3><p>Internal catalog SKUs matched to market listings with price gaps.</p></div>
+      <div class="step"><span class="n">9</span><span class="arrow"></span><h3>Quality</h3><p>12 rules across six dimensions; weighted 0–100 score persisted per run.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="sources">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Ingestion</span>
+      <h2>34 sources, one compliance gate</h2>
+      <p>Every adapter — JSON APIs, two HTML scrapers and one offline fallback — passes the same
+         robots.txt check, rate limiter, circuit breaker and audit log. Verified live: 27 return
+         records, 5 are honestly empty, 1 refused by its own terms, 1 synthetic fallback.</p>
+    </div>
+    <div class="grid three">
+      <div class="card">
+        <h3>Retail &amp; grocery</h3>
+        <ul class="ticks">
+          <li>DummyJSON products + recipes, Platzi, Makeup, CheapShark, Steam</li>
+          <li>Predic8, Open Food Facts Prices, FreeAPI, RESTful Objects</li>
+          <li>ScrapeMe.live sandbox (WooCommerce practice shop)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Books &amp; texts</h3>
+        <ul class="ticks">
+          <li>Gutendex, Open Library (subjects feed), Google Books (key)</li>
+          <li>Internet Archive texts (advancedsearch feed)</li>
+          <li>books.toscrape.com — BeautifulSoup <b>and</b> Scrapy engines</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Media, games &amp; cards</h3>
+        <ul class="ticks">
+          <li>TVMaze shows, iTunes apps &amp; ebooks, MMOBomb</li>
+          <li>Pokemon TCG, Scryfall, YGOPRODeck, Switch catalogue, coffee menus</li>
+          <li>CocktailDB, MealDB, Kraken tickers</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <p style="margin:0">Rejected with evidence — MercadoLibre (robots <code class="mono">Disallow: /</code>),
+      ITBookStore (all endpoints 404), Jikan (unreachable), BoardGameGeek (refuses programmatic access),
+      Stooq (terms forbid), FakeStore (dead host, dropped from defaults). An empty or refused source
+      degrades a run to <code class="mono">partial</code>, never to failure. Full table in the README
+      source catalog.</p>
+    </div>
+  </div>
+</section>
+
+<section id="warehouse">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Data model</span>
+      <h2>A Kimball star schema that runs on two databases</h2>
+      <p>One SQLAlchemy 2.0 model set targets PostgreSQL 16 and MySQL 8.4 with identical DDL and
+         analytics, verified by cross-dialect CI jobs.</p>
+    </div>
+    <div class="cols">
+      <div class="card">
+        <h3>Dimensions &amp; facts</h3>
+        <ul class="ticks">
+          <li><b>dim_product</b> — fingerprints, match strategy and score, first/last seen</li>
+          <li><b>dim_category</b> — normalised taxonomy with hierarchy paths</li>
+          <li><b>dim_source / dim_date / dim_currency</b> — conformed axes</li>
+          <li><b>fact_price_snapshot</b> — every observation, keyed by product and run</li>
+          <li><b>chg_price_change / chg_product_event</b> — the change feed</li>
+          <li><b>fact_catalog_snapshot</b> — internal SKU versus market matching</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>23 analytical views</h3>
+        <ul class="ticks">
+          <li><b>vw_product_current / vw_price_history</b> — current state and full trajectories</li>
+          <li><b>vw_price_changes / vw_top_movers</b> — movement with significance bands</li>
+          <li><b>vw_new_products / vw_removed_products</b> — lifecycle</li>
+          <li><b>vw_category_price_index / vw_brand_summary</b> — market structure</li>
+          <li><b>vw_source_coverage / vw_http_audit</b> — compliance evidence</li>
+          <li><b>vw_quality_latest / vw_daily_kpis</b> — operational health</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="quality">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Data quality &amp; compliance</span>
+      <h2>Trust is engineered, not assumed</h2>
+    </div>
+    <div class="grid three">
+      <div class="card">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3 4 6v6c0 5 3.4 8.4 8 9 4.6-.6 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg></span>
+        <h3>12 rules, 6 dimensions</h3>
+        <p>Completeness, validity, consistency, uniqueness, timeliness and accuracy. Each rule records an
+           observed value, an expectation, a pass rate and a human-readable message.</p>
+      </div>
+      <div class="card">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="17" r="3"/></svg></span>
+        <h3>Compliance by construction</h3>
+        <p>robots.txt is parsed and honoured per request, sources are terms-allow-listed, rate limits and
+           crawl delays are enforced, and every outbound call is written to an HTTP audit log.</p>
+      </div>
+      <div class="card">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4v16h16"/><path d="m7 14 3-4 3 3 4-6"/></svg></span>
+        <h3>Scored and gated</h3>
+        <p>Each run produces a 0–100 quality score. Only critical failures stop the Airflow DAG, so a
+           single anomalous rule never silently blocks the pipeline.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="api">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">API</span>
+      <h2>216 documented operations, two query surfaces</h2>
+      <p>FastAPI with OpenAPI 3.1, consistent error envelopes, pagination, facets, GZip, request timing
+         headers, rate limiting, JWT rotation, API keys and three-role RBAC.</p>
+    </div>
+    <div class="cols">
+      <div class="card">
+        <h3>Read-only query lab</h3>
+        <p>Run <code class="mono">SELECT</code>, <code class="mono">WITH</code> and
+           <code class="mono">EXPLAIN</code> over all 23 views. Writes and multi-statement payloads are
+           rejected before execution.</p>
+        <pre style="margin-top:12px">curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8000/api/v1/analytics/kpi?days=30"
+
+curl -X POST http://localhost:8000/api/v1/queries/execute \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"sql":"SELECT category_name, COUNT(*) n
+       FROM vw_product_current GROUP BY 1"}'</pre>
+      </div>
+      <div class="card">
+        <h3>Aggregate builder</h3>
+        <p>Compose group-by, six aggregate functions and fifteen operators over 11 entities. Identifiers
+           come from a server-side whitelist and values are bind parameters, so injection is impossible.</p>
+        <pre style="margin-top:12px">curl -X POST http://localhost:8000/api/v1/builder/query \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"entity":"products",
+       "group_by":["category_name"],
+       "aggregates":[{"function":"count"},
+                     {"function":"avg","column":"price_usd","alias":"avg_price"}],
+       "sort":[{"column":"avg_price","direction":"desc"}]}'</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="dashboard">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Dashboard</span>
+      <h2>21 screens, light and dark, from 320&nbsp;px up</h2>
+      <p>React 19, TypeScript, Vite, Tailwind, TanStack Query and Recharts. A command palette
+         (<kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>K</kbd>), a collapsible sidebar that becomes an off-canvas
+         drawer, six accent colours, three densities, reduced-motion support and a PWA install prompt.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>Analytics screens</h3>
+        <ul class="ticks">
+          <li>Dashboard — eight KPI tiles, market trend, movers, pipeline health, quality posture</li>
+          <li>Analytics — category price index, brand leaderboards, radar comparison, source matrix</li>
+          <li>Changes — price moves, lifecycle, new, removed, recategorised and drift in six tabs</li>
+          <li>Products — faceted search, column picker, history charts, duplicate evidence</li>
+          <li>Quality, Sources, Pipeline, Catalog, Query lab and Builder</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Workspace screens</h3>
+        <ul class="ticks">
+          <li>Features — searchable catalogue of everything the platform ships</li>
+          <li>Account — profile, appearance, security, API keys, personal activity, data export, deletion</li>
+          <li>Alerts — threshold rules with in-app notifications</li>
+          <li>Users, Settings and Audit — admin-only, permission-gated</li>
+          <li>Keyboard-first navigation and accessible focus management throughout</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="team">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Team</span>
+      <h2>DEPI Data Engineering · six members, one lead</h2>
+      <p>The team is served as structured data (<code class="mono">GET /api/v1/meta/team</code>) from
+         <code class="mono">app/core/team.py</code> — the same catalogue-as-code pattern as the features.</p>
+    </div>
+    <div class="grid three">
+      <div class="card">
+        <h3>👑 Ahmed (78102) — 28%</h3>
+        <p>Team Lead + Backend/API + Documentation + 9 ETL Stages Owner. FastAPI platform, 9-stage ETL,
+           integration transport, catalogues as code, 31 docs, releases, quality gates, every review.</p>
+      </div>
+      <div class="card">
+        <h3>Ahmed Abd alla — 15%</h3>
+        <p>Ingestion &amp; Compliance Lead. robots.txt gate, 34 adapters, rate limiting, conditional GET, audit log.</p>
+      </div>
+      <div class="card">
+        <h3>Ahmed Medhat — 14%</h3>
+        <p>ETL &amp; Cleaning Lead. 29-step cleaner, 18+ currencies, 4-signal fuzzy dedupe.</p>
+      </div>
+      <div class="card">
+        <h3>Eng. Alaa Nasser — 14%</h3>
+        <p>Database &amp; Data Quality Lead. 29 tables, 23 views, 12 DQ rules, change detection.</p>
+      </div>
+      <div class="card">
+        <h3>legecy007 — 15%</h3>
+        <p>Frontend / Dashboard Lead. React 19, 21 screens, PWA, four themes, mobile-first.</p>
+      </div>
+      <div class="card">
+        <h3>Mennatullah Ahmed — 14%</h3>
+        <p>DevOps &amp; Orchestration Lead. Airflow DAG, Docker stack, CI/CD, run scripts.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="stack">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Technology</span>
+      <h2>The stack, and why</h2>
+    </div>
+    <div class="badges">
+      <span class="badge">Python <b>3.12</b></span>
+      <span class="badge">FastAPI <b>0.142</b></span>
+      <span class="badge">SQLAlchemy <b>2.0</b></span>
+      <span class="badge">Pydantic <b>v2</b></span>
+      <span class="badge">PostgreSQL <b>16</b></span>
+      <span class="badge">MySQL <b>8.4</b></span>
+      <span class="badge">Airflow <b>2.10</b></span>
+      <span class="badge">Docker Compose</span>
+      <span class="badge">BeautifulSoup <b>&amp; lxml</b></span>
+      <span class="badge">Scrapy <b>spider engine</b></span>
+      <span class="badge">httpx</span>
+      <span class="badge">React <b>19</b></span>
+      <span class="badge">TypeScript <b>5</b></span>
+      <span class="badge">Vite <b>6</b></span>
+      <span class="badge">Tailwind CSS <b>3</b></span>
+      <span class="badge">TanStack Query <b>5</b></span>
+      <span class="badge">Recharts <b>2</b></span>
+      <span class="badge">lucide-react</span>
+      <span class="badge">pytest</span>
+      <span class="badge">Ruff &amp; mypy</span>
+      <span class="badge">GitHub Actions</span>
+    </div>
+  </div>
+</section>
+
+<section id="quickstart">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Quick start</span>
+      <h2>From clone to dashboard in three commands</h2>
+    </div>
+    <div class="card">
+      <pre>git clone &lt;this-repository&gt; web-to-warehouse &amp;&amp; cd web-to-warehouse
+cp .env.example .env
+
+# The one file: verify with real data, then launch the stack
+./run.sh              # full verify + Docker stack + live data
+./run.sh --verify-only --quick   # verify only, no Docker
+
+# Option A - the full Docker stack (API, PostgreSQL, MySQL, Airflow, dashboard)
+make up            # start every service
+make bootstrap     # create the 29 tables and 23 views
+make demo-postgres # load a realistic demo dataset
+
+# Option B - local virtualenv for the backend, npm for the frontend
+make install &amp;&amp; make frontend-install
+make serve         # API on :8000 (docs at /docs)
+make frontend-dev  # dashboard on :5173</pre>
+      <div class="badges" style="margin-top:14px">
+        <span class="badge">Demo login <b>admin@example.com / Admin@12345</b></span>
+        <span class="badge">Analyst <b>analyst@example.com</b></span>
+        <span class="badge">Viewer <b>viewer@example.com</b></span>
+        <span class="badge">One-command check <b>make everything</b></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Feature catalogue</span>
+      <h2>550 features, 46 areas — same source as the app</h2>
+      <p style="color:var(--muted);max-width:62ch">The dashboard's Features screen, <code>GET /api/v1/meta/features</code> and this page all read <code>app/core/features.py</code>. Latest: TVMaze + Internet Archive + DummyJSON recipes (34 adapters), a Scrapy engine beside BeautifulSoup, conditional-GET revalidation, real-only pipeline defaults, a 12-tab Account, lossless theme memory, modern scrollbars, one-command <code>./run.sh</code> verification and a team API.</p>
+    </div>
+    <div class="badges">
+      <span class="badge">Builder Max <b>32</b></span>
+      <span class="badge">Account Max <b>24</b></span>
+      <span class="badge">Catalog import <b>new</b></span>
+      <span class="badge">Design &amp; mobile Max <b>25</b></span>
+      <span class="badge">Platform Max <b>20</b></span>
+      <span class="badge">Forecasting <b>16</b></span>
+      <span class="badge">Jobs <b>11</b></span>
+      <span class="badge">Realtime <b>10</b></span>
+      <span class="badge">Reports <b>14</b></span>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">FAQ</span>
+      <h2>Asked in every review</h2>
+      <p>Full answers with SQL in <code class="mono">docs/23_glossary_and_faq.md</code>.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>Does it actually respect robots.txt?</h3>
+        <p>Yes — and the evidence is queryable. Every attempt, including blocked ones, lands in
+           <code class="mono">ingestion_http_log</code>. A row with <code class="mono">robots_allowed = false</code>
+           and no status code is a request the crawler declined to make. The Audit screen shows the same data.</p>
+      </div>
+      <div class="card">
+        <h3>What happens if a source fails?</h3>
+        <p>The run continues as <code class="mono">partial</code> with a warning. Five consecutive host
+           failures trip the circuit breaker (zero further network I/O). Open Library's old
+           <code class="mono">/search.json</code> path was refused this way — the source now uses the
+           allowed <code class="mono">/subjects</code> feed instead.</p>
+      </div>
+      <div class="card">
+        <h3>Can I re-run a pipeline safely?</h3>
+        <p>Yes. Dimensions merge on natural keys, staging is per-run, facts are keyed by grain and DQ
+           verdicts by <code class="mono">(run_id, rule_id)</code>. Re-running merges, never duplicates.</p>
+      </div>
+      <div class="card">
+        <h3>Is the Query Lab safe?</h3>
+        <p>Yes. Only <code class="mono">SELECT</code>, <code class="mono">WITH</code> and
+           <code class="mono">EXPLAIN</code> over the 23 analytical views; writes and multi-statements
+           are rejected before execution, rows are capped.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="releases">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Releases</span>
+      <h2>Versioned, tagged, reproducible</h2>
+      <p>Semantic versions, Keep-a-Changelog, annotated tags and GitHub releases. Full playbook in
+         <code class="mono">docs/31_releases.md</code>.</p>
+    </div>
+    <div class="table-wrap"><table>
+      <tr><th>Version</th><th>Theme</th></tr>
+      <tr><td><span class="pill">v1.10.0</span></td><td>Ingestion Max (TVMaze, Archive.org, recipes), Scrapy engine, conditional GET, team API</td></tr>
+      <tr><td><span class="pill">v1.9.0</span></td><td>Real-only defaults, theme memory, modern scrollbars, Account Max, run.sh</td></tr>
+      <tr><td><span class="pill">v1.8.0</span></td><td>Query power Max (HAVING, OR logic, saved-view lifecycle, query history)</td></tr>
+    </table></div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">About</span>
+      <h2>Compliance-first, warehouse-grade, free forever</h2>
+    </div>
+    <div class="card">
+      <p style="margin:0;color:var(--muted)">A retailer needs the market picture every morning. This pipeline replaces manual copy-paste with robots-gated ingestion from 34 sources, 29-step cleaning, fuzzy dedupe, a 29-table Kimball star on PostgreSQL + MySQL, 12 DQ rules, Airflow orchestration, forecasting, webhooks, backfill and a 21-screen React dashboard — no paid APIs, SQLite-runnable tests, one-command verification.</p>
+      <div class="badges" style="margin-top:14px">
+        <span class="badge">Topics <b>etl · airflow · fastapi · react · postgres · mysql · data-quality · scraping · warehouse · dashboard</b></span>
+        <span class="badge">Releases <b>v1.9.0 → v1.10.0</b></span>
+        <span class="badge">License <b>MIT</b></span>
+        <span class="badge">Track <b>DEPI Data Engineering</b></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-in">
+    <span>Web-to-Warehouse Product Intelligence Pipeline · built for a retailer's morning market picture.</span>
+    <span>MIT licensed · DEPI Data Engineering · 550 features · 29 tables · 23 views · 216 API ops · 34 sources</span>
+  </div>
+</footer>
+
+<script>
+  // Theme: system | light | dark, persisted, applied before first paint.
+  (function () {
+    var KEY = 'pip.theme';
+    var stored = null;
+    try { stored = localStorage.getItem(KEY); } catch (e) {}
+    var mode = stored || 'system';
+    function systemDark() { return window.matchMedia('(prefers-color-scheme: dark)').matches; }
+    function apply() {
+      var dark = mode === 'dark' || (mode === 'system' && systemDark());
+      document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      var meta = document.querySelector('meta[name="color-scheme"]');
+      if (meta) meta.setAttribute('content', dark ? 'dark light' : 'light dark');
+    }
+    apply();
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    if (mq.addEventListener) mq.addEventListener('change', function () { if (mode === 'system') apply(); });
+
+    var ICONS = {
+      light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+      dark: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+      system: '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>'
+    };
+    var button = document.getElementById('theme');
+    var icon = document.getElementById('themeIcon');
+    var ORDER = ['system', 'light', 'dark'];
+    function paintIcon() { icon.innerHTML = ICONS[mode]; }
+    paintIcon();
+    button.addEventListener('click', function () {
+      mode = ORDER[(ORDER.indexOf(mode) + 1) % ORDER.length];
+      try { localStorage.setItem(KEY, mode); } catch (e) {}
+      apply(); paintIcon();
+      button.setAttribute('title', 'Theme: ' + mode + ' (click to change)');
+    });
+    button.setAttribute('title', 'Theme: ' + mode + ' (click to change)');
+  })();
+</script>
+</body>
+</html>

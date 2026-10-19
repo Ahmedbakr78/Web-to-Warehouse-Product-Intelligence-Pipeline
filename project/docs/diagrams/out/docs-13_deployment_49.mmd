@@ -1,0 +1,41 @@
+
+flowchart TB
+    subgraph BACK["Backend package app"]
+        direction LR
+        CORE["app.core<br/>config, db, errors, logging"]
+        ING["app.ingestion<br/>base, cleaning, dedupe,<br/>robots, ratelimit, http_client, sources"]
+        ETL["app.etl<br/>pipeline, loader, dq,<br/>catalog_reconcile, bootstrap, seed"]
+        ANA["app.analytics<br/>service"]
+        API["app.api<br/>main, deps, security,<br/>schemas, 16 routers"]
+        MODELS["app.models<br/>base, dimensions, facts,<br/>operations, catalog, app_users"]
+        CLIM["app.cli<br/>main"]
+    end
+
+    subgraph ASSETS["Repository assets"]
+        SQL[("db/views.sql<br/>20 views")]
+        DAG["dags/product_intelligence_pipeline.py"]
+        MK["Makefile"]
+        ENV[(".env.example")]
+        SMOKE["scripts/api_smoke.py"]
+        CFG["pyproject.toml"]
+    end
+
+    CORE --> MODELS
+    ING --> CORE
+    ING --> MODELS
+    ETL --> CORE
+    ETL --> ING
+    ETL --> MODELS
+    ANA --> MODELS
+    API --> ANA
+    API --> ETL
+    API --> MODELS
+    API --> CORE
+    CLIM --> ETL
+    CLIM --> API
+    CLIM --> CORE
+    ETL --> SQL
+    MK --> CLIM
+    MK --> DAG
+    SMOKE --> API
+    CFG --> CORE

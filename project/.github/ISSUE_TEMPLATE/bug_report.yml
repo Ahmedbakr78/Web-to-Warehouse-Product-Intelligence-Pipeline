@@ -1,0 +1,35 @@
+# Bug report
+
+<!-- Thanks for taking the time. A precise report here is worth ten vague ones. -->
+
+**What happened**
+
+<!-- The observed behaviour. Include the exact error message or screen. -->
+
+**What you expected**
+
+**How to reproduce**
+
+1.
+2.
+3.
+
+**Environment**
+
+| | |
+| --- | --- |
+| Component | <!-- backend / frontend / ingestion / dags / docs --> |
+| Commit | <!-- `git rev-parse --short HEAD` --> |
+| Database | <!-- postgres / mysql / sqlite --> |
+| Trigger | <!-- CLI / Airflow / API / dashboard --> |
+
+**Logs**
+
+```
+paste relevant output here — make sure to remove any secrets
+```
+
+**Checklist**
+
+- [ ] I searched existing issues for this
+- [ ] I removed credentials, tokens and personal data from anything pasted above

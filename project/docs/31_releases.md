@@ -1,0 +1,87 @@
+# 31 — Releases: Versioning, Tagging & GitHub Delivery
+
+How this project ships: one version number in exactly one place, a changelog
+entry per release, an annotated tag, and a GitHub release with notes. The flow
+is designed so a release can never be half-done.
+
+## Versioning
+
+Semantic versioning (`MAJOR.MINOR.PATCH`), single source in `VERSION`:
+
+- `MAJOR` — breaking API or schema change.
+- `MINOR` — new sources, endpoints, screens (e.g. 1.9.0 → 1.10.0).
+- `PATCH` — fixes with no new surface.
+
+`scripts/sync_version.py` propagates `VERSION` into `pyproject.toml`,
+`frontend/package.json` and the app settings — never edit those by hand:
+
+```bash
+printf '1.10.0' > VERSION
+.venv/bin/python scripts/sync_version.py
+```
+
+## Release flow
+
+```mermaid
+flowchart LR
+    V["1 · Bump VERSION<br/>+ sync_version.py"] --> C["2 · CHANGELOG entry<br/>Keep-a-Changelog"]
+    C --> S["3 · Stats sync<br/>project_stats + check_stats"]
+    S --> T["4 · Full verify<br/>./run.sh --verify-only"]
+    T --> G["5 · Commit + tag<br/>git tag -a vX.Y.Z"]
+    G --> R["6 · Push + release<br/>gh release create"]
+```
+
+Commands (owner runs these — nobody else can release for you):
+
+```bash
+# 1-2: version + changelog (Unreleased section becomes the new version)
+printf '1.10.0' > VERSION
+.venv/bin/python scripts/sync_version.py
+
+# 3: re-measure every structural figure; fail loudly on drift
+.venv/bin/python scripts/check_stats.py docs/stats.json --write
+.venv/bin/python scripts/project_stats.py --sync-readme
+.venv/bin/python scripts/check_stats.py docs/stats.json
+
+# 4: prove it (lint, tests, live sources, real pipeline, frontend, compose)
+./run.sh --verify-only
+
+# 5-6: commit, tag, publish
+git add -A && git commit -m "Release v1.10.0 — <one-line theme>"
+git tag -a v1.10.0 -m "v1.10.0 — <one-line theme>"
+git push origin main v1.10.0
+gh release create v1.10.0 --title "v1.10.0" --notes-file CHANGELOG.md
+```
+
+## GitHub About box (paste-ready)
+
+**Description:**
+
+> End-to-end product intelligence pipeline: permitted web/API ingestion (34
+> sources) → cleaning → duplicate detection → PostgreSQL/MySQL warehouse with
+> price history → SQL analytics → Airflow orchestration → FastAPI (216 ops) +
+> React dashboard. DEPI Data Engineering capstone.
+
+**Topics:**
+
+```
+web-scraping  beautifulsoup  scrapy  etl  data-engineering  airflow  postgresql
+fastapi  python  data-quality  deduplication  price-tracking  data-warehouse
+docker  plotly  streamlit  rest-api  depi  data-pipeline  sql-analytics
+```
+
+**Website:** link `website/index.html` (or the Pages URL once enabled).
+
+**Visibility:** Repo → Settings → General → Danger Zone → Change visibility →
+Make private (or `gh repo edit <repo> --visibility private
+--accept-visibility-change-consequences`).
+
+## History
+
+| Version | Theme |
+|---|---|
+| 1.10.0 | Ingestion Max: TVMaze + Archive.org + DummyJSON recipes, Scrapy engine, conditional GET, team API |
+| 1.9.0 | Real-only defaults, theme memory, modern scrollbars, Account Max, run.sh |
+| 1.8.0 | Query power Max (HAVING, OR logic, saved-view lifecycle, query history) |
+
+Full detail per version: `CHANGELOG.md`.

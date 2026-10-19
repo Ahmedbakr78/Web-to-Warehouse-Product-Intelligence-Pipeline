@@ -1,0 +1,14 @@
+
+stateDiagram-v2
+    [*] --> Pending: schedule 03:00 or manual trigger
+    Pending --> Running: pre-flight guards pass
+    Pending --> Skipped: database unreachable
+    Pending --> Skipped: robots.txt forbids every source
+    Running --> Running: extract → clean → stage → load
+    Running --> Validating: 9 stages finished
+    Validating --> Succeeded: 12 DQ rules, no critical failure
+    Validating --> Failed: critical rule failed
+    Running --> Failed: unexpected exception after retries
+    Succeeded --> [*]: etl_run closed, notifications raised
+    Failed --> [*]: etl_run stores the error message
+    Skipped --> [*]: guards short-circuit the branch

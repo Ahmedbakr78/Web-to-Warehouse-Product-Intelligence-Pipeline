@@ -1,0 +1,58 @@
+
+gantt
+    title Web-to-Warehouse Product Intelligence Pipeline - 12 week delivery plan
+    dateFormat YYYY-MM-DD
+    axisFormat %b %d
+    todayMarker off
+
+    section Phase 1 - Initiation (W1-W2)
+    Requirements gathering and stakeholder analysis      :req, 2026-01-05, 10d
+    Literature review                                    :lit, 2026-01-05, 12d
+    Project proposal and plan sign-off                   :plan, after req, 3d
+    Environment bring-up and repository setup            :env, 2026-01-07, 5d
+
+    section Phase 2 - Design (W3-W4)
+    Logical and physical database design                 :dbdesign, 2026-01-19, 8d
+    Data flow and behaviour diagrams                     :diagrams, 2026-01-21, 6d
+    Use cases, architecture and NFRs                     :arch, 2026-01-22, 7d
+    ERD review with supervisor                           :erdrev, after dbdesign, 2d
+
+    section Phase 3 - Ingestion (W4-W6)
+    Compliance layer robots, rate limit, cache, audit    :comp, 2026-01-26, 8d
+    Cleaning and currency normalisation                  :clean, 2026-02-02, 7d
+    API source connectors                                :apisrc, 2026-02-04, 6d
+    HTML scraper for books.toscrape.com                  :scrape, 2026-02-06, 6d
+    Offline synthetic source                             :synth, 2026-02-02, 4d
+
+    section Phase 4 - Warehouse (W6-W8)
+    Deduplication engine and blocking                    :dedupe, 2026-02-16, 9d
+    Loader, change detection and aggregates              :loader, 2026-02-19, 9d
+    Analytical views and analytics service               :views, 2026-02-23, 8d
+    Data-quality framework                               :dq, 2026-03-02, 6d
+
+    section Phase 5 - Serving (W8-W10)
+    FastAPI application, auth, RBAC, schemas             :api, 2026-03-04, 10d
+    Catalog reconciliation and price gaps                :recon, 2026-03-04, 7d
+    Dashboard screens and design system                  :ui, 2026-03-09, 10d
+    Airflow DAG                                          :dag, 2026-03-11, 5d
+
+    section Phase 6 - Verification (W10-W11)
+    Cross-dialect verification PostgreSQL and MySQL      :dialect, 2026-03-18, 4d
+    Seed data and demo dataset                           :seed, 2026-03-16, 5d
+    Smoke test and performance measurement               :smoke, 2026-03-20, 4d
+    Documentation set review                             :docrev, 2026-03-23, 6d
+
+    section Phase 7 - Close-out (W11-W12)
+    Risk register review and contingency drill           :risk, 2026-03-25, 3d
+    Final rehearsal and defence preparation              :defence, 2026-03-27, 8d
+    Submission and handover                              :submit, 2026-04-03, 2d
+
+    section Milestones
+    M1 Proposal approved                                 :milestone, m1, 2026-01-16, 0d
+    M2 Design frozen                                     :milestone, m2, 2026-02-06, 0d
+    M3 Ingestion demo                                    :milestone, m3, 2026-02-27, 0d
+    M4 Warehouse load demo                               :milestone, m4, 2026-03-13, 0d
+    M5 API and dashboard usable                          :milestone, m5, 2026-03-27, 0d
+    M6 System verified on two databases                  :milestone, m6, 2026-04-01, 0d
+    M7 Documentation complete                            :milestone, m7, 2026-04-02, 0d
+    M8 Final defence                                     :milestone, m8, 2026-04-10, 0d

@@ -1,0 +1,18 @@
+
+flowchart TD
+    A["Record: canonical_name, brand, category"] --> B["fingerprint = sha1 brand_key + name_key, 32 hex"]
+    B --> C{"Fingerprint known?"}
+    C -->|"yes"| R1["strategy exact, score 1.0"]
+    C -->|"no"| D{"normalized_name equals an existing row?"}
+    D -->|"yes"| R2["strategy blocked_exact, score 1.0"]
+    D -->|"no"| E["Blocking candidates<br/>LIKE blocking_key + '%', limit 25<br/>brand filter refines"]
+    E --> F["combined_similarity for each candidate"]
+    F --> G["digit-signature factor"]
+    G --> H["brand blend and category bonus"]
+    H --> I{"score >= threshold 0.90?"}
+    I -->|"yes"| J["strategy fuzzy, score and parts stored"]
+    I -->|"no"| K["strategy new - loader inserts dim_product"]
+    J --> L["duplicates_merged incremented when the match was fuzzy"]
+    R1 --> M["Upsert dim_product"]
+    R2 --> M
+    K --> M
