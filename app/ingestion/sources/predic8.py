@@ -27,6 +27,7 @@ class Predic8GrocerySource(ProductSource):
     code: ClassVar[str] = "predic8_grocery"
     name: ClassVar[str] = "Predic8 Fruit Shop"
     kind: ClassVar[str] = "api"
+    data_trust: ClassVar[str] = "synthetic"
     base_url: ClassVar[str] = "https://api.predic8.de/shop/v2/products/"
     terms_url: ClassVar[str] = "https://www.predic8.de/"
     license_note: ClassVar[str] = "Public demo shop API for training use, no key required."

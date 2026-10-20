@@ -27,6 +27,7 @@ class SampleApisCoffeeSource(ProductSource):
     code: ClassVar[str] = "sampleapis_coffee"
     name: ClassVar[str] = "SampleAPIs Coffee Menu"
     kind: ClassVar[str] = "api"
+    data_trust: ClassVar[str] = "synthetic"
     base_url: ClassVar[str] = "https://api.sampleapis.com/coffee/hot"
     terms_url: ClassVar[str] = "https://sampleapis.com/"
     license_note: ClassVar[str] = "Free sample data for learning use, no key required."

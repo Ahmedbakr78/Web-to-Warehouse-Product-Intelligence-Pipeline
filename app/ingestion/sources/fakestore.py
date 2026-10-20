@@ -21,6 +21,7 @@ class FakeStoreProductsSource(ProductSource):
     code: ClassVar[str] = "fakestore_products"
     name: ClassVar[str] = "FakeStore Products API"
     kind: ClassVar[str] = "api"
+    data_trust: ClassVar[str] = "synthetic"
     base_url: ClassVar[str] = "https://fakestoreapi.com/products"
     terms_url: ClassVar[str] = "https://fakestoreapi.com/"
     license_note: ClassVar[str] = "Public demo API for educational use."

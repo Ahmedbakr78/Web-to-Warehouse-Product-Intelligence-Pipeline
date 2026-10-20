@@ -37,6 +37,7 @@ class BooksToScrapeSource(ProductSource):
     code: ClassVar[str] = "books_to_scrape"
     name: ClassVar[str] = "books.toscrape.com (permitted sandbox)"
     kind: ClassVar[str] = "scrape"
+    data_trust: ClassVar[str] = "sandbox"
     base_url: ClassVar[str] = "https://books.toscrape.com/"
     terms_url: ClassVar[str] = "https://books.toscrape.com/"
     license_note: ClassVar[str] = (

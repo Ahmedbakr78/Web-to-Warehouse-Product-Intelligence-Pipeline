@@ -153,9 +153,15 @@ class LocalFixtureSource(ProductSource):
     rate_limit_per_minute: ClassVar[int] = 10_000
     min_delay_seconds: ClassVar[float] = 0.0
     supports_paging: ClassVar[bool] = False
+    #: This source fabricates every record it yields, so it must never be part of
+    #: a real warehouse. It is disabled by default and only ever selected when a
+    #: caller asks for it by name (tests, CI, offline demos).
+    enabled: ClassVar[bool] = False
+    data_trust: ClassVar[str] = "synthetic"
     description: ClassVar[str] = (
         "Deterministic catalogue generator (seeded) used for demos, tests and "
-        "offline runs. Includes intentional duplicates and quality defects."
+        "offline runs. Includes intentional duplicates and quality defects. "
+        "Disabled by default - it produces synthetic data, not market data."
     )
 
     def __init__(self, run_id: str | None = None, client: Any = None, seed: int | None = None) -> None:

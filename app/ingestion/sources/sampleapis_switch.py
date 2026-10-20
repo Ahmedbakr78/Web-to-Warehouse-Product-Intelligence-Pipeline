@@ -25,6 +25,7 @@ class SampleApisSwitchSource(ProductSource):
     code: ClassVar[str] = "sampleapis_switch"
     name: ClassVar[str] = "SampleAPIs Switch Games"
     kind: ClassVar[str] = "api"
+    data_trust: ClassVar[str] = "synthetic"
     base_url: ClassVar[str] = "https://api.sampleapis.com/switch/games"
     terms_url: ClassVar[str] = "https://sampleapis.com/"
     license_note: ClassVar[str] = "Free sample data for learning use, no key required."

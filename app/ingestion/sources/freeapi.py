@@ -26,6 +26,7 @@ class FreeApiProductsSource(ProductSource):
     code: ClassVar[str] = "freeapi_products"
     name: ClassVar[str] = "FreeAPI Public Products"
     kind: ClassVar[str] = "api"
+    data_trust: ClassVar[str] = "synthetic"
     base_url: ClassVar[str] = "https://api.freeapi.app/api/v1/public/randomproducts"
     terms_url: ClassVar[str] = "https://api.freeapi.app/"
     license_note: ClassVar[str] = "Free public demo API, no key required."

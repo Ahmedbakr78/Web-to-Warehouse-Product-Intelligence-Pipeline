@@ -25,6 +25,7 @@ class RestfulObjectsSource(ProductSource):
     code: ClassVar[str] = "restful_objects"
     name: ClassVar[str] = "RESTful API Objects"
     kind: ClassVar[str] = "api"
+    data_trust: ClassVar[str] = "synthetic"
     base_url: ClassVar[str] = "https://api.restful-api.dev/objects"
     terms_url: ClassVar[str] = "https://restful-api.dev/"
     license_note: ClassVar[str] = "Free mock API for testing, no key required."

@@ -22,6 +22,7 @@ class DummyJsonProductsSource(ProductSource):
     code: ClassVar[str] = "dummyjson_products"
     name: ClassVar[str] = "DummyJSON Products API"
     kind: ClassVar[str] = "api"
+    data_trust: ClassVar[str] = "synthetic"
     base_url: ClassVar[str] = "https://dummyjson.com/products"
     terms_url: ClassVar[str] = "https://dummyjson.com/"
     license_note: ClassVar[str] = "Public test API, no key required, attribution appreciated."

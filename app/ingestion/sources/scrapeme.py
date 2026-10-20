@@ -63,6 +63,7 @@ class ScrapeMeSource(ProductSource):
     code: ClassVar[str] = "scrapeme_products"
     name: ClassVar[str] = "ScrapeMe.live shop (permitted sandbox)"
     kind: ClassVar[str] = "scrape"
+    data_trust: ClassVar[str] = "sandbox"
     base_url: ClassVar[str] = "https://scrapeme.live/shop/"
     terms_url: ClassVar[str] = "https://scrapeme.live/"
     license_note: ClassVar[str] = (

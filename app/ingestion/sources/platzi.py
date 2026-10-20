@@ -27,6 +27,7 @@ class PlatziProductsSource(ProductSource):
     code: ClassVar[str] = "platzi_products"
     name: ClassVar[str] = "Platzi Fake Store API"
     kind: ClassVar[str] = "api"
+    data_trust: ClassVar[str] = "synthetic"
     base_url: ClassVar[str] = "https://api.escuelajs.co/api/v1/products"
     terms_url: ClassVar[str] = "https://fakeapi.platzi.com/"
     license_note: ClassVar[str] = "Public demo storefront API for educational use."

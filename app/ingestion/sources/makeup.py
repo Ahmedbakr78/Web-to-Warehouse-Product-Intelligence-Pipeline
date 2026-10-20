@@ -35,6 +35,7 @@ class MakeupProductsSource(ProductSource):
     code: ClassVar[str] = "makeup_products"
     name: ClassVar[str] = "Makeup API"
     kind: ClassVar[str] = "api"
+    data_trust: ClassVar[str] = "synthetic"
     base_url: ClassVar[str] = "https://makeup-api.herokuapp.com/api/v1/products.json"
     terms_url: ClassVar[str] = "https://makeup-api.herokuapp.com/"
     license_note: ClassVar[str] = "Free demo catalogue API for educational use."
