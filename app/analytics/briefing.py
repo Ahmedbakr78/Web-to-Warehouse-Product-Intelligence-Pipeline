@@ -36,7 +36,11 @@ def _money(value: Any) -> str:
         return "—"
     if abs(number) >= 1000:
         return f"${number:,.0f}"
-    return f"${number:,.2f}"
+    if abs(number) >= 1:
+        return f"${number:,.2f}"
+    if abs(number) >= 0.01:
+        return f"${number:,.4f}"
+    return f"${number:,.6f}"
 
 
 def _pct(value: Any, digits: int = 1) -> str:

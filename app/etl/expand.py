@@ -391,6 +391,7 @@ def expand_demo(
     created_snapshots = 0
     created_changes = 0
     created_events = 0
+    created_catalog = 0
     snapshot_batch: list[dict[str, Any]] = []
     change_batch: list[dict[str, Any]] = []
     event_batch: list[dict[str, Any]] = []
@@ -564,6 +565,7 @@ def expand_demo(
                     "attributes": {"synthetic": True},
                 }
             )
+            created_catalog += 1
             catalog_snapshot_batch.append(
                 {
                     "run_id": latest_run,
@@ -707,7 +709,7 @@ def expand_demo(
         "created_snapshots": created_snapshots,
         "created_changes": created_changes,
         "created_events": created_events,
-        "created_catalog": len(catalog_batch),
+        "created_catalog": created_catalog,
         "removed_products": len(removed_products),
         "skipped": False,
     }
