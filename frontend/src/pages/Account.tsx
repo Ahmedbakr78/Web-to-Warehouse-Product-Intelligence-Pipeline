@@ -132,6 +132,8 @@ export default function Account() {
   const [defaultExportFormat, setDefaultExportFormat] = useState(() => (user?.preferences?.default_export_format as string) ?? 'csv')
   const [silentReload, setSilentReload] = useState(() => (user?.preferences?.silent_reload as boolean) ?? true)
   const [copyCodeOnClick, setCopyCodeOnClick] = useState(() => (user?.preferences?.copy_code_on_click as boolean) ?? true)
+  const [briefingWindow, setBriefingWindow] = useState(() => (user?.preferences?.briefing_window as string) ?? '30')
+  const [briefingSize, setBriefingSize] = useState(() => (user?.preferences?.briefing_size as string) ?? '6')
 
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -199,6 +201,8 @@ export default function Account() {
       if (user.preferences.default_export_format) setDefaultExportFormat(user.preferences.default_export_format as string)
       if (typeof user.preferences.silent_reload === 'boolean') setSilentReload(user.preferences.silent_reload)
       if (typeof user.preferences.copy_code_on_click === 'boolean') setCopyCodeOnClick(user.preferences.copy_code_on_click)
+      if (user.preferences.briefing_window) setBriefingWindow(user.preferences.briefing_window as string)
+      if (user.preferences.briefing_size) setBriefingSize(user.preferences.briefing_size as string)
     }
   }, [user])
 
@@ -231,6 +235,8 @@ export default function Account() {
           default_export_format: defaultExportFormat,
           silent_reload: silentReload,
           copy_code_on_click: copyCodeOnClick,
+          briefing_window: briefingWindow,
+          briefing_size: briefingSize,
         } as Record<string, unknown>,
       }),
     onSuccess: async () => {
@@ -1056,6 +1062,26 @@ export default function Account() {
                     <option value="csv">CSV (.csv)</option>
                     <option value="xlsx">Excel (.xlsx)</option>
                     <option value="json">JSON (.json)</option>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="stat-label mb-1.5">Briefing window</p>
+                  <Select value={briefingWindow} onChange={(event) => setBriefingWindow(event.target.value)}>
+                    <option value="7">Last 7 days</option>
+                    <option value="30">Last 30 days</option>
+                    <option value="90">Last 90 days</option>
+                    <option value="180">Last 180 days</option>
+                  </Select>
+                </div>
+                <div>
+                  <p className="stat-label mb-1.5">Briefing queue size</p>
+                  <Select value={briefingSize} onChange={(event) => setBriefingSize(event.target.value)}>
+                    <option value="4">4 items</option>
+                    <option value="6">6 items</option>
+                    <option value="8">8 items</option>
+                    <option value="10">10 items</option>
                   </Select>
                 </div>
               </div>
