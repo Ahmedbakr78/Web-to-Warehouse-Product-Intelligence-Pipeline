@@ -36,7 +36,13 @@ from app.ingestion.cleaning import (
 )
 from app.models.catalog import CatalogProduct
 from app.models.dimensions import DimCategory, DimProduct, DimSource
-from app.models.facts import AggCategoryDaily, ChgPriceChange, ChgProductEvent, FactCatalogSnapshot, FactPriceSnapshot
+from app.models.facts import (
+    AggCategoryDaily,
+    ChgPriceChange,
+    ChgProductEvent,
+    FactCatalogSnapshot,
+    FactPriceSnapshot,
+)
 from app.models.operations import EtlRun
 
 log = get_logger(__name__)
