@@ -154,7 +154,7 @@ Everything is engineered like a production system, not a demo:
 
 | Component | Technology | Scale |
 | --- | --- | --- |
-| **Ingestion** | 25 source adapters (22 JSON APIs, 2 BeautifulSoup/lxml HTML scrapers, 1 offline synthetic) | robots.txt gate, token-bucket rate limiter, sliding-window ceiling, circuit breaker, response cache, per-request audit log, refused sources logged |
+| **Ingestion** | 34 registered adapters (31 JSON APIs, 2 BeautifulSoup/lxml HTML scrapers, 1 offline synthetic) plus dashboard-defined JSON feeds | robots.txt gate, token-bucket rate limiter, sliding-window ceiling, circuit breaker, response cache, per-request audit log, refused sources logged |
 | **Cleaning** | 29-step normalisation engine | product names, categories, 18+ currencies converted to USD via an offline FX table, rating and availability vocabularies |
 | **Deduplication** | 4-signal fuzzy matcher | jaro-winkler, token-set, trigram and digit signatures, block-indexed for O(n) candidate pools |
 | **Warehouse** | SQLAlchemy 2.0 Core ORM | **29 physical tables, 23 analytical views**, identical schema on PostgreSQL 16 and MySQL 8.4 |
@@ -164,7 +164,7 @@ Everything is engineered like a production system, not a demo:
 | **Change detection** | SQL plus an event engine | price changes banded by magnitude, new and removed products, category drift, lifecycle events |
 | **REST API** | FastAPI | **218 operations in 24 routers**, JWT and API-key auth, RBAC (admin / analyst / viewer), key rotation + editing, multi-level sorting, OpenAPI docs, gzip, timing headers |
 | **Dashboard** | React 19 + TypeScript + Tailwind + ReCharts | 24 screens, 5 themes, 12 accent colours, 3 densities, command palette, installable PWA, responsive from 320 px |
-| **CLI** | Typer, 13 commands | bootstrap, seed, run, report, verify, quality, sources preview |
+| **CLI** | Typer, 14 commands | bootstrap, seed, run, report, verify, quality, sources preview |
 | **Ops** | Docker Compose (6 services), Makefile (30+ targets), GitHub Actions CI | one-command everything |
 
 **Measured facts.** These are not maintained by hand — run `make stats` to regenerate them, and
@@ -229,7 +229,7 @@ cp .env.example .env              # then edit secrets, or keep the demo defaults
 make up                           # postgres + mysql + api + airflow + frontend
 make db-wait                      # block until both databases are healthy
 
-# one-time: schema + 23 views + demo users + 120 days of demo data
+# one-time: schema + 29 tables + 23 views + demo users + 120 days of demo data
 make bootstrap
 make demo-postgres                # use --database mysql for the MySQL twin
 
@@ -317,12 +317,12 @@ flowchart LR
 
     subgraph Ops["Operations"]
         AF["Airflow DAG<br/>13 tasks"]
-        API["FastAPI REST<br/>215 operations"]
+        API["FastAPI REST<br/>218 operations"]
         DQ["12-rule DQ framework"]
     end
 
     subgraph UI["Delivery"]
-        RE["React 19 dashboard<br/>21 screens"]
+        RE["React 19 dashboard<br/>24 screens"]
         EXP["CSV / JSON exports"]
         QL["Query lab, read-only SQL"]
     end
@@ -657,7 +657,7 @@ The run receives a weighted score; the dashboard charts the 90-day trend.
 
 ### 6 - Serve
 
-The FastAPI app (215 operations) exposes products, changes, analytics, pipeline operations, quality,
+The FastAPI app (218 operations) exposes products, changes, analytics, pipeline operations, quality,
 catalog, sources, the read-only query lab, saved views, notifications, settings and audit. The React
 dashboard consumes it, and both endpoints and UI offer CSV and JSON exports. Airflow triggers the
 whole cycle daily; the API's sync endpoint and the CLI produce the identical `etl_run` record.
@@ -796,7 +796,7 @@ recorded below with the alternative it beat, so a reviewer can challenge it rath
 ```mermaid
 graph TB
     subgraph Client["Browser / PWA"]
-        DASH["React 19 dashboard<br/>21 screens, light & dark"]
+        DASH["React 19 dashboard<br/>24 screens, light & dark"]
         PAL["Command palette<br/>Ctrl/Cmd-K"]
     end
     subgraph Edge["FastAPI application"]
@@ -1063,7 +1063,7 @@ Highlights by area:
 
 - JWT access and refresh rotation, API keys (`pip_...`), Argon2id password hashing
 - role-based access control: admin, analyst, viewer, enforced per route server-side
-- 215 operations, OpenAPI and ReDoc documentation, gzip compression, `X-Process-Time-Ms` headers
+- 218 operations, OpenAPI and ReDoc documentation, gzip compression, `X-Process-Time-Ms` headers
 - CSV and JSON exports on the API and in the dashboard
 - one consistent error envelope (`error`, `message`, `details`) with validation detail
 
@@ -1101,9 +1101,9 @@ Highlights by area:
 
 - Airflow DAG with 14 operators, branch-on-changes, notify and report fan-out
 - six-service Docker Compose stack; Nginx front-end with API proxy
-- Makefile with 30+ targets; Typer CLI with 13 commands; GitHub Actions CI
+- Makefile with 30+ targets; Typer CLI with 14 commands; GitHub Actions CI
 - liveness and readiness endpoints, structured logging, slow-request warnings
-- 31-document documentation set with Mermaid diagrams rendered natively by GitHub
+- 33-document documentation set with Mermaid diagrams rendered natively by GitHub
 
 ---
 
@@ -1404,7 +1404,7 @@ Measured on a laptop container stack (the harness is in docs/05):
 | --- | --- | --- |
 | API p95 latency (12 hot endpoints) | 200 ms | 38.2 ms |
 | Pipeline run (demo plus cached sources) | 60 s | about 3.5 s |
-| Bootstrap (schema plus 23 views) | 10 s | about 4 s |
+| Bootstrap (29 tables plus 23 views) | 10 s | about 4 s |
 | Dashboard first load (lazy chunked routes) | 2 s | about 0.9 s gzipped |
 | Repeat run with warm response cache | any | zero outbound requests |
 
@@ -1414,22 +1414,22 @@ Measured on a laptop container stack (the harness is in docs/05):
 
 ```text
 app/
-  api/            FastAPI app factory, 16 routers, schemas, security
+  api/            FastAPI app factory, 24 routers, schemas, security
   analytics/      SQL analytics service: KPIs, trends, reports, views
   cli/            Typer CLI: bootstrap, seed, run, report, verify
   core/           settings, engines, logging, error envelope
   etl/            pipeline, loader, DQ framework, catalog reconcile, seed
   ingestion/      base contract, robots, rate limiter, HTTP client, cleaning, dedupe
-    sources/      5 adapters (APIs, BeautifulSoup scraper, synthetic)
+    sources/      34 adapters (JSON APIs, BeautifulSoup scrapers, synthetic)
   models/         SQLAlchemy models: dimensions, facts, operations, app
 dags/             Airflow DAG: product_intelligence_pipeline
 db/
   views.sql       23 analytical views (PostgreSQL and MySQL)
   analysis/       8 standalone SQL analyses + README (price, new, removed, drift, ...)
-frontend/         React 19 dashboard: 21 screens, PWA, design system
+frontend/         React 19 dashboard: 24 screens, PWA, design system
   public/         manifest, icons
   src/            pages, components, hooks, libs
-docs/             24 numbered documents plus an index with diagrams
+docs/             33 numbered documents plus an index with diagrams
   diagrams/out/   Mermaid sources extracted for SVG rendering
   assets/         generated infographic (SVG master + PNG + HTML preview)
 scripts/
@@ -1476,7 +1476,7 @@ natively on GitHub; every structural number is tied to a runnable command.
 | 11 | Behaviour Diagrams | sequence, activity, three state diagrams, class diagram |
 | 12 | UI/UX Design | screen wireframes, design system with contrast ratios, WCAG 2.1 AA |
 | 13 | Deployment | stack, deployment and component diagrams, environment matrix, CI/CD, backups |
-| 14 | API Documentation | auth flow, role matrix, all 215 operations, worked examples |
+| 14 | API Documentation | auth flow, role matrix, all 218 operations, worked examples |
 | 15 | Testing Strategy | test pyramid, case plan, UAT, coverage targets, quality gates |
 | 16 | User Manual | sign-in, every screen, filters, exports, alerts, admin, troubleshooting, FAQ |
 | 17 | Technical Documentation | module map, key algorithms, every configuration variable |
