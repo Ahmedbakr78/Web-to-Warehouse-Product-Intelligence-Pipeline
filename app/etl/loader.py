@@ -39,6 +39,29 @@ log = get_logger(__name__)
 
 SIGNIFICANT_CHANGE_PCT = 1.0
 
+#: The magnitude bands, in order, with the inclusive upper bound of each band.
+#: Kept next to :func:`magnitude_band` so the API can serve the definition the
+#: loader actually applies instead of a copy that can drift.
+MAGNITUDE_BANDS: tuple[tuple[str, float], ...] = (
+    ("minor", 1.0),
+    ("small", 5.0),
+    ("moderate", 15.0),
+    ("large", 30.0),
+    ("major", float("inf")),
+)
+
+
+def magnitude_bands() -> list[dict[str, Any]]:
+    """The band definitions, as the API serves them."""
+    return [
+        {
+            "name": name,
+            "min_pct": 0.0 if index == 0 else MAGNITUDE_BANDS[index - 1][1],
+            "max_pct": None if upper == float("inf") else upper,
+        }
+        for index, (name, upper) in enumerate(MAGNITUDE_BANDS)
+    ]
+
 
 def magnitude_band(change_pct: float | None) -> str | None:
     """Bucket a percentage change for dashboard filtering."""

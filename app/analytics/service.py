@@ -187,7 +187,22 @@ def change_event_summary(session: Session, days: int = 30) -> dict[str, Any]:
         {"since": dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=days)},
     )
     timeline = price_change_timeline(session, days=days)
-    return {**row, "timeline": timeline}
+    window = _one(
+        session,
+        sa.text(
+            """
+            SELECT COUNT(*) AS price_changes,
+                   ROUND(CAST(AVG(ABS(change_pct)) AS DECIMAL(24,6)), 2) AS avg_abs_change_pct,
+                   ROUND(CAST(MAX(ABS(change_pct)) AS DECIMAL(24,6)), 2) AS max_abs_change_pct,
+                   SUM(CASE WHEN direction = 'increase' THEN 1 ELSE 0 END) AS increases,
+                   SUM(CASE WHEN direction = 'decrease' THEN 1 ELSE 0 END) AS decreases
+            FROM vw_price_changes
+            WHERE full_date >= :since
+            """
+        ),
+        {"since": dt.date.today() - dt.timedelta(days=days)},
+    )
+    return {**row, "window": window, "timeline": timeline}
 
 
 def daily_trend(session: Session, days: int = 90) -> list[dict[str, Any]]:
