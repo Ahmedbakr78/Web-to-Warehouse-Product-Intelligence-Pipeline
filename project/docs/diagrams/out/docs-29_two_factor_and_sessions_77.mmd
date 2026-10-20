@@ -1,0 +1,10 @@
+
+flowchart TD
+  start[POST /account/2fa/setup] --> secret[server returns secret + otpauth URI]
+  secret --> scan[user scans QR or types the secret]
+  scan --> code[user enters the current code]
+  code --> verify{server verifies it}
+  verify -->|wrong| retry[stay enrolled-nothing: nothing was enabled]
+  verify -->|right| activate[POST /account/2fa/activate]
+  activate --> store[encrypted secret stored]
+  store --> codes[eight single-use recovery codes returned once]

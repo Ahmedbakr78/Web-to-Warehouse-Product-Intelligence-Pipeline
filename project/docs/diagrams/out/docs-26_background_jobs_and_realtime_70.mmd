@@ -1,0 +1,11 @@
+
+stateDiagram-v2
+    [*] --> queued: enqueue
+    queued --> running: worker claims + leases
+    running --> succeeded: handler returns
+    running --> failed: handler raises, attempts left
+    running --> cancelled: cancellation requested
+    failed --> queued: retry requested
+    failed --> [*]
+    succeeded --> [*]
+    cancelled --> [*]
