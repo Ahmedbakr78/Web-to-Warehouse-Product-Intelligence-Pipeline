@@ -34,7 +34,9 @@ Regenerate the numbers above with `python3 scripts/project_stats.py`.
 
 Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 [v1.2 (8)](#15-platform-v12-additions-8) · [v1.3 (37)](#16-platform-v13-additions-37) ·
-[v1.4 (40)](#17-platform-v14-additions-40)
+[v1.4 (40)](#17-platform-v14-additions-40) ·
+[v1.10 lead & repo (5)](#46-v110-lead--repo-max-team-api-source-catalog-releases-5) ·
+[v1.12 truthfulness (25)](#47-v112-truthfulness-max-honest-metrics-silent-reload--mobile-parity-25)
 
 ---
 
