@@ -1680,9 +1680,9 @@ Or: Repo → Settings → General → Danger Zone → Change visibility → Make
 
 **Cut a release:**
 ```bash
-git tag -a v1.10.0 -m "v1.10.0 — ingestion Max, team API, long repo surface"
-git push origin v1.10.0
-gh release create v1.10.0 --title "v1.10.0" --notes-file CHANGELOG.md
+git tag -a v1.11.0 -m "v1.11.0 — morning briefing and 10x demo warehouse"
+git push origin v1.11.0
+gh release create v1.11.0 --title "v1.11.0" --notes-file CHANGELOG.md
 ```
 Full playbook: [docs/31_releases.md](docs/31_releases.md).
 

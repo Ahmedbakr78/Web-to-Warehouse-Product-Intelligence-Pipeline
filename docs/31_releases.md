@@ -16,7 +16,7 @@ Semantic versioning (`MAJOR.MINOR.PATCH`), single source in `VERSION`:
 `frontend/package.json` and the app settings — never edit those by hand:
 
 ```bash
-printf '1.10.0' > VERSION
+printf '1.11.0' > VERSION
 .venv/bin/python scripts/sync_version.py
 ```
 
@@ -35,7 +35,7 @@ Commands (owner runs these — nobody else can release for you):
 
 ```bash
 # 1-2: version + changelog (Unreleased section becomes the new version)
-printf '1.10.0' > VERSION
+printf '1.11.0' > VERSION
 .venv/bin/python scripts/sync_version.py
 
 # 3: re-measure every structural figure; fail loudly on drift
@@ -47,10 +47,10 @@ printf '1.10.0' > VERSION
 ./run.sh --verify-only
 
 # 5-6: commit, tag, publish
-git add -A && git commit -m "Release v1.10.0 — <one-line theme>"
-git tag -a v1.10.0 -m "v1.10.0 — <one-line theme>"
-git push origin main v1.10.0
-gh release create v1.10.0 --title "v1.10.0" --notes-file CHANGELOG.md
+git add -A && git commit -m "Release v1.11.0 — <one-line theme>"
+git tag -a v1.11.0 -m "v1.11.0 — <one-line theme>"
+git push origin main v1.11.0
+gh release create v1.11.0 --title "v1.11.0" --notes-file CHANGELOG.md
 ```
 
 ## GitHub About box (paste-ready)
@@ -80,6 +80,7 @@ Make private (or `gh repo edit <repo> --visibility private
 
 | Version | Theme |
 |---|---|
+| 1.11.0 | Morning Briefing, 10x demo warehouse, account briefing defaults, mobile/theme polish |
 | 1.10.0 | Ingestion Max: TVMaze + Archive.org + DummyJSON recipes, Scrapy engine, conditional GET, team API |
 | 1.9.0 | Real-only defaults, theme memory, modern scrollbars, Account Max, run.sh |
 | 1.8.0 | Query power Max (HAVING, OR logic, saved-view lifecycle, query history) |

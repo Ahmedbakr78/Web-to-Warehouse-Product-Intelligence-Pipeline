@@ -164,7 +164,7 @@
   .node b { display: block; margin-top: 9px; font-size: 11.5px; font-weight: 750; }
   .node span { display: block; margin-top: 2px; color: var(--subtle); font-size: 9.5px; line-height: 1.3; }
 
-  .bottom { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 22px; margin-top: 22px; }
+  .bottom { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 22px; margin-top: auto; padding-top: 22px; }
   .stack { display: flex; flex-wrap: wrap; gap: 7px; }
   .chip {
     border: 1px solid var(--line); background: var(--card-2); border-radius: 7px;
@@ -208,7 +208,7 @@
         <h1>From web signals to<br/><span class="accent">warehouse intelligence.</span></h1>
         <p class="lede">
           An end-to-end data engineering platform that ingests permitted product feeds, cleans and
-          deduplicates them, models a 30-table star schema, and turns 550k+ observations into a ranked
+          deduplicates them, models a 30-table star schema, and turns 500k+ observations into a ranked
           morning action queue for pricing and catalog teams.
         </p>
         <div class="trackrow">
@@ -221,7 +221,7 @@
 
         <div class="stats">
           <div class="stat"><div class="bar"></div><b>34</b><span>verified source adapters</span></div>
-          <div class="stat"><div class="bar"></div><b>550k+</b><span>price observations</span></div>
+          <div class="stat"><div class="bar"></div><b>500k+</b><span>price observations</span></div>
           <div class="stat"><div class="bar"></div><b>25k</b><span>canonical products</span></div>
           <div class="stat"><div class="bar"></div><b>550</b><span>catalogued features</span></div>
         </div>
@@ -237,6 +237,8 @@
           <div class="feature"><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><div><b>Price &amp; catalog analytics</b><span>Movers, volatility, anomalies, gaps and forecast accuracy.</span></div></div>
           <div class="feature"><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><div><b>Trustworthy by design</b><span>12 DQ rules, source freshness, lineage and audit trails.</span></div></div>
           <div class="feature"><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><div><b>Operational excellence</b><span>Docker stack, Airflow orchestration and one-command demos.</span></div></div>
+          <div class="feature"><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><div><b>10x demo warehouse</b><span>25k products and 500k+ observations, reproducible on demand.</span></div></div>
+          <div class="feature"><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><div><b>Multi-dialect parity</b><span>The same pipeline and analysis verified on PostgreSQL and MySQL.</span></div></div>
         </div>
       </aside>
     </div>

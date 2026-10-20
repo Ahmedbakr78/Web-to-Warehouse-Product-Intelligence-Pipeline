@@ -17,6 +17,48 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Crawler contact is now real** — `INGEST_USER_AGENT` uses
   `ahmedbakr78102@gmail.com` instead of the placeholder address.
 
+## [1.11.0] - 2026-10-20
+
+### Added (Morning Briefing & 10x demo warehouse)
+
+- **Morning briefing screen** at `/briefing` — a ranked action queue that composes
+  existing analytics services instead of redefining metrics. Opportunities merge
+  price drops, catalog gaps and discounts; risks merge rises, stockouts, anomalies,
+  DQ failures and stale sources.
+- **`GET /api/v1/intelligence/briefing`** — authenticated, windowed (1–3650 days)
+  and bounded; every insight includes severity, metric, deep link and recommended
+  action. Results are cached for 120 seconds per worker.
+- **Account briefing defaults** — preferred window and queue size persist to the
+  profile and follow the user across devices.
+- **10x demo warehouse** — `pip-cli expand-demo` appends a deterministic synthetic
+  cohort (19,500 products, 26 days, 506k snapshots, 13k catalog SKUs, lifecycle
+  events and price changes), taking the demo to **25,076 products / 550k+ initial
+  observations** and rebuilding `agg_category_daily` from facts.
+- **Idempotent expansion** — the command detects an existing `SYN-` cohort and
+  skips the expensive work; no existing product or snapshot is modified.
+- **New feature groups** — Intelligence, 10x Demo Warehouse, and Mobile/Theme
+  polish are now part of the 550-feature catalogue served by `/meta/features`.
+
+### Changed
+
+- Briefing/action ranking now filters extreme >65% moves and unit-mismatch catalog
+  gaps, suppresses duplicate product/catalog snapshots, and formats sub-dollar
+  prices with 4–8 decimals instead of `$0.00`.
+- `best_value` excludes out-of-range ratings above 5.
+- Mobile polish: compact stat tiles, two-column KPI grids, a safe-area-aware
+  navigation drawer and a tighter header.
+- Global scrollbars remain hidden; route chunks are preloaded during idle time so
+  navigation stays silent. No route transition animations were added.
+
+### Fixed
+
+- Duplicate `Badge` children rendered twice.
+- Document title stayed on “Sign in” after authentication.
+- Demo `local_demo` history contained cross-run price outliers; the corrupted
+  rows were removed and affected catalog rollups rebuilt.
+- Briefing cache is invalidated by process restart; warm requests complete in
+  ~10 ms and cold requests stay under ~3 s on the 538k-row fact table.
+
 ## [1.10.0] - 2026-10-15
 
 ### Fixed (real-data hardening)
