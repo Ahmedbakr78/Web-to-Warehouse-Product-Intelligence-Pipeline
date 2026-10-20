@@ -184,6 +184,12 @@ def test_quality_evaluation_persists_one_row_per_rule(db):
     ).scalar()
     assert stored == 12
 
+    evaluate_quality(db, run)
+    rerun = db.execute(
+        sa.text("SELECT COUNT(*) FROM dq_rule_result WHERE run_id = :rid"), {"rid": run}
+    ).scalar()
+    assert rerun == 12
+
 
 def test_quality_score_is_bounded(db):
     run = db.execute(sa.text("SELECT run_id FROM etl_run ORDER BY started_at DESC LIMIT 1")).scalar()

@@ -649,6 +649,12 @@ def evaluate_quality(
         outcome = rule.run(session, context)
         report.outcomes.append(outcome)
         nested = session.begin_nested()
+        session.execute(
+            sa.delete(DqRuleResult).where(
+                DqRuleResult.run_id == run_id,
+                DqRuleResult.rule_code == outcome.rule_code,
+            )
+        )
         session.add(
             DqRuleResult(
                 run_id=run_id,
