@@ -14,6 +14,7 @@ import {
   Settings as SettingsIcon,
   ShieldCheck,
   Sparkles,
+  Sunrise,
   Terminal,
   FolderTree,
   Webhook,
@@ -38,6 +39,13 @@ export const NAV_GROUPS: NavGroup[] = [
     title: 'Overview',
     items: [
       { to: '/', label: 'Dashboard', icon: LayoutDashboard, description: 'KPIs, trends and pipeline health' },
+      {
+        to: '/briefing',
+        label: 'Briefing',
+        icon: Sunrise,
+        description: 'Prioritized opportunities, risks and next actions',
+        badge: 'new',
+      },
       { to: '/analytics', label: 'Analytics', icon: BarChart3, description: 'Category, brand and price analysis' },
       { to: '/changes', label: 'Changes', icon: Activity, description: 'Price changes, new and removed products', badge: 'new' },
     ],
@@ -91,6 +99,7 @@ export const ALL_NAV_ITEMS = NAV_GROUPS.flatMap((group) => group.items)
 
 export const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   '/': { title: 'Dashboard', subtitle: 'Live overview of the product intelligence pipeline' },
+  '/briefing': { title: 'Morning briefing', subtitle: 'Prioritized insights, risks and the action queue' },
   '/analytics': { title: 'Analytics', subtitle: 'Price, category and brand intelligence from SQL' },
   '/changes': { title: 'Change feed', subtitle: 'Price changes, new arrivals, removals and recategorisations' },
   '/products': { title: 'Products', subtitle: 'Canonical, deduplicated product catalogue' },

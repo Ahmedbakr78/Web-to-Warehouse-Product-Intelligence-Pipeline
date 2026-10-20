@@ -8,6 +8,7 @@ import LoginPage from './pages/Login'
 
 /* Route-level code splitting keeps the first paint small. */
 const Dashboard = lazy(() => import('./pages/Dashboard'))
+const Briefing = lazy(() => import('./pages/Briefing'))
 const Analytics = lazy(() => import('./pages/Analytics'))
 const Changes = lazy(() => import('./pages/Changes'))
 const Products = lazy(() => import('./pages/Products'))
@@ -112,6 +113,14 @@ export default function App() {
             element={
               <Suspense fallback={<LoadingState label="Loading dashboard…" />}>
                 <Dashboard />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/briefing"
+            element={
+              <Suspense fallback={<LoadingState label="Loading briefing…" />}>
+                <Briefing />
               </Suspense>
             }
           />

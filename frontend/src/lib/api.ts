@@ -284,6 +284,7 @@ export const endpoints = {
   deleteMyAccount: (password: string) => api.del<any>('/users/me', { password }),
   myActivity: (params: Record<string, QueryValue> = {}) => api.get<any>('/audit/me', params),
 
+  briefing: (days = 30, limit = 6) => api.get<any>('/intelligence/briefing', { days, limit }),
   kpi: (days = 30) => api.get<any>('/analytics/kpi', { days }),
   trend: (days = 90) => api.get<any[]>('/analytics/trend', { days }),
   priceTrend: (days = 90) => api.get<any[]>('/analytics/price-trend', { days }),
