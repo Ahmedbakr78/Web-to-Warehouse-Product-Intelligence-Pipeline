@@ -4,14 +4,20 @@ import {
   Activity,
   Bell,
   Check,
+  CircleDollarSign,
   Copy,
+  Database,
   Download,
   ExternalLink,
   Eye,
   EyeOff,
   FileDown,
+  FileText,
+  FlaskConical,
+  Globe,
   KeyRound,
   Keyboard,
+  LayoutDashboard,
   LogOut,
   Monitor,
   Moon,
@@ -21,16 +27,18 @@ import {
   RefreshCw,
   RotateCw,
   Save,
-  Sparkles,
-  Star,
-  X,
   Settings2,
   Shield,
   ShieldCheck,
+  ShoppingCart,
+  Sparkles,
+  Star,
   Sun,
   Trash2,
   TriangleAlert,
   UserCircle,
+  Wrench,
+  X,
 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
@@ -1157,7 +1165,8 @@ export default function Account() {
           <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 xl:grid-cols-3 text-xs">
             {[
               {
-                group: '📊 Dashboard & Analytics',
+                group: 'Dashboard & Analytics',
+                icon: LayoutDashboard,
                 features: [
                   'Real-time KPI cards (products, prices, changes, quality)',
                   'Interactive 7d / 30d / 90d / 180d time windows',
@@ -1172,7 +1181,8 @@ export default function Account() {
                 ],
               },
               {
-                group: '🛒 Products',
+                group: 'Products',
+                icon: ShoppingCart,
                 features: [
                   'Full canonical product catalogue (5 000+ products)',
                   'Search, filter, sort, paginate any column',
@@ -1187,7 +1197,8 @@ export default function Account() {
                 ],
               },
               {
-                group: '💰 Price Changes',
+                group: 'Price Changes',
+                icon: CircleDollarSign,
                 features: [
                   'Full price change feed with magnitude bands',
                   'Increase / decrease / neutral direction badges',
@@ -1200,7 +1211,8 @@ export default function Account() {
                 ],
               },
               {
-                group: '🔬 Analytics & Forecasting',
+                group: 'Analytics & Forecasting',
+                icon: FlaskConical,
                 features: [
                   'KPI aggregation engine (avg, min, max, count)',
                   '12-rule data quality framework with scoring',
@@ -1215,7 +1227,8 @@ export default function Account() {
                 ],
               },
               {
-                group: '🔧 Pipeline & Ingestion',
+                group: 'Pipeline & Ingestion',
+                icon: Wrench,
                 features: [
                   '35+ real permitted data sources (no fakes)',
                   'robots.txt compliance with ETag revalidation',
@@ -1230,7 +1243,8 @@ export default function Account() {
                 ],
               },
               {
-                group: '🗄️ Database & Schema',
+                group: 'Database & Schema',
+                icon: Database,
                 features: [
                   '28+ warehouse tables, 23 analytical views',
                   'Historical price snapshot table (33 000+ rows)',
@@ -1245,7 +1259,8 @@ export default function Account() {
                 ],
               },
               {
-                group: '👤 Account & Security',
+                group: 'Account & Security',
+                icon: UserCircle,
                 features: [
                   'Profile: name, job title, department, avatar colour',
                   'Argon2id password hashing',
@@ -1260,7 +1275,8 @@ export default function Account() {
                 ],
               },
               {
-                group: '🎨 Appearance & UX',
+                group: 'Appearance & UX',
+                icon: Palette,
                 features: [
                   '5 themes: Light, Dark, Midnight, High-contrast, System',
                   '12 accent colours',
@@ -1275,7 +1291,8 @@ export default function Account() {
                 ],
               },
               {
-                group: '🔔 Notifications & Webhooks',
+                group: 'Notifications & Webhooks',
+                icon: Bell,
                 features: [
                   'In-app notification bell with unread count',
                   'Price change alert rules (threshold per product)',
@@ -1288,7 +1305,8 @@ export default function Account() {
                 ],
               },
               {
-                group: '📄 Reports & Exports',
+                group: 'Reports & Exports',
+                icon: FileText,
                 features: [
                   'Executive summary report (HTML / PDF)',
                   'Price report with top movers',
@@ -1302,7 +1320,8 @@ export default function Account() {
                 ],
               },
               {
-                group: '🌐 API & Integration',
+                group: 'API & Integration',
+                icon: Globe,
                 features: [
                   'OpenAPI 3.1 spec at /openapi.json',
                   '173 documented API operations',
@@ -1316,7 +1335,8 @@ export default function Account() {
                 ],
               },
               {
-                group: '⚙️ DevOps & Deployment',
+                group: 'DevOps & Deployment',
+                icon: Settings2,
                 features: [
                   '6-service Docker Compose stack',
                   'PostgreSQL 16 + MySQL 8.4 databases',
@@ -1330,9 +1350,12 @@ export default function Account() {
                   'robots.txt compliance audit log',
                 ],
               },
-            ].map(({ group, features }) => (
+            ].map(({ group, icon: GroupIcon, features }) => (
               <div key={group} className="rounded-lg border border-line bg-surface-2 p-3">
-                <p className="mb-2 text-[11px] font-semibold text-ink">{group}</p>
+                <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold text-ink">
+                  <GroupIcon className="h-3.5 w-3.5 shrink-0 text-brand-500" aria-hidden />
+                  {group}
+                </p>
                 <ul className="space-y-1">
                   {features.map((feature) => (
                     <li key={feature} className="flex items-start gap-1.5 text-[11px] text-muted">
