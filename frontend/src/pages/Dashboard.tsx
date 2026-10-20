@@ -15,7 +15,7 @@ import {
   TrendingDown,
   TrendingUp,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { AreaTrend, BarSeries, DonutChart, LineTrend } from '@/components/charts'
@@ -36,6 +36,7 @@ import { cn } from '@/lib/cn'
 import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { useAuth } from '@/hooks/useAuth'
+import { useProfilePreferences } from '@/hooks/usePreferences'
 import {
   downloadCsv,
   downloadJson,
@@ -58,7 +59,11 @@ const RANGES = [
 ]
 
 export default function Dashboard() {
-  const [days, setDays] = useState('30')
+  const preferences = useProfilePreferences()
+  const [days, setDays] = useState(() => {
+    const preferred = preferences.defaultRange.replace(/d$/, '')
+    return RANGES.some((range) => range.id === preferred) ? preferred : '30'
+  })
   const windowDays = Number(days)
   const queryClient = useQueryClient()
   const { can } = useAuth()
@@ -70,6 +75,16 @@ export default function Dashboard() {
   const quality = useApiQuery(['quality-latest'], endpoints.qualityLatest)
   const latestRun = useApiQuery(['run-latest'], endpoints.runLatest)
   const changeSummary = useApiQuery(['change-summary', windowDays], () => endpoints.changeSummary(windowDays))
+
+  // Auto-refresh is opt-in and lives in the profile. It keeps the previous data
+  // on screen while the new payload loads, so a refresh never blanks the page.
+  useEffect(() => {
+    if (!preferences.autoRefreshMs) return
+    const timer = window.setInterval(() => {
+      void queryClient.invalidateQueries()
+    }, preferences.autoRefreshMs)
+    return () => window.clearInterval(timer)
+  }, [preferences.autoRefreshMs, queryClient])
 
   const refresh = useMutation({
     mutationFn: async () => {
@@ -232,16 +247,38 @@ export default function Dashboard() {
             icon={<TrendingUp className="h-4 w-4" />}
           />
           {trendData.length ? (
-            <AreaTrend
-              data={trendData}
-              xKey="date"
-              series={[
-                { key: 'avg_price_usd', label: 'Average price (USD)' },
-                { key: 'observations', label: 'Observations' },
-              ]}
-              height={280}
-              formatY="currency"
-            />
+            preferences.defaultChartType === 'bar' ? (
+              <BarSeries
+                data={trendData}
+                xKey="date"
+                series={[
+                  { key: 'avg_price_usd', label: 'Average price (USD)' },
+                  { key: 'observations', label: 'Observations' },
+                ]}
+                height={280}
+              />
+            ) : preferences.defaultChartType === 'line' ? (
+              <LineTrend
+                data={trendData}
+                xKey="date"
+                series={[
+                  { key: 'avg_price_usd', label: 'Average price (USD)' },
+                  { key: 'observations', label: 'Observations' },
+                ]}
+                height={280}
+              />
+            ) : (
+              <AreaTrend
+                data={trendData}
+                xKey="date"
+                series={[
+                  { key: 'avg_price_usd', label: 'Average price (USD)' },
+                  { key: 'observations', label: 'Observations' },
+                ]}
+                height={280}
+                formatY="currency"
+              />
+            )
           ) : (
             <EmptyState kind="chart" title="No trend data yet" message="Run the pipeline to populate the warehouse." />
           )}
