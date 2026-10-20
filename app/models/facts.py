@@ -55,6 +55,12 @@ class FactPriceSnapshot(Base):
         sa.Index("ix_fact_price_source_date", "source_code", "date_id"),
         sa.Index("ix_fact_price_run", "run_id"),
         sa.Index("ix_fact_price_change", "price_change_pct"),
+        # Every windowed dashboard query filters on `captured_at`. Without an
+        # index on it the planner sequential-scans the whole fact table, which
+        # is the difference between a 70 ms and a multi-second dashboard as
+        # the warehouse grows. `product_id` is included so the same index also
+        # serves the distinct-product count without a second sort.
+        sa.Index("ix_fact_price_captured_product", "captured_at", "product_id"),
     )
 
 
