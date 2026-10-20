@@ -153,19 +153,19 @@ phase, `—` = not involved.
 | Requirements and stakeholders | P | C | — | — | — | — | — |
 | Literature review | P | C | — | — | — | — | — |
 | Database schema (23 tables) | C | P | — | C | — | C | — |
-| Analytical views (20) | — | C | — | P | C | ○ | — |
+| Analytical views (20) | — | C | — | P | C | C | — |
 | Compliance layer | — | C | P | — | — | C | — |
 | Cleaning / normalisation | — | C | P | C | — | C | — |
-| Deduplication engine | — | C | ○ | P | — | C | — |
-| ETL pipeline | — | C | — | P | C | ○ | — |
-| Data-quality framework | — | C | — | P | C | ○ | — |
-| Catalog reconciliation | — | C | — | P | C | ○ | — |
+| Deduplication engine | — | C | C | P | — | C | — |
+| ETL pipeline | — | C | — | P | C | C | — |
+| Data-quality framework | — | C | — | P | C | C | — |
+| Catalog reconciliation | — | C | — | P | C | C | — |
 | REST API | — | C | — | — | P | C | — |
 | Dashboard | — | C | — | — | P | C | — |
 | Airflow DAG | — | C | — | C | P | C | — |
 | Deployment (Compose, docs) | — | C | — | — | C | P | C |
-| Demo dataset | — | — | C | ○ | — | P | — |
-| Documentation set | C | P | C | ○ | C | P | ● |
+| Demo dataset | — | — | C | C | — | P | — |
+| Documentation set | C | P | C | C | C | P | P |
 
 ### 4.1 Deliverable traceability to acceptance criteria
 

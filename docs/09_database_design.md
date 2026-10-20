@@ -618,19 +618,19 @@ stages complete.
 ### 5.3 Functional dependencies (informal)
 
 ```text
-dim_product.product_id            → canonical_name, normalized_name, brand, category_id, fingerprint, ...
-dim_category.category_id          → name, slug, level, path, parent_id
-dim_category.slug                 → category_id                      (alternate key, UNIQUE)
-dim_source.source_code            → name, kind, base_url, rate_limit_per_minute, ...
-dim_currency.currency_code        → currency_name, symbol, rate_to_usd, as_of
-dim_date.date_id                  → full_date, year, quarter, month, day, is_weekend, ...
-fact_price_snapshot.snapshot_id   → all 25 other columns
+dim_product.product_id            -> canonical_name, normalized_name, brand, category_id, fingerprint, ...
+dim_category.category_id         -> name, slug, level, path, parent_id
+dim_category.slug                 -> category_id                      (alternate key, UNIQUE)
+dim_source.source_code            -> name, kind, base_url, rate_limit_per_minute, ...
+dim_currency.currency_code       -> currency_name, symbol, rate_to_usd, as_of
+dim_date.date_id                  -> full_date, year, quarter, month, day, is_weekend, ...
+fact_price_snapshot.snapshot_id  -> all 25 other columns
 UNIQUE(fact_price_snapshot.product_id, run_id)                      (fact grain)
 UNIQUE(chg_price_change.product_id, run_id)
 UNIQUE(fact_catalog_snapshot.run_id, catalog_sku)
 UNIQUE(agg_category_daily.date_id, category_id, source_code)
-app_user.email                    → user_id                          (alternate key, UNIQUE)
-app_api_key.prefix                → key_id                           (indexed lookup key)
+app_user.email                    -> user_id                          (alternate key, UNIQUE)
+app_api_key.prefix                -> key_id                           (indexed lookup key)
 ```
 
 ---
