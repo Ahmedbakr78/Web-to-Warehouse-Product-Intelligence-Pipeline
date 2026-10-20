@@ -491,7 +491,7 @@ export default function Pipeline() {
         open={showTrigger}
         onClose={() => setShowTrigger(false)}
         title="Run the pipeline"
-        description="Executes the full ETL synchronously: extract → stage → transform → dedupe → load → detect → reconcile → quality."
+        description="Executes the full ETL synchronously: extract, stage, transform, dedupe, load, detect, reconcile, quality."
         footer={
           <>
             <Button variant="ghost" icon={<X className="h-4 w-4" />} onClick={() => setShowTrigger(false)}>

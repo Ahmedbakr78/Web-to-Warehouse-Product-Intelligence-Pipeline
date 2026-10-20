@@ -9,6 +9,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
+  ArrowDown,
+  ArrowUp,
   Bell,
   ChevronDown,
   Command,
@@ -186,7 +188,10 @@ export default function AppShell() {
             >
               <Search className="h-4 w-4" aria-hidden />
               <span>Search everything</span>
-              <kbd className="ml-6 rounded border border-line bg-surface-3 px-1.5 py-0.5 font-mono text-[10px]">⌘K</kbd>
+              <kbd className="ml-6 inline-flex items-center gap-0.5 rounded border border-line bg-surface-3 px-1.5 py-0.5 font-mono text-[10px]">
+                <Command className="h-3 w-3" aria-hidden />
+                K
+              </kbd>
             </button>
           )}
           <IconButton label="Search" icon={<Search className="h-4 w-4" />} onClick={() => setPaletteOpen(true)} className="md:hidden" />
@@ -238,8 +243,8 @@ const SHORTCUT_GROUPS: { title: string; rows: { keys: string[]; action: string }
   {
     title: 'Search & navigate',
     rows: [
-      { keys: ['Ctrl/⌘ K', '/'], action: 'Command palette - products, screens, actions' },
-      { keys: ['↑ ↓', '↵'], action: 'Move in the palette, open the highlighted result' },
+      { keys: ['Ctrl/Command K', '/'], action: 'Command palette - products, screens, actions' },
+      { keys: ['Arrow Up / Arrow Down', 'Enter'], action: 'Move in the palette, open the highlighted result' },
       { keys: ['?'], action: 'This shortcut reference' },
       { keys: ['Esc'], action: 'Close dialogs, palette and drawer' },
     ],
@@ -247,7 +252,7 @@ const SHORTCUT_GROUPS: { title: string; rows: { keys: string[]; action: string }
   {
     title: 'Sidebar',
     rows: [
-      { keys: ['Ctrl/⌘ B'], action: 'Toggle navigation (drawer on small screens)' },
+      { keys: ['Ctrl/Command B'], action: 'Toggle navigation (drawer on small screens)' },
       { keys: ['['], action: 'Collapse the sidebar rail' },
       { keys: [']'], action: 'Expand the sidebar rail' },
     ],
@@ -466,7 +471,14 @@ function CommandPalette({
         </div>
         <div className="flex items-center justify-between border-t border-line px-3 py-1.5 text-[10px] text-subtle">
           <span className="flex items-center gap-1.5">
-            <Keyboard className="h-3 w-3" aria-hidden /> ↑↓ navigate · ↵ open · / trigger
+            <Keyboard className="h-3 w-3" aria-hidden />
+            <ArrowUp className="h-3 w-3" aria-hidden />
+            <ArrowDown className="h-3 w-3" aria-hidden />
+            navigate
+            <CornerDownLeft className="h-3 w-3" aria-hidden />
+            open
+            <span className="font-mono">/</span>
+            trigger
           </span>
           <span>{results.length} results</span>
         </div>
