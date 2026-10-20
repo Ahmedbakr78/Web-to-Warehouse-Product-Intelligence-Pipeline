@@ -86,7 +86,15 @@ def _drop_insights(movers: list[dict[str, Any]], limit: int) -> list[dict[str, A
     items: list[dict[str, Any]] = []
     for row in movers[:limit]:
         change = _num(row.get("change_pct"))
-        if change is None:
+        previous, new = _num(row.get("previous_price")), _num(row.get("new_price"))
+        if (
+            change is None
+            or abs(change) > 65
+            or previous is None
+            or new is None
+            or previous <= 0
+            or new <= 0
+        ):
             continue
         items.append(
             _insight(
@@ -113,7 +121,15 @@ def _rise_insights(movers: list[dict[str, Any]], limit: int) -> list[dict[str, A
     items: list[dict[str, Any]] = []
     for row in movers[:limit]:
         change = _num(row.get("change_pct"))
-        if change is None:
+        previous, new = _num(row.get("previous_price")), _num(row.get("new_price"))
+        if (
+            change is None
+            or abs(change) > 65
+            or previous is None
+            or new is None
+            or previous <= 0
+            or new <= 0
+        ):
             continue
         items.append(
             _insight(
@@ -167,12 +183,18 @@ def _category_signals(rows: list[dict[str, Any]], limit: int) -> list[dict[str, 
 
 def _catalog_insights(rows: list[dict[str, Any]], limit: int) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
+    seen: set[str] = set()
     for row in rows:
         if row.get("match_status") != "matched":
             continue
         gap = _num(row.get("price_gap_pct"))
-        if gap is None or abs(gap) < 5:
+        # Duplicate snapshots per SKU are historical; only the first (the view
+        # is ordered by gap) is actionable. Gaps beyond 60% are almost always
+        # unit/currency mismatches rather than pricing opportunities.
+        key = f"catalog-{row.get('catalog_sku')}"
+        if key in seen or gap is None or abs(gap) < 5 or abs(gap) > 60:
             continue
+        seen.add(key)
         gap_abs = _num(row.get("price_gap_abs"))
         gap_label = f"{gap:+.1f}%"
         if gap < 0:
@@ -265,8 +287,10 @@ def _compose_briefing(session: Session, days: int = 30, limit: int = 6) -> dict[
     quality = kpi.get("quality") or {}
     counts = kpi.get("counts") or {}
 
-    drops = analytics.top_movers(session, limit=limit, direction="decrease")
-    rises = analytics.top_movers(session, limit=limit, direction="increase")
+    # Fetch a wider set: extreme >65% moves are data anomalies, not morning
+    # actions, and are filtered out before the queue is truncated.
+    drops = analytics.top_movers(session, limit=limit * 5, direction="decrease")
+    rises = analytics.top_movers(session, limit=limit * 5, direction="increase")
     category_rows = analytics.category_movers(session, days=days, limit=limit)
     risk_rows = analytics.inventory_risk(session, limit=limit)
     anomalies = analytics.price_anomalies(session, limit=limit)
