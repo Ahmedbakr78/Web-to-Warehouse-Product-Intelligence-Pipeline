@@ -3,7 +3,7 @@
 ## Purpose
 
 This document is the complete feature inventory of the Web-to-Warehouse Product Intelligence
-Pipeline: 550 features grouped into forty-six areas, each with a one-line description and a reference
+Pipeline: 575 features grouped into forty-seven areas, each with a one-line description and a reference
 to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an
 endpoint, a CLI command or a documented design decision. Nothing here is aspirational.
 
@@ -1037,3 +1037,39 @@ the feature catalogue, a full 34-adapter source catalog, and a release playbook.
 | F-550 | Ownership diagram | Lead-vs-lanes Mermaid map in the team sheet | `docs/00_team.md` |
 
 **Revised total: 550 features across 46 areas** (F-001 to F-550).
+
+## 47. v1.12 truthfulness Max: honest metrics, silent reload & mobile parity (25)
+
+Everything the dashboard shows is now scoped, labelled and true; every account
+preference actually changes the app; and the mobile shell behaves exactly like
+the desktop one. The synthetic demo path stays quarantined from production.
+
+| ID | Feature | What it does | Where |
+| --- | --- | --- | --- |
+| F-551 | Consistent metric windows | Every KPI tile is scoped to the selected range instead of mixing lifetime and windowed counts | `app/analytics/service.py` |
+| F-552 | Products vs observations | Distinct canonical products and raw price snapshots are two separate, explicitly labelled tiles | `frontend/src/pages/Dashboard.tsx` |
+| F-553 | Observations-per-product ratio | The hint explains the relationship between the two counts instead of repeating one of them | `frontend/src/pages/Dashboard.tsx` |
+| F-554 | Exact-number display mode | Account → Preferences switches every count from compact (33.6k) to exact (33,600) | `frontend/src/lib/format.ts` |
+| F-555 | Silent reload | Data refreshes in place with no skeleton shimmer, spinner sweep, transition or layout shift | `frontend/src/lib/theme.ts` |
+| F-556 | Silent reload follows the profile | The preference is stored server-side and restored on every device the user signs in from | `frontend/src/hooks/useAuth.tsx` |
+| F-557 | Account preference validation | The API clamps every known preference to its allowed value set, so a hand-written request cannot break the client | `app/api/routers/users.py` |
+| F-558 | Wired auto-refresh | The account cadence setting now drives a real refresh interval on the dashboard | `frontend/src/pages/Dashboard.tsx` |
+| F-559 | Wired default chart type | Area, line or bar for the market trend, chosen in the account screen | `frontend/src/pages/Dashboard.tsx` |
+| F-560 | Wired default time range | The dashboard opens on the range the user configured | `frontend/src/pages/Dashboard.tsx` |
+| F-561 | Wired default export format | The preferred download format is offered first on every export control | `frontend/src/components/ExportButton.tsx` |
+| F-562 | Wired copy-code-on-click | Generated SQL, serialised filters and JSON cells copy on a single click | `frontend/src/components/ui.tsx` |
+| F-563 | Scroll restoration that works | Back and forward restore the exact scroll offset of the real scrolling container | `frontend/src/hooks/useScrollRestoration.ts` |
+| F-564 | Drawer scroll lock | The content behind an open mobile drawer can no longer be scrolled by wheel or touch | `frontend/src/components/Navigation.tsx` |
+| F-565 | Drawer closes on resize | Rotating a tablet or resizing past the breakpoint dismisses the drawer and releases the lock | `frontend/src/components/Navigation.tsx` |
+| F-566 | Single sidebar width source | The rail, the content gutter and the Tailwind spacing utilities share one set of tokens | `frontend/src/styles/index.css` |
+| F-567 | Accent-aware soft tints | Chips, badges and active rows are tinted from the live accent colour instead of a fixed indigo | `frontend/src/styles/index.css` |
+| F-568 | Dark brand ramp | Every brand shade stays legible in dark, midnight and high-contrast palettes | `frontend/src/styles/index.css` |
+| F-569 | Complete icon coverage | Every icon name the API can emit resolves to a real glyph, guarded by a parity test | `frontend/src/lib/nav-icons.test.ts` |
+| F-570 | Builder filter chips | Every active filter is listed as a removable chip with a one-click clear-all | `frontend/src/pages/Builder.tsx` |
+| F-571 | Twelve builder presets | Drops, hikes, delistings, catalog mismatches, DQ failures and stale stock in one click | `frontend/src/pages/Builder.tsx` |
+| F-572 | Warehouse timestamp sanity | Seeded and imported batches can never claim an observation from the future | `app/etl/seed.py` |
+| F-573 | Freshness rule never negative | Clock skew cannot make the data-quality freshness rule report a negative age | `app/etl/dq.py` |
+| F-574 | Alerts read the scored run | A run without a data-quality verdict no longer masks the previous one | `app/services/alerts.py` |
+| F-575 | Real-data guarantee | Synthetic sources, demo URLs and seeded strategies are excluded from every production run | `app/etl/pipeline.py` |
+
+**Revised total: 575 features across 47 areas** (F-001 to F-575).
