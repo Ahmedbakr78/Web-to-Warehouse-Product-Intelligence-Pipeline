@@ -6,7 +6,7 @@
  * user can act, and the whole page is exportable as JSON for a stand-up note.
  */
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowRight,
@@ -44,6 +44,7 @@ import {
 import { cn } from '@/lib/cn'
 import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
+import { useAuth } from '@/hooks/useAuth'
 import { downloadJson, formatCompact, formatNumber, formatPrice, formatRelative } from '@/lib/format'
 
 type Insight = {
@@ -126,12 +127,19 @@ function InsightIcon({ name, className }: { name: string; className?: string }) 
 }
 
 export default function BriefingPage() {
-  const [days, setDays] = useState('30')
+  const { user } = useAuth()
+  const [days, setDays] = useState(() => String(user?.preferences?.briefing_window ?? '30'))
+  const queueSize = Number(user?.preferences?.briefing_size ?? 6)
   const [filter, setFilter] = useState<'all' | 'opportunity' | 'risk'>('all')
   const toast = useToast()
-  const query = useApiQuery(['intelligence-briefing', days], () => endpoints.briefing(Number(days), 6), {
+  const query = useApiQuery(['intelligence-briefing', days, queueSize], () => endpoints.briefing(Number(days), queueSize), {
     staleTime: 60_000,
   })
+
+  useEffect(() => {
+    const preferred = user?.preferences?.briefing_window
+    if (preferred) setDays(String(preferred))
+  }, [user?.preferences?.briefing_window])
 
   const data = query.data as Briefing | undefined
 
