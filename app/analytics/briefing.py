@@ -84,7 +84,10 @@ def _insight(
 
 def _drop_insights(movers: list[dict[str, Any]], limit: int) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
-    for row in movers[:limit]:
+    seen: set[Any] = set()
+    for row in movers:
+        if row.get("product_id") in seen:
+            continue
         change = _num(row.get("change_pct"))
         previous, new = _num(row.get("previous_price")), _num(row.get("new_price"))
         if (
@@ -96,6 +99,7 @@ def _drop_insights(movers: list[dict[str, Any]], limit: int) -> list[dict[str, A
             or new <= 0
         ):
             continue
+        seen.add(row.get("product_id"))
         items.append(
             _insight(
                 key=f"drop-{row.get('product_id')}",
@@ -114,12 +118,17 @@ def _drop_insights(movers: list[dict[str, Any]], limit: int) -> list[dict[str, A
                 action="Review the new price",
             )
         )
+        if len(items) >= limit:
+            break
     return items
 
 
 def _rise_insights(movers: list[dict[str, Any]], limit: int) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
-    for row in movers[:limit]:
+    seen: set[Any] = set()
+    for row in movers:
+        if row.get("product_id") in seen:
+            continue
         change = _num(row.get("change_pct"))
         previous, new = _num(row.get("previous_price")), _num(row.get("new_price"))
         if (
@@ -131,6 +140,7 @@ def _rise_insights(movers: list[dict[str, Any]], limit: int) -> list[dict[str, A
             or new <= 0
         ):
             continue
+        seen.add(row.get("product_id"))
         items.append(
             _insight(
                 key=f"rise-{row.get('product_id')}",
@@ -149,6 +159,8 @@ def _rise_insights(movers: list[dict[str, Any]], limit: int) -> list[dict[str, A
                 action="Check margin exposure",
             )
         )
+        if len(items) >= limit:
+            break
     return items
 
 
@@ -289,8 +301,8 @@ def _compose_briefing(session: Session, days: int = 30, limit: int = 6) -> dict[
 
     # Fetch a wider set: extreme >65% moves are data anomalies, not morning
     # actions, and are filtered out before the queue is truncated.
-    drops = analytics.top_movers(session, limit=limit * 5, direction="decrease")
-    rises = analytics.top_movers(session, limit=limit * 5, direction="increase")
+    drops = analytics.top_movers(session, limit=max(limit * 25, 120), direction="decrease")
+    rises = analytics.top_movers(session, limit=max(limit * 25, 120), direction="increase")
     category_rows = analytics.category_movers(session, days=days, limit=limit)
     risk_rows = analytics.inventory_risk(session, limit=limit)
     anomalies = analytics.price_anomalies(session, limit=limit)
@@ -303,7 +315,7 @@ def _compose_briefing(session: Session, days: int = 30, limit: int = 6) -> dict[
     opportunities.extend(_catalog_insights(catalog_rows, max(2, limit // 2)))
     for row in discounts[: max(2, limit // 2)]:
         depth = _num(row.get("discount_pct"))
-        if depth is None or depth < 10:
+        if depth is None or depth < 10 or depth > 75:
             continue
         opportunities.append(
             _insight(
