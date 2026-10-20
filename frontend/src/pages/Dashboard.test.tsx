@@ -89,7 +89,7 @@ describe('Dashboard page', () => {
     expect(container.textContent).not.toMatch(/Minified React error/i)
 
     await waitFor(() => {
-      expect(screen.getByText("Canonical products")).toBeTruthy()
+      expect(screen.getByText("Products tracked")).toBeTruthy()
     })
 
     // Settle, then confirm the count stopped moving. A re-render loop would keep

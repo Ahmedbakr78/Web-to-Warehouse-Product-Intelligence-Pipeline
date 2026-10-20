@@ -9,7 +9,6 @@ import {
   Clock,
   Download,
   Gauge,
-  Layers,
   Package,
   RefreshCw,
   ShieldCheck,
@@ -159,27 +158,29 @@ export default function Dashboard() {
       </div>
 
       {/* ------------------------------------------------------------- KPI cards */}
+      {/* Every card below is scoped to the selected window so the range switch
+          changes all of them together. "Products" counts distinct canonical
+          products, "Observations" counts the individual price snapshots that
+          make up the history - two different numbers that are easy to confuse. */}
       <div className="grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-4">
         <StatTile
-          label="Canonical products"
-          value={formatCompact(counts.dim_product ?? latest.products ?? 0)}
-          hint={`${formatCompact(latest.sources ?? 0)} sources · ${formatCompact(latest.products ?? 0)} observations`}
+          label="Products tracked"
+          value={formatCompact(latest.distinct_products ?? counts.dim_product ?? 0)}
+          hint={`${formatCompact(counts.dim_product ?? 0)} in the catalogue all-time`}
           icon={<Package className="h-4 w-4" />}
+        />
+        <StatTile
+          label="Observations"
+          value={formatCompact(latest.products ?? 0)}
+          hint={`price snapshots in the last ${days} days`}
+          icon={<Boxes className="h-4 w-4" />}
+          tone="info"
         />
         <StatTile
           label="Average price"
           value={formatPrice(latest.avg_price ?? null, 'USD')}
           hint={`min ${formatPrice(latest.min_price ?? null)} · max ${formatPrice(latest.max_price ?? null)}`}
           icon={<TrendingUp className="h-4 w-4" />}
-          tone="info"
-        />
-        <StatTile
-          label="Price changes"
-          value={formatCompact(changes.total_changes ?? 0)}
-          hint={`${formatCompact(changes.decreases ?? 0)} down · ${formatCompact(changes.increases ?? 0)} up`}
-          icon={<Activity className="h-4 w-4" />}
-          tone="warning"
-          delta={<DeltaPill value={changes.avg_abs_change_pct ?? null} />}
         />
         <StatTile
           label="Data quality score"
@@ -191,6 +192,14 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-4">
+        <StatTile
+          label="Price changes"
+          value={formatCompact(changes.total_changes ?? 0)}
+          hint={`${formatCompact(changes.decreases ?? 0)} down · ${formatCompact(changes.increases ?? 0)} up`}
+          icon={<Activity className="h-4 w-4" />}
+          tone="warning"
+          delta={<DeltaPill value={changes.avg_abs_change_pct ?? null} />}
+        />
         <StatTile
           label="New products"
           value={formatCompact(events.new ?? 0)}
@@ -204,13 +213,6 @@ export default function Dashboard() {
           hint={`delisted or out of circulation`}
           icon={<ArrowDownRight className="h-4 w-4" />}
           tone="danger"
-        />
-        <StatTile
-          label="Category changes"
-          value={formatCompact(events.category_changed ?? 0)}
-          hint="products recategorised upstream"
-          icon={<Layers className="h-4 w-4" />}
-          tone="warning"
         />
         <StatTile
           label="Sources reporting"
