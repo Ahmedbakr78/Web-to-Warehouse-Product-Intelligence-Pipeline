@@ -347,7 +347,7 @@ export default function Reports() {
         />
         <ol className="grid gap-3 text-xs text-muted sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { title: '1. Query', body: 'The template runs against the 20 analytical views, never the raw tables.' },
+            { title: '1. Query', body: 'The template runs against the 23 analytical views, never the raw tables.' },
             { title: '2. Assemble', body: 'Results become typed blocks: heading, tiles, table, bars, callout.' },
             { title: '3. Render', body: 'The screen, the HTML preview, the CSV and the PDF consume those same blocks.' },
             { title: '4. Export', body: 'A large PDF is queued as a job so WeasyPrint never blocks a request.' },

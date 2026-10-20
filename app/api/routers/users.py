@@ -277,6 +277,10 @@ def delete_me(payload: UserDeleteRequest, request: Request, session: DbSession, 
     )
     session.flush()
     session.delete(user)
+    # Commit before the response is sent: the client can issue its next request
+    # (for example, a login attempt that must now fail) as soon as this returns,
+    # and the dependency-level commit would otherwise race that request.
+    session.commit()
     return Message(message=f"Account '{email}' deleted. All personal data removed.")
 
 

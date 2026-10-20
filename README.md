@@ -33,9 +33,9 @@
 </p>
 
 <p align="center">
-  <b>215 REST operations</b> · <b>29 tables</b> · <b>23 analytical views</b> ·
-  <b>12 DQ rules</b> · <b>32 sources (31 live + 1 dynamic)</b> · <b>545 catalogued features</b> ·
-  <b>568 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
+  <b>218 REST operations</b> · <b>29 tables</b> · <b>23 analytical views</b> ·
+  <b>12 DQ rules</b> · <b>34 registered sources</b> · <b>550 catalogued features</b> ·
+  <b>588 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
 </p>
 
 <p align="center">
@@ -162,7 +162,7 @@ Everything is engineered like a production system, not a demo:
 | **Orchestration** | Apache Airflow 2.10 DAG | 13 tasks, branch-on-changes, alert fan-out, report publication, sync-run API for demos |
 | **Data quality** | 12-rule framework over 6 dimensions | completeness, validity, uniqueness, accuracy, consistency, timeliness, weighted score |
 | **Change detection** | SQL plus an event engine | price changes banded by magnitude, new and removed products, category drift, lifecycle events |
-| **REST API** | FastAPI | **195 operations in 23 routers**, JWT and API-key auth, RBAC (admin / analyst / viewer), key rotation + editing, multi-level sorting, OpenAPI docs, gzip, timing headers |
+| **REST API** | FastAPI | **218 operations in 24 routers**, JWT and API-key auth, RBAC (admin / analyst / viewer), key rotation + editing, multi-level sorting, OpenAPI docs, gzip, timing headers |
 | **Dashboard** | React 19 + TypeScript + Tailwind + ReCharts | 24 screens, 5 themes, 12 accent colours, 3 densities, command palette, installable PWA, responsive from 320 px |
 | **CLI** | Typer, 13 commands | bootstrap, seed, run, report, verify, quality, sources preview |
 | **Ops** | Docker Compose (6 services), Makefile (30+ targets), GitHub Actions CI | one-command everything |
@@ -360,7 +360,7 @@ flowchart TB
     end
     subgraph Server["FastAPI monolith, modular"]
         MW["CORS - gzip - timing headers"]
-        RT["23 routers, 215 operations"]
+        RT["24 routers, 218 operations"]
         SV["analytics + ETL services"]
         SEC["JWT + API keys - RBAC - audit"]
         MW --> RT --> SV
@@ -800,7 +800,7 @@ graph TB
         PAL["Command palette<br/>Ctrl/Cmd-K"]
     end
     subgraph Edge["FastAPI application"]
-        ROUTES["23 routers<br/>215 operations"]
+        ROUTES["24 routers<br/>218 operations"]
         AUTH["Security layer<br/>Argon2id · JWT · API keys · RBAC"]
         GUARD["Guards<br/>error envelope · GZip · timing · rate limit"]
         BUILDER["Builder DSL<br/>whitelist → parameterised SELECT"]
@@ -968,7 +968,7 @@ proves there is no structural drift and prints the per-engine row counts):
 | Application | `app_user`, `app_api_key`, `app_setting`, `app_saved_view`, `app_alert_rule`, `app_notification`, `app_audit_log` |
 | Catalog | `catalog_product` (the retailer's internal SKUs) |
 
-Twenty analytical views in `db/views.sql` back every screen: latest prices, top movers, category
+Twenty-three analytical views in `db/views.sql` back every screen: latest prices, top movers, category
 indexes, availability mix, source coverage, quality trends, dedupe evidence, price bands, new and
 removed feeds, drift matrices. The four analyses named in the brief also exist as standalone,
 parameterised SQL under [`db/analysis/`](db/analysis/README.md) so they can be reviewed and re-run
@@ -1008,7 +1008,7 @@ are persisted per run in `dq_rule_result`, and the dashboard charts the score tr
 ## Feature catalogue
 
 The exhaustive, file-referenced inventory lives in
-[docs/19_feature_list.md](docs/19_feature_list.md) — 545 features in forty-five areas. It is also served as
+[docs/19_feature_list.md](docs/19_feature_list.md) — 550 features in forty-six areas. It is also served as
 structured JSON by `GET /api/v1/meta/features` (396 entries across the catalogue groups) and rendered by the **Features** screen, both generated
 from `app/core/features.py`, so this section can never describe something the code does not do.
 Highlights by area:
@@ -1057,7 +1057,7 @@ Highlights by area:
 - 12 rules, 6 dimensions, persisted verdicts, weighted score, 90-day trend
 - KPI cards, daily trends, category indexes, brand leaderboards, radar comparison, observation
   heatmap, availability analysis, source matrix
-- 20 SQL views plus a read-only Query Lab with a SELECT-only guard, LIMIT clamping and examples
+- 23 SQL views plus a read-only Query Lab with a SELECT-only guard, LIMIT clamping and examples
 
 ### REST API and security
 
@@ -1630,7 +1630,7 @@ catalogue — so this table can never drift from the shipped record.
 Ahmed carries the architecture end to end: every layer below is his direct
 ownership, and every merge in the repository passes his review.
 
-- **FastAPI platform** — 23 routers and 216 operations: auth (JWT rotation +
+- **FastAPI platform** — 24 routers and 218 operations: auth (JWT rotation +
   API keys), RBAC (admin/analyst/viewer), exports, webhooks, backfill, builder,
   query lab, forecast, reports, saved views, notifications, audit.
 - **9-stage ETL orchestrator** — one `Pipeline.run()` used identically by the

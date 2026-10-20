@@ -10,7 +10,7 @@ import { useTheme } from '@/lib/theme'
 import { localStore } from '@/lib/session'
 
 const FEATURES = [
-  { icon: Database, title: '20 analytical views', copy: 'Kimball star schema over PostgreSQL and MySQL' },
+  { icon: Database, title: '23 analytical views', copy: 'Kimball star schema over PostgreSQL and MySQL' },
   { icon: ShieldCheck, title: '12 DQ rules', copy: 'Completeness, validity, uniqueness, accuracy, timeliness' },
   { icon: Zap, title: 'Change detection', copy: 'Price changes, new arrivals, removals, recategorisations' },
 ]

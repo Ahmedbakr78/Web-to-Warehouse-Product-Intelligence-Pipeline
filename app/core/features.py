@@ -301,12 +301,12 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "key": "warehouse",
         "title": "Warehouse model",
         "icon": "database",
-        "summary": "23-table Kimball star schema on PostgreSQL 16 and MySQL 8.4.",
+        "summary": "29-table Kimball star schema on PostgreSQL 16 and MySQL 8.4.",
         "features": [
             {"name": "Star schema", "detail": "5 dimensions, 5 fact/change tables, aggregates"},
             {"name": "Cross-dialect DDL", "detail": "One SQLAlchemy 2.0 model set, three databases"},
             {
-                "name": "20 analytical views",
+                "name": "23 analytical views",
                 "detail": "KPI, price history, movers, coverage, reconciliation...",
             },
             {"name": "Staging zone", "detail": "Raw observations kept verbatim with reject reasons"},
@@ -433,7 +433,7 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "key": "analytics",
         "title": "Analytics & SQL reporting",
         "icon": "bar-chart-3",
-        "summary": "20 views + 8 standalone analysis scripts, ported across dialects.",
+        "summary": "23 views + 8 standalone analysis scripts, ported across dialects.",
         "features": [
             {"name": "Headline KPIs", "detail": "Products, sources, price bands, ratings, stock mix"},
             {"name": "Price trends", "detail": "Category price index, volatility, std-dev"},
@@ -983,7 +983,7 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "key": "schema",
         "title": "Schema & migrations",
         "icon": "database",
-        "summary": "Alembic owns the schema: 28 tables and 20 views built from nothing, with drift detection in "
+        "summary": "Alembic owns the schema: 29 tables and 23 views built from nothing, with drift detection in "
         "continuous integration.",
         "features": [
             {"name": "Alembic integrated", "detail": "Real revisions instead of create_all on every boot"},
@@ -993,7 +993,7 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             },
             {
                 "name": "Views are part of the migration",
-                "detail": "The 20 analytical views are applied by the revision, not by a bootstrap afterthought",
+                "detail": "The 23 analytical views are applied by the revision, not by a bootstrap afterthought",
             },
             {
                 "name": "Drift check",
