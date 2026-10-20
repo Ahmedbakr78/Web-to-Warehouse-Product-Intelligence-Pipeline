@@ -80,6 +80,7 @@ def kpi_summary(session: Session, days: int = 30) -> dict[str, Any]:
         sa.text(
             """
             SELECT COUNT(*) AS products,
+                   COUNT(DISTINCT product_id) AS distinct_products,
                    COUNT(DISTINCT source_code) AS sources,
                    ROUND(CAST(AVG(price_usd) AS DECIMAL(24,6)), 2) AS avg_price,
                    ROUND(CAST(MIN(price_usd) AS DECIMAL(24,6)), 2) AS min_price,
