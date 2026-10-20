@@ -251,7 +251,7 @@ export default function Dashboard() {
               <BarSeries
                 data={trendData}
                 xKey="date"
-                series={[
+                bars={[
                   { key: 'avg_price_usd', label: 'Average price (USD)' },
                   { key: 'observations', label: 'Observations' },
                 ]}

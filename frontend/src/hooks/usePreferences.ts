@@ -54,9 +54,9 @@ export type ProfilePreferences = {
 export function useProfilePreferences(): ProfilePreferences {
   const { user } = useAuth()
   const prefs = user?.preferences ?? null
-  const dashboard = read<Record<string, unknown>>(prefs, 'dashboard', {})
 
   const preferences = useMemo<ProfilePreferences>(() => {
+    const dashboard = read<Record<string, unknown>>(prefs, 'dashboard', {})
     const autoRefresh = read<string>(prefs, 'auto_refresh', 'off')
     const known = AUTO_REFRESH_OPTIONS.find((option) => option.id === autoRefresh)
     return {

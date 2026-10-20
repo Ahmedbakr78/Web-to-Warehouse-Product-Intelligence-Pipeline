@@ -39,6 +39,56 @@ from app.models.app_users import AppApiKey, AppAuditLog, AppNotification, AppSav
 router = APIRouter(prefix="/users", tags=["users"])
 
 
+#: Preference values the dashboard understands. Anything outside these sets is
+#: replaced with the default so a hand-written API call can never put the
+#: client into a state it cannot render.
+_PREFERENCE_ENUMS: dict[str, tuple[str, ...]] = {
+    "number_format": ("compact", "full"),
+    "auto_refresh": ("off", "15s", "30s", "1m", "5m"),
+    "default_export_format": ("csv", "xlsx", "json"),
+    "silent_reload": ("true", "false"),
+    "copy_code_on_click": ("true", "false"),
+}
+
+_DASHBOARD_ENUMS: dict[str, tuple[str, ...]] = {
+    "chart_type": ("area", "line", "bar"),
+    "default_range": ("7d", "30d", "90d", "180d", "365d"),
+}
+
+
+def _normalise_preferences(preferences: dict[str, Any]) -> dict[str, Any]:
+    """Clamp known preferences to their allowed values.
+
+    Preferences are stored as free-form JSON, so the API is the only place that
+    can guarantee the dashboard never receives a value it cannot render.
+    """
+    cleaned = dict(preferences)
+    for key, allowed in _PREFERENCE_ENUMS.items():
+        if key not in cleaned or cleaned[key] is None:
+            continue
+        raw = cleaned[key]
+        if isinstance(raw, bool):
+            value = "true" if raw else "false"
+        else:
+            value = str(raw).strip().lower()
+        if value in allowed:
+            cleaned[key] = raw
+        else:
+            cleaned.pop(key, None)
+
+    dashboard = cleaned.get("dashboard")
+    if isinstance(dashboard, dict):
+        nested = dict(dashboard)
+        for key, allowed in _DASHBOARD_ENUMS.items():
+            if key not in nested or nested[key] is None:
+                continue
+            value = str(nested[key]).strip().lower()
+            if value not in allowed:
+                nested.pop(key, None)
+        cleaned["dashboard"] = nested
+    return cleaned
+
+
 def _to_read(user: AppUser) -> UserRead:
     payload = UserRead.model_validate(user)
     payload.permissions = sorted(ROLE_RIGHTS.get(user.role, set()))
@@ -287,6 +337,8 @@ def delete_me(payload: UserDeleteRequest, request: Request, session: DbSession, 
 @router.patch("/me", response_model=UserRead, summary="Update my profile & preferences")
 def update_me(payload: UserUpdate, session: DbSession, user: CurrentUser) -> UserRead:
     data = payload.model_dump(exclude_unset=True, exclude_none=True)
+    if "preferences" in data and isinstance(data["preferences"], dict):
+        data["preferences"] = _normalise_preferences(data["preferences"])
     for field_name, value in data.items():
         setattr(user, field_name, value)
     session.flush()
