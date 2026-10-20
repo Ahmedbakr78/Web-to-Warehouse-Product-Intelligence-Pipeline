@@ -60,6 +60,10 @@ def run_pipeline(job_id: int, report: Report) -> dict[str, Any]:
     from app.etl.pipeline import Pipeline, PipelineConfig
 
     payload = _payload(job_id)
+    # An empty ``config.sources`` means "auto": the pipeline resolves the list
+    # itself, so it applies the real-only trust rule and also unions the
+    # dashboard-defined sources. Resolving it here would duplicate that rule and
+    # could pull a demo or mock feed into a real run.
     config = PipelineConfig(
         sources=payload.get("sources") or [],
         database=payload.get("database") or "postgres",
@@ -72,12 +76,6 @@ def run_pipeline(job_id: int, report: Report) -> dict[str, Any]:
         trigger=payload.get("trigger", "job"),
         created_by=payload.get("created_by"),
     )
-    if not config.sources:
-        # Leave the list empty and let the pipeline resolve it. The pipeline owns
-        # auto-selection, so it applies the real-only trust rule and also unions
-        # the dashboard-defined sources. Building the list here would duplicate
-        # that rule and could pull a demo or mock feed into a real run.
-        pass
 
     # Stage timings are written by the pipeline; poll the run row so progress is real.
     seen_stages: list[str] = []
