@@ -355,7 +355,7 @@ export function Tabs({
   className?: string
 }) {
   return (
-    <div className={cn('flex gap-1 overflow-x-auto border-b border-line no-scrollbar', className)} role="tablist">
+    <div className={cn('flex gap-1 overflow-x-auto border-b border-line no-scrollbar sm:flex-wrap sm:overflow-visible', className)} role="tablist">
       {tabs.map((tab) => (
         <button
           key={tab.id}

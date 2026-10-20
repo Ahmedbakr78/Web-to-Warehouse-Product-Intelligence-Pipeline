@@ -1111,7 +1111,7 @@ export default function Account() {
                   { label: 'Close dialogs', value: 'Esc or ? for help' },
                   { label: 'Silent reload mode', value: silentReload ? 'Active (zero flicker)' : 'Disabled' },
                   { label: 'Locale / timezone', value: `${locale} · ${timezone}` },
-                  { label: 'Catalogue', value: 'Features screen: 550+ live features' },
+                  { label: 'Catalogue', value: 'Features screen: 550 live features' },
                 ]}
               />
             </div>
