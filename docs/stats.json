@@ -4,16 +4,16 @@
   "analytical_views": 23,
   "api_smoke_checks": 104,
   "catalogued_features": 550,
-  "cli_commands": 13,
+  "cli_commands": 14,
   "compose_services": 6,
   "data_quality_rules": 12,
-  "documentation_documents": 32,
+  "documentation_documents": 33,
   "ingestion_sources": 35,
   "mermaid_diagrams": 83,
   "physical_tables": 29,
   "pipeline_stages": 9,
-  "rest_route_decorators": 216,
-  "rest_routers": 23,
-  "test_cases": 585,
-  "test_functions": 473
+  "rest_route_decorators": 218,
+  "rest_routers": 24,
+  "test_cases": 588,
+  "test_functions": 476
 }
