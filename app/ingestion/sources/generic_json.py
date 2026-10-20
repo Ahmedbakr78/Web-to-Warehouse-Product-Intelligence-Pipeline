@@ -457,6 +457,22 @@ PRESETS: dict[str, dict[str, Any]] = {
 }
 
 
+def preset_data_trust(base_url: str) -> str:
+    """Trust level of the preset a base URL belongs to.
+
+    A dashboard row created from a preset inherits that preset's trust level.
+    Rows created before the distinction existed have no ``data_trust`` in their
+    config, so the URL is matched back to its preset to recover the
+    classification instead of defaulting everything to "real".
+    """
+    target = (base_url or "").rstrip("/")
+    for preset in PRESETS.values():
+        candidate = str(preset.get("base_url") or "").split("<")[0].rstrip("/")
+        if candidate and candidate == target:
+            return str(preset.get("data_trust") or DATA_TRUST_REAL)
+    return DATA_TRUST_REAL
+
+
 class GenericJsonSource(ProductSource):
     """A JSON feed whose shape is described by data, not by a subclass."""
 
@@ -487,7 +503,10 @@ class GenericJsonSource(ProductSource):
             "min_delay_seconds": float(definition.get("min_delay_seconds") or 1.0),
             "enabled": bool(definition.get("enabled", True)),
             "terms_allowed": bool(definition.get("terms_allowed", False)),
-            "data_trust": str(config.get("data_trust") or DATA_TRUST_REAL),
+            "data_trust": str(
+                config.get("data_trust")
+                or preset_data_trust(str(definition.get("base_url") or ""))
+            ),
         }
         if not values["name"]:
             values["name"] = values["code"]
@@ -684,4 +703,11 @@ class GenericJsonSource(ProductSource):
             return None
 
 
-__all__ = ["ADAPTER_NAME", "PAGINATION_STYLES", "PRESETS", "GenericJsonSource", "get_path"]
+__all__ = [
+    "ADAPTER_NAME",
+    "PAGINATION_STYLES",
+    "PRESETS",
+    "GenericJsonSource",
+    "get_path",
+    "preset_data_trust",
+]
