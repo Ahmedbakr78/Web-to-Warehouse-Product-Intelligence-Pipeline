@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1600, initial-scale=1" />
+<title>DEPI · Web-to-Warehouse Product Intelligence</title>
+<style>
+  :root {
+    --bg: #f7f9fc;
+    --bg2: #eef3f9;
+    --card: #ffffff;
+    --card-2: #f4f7fb;
+    --ink: #0a1322;
+    --muted: #53627a;
+    --subtle: #7c8ba3;
+    --line: #d9e2ef;
+    --brand: #0f766e;
+    --brand-2: #1d4ed8;
+    --brand-soft: rgba(15, 118, 110, .10);
+    --blue-soft: rgba(29, 78, 216, .10);
+    --accent: #b45309;
+    --accent-soft: rgba(180, 83, 9, .12);
+    --success: #047857;
+    --success-soft: rgba(4, 120, 87, .10);
+    --shadow: 0 24px 60px -30px rgba(15, 23, 42, .35);
+    --grid: rgba(15, 23, 42, .045);
+  }
+  html.dark {
+    --bg: #050a14;
+    --bg2: #081120;
+    --card: #0b1424;
+    --card-2: #0f1a2d;
+    --ink: #eef5ff;
+    --muted: #9fb0c9;
+    --subtle: #7285a1;
+    --line: #1c2a40;
+    --brand: #2dd4bf;
+    --brand-2: #60a5fa;
+    --brand-soft: rgba(45, 212, 191, .12);
+    --blue-soft: rgba(96, 165, 250, .12);
+    --accent: #fbbf24;
+    --accent-soft: rgba(251, 191, 36, .14);
+    --success: #34d399;
+    --success-soft: rgba(52, 211, 153, .12);
+    --shadow: 0 30px 80px -40px rgba(0, 0, 0, .85);
+    --grid: rgba(148, 163, 184, .07);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); }
+  body {
+    width: 1600px;
+    height: 900px;
+    overflow: hidden;
+    color: var(--ink);
+    font-family: "Inter", "Segoe UI", "SF Pro Display", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .slide {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 1600px;
+    height: 900px;
+    padding: 44px 56px 34px;
+    background:
+      radial-gradient(820px 420px at 6% -8%, var(--brand-soft), transparent 70%),
+      radial-gradient(760px 520px at 102% 4%, var(--blue-soft), transparent 70%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+    overflow: hidden;
+  }
+  .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: linear-gradient(180deg, rgba(0,0,0,.8), transparent 78%);
+    pointer-events: none;
+  }
+  .slide > * { position: relative; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; }
+  .brandrow { display: flex; align-items: center; gap: 14px; }
+  .depi-mark {
+    width: 52px; height: 52px; border-radius: 15px;
+    background: linear-gradient(150deg, var(--brand), var(--brand-2));
+    display: grid; place-items: center; box-shadow: var(--shadow);
+    color: #fff;
+  }
+  .depi-mark svg { width: 28px; height: 28px; }
+  .eyebrow {
+    font-size: 11px; font-weight: 800; letter-spacing: .20em; text-transform: uppercase;
+    color: var(--brand); margin: 0 0 4px;
+  }
+  .org { font-size: 17px; font-weight: 750; letter-spacing: -.01em; margin: 0; }
+  .org small { font-weight: 500; color: var(--muted); letter-spacing: 0; }
+  .topmeta { display: flex; align-items: center; gap: 10px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    border: 1px solid var(--line); background: color-mix(in srgb, var(--card) 82%, transparent);
+    border-radius: 999px; padding: 8px 13px; font-size: 11px; font-weight: 700;
+    color: var(--muted); letter-spacing: .02em;
+  }
+  .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+  .hero { display: grid; grid-template-columns: 1fr 520px; gap: 34px; margin-top: 32px; }
+  h1 {
+    margin: 0; font-size: 58px; line-height: 1.02; letter-spacing: -.032em; font-weight: 800;
+    max-width: 900px;
+  }
+  h1 .accent {
+    background: linear-gradient(90deg, var(--brand), var(--brand-2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .lede { margin: 15px 0 0; max-width: 830px; color: var(--muted); font-size: 15.5px; line-height: 1.55; }
+  .trackrow { display: flex; align-items: center; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+  .track {
+    display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 10px;
+    background: var(--brand-soft); border: 1px solid color-mix(in srgb, var(--brand) 32%, transparent);
+    color: var(--brand); font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+  }
+  .track svg { width: 15px; height: 15px; }
+  .mini { font-size: 12px; color: var(--subtle); font-weight: 600; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 13px; margin-top: 26px; }
+  .stat {
+    border: 1px solid var(--line); background: color-mix(in srgb, var(--card) 92%, transparent);
+    border-radius: 15px; padding: 15px 16px; box-shadow: 0 12px 28px -26px rgba(2, 8, 23, .4);
+  }
+  .stat b { display: block; font-size: 30px; line-height: 1; letter-spacing: -.03em; font-weight: 800; }
+  .stat span { display: block; margin-top: 6px; color: var(--muted); font-size: 10.5px; line-height: 1.35; font-weight: 600; }
+  .stat .bar { width: 28px; height: 3px; border-radius: 2px; background: var(--brand); margin-bottom: 10px; opacity: .85; }
+  .stat:nth-child(2) .bar { background: var(--brand-2); }
+  .stat:nth-child(3) .bar { background: var(--accent); }
+  .stat:nth-child(4) .bar { background: var(--success); }
+
+  .panel {
+    border: 1px solid var(--line); background: color-mix(in srgb, var(--card) 94%, transparent);
+    border-radius: 20px; box-shadow: var(--shadow);
+  }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 17px 20px 13px; border-bottom: 1px solid var(--line); }
+  .panel-head h2 { margin: 0; font-size: 14px; font-weight: 800; letter-spacing: .01em; }
+  .panel-head span { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--subtle); }
+  .feature-list { padding: 8px 12px 12px; }
+  .feature { display: flex; gap: 10px; padding: 7px 8px; border-radius: 9px; }
+  .feature + .feature { border-top: 1px dashed color-mix(in srgb, var(--line) 80%, transparent); }
+  .check { width: 18px; height: 18px; border-radius: 50%; background: var(--success-soft); color: var(--success); display: grid; place-items: center; flex: 0 0 auto; margin-top: 1px; }
+  .check svg { width: 11px; height: 11px; }
+  .feature b { display: block; font-size: 11.5px; font-weight: 750; letter-spacing: -.005em; }
+  .feature span { display: block; color: var(--muted); font-size: 10px; line-height: 1.4; margin-top: 1px; }
+
+  .pipeline { margin-top: 22px; }
+  .flow { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0; padding: 16px 18px 14px; }
+  .node { position: relative; padding: 0 10px; }
+  .node:not(:last-child)::after {
+    content: ""; position: absolute; top: 16px; right: -4px; width: 8px; height: 8px;
+    border-top: 2px solid var(--line); border-right: 2px solid var(--line); transform: rotate(45deg);
+  }
+  .node .num {
+    width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center;
+    font-size: 11px; font-weight: 800; color: var(--brand);
+    background: var(--brand-soft); border: 1px solid color-mix(in srgb, var(--brand) 28%, transparent);
+  }
+  .node:nth-child(2n) .num { color: var(--brand-2); background: var(--blue-soft); border-color: color-mix(in srgb, var(--brand-2) 28%, transparent); }
+  .node b { display: block; margin-top: 9px; font-size: 11.5px; font-weight: 750; }
+  .node span { display: block; margin-top: 2px; color: var(--subtle); font-size: 9.5px; line-height: 1.3; }
+
+  .bottom { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 22px; margin-top: 22px; }
+  .stack { display: flex; flex-wrap: wrap; gap: 7px; }
+  .chip {
+    border: 1px solid var(--line); background: var(--card-2); border-radius: 7px;
+    padding: 6px 9px; font-size: 10px; font-weight: 700; color: var(--muted);
+  }
+  .footer { text-align: right; }
+  .footer b { display: block; font-size: 11px; font-weight: 800; }
+  .footer span { display: block; font-size: 10px; color: var(--subtle); margin-top: 2px; }
+  .rule { height: 1px; background: var(--line); margin: 18px 0 0; }
+
+  html.dark .slide::before { mask-image: linear-gradient(180deg, rgba(0,0,0,.85), transparent 80%); }
+</style>
+<script>
+  document.documentElement.className = new URLSearchParams(location.search).get('theme') === 'dark' ? 'dark' : '';
+</script>
+</head>
+<body>
+  <div class="slide">
+    <div class="topbar">
+      <div class="brandrow">
+        <div class="depi-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3 21 19H3L12 3Z"/>
+            <path d="M8.2 13.4h7.6"/>
+            <path d="M6.4 16.8h11.2"/>
+          </svg>
+        </div>
+        <div>
+          <p class="eyebrow">DEPI · Digital Egypt Pioneers Initiative</p>
+          <p class="org">Product Intelligence Pipeline <small>· Graduation Project 2026</small></p>
+        </div>
+      </div>
+      <div class="topmeta">
+        <span class="pill"><span class="dot"></span> Live warehouse</span>
+        <span class="pill">Track: Data Engineering</span>
+      </div>
+    </div>
+
+    <div class="hero">
+      <div>
+        <h1>From web signals to<br/><span class="accent">warehouse intelligence.</span></h1>
+        <p class="lede">
+          An end-to-end data engineering platform that ingests permitted product feeds, cleans and
+          deduplicates them, models a 30-table star schema, and turns 550k+ observations into a ranked
+          morning action queue for pricing and catalog teams.
+        </p>
+        <div class="trackrow">
+          <span class="track">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5"/><path d="M4 19h16"/><path d="m7 15 4-5 3 3 5-7"/></svg>
+            Data Engineering
+          </span>
+          <span class="mini">Python · FastAPI · PostgreSQL · MySQL · Airflow · React · Docker</span>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><div class="bar"></div><b>34</b><span>verified source adapters</span></div>
+          <div class="stat"><div class="bar"></div><b>550k+</b><span>price observations</span></div>
+          <div class="stat"><div class="bar"></div><b>25k</b><span>canonical products</span></div>
+          <div class="stat"><div class="bar"></div><b>550</b><span>catalogued features</span></div>
+        </div>
+      </div>
+
+      <aside class="panel">
+        <div class="panel-head">
+          <h2>Intelligence delivered</h2>
+          <span>v1.11</span>
+        </div>
+        <div class="feature-list">
+          <div class="feature"><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><div><b>Morning briefing</b><span>Opportunities, risks and owners in one ranked queue.</span></div></div>
+          <div class="feature"><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><div><b>Price &amp; catalog analytics</b><span>Movers, volatility, anomalies, gaps and forecast accuracy.</span></div></div>
+          <div class="feature"><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><div><b>Trustworthy by design</b><span>12 DQ rules, source freshness, lineage and audit trails.</span></div></div>
+          <div class="feature"><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span><div><b>Operational excellence</b><span>Docker stack, Airflow orchestration and one-command demos.</span></div></div>
+        </div>
+      </aside>
+    </div>
+
+    <section class="panel pipeline">
+      <div class="flow">
+        <div class="node"><div class="num">01</div><b>Ingest</b><span>34 permitted APIs and feeds</span></div>
+        <div class="node"><div class="num">02</div><b>Land</b><span>Raw payloads preserved</span></div>
+        <div class="node"><div class="num">03</div><b>Clean</b><span>Parse, normalise, FX</span></div>
+        <div class="node"><div class="num">04</div><b>Model</b><span>Dedupe + star schema</span></div>
+        <div class="node"><div class="num">05</div><b>Analyse</b><span>SQL views and forecasts</span></div>
+        <div class="node"><div class="num">06</div><b>Act</b><span>API, dashboard, briefing</span></div>
+      </div>
+    </section>
+
+    <div class="bottom">
+      <div class="stack">
+        <span class="chip">Python 3.12</span>
+        <span class="chip">FastAPI</span>
+        <span class="chip">SQLAlchemy</span>
+        <span class="chip">PostgreSQL 16</span>
+        <span class="chip">MySQL 8.4</span>
+        <span class="chip">Airflow 2.10</span>
+        <span class="chip">React 19</span>
+        <span class="chip">Tailwind</span>
+        <span class="chip">Docker Compose</span>
+        <span class="chip">Pytest · Vitest</span>
+      </div>
+      <div class="footer">
+        <b>DEPI Digital Egypt Pioneers Initiative</b>
+        <span>Track: Data Engineering · Team of 6 · 2026</span>
+      </div>
+    </div>
+    <div class="rule"></div>
+  </div>
+</body>
+</html>
