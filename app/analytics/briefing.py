@@ -12,6 +12,8 @@ a human sentence and a deep link back into the screen where the user can act.
 from __future__ import annotations
 
 import datetime as dt
+import threading
+import time
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -19,6 +21,9 @@ from sqlalchemy.orm import Session
 from app.analytics import service as analytics
 
 SEVERITY_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+CACHE_TTL_SECONDS = 120
+_CACHE: dict[tuple[int, int], tuple[float, dict[str, Any]]] = {}
+_CACHE_LOCK = threading.Lock()
 
 
 def _num(value: Any) -> float | None:
@@ -40,7 +45,7 @@ def _money(value: Any) -> str:
         return f"${number:,.2f}"
     if abs(number) >= 0.01:
         return f"${number:,.4f}"
-    return f"${number:,.6f}"
+    return f"${number:,.8f}"
 
 
 def _pct(value: Any, digits: int = 1) -> str:
@@ -227,8 +232,32 @@ def _freshness_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def build_briefing(session: Session, days: int = 30, limit: int = 6) -> dict[str, Any]:
-    """Assemble the executive briefing for the last ``days`` days."""
+    """Assemble the executive briefing for the last ``days`` days.
+
+    The briefing touches several analytical views; caching the assembled result
+    keeps the page instant on repeat visits while staying fresh enough for a
+    manually-triggered demo pipeline.
+    """
     limit = max(1, min(limit, 20))
+    key = (days, limit)
+    now = time.monotonic()
+    with _CACHE_LOCK:
+        cached = _CACHE.get(key)
+        if cached and now - cached[0] < CACHE_TTL_SECONDS:
+            return cached[1]
+    result = _compose_briefing(session, days=days, limit=limit)
+    with _CACHE_LOCK:
+        _CACHE[key] = (now, result)
+    return result
+
+
+def clear_briefing_cache() -> None:
+    """Drop cached briefings (used after a pipeline run completes)."""
+    with _CACHE_LOCK:
+        _CACHE.clear()
+
+
+def _compose_briefing(session: Session, days: int = 30, limit: int = 6) -> dict[str, Any]:
     kpi = analytics.kpi_summary(session, days=days)
     latest = kpi.get("latest") or {}
     changes = kpi.get("changes") or {}
