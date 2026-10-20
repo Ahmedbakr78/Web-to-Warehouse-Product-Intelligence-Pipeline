@@ -59,6 +59,7 @@ import {
   FONT_SCALES,
   MOTION_MODES,
   THEME_MODES,
+  setSilent,
   useAccent,
   useDensity,
   useDirection,
@@ -111,6 +112,11 @@ export default function Account() {
   const applyFontScaleOption = (next: FontScale) => saveAppearance({ font_scale: next })
   const applyMotionOption = (next: MotionMode) => saveAppearance({ motion: next })
   const applyDirectionOption = (next: Direction) => saveAppearance({ direction: next })
+  /** Silent reload is applied instantly so the user sees the effect right away. */
+  const applySilentOption = (next: boolean) => {
+    setSilentReload(next)
+    setSilent(next)
+  }
 
   const toast = useToast()
   const queryClient = useQueryClient()
@@ -191,6 +197,11 @@ export default function Account() {
     if (user.preferences) {
       if (user.preferences.briefing_window) setBriefingWindow(user.preferences.briefing_window as string)
       if (user.preferences.briefing_size) setBriefingSize(user.preferences.briefing_size as string)
+      if (user.preferences.silent_reload !== undefined) {
+        const enabled = Boolean(user.preferences.silent_reload)
+        setSilentReload(enabled)
+        setSilent(enabled)
+      }
     }
   }, [user])
 
@@ -1062,7 +1073,7 @@ export default function Account() {
                     <p className="text-sm font-medium text-ink">Silent app reload</p>
                     <p className="text-xs text-muted">Quiet background refresh without intrusive spinners or jarring animations</p>
                   </div>
-                  <Toggle checked={silentReload} onChange={setSilentReload} />
+                  <Toggle checked={silentReload} onChange={applySilentOption} />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>

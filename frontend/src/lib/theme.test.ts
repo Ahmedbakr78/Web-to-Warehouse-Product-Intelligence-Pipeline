@@ -78,4 +78,18 @@ describe('appearance store snapshot stability', () => {
     expect(snapshot.direction).toBe('rtl')
     expect(snapshot.fontScale).toBe('lg')
   })
+
+  it('exposes the silent-reload axis and flips the DOM flag', async () => {
+    const { initAppearance, setSilent, __snapshotForTest } = await import('@/lib/theme')
+    initAppearance()
+
+    expect(document.documentElement.dataset.silent).toBe('0')
+    expect(__snapshotForTest().silent).toBe(false)
+
+    setSilent(true)
+
+    expect(document.documentElement.dataset.silent).toBe('1')
+    expect(__snapshotForTest().silent).toBe(true)
+    expect(localStorage.getItem('pip.silent')).toBe('1')
+  })
 })

@@ -70,9 +70,30 @@
     --shadow-card-hover: 0 4px 12px rgb(15 23 42 / 0.08);
     --shadow-pop: 0 12px 32px rgb(15 23 42 / 0.16);
     --radius: 0.75rem;
+
+    /* Soft accent tint: a mix of the live accent into the page surface. */
+    --brand-soft-mix: 12%;
+    --brand-soft-base: var(--surface);
+
+    /* Sidebar geometry. Declared once here so the shell, the drawer and the
+       Tailwind `p-sidebar` / `w-rail` utilities all agree on the same numbers. */
+    --sidebar-w-expanded: 16rem;
+    --sidebar-w-collapsed: 4.5rem;
+    --sidebar-w: var(--sidebar-w-expanded);
   }
 
   .dark {
+    /* Dark brand ramp.
+       The pale shades become deep tints (they are used as backgrounds, where a
+       light indigo would glare on a dark panel) and the mid shades become pale
+       (they are used as text on a dark surface). 500/600 are owned by the accent
+       picker at runtime and are therefore left alone here. */
+    --brand-50: #131a36;
+    --brand-100: #1a2246;
+    --brand-200: #293463;
+    --brand-300: #a5b4fc;
+    --brand-400: #a5b4fc;
+
     --bg: #070b18;
     --bg-alt: #0b1122;
     --surface: #0f1629;
@@ -115,6 +136,10 @@
     --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4);
     --shadow-card-hover: 0 6px 20px rgb(0 0 0 / 0.45);
     --shadow-pop: 0 16px 40px rgb(0 0 0 / 0.6);
+
+    /* Soft accent tint on a dark surface: a translucent wash of the accent. */
+    --brand-soft-mix: 18%;
+    --brand-soft-base: transparent;
   }
 
   /* ------------------------------------------------------------------ midnight
@@ -623,11 +648,9 @@
   }
 
   .brand-soft {
-    background-color: var(--brand-100);
-  }
-
-  .dark .brand-soft {
-    background-color: color-mix(in srgb, var(--brand-500) 18%, transparent);
+    /* The tint is derived from the live accent colour, so switching the accent
+       also recolours every soft chip, badge and active row. */
+    background-color: color-mix(in srgb, var(--brand-500) var(--brand-soft-mix), var(--brand-soft-base));
   }
 
   .table-wrap {
@@ -879,33 +902,19 @@
     border-color: var(--border);
   }
 
-  /* --------------------------- mobile slidebar drawer --------------------------- */
-  @keyframes drawerSlideIn {
-    from {
-      transform: translateX(-100%);
-      opacity: 0.85;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
+  /* --------------------------- silent reload -------------------------------
+     `data-silent="1"` is set by the appearance engine when the user turns on
+     "silent reload". Everything below makes a data refresh invisible: the
+     previous content stays put, the loading placeholder is a flat block instead
+     of a shimmering bar, and no spinner sweeps. The new payload simply swaps in. */
+  html[data-silent='1'] .skeleton {
+    background: var(--surface-3);
+    background-image: none;
+    animation: none !important;
   }
 
-  @keyframes backdropFadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
-  .drawer-animate-in {
-    animation: drawerSlideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-
-  .backdrop-animate-in {
-    animation: backdropFadeIn 0.2s ease-out forwards;
+  html[data-silent='1'] .animate-spin {
+    animation: none !important;
   }
 }
 
@@ -922,19 +931,32 @@
 }
 
 /* =====================================================================================
-   Silent reload — when motion is set to "none" every CSS transition and keyframe
-   animation is disabled so navigation, data reloads, and refreshes feel instant
-   with zero visual noise or skeleton flash.
+   Silent reload — the "do not disturb me while I am reading" mode.
+
+   When the user enables it (Account -> Appearance -> Silent reload) the app
+   re-renders data in place: no transition, no skeleton shimmer, no spinner sweep
+   and no scroll-behaviour change. The previous content stays on screen until the
+   new payload arrives and then swaps in atomically.
    ===================================================================================== */
-[data-motion='none'],
-[data-motion='none'] *,
-[data-motion='none'] *::before,
-[data-motion='none'] *::after {
+html[data-silent='1'],
+html[data-silent='1'] *,
+html[data-silent='1'] *::before,
+html[data-silent='1'] *::after {
   animation-duration: 0.01ms !important;
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
   transition-delay: 0ms !important;
   scroll-behavior: auto !important;
+}
+
+html[data-silent='1'] .skeleton {
+  background: var(--surface-3);
+  background-image: none;
+  animation: none !important;
+}
+
+html[data-silent='1'] .animate-spin {
+  animation: none !important;
 }
 
 /* =====================================================================================

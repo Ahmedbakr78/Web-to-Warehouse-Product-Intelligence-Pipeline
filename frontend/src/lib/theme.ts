@@ -64,6 +64,7 @@ const KEY = {
   motion: 'pip.motion',
   direction: 'pip.direction',
   fontScale: 'pip.fontScale',
+  silent: 'pip.silent',
   lastDark: 'pip.last-dark',
 } as const
 
@@ -71,6 +72,7 @@ export const THEME_KEY = KEY.theme
 export const DENSITY_KEY = KEY.density
 export const ACCENT_KEY = KEY.accent
 export const MOTION_KEY = KEY.motion
+export const SILENT_KEY = KEY.silent
 
 /* ---------------------------------------------------------------- accents */
 
@@ -172,14 +174,35 @@ export function applyFontScale(scale: FontScale): void {
 export function applyAccent(accent: string): void {
   const entry = ACCENTS[accent] ?? ACCENTS.indigo
   const root = document.documentElement.style
+  // The soft tint is derived from `--brand-500` in CSS, so only the base colour
+  // has to be written here: chips, badges and active rows follow the accent.
   root.setProperty('--brand-500', entry.base)
   root.setProperty('--brand-600', entry.base)
-  root.setProperty('--brand-500-soft', entry.soft)
   document.documentElement.dataset.accent = ACCENTS[accent] ? accent : 'indigo'
 }
 
 export function applyMotion(mode: MotionMode): void {
   document.documentElement.dataset.motion = mode
+}
+
+/**
+ * Silent reload.
+ *
+ * When enabled the app re-renders data in place: no skeleton shimmer, no spinner
+ * sweep, no transition, no layout shift. The previous content stays on screen
+ * until the new payload arrives and then swaps in atomically. It is the
+ * "do not disturb me while I am reading" mode.
+ */
+export function applySilent(enabled: boolean): void {
+  document.documentElement.dataset.silent = enabled ? '1' : '0'
+}
+
+export function getStoredSilent(): boolean {
+  try {
+    return localStorage.getItem(KEY.silent) === '1'
+  } catch {
+    return false
+  }
 }
 
 export function applyDirection(direction: Direction): void {
@@ -221,6 +244,13 @@ export function setMotion(mode: MotionMode): void {
   emit()
 }
 
+/** Toggle silent (no-animation, no-skeleton) reloading. */
+export function setSilent(enabled: boolean): void {
+  write(KEY.silent, enabled ? '1' : '0')
+  applySilent(enabled)
+  emit()
+}
+
 export function setDirection(direction: Direction): void {
   write(KEY.direction, direction)
   applyDirection(direction)
@@ -241,6 +271,7 @@ export function initAppearance(): void {
   applyMotion(getStoredMotion())
   applyDirection(read<Direction>(KEY.direction, ['ltr', 'rtl'], 'ltr'))
   applyFontScale(read<FontScale>(KEY.fontScale, FONT_SCALES.map((f) => f.id), 'md'))
+  applySilent(getStoredSilent())
 }
 
 /* -------------------------------------------------------- change broadcast */
@@ -258,6 +289,7 @@ type Snapshot = {
   motion: MotionMode
   direction: Direction
   fontScale: FontScale
+  silent: boolean
 }
 
 const listeners = new Set<() => void>()
@@ -281,6 +313,7 @@ function currentSnapshot(): Snapshot {
     motion: getStoredMotion(),
     direction: document.documentElement.dataset.direction === 'rtl' ? 'rtl' : 'ltr',
     fontScale: read<FontScale>(KEY.fontScale, FONT_SCALES.map((f) => f.id), 'md'),
+    silent: getStoredSilent(),
   }
 
   if (
@@ -291,7 +324,8 @@ function currentSnapshot(): Snapshot {
     cached.accent === next.accent &&
     cached.motion === next.motion &&
     cached.direction === next.direction &&
-    cached.fontScale === next.fontScale
+    cached.fontScale === next.fontScale &&
+    cached.silent === next.silent
   ) {
     return cached
   }
@@ -363,6 +397,12 @@ export function useAccent() {
 export function useMotion() {
   const { motion } = useAppearance()
   return { motion, setMotion }
+}
+
+/** Silent-reload state: data swaps in place with no skeleton, spinner or transition. */
+export function useSilent() {
+  const { silent } = useAppearance()
+  return { silent, setSilent }
 }
 
 export function useDirection() {

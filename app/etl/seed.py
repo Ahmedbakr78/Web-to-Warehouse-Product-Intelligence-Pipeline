@@ -490,7 +490,24 @@ def seed_history(
 
     ensure_date_range(session, days_back=days + 10, days_forward=2)
     products = build_seed_products(count=count)
-    today = dt.date.today()
+    # Anchor the demo history to the *UTC* calendar day. Using the local calendar
+    # day would place the newest seeded run up to a full timezone offset in the
+    # future, which makes the freshness data-quality rule observe a negative age
+    # and makes the dashboard show a "last observation" that has not happened yet.
+    today = dt.datetime.now(dt.timezone.utc).date()
+    now_utc = dt.datetime.now(dt.timezone.utc)
+
+    def _run_timestamp(day: dt.date, hour: int, minute: int, *, offset: dt.timedelta = dt.timedelta()) -> dt.datetime:
+        """Build a UTC timestamp for ``day`` that never lands in the future.
+
+        Historical days are used verbatim; the newest day is clamped to *now* so
+        the seeded warehouse can never claim an observation that has not happened
+        yet (which would break the freshness DQ rule and the dashboard timeline).
+        """
+        stamp = dt.datetime.combine(day, dt.time(hour, minute), tzinfo=dt.timezone.utc)
+        if day == today:
+            stamp = min(stamp, now_utc + offset)
+        return stamp
 
     # ---- dimensions -------------------------------------------------------------
     source = session.get(DimSource, source_code)
@@ -560,8 +577,8 @@ def seed_history(
                 task_id="load_warehouse",
                 status="success" if offset % 17 else "partial",
                 trigger="schedule" if offset % 3 else "manual",
-                started_at=dt.datetime.combine(run_date, dt.time(3, 5), tzinfo=dt.timezone.utc),
-                finished_at=dt.datetime.combine(run_date, dt.time(3, 12), tzinfo=dt.timezone.utc),
+                started_at=_run_timestamp(run_date, 3, 5, offset=dt.timedelta(minutes=-7)),
+                finished_at=_run_timestamp(run_date, 3, 12),
                 duration_ms=420_000 + (offset % 11) * 12_000,
                 records_extracted=len(products),
                 records_valid=len(products) - 2,
@@ -617,7 +634,7 @@ def seed_history(
             if (index * 29 + offset * 13) % 617 == 3:
                 availability = "unknown"
                 flags.append("unknown_availability")
-            captured_at = dt.datetime.combine(run_date, dt.time(3, 8), tzinfo=dt.timezone.utc)
+            captured_at = _run_timestamp(run_date, 3, 8)
             change_abs = (
                 None if (previous_price is None or price is None) else round(price - previous_price, 2)
             )

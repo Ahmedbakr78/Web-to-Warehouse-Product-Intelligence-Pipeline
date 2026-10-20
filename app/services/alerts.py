@@ -121,8 +121,14 @@ def evaluate_rule(session: Session, rule: AppAlertRule, *, now: dt.datetime | No
         )
         fires = _comparison(operator)(float(value), float(rule.threshold))
     elif rule.metric == "dq_failure":
+        # The verdict must come from the most recent run that actually carries a
+        # data-quality score. A run that has not been scored yet (still running,
+        # or aborted before the DQ stage) must not mask the previous verdict.
         latest_run = session.execute(
-            sa.select(EtlRun.run_id).order_by(EtlRun.started_at.desc()).limit(1)
+            sa.select(EtlRun.run_id)
+            .join(DqRuleResult, DqRuleResult.run_id == EtlRun.run_id)
+            .order_by(EtlRun.started_at.desc())
+            .limit(1)
         ).scalar()
         conditions = [DqRuleResult.run_id == latest_run, DqRuleResult.status == "fail"]
         value = _count(session, DqRuleResult, conditions, [])

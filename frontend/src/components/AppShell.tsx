@@ -141,11 +141,12 @@ export default function AppShell() {
       {/* ---------------------------------------------------------------- content */}
       {/* The desktop rail is a floating card, so the content reserves its width
           plus the surrounding gap; without this the fixed sidebar would cover
-          the header controls underneath it. */}
+          the header controls underneath it. The gap is derived from the same
+          CSS custom properties the rail itself uses. */}
       <div
         className={cn(
           'flex min-w-0 flex-1 flex-col',
-          !overlay && (collapsed ? 'lg:pl-24' : 'lg:pl-[17.5rem]'),
+          !overlay && (collapsed ? 'lg:pl-[calc(var(--sidebar-w-collapsed)+1.5rem)]' : 'lg:pl-[calc(var(--sidebar-w-expanded)+1.5rem)]'),
         )}
         onTouchStart={overlay ? edgeSwipe.onTouchStart : undefined}
         onTouchEnd={overlay ? edgeSwipe.onTouchEnd : undefined}

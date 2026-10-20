@@ -29,6 +29,9 @@
           var motion = localStorage.getItem('pip.motion') || 'full'
           root.dataset.motion = motion === 'auto' ? 'full' : motion
 
+          // Silent reload: no transitions, no skeleton shimmer, no spinner sweep.
+          root.dataset.silent = localStorage.getItem('pip.silent') === '1' ? '1' : '0'
+
           var scale = localStorage.getItem('pip.fontScale') || 'md'
           root.dataset.fontScale = scale
           var sizes = { xs: '13px', sm: '15px', md: '16px', lg: '17.5px', xl: '19px' }
@@ -59,7 +62,6 @@
           var accent = accents[root.dataset.accent] || accents.indigo
           root.style.setProperty('--brand-500', accent[0])
           root.style.setProperty('--brand-600', accent[0])
-          root.style.setProperty('--brand-500-soft', accent[1])
 
           // The browser picks a theme-color meta by OS setting, not by app theme,
           // so resolve it here for the actual (possibly system-derived) mode.

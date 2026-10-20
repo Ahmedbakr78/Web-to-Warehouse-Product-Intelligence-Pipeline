@@ -14,6 +14,33 @@ import { useLocation, useNavigationType } from 'react-router-dom'
 const OFFSETS = new Map<string, number>()
 let lastPath: string | null = null
 
+/**
+ * The shell scrolls `<main>`, not the document, whenever the content overflows.
+ * Reading `window.scrollY` would therefore always return 0 and "back" would
+ * never restore the previous position, so the scroll container is resolved once
+ * and used for both saving and restoring.
+ */
+function scrollContainer(): HTMLElement | null {
+  const main = document.querySelector<HTMLElement>('main')
+  if (main && main.scrollHeight > main.clientHeight) return main
+  return main
+}
+
+function currentOffset(): number {
+  const main = scrollContainer()
+  if (main && main.scrollHeight > main.clientHeight) return main.scrollTop
+  return window.scrollY
+}
+
+function restoreOffset(offset: number): void {
+  const main = scrollContainer()
+  if (main && main.scrollHeight > main.clientHeight) {
+    main.scrollTop = offset
+    return
+  }
+  window.scrollTo({ top: offset, behavior: 'auto' })
+}
+
 export function useScrollRestoration() {
   const location = useLocation()
   const navigationType = useNavigationType()
@@ -26,21 +53,13 @@ export function useScrollRestoration() {
 
     // Save where the previous screen was scrolled to before leaving it.
     if (lastPath !== null && lastPath !== key) {
-      OFFSETS.set(lastPath, window.scrollY)
+      OFFSETS.set(lastPath, currentOffset())
     }
     lastPath = key
 
     // Defer one frame so the new content has laid out before we measure.
     const frame = window.requestAnimationFrame(() => {
-      const target = navigationType === 'POP' ? (OFFSETS.get(key) ?? 0) : 0
-
-      // The shell scrolls <main>, not the document, when it overflows.
-      const main = document.querySelector<HTMLElement>('main')
-      if (main && main.scrollHeight > main.clientHeight) {
-        main.scrollTop = target
-      } else {
-        window.scrollTo({ top: target, behavior: 'auto' })
-      }
+      restoreOffset(navigationType === 'POP' ? (OFFSETS.get(key) ?? 0) : 0)
     })
 
     return () => window.cancelAnimationFrame(frame)

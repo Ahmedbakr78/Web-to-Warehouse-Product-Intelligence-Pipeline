@@ -19,6 +19,7 @@ import {
   setDirection,
   setFontScale,
   setMotion,
+  setSilent,
   setTheme,
   THEME_MODES,
   useAppearanceSync,
@@ -196,6 +197,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (isOneOf(user.motion, MOTION_MODES.map((item) => item.id))) setMotion(user.motion as MotionMode)
     if (user.direction === 'rtl' || user.direction === 'ltr') setDirection(user.direction)
     if (isOneOf(user.font_scale, FONT_SCALES.map((item) => item.id))) setFontScale(user.font_scale as FontScale)
+    // Silent reload is a profile preference, so it follows the user across devices.
+    if (user.preferences?.silent_reload !== undefined) {
+      setSilent(Boolean(user.preferences.silent_reload))
+    }
   }, [user])
 
   /**

@@ -374,7 +374,10 @@ def _freshness(session: Session, ctx: dict[str, Any]) -> RuleOutcome:
             )
     if latest.tzinfo is None:
         latest = latest.replace(tzinfo=dt.timezone.utc)
-    hours = round((now - latest).total_seconds() / 3600, 3)
+    # A snapshot timestamped in the future (clock skew, a source that stamps
+    # ahead of us, or a re-imported batch) must never produce a negative age:
+    # the data is at most as old as "just now".
+    hours = max(0.0, round((now - latest).total_seconds() / 3600, 3))
     status = "pass" if hours <= 24 else ("warn" if hours <= 48 else "fail")
     return RuleOutcome(
         rule_code="DQ007",

@@ -9,7 +9,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { Menu, PanelLeftClose, PanelLeftOpen, Search, Wifi, WifiOff, X, AlertTriangle } from 'lucide-react'
+import { Menu, PanelLeftClose, PanelLeftOpen, Search, Wifi, WifiOff, X } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import type { LucideIcon } from 'lucide-react'
 
@@ -18,9 +18,8 @@ import { cn } from '@/lib/cn'
 import { endpoints, tokenStore } from '@/lib/api'
 import { IconButton } from './ui'
 import { useAuth } from '@/hooks/useAuth'
-
-const SIDEBAR_WIDTH_EXPANDED = '16rem'
-const SIDEBAR_WIDTH_COLLAPED = '4.5rem'
+// Imported as a namespace so the tab bar stays in sync with lib/nav.
+import * as NavIcons from '@/lib/nav-icons'
 
 /** Below this width the sidebar becomes an overlay drawer instead of a column. */
 export const OVERLAY_BREAKPOINT = 1024
@@ -35,9 +34,6 @@ const PHONE_TABS: NavItem[] = [
   { to: '/analytics', label: 'Analytics', icon: NavIcons.analytics, description: 'Reports' },
   { to: '/pipeline', label: 'Pipeline', icon: NavIcons.pipeline, description: 'Runs' },
 ]
-
-// Imported lazily as a namespace so the tab bar stays in sync with lib/nav.
-import * as NavIcons from '@/lib/nav-icons'
 
 type RailState = 'expanded' | 'collapsed'
 
@@ -269,15 +265,28 @@ export function useRailState() {
   // Close the drawer on navigation.
   useEffect(() => setDrawerOpen(false), [location.pathname])
 
+  // Close the drawer when the viewport grows past the overlay breakpoint: the
+  // desktop rail takes over, and leaving the drawer open would keep the page
+  // behind it locked and covered by an invisible backdrop.
+  useEffect(() => {
+    if (!overlay) setDrawerOpen(false)
+  }, [overlay])
+
   // Lock the page behind an open drawer and trap focus inside it.
   const drawerRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!drawerOpen) return
-    const previous = document.body.style.overflow
+    // The shell scrolls `<main>`, not the document, so locking `body` alone left
+    // the content scrollable behind the open drawer. Lock both.
+    const scroller = document.querySelector<HTMLElement>('main')
+    const previousBody = document.body.style.overflow
+    const previousMain = scroller?.style.overflow ?? ''
     document.body.style.overflow = 'hidden'
+    if (scroller) scroller.style.overflow = 'hidden'
     drawerRef.current?.querySelector<HTMLElement>('a, button')?.focus()
     return () => {
-      document.body.style.overflow = previous
+      document.body.style.overflow = previousBody
+      if (scroller) scroller.style.overflow = previousMain
     }
   }, [drawerOpen])
 
@@ -360,12 +369,6 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
         'fixed bottom-3 left-3 top-3 z-40 hidden shrink-0 flex-col overflow-hidden rounded-2xl border border-line bg-[var(--sidebar-bg)] shadow-lg lg:flex',
         collapsed ? 'w-[var(--sidebar-w-collapsed)]' : 'w-[var(--sidebar-w-expanded)]',
       )}
-      style={
-        {
-          '--sidebar-w-collapsed': SIDEBAR_WIDTH_COLLAPED,
-          '--sidebar-w-expanded': SIDEBAR_WIDTH_EXPANDED,
-        } as React.CSSProperties
-      }
     >
       <BrandMark collapsed={collapsed} />
       <nav className="flex-1 overflow-y-auto px-2 py-3" aria-label="Main navigation">
@@ -477,4 +480,4 @@ export function NavDrawer({ open, onClose, ref }: { open: boolean; onClose: () =
   )
 }
 
-export type { LucideIcon, AlertTriangle }
+export type { LucideIcon }
