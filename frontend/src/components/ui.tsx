@@ -22,6 +22,7 @@ import {
 } from 'react'
 import { Activity, AlertCircle, BarChart3, Bell, CalendarRange, Check, ChevronDown, ChevronLeft, ChevronRight, Database, FileText, Globe, Inbox, KeyRound, Loader2, Package, RotateCcw, Search, Settings2, ShieldCheck, Tag, Users, Webhook, X } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { useProfilePreferences } from '@/hooks/usePreferences'
 
 /* =====================================================================================
    Card
@@ -929,6 +930,55 @@ export function KeyValue({ items, columns = 2 }: { items: { label: string; value
         </div>
       ))}
     </dl>
+  )
+}
+
+/**
+ * A code snippet that can be copied with a single click.
+ *
+ * The "copy code on click" preference decides whether the click copies
+ * silently or only reveals the copy button, so the behaviour is never a
+ * surprise and never a dead control.
+ */
+export function CopyableCode({
+  value,
+  className,
+  as: Component = 'pre',
+}: {
+  value: string
+  className?: string
+  as?: 'pre' | 'code' | 'span'
+}) {
+  const { copyCodeOnClick } = useProfilePreferences()
+  const [copied, setCopied] = useState(false)
+  const timer = useRef<number | null>(null)
+
+  useEffect(
+    () => () => {
+      if (timer.current !== null) window.clearTimeout(timer.current)
+    },
+    [],
+  )
+
+  const copy = useCallback(() => {
+    void navigator.clipboard
+      ?.writeText(value)
+      .then(() => {
+        setCopied(true)
+        if (timer.current !== null) window.clearTimeout(timer.current)
+        timer.current = window.setTimeout(() => setCopied(false), 1600)
+      })
+      .catch(() => undefined)
+  }, [value])
+
+  return (
+    <Component
+      onClick={copyCodeOnClick ? copy : undefined}
+      title={copyCodeOnClick ? 'Click to copy' : undefined}
+      className={cn(copyCodeOnClick && 'cursor-pointer hover:text-ink', copied && 'text-success', className)}
+    >
+      {value}
+    </Component>
   )
 }
 
