@@ -4,7 +4,7 @@ stateDiagram-v2
     Pending --> Running: pre-flight guards pass
     Pending --> Skipped: database unreachable
     Pending --> Skipped: robots.txt forbids every source
-    Running --> Running: extract → clean → stage → load
+    Running --> Running: extract, clean, stage, load
     Running --> Validating: 9 stages finished
     Validating --> Succeeded: 12 DQ rules, no critical failure
     Validating --> Failed: critical rule failed

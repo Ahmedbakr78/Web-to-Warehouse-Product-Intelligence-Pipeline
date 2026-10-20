@@ -1,50 +1,34 @@
 
 flowchart TB
-    DS[("D3 fact_price_snapshot")]
-    DC[("D4 change feeds")]
-    DK[("D5 catalog comparison")]
-    DA[("D6 aggregate")]
-    DP[("D2 dimensions")]
-    DR[("D7 operations<br/>etl_run, dq_rule_result,<br/>ingestion_http_log")]
+    WEB["Upstream host<br/>robots.txt and pages"]
+    SCH["Scheduler / operator"]
 
-    subgraph P6A["6a Measure quality"]
-        Q1["12 rules in SAVEPOINTs"]
-        Q2["Severity-weighted score"]
-        Q3["Blocking decision<br/>critical failures only"]
+    subgraph P1A["1a Extract"]
+        A1["Get robots.txt<br/>robots.py cache"]
+        A2["Decide allow or deny<br/>RFC 9309 fallback"]
+        A3["Acquire token<br/>ratelimit.py"]
+        A4["Fetch with retry<br/>http_client.py"]
+        A5["Serve from disk cache<br/>TTL 1800 s"]
+        A6["Parse HTML or JSON<br/>source adapter"]
     end
 
-    V["20 analytical views<br/>vw_*"]
-    AN["Analytics service<br/>21 query functions"]
+    AUD[("ingestion_http_log<br/>audit")]
+    SYNC[("sync_state<br/>cursors and health")]
+    DIMS[("dim_source<br/>reliability stats")]
+    RAW[("D1 staging zone")]
 
-    subgraph P6B["6c Serve"]
-        AU["Authenticate<br/>JWT or API key"]
-        RB["Authorise<br/>role to rights"]
-        VAL["Validate<br/>Pydantic models"]
-        EP["113 REST operations<br/>16 routers"]
-        CSV["CSV export"]
-    end
-
-    UI["Dashboard<br/>React and Vite"]
-    USR["Analysts, managers,<br/>administrators"]
-
-    DS --> Q1
-    DC --> Q1
-    DA --> Q1
-    DP --> Q1
-    Q1 --> Q2 --> Q3
-    Q3 -->|"verdict"| DR
-
-    DS --> V
-    DC --> V
-    DK --> V
-    DA --> V
-    DP --> V
-    V --> AN
-    AN --> EP
-    EP --> CSV
-
-    USR -->|"credentials"| AU
-    AU --> RB --> VAL --> EP
-    EP -->|"JSON"| UI
-    UI -->|"fetch, filter, sort"| USR
-    EP -->|"answers"| USR
+    WEB -->|"robots.txt"| A1
+    A1 --> A2
+    A2 -->|"allow"| A3
+    A3 --> A4
+    A4 -->|"cache hit"| A5
+    A5 --> A6
+    A4 -->|"network response"| A6
+    A2 -->|"deny: ComplianceError"| AUD
+    A4 -->|"status, latency, bytes, retries"| AUD
+    A4 -->|"429 or 5xx"| A3
+    A6 --> SCH
+    A6 --> RAW
+    SCH --> SYNC
+    SCH --> DIMS
+    AUD --> SCH

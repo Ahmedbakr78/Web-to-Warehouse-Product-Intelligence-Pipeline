@@ -1,0 +1,7 @@
+
+flowchart LR
+    V["1 · Bump VERSION<br/>+ sync_version.py"] --> C["2 · CHANGELOG entry<br/>Keep-a-Changelog"]
+    C --> S["3 · Stats sync<br/>project_stats + check_stats"]
+    S --> T["4 · Full verify<br/>./run.sh --verify-only"]
+    T --> G["5 · Commit + tag<br/>git tag -a vX.Y.Z"]
+    G --> R["6 · Push + release<br/>gh release create"]

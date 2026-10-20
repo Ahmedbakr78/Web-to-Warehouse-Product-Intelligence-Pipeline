@@ -1,0 +1,23 @@
+
+flowchart TB
+    subgraph Lead["Ahmed (78102) — 28%, owns every layer"]
+        API["FastAPI platform<br/>23 routers · 216 ops · auth/RBAC"]
+        ETL["9-stage ETL<br/>CLI = API = Airflow"]
+        INT["Integration transport<br/>in-process with REST fallback"]
+        CAT["Catalogues as code<br/>features + team APIs"]
+        DOCS["31 docs + diagrams<br/>README/website alignment"]
+        REL["Releases + quality gates<br/>versions, tags, CI"]
+        API --> ETL --> INT
+        CAT --> DOCS --> REL
+    end
+    subgraph Crew["Specialist lanes (72%)"]
+        ING["Ahmed Abd alla · 15%<br/>ingestion & compliance"]
+        CLN["Ahmed Medhat · 14%<br/>cleaning & dedupe"]
+        DB["Alaa Nasser · 14%<br/>warehouse & quality"]
+        FE["legecy007 · 15%<br/>dashboard & themes"]
+        OPS["Mennatullah · 14%<br/>Airflow, Docker, CI"]
+    end
+    ING & CLN & DB --> ETL
+    ETL --> FE
+    OPS -.schedules.-> ETL
+    Lead -.reviews every merge.-> Crew

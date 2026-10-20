@@ -1,12 +1,41 @@
 
-flowchart LR
-    subgraph Live["Live run — non-deterministic"]
-        L1["Real HTTP responses"] --> L2["Whatever the site serves today"]
-        L2 --> L3["Counts, dates and events vary"]
+flowchart TB
+    subgraph EXT["Outside the system"]
+        WEB["Public web sources"]
+        HUMAN["Analysts and admins"]
     end
-    subgraph Seeded["Seeded run — deterministic"]
-        S1["Seeded PRNG, fixed date"] --> S2["Identical output every time"]
-        S2 --> S3["Same charts, same numbers, every rehearsal"]
+
+    subgraph EDGE["Edge"]
+        MWS["Middleware<br/>CORS · gzip · timing · error envelope"]
     end
-    Live -.both write the same.-> WH[("25 tables")]
-    Seeded -.schema and DQ.-> WH
+
+    subgraph API["Interface — app/api"]
+        RT["16 routers, 113 operations"]
+        SEC["Security dependency<br/>JWT · API key · RBAC · audit"]
+    end
+
+    subgraph DOMAIN["Domain logic — app/etl, app/analytics"]
+        PIPE["Pipeline orchestrator<br/>9 stages"]
+        DQ["Data-quality framework"]
+        REC["Catalog reconciliation"]
+        AN["Analytics service"]
+    end
+
+    subgraph PORT["Ports — app/ingestion"]
+        HTTP["HTTP client<br/>robots · rate limit · breaker · cache · audit"]
+        SRC["Source adapters"]
+    end
+
+    subgraph DATA["Data plane — app/models"]
+        WH[("25 tables · 20 views")]
+    end
+
+    WEB --> HTTP
+    HUMAN --> MWS
+    MWS --> RT
+    SEC -.enforces on.-> RT
+    RT --> PIPE & DQ & REC & AN
+    PIPE --> HTTP & WH
+    SRC --> HTTP
+    AN --> WH
+    WH -.raw rows only.-> PIPE
