@@ -125,7 +125,7 @@ Rights are defined once in `app/api/security.py` (`ROLE_RIGHTS`) and enforced by
 | `query` | no | yes | yes | `POST /queries/execute`, `/queries/views`, `/queries/tables`, `/queries/examples` |
 | `export` | yes | yes | yes | CSV export |
 | `write` | no | yes | yes | Saved views, alerts, profile updates |
-| `run_pipeline` | no | yes | yes | `POST /pipeline/run`, `/run/sync`, `/clear-history` |
+| `run_pipeline` | no | yes | yes | `POST /pipeline/run`, `/run/sync` |
 | `manage_alerts` / `manage_views` | no | yes | yes | Alert and saved-view endpoints (enforced through ownership, not a separate dependency) |
 | `manage_users` | no | no | yes | `/users` list, create, update, deactivate, stats; `/settings` writes; `/audit` |
 | `manage_settings` | no | no | yes | `PUT`/`DELETE /settings/{key}` |
@@ -223,7 +223,7 @@ decorators in total; three are internal probes hidden from the schema — see §
 | POST | `/api/v1/pipeline/run/sync` | run_pipeline (analyst+) | Trigger a pipeline run and wait for the result |  |
 | GET | `/api/v1/pipeline/sources/status` | optional | Source health with sync state |  |
 | GET | `/api/v1/pipeline/stages` | read (viewer+) | Stage catalogue and average durations |  |
-| POST | `/api/v1/pipeline/clear-history` | run_pipeline (analyst+) | Delete run history (admin) | confirm? |
+| POST | `/api/v1/pipeline/clear-history` | admin | Delete run history; `400` unless `confirm=true` | confirm |
 | GET | `/api/v1/pipeline/schedule` | read (viewer+) | Configured schedule and orchestration status |  |
 
 ## products  (10 operations)
@@ -267,7 +267,8 @@ decorators in total; three are internal probes hidden from the schema — see §
 | POST | `/api/v1/alerts` | authenticated | Create an alert rule | payload |
 | PATCH | `/api/v1/alerts/{alert_id}` | authenticated | Update an alert rule | alert_id, payload |
 | DELETE | `/api/v1/alerts/{alert_id}` | authenticated | Delete an alert rule | alert_id |
-| POST | `/api/v1/alerts/evaluate` | authenticated | Evaluate my alert rules against the latest data |  |
+| POST | `/api/v1/alerts/evaluate` | authenticated | Evaluate my alert rules without publishing notifications |  |
+| POST | `/api/v1/alerts/publish` | admin | Evaluate every active rule and publish in-app/webhook notifications |  |
 
 ## authentication  (7 operations)
 | POST | `/api/v1/auth/login` | public | Exchange credentials for tokens |  |

@@ -173,18 +173,17 @@ def normalise_events(events: list[str] | None) -> list[str]:
     return cleaned
 
 
-def subscriptions_for_event(session: Session, event: str) -> list[AppWebhook]:
-    """Active subscriptions listening to ``event`` (or to everything)."""
-    hooks = (
-        session.execute(
-            sa.select(AppWebhook).where(
-                AppWebhook.is_active.is_(True),
-                AppWebhook.consecutive_failures < MAX_FAILURES_BEFORE_DISABLE,
-            )
-        )
-        .scalars()
-        .all()
+def subscriptions_for_event(
+    session: Session, event: str, *, user_id: int | None = None
+) -> list[AppWebhook]:
+    """Active subscriptions listening to ``event`` (optionally for one user)."""
+    query = sa.select(AppWebhook).where(
+        AppWebhook.is_active.is_(True),
+        AppWebhook.consecutive_failures < MAX_FAILURES_BEFORE_DISABLE,
     )
+    if user_id is not None:
+        query = query.where(AppWebhook.user_id == user_id)
+    hooks = session.execute(query).scalars().all()
     return [hook for hook in hooks if (hook.events or []).count("*") or event in (hook.events or [])]
 
 
@@ -289,13 +288,18 @@ def deliver(
     )
 
 
-def emit(session: Session, event: str, payload: dict[str, Any]) -> list[AppWebhookDelivery]:
+def emit(
+    session: Session, event: str, payload: dict[str, Any], *, user_id: int | None = None
+) -> list[AppWebhookDelivery]:
     """Fan an event out to every matching subscription.
+
+    Pass ``user_id`` for account-scoped events (for example an alert rule) so one
+    user's subscription cannot receive another user's alert payload.
 
     Failures are swallowed on purpose: a broken webhook must never fail a pipeline run.
     """
     deliveries: list[AppWebhookDelivery] = []
-    for hook in subscriptions_for_event(session, event):
+    for hook in subscriptions_for_event(session, event, user_id=user_id):
         try:
             outcome = deliver(session, hook, event, payload)
             if outcome.delivery is not None:

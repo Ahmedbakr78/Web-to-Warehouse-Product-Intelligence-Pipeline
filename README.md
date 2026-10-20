@@ -1602,7 +1602,7 @@ Next (full prioritised list in docs/20):
 - incremental SCD-2 history for category changes
 - Celery and Redis backend for very large runs
 - Prometheus metrics endpoint and Grafana dashboard
-- webhook and email alert channels next to in-app notifications
+- signed webhook alert channels next to in-app notifications
 - multi-tenant catalog spaces with per-team saved views
 - dbt models alongside the hand-written SQL views
 - Playwright end-to-end suite for the dashboard

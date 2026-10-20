@@ -22,9 +22,9 @@ export default function LoginPage() {
   const { isDark, toggle } = useTheme()
 
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
-  const [email, setEmail] = useState('admin@example.com')
+  const [email, setEmail] = useState('')
   const [fullName, setFullName] = useState('')
-  const [password, setPassword] = useState('Admin@12345')
+  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)

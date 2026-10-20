@@ -1282,6 +1282,19 @@ def test_alert_rule_patch_only_changes_what_is_sent(client, admin_token):
     client.delete(f"/api/v1/alerts/{created['alert_id']}", headers=auth(token))
 
 
+def test_alert_publish_is_admin_only_and_rejects_email_channel(client, admin_token, viewer_token):
+    assert client.post("/api/v1/alerts/publish", headers=auth(viewer_token)).status_code == 403
+    rejected = client.post(
+        "/api/v1/alerts",
+        headers=auth(admin_token),
+        json={"name": "Email rule", "metric": "rating", "operator": "lt", "threshold": 2, "channel": "email"},
+    )
+    assert rejected.status_code == 422
+    published = client.post("/api/v1/alerts/publish", headers=auth(admin_token))
+    assert published.status_code == 200
+    assert {"evaluated", "notifications_created", "fired", "rules"} <= set(published.json())
+
+
 def test_alert_rules_are_scoped_to_their_owner(client, admin_token):
     """One user cannot read, patch or delete another user's rules."""
     token = admin_token

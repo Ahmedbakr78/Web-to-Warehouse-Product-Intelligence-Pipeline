@@ -24,6 +24,7 @@ import {
   useAppearanceSync,
 } from '@/lib/theme'
 import type { Density, FontScale, MotionMode, ThemeMode } from '@/lib/theme'
+import { localStore } from '@/lib/session'
 
 /** Narrow an untrusted string against a list of allowed values. */
 function isOneOf(value: string | null | undefined, allowed: readonly string[]): value is string {
@@ -48,8 +49,6 @@ type User = {
   rows_per_page: number
   default_currency: string
   price_change_alert_pct: number
-  email_alerts_enabled: boolean
-  weekly_digest_enabled: boolean
   two_factor_enabled: boolean
   is_active: boolean
   is_verified: boolean
@@ -59,6 +58,13 @@ type User = {
   avatar_color?: string | null
   preferences?: Record<string, unknown> | null
   permissions: string[]
+}
+
+function applyStartPage(profile: User | null): void {
+  const preference = profile?.preferences?.start_page
+  if (typeof preference === 'string' && preference.startsWith('/')) {
+    localStore.set('account.startPage', preference)
+  }
 }
 
 type AuthState = {
@@ -144,6 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       const profile = await endpoints.me()
       setUser(profile)
+      applyStartPage(profile)
       scheduleProactiveRefresh()
     } catch {
       tokenStore.clear()
@@ -239,6 +246,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // everywhere" revocable, so it has to survive a reload like the tokens do.
       if (response.session_key) localStorage.setItem('pip.session', response.session_key)
       setUser(response.user)
+      applyStartPage(response.user)
       setReady(true)
       queryClient.clear()
       scheduleProactiveRefresh()

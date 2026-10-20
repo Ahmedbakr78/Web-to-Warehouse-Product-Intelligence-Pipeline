@@ -46,6 +46,7 @@ import {
 import { downloadExport, endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { useAuth } from '@/hooks/useAuth'
+import { useDefaultPageSize } from '@/hooks/usePreferences'
 import { formatCompact, formatDateTime, formatDuration, formatNumber, formatRelative, statusTone, titleCase } from '@/lib/format'
 
 const STATUS_FILTERS = [
@@ -59,7 +60,8 @@ const STATUS_FILTERS = [
 export default function Pipeline() {
   const [tab, setTab] = useState('runs')
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(25)
+  const defaultPageSize = useDefaultPageSize()
+  const [pageSize, setPageSize] = useState(defaultPageSize)
   const [status, setStatus] = useState('')
   const [selectedRun, setSelectedRun] = useState<string | null>(null)
   const [showTrigger, setShowTrigger] = useState(false)

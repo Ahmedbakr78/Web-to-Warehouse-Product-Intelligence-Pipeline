@@ -24,6 +24,7 @@ import { ExportButton } from '@/components/ExportButton'
 import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { useDebounce } from '@/hooks/useDebounce'
+import { useDefaultPageSize } from '@/hooks/usePreferences'
 import { downloadJson, formatCompact, formatDate, formatNumber, formatPrice, formatRelative, statusTone, titleCase } from '@/lib/format'
 
 const RANGES = [
@@ -50,7 +51,8 @@ export default function Changes() {
   const [significantOnly, setSignificantOnly] = useState(false)
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(25)
+  const defaultPageSize = useDefaultPageSize()
+  const [pageSize, setPageSize] = useState(defaultPageSize)
   const [sortBy, setSortBy] = useState('change_pct')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
 

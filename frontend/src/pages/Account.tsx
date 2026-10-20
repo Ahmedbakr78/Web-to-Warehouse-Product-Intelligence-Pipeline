@@ -49,7 +49,6 @@ import {
   StatTile,
   Tabs,
   TextInput,
-  Toggle,
   useToast,
 } from '@/components/ui'
 import {
@@ -120,18 +119,9 @@ export default function Account() {
   const [fullName, setFullName] = useState(user?.full_name ?? '')
   const [jobTitle, setJobTitle] = useState(user?.job_title ?? '')
   const [department, setDepartment] = useState(user?.department ?? '')
-  const [timezone, setTimezone] = useState(user?.timezone ?? 'UTC')
-  const [locale, setLocale] = useState(user?.locale ?? 'en')
-  const [currency, setCurrency] = useState(user?.default_currency ?? 'USD')
   const [rowsPerPage, setRowsPerPage] = useState(user?.rows_per_page ?? 25)
   const [alertPct, setAlertPct] = useState(user?.price_change_alert_pct ?? 5)
-  const [emailAlerts, setEmailAlerts] = useState(user?.email_alerts_enabled ?? false)
-  const [weeklyDigest, setWeeklyDigest] = useState(user?.weekly_digest_enabled ?? false)
   const navigate = useNavigate()
-  const [autoRefresh, setAutoRefresh] = useState(() => (user?.preferences?.auto_refresh as string) ?? 'off')
-  const [defaultExportFormat, setDefaultExportFormat] = useState(() => (user?.preferences?.default_export_format as string) ?? 'csv')
-  const [silentReload, setSilentReload] = useState(() => (user?.preferences?.silent_reload as boolean) ?? true)
-  const [copyCodeOnClick, setCopyCodeOnClick] = useState(() => (user?.preferences?.copy_code_on_click as boolean) ?? true)
   const [briefingWindow, setBriefingWindow] = useState(() => (user?.preferences?.briefing_window as string) ?? '30')
   const [briefingSize, setBriefingSize] = useState(() => (user?.preferences?.briefing_size as string) ?? '6')
 
@@ -188,19 +178,10 @@ export default function Account() {
     setFullName(user.full_name)
     setJobTitle(user.job_title ?? '')
     setDepartment(user.department ?? '')
-    setTimezone(user.timezone)
-    setLocale(user.locale)
-    setCurrency(user.default_currency)
     setRowsPerPage(user.rows_per_page)
     setAlertPct(user.price_change_alert_pct)
-    setEmailAlerts(user.email_alerts_enabled)
-    setWeeklyDigest(user.weekly_digest_enabled)
     setAvatarColor(user.avatar_color ?? AVATAR_COLORS[0])
     if (user.preferences) {
-      if (user.preferences.auto_refresh) setAutoRefresh(user.preferences.auto_refresh as string)
-      if (user.preferences.default_export_format) setDefaultExportFormat(user.preferences.default_export_format as string)
-      if (typeof user.preferences.silent_reload === 'boolean') setSilentReload(user.preferences.silent_reload)
-      if (typeof user.preferences.copy_code_on_click === 'boolean') setCopyCodeOnClick(user.preferences.copy_code_on_click)
       if (user.preferences.briefing_window) setBriefingWindow(user.preferences.briefing_window as string)
       if (user.preferences.briefing_size) setBriefingSize(user.preferences.briefing_size as string)
     }
@@ -216,25 +197,16 @@ export default function Account() {
         full_name: fullName,
         job_title: jobTitle,
         department,
-        timezone,
-        locale,
         theme: mode,
         accent,
         density,
         rows_per_page: rowsPerPage,
-        default_currency: currency,
         price_change_alert_pct: alertPct,
-        email_alerts_enabled: emailAlerts,
-        weekly_digest_enabled: weeklyDigest,
         avatar_color: avatarColor,
         preferences: {
           ...user?.preferences,
           start_page: startPage,
           motion,
-          auto_refresh: autoRefresh,
-          default_export_format: defaultExportFormat,
-          silent_reload: silentReload,
-          copy_code_on_click: copyCodeOnClick,
           briefing_window: briefingWindow,
           briefing_size: briefingSize,
         } as Record<string, unknown>,
@@ -386,7 +358,7 @@ export default function Account() {
         <StatTile label="Sign-ins" value={user.login_count} hint={user.last_login_at ? `Last ${formatRelative(user.last_login_at)}` : 'First session'} icon={<UserCircle className="h-4 w-4" />} />
         <StatTile label="Member since" value={user.created_at ? new Date(user.created_at).getFullYear() : '—'} hint={formatDateTime(user.created_at)} tone="info" />
         <StatTile label="API keys" value={apiKeys.data?.filter((key: any) => key.is_active).length ?? 0} hint="Active machine credentials" tone="neutral" />
-        <StatTile label="Default page size" value={rowsPerPage} hint={`Alerts above ${alertPct}% movement`} tone="success" />
+        <StatTile label="Default page size" value={rowsPerPage} hint="Used by every paginated table" tone="success" />
       </div>
 
       <Tabs
@@ -429,24 +401,6 @@ export default function Account() {
                 <p className="stat-label mb-1.5">Department</p>
                 <TextInput value={department} onChange={(event) => setDepartment(event.target.value)} placeholder="e.g. Merchandising" />
               </div>
-              <div>
-                <p className="stat-label mb-1.5">Timezone</p>
-                <Select value={timezone} onChange={(event) => setTimezone(event.target.value)}>
-                  {['UTC', 'Africa/Cairo', 'Europe/London', 'Europe/Berlin', 'Asia/Dubai', 'Asia/Kolkata', 'America/New_York'].map((zone) => (
-                    <option key={zone} value={zone}>
-                      {zone}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div>
-                <p className="stat-label mb-1.5">Locale</p>
-                <Select value={locale} onChange={(event) => setLocale(event.target.value)}>
-                  <option value="en">English</option>
-                  <option value="ar">العربية</option>
-                  <option value="fr">Français</option>
-                </Select>
-              </div>
             </div>
 
             <div className="mt-4 flex justify-end">
@@ -470,16 +424,6 @@ export default function Account() {
                 </Select>
               </div>
               <div>
-                <p className="stat-label mb-1.5">Display currency</p>
-                <Select value={currency} onChange={(event) => setCurrency(event.target.value)}>
-                  {['USD', 'EUR', 'GBP', 'EGP', 'AED', 'SAR'].map((code) => (
-                    <option key={code} value={code}>
-                      {code}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div>
                 <p className="stat-label mb-1.5">Start page after sign-in</p>
                 <Select value={startPage} onChange={(event) => setStartPage(event.target.value)}>
                   <option value="/">Dashboard</option>
@@ -491,7 +435,7 @@ export default function Account() {
                 </Select>
               </div>
               <div>
-                <p className="stat-label mb-1.5">Price alert threshold: {alertPct}%</p>
+                <p className="stat-label mb-1.5">Default alert threshold: {alertPct}%</p>
                 <input
                   type="range"
                   min={1}
@@ -500,9 +444,8 @@ export default function Account() {
                   onChange={(event) => setAlertPct(Number(event.target.value))}
                   className="w-full accent-brand-600"
                 />
+                <p className="mt-1 text-[11px] text-subtle">Prefills the threshold when you create a new price rule.</p>
               </div>
-              <Toggle checked={emailAlerts} onChange={setEmailAlerts} label="Email alerts" description="Send an email when an alert rule fires" />
-              <Toggle checked={weeklyDigest} onChange={setWeeklyDigest} label="Weekly digest" description="Monday summary of price movements" />
             </div>
             <div className="mt-4 flex justify-end">
               <Button variant="primary" icon={<Save className="h-4 w-4" />} loading={saveProfile.isPending} onClick={() => saveProfile.mutate()}>
@@ -1034,36 +977,6 @@ export default function Account() {
                     ))}
                   </Select>
                 </div>
-                <div>
-                  <p className="stat-label mb-1.5">Display currency</p>
-                  <Select value={currency} onChange={(event) => setCurrency(event.target.value)}>
-                    {['USD', 'EUR', 'GBP', 'EGP', 'AED', 'SAR'].map((code) => (
-                      <option key={code} value={code}>
-                        {code}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="stat-label mb-1.5">Background data refresh</p>
-                  <Select value={autoRefresh} onChange={(event) => setAutoRefresh(event.target.value)}>
-                    <option value="off">Off (Manual only)</option>
-                    <option value="30s">Every 30s (Fast)</option>
-                    <option value="60s">Every 60s (Standard)</option>
-                    <option value="120s">Every 2m (Relaxed)</option>
-                    <option value="300s">Every 5m (Conserve)</option>
-                  </Select>
-                </div>
-                <div>
-                  <p className="stat-label mb-1.5">Default export format</p>
-                  <Select value={defaultExportFormat} onChange={(event) => setDefaultExportFormat(event.target.value)}>
-                    <option value="csv">CSV (.csv)</option>
-                    <option value="xlsx">Excel (.xlsx)</option>
-                    <option value="json">JSON (.json)</option>
-                  </Select>
-                </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -1086,13 +999,9 @@ export default function Account() {
                 </div>
               </div>
               <div>
-                <p className="stat-label mb-1.5">Price alert threshold: {alertPct}%</p>
-                <input type="range" min={1} max={50} value={alertPct} onChange={(event) => setAlertPct(Number(event.target.value))} className="w-full accent-brand-600" aria-label="Price alert threshold" />
+                <p className="stat-label mb-1.5">Default alert threshold: {alertPct}%</p>
+                <input type="range" min={1} max={50} value={alertPct} onChange={(event) => setAlertPct(Number(event.target.value))} className="w-full accent-brand-600" aria-label="Default alert threshold" />
               </div>
-              <Toggle checked={silentReload} onChange={setSilentReload} label="Silent app reload" description="Update data silently in background without decorative animations or layout shift" />
-              <Toggle checked={copyCodeOnClick} onChange={setCopyCodeOnClick} label="One-click code copy" description="Clicking any code snippet, API token, or SQL preview copies it to clipboard" />
-              <Toggle checked={emailAlerts} onChange={setEmailAlerts} label="Email alerts" description="Send an email when an alert rule fires" />
-              <Toggle checked={weeklyDigest} onChange={setWeeklyDigest} label="Weekly digest" description="Monday summary of price movements" />
             </div>
             <div className="mt-4 flex justify-end">
               <Button variant="primary" icon={<Save className="h-4 w-4" />} loading={saveProfile.isPending} onClick={() => saveProfile.mutate()}>
@@ -1109,8 +1018,6 @@ export default function Account() {
                   { label: 'Toggle sidebar', value: 'Ctrl/Cmd-B' },
                   { label: 'Collapse / expand rail', value: '[ and ]' },
                   { label: 'Close dialogs', value: 'Esc or ? for help' },
-                  { label: 'Silent reload mode', value: silentReload ? 'Active (zero flicker)' : 'Disabled' },
-                  { label: 'Locale / timezone', value: `${locale} · ${timezone}` },
                   { label: 'Catalogue', value: 'Features screen: 550 live features' },
                 ]}
               />

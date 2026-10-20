@@ -206,11 +206,12 @@ def login(payload: LoginRequest, request: Request, session: DbSession) -> TokenR
 
     user.failed_login_count = 0
     user.locked_until = None
+    previous_login = user.last_login_at
     user.login_count = (user.login_count or 0) + 1
     user.last_login_at = now
     user.last_login_ip = client_ip(request)[:64]
 
-    if user.last_login_at:
+    if previous_login is None or previous_login < now - dt.timedelta(days=30):
         session.add(
             AppNotification(
                 user_id=user.user_id,

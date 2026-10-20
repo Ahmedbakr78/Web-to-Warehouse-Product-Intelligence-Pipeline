@@ -232,6 +232,7 @@ class Pipeline:
         run_id = self.result.run_id
         log.info("pipeline run=%s database=%s sources=%s", run_id, database, self._source_codes())
 
+        self._publish_started(database)
         try:
             with session_scope(database) as session:
                 self._execute(session, run_id)
@@ -242,9 +243,31 @@ class Pipeline:
             self._mark_failed(run_id, database, f"{type(exc).__name__}: {exc}")
             self.result.status = "failed"
             self.result.error = f"{type(exc).__name__}: {exc}"
+            self._publish_result(database)
             return self.result
 
+        self._publish_result(database)
         return self.result
+
+    def _publish_started(self, database: str) -> None:
+        """Notify webhook subscribers before the first stage runs."""
+        try:
+            from app.services.events import emit_pipeline_started
+
+            with session_scope(database) as session:
+                emit_pipeline_started(session, self.result)
+        except Exception:  # noqa: BLE001 - integrations must not block ingestion
+            log.warning("pipeline start webhook emission failed", exc_info=True)
+
+    def _publish_result(self, database: str) -> None:
+        """Notify webhook subscribers after the run reaches a terminal state."""
+        try:
+            from app.services.events import emit_pipeline_result
+
+            with session_scope(database) as session:
+                emit_pipeline_result(session, self.result)
+        except Exception:  # noqa: BLE001 - integrations must not break the pipeline
+            log.warning("pipeline result webhook emission failed", exc_info=True)
 
     def _mark_failed(self, run_id: str, database: str, message: str) -> None:
         try:

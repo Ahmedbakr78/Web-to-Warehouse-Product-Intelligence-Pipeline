@@ -437,7 +437,7 @@ by `GET /api/v1/meta/features`, so it always reflects the deployed code.
 
 ### 14.1 Profile
 
-Name, job title, department, avatar colour and timezone. Press **Save** to persist.
+Name, job title, department and avatar colour. Press **Save** to persist.
 
 ### 14.2 Appearance
 
@@ -450,8 +450,8 @@ Name, job title, department, avatar colour and timezone. Press **Save** to persi
 
 ### 14.3 Data and notifications
 
-Default currency for display, the price-change alert threshold (default 5 %), e-mail alerts and the
-weekly digest flags.
+The default page size, start page, briefing window and default price-alert threshold. These are
+stored on the profile and applied by the table, login and alert screens.
 
 ### 14.4 Security
 

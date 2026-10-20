@@ -7,7 +7,7 @@ from typing import Annotated, Any
 import sqlalchemy as sa
 from fastapi import APIRouter, Query
 
-from app.api.deps import CurrentUser, DbSession, PaginationDep
+from app.api.deps import AdminUser, CurrentUser, DbSession, PaginationDep
 from app.api.schemas import AlertRuleCreate, AlertRuleRead, AlertRuleUpdate, Message, NotificationRead, Page
 from app.core.errors import ProductNotFoundError
 
@@ -146,71 +146,15 @@ def delete_alert(alert_id: int, session: DbSession, user: CurrentUser) -> Messag
 
 @router.post("/alerts/evaluate", summary="Evaluate my alert rules against the latest data")
 def evaluate_alerts(session: DbSession, user: CurrentUser) -> dict[str, Any]:
-    """Real evaluation query: how many rows would fire each rule right now."""
-    from app.models.app_users import AppAlertRule
+    """Preview how many rows each rule matches right now, without notifying."""
+    from app.services.alerts import evaluate_all
 
-    rules = (
-        session.execute(
-            sa.select(AppAlertRule).where(
-                AppAlertRule.user_id == user.user_id, AppAlertRule.is_active.is_(True)
-            )
-        )
-        .scalars()
-        .all()
-    )
-    results: list[dict[str, Any]] = []
-    for rule in rules:
-        if rule.metric == "price_change_pct":
-            clause = "WHERE is_significant AND ABS(change_pct) >= :threshold"
-            params = {"threshold": abs(rule.threshold)}
-            rows = (
-                session.execute(sa.text(f"SELECT COUNT(*) FROM vw_price_changes {clause}"), params).scalar()
-                or 0
-            )
-        elif rule.metric == "rating":
-            rows = (
-                session.execute(
-                    sa.text(
-                        "SELECT COUNT(*) FROM vw_product_current WHERE rating IS NOT NULL AND rating < :threshold"
-                    ),
-                    {"threshold": rule.threshold},
-                ).scalar()
-                or 0
-            )
-        elif rule.metric == "new_product":
-            rows = (
-                session.execute(
-                    sa.text("SELECT COUNT(*) FROM vw_new_products WHERE first_seen_at >= :since"),
-                    {
-                        "since": __import__("datetime").datetime.now(__import__("datetime").timezone.utc)
-                        - __import__("datetime").timedelta(days=7)
-                    },
-                ).scalar()
-                or 0
-            )
-        elif rule.metric == "dq_failure":
-            rows = (
-                session.execute(
-                    sa.text(
-                        "SELECT COUNT(*) FROM dq_rule_result WHERE status = 'fail' AND run_id = (SELECT MAX(run_id) FROM etl_run)"
-                    )
-                ).scalar()
-                or 0
-            )
-        else:
-            rows = (
-                session.execute(
-                    sa.text("SELECT COUNT(*) FROM vw_product_current WHERE availability = 'out_of_stock'")
-                ).scalar()
-                or 0
-            )
-        results.append(
-            {
-                "alert_id": rule.alert_id,
-                "name": rule.name,
-                "metric": rule.metric,
-                "threshold": rule.threshold,
-                "matches_now": int(rows),
-            }
-        )
-    return {"evaluated": len(results), "rules": results}
+    return evaluate_all(session, user_id=user.user_id, publish=False)
+
+
+@router.post("/alerts/publish", summary="Evaluate every active rule and publish notifications")
+def publish_alerts(session: DbSession, _user: AdminUser) -> dict[str, Any]:
+    """Run the alert fan-out used by the scheduler and the pipeline DAG."""
+    from app.services.alerts import evaluate_all
+
+    return evaluate_all(session, publish=True)

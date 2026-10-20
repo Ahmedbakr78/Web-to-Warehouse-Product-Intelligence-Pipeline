@@ -583,5 +583,5 @@ In priority order, with the reasoning in
    parallelism stops being enough.
 4. **Prometheus metrics and a Grafana dashboard** — turning the existing counters into proper time
    series.
-5. **Webhook and email alert channels** — extending in-app notifications.
+5. **Email alert delivery** — adding an SMTP transport next to in-app and signed webhook alerts.
 6. **Multi-tenant catalog spaces** — so saved views and catalog data can be partitioned per team.

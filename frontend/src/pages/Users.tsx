@@ -50,6 +50,7 @@ import {
 } from '@/components/ui'
 import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
+import { useDefaultPageSize } from '@/hooks/usePreferences'
 import { formatDateTime, formatNumber, formatRelative, initials, titleCase } from '@/lib/format'
 
 type UserRow = {
@@ -120,7 +121,8 @@ export default function Users() {
   const toast = useToast()
 
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(25)
+  const defaultPageSize = useDefaultPageSize()
+  const [pageSize, setPageSize] = useState(defaultPageSize)
   const [formOpen, setFormOpen] = useState(false)
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [formErrors, setFormErrors] = useState<FormErrors>({})

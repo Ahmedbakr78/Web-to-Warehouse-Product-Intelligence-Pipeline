@@ -1388,12 +1388,12 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "detail": "Choose Dashboard, Analytics, Products or Pipeline as post-login route",
             },
             {
-                "name": "Weekly digest toggle",
-                "detail": "Opt in to Monday price-movement summary via notifications channel",
+                "name": "Signed webhook alert delivery",
+                "detail": "Route a rule to the user's active alert.triggered webhook subscriptions with a signed payload",
             },
             {
-                "name": "Alert threshold slider",
-                "detail": "Per-user % movement that raises a notification, default 5%",
+                "name": "Default alert threshold",
+                "detail": "Per-user default that prefills the threshold when creating a price alert rule",
             },
             {
                 "name": "Keyboard shortcut reference",
@@ -2007,20 +2007,20 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "detail": "Instant record count and aggregation stats preview right above builder tabular outputs",
             },
             {
-                "name": "Silent SPA Refresh Mode",
-                "detail": "Account preference to refresh data in place without page flashing, jarring skeleton loaders, or layout shifts",
+                "name": "Zero-Flicker Data Updates",
+                "detail": "Queries keep the previous page visible while refetching, so live data updates never flash a skeleton or shift layout",
             },
             {
-                "name": "Background Refresh Interval Selector",
-                "detail": "Configurable background polling rate (off, 30s, 60s, 2m, 5m) for live product monitoring dashboards",
+                "name": "Live Pipeline WebSocket",
+                "detail": "Authenticated /stream/events pushes warehouse counters and job progress to the dashboard",
             },
             {
-                "name": "Default Export Format Selector",
-                "detail": "User-level preference to automatically export datasets in CSV, Excel (.xlsx), or JSON",
+                "name": "Preference Backup & Restore",
+                "detail": "Export appearance, page size and start-page preferences as JSON and restore them through an allowlist-validated import",
             },
             {
-                "name": "One-Click Code Snippet Copy",
-                "detail": "Code blocks across Account, API Docs, and Query Lab feature hover copy-to-clipboard buttons with checkmark confirmations",
+                "name": "Copy Buttons on Code Blocks",
+                "detail": "API tokens, SQL previews and query results have copy-to-clipboard buttons with checkmark confirmations",
             },
             {
                 "name": "Zero-Rebuild Docker Volume Mounting",
@@ -2096,7 +2096,7 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             },
             {
                 "name": "Airflow DAG Orchestration",
-                "detail": "Production Airflow DAG product_intelligence_pipeline with task retries, email alerts, and SLA monitoring",
+                "detail": "Production Airflow DAG product_intelligence_pipeline with task retries, alert fan-out, and SLA monitoring",
             },
             {
                 "name": "Automated Quality Gatekeeper",

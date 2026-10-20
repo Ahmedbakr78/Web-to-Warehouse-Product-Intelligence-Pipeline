@@ -25,6 +25,7 @@ import { cn } from '@/lib/cn'
 import { downloadExport, endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { useDebounce } from '@/hooks/useDebounce'
+import { useDefaultPageSize } from '@/hooks/usePreferences'
 import { localStore } from '@/lib/session'
 import {
   downloadCsv,
@@ -74,7 +75,8 @@ export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [search, setSearch] = useState(searchParams.get('q') ?? '')
   const [page, setPage] = useState(Number(searchParams.get('page') ?? 1))
-  const [pageSize, setPageSize] = useState(() => localStore.get('products.pageSize', 25))
+  const defaultPageSize = useDefaultPageSize()
+  const [pageSize, setPageSize] = useState(() => localStore.get('products.pageSize', defaultPageSize))
   const [sortBy, setSortBy] = useState<string>('last_seen_at')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [stock, setStock] = useState(searchParams.get('in_stock') ?? '')

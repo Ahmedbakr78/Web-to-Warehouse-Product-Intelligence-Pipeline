@@ -139,7 +139,7 @@ class AppAlertRule(Base, TimestampMixin):
     category: Mapped[str | None] = mapped_column(MediumStr)
     source_code: Mapped[str | None] = mapped_column(ShortStr)
     is_active: Mapped[bool] = mapped_column(sa.Boolean, default=True)
-    channel: Mapped[str] = mapped_column(ShortStr, default="in_app")  # in_app | email | webhook
+    channel: Mapped[str] = mapped_column(ShortStr, default="in_app")  # in_app | webhook
     last_triggered_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
     trigger_count: Mapped[int] = mapped_column(sa.Integer, default=0)
 

@@ -6,10 +6,18 @@ import datetime as dt
 from typing import Annotated, Any
 
 import sqlalchemy as sa
-from fastapi import APIRouter, BackgroundTasks, Query, Request
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, Request
 
 from app.analytics import service as analytics
-from app.api.deps import DbSession, OptionalUser, PaginationDep, PipelineUser, ReadUser, request_meta
+from app.api.deps import (
+    AdminUser,
+    DbSession,
+    OptionalUser,
+    PaginationDep,
+    PipelineUser,
+    ReadUser,
+    request_meta,
+)
 from app.api.schemas import (
     BackfillRequest,
     BackfillResult,
@@ -454,7 +462,7 @@ def stages(session: DbSession, _user: ReadUser) -> dict[str, Any]:
 )
 def clear_history(
     session: DbSession,
-    user: PipelineUser,
+    user: AdminUser,
     confirm: Annotated[bool, Query()] = False,
     include_facts: Annotated[
         bool,
@@ -476,12 +484,8 @@ def clear_history(
     Pass `include_facts=true` to delete the warehouse facts too. That is
     destructive and irreversible, so the response reports exactly what went.
     """
-    from app.api.security import at_least
-
-    if not at_least(user.role, "admin") or not confirm:
-        return Message(
-            message="Refused: requires an admin role and confirm=true", detail={"required": "admin + confirm"}
-        )
+    if not confirm:
+        raise HTTPException(status_code=400, detail="confirm=true is required to clear run history")
 
     session.add(
         AppAuditLog(

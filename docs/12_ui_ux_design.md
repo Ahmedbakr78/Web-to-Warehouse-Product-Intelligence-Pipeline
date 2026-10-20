@@ -481,11 +481,10 @@ Restrictions surfaced in the UI: only `SELECT`, `WITH` and `EXPLAIN`; a 5,000-ro
 
 ```text
 +---------------------- Account -------------------------------------------+
-| Profile: name, job title, department, avatar colour, timezone            |
+| Profile: name, job title, department, avatar colour                       |
 | Appearance: theme [System|Light|Dark] | accent [indigo|sky|emerald…]      |
 | Density: [Compact|Comfortable|Spacious] | rows per page [25]              |
-| Data: default currency [USD] | price change alert [% 5]                |
-| Notifications: e-mail alerts [ ] | weekly digest [ ] | two-factor (n/a)   |
+| Preferences: rows per page [25] | default alert threshold [% 5]       |
 +---------------------------------------------------------------------------+
 | Tabs: [Profile] [Security] [Saved views] [Alerts] [API keys]              |
 | Security: change password (current + new + confirm), password strength     |

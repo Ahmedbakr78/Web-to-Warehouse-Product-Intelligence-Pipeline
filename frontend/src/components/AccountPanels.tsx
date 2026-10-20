@@ -155,7 +155,7 @@ export function AlertsPanel() {
           hint="Lifetime firings"
           tone="warning"
         />
-        <StatTile label="Channels" value={new Set(rows.map((row) => row.channel)).size} hint="In-app, email, webhook" />
+        <StatTile label="Channels" value={new Set(rows.map((row) => row.channel)).size} hint="In-app and signed webhook" />
       </div>
 
       <Card>
@@ -362,7 +362,7 @@ export function PrivacyPanel({
           <KeyValue
             items={[
               { label: 'Profile', value: 'Name, job title, department, avatar colour' },
-              { label: 'Preferences', value: 'Theme, accent, density, locale, currency, timezone' },
+              { label: 'Preferences', value: 'Theme, accent, density, page size, start page, briefing' },
               { label: 'Credentials', value: 'Argon2id password hash; TOTP secret encrypted at rest' },
               { label: 'Sessions', value: 'Device, address, user agent, sign-in and last-seen times' },
               { label: 'API keys', value: 'Name, prefix, scopes and usage; never the secret' },
@@ -519,11 +519,6 @@ const SERVER_PREF_FIELDS = [
   'direction',
   'font_scale',
   'rows_per_page',
-  'default_currency',
-  'locale',
-  'timezone',
-  'email_alerts_enabled',
-  'weekly_digest_enabled',
   'price_change_alert_pct',
   'avatar_color',
 ] as const
@@ -616,7 +611,7 @@ function PreferencesBackupPanel() {
           Download preferences
         </p>
         <p className="mt-1 text-[11px] leading-relaxed text-muted">
-          Theme, accent, density, font, motion, direction, start page, currency, locale and
+          Theme, accent, density, font, motion, direction, page size and start page,
           alert defaults - everything that makes the app yours, in one file.
         </p>
         <Button className="mt-3" variant="secondary" icon={<Save className="h-4 w-4" />} onClick={exportPrefs}>

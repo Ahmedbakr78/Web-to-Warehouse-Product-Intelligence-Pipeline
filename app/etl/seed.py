@@ -246,9 +246,9 @@ def seed_saved_views_and_alerts(session: Session) -> int:
 
     alerts = [
         (analyst.user_id, "Price drop > 10%", "price_change_pct", "lt", -10.0, None),
-        (analyst.user_id, "New product in Electronics", "new_product", "eq", 0.0, "Electronics"),
-        (analyst.user_id, "New product in Cryptocurrency", "new_product", "eq", 0.0, "Cryptocurrency"),
-        (admin.user_id, "DQ failure", "dq_failure", "eq", 1.0, None),
+        (analyst.user_id, "New product in Electronics", "new_product", "gt", 0.0, "Electronics"),
+        (analyst.user_id, "New product in Cryptocurrency", "new_product", "gt", 0.0, "Cryptocurrency"),
+        (admin.user_id, "DQ failure", "dq_failure", "gt", 0.0, None),
         (admin.user_id, "Rating below 2.5", "rating", "lt", 2.5, None),
         (admin.user_id, "Stock-out spike", "stock_out", "gt", 5.0, None),
     ]

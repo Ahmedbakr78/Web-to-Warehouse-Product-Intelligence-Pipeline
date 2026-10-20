@@ -437,56 +437,21 @@ def _changes_local(context: dict) -> dict[str, Any]:
 
 
 def publish_notifications(**context: Any) -> dict[str, Any]:
-    """Evaluate the alert rules and raise in-app notifications for whatever matches."""
-    return call_pipeline(lambda: _notify_local(context), "/alerts/evaluate", method="POST")
+    """Evaluate every active alert rule and publish in-app/webhook notifications."""
+    return call_pipeline(lambda: _notify_local(context), "/alerts/publish", method="POST")
 
 
 def _notify_local(context: dict) -> dict[str, Any]:
-    import sqlalchemy as sa
-
     from app.core.db import session_scope
-    from app.models.app_users import AppAlertRule, AppNotification
+    from app.services.alerts import evaluate_all
 
-    created = 0
-    since = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=1)
     with session_scope(_database_target(context)) as session:
-        rules = (
-            session.execute(sa.select(AppAlertRule).where(AppAlertRule.is_active.is_(True))).scalars().all()
-        )
-        for rule in rules:
-            if rule.metric != "price_change_pct":
-                continue
-            count = (
-                session.execute(
-                    sa.text(
-                        """
-                    SELECT COUNT(*) FROM chg_price_change
-                    WHERE direction = 'decrease' AND ABS(change_pct) >= :threshold
-                      AND detected_at >= :since
-                    """
-                    ),
-                    {"threshold": abs(rule.threshold), "since": since},
-                ).scalar()
-                or 0
-            )
-            if not count:
-                continue
-            session.add(
-                AppNotification(
-                    user_id=rule.user_id,
-                    alert_id=rule.alert_id,
-                    level="warning" if count < 10 else "critical",
-                    title=f"{rule.name}: {count} matching events in the last 24h",
-                    body=f"Threshold {rule.operator} {rule.threshold}%",
-                    entity_type="price_change",
-                    action_url="/changes/price",
-                )
-            )
-            rule.last_triggered_at = dt.datetime.now(dt.timezone.utc)
-            rule.trigger_count = (rule.trigger_count or 0) + 1
-            created += 1
-    print(f"notifications published: {created}")
-    return {"notifications_created": created}
+        summary = evaluate_all(session, publish=True)
+    print(
+        f"alerts evaluated={summary['evaluated']} fired={summary['fired']} "
+        f"notifications={summary['notifications_created']}"
+    )
+    return summary
 
 
 def publish_report(**context: Any) -> dict[str, Any]:

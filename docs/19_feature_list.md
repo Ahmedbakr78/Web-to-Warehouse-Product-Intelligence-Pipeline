@@ -587,7 +587,7 @@ Nine tabs of self-service control.
 | F-343 | Password strength meter | Length, variety and breach-hint feedback before submit | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
 | F-344 | Rows-per-page control | Persisted default page size used by every table screen | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
 | F-345 | Default landing page | Choose Dashboard, Analytics, Products or Pipeline as post-login route | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
-| F-346 | Weekly digest toggle | Opt in to Monday price-movement summary via notifications channel | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
+| F-346 | Signed webhook alert delivery | Route a rule to the user's active `alert.triggered` subscriptions with a signed payload | `app/services/alerts.py` `app/services/webhooks.py` |
 | F-347 | Alert threshold slider | Per-user % movement that raises a notification, default 5% | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
 | F-348 | Keyboard shortcut reference | Press ? anywhere: palette, sidebar, rail, overlay shortcuts on one screen | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |
 | F-349 | Session timeout display | Idle and absolute lifetimes visible beside each device row | `frontend/src/pages/Account.tsx` `frontend/src/components/AccountPanels.tsx` |

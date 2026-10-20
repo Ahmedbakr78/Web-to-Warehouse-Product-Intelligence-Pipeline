@@ -41,6 +41,7 @@ import {
 } from '@/components/ui'
 import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
+import { useDefaultPageSize } from '@/hooks/usePreferences'
 import {
   formatBytes,
   formatDateTime,
@@ -111,7 +112,8 @@ export default function Audit() {
   const [days, setDays] = useState('30')
   const [tab, setTab] = useState('audit')
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(25)
+  const defaultPageSize = useDefaultPageSize()
+  const [pageSize, setPageSize] = useState(defaultPageSize)
   const [sourceCode, setSourceCode] = useState('')
   const [httpLimit, setHttpLimit] = useState(200)
   const [sort, setSort] = useState<{ by?: string; dir: 'asc' | 'desc' }>({ by: 'created_at', dir: 'desc' })

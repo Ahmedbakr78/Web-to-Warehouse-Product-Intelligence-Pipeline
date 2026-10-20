@@ -27,12 +27,14 @@ import { downloadBinary, endpoints, uploadCatalogCsv } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { useAuth } from '@/hooks/useAuth'
 import { useDebounce } from '@/hooks/useDebounce'
+import { useDefaultPageSize } from '@/hooks/usePreferences'
 import { formatCompact, formatDateTime, formatNumber, formatPrice, formatRelative, statusTone, titleCase } from '@/lib/format'
 
 export default function Catalog() {
   const [tab, setTab] = useState('reconciliation')
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(25)
+  const defaultPageSize = useDefaultPageSize()
+  const [pageSize, setPageSize] = useState(defaultPageSize)
   const [search, setSearch] = useState('')
   const [matchStatus, setMatchStatus] = useState('')
   const [onlyMismatches, setOnlyMismatches] = useState(false)

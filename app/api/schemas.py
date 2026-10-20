@@ -203,8 +203,6 @@ class UserRead(ORMModel):
     rows_per_page: int = 25
     default_currency: str = "USD"
     price_change_alert_pct: float = 5.0
-    email_alerts_enabled: bool = False
-    weekly_digest_enabled: bool = False
     two_factor_enabled: bool = False
     two_factor_enrolled_at: dt.datetime | None = None
     #: Recovery codes left, so the UI can warn before the last one is used.
@@ -235,8 +233,6 @@ class UserUpdate(BaseModel):
     rows_per_page: int | None = Field(default=None, ge=5, le=500)
     default_currency: str | None = None
     price_change_alert_pct: float | None = Field(default=None, ge=0, le=100)
-    email_alerts_enabled: bool | None = None
-    weekly_digest_enabled: bool | None = None
     avatar_color: str | None = None
     preferences: dict[str, Any] | None = None
 
@@ -785,7 +781,7 @@ class AlertRuleCreate(BaseModel):
     threshold: float = 10.0
     category: str | None = None
     source_code: str | None = None
-    channel: Literal["in_app", "email", "webhook"] = "in_app"
+    channel: Literal["in_app", "webhook"] = "in_app"
     is_active: bool = True
 
 
@@ -798,7 +794,7 @@ class AlertRuleUpdate(BaseModel):
     threshold: float | None = None
     category: str | None = None
     source_code: str | None = None
-    channel: Literal["in_app", "email", "webhook"] | None = None
+    channel: Literal["in_app", "webhook"] | None = None
     is_active: bool | None = None
 
 

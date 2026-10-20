@@ -31,6 +31,7 @@ import {
 import { ExportButton } from '@/components/ExportButton'
 import { endpoints } from '@/lib/api'
 import { queryKeys, useApiQuery } from '@/hooks/useApi'
+import { useAuth } from '@/hooks/useAuth'
 import { formatDateTime, formatNumber, formatRelative, titleCase } from '@/lib/format'
 
 type AlertRule = {
@@ -83,8 +84,7 @@ const OPERATORS = [
 
 const CHANNELS = [
   { id: 'in_app', label: 'In-app notification' },
-  { id: 'email', label: 'Email' },
-  { id: 'webhook', label: 'Webhook' },
+  { id: 'webhook', label: 'Signed webhook' },
 ]
 
 const EMPTY_FORM = {
@@ -105,7 +105,7 @@ function levelTone(level: string): Tone {
 }
 
 function channelTone(channel: string): Tone {
-  return channel === 'email' ? 'info' : channel === 'webhook' ? 'brand' : 'neutral'
+  return channel === 'webhook' ? 'brand' : 'neutral'
 }
 
 /** The PATCH endpoint replaces every field, so updates must resend the whole rule. */
@@ -125,6 +125,7 @@ function rulePayload(rule: AlertRule): Record<string, unknown> {
 export default function Alerts() {
   const queryClient = useQueryClient()
   const toast = useToast()
+  const { user } = useAuth()
 
   const [tab, setTab] = useState('rules')
   const [unreadOnly, setUnreadOnly] = useState(false)
@@ -216,7 +217,7 @@ export default function Alerts() {
 
   function openCreate() {
     setEditing(null)
-    setForm(EMPTY_FORM)
+    setForm({ ...EMPTY_FORM, threshold: String(user?.price_change_alert_pct ?? 5) })
     setFormErrors({})
     setFormOpen(true)
   }
@@ -640,7 +641,7 @@ export default function Alerts() {
                 onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}
               />
             </Field>
-            <Field label="Channel" error={formErrors.channel}>
+            <Field label="Channel" error={formErrors.channel} hint="Webhook uses your active alert.triggered subscriptions">
               <Select
                 value={form.channel}
                 aria-label="Channel"
