@@ -159,7 +159,7 @@ export default function Dashboard() {
       </div>
 
       {/* ------------------------------------------------------------- KPI cards */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-4">
         <StatTile
           label="Products observed"
           value={formatCompact(latest.products ?? 0)}
@@ -190,7 +190,7 @@ export default function Dashboard() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-4">
         <StatTile
           label="New products"
           value={formatCompact(events.new ?? 0)}
