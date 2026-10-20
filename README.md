@@ -34,7 +34,7 @@
 
 <p align="center">
   <b>219 REST operations</b> · <b>29 tables</b> · <b>23 analytical views</b> ·
-  <b>12 DQ rules</b> · <b>34 registered sources</b> · <b>550 catalogued features</b> ·
+  <b>12 DQ rules</b> · <b>34 registered sources</b> · <b>575 catalogued features</b> ·
   <b>588 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
 </p>
 
@@ -177,7 +177,7 @@ Everything is engineered like a production system, not a demo:
 12 data-quality rules across 6 dimensions, weighted score persisted per run
 35 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
 14 CLI commands  |  6 Docker Compose services  |  33 documents  |  83 Mermaid diagrams
-592 tests  |  104/104 API smoke checks  |  550 catalogued features
+592 tests  |  104/104 API smoke checks  |  575 catalogued features
 ```
 
 | Metric | Count |
@@ -194,7 +194,7 @@ Everything is engineered like a production system, not a demo:
 | Docker Compose services | 6 |
 | Numbered documents      | 33 |
 | Mermaid diagrams        | 83 |
-| Catalogued features     | 550 |
+| Catalogued features     | 575 |
 | Collected test cases    | 592 |
 | API smoke checks        | 104 |
 
@@ -1008,7 +1008,7 @@ are persisted per run in `dq_rule_result`, and the dashboard charts the score tr
 ## Feature catalogue
 
 The exhaustive, file-referenced inventory lives in
-[docs/19_feature_list.md](docs/19_feature_list.md) — 550 features in forty-six areas. It is also served as
+[docs/19_feature_list.md](docs/19_feature_list.md) — 575 features in forty-seven areas. It is also served as
 structured JSON by `GET /api/v1/meta/features` (396 entries across the catalogue groups) and rendered by the **Features** screen, both generated
 from `app/core/features.py`, so this section can never describe something the code does not do.
 Highlights by area:
