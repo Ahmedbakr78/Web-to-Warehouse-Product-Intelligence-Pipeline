@@ -598,6 +598,72 @@ def test_invalid_appearance_values_are_rejected(client, admin_token):
     assert "accent must be one of" in bad_accent.text
 
 
+def test_profile_preferences_are_merged_not_replaced(client, admin_token):
+    """Updating one preference must never wipe the others.
+
+    The dashboard sends the whole preferences blob, but a hand-written API call
+    that only wants to change the number format must not silently delete the
+    briefing window, the export format or the silent-reload flag.
+    """
+    seed = {
+        "number_format": "compact",
+        "silent_reload": True,
+        "briefing_window": "30",
+        "default_export_format": "csv",
+    }
+    client.patch("/api/v1/users/me", json={"preferences": seed}, headers=auth(admin_token))
+
+    updated = client.patch(
+        "/api/v1/users/me",
+        json={"preferences": {"number_format": "full"}},
+        headers=auth(admin_token),
+    )
+    assert updated.status_code == 200, updated.text
+    preferences = updated.json()["preferences"]
+    assert preferences["number_format"] == "full"
+    assert preferences["silent_reload"] is True
+    assert preferences["briefing_window"] == "30"
+    assert preferences["default_export_format"] == "csv"
+
+
+def test_unknown_profile_preference_values_are_dropped(client, admin_token):
+    """An out-of-range preference is removed, never stored as a typo.
+
+    The dashboard reads these values back and renders them, so a value it
+    cannot render has to be dropped at the API boundary.
+    """
+    client.patch(
+        "/api/v1/users/me",
+        json={
+            "preferences": {
+                "number_format": "compact",
+                "auto_refresh": "30s",
+                "default_export_format": "csv",
+            }
+        },
+        headers=auth(admin_token),
+    )
+
+    updated = client.patch(
+        "/api/v1/users/me",
+        json={
+            "preferences": {
+                "number_format": "banana",
+                "auto_refresh": "999y",
+                "default_export_format": "exe",
+            }
+        },
+        headers=auth(admin_token),
+    )
+    assert updated.status_code == 200, updated.text
+    preferences = updated.json()["preferences"]
+    assert "number_format" not in preferences
+    assert "auto_refresh" not in preferences
+    assert "default_export_format" not in preferences
+    # The values that were valid before the bad call survive the merge.
+    assert preferences["silent_reload"] is True
+
+
 def test_appearance_palettes_match_frontend(client):
     """The API's accent allow-list and the dashboard's presets must not drift apart."""
     import re

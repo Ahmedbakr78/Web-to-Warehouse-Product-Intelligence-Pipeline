@@ -553,7 +553,7 @@ export default function Account() {
             </div>
             <p className="mt-3 text-[11px] text-subtle">
               Active palette: <code className="rounded bg-surface-3 px-1 font-mono">{mode}</code>
-              {mode === 'system' ? ` → ${isDark ? 'dark' : 'light'} (from your operating system)` : ''}
+              {mode === 'system' ? ` (${isDark ? 'dark' : 'light'}, from your operating system)` : ''}
             </p>
           </Card>
 
@@ -704,7 +704,7 @@ export default function Account() {
                 { label: 'Password hashing', value: 'Argon2id (memory-hard)' },
                 { label: 'Token type', value: 'JWT HS256 access + refresh' },
                 { label: 'Token lifetime', value: '12 h access / 30 d refresh' },
-                { label: 'Brute-force protection', value: '5 failed attempts → 15 min lock' },
+                { label: 'Brute-force protection', value: '5 failed attempts, then a 15 min lock' },
                 { label: 'Two-factor authentication', value: user.two_factor_enabled ? 'Enabled' : 'Not enabled' },
                 { label: 'Last sign-in', value: formatDateTime(user.last_login_at) },
                 { label: 'Role', value: titleCase(user.role) },
@@ -909,7 +909,7 @@ export default function Account() {
           <KeyValue
             items={[
               { label: '/', value: 'Open command palette (screens + live products + actions)' },
-              { label: 'Ctrl/⌘ K', value: 'Same as / — quick jump anywhere' },
+              { label: 'Ctrl/Command K', value: 'Same as / — quick jump anywhere' },
               { label: 'Esc', value: 'Close drawer, modal or palette' },
               { label: 'Click a column header', value: 'Sort any table; state persists per screen' },
               { label: 'Tip', value: 'Palette actions: toggle theme, collapse sidebar, sign out — all without reload.' },
@@ -1233,7 +1233,7 @@ export default function Account() {
                   '35+ real permitted data sources (no fakes)',
                   'robots.txt compliance with ETag revalidation',
                   'Rate limiting and politeness cache (30 min TTL)',
-                  '9-stage ETL pipeline (extract → stage → transform → resolve → load → detect → aggregate → reconcile → quality)',
+                  '9-stage ETL pipeline (extract, stage, transform, resolve, load, detect, aggregate, reconcile, quality)',
                   'Manual pipeline trigger from UI',
                   'Airflow DAG orchestration',
                   'Run history with per-stage timing',
@@ -1266,7 +1266,7 @@ export default function Account() {
                   'Argon2id password hashing',
                   'JWT access (12 h) + refresh (30 d) tokens',
                   '2FA (TOTP) support',
-                  'Brute-force protection (5 fails → 15 min lock)',
+                  'Brute-force protection (5 fails, then a 15 min lock)',
                   'Session management (active devices list)',
                   'API key management (create / rotate / revoke / edit scopes)',
                   'Per-key rate limiting and expiry',
@@ -1281,7 +1281,7 @@ export default function Account() {
                   '5 themes: Light, Dark, Midnight, High-contrast, System',
                   '12 accent colours',
                   '3 density modes: Compact / Comfortable / Spacious',
-                  '5 font-size scales (XS → XL)',
+                  '5 font-size scales (XS to XL)',
                   '3 motion modes: Full / Reduced / None (silent reload)',
                   'LTR / RTL reading direction',
                   'Cross-tab appearance sync',

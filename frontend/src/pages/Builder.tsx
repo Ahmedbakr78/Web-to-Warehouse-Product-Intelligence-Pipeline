@@ -1,6 +1,42 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowDown, ArrowUp, Bookmark, Braces, Check, CheckCheck, Copy, Download, ExternalLink, Filter, Layers, Link2, Minus, Pin, PinOff, Play, RotateCcw, Save, Sparkles, Terminal, Wand2, X, Zap } from 'lucide-react'
+import {
+  Archive,
+  ArrowDown,
+  ArrowUp,
+  BadgeDollarSign,
+  Bookmark,
+  Braces,
+  Check,
+  CheckCheck,
+  Copy,
+  Download,
+  ExternalLink,
+  Filter,
+  Flame,
+  Gem,
+  Layers,
+  Link2,
+  Minus,
+  Package,
+  Pin,
+  PinOff,
+  Play,
+  Receipt,
+  Rocket,
+  RotateCcw,
+  Save,
+  Sparkles,
+  Star,
+  Stethoscope,
+  Terminal,
+  TrendingUp,
+  TriangleAlert,
+  Wand2,
+  X,
+  Zap,
+  type LucideIcon,
+} from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import {
@@ -214,64 +250,76 @@ const MULTI_SORT_ENTITIES: Entity[] = ['products', 'price-changes']
 
 const MAX_EXTRA_SORTS = 2
 
-const BUILDER_PRESETS: { name: string; entity: Entity; patch: Partial<BuilderState> }[] = [
+const BUILDER_PRESETS: { name: string; icon: LucideIcon; entity: Entity; patch: Partial<BuilderState> }[] = [
   {
-    name: '🔥 Flash Drops (≥ 15%)',
+    name: 'Flash Drops (≥ 15%)',
+    icon: Flame,
     entity: 'price-changes',
     patch: { minChangePct: '-15', significantOnly: true, sortBy: 'price_change_pct', sortDir: 'asc' },
   },
   {
-    name: '⚠️ Out of Stock',
+    name: 'Out of Stock',
+    icon: TriangleAlert,
     entity: 'products',
     patch: { availability: 'out_of_stock', inStock: 'false', sortBy: 'last_seen_at', sortDir: 'desc' },
   },
   {
-    name: '✨ New Arrivals (7d)',
+    name: 'New Arrivals (7d)',
+    icon: Sparkles,
     entity: 'new',
     patch: { newSinceDays: '7', activeOnly: true, sortBy: 'first_seen_at', sortDir: 'desc' },
   },
   {
-    name: '💎 Luxury Tier ($100+)',
+    name: 'Luxury Tier ($100+)',
+    icon: Gem,
     entity: 'products',
     patch: { minPrice: '100', sortBy: 'price', sortDir: 'desc' },
   },
   {
-    name: '⭐ Top Rated (4.5+ ★)',
+    name: 'Top Rated (4.5+)',
+    icon: Star,
     entity: 'products',
     patch: { minRating: '4.5', sortBy: 'rating', sortDir: 'desc' },
   },
   {
-    name: '🚀 Top Movers',
+    name: 'Top Movers',
+    icon: Rocket,
     entity: 'movers',
     patch: { sortBy: 'price_change_pct', sortDir: 'desc' },
   },
   {
-    name: '📈 Price Hikes (+15%)',
+    name: 'Price Hikes (+15%)',
+    icon: TrendingUp,
     entity: 'price-changes',
     patch: { minChangePct: '15', significantOnly: true, sortBy: 'price_change_pct', sortDir: 'desc' },
   },
   {
-    name: '💸 Discounts under $50',
+    name: 'Discounts under $50',
+    icon: BadgeDollarSign,
     entity: 'products',
     patch: { maxPrice: '50', sortBy: 'price', sortDir: 'asc' },
   },
   {
-    name: '🕳️ Recently Removed',
+    name: 'Recently Removed',
+    icon: Archive,
     entity: 'removed',
     patch: { sortBy: 'last_seen_at', sortDir: 'desc' },
   },
   {
-    name: '🧾 Catalog Mismatches',
+    name: 'Catalog Mismatches',
+    icon: Receipt,
     entity: 'catalog',
     patch: { significantOnly: true, sortBy: 'price_difference', sortDir: 'desc' },
   },
   {
-    name: '🩺 DQ Failures',
+    name: 'DQ Failures',
+    icon: Stethoscope,
     entity: 'quality',
     patch: { availability: 'fail', sortBy: 'severity', sortDir: 'desc' },
   },
   {
-    name: '📦 Stale (90d unseen)',
+    name: 'Stale (90d unseen)',
+    icon: Package,
     entity: 'products',
     patch: { newSinceDays: '90', sortBy: 'last_seen_at', sortDir: 'asc' },
   },
@@ -654,15 +702,19 @@ export default function Builder() {
             <Zap className="h-3.5 w-3.5 text-brand-500" />
             Quick Presets:
           </span>
-          {BUILDER_PRESETS.map((preset) => (
-            <button
-              key={preset.name}
-              onClick={() => applyPreset(preset)}
-              className="rounded-full border border-line bg-surface-2 px-2.5 py-1 text-[11px] font-medium text-muted hover:border-brand-500 hover:text-ink transition-colors"
-            >
-              {preset.name}
-            </button>
-          ))}
+          {BUILDER_PRESETS.map((preset) => {
+            const PresetIcon = preset.icon
+            return (
+              <button
+                key={preset.name}
+                onClick={() => applyPreset(preset)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-2 px-2.5 py-1 text-[11px] font-medium text-muted hover:border-brand-500 hover:text-ink transition-colors"
+              >
+                <PresetIcon className="h-3 w-3 shrink-0 text-brand-500" aria-hidden />
+                {preset.name}
+              </button>
+            )
+          })}
         </div>
 
         {/* Active filters, each removable on its own. */}
@@ -912,7 +964,7 @@ export default function Builder() {
                 <button onClick={() => applySavedView(view)} className="px-3 py-2 text-left" title="Apply this view">
                   <p className="text-xs font-medium text-ink">
                     {view.name}
-                    {view.is_favorite ? <span className="ml-1 text-warning">★</span> : null}
+                    {view.is_favorite ? <Star className="ml-1 inline h-3 w-3 fill-warning text-warning" aria-label="Favourite" /> : null}
                   </p>
                   <p className="text-[11px] text-subtle">
                     {titleCase(view.entity)} · used {view.use_count ?? 0}× · {formatRelative(view.created_at)}

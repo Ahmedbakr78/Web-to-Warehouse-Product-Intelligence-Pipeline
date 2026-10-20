@@ -20,7 +20,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import { Activity, AlertCircle, BarChart3, Bell, CalendarRange, Check, ChevronDown, ChevronLeft, ChevronRight, Database, FileText, Globe, Inbox, KeyRound, Loader2, Package, RotateCcw, Search, Settings2, ShieldCheck, Tag, Users, Webhook, X } from 'lucide-react'
+import { Activity, AlertCircle, BarChart3, Bell, CalendarRange, Check, ChevronDown, ChevronLeft, ChevronRight, Database, FileText, Globe, Inbox, KeyRound, Loader2, Minus, Package, RotateCcw, Search, Settings2, ShieldCheck, Tag, TrendingDown, TrendingUp, Users, Webhook, X } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useProfilePreferences } from '@/hooks/usePreferences'
 
@@ -170,10 +170,11 @@ export function DeltaPill({ value, digits = 1, suffix = '%' }: { value: number |
   }
   const numeric = Number(value)
   const tone: Tone = Math.abs(numeric) < 0.01 ? 'neutral' : numeric < 0 ? 'success' : 'danger'
-  const arrow = numeric > 0 ? '↑' : numeric < 0 ? '↓' : '→'
+  const ArrowIcon = numeric > 0 ? TrendingUp : numeric < 0 ? TrendingDown : Minus
   return (
     <span className={cn('badge tabular-nums', TONE_CLASS[tone])}>
-      {arrow} {Math.abs(numeric).toFixed(digits)}
+      <ArrowIcon className="h-3 w-3" aria-hidden />
+      {Math.abs(numeric).toFixed(digits)}
       {suffix}
     </span>
   )
