@@ -21,6 +21,7 @@ import {
   StatTile,
   TextInput,
   Toggle,
+  CopyableCode,
   useToast,
   type Column,
 } from '@/components/ui'
@@ -979,9 +980,10 @@ export default function Builder() {
           <Toggle checked={shared} onChange={setShared} label="Share with the whole team" description="Shared views appear for every account" />
           <div className="rounded-lg bg-surface-2 p-3">
             <p className="stat-label mb-1.5">Serialised filters</p>
-            <pre className="max-h-40 overflow-auto whitespace-pre-wrap break-all font-mono text-[10px] leading-relaxed text-muted">
-              {JSON.stringify(serialiseFilters(state), null, 2)}
-            </pre>
+            <CopyableCode
+              value={JSON.stringify(serialiseFilters(state), null, 2)}
+              className="max-h-40 overflow-auto whitespace-pre-wrap break-all font-mono text-[10px] leading-relaxed text-muted"
+            />
           </div>
         </div>
       </Modal>

@@ -136,6 +136,7 @@ export default function Account() {
   const [defaultExportFormat, setDefaultExportFormat] = useState<string>(() => (user?.preferences?.default_export_format as string) ?? 'csv')
   const [defaultChartType, setDefaultChartType] = useState<string>(() => ((user?.preferences?.dashboard as any)?.chart_type as string) ?? 'area')
   const [defaultRange, setDefaultRange] = useState<string>(() => ((user?.preferences?.dashboard as any)?.default_range as string) ?? '30d')
+  const [numberFormat, setNumberFormat] = useState<string>(() => (user?.preferences?.number_format as string) ?? 'compact')
   const [copyCodeOnClick, setCopyCodeOnClick] = useState<boolean>(() => Boolean(user?.preferences?.copy_code_on_click ?? true))
 
   const [currentPassword, setCurrentPassword] = useState('')
@@ -1058,9 +1059,35 @@ export default function Account() {
                   <p className="stat-label mb-1.5">Default export format</p>
                   <Select value={defaultExportFormat} onChange={(event) => setDefaultExportFormat(event.target.value)}>
                     <option value="csv">CSV (Comma-Separated)</option>
+                    <option value="xlsx">Excel (.xlsx)</option>
                     <option value="json">JSON (Structured)</option>
-                    <option value="ndjson">NDJSON (Line-Delimited)</option>
                   </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <p className="stat-label mb-1.5">Number display</p>
+                  <Select value={numberFormat} onChange={(event) => setNumberFormat(event.target.value)}>
+                    <option value="compact">Compact (33.6k)</option>
+                    <option value="full">Exact (33,600)</option>
+                  </Select>
+                  <p className="mt-1 text-[11px] text-subtle">
+                    Compact abbreviates large counts. Exact always prints the full figure, which matters when you are
+                    reconciling a number against the database.
+                  </p>
+                </div>
+                <div>
+                  <p className="stat-label mb-1.5">Copy code on click</p>
+                  <Select
+                    value={copyCodeOnClick ? 'on' : 'off'}
+                    onChange={(event) => setCopyCodeOnClick(event.target.value === 'on')}
+                  >
+                    <option value="on">Copy silently on click</option>
+                    <option value="off">Show the copy button only</option>
+                  </Select>
+                  <p className="mt-1 text-[11px] text-subtle">
+                    Applies to generated SQL, serialised filters and JSON cells in the query lab.
+                  </p>
                 </div>
               </div>
               <div>

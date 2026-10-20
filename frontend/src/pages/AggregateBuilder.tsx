@@ -16,6 +16,7 @@ import {
   Button,
   Card,
   CardHeader,
+  CopyableCode,
   DataTable,
   EmptyState,
   ErrorState,
@@ -515,9 +516,10 @@ export default function AggregateBuilder() {
       {result ? (
         <Card>
           <CardHeader title="Generated SQL" subtitle="Read-only, parameterised - safe to copy anywhere" icon={<Terminal className="h-4 w-4" />} />
-          <pre className="overflow-x-auto rounded-lg bg-surface-3 p-3 font-mono text-[11px] leading-relaxed text-muted">
-            {result.sql_preview}
-          </pre>
+          <CopyableCode
+            value={result.sql_preview}
+            className="overflow-x-auto rounded-lg bg-surface-3 p-3 font-mono text-[11px] leading-relaxed text-muted"
+          />
         </Card>
       ) : null}
     </div>

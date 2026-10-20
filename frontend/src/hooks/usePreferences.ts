@@ -21,7 +21,7 @@ export const AUTO_REFRESH_OPTIONS: { id: string; label: string; ms: number }[] =
   { id: 'off', label: 'Off', ms: 0 },
   { id: '15s', label: 'Every 15 seconds', ms: 15_000 },
   { id: '30s', label: 'Every 30 seconds', ms: 30_000 },
-  { id: '60s', label: 'Every minute', ms: 60_000 },
+  { id: '1m', label: 'Every minute', ms: 60_000 },
   { id: '5m', label: 'Every 5 minutes', ms: 300_000 },
 ]
 
