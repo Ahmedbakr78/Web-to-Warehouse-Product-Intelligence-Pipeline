@@ -2184,6 +2184,246 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             },
         ],
     },
+    {
+        "key": "advanced_builder",
+        "title": "Visual SQL & Dynamic Aggregation Builder",
+        "icon": "layers",
+        "summary": "Low-code analytics workspace: multi-metric aggregations, date grouping, query saving, and direct export pipelines.",
+        "features": [
+            {
+                "name": "Multi-Entity Visual Query Constructor",
+                "detail": "Interactive builder spanning 12 analytical entities including products, price changes, lifecycle events, and catalog reconciliation",
+            },
+            {
+                "name": "Dynamic Column Freezing & Pinning",
+                "detail": "Pin critical identifier columns to the left viewport edge for frictionless wide-table horizontal browsing",
+            },
+            {
+                "name": "Multi-Level Hierarchical Sorting",
+                "detail": "Chain primary, secondary, and tertiary sort criteria with ascending/descending polarity across all metrics",
+            },
+            {
+                "name": "Calendar Date Interval Bucketing",
+                "detail": "Bucket temporal facts across daily, weekly, monthly, and quarterly dimensions without writing custom SQL DATE_TRUNC",
+            },
+            {
+                "name": "Statistical Aggregation Matrix",
+                "detail": "Instant computation of Count, Sum, Average, Minimum, Maximum, Median, and Variance across pricing and snapshot series",
+            },
+            {
+                "name": "Live SQL Code Emission",
+                "detail": "Real-time transpilation of visual builder criteria into dialect-safe PostgreSQL and MySQL read-only SQL statements",
+            },
+            {
+                "name": "Cross-Source Facet Filtering",
+                "detail": "Multi-select filter chips automatically populated with active categories, brands, sources, and availability states",
+            },
+            {
+                "name": "Numeric Range Sliding Selectors",
+                "detail": "Interactive min/max range sliders for price bounds, discount percentages, and customer rating scores",
+            },
+            {
+                "name": "Significant Price Movement Filters",
+                "detail": "One-click toggle isolating volatility events where price fluctuations exceed the retailer's 5% materiality threshold",
+            },
+            {
+                "name": "Instant Shareable View Deep-Linking",
+                "detail": "Encode entire visual builder configuration into URL search parameters for instantaneous peer collaboration",
+            },
+            {
+                "name": "Named View Persistence & Pinning",
+                "detail": "Save composed views with custom titles, descriptions, and icon tags into app_saved_view for one-click recall",
+            },
+            {
+                "name": "Streaming CSV & JSON View Export",
+                "detail": "Directly stream custom-filtered analytical datasets into browser downloads as formatted CSV or formatted JSON",
+            },
+            {
+                "name": "Inline Query Plan Profiler",
+                "detail": "Inspect database execution cost and index utilization directly from the builder preview panel",
+            },
+            {
+                "name": "Calculated Margin Column Generator",
+                "detail": "Derive virtual columns comparing market selling price against internal inventory cost price on the fly",
+            },
+            {
+                "name": "Delta Indicator Trend Badging",
+                "detail": "Render visual positive/negative delta pills indicating trajectory of moving metrics against previous snapshot cycles",
+            },
+            {
+                "name": "Smart Empty-State Recommendations",
+                "detail": "Context-aware fallback suggestions guiding analysts when complex filter combinations yield zero records",
+            },
+            {
+                "name": "Real-Time Query Lab Transfer",
+                "detail": "One-click handoff transferring generated visual queries directly into Query Lab for deeper manual SQL crafting",
+            },
+            {
+                "name": "Configurable Preview Page Densities",
+                "detail": "Adjust builder table pagination between 10, 25, 50, 100, and 200 rows per view without page reload",
+            },
+        ],
+    },
+    {
+        "key": "user_experience",
+        "title": "Executive UI, Themes & Silent Workflow",
+        "icon": "palette",
+        "summary": "Frictionless interface architecture: zero-scrollbar layout, silent background reload, bespoke themes, and mobile drawer.",
+        "features": [
+            {
+                "name": "Universal Zero-Scrollbar Layout",
+                "detail": "Enforces scrollbar-width none and hidden webkit pseudoelements across 100% of the viewport and internal card containers",
+            },
+            {
+                "name": "Silent Background App Reload",
+                "detail": "Background data refreshes without disruptive full-screen spinners or layout-shifting loading flashes",
+            },
+            {
+                "name": "Touch-Optimized Mobile Slideout Drawer",
+                "detail": "Responsive mobile drawer featuring cubic-bezier entrance physics, touch backdrop blur, and auto-dismiss on route selection",
+            },
+            {
+                "name": "Executive Dark & Light Color Calibration",
+                "detail": "Precision contrast ratios exceeding WCAG AAA standards for deep midnight dark mode and glare-free executive white mode",
+            },
+            {
+                "name": "High-Contrast Accessibility Mode",
+                "detail": "Bespoke high-contrast theme maximizing boundary borders and typography contrast for vision-impaired operators",
+            },
+            {
+                "name": "Six Vivid Brand Accent Palettes",
+                "detail": "Instant switching across Indigo, Emerald, Violet, Amber, Rose, and Cyan accent systems affecting all charts and pills",
+            },
+            {
+                "name": "Information Density Calibration",
+                "detail": "Toggle layout spacing across Compact (high-density data tables), Comfortable (standard), and Spacious (presentation mode)",
+            },
+            {
+                "name": "Dynamic Font Scale Harmonization",
+                "detail": "User-calibrated base typography sizing adjusting root rem across Small, Medium, and Large scales without breaking grids",
+            },
+            {
+                "name": "Motion Preference Respecting Engine",
+                "detail": "Automatically honours prefers-reduced-motion OS flags and provides manual full/subtle/reduced motion overrides",
+            },
+            {
+                "name": "Bilingual RTL/LTR Layout Engine",
+                "detail": "Bidirectional layout orientation flipping navigation rails, table alignments, and icon positions for Arabic RTL support",
+            },
+            {
+                "name": "Single-Key Command Palette (Cmd+K / /)",
+                "detail": "Global keyboard search palette indexing every page, source, setting, and recent query for instant keyboard jumping",
+            },
+            {
+                "name": "Collapsible Global Navigation Rail",
+                "detail": "Expandable and collapsable navigation rail with tooltips, keyboard shortcuts ([ and ]), and active indicator pills",
+            },
+            {
+                "name": "Live Connection & Dialect Pill",
+                "detail": "Status badge in footer constantly indicating active database engine (PostgreSQL 16 / MySQL 8.4) and round-trip ping latency",
+            },
+            {
+                "name": "Interactive Metric StatTiles",
+                "detail": "Header KPI cards featuring sparklines, percentage deltas, tooltip glossaries, and drilldown route links",
+            },
+            {
+                "name": "Auto-Dismissing Toast Notification Queue",
+                "detail": "Non-intrusive floating toast notifications with severity styling, copyable details, and progress timeout bars",
+            },
+            {
+                "name": "Responsive Card-Grid Auto-Flow",
+                "detail": "CSS grid layouts automatically reorganizing multi-column dashboard cards into single-column mobile views",
+            },
+            {
+                "name": "Copy-to-Clipboard Micro-Interactions",
+                "detail": "Clickable code snippets, IDs, SQL statements, and API tokens with instantaneous visual checkmark feedback",
+            },
+            {
+                "name": "Persistent Client-Side Local Storage",
+                "detail": "Seamless caching of UI preferences, uncommitted filters, and table pagination across browser sessions",
+            },
+        ],
+    },
+    {
+        "key": "depi_presentation",
+        "title": "DEPI Capstone & Executive Architecture",
+        "icon": "award",
+        "summary": "Graduation-grade data engineering deliverables: Kimball star schema, 12 DQ rules, 16:9 infographic, and team attribution.",
+        "features": [
+            {
+                "name": "DEPI Data Engineering Track Alignment",
+                "detail": "Built strictly according to Digital Egypt Pioneers Initiative standards for end-to-end analytical data pipelines",
+            },
+            {
+                "name": "16:9 Executive Infographic Architecture",
+                "detail": "Single-slide landscape roadmap communicating full pipeline lifecycle from public web ingestion to executive insights in under 30s",
+            },
+            {
+                "name": "Six-Member Team Attribution & Roles Matrix",
+                "detail": "Embedded contributor roster detailing ownership of FastAPI, Scrapers, 29-step Cleaner, Database, Dashboard, and DevOps",
+            },
+            {
+                "name": "Kimball Dimensional Star Schema",
+                "detail": "Formal dimensional modeling with conformed dimensions (dim_product, dim_category, dim_source, dim_currency, dim_date)",
+            },
+            {
+                "name": "Append-Only Price Snapshot Fact Table",
+                "detail": "fact_price_snapshot preserving immutable temporal captures with captured currency and original raw price strings",
+            },
+            {
+                "name": "Data Flow Diagram (DFD) Compliance",
+                "detail": "Context-level and detailed multi-stage data flow specifications covering ingestion, landing, cleaning, and reporting",
+            },
+            {
+                "name": "Twelve-Rule Automated DQ Audit Framework",
+                "detail": "Evaluates schema completeness, price validity, rating ranges (0-5), freshness, and uniqueness with automated scores",
+            },
+            {
+                "name": "Airflow Production DAG Orchestration",
+                "detail": "Scheduled and manually triggerable DAG orchestrating the 9 ETL stages with automated failure retries and logs",
+            },
+            {
+                "name": "Dual Warehouse Engine Verification",
+                "detail": "Seamless compatibility and identical analytical SQL view execution across PostgreSQL 16 and MySQL 8.4",
+            },
+            {
+                "name": "Full Public Permitted Sources Whitelist",
+                "detail": "34 adapters connecting exclusively to verified, automation-permitted public web endpoints with zero synthetic records",
+            },
+            {
+                "name": "Robots.txt & Rate Limit Enforcement",
+                "detail": "RFC 9309 compliant robots parser with User-Agent identification and sliding-window rate limiters preventing site impact",
+            },
+            {
+                "name": "Twenty-Nine-Step Data Standardization",
+                "detail": "Unicode normalization, HTML stripping, category hierarchy mapping, and currency conversion to USD",
+            },
+            {
+                "name": "Deterministic Fingerprint Deduplication",
+                "detail": "SHA-256 fingerprint generation combined with fuzzy string distance identifying identical products across sources",
+            },
+            {
+                "name": "Retailer Internal Catalog Reconciliation",
+                "detail": "3-stage matching cascade comparing market observations against internal catalog SKUs and computing pricing gaps",
+            },
+            {
+                "name": "Twenty-Three Analytical SQL Views",
+                "detail": "Production SQL views providing instant aggregation of price changes, new products, removals, and category shifts",
+            },
+            {
+                "name": "Interactive OpenAPI 3.1 REST Documentation",
+                "detail": "FastAPI auto-generated interactive documentation exposing 194 endpoints and 216 HTTP operations",
+            },
+            {
+                "name": "Automated Docker Compose Multi-Service Stack",
+                "detail": "Single-command container orchestration booting PostgreSQL, MySQL, API, Airflow, and Nginx frontend",
+            },
+            {
+                "name": "Comprehensive Markdown Documentation Suite",
+                "detail": "30+ markdown guides covering architecture, system design, ERD, API reference, deployment, and user manuals",
+            },
+        ],
+    },
 ]
 
 

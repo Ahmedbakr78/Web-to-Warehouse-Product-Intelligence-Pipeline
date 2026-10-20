@@ -49,6 +49,7 @@ import {
   StatTile,
   Tabs,
   TextInput,
+  Toggle,
   useToast,
 } from '@/components/ui'
 import {
@@ -124,6 +125,12 @@ export default function Account() {
   const navigate = useNavigate()
   const [briefingWindow, setBriefingWindow] = useState(() => (user?.preferences?.briefing_window as string) ?? '30')
   const [briefingSize, setBriefingSize] = useState(() => (user?.preferences?.briefing_size as string) ?? '6')
+  const [silentReload, setSilentReload] = useState<boolean>(() => Boolean(user?.preferences?.silent_reload ?? true))
+  const [autoRefresh, setAutoRefresh] = useState<string>(() => (user?.preferences?.auto_refresh as string) ?? 'off')
+  const [defaultExportFormat, setDefaultExportFormat] = useState<string>(() => (user?.preferences?.default_export_format as string) ?? 'csv')
+  const [defaultChartType, setDefaultChartType] = useState<string>(() => ((user?.preferences?.dashboard as any)?.chart_type as string) ?? 'area')
+  const [defaultRange, setDefaultRange] = useState<string>(() => ((user?.preferences?.dashboard as any)?.default_range as string) ?? '30d')
+  const [copyCodeOnClick, setCopyCodeOnClick] = useState<boolean>(() => Boolean(user?.preferences?.copy_code_on_click ?? true))
 
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -209,6 +216,15 @@ export default function Account() {
           motion,
           briefing_window: briefingWindow,
           briefing_size: briefingSize,
+          silent_reload: silentReload,
+          auto_refresh: autoRefresh,
+          default_export_format: defaultExportFormat,
+          dashboard: {
+            ...((user?.preferences as any)?.dashboard ?? {}),
+            chart_type: defaultChartType,
+            default_range: defaultRange,
+          },
+          copy_code_on_click: copyCodeOnClick,
         } as Record<string, unknown>,
       }),
     onSuccess: async () => {
@@ -977,6 +993,16 @@ export default function Account() {
                     ))}
                   </Select>
                 </div>
+                <div>
+                  <p className="stat-label mb-1.5">Auto-refresh cadence</p>
+                  <Select value={autoRefresh} onChange={(event) => setAutoRefresh(event.target.value)}>
+                    <option value="off">Off (manual only)</option>
+                    <option value="15s">Every 15 seconds</option>
+                    <option value="30s">Every 30 seconds</option>
+                    <option value="1m">Every minute</option>
+                    <option value="5m">Every 5 minutes</option>
+                  </Select>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -998,9 +1024,52 @@ export default function Account() {
                   </Select>
                 </div>
               </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <p className="stat-label mb-1.5">Default chart visualization</p>
+                  <Select value={defaultChartType} onChange={(event) => setDefaultChartType(event.target.value)}>
+                    <option value="area">Smooth Area Chart</option>
+                    <option value="line">Stepped Line Chart</option>
+                    <option value="bar">Bar Chart</option>
+                  </Select>
+                </div>
+                <div>
+                  <p className="stat-label mb-1.5">Default time range</p>
+                  <Select value={defaultRange} onChange={(event) => setDefaultRange(event.target.value)}>
+                    <option value="7d">Last 7 days</option>
+                    <option value="30d">Last 30 days</option>
+                    <option value="90d">Last 90 days</option>
+                    <option value="365d">Last 365 days</option>
+                  </Select>
+                </div>
+                <div>
+                  <p className="stat-label mb-1.5">Default export format</p>
+                  <Select value={defaultExportFormat} onChange={(event) => setDefaultExportFormat(event.target.value)}>
+                    <option value="csv">CSV (Comma-Separated)</option>
+                    <option value="json">JSON (Structured)</option>
+                    <option value="ndjson">NDJSON (Line-Delimited)</option>
+                  </Select>
+                </div>
+              </div>
               <div>
                 <p className="stat-label mb-1.5">Default alert threshold: {alertPct}%</p>
                 <input type="range" min={1} max={50} value={alertPct} onChange={(event) => setAlertPct(Number(event.target.value))} className="w-full accent-brand-600" aria-label="Default alert threshold" />
+              </div>
+              <div className="pt-2 border-t border-border/50 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-ink">Silent app reload</p>
+                    <p className="text-xs text-muted">Quiet background refresh without intrusive spinners or jarring animations</p>
+                  </div>
+                  <Toggle checked={silentReload} onChange={setSilentReload} />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-ink">Copy code snippets on click</p>
+                    <p className="text-xs text-muted">Instant clipboard copying for SQL statements, IDs, and tokens</p>
+                  </div>
+                  <Toggle checked={copyCodeOnClick} onChange={setCopyCodeOnClick} />
+                </div>
               </div>
             </div>
             <div className="mt-4 flex justify-end">
@@ -1018,7 +1087,7 @@ export default function Account() {
                   { label: 'Toggle sidebar', value: 'Ctrl/Cmd-B' },
                   { label: 'Collapse / expand rail', value: '[ and ]' },
                   { label: 'Close dialogs', value: 'Esc or ? for help' },
-                  { label: 'Catalogue', value: 'Features screen: 550 live features' },
+                  { label: 'Platform catalogue', value: '604 live features across 40 groups' },
                 ]}
               />
             </div>
