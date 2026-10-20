@@ -34,7 +34,7 @@ $(VENV):
 install: $(VENV) ## Create venv + install all dependencies (postgres, mysql, dev, airflow, scrapy)
 	$(PIP) install --upgrade pip wheel
 	$(PIP) install -e ".[postgres,mysql,dev,scrapy]"
-	@printf "$(GREEN)✔ Dependencies installed.$(NC)\n"
+	@printf "$(GREEN)[OK] Dependencies installed.$(NC)\n"
 
 .PHONY: install-airflow
 install-airflow: $(VENV) ## Install Apache Airflow with constraints (run in a dedicated venv ideally)
@@ -49,7 +49,7 @@ env: ## Create .env from template if missing
 .PHONY: up-db
 up-db: ## Start PostgreSQL + MySQL only (both required targets)
 	$(COMPOSE) up -d postgres mysql
-	@printf "$(GREEN)✔ Databases starting on 5432 (postgres) and 3306 (mysql)$(NC)\n"
+	@printf "$(GREEN)[OK] Databases starting on 5432 (postgres) and 3306 (mysql)$(NC)\n"
 
 .PHONY: up
 up: ## Start the full stack (db + api + airflow + frontend)
@@ -69,7 +69,7 @@ db-wait: ## Block until both databases report healthy
 	@printf "$(YELLOW)Waiting for databases$(NC)"
 	@until [ "$$($(COMPOSE) ps --format json postgres 2>/dev/null | grep -c healthy)" -ge 1 ]; do printf "."; sleep 2; done
 	@until [ "$$($(COMPOSE) ps --format json mysql 2>/dev/null | grep -c healthy)" -ge 1 ]; do printf "."; sleep 2; done
-	@printf "\n$(GREEN)✔ Databases healthy$(NC)\n"
+	@printf "\n$(GREEN)[OK] Databases healthy$(NC)\n"
 
 .PHONY: ps
 ps: ## Show service status

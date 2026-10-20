@@ -77,7 +77,7 @@ def _kv_table(title: str, data: dict[str, Any]) -> None:
 
 
 def _status_line(text: str, ok: bool = True) -> None:
-    console.print(f"[{'ok' if ok else 'err'}]{'✔' if ok else '✘'}[/] {text}")
+    console.print(f"[{'ok' if ok else 'err'}]{'OK' if ok else 'FAIL'}[/] {text}")
 
 
 # --------------------------------------------------------------------------------------
