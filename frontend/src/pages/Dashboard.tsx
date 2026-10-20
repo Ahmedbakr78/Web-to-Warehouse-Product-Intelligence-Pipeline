@@ -103,6 +103,16 @@ export default function Dashboard() {
   const counts = kpi.data?.counts ?? {}
   const qualityScore = quality.data?.score ?? latest.dq_score ?? null
 
+  // "Products tracked" and "Observations" are two different numbers that are
+  // easy to confuse, so the hint spells out the ratio between them instead of
+  // repeating a count that is already on screen.
+  const trackedProducts = Number(latest.distinct_products ?? counts.dim_product ?? 0)
+  const observationCount = Number(latest.products ?? 0)
+  const snapshotsPerProduct = trackedProducts > 0 ? observationCount / trackedProducts : 0
+  const trackedHint = snapshotsPerProduct > 0
+    ? `${snapshotsPerProduct.toFixed(1)} snapshots per product`
+    : `${formatCompact(counts.dim_product ?? 0)} in the catalogue all-time`
+
   const trendData = (trend.data ?? []).map((row: any) => ({
     ...row,
     date: formatDate(row.full_date),
@@ -181,13 +191,13 @@ export default function Dashboard() {
         <StatTile
           label="Products tracked"
           value={formatCompact(latest.distinct_products ?? counts.dim_product ?? 0)}
-          hint={`${formatCompact(counts.dim_product ?? 0)} in the catalogue all-time`}
+          hint={trackedHint}
           icon={<Package className="h-4 w-4" />}
         />
         <StatTile
           label="Observations"
           value={formatCompact(latest.products ?? 0)}
-          hint={`price snapshots in the last ${days} days`}
+          hint={`price snapshots · ${days} day window`}
           icon={<Boxes className="h-4 w-4" />}
           tone="info"
         />
