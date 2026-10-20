@@ -254,10 +254,11 @@
     height: 100%;
   }
 
-  /* Reserve the scrollbar gutter so content never jumps sideways when a page
-     grows past the viewport (silent, jolt-free reloads). */
+  /* Scrollbars are hidden app-wide. Navigation stays scrollable with the wheel,
+     trackpad, touch and keyboard, but there is no visible bar and no reserved
+     gutter, so the layout never shifts between a short and a long page. */
   html {
-    scrollbar-gutter: stable;
+    scrollbar-gutter: auto;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
@@ -370,14 +371,15 @@
     height: 0;
   }
 
-  /* Slim variant for dense panels. */
+  /* Compatibility alias for screens that still say `scroll-thin`. */
   .scroll-thin {
-    scrollbar-width: thin;
+    scrollbar-width: none;
   }
 
   .scroll-thin::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    display: none;
+    width: 0;
+    height: 0;
   }
 
   /* Stop scroll chaining so scrolling inside a panel, table or modal never
@@ -709,10 +711,6 @@
     overflow: hidden;
   }
 
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-
   /* --------------------------- SQL editor -------------------------------------
      A real editor without a heavy dependency: a transparent textarea over a
      highlighted <pre>. Both layers share font metrics so highlighting never
@@ -838,7 +836,7 @@
 
 @layer utilities {
   .scroll-thin {
-    scrollbar-width: thin;
+    scrollbar-width: none;
   }
 
   .text-muted {

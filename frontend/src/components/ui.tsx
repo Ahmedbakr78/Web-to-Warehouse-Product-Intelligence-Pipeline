@@ -210,17 +210,23 @@ export function StatTile({
   return (
     <Component
       onClick={onClick}
-      className={cn('card card-hover flex items-start gap-3 p-4 text-left', onClick && 'hover:border-brand-400 dark:hover:border-brand-500')}
+      className={cn(
+        'card card-hover flex items-start gap-2.5 p-3 text-left sm:gap-3 sm:p-4',
+        onClick && 'hover:border-brand-400 dark:hover:border-brand-500',
+      )}
     >
       {icon ? (
-        <span className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-lg', accent[tone])} aria-hidden>
+        <span
+          className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg sm:h-9 sm:w-9', accent[tone])}
+          aria-hidden
+        >
           {icon}
         </span>
       ) : null}
       <div className="min-w-0 flex-1">
-        <p className="stat-label truncate">{label}</p>
-        <p className="stat-value mt-0.5 truncate">{value}</p>
-        {hint ? <p className="mt-0.5 truncate text-xs text-subtle">{hint}</p> : null}
+        <p className="stat-label truncate text-[10px] sm:text-xs">{label}</p>
+        <p className="stat-value mt-0.5 truncate text-xl sm:text-2xl">{value}</p>
+        {hint ? <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-subtle sm:truncate sm:text-xs">{hint}</p> : null}
         {delta ? <div className="mt-1.5">{delta}</div> : null}
       </div>
     </Component>

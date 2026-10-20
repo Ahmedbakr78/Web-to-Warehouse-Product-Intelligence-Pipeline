@@ -111,6 +111,12 @@ export default function AppShell() {
     return match ? { title: match.label, subtitle: match.description } : { title: 'Product Intelligence', subtitle: '' }
   }, [location.pathname])
 
+  // The document title follows the active screen. Without this the last tab
+  // title set by the login page would survive every in-app navigation.
+  useEffect(() => {
+    document.title = page.title ? `${page.title} · Product Intelligence Pipeline` : 'Product Intelligence Pipeline'
+  }, [page.title])
+
   return (
     <div
       className="flex h-full min-h-[100dvh] bg-bg text-ink"
@@ -137,7 +143,7 @@ export default function AppShell() {
         onTouchStart={overlay ? edgeSwipe.onTouchStart : undefined}
         onTouchEnd={overlay ? edgeSwipe.onTouchEnd : undefined}
       >
-        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-line bg-[var(--surface)]/95 px-3 pt-[env(safe-area-inset-top)] backdrop-blur sm:px-4">
+        <header className="sticky top-0 z-30 flex min-h-14 shrink-0 items-center gap-1.5 border-b border-line bg-[var(--surface)]/95 px-2.5 pt-[env(safe-area-inset-top)] backdrop-blur sm:gap-2 sm:px-4">
           <IconButton
             label="Open menu"
             icon={<Menu className="h-5 w-5" />}
