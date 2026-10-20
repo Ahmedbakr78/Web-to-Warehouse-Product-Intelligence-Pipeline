@@ -47,6 +47,41 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs" / "assets"
 
 
+def _measured_dq_score() -> str:
+    """The live data-quality score of the most recent evaluated run.
+
+    The slide must never quote a score that the warehouse does not actually
+    hold, so the value is read from the persisted `dq_rule_result` rows. When
+    the warehouse is unreachable the card falls back to describing the
+    mechanism instead of inventing a number.
+    """
+    try:
+        import sqlalchemy as sa
+
+        from app.core.db import session_scope
+
+        with session_scope() as session:
+            score = session.execute(
+                sa.text(
+                    """
+                    SELECT ROUND(AVG(CASE status WHEN 'pass' THEN 1.0
+                                              WHEN 'warn' THEN 0.75
+                                              ELSE 0.0 END) * 100, 2)
+                    FROM dq_rule_result
+                    WHERE run_id = (
+                        SELECT run_id FROM dq_rule_result
+                        GROUP BY run_id ORDER BY MAX(evaluated_at) DESC LIMIT 1
+                    )
+                    """
+                )
+            ).scalar()
+        if score is not None:
+            return f"{float(score):.2f} measured"
+    except Exception:
+        pass
+    return "score persisted per run"
+
+
 def _measured_stats() -> dict[str, str]:
     """Live counters from docs/stats.json (written by `make stats-update`).
 
@@ -62,6 +97,7 @@ def _measured_stats() -> dict[str, str]:
         "data_quality_rules": "12",
         "documentation_documents": "30",
         "mermaid_diagrams": "80",
+        "dq_score": _measured_dq_score(),
     }
     try:
         import json
@@ -134,7 +170,7 @@ def roadmap(measured: dict[str, str]) -> list:
             "db",
             ["Alembic-managed schema", "PostgreSQL and MySQL twins"],
         ),
-        ("Data Quality", "12 rules across 6 dimensions", "shield", ["score persisted per run", "98.26 measured"]),
+        ("Data Quality", "12 rules across 6 dimensions", "shield", ["score persisted per run", measured["dq_score"]]),
         (
             "Forecasting",
             "Prices, anomalies, advice",

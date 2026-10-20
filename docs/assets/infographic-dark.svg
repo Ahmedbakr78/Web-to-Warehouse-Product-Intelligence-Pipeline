@@ -118,7 +118,7 @@
 <circle cx="234" cy="679" r="5" fill="#06B6D4"/>
 <text x="250" y="685" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#E8EEFC" text-anchor="start" letter-spacing="0">score persisted per run</text>
 <circle cx="234" cy="711" r="5" fill="#06B6D4"/>
-<text x="250" y="717" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#E8EEFC" text-anchor="start" letter-spacing="0">98.26 measured</text>
+<text x="250" y="717" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="500" fill="#E8EEFC" text-anchor="start" letter-spacing="0">81.25 measured</text>
 <rect x="596" y="577" width="424" height="199" rx="22" ry="22" fill="#111A2E" stroke="#22304D" stroke-width="1.5"/>
 <path d="M596 577 h424 a22 22 0 0 1 22 22 v36 h-468 v-36 a22 22 0 0 1 22 -22 z" fill="url(#band)" opacity="0.97"/>
 <text x="808" y="609" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0">07  Forecasting</text>
