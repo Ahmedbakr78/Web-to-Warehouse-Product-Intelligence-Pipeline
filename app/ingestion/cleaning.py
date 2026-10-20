@@ -965,11 +965,17 @@ def parse_price(
 
 
 def convert_to_usd(amount: float | None, currency: str | None) -> tuple[float | None, float]:
-    """Convert to USD using the offline reference table."""
+    """Convert to USD using the live rate table.
+
+    The rate comes from a free provider (see :mod:`app.ingestion.fx`); the
+    hand-written reference table is only the fallback for when the provider is
+    unreachable, so a stale rate never silently becomes a fact.
+    """
     if amount is None:
         return None, 1.0
-    code = (currency or "USD").upper()
-    rate = STATIC_FX_RATES.get(code)
+    from app.ingestion.fx import rate_to_usd
+
+    rate, _source = rate_to_usd(currency)
     if rate is None:
         return amount, 1.0
     return round(amount * rate, 4), rate

@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 from app.core.config import DB_DIR, settings
 from app.core.db import get_engine, session_scope
 from app.core.logging import get_logger
-from app.ingestion.cleaning import CURRENCY_NAMES, STATIC_FX_RATES
+from app.ingestion.cleaning import CURRENCY_NAMES
 from app.models import Base
 from app.models.dimensions import DimCurrency, DimDate, DimSource
 
@@ -241,12 +241,37 @@ def ensure_date_range(session: Session, days_back: int = 400, days_forward: int 
 
 
 def seed_dim_currency(session: Session) -> int:
-    """Reference currencies + offline FX rates."""
+    """Reference currencies with live FX rates.
+
+    The rates are fetched from a free provider so ``price_usd`` is derived from
+    today's market, not from a hand-written table. When the provider cannot be
+    reached the last known table is used and ``rate_source`` says so, so the
+    provenance of every rate stays visible in the warehouse.
+    """
+    from app.ingestion.fx import current_rates, rate_metadata
+
+    metadata = rate_metadata()
+    rates = current_rates()
+    source = str(metadata.get("source") or "static_reference_table")
+    as_of: dt.date | None = None
+    if metadata.get("as_of"):
+        try:
+            as_of = dt.date.fromisoformat(str(metadata["as_of"])[:10])
+        except ValueError:
+            as_of = None
+    as_of = as_of or dt.date.today()
+
     existing = {row[0] for row in session.execute(sa.select(DimCurrency.currency_code))}
     inserted = 0
-    today = dt.date.today()
-    for code, rate in STATIC_FX_RATES.items():
+    for code, rate in rates.items():
         if code in existing:
+            # Refresh the rate of an existing currency: the reference table
+            # must not keep a stale conversion.
+            row = session.get(DimCurrency, code)
+            if row is not None and not metadata.get("stale", False):
+                row.rate_to_usd = rate
+                row.rate_source = source
+                row.as_of = as_of
             continue
         session.add(
             DimCurrency(
@@ -254,8 +279,8 @@ def seed_dim_currency(session: Session) -> int:
                 currency_name=CURRENCY_NAMES.get(code, code),
                 symbol=CURRENCY_SYMBOL_OUT.get(code),
                 rate_to_usd=rate,
-                rate_source="static_reference_table",
-                as_of=today,
+                rate_source=source,
+                as_of=as_of,
             )
         )
         inserted += 1

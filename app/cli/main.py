@@ -3,9 +3,11 @@
 Commands
 --------
 ``init-db``      create tables + views + reference data
-``bootstrap``    init-db + users + demo catalog and history
-``seed-demo``    seed users / catalog / N days of history
+``bootstrap``    init-db + accounts (the demo dataset is opt-in)
+``seed-demo``    seed users / catalog / N days of *synthetic* history
 ``expand-demo``  append a large synthetic cohort for demos (10x scale)
+``purge-untrusted``  delete warehouse rows written by non-market sources
+``refresh-fx``   refresh the live USD conversion rates
 ``run-pipeline`` execute one full pipeline run
 ``sources``      list the registered ingestion sources
 ``report``       print the SQL analytics report
@@ -31,6 +33,7 @@ from rich.theme import Theme
 
 from app.core.config import ROOT_DIR as ROOT
 from app.core.config import describe_target, reload_settings, settings
+from app.core.db import session_scope
 from app.core.logging import configure_logging, get_logger, setup_file_logging
 
 log = get_logger("app.cli")
@@ -176,22 +179,40 @@ def migration_status_cmd(database: str = DB_OPTION) -> None:
 def bootstrap_cmd(
     database: str = DB_OPTION,
     drop: bool = typer.Option(False, "--drop"),
-    days: int = typer.Option(120, "--days", min=7, max=1095, help="Days of demo history to generate"),
-    no_demo: bool = typer.Option(False, "--no-demo", help="Schema only, skip demo data"),
+    days: int = typer.Option(120, "--days", min=7, max=1095, help="Days of synthetic history to generate"),
+    demo_data: bool = typer.Option(
+        False,
+        "--with-demo-data",
+        help="Also generate the synthetic product/catalog/history dataset",
+    ),
 ) -> None:
-    """One-shot setup: schema + reference data + users + demo dataset."""
+    """One-shot setup: schema + reference data + the bootstrap accounts.
+
+    The synthetic dataset (a generated catalogue and its price history) is
+    *not* created unless ``--with-demo-data`` is passed: those rows are
+    fabricated, and a warehouse that is meant to hold a market picture should
+    not contain them by default.
+    """
     from app.etl.bootstrap import bootstrap as bootstrap_db
-    from app.etl.seed import run_full_seed
 
     console.rule(f"[bold]Bootstrapping {describe_target(database)}")
     result = bootstrap_db(database, drop=drop)
     _status_line(
         f"{result['table_count']} tables, {len(result['views_applied'])} views on {result['dialect']}"
     )
-    if not no_demo:
-        seeded = run_full_seed(database, days=days)
+    with session_scope(database) as session:
+        from app.etl.seed import seed_users
+
+        users = seed_users(session)
+    _kv_table("Accounts", {"created": users})
+
+    if demo_data:
+        from app.etl.seed import run_full_seed
+
+        with session_scope(database) as session:
+            seeded = run_full_seed(database, days=days)
         _kv_table(
-            "Demo dataset",
+            "Synthetic dataset (demo only)",
             {
                 "users": seeded["users"],
                 "catalog SKUs": seeded["catalog"],
@@ -204,6 +225,65 @@ def bootstrap_cmd(
             },
         )
     _status_line("Bootstrap complete - start the API with [bold]make serve[/]")
+
+
+@app.command("purge-untrusted")
+def purge_untrusted_cmd(
+    database: str = DB_OPTION,
+    dry_run: bool = typer.Option(False, "--dry-run", help="Report what would be removed"),
+) -> None:
+    """Delete warehouse rows that did not come from a genuine market source.
+
+    Sources are classified as ``real`` (observed market data), ``sandbox`` (a
+    real endpoint that publishes a test corpus) or ``synthetic`` (generated
+    locally). Everything below ``real`` is removed from the warehouse, because
+    a record nobody observed cannot be part of a market picture.
+    """
+    from app.etl.purge import purge_untrusted
+
+    console.rule(f"[bold]Purging untrusted sources from {describe_target(database)}")
+    report = purge_untrusted(database, dry_run=dry_run)
+    if not report["sources"]:
+        _status_line("Nothing to purge - every source in the warehouse is trusted")
+        return
+    rows = [
+        [table, str(count)]
+        for table, count in report["deleted"].items()
+    ]
+    rows.append(["dim_product", str(report["products_removed"])])
+    rows.append(["etl_run", str(report["runs_removed"])])
+    _kv_table(
+        "Untrusted sources" + (" (dry run)" if dry_run else " - removed"),
+        {code: trust for code, trust in report["sources"].items()},
+    )
+    _kv_table("Rows removed", {table: count for table, count in rows})
+    if not dry_run:
+        _status_line("Purge complete")
+
+
+@app.command("refresh-fx")
+def refresh_fx_cmd(
+    database: str = DB_OPTION,
+) -> None:
+    """Refresh the live USD conversion rates and store them in dim_currency."""
+    from app.etl.bootstrap import seed_dim_currency
+    from app.ingestion.fx import current_rates, refresh
+
+    console.rule(f"[bold]Refreshing FX rates for {describe_target(database)}")
+    metadata = refresh(force=True)
+    rates = current_rates()
+    with session_scope(database) as session:
+        written = seed_dim_currency(session)
+    _kv_table(
+        "FX rates",
+        {
+            "provider": str(metadata.get("source")),
+            "as of": str(metadata.get("as_of") or "unknown"),
+            "stale": str(bool(metadata.get("stale"))).lower(),
+            "currencies": len(rates),
+            "rows written": written,
+        },
+    )
 
 
 @app.command("seed-demo")

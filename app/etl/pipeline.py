@@ -232,6 +232,7 @@ class Pipeline:
         run_id = self.result.run_id
         log.info("pipeline run=%s database=%s sources=%s", run_id, database, self._source_codes())
 
+        self._refresh_fx_rates(database)
         self._publish_started(database)
         try:
             with session_scope(database) as session:
@@ -248,6 +249,24 @@ class Pipeline:
 
         self._publish_result(database)
         return self.result
+
+    def _refresh_fx_rates(self, database: str) -> None:
+        """Refresh the USD conversion rates before any price is normalised.
+
+        A run must convert every price with the same, current rate set, so the
+        rates are pulled once here and written to ``dim_currency`` with their
+        source and date.
+        """
+        try:
+            from app.etl.bootstrap import seed_dim_currency
+            from app.ingestion.fx import refresh
+
+            metadata = refresh()
+            with session_scope(database) as session:
+                seed_dim_currency(session)
+            log.info("fx rates: %s", metadata.get("source"))
+        except Exception:  # noqa: BLE001 - a rate refresh must not kill the run
+            log.warning("fx rate refresh failed; using the last known table", exc_info=True)
 
     def _publish_started(self, database: str) -> None:
         """Notify webhook subscribers before the first stage runs."""

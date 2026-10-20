@@ -242,7 +242,11 @@ def transform_product(raw: RawProduct, *, strict: bool = False) -> NormalizedPro
     list_price = list_info.amount if list_info.is_valid else None
 
     currency = (price_info.currency or raw.currency_hint or self_currency(raw) or "USD").upper()
-    fx_rate = convert_to_usd(None, currency)[1]
+    # The rate is recorded even when the price itself is missing, so a row
+    # always says which rate would have applied.
+    from app.ingestion.fx import rate_to_usd
+
+    fx_rate = rate_to_usd(currency)[0]
     price_usd, fx_rate = convert_to_usd(price, currency)
     list_price_usd, _ = convert_to_usd(list_price, currency)
 
