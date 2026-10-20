@@ -163,7 +163,7 @@ export default function Dashboard() {
         <StatTile
           label="Products observed"
           value={formatCompact(latest.products ?? 0)}
-          hint={`${formatNumber(counts.dim_product ?? 0)} canonical in warehouse`}
+          hint={`${formatCompact(latest.products ?? 0)} observed products`}
           icon={<Package className="h-4 w-4" />}
         />
         <StatTile
