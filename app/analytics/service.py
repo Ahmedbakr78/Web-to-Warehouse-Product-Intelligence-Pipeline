@@ -68,6 +68,15 @@ KPI_COUNTED_TABLES: tuple[str, ...] = (
     "fact_price_snapshot",
 )
 
+#: The axes a brand comparison reports on, in display order.
+BRAND_COMPARISON_AXES: tuple[str, ...] = (
+    "price_level",
+    "rating",
+    "coverage",
+    "availability",
+    "freshness",
+)
+
 
 def table_counts(session: Session, tables: tuple[str, ...] | list[str] | None = None) -> dict[str, int]:
     """Row counts for the main tables (used by the health endpoint and the CLI)."""
@@ -302,6 +311,104 @@ def brand_leaderboard(session: Session, limit: int = 20) -> list[dict[str, Any]]
         ),
         {"limit": limit},
     )
+
+
+def brand_comparison(
+    session: Session, limit: int = 5, freshness_days: int = 30
+) -> dict[str, Any]:
+    """Compare the leading brands on measurable, data-derived axes.
+
+    Every score is a normalisation of a number the warehouse already holds:
+
+    * ``price_level`` - the brand's mean price against the highest mean in the
+      compared set.
+    * ``rating`` - the brand's mean rating against the 5-point scale.
+    * ``coverage`` - the brand's distinct product count against the largest.
+    * ``availability`` - the share of the brand's observations that were in
+      stock.
+    * ``freshness`` - how recently the brand was observed, scaled so that
+      ``freshness_days`` old scores 0.
+
+    A score is ``None`` when the underlying measurement does not exist - the
+    function never substitutes a placeholder for missing data.
+    """
+    rows = _rows(
+        session,
+        sa.text(
+            """
+            SELECT p.brand,
+                   COUNT(DISTINCT p.product_id) AS product_count,
+                   ROUND(CAST(AVG(s.price_usd) AS DECIMAL(24,6)), 4) AS avg_price_usd,
+                   ROUND(CAST(AVG(s.rating) AS DECIMAL(24,6)), 4) AS avg_rating,
+                   SUM(CASE WHEN s.in_stock THEN 1 ELSE 0 END) AS in_stock_observations,
+                   COUNT(s.snapshot_id) AS observations,
+                   MAX(s.captured_at) AS last_seen_at
+            FROM dim_product p
+            JOIN fact_price_snapshot s ON s.product_id = p.product_id
+            WHERE p.brand IS NOT NULL
+            GROUP BY p.brand
+            ORDER BY product_count DESC, avg_price_usd DESC
+            LIMIT :limit
+            """
+        ),
+        {"limit": limit},
+    )
+    if not rows:
+        return {"brands": [], "axes": BRAND_COMPARISON_AXES, "freshness_days": freshness_days}
+
+    max_price = max((float(row["avg_price_usd"]) for row in rows if row["avg_price_usd"] is not None), default=0.0)
+    max_coverage = max((int(row["product_count"] or 0) for row in rows), default=0)
+    now = dt.datetime.now(dt.timezone.utc)
+    window = max(1, int(freshness_days))
+
+    brands: list[dict[str, Any]] = []
+    for row in rows:
+        last_seen = row["last_seen_at"]
+        age_days: float | None = None
+        if isinstance(last_seen, dt.datetime):
+            if last_seen.tzinfo is None:
+                last_seen = last_seen.replace(tzinfo=dt.timezone.utc)
+            age_days = round((now - last_seen).total_seconds() / 86_400, 2)
+        observations = int(row["observations"] or 0)
+        in_stock = int(row["in_stock_observations"] or 0)
+        brands.append(
+            {
+                "brand": row["brand"],
+                "product_count": int(row["product_count"] or 0),
+                "avg_price_usd": row["avg_price_usd"],
+                "avg_rating": row["avg_rating"],
+                "in_stock_observations": in_stock,
+                "observations": observations,
+                "last_seen_at": last_seen,
+                "days_since_last_seen": age_days,
+                "scores": {
+                    "price_level": _normalise(row["avg_price_usd"], max_price),
+                    "rating": _normalise(row["avg_rating"], 5.0),
+                    "coverage": _normalise(row["product_count"], max_coverage),
+                    "availability": _ratio(in_stock, observations),
+                    "freshness": (
+                        None
+                        if age_days is None
+                        else round(max(0.0, 100.0 - (age_days / window) * 100.0), 2)
+                    ),
+                },
+            }
+        )
+    return {"brands": brands, "axes": BRAND_COMPARISON_AXES, "freshness_days": freshness_days}
+
+
+def _normalise(value: Any, maximum: float) -> float | None:
+    """Scale ``value`` onto 0-100 against ``maximum``; ``None`` when unknown."""
+    if value is None or maximum <= 0:
+        return None
+    return round((float(value) / maximum) * 100, 2)
+
+
+def _ratio(numerator: float, denominator: float) -> float | None:
+    """Percentage of ``numerator`` in ``denominator``; ``None`` when undefined."""
+    if not denominator:
+        return None
+    return round((float(numerator) / float(denominator)) * 100, 2)
 
 
 def source_health(session: Session) -> list[dict[str, Any]]:

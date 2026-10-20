@@ -171,13 +171,15 @@ def current_rates() -> dict[str, float]:
         return _cache
     return dict(STATIC_FX_RATES)
 
-
 def rate_metadata() -> dict[str, Any]:
     """Where the rate table came from and how old it is."""
     meta = dict(_cache_meta)
     if not _cache:
         meta.setdefault("source", "static_reference_table")
         meta.setdefault("stale", True)
+    if not _live_enabled():
+        meta["source"] = "static_reference_table"
+        meta["live_disabled"] = True
     return meta
 
 
