@@ -31,6 +31,25 @@ export function formatPrice(value: number | string | null | undefined, currency 
   return `${symbol}${numeric.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
+/**
+ * Number display mode.
+ *
+ * "compact" abbreviates large counts (33,600 -> "33.6k"), which is tidy on a
+ * dashboard but hides the exact figure. "full" always prints the exact number.
+ * The user chooses this in Account -> Preferences and it applies everywhere.
+ */
+export type NumberFormat = 'compact' | 'full'
+
+let numberFormat: NumberFormat = 'compact'
+
+export function setNumberFormat(mode: NumberFormat): void {
+  numberFormat = mode
+}
+
+export function getNumberFormat(): NumberFormat {
+  return numberFormat
+}
+
 export function formatNumber(value: number | string | null | undefined, digits = 0): string {
   if (value === null || value === undefined || value === '') return '—'
   const numeric = typeof value === 'string' ? Number(value) : value
@@ -42,6 +61,7 @@ export function formatCompact(value: number | null | undefined): string {
   if (value === null || value === undefined) return '—'
   const numeric = Number(value)
   if (Number.isNaN(numeric)) return '—'
+  if (numberFormat === 'full') return formatNumber(numeric)
   const abs = Math.abs(numeric)
   if (abs >= 1_000_000_000) return `${(numeric / 1_000_000_000).toFixed(1)}B`
   if (abs >= 1_000_000) return `${(numeric / 1_000_000).toFixed(1)}M`
