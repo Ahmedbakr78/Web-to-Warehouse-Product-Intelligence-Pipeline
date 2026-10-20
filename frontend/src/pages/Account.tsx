@@ -203,6 +203,10 @@ export default function Account() {
         setSilentReload(enabled)
         setSilent(enabled)
       }
+      if (user.preferences.number_format) setNumberFormat(user.preferences.number_format as string)
+      if (user.preferences.copy_code_on_click !== undefined) {
+        setCopyCodeOnClick(Boolean(user.preferences.copy_code_on_click))
+      }
     }
   }, [user])
 
@@ -231,6 +235,7 @@ export default function Account() {
           silent_reload: silentReload,
           auto_refresh: autoRefresh,
           default_export_format: defaultExportFormat,
+          number_format: numberFormat,
           dashboard: {
             ...((user?.preferences as any)?.dashboard ?? {}),
             chart_type: defaultChartType,
