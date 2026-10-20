@@ -44,13 +44,38 @@ _SOURCE_SCOPED_TABLES: tuple[str, ...] = (
 
 
 def untrusted_source_codes(session: Session) -> dict[str, str]:
-    """Map of source code -> trust level for every source below ``real``."""
+    """Map of source code -> trust level for every source below ``real``.
+
+    The level is resolved from the code registry for bundled sources and from
+    the stored configuration for dashboard-defined ones (falling back to the
+    preset the row was created from). The resolved value is written back to the
+    dimension row so the API and the warehouse agree on the classification.
+    """
     from sqlalchemy import select
 
+    from app.ingestion.base import list_sources
+    from app.ingestion.sources.generic_json import preset_data_trust
     from app.models.dimensions import DimSource
 
-    rows = session.execute(select(DimSource)).scalars()
-    return {row.source_code: (row.data_trust or DATA_TRUST_REAL) for row in rows if row.data_trust != DATA_TRUST_REAL}
+    levels: dict[str, str] = {}
+    for definition in list_sources():
+        levels[definition["code"]] = str(definition.get("data_trust") or DATA_TRUST_REAL)
+
+    for row in session.execute(select(DimSource)).scalars():
+        if row.source_code in levels:
+            level = levels[row.source_code]
+        else:
+            config = row.config or {}
+            level = str(
+                config.get("data_trust")
+                or preset_data_trust(row.base_url)
+                or DATA_TRUST_REAL
+            )
+        levels[row.source_code] = level
+        if (row.data_trust or "") != level:
+            row.data_trust = level
+
+    return {code: level for code, level in levels.items() if level != DATA_TRUST_REAL}
 
 
 def _table_columns(session: Session, table: str) -> set[str]:
@@ -142,13 +167,17 @@ def purge_untrusted(database: str | None = None, *, dry_run: bool = False) -> di
             )
 
         # Keep the dimension rows (they document the removal) but stop the
-        # sources from being picked up again.
+        # sources from being picked up again, and zero the counters so the
+        # Sources screen does not claim records that no longer exist.
         from app.models.dimensions import DimSource
 
         for row in session.execute(
             sa.select(DimSource).where(DimSource.source_code.in_(codes))
         ).scalars():
             row.enabled = False
+            row.total_records = 0
+            row.success_rate_pct = 0.0
+            row.avg_duration_seconds = 0.0
 
     log.info("purged untrusted sources from %s: %s", report["database"], report["deleted"])
     return report
