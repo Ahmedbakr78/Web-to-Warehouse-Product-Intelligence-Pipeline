@@ -1796,6 +1796,94 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         ],
     },
     {
+        "key": "intelligence",
+        "title": "v1.11.0: Morning Briefing & Intelligence Layer",
+        "icon": "sunrise",
+        "summary": "A ranked, explainable action queue that composes every analytical service into one screen — no metric is reinvented.",
+        "features": [
+            {
+                "name": "Morning briefing screen",
+                "detail": "A dedicated /briefing route with a hero summary, KPI tiles and a prioritized action queue",
+            },
+            {
+                "name": "Briefing REST endpoint",
+                "detail": "GET /intelligence/briefing returns headline metrics, opportunities, risks, categories and freshness",
+            },
+            {
+                "name": "Configurable analysis window",
+                "detail": "7, 30, 90 and 180-day windows with the choice persisted to the account",
+            },
+            {
+                "name": "Severity-ranked action queue",
+                "detail": "Every insight is ordered by severity, then by the absolute size of the move, so the first row is the first action",
+            },
+            {
+                "name": "Deep-linked insights",
+                "detail": "Every card opens the exact product, change feed, catalog, quality or source screen where it can be resolved",
+            },
+            {
+                "name": "Opportunity detection",
+                "detail": "Price drops, catalog price gaps and discounted listings are merged into one opportunity lane",
+            },
+            {
+                "name": "Risk detection",
+                "detail": "Price rises, stockout pressure, statistical anomalies, DQ failures and stale sources are merged into one risk lane",
+            },
+            {
+                "name": "Category signal radar",
+                "detail": "Categories ranked by average absolute move with increase/decrease counts for the selected window",
+            },
+            {
+                "name": "Data freshness pulse",
+                "detail": "Healthy vs stale source counts and the percentage of unseen products per source",
+            },
+            {
+                "name": "Best value picks",
+                "detail": "Highly rated, sufficiently reviewed listings ranked by rating per dollar, with invalid ratings excluded",
+            },
+            {
+                "name": "Briefing export",
+                "detail": "Download the entire briefing as date-stamped JSON for stand-ups and offline review",
+            },
+            {
+                "name": "Copy action summary",
+                "detail": "One click copies a numbered stand-up summary to the clipboard",
+            },
+            {
+                "name": "Briefing result cache",
+                "detail": "A short-lived server-side cache keeps repeat visits instant while staying fresh enough for demos",
+            },
+            {
+                "name": "Anomaly noise filter",
+                "detail": "Extreme >65% moves and unit-mismatch catalog gaps are excluded from the human action queue",
+            },
+            {
+                "name": "Duplicate insight suppression",
+                "detail": "Repeated product and catalog snapshots collapse to a single actionable card",
+            },
+            {
+                "name": "Sub-dollar price formatting",
+                "detail": "Crypto and micro-priced listings render with 4-8 decimal precision instead of rounding to $0.00",
+            },
+            {
+                "name": "Account briefing defaults",
+                "detail": "Default window and queue size can be set once and follow the user to every device",
+            },
+            {
+                "name": "Route preloading",
+                "detail": "The briefing chunk is prefetched during idle time, so navigation stays silent with no spinner",
+            },
+            {
+                "name": "Read-only access control",
+                "detail": "The briefing requires an authenticated read user and never exposes mutation capabilities",
+            },
+            {
+                "name": "Briefing test contract",
+                "detail": "Integration tests cover authentication, window validation, bounded sections, deep links and severity values",
+            },
+        ],
+    },
+    {
         "key": "team",
         "title": "Team catalogue as code",
         "icon": "users",
