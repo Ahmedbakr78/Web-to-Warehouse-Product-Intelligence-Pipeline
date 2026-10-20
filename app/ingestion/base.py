@@ -119,6 +119,31 @@ class NormalizedProduct:
             self.quality_flags.append(code)
 
 
+#: Trust levels a source can declare, ordered from "genuine market data" down to
+#: "generated in this process". The level decides whether a source is picked up by
+#: automatic source selection, so a data pipeline never fills the warehouse with
+#: records that were never observed.
+#:
+#: ``real``
+#:     The upstream publishes genuine market data (a real store, a real catalogue,
+#:     a real price feed). These are the only sources a bare pipeline run touches.
+#: ``sandbox``
+#:     The upstream is a real, reachable HTTP service, but it exists to be
+#:     scraped/tested against and its records are a published test corpus rather
+#:     than observed market data (``books.toscrape.com`` is a fictional bookshop).
+#:     Useful for exercising the transport layer; never market data.
+#: ``synthetic``
+#:     No upstream at all: the records are generated inside this process. Only
+#:     usable for offline tests and demos.
+DATA_TRUST_REAL = "real"
+DATA_TRUST_SANDBOX = "sandbox"
+DATA_TRUST_SYNTHETIC = "synthetic"
+
+#: Trust levels that may be selected automatically by a pipeline run. Anything below
+#: this must be requested explicitly by code, never by omission.
+AUTO_SELECTABLE_TRUST = frozenset({DATA_TRUST_REAL})
+
+
 class ProductSource(abc.ABC):
     """Base class for every ingestion source (API or permitted website)."""
 
@@ -135,6 +160,9 @@ class ProductSource(abc.ABC):
     terms_allowed: ClassVar[bool] = True
     supports_paging: ClassVar[bool] = False
     description: ClassVar[str] = ""
+    #: How much the upstream records can be trusted as real market data. See
+    #: :data:`DATA_TRUST_REAL`. Only ``real`` sources are auto-selected.
+    data_trust: ClassVar[str] = DATA_TRUST_REAL
 
     def __init__(self, run_id: str | None = None, client: CompliantHttpClient | None = None) -> None:
         self.run_id = run_id
@@ -179,6 +207,8 @@ class ProductSource(abc.ABC):
             "min_delay_seconds": self.min_delay_seconds,
             "supports_paging": self.supports_paging,
             "description": self.description,
+            "data_trust": self.data_trust,
+            "auto_selectable": self.data_trust in AUTO_SELECTABLE_TRUST,
         }
 
     def close(self) -> None:
