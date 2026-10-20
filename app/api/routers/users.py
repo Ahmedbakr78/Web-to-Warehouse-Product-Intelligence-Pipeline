@@ -338,7 +338,11 @@ def delete_me(payload: UserDeleteRequest, request: Request, session: DbSession, 
 def update_me(payload: UserUpdate, session: DbSession, user: CurrentUser) -> UserRead:
     data = payload.model_dump(exclude_unset=True, exclude_none=True)
     if "preferences" in data and isinstance(data["preferences"], dict):
-        data["preferences"] = _normalise_preferences(data["preferences"])
+        # Preferences are merged, not replaced: a client that only wants to
+        # change one key must not silently wipe the others.
+        merged = dict(user.preferences or {})
+        merged.update(data["preferences"])
+        data["preferences"] = _normalise_preferences(merged)
     for field_name, value in data.items():
         setattr(user, field_name, value)
     session.flush()
