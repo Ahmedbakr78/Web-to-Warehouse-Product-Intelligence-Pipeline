@@ -532,7 +532,11 @@ li.depth-1 { margin-left: 18px; } li.depth-2 { margin-left: 36px; } li.depth-3 {
 }
 .search-wrap input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
 .search-wrap::before {
-  content: "⌕"; position: absolute; left: 11px; top: 6px; color: var(--subtle); font-size: 16px;
+  content: ""; position: absolute; left: 11px; top: 8px; width: 15px; height: 15px;
+  background: var(--subtle);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") center / contain no-repeat;
+  pointer-events: none;
 }
 .search-results {
   position: absolute; top: 42px; left: 0; right: 0; max-height: 60vh; overflow-y: auto;
@@ -548,9 +552,14 @@ li.depth-1 { margin-left: 18px; } li.depth-2 { margin-left: 36px; } li.depth-3 {
 .icon-btn {
   height: 34px; min-width: 34px; padding: 0 10px; border-radius: 9px; cursor: pointer;
   border: 1px solid var(--border); background: var(--surface-2); color: var(--text); font-size: 14px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
 }
 .icon-btn:hover { border-color: var(--border-strong); }
+.icon-btn svg { width: 16px; height: 16px; flex: none; }
 #menu-btn { display: none; }
+#theme-btn .icon-sun { display: none; }
+[data-theme="dark"] #theme-btn .icon-sun { display: block; }
+[data-theme="dark"] #theme-btn .icon-moon { display: none; }
 
 .shell { display: grid; grid-template-columns: var(--sidebar) minmax(0, 1fr); align-items: start; }
 .sidebar {
@@ -592,6 +601,8 @@ h2:hover .anchor-link, h3:hover .anchor-link, h4:hover .anchor-link { opacity: 1
   display: flex; justify-content: space-between; gap: 14px; font-size: 13px; color: var(--muted);
   flex-wrap: wrap;
 }
+.doc-foot a { display: inline-flex; align-items: center; gap: 6px; }
+.doc-foot svg { width: 14px; height: 14px; flex: none; }
 .backdrop { display: none; }
 
 /* ------------------------------------------------------------------ landing */
@@ -721,7 +732,7 @@ JS = """
   function applyTheme(t) {
     document.documentElement.setAttribute('data-theme', t);
     var btn = document.getElementById('theme-btn');
-    if (btn) { btn.textContent = t === 'dark' ? '☀' : '☾'; btn.title = 'Switch to ' + (t === 'dark' ? 'light' : 'dark') + ' theme'; }
+    if (btn) { btn.title = 'Switch to ' + (t === 'dark' ? 'light' : 'dark') + ' theme'; }
   }
   var stored = null;
   try { stored = localStorage.getItem(KEY); } catch (e) {}
@@ -938,7 +949,9 @@ def page(
 </head>
 <body>
 <header class="topbar">
-  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
   <a class="brand" href="index.html">
     <span class="brand-mark">W</span>
     <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v{SITE_VERSION}</small></span>
@@ -949,7 +962,10 @@ def page(
            aria-label="Search documentation" spellcheck="false">
     <div class="search-results" id="results" data-open="false"></div>
   </div>
-  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
 </header>
 <div class="shell">
   <nav class="sidebar" aria-label="Documentation">
@@ -997,9 +1013,23 @@ def doc_page(fname: str, title: str, blurb: str) -> tuple[str, dict]:
     prev_doc = next((f for f, _, _ in NAV if NAV[NAV.index((fname, title, blurb)) - 1][0] == f), None)
     order = [f for f, _, _ in NAV]
     idx = order.index(fname)
-    prev_link = f'<a href="{order[idx - 1][:-3].lower()}.html">← {NAV[idx - 1][1]}</a>' if idx > 0 else ""
+    chevron_left = (
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+        'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+        '<path d="m15 18-6-6 6-6"/></svg>'
+    )
+    chevron_right = (
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+        'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+        '<path d="m9 18 6-6-6-6"/></svg>'
+    )
+    prev_link = (
+        f'<a href="{order[idx - 1][:-3].lower()}.html">{chevron_left}{NAV[idx - 1][1]}</a>'
+        if idx > 0
+        else ""
+    )
     next_link = (
-        f'<a href="{order[idx + 1][:-3].lower()}.html">{NAV[idx + 1][1]} →</a>'
+        f'<a href="{order[idx + 1][:-3].lower()}.html">{NAV[idx + 1][1]}{chevron_right}</a>'
         if idx < len(order) - 1
         else ""
     )
