@@ -17,6 +17,108 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Crawler contact is now real** — `INGEST_USER_AGENT` uses
   `ahmedbakr78102@gmail.com` instead of the placeholder address.
 
+## [1.12.0] - 2026-10-21
+
+The theme of this release: **the numbers tell the truth, the preferences do
+something, and the phone behaves like the desktop.**
+
+### Fixed — metrics that were quietly wrong
+
+- **Dashboard mixed lifetime and windowed counts.** The "canonical products"
+  tile showed the all-time catalogue size while every neighbouring tile was
+  scoped to the selected 7/30/90/180-day range, so switching the range changed
+  most numbers but not that one. Every tile is now scoped to the same window,
+  and `GET /analytics/kpi` returns `distinct_products` alongside the raw
+  observation count.
+- **"Products" vs "observations" are now two explicit tiles.** A canonical
+  product (7,069) and a price snapshot (41,220) are different things; showing
+  one of them as a side-hint made the headline number ambiguous. The tile hint
+  now states the ratio between them instead of repeating one.
+- **Account preference validation.** `PATCH /users/me` now clamps every known
+  preference to its allowed value set, so a hand-written API call cannot put
+  the dashboard into a state it cannot render.
+
+### Added — preferences that actually do something
+
+Five controls were saved to the profile but never read by any screen. They are
+now wired end to end, and two new ones were added:
+
+- **Auto-refresh cadence** drives a real refresh interval on the dashboard.
+- **Default chart visualisation** picks area, line or bar for the market trend.
+- **Default time range** decides which window the dashboard opens on.
+- **Default export format** is offered first on every export control.
+- **Copy code on click** copies generated SQL, serialised filters and JSON
+  cells in one click.
+- **NEW — number display** switches every count between compact (`40.2k`) and
+  exact (`40,220`). This is the answer to "what is this 33.6k?".
+- **NEW — silent reload** is no longer a dead preference. It swaps data in
+  place with no skeleton shimmer, spinner sweep, transition or layout shift,
+  and it is stored server-side so it follows the user across devices.
+
+### Added — Builder
+
+- **Twelve quick presets** (was six): flash drops, price hikes, out of stock,
+  new arrivals, luxury tier, top rated, top movers, discounts under $50,
+  recently removed, catalog mismatches, DQ failures and stale stock.
+- **Active-filter chips.** Every filter narrowing the preview is listed as a
+  removable chip, with a one-click "clear all". The builder applies a lot of
+  filters at once, and there was previously no way to see or undo the
+  combination as a whole.
+
+### Fixed — the mobile shell
+
+- **The content behind the open drawer could still be scrolled.** The scroll
+  lock targeted `document.body`, but the shell scrolls `<main>`. Both are locked
+  now.
+- **The drawer stayed open across a phone → desktop resize**, leaving the page
+  behind it locked and covered by an invisible backdrop. It now closes and
+  releases the lock.
+- **Back/forward never restored the scroll position.** The saved offset read
+  `window.scrollY`, which is always `0` because `<main>` is the real scroller.
+  The offset now comes from — and is restored to — the actual container.
+- **The sidebar width had four independent sources.** The rail, the content
+  gutter and two Tailwind spacing tokens could drift apart. They now share one
+  set of CSS custom properties.
+
+### Fixed — the backend
+
+- **The seed could write observations from the future.** It anchored the demo
+  history to the *local* calendar day, which is up to a full timezone offset
+  ahead of UTC, so the newest snapshot could be hours ahead of "now". The
+  anchor is now UTC and the newest day is clamped to the current instant.
+- **The freshness DQ rule could report a negative age** under the same clock
+  skew. A future-dated snapshot is now treated as zero hours old.
+- **The `dq_failure` alert metric read the wrong run.** It took the most
+  recent run whether or not that run had a data-quality verdict, so an
+  unscored run silently masked the previous verdict. It now reads the most
+  recent *scored* run.
+
+### Changed — visual polish
+
+- **Soft tints follow the accent.** Chips, badges and active rows were tinted
+  with a fixed indigo regardless of the accent colour; they are now mixed from
+  the live accent token.
+- **A dark brand ramp.** Every brand shade now stays legible in the dark,
+  midnight and high-contrast palettes.
+- **Complete icon coverage.** Fourteen icon names the API could emit were
+  missing from the frontend registry and silently rendered as a blank
+  checklist glyph. All of them resolve now, and a parity test reads the backend
+  catalogue straight from disk so the two can never drift again.
+- **The infographic quotes the live DQ score.** It previously printed a
+  hardcoded `98.26` that the warehouse did not hold; it is now read from the
+  persisted `dq_rule_result` rows.
+
+### Verified
+
+- 592 backend tests pass (`pytest`), 51 frontend tests pass (`vitest`).
+- `ruff check app/` clean, `eslint --max-warnings 0` clean,
+  `tsc --noEmit` clean.
+- The production warehouse holds **zero** synthetic rows: no `local_demo`
+  source, no `SYN-` identifiers, no `demo.local` URLs, no seeded match
+  strategies and no `seed-` runs.
+- The compliance layer refused a robots-forbidden URL and throttled a second
+  host during a live run, exactly as designed.
+
 ## [1.11.0] - 2026-10-20
 
 ### Added (Morning Briefing & 10x demo warehouse)
