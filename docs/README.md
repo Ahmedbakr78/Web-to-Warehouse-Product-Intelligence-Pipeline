@@ -1,7 +1,7 @@
 # Documentation Index
 
 Web-to-Warehouse Product Intelligence Pipeline — DEPI graduation project, Data
-Engineering track. Thirty documents covering the proposal, planning, requirements,
+Engineering track. Thirty-one documents covering the proposal, planning, requirements,
 design, implementation evidence and evaluation.
 
 Every diagram is Mermaid, rendered natively by GitHub and to SVG for the static
@@ -40,6 +40,7 @@ command cited beside it.
 | 28 | [Schema & Migrations](28_schema_and_migrations.md) | Alembic revisions, drift detection, view ownership, and why Airflow lives in its own database |
 | 29 | [Two-Factor Authentication & Sessions](29_two_factor_and_sessions.md) | TOTP enrolment, encrypted secrets, single-use recovery codes, per-device revocation |
 | 30 | [Access Control, API Keys & Rate Limiting](30_access_control_and_rate_limiting.md) | Roles and rights, scoped API keys enforced twice, sliding-window limits with honest headers |
+| 31 | [Morning Briefing & Demo Scale](32_briefing_and_demo_scale.md) | Ranked action queue, endpoint contract, cache/noise policy, and the idempotent 10x demo expansion |
 
 ---
 
