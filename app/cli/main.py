@@ -5,6 +5,7 @@ Commands
 ``init-db``      create tables + views + reference data
 ``bootstrap``    init-db + users + demo catalog and history
 ``seed-demo``    seed users / catalog / N days of history
+``expand-demo``  append a large synthetic cohort for demos (10x scale)
 ``run-pipeline`` execute one full pipeline run
 ``sources``      list the registered ingestion sources
 ``report``       print the SQL analytics report
@@ -236,6 +237,38 @@ def seed_demo(
             "events": history.get("events", 0),
         },
     )
+
+
+@app.command("expand-demo")
+def expand_demo_cmd(
+    database: str = DB_OPTION,
+    products: int = typer.Option(19_500, "--products", min=100, max=50_000),
+    days: int = typer.Option(26, "--days", min=7, max=365),
+    seed: int = typer.Option(20261111, "--seed"),
+) -> None:
+    """Append a large synthetic cohort (defaults to ~25k products, 500k+ rows)."""
+    from app.core.db import session_scope
+    from app.etl.expand import expand_demo
+
+    console.rule(f"[bold]Expanding demo data on {describe_target(database)}")
+    with session_scope(database) as session:
+        result = expand_demo(session, products=products, days=days, seed=seed)
+    _kv_table(
+        "Expanded dataset",
+        {
+            "new products": result.get("created_products", 0),
+            "new snapshots": result.get("created_snapshots", 0),
+            "new price changes": result.get("created_changes", 0),
+            "new events": result.get("created_events", 0),
+            "total products": result["products"],
+            "total snapshots": result["snapshots"],
+            "total price changes": result["price_changes"],
+            "total catalog SKUs": result["catalog"],
+            "skipped (already present)": str(result.get("skipped", False)).lower(),
+            "days of history": days,
+        },
+    )
+    _status_line("Demo expansion complete")
 
 
 @app.command("verify")
