@@ -271,6 +271,7 @@ def _row_payload(row: DimSource) -> dict[str, Any]:
         "min_delay_seconds": row.min_delay_seconds,
         "enabled": row.enabled,
         "terms_allowed": row.terms_allowed,
+        "data_trust": row.data_trust,
         "managed": MANAGED_DATABASE,
         "config": row.config or {},
     }
@@ -301,6 +302,8 @@ def create_source(payload: SourceCreate, session: DbSession, _user: SourceManage
         )
 
     mapping = payload.mapping
+    from app.ingestion.sources.generic_json import preset_data_trust
+
     row = DimSource(
         source_code=payload.code,
         name=payload.name,
@@ -312,6 +315,7 @@ def create_source(payload: SourceCreate, session: DbSession, _user: SourceManage
         min_delay_seconds=max(payload.min_delay_seconds, float(verdict["crawl_delay"] or 0.0)),
         enabled=payload.enabled,
         terms_allowed=True,
+        data_trust=payload.data_trust,
         config={
             "adapter": ADAPTER_NAME,
             "items_path": mapping.items_path,
@@ -321,6 +325,7 @@ def create_source(payload: SourceCreate, session: DbSession, _user: SourceManage
             "params": dict(mapping.params),
             **({"url_template": mapping.url_template} if mapping.url_template else {}),
             "currency": mapping.currency,
+            "data_trust": payload.data_trust or preset_data_trust(url),
         },
     )
     session.add(row)
@@ -366,6 +371,10 @@ def update_source(
         row.enabled = payload.enabled
     if payload.terms_confirmed is not None:
         row.terms_allowed = payload.terms_confirmed
+    if payload.data_trust is not None:
+        row.data_trust = payload.data_trust
+        config["data_trust"] = payload.data_trust
+        row.config = config
     if payload.mapping is not None:
         mapping = payload.mapping
         config.update(
