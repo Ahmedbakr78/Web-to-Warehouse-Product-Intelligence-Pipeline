@@ -75,12 +75,21 @@ DEFAULT_ARGS: dict[str, Any] = {
     "pool": "product_pipeline",
 }
 
-#: Real permitted sources collected on every schedule. `local_demo` (offline
-#: synthetic) is intentionally NOT in the default set — it stays available for
-#: tests, CI and offline demos via explicit `params.sources`, but production
-#: runs are real-network only. `books_to_scrape` stays opt-in (HTML scrape).
-#: (`fakestore_products` was removed 2026-10-15: the host is unreachable.)
-DEFAULT_SOURCES = ["dummyjson_products", "gutendex_books", "openlibrary_books"]
+#: Real permitted sources collected on every schedule. Only sources whose
+#: upstream publishes genuine market data are listed: mock/test APIs
+#: (`dummyjson_products`, `fakestore_products`, ...), scraping-sandbox
+#: storefronts (`books_to_scrape`, `scrapeme_products`) and the offline
+#: generator (`local_demo`) are deliberately excluded so a scheduled run can
+#: never write fabricated rows into the warehouse. They stay reachable by
+#: passing `params.sources` explicitly.
+DEFAULT_SOURCES = [
+    "gutendex_books",
+    "openlibrary_books",
+    "itunes_apps",
+    "cheapshark_deals",
+    "mmobomb_games",
+    "openfoodfacts_prices",
+]
 REQUESTS_PER_SOURCE = int(os.environ.get("PIP_REQUESTS_PER_SOURCE", "120"))
 
 

@@ -31,6 +31,11 @@ class DimSource(Base, TimestampMixin):
     min_delay_seconds: Mapped[float] = mapped_column(sa.Float, nullable=False, default=2.0)
     enabled: Mapped[bool] = mapped_column(sa.Boolean, nullable=False, default=True)
     terms_allowed: Mapped[bool] = mapped_column(sa.Boolean, nullable=False, default=True)
+    #: Trust level of the upstream records: ``real`` (genuine market data),
+    #: ``sandbox`` (a real endpoint that publishes a test corpus) or
+    #: ``synthetic`` (generated locally). Stored on the dimension row so the
+    #: warehouse can always be audited for where a record really came from.
+    data_trust: Mapped[str] = mapped_column(ShortStr, nullable=False, default="real")
     robots_checked_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
     last_run_id: Mapped[str | None] = mapped_column(ShortStr)
     last_run_at: Mapped[dt.datetime | None] = mapped_column(UTCDateTime())
@@ -43,6 +48,7 @@ class DimSource(Base, TimestampMixin):
     __table_args__ = (
         sa.Index("ix_dim_source_enabled", "enabled"),
         sa.Index("ix_dim_source_kind", "kind"),
+        sa.Index("ix_dim_source_data_trust", "data_trust"),
     )
 
 

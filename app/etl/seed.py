@@ -110,11 +110,12 @@ def seed_users(session: Session) -> int:
         ),
         (
             "pipeline.default_sources",
-            "dummyjson_products,gutendex_books,openlibrary_books,books_to_scrape,"
-            "cheapshark_deals,mmobomb_games",
+            "gutendex_books,openlibrary_books,itunes_apps,cheapshark_deals,"
+            "mmobomb_games,openfoodfacts_prices",
             "string",
             "pipeline",
-            "Real permitted sources enabled for scheduled runs (local_demo is test-only)",
+            "Real permitted sources enabled for scheduled runs (mock APIs and "
+            "offline generators are excluded)",
         ),
         ("dq.min_quality_score", "80", "number", "quality", "Fail the run below this weighted DQ score"),
         (

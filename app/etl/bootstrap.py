@@ -298,6 +298,7 @@ def sync_dim_source(session: Session, source: Any) -> DimSource:
     row.min_delay_seconds = source.min_delay_seconds
     row.enabled = source.enabled and (source.terms_allowed or not settings.respect_terms_whitelist)
     row.terms_allowed = source.terms_allowed
+    row.data_trust = getattr(source, "data_trust", "real")
     row.robots_checked_at = dt.datetime.now(dt.timezone.utc)
     return row
 
