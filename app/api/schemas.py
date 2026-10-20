@@ -547,6 +547,16 @@ class SourceCreate(BaseModel):
         description="The creator confirms the site's terms permit automated access",
     )
     enabled: bool = True
+    data_trust: str = Field(
+        default="real",
+        pattern="^(real|sandbox|synthetic)$",
+        description=(
+            "How far the upstream records can be trusted as market data. "
+            "'real' = genuine market data, 'sandbox' = a real endpoint that "
+            "publishes a test corpus, 'synthetic' = generated locally. Only "
+            "'real' sources are collected by an automatic run."
+        ),
+    )
     mapping: SourceMappingConfig = Field(default_factory=SourceMappingConfig)
 
 
@@ -559,6 +569,7 @@ class SourceUpdate(BaseModel):
     min_delay_seconds: float | None = Field(default=None, ge=0.0, le=60.0)
     enabled: bool | None = None
     terms_confirmed: bool | None = None
+    data_trust: str | None = Field(default=None, pattern="^(real|sandbox|synthetic)$")
     mapping: SourceMappingConfig | None = None
 
 
