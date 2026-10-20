@@ -1884,6 +1884,46 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         ],
     },
     {
+        "key": "demo_scale",
+        "title": "v1.11.0: 10x Demo Warehouse",
+        "icon": "database-zap",
+        "summary": "A deterministic, idempotent expansion that takes the demo from thousands to 25k products and 550k+ observations.",
+        "features": [
+            {
+                "name": "25k product demo cohort",
+                "detail": "19,500 additional synthetic products under the reserved SYN- namespace, appended without touching existing rows",
+            },
+            {
+                "name": "550k+ price observations",
+                "detail": "26 days of history per synthetic product produces a fact table large enough to exercise every chart",
+            },
+            {
+                "name": "Realistic price walks",
+                "detail": "Drift, promo cycles and rare clearance shocks instead of independent random prices",
+            },
+            {
+                "name": "Full lifecycle history",
+                "detail": "First sightings, delistings, availability changes and significant price-change records are generated together",
+            },
+            {
+                "name": "Catalog reconciliation at scale",
+                "detail": "13k internal catalog SKUs and latest-run match snapshots, including price mismatches and discontinued items",
+            },
+            {
+                "name": "Seeded quality defects",
+                "detail": "Out-of-range ratings, missing prices and unknown availability keep the DQ framework meaningful",
+            },
+            {
+                "name": "Category rollups rebuilt",
+                "detail": "agg_category_daily is recomputed from facts for the generated window, so dashboard totals always agree",
+            },
+            {
+                "name": "Idempotent expand-demo CLI",
+                "detail": "The command detects an existing cohort and skips the expensive work on reruns",
+            },
+        ],
+    },
+    {
         "key": "team",
         "title": "Team catalogue as code",
         "icon": "users",
