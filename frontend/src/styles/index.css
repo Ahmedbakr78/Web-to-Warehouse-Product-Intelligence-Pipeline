@@ -343,40 +343,18 @@
     color: var(--brand-900);
   }
 
-  /* --------------------------- modern scrollbars ------------------------------
-     Thin, rounded, theme-aware scrollbars everywhere (Firefox + WebKit).
-     Keyboard, wheel and touch keep working; the thumb uses the theme border
-     tokens so light/dark/midnight/HC all stay legible. */
+  /* --------------------------- deleted / hidden scrollbars ------------------------------
+     Zero-scrollbar modern clean aesthetic across the full application (Firefox + WebKit + Blink).
+     Wheel, trackpad, touch swipe, keyboard arrows, and programmatic scroll keep working 100%. */
   * {
-    scrollbar-width: thin;
-    scrollbar-color: var(--border-strong) transparent;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
   }
 
-  ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: var(--border-strong);
-    border-radius: 999px;
-    border: 3px solid transparent;
-    background-clip: content-box;
-    min-height: 32px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--text-subtle);
-    border: 2px solid transparent;
-    background-clip: content-box;
-  }
-
-  ::-webkit-scrollbar-corner {
-    background: transparent;
+  *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
   }
 
   /* Utility: hide scrollbars in a specific scroll container (e.g. tab strips)
