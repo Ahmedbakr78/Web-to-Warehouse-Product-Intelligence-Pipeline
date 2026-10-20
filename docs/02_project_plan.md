@@ -31,7 +31,7 @@ team used. It is the reference used in the project review meetings.
 
 ## 1. Planning approach
 
-The plan follows a requirements → design → build → verify → document sequence, with two deliberate
+The plan follows a requirements, design, build, verify, document sequence, with two deliberate
 parallel tracks:
 
 * **Data track** — warehouse schema, cleaning, dedupe, quality, reconciliation. This is the
@@ -145,27 +145,27 @@ gantt
 
 ## 4. Deliverables matrix
 
-Rows are deliverables, columns are the project phases. `●` = primary owner phase, `○` = contributing
+Rows are deliverables, columns are the project phases. `P` = primary owner phase, `C` = contributing
 phase, `—` = not involved.
 
 | Deliverable | P1 Initiation | P2 Design | P3 Ingestion | P4 Warehouse | P5 Serving | P6 Verification | P7 Close-out |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Requirements and stakeholders | ● | ○ | — | — | — | — | — |
-| Literature review | ● | ○ | — | — | — | — | — |
-| Database schema (23 tables) | ○ | ● | — | ○ | — | ○ | — |
-| Analytical views (20) | — | ○ | — | ● | ○ | ○ | — |
-| Compliance layer | — | ○ | ● | — | — | ○ | — |
-| Cleaning / normalisation | — | ○ | ● | ○ | — | ○ | — |
-| Deduplication engine | — | ○ | ○ | ● | — | ○ | — |
-| ETL pipeline | — | ○ | — | ● | ○ | ○ | — |
-| Data-quality framework | — | ○ | — | ● | ○ | ○ | — |
-| Catalog reconciliation | — | ○ | — | ● | ○ | ○ | — |
-| REST API | — | ○ | — | — | ● | ○ | — |
-| Dashboard | — | ○ | — | — | ● | ○ | — |
-| Airflow DAG | — | ○ | — | ○ | ● | ○ | — |
-| Deployment (Compose, docs) | — | ○ | — | — | ○ | ● | ○ |
-| Demo dataset | — | — | ○ | ○ | — | ● | — |
-| Documentation set | ○ | ● | ○ | ○ | ○ | ● | ● |
+| Requirements and stakeholders | P | C | — | — | — | — | — |
+| Literature review | P | C | — | — | — | — | — |
+| Database schema (23 tables) | C | P | — | C | — | C | — |
+| Analytical views (20) | — | C | — | P | C | ○ | — |
+| Compliance layer | — | C | P | — | — | C | — |
+| Cleaning / normalisation | — | C | P | C | — | C | — |
+| Deduplication engine | — | C | ○ | P | — | C | — |
+| ETL pipeline | — | C | — | P | C | ○ | — |
+| Data-quality framework | — | C | — | P | C | ○ | — |
+| Catalog reconciliation | — | C | — | P | C | ○ | — |
+| REST API | — | C | — | — | P | C | — |
+| Dashboard | — | C | — | — | P | C | — |
+| Airflow DAG | — | C | — | C | P | C | — |
+| Deployment (Compose, docs) | — | C | — | — | C | P | C |
+| Demo dataset | — | — | C | ○ | — | P | — |
+| Documentation set | C | P | C | ○ | C | P | ● |
 
 ### 4.1 Deliverable traceability to acceptance criteria
 
@@ -306,10 +306,10 @@ flowchart LR
 
 | Element | Float | Consequence if delayed |
 | --- | --- | --- |
-| Compliance layer → connectors | 2 days | Blocks every extraction-based task |
-| Dedupe → loader | 0 days | Hard dependency; `upsert_product()` consumes `MatchResult` |
-| Views → API / dashboard | 3 days | API and UI can start on table queries instead |
-| API → smoke test | 1 day | Documentation of endpoints slips into W12 |
+| Compliance layer to connectors | 2 days | Blocks every extraction-based task |
+| Dedupe to loader | 0 days | Hard dependency; `upsert_product()` consumes `MatchResult` |
+| Views to API / dashboard | 3 days | API and UI can start on table queries instead |
+| API to smoke test | 1 day | Documentation of endpoints slips into W12 |
 | Airflow DAG | 5 days | Can be demonstrated from the CLI if Airflow installation fails |
 | Documentation set | 8 days | Was the main buffer of the plan; used deliberately in W12 |
 

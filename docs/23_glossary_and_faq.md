@@ -433,7 +433,7 @@ or in any API response.
 
 ### What is an API key, and how do I use one?
 
-Generated in **Account → API keys**, shown exactly once, hashed at rest thereafter. Send it as a
+Generated in **Account, then API keys**, shown exactly once, hashed at rest thereafter. Send it as a
 header:
 
 ```bash
@@ -515,7 +515,7 @@ Quality screen. A number nobody can reproduce is a number nobody should trust.
 
 ```mermaid
 flowchart LR
-    A["Markdown"] --> B["scripts/diagrams.py"] --> C["docs/diagrams/out/*.mmd"] --> D["mmdc → SVG"]
+    A["Markdown"] --> B["scripts/diagrams.py"] --> C["docs/diagrams/out/*.mmd"] --> D["mmdc to SVG"]
     A --> E["GitHub renders Mermaid natively"]
 ```
 
@@ -536,7 +536,7 @@ over a generated index, and a dark mode that respects system preference.
 
 ### The repo is private — how do I show it to someone?
 
-Add them as a collaborator (**Settings → Collaborators**), or grant them read access on your plan.
+Add them as a collaborator (**Settings, then Collaborators**), or grant them read access on your plan.
 GitHub Pages does not serve private repositories on the free plan, which is why the documentation
 website is built as a portable static directory rather than deployed to Pages.
 

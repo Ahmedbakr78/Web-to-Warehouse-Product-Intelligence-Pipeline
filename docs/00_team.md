@@ -1,12 +1,12 @@
 # 00 — Team, Roles & Effort Split
 
 **Track:** Data Engineering (DEPI Digital Egypt Pioneers Initiative)
-**Source of truth:** `app/core/team.py` → `GET /api/v1/meta/team`. This document,
+**Source of truth:** `app/core/team.py` maps to `GET /api/v1/meta/team`. This document,
 the README team table and the website team section all mirror that module.
 
 | # | Member | GitHub | Role | Weight | Main component |
 |---|--------|--------|------|-------|----------------|
-| 1 | Ahmed (78102) | [@Ahmedbakr78](https://github.com/Ahmedbakr78) | 👑 Team Lead + Backend/API + Documentation + 9 ETL Stages Owner | 28% | FastAPI + 30 Docs + 9 ETL Stages + Integration |
+| 1 | Ahmed (78102) | [@Ahmedbakr78](https://github.com/Ahmedbakr78) | Team Lead + Backend/API + Documentation + 9 ETL Stages Owner | 28% | FastAPI + 30 Docs + 9 ETL Stages + Integration |
 | 2 | Ahmed Abd alla | [@01124758140](https://github.com/01124758140) | Ingestion & Compliance Lead | 15% | robots.txt + 34 sources + rate limiter |
 | 3 | Ahmed Medhat | [@AhmedMedhatFarouk](https://github.com/AhmedMedhatFarouk) | ETL & Cleaning Lead | 14% | 29-step cleaner + dedupe + ETL support |
 | 4 | Eng. Alaa Nasser | [@AlaaNasser-tech](https://github.com/AlaaNasser-tech) | Database & Data Quality Lead | 14% | 29 tables + 23 views + 12 DQ rules |
@@ -23,7 +23,7 @@ flowchart TB
     subgraph Lead["Ahmed (78102) — 28%, owns every layer"]
         API["FastAPI platform<br/>23 routers · 216 ops · auth/RBAC"]
         ETL["9-stage ETL<br/>CLI = API = Airflow"]
-        INT["Integration transport<br/>in-process ⇄ REST fallback"]
+        INT["Integration transport<br/>in-process with REST fallback"]
         CAT["Catalogues as code<br/>features + team APIs"]
         DOCS["31 docs + diagrams<br/>README/website alignment"]
         REL["Releases + quality gates<br/>versions, tags, CI"]

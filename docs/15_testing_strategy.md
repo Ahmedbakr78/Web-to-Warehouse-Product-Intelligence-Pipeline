@@ -80,23 +80,23 @@ flowchart TB
 | TC-007 | Category | Fallback | `normalise_category(None)`, `normalise_category("n/a")` | `Uncategorised` |
 | TC-008 | Category | Level count | `category_levels("Electronics > Audio") == 2` | 2 |
 | TC-009 | Price | Format matrix | `"$1,234.56"`, `"€1.234,56"`, `"£9.99"`, `"89.00"` | 1234.56 USD, 1234.56 EUR, 9.99 GBP, 89.00 (default currency) |
-| TC-010 | Price | Ambiguous separator | `"1,499"` → 1499 (thousands) but `"45,90"` → 45.90 (decimal) | Correct in both cases |
-| TC-011 | Price | Range | `"$10 - $20"` → amount 15.0, `is_range=True`, bounds retained | Midpoint with evidence |
-| TC-012 | Price | Was/now | `"Was $49.99 Now $39.99"` → 39.99, pattern `was_now` | Current price, not the struck-through one |
-| TC-013 | Price | Non-numeric | `"Call for price"`, `"N/A"`, `"free"` → `amount=None`, `is_valid=False` | Flag `unparseable_price` downstream |
+| TC-010 | Price | Ambiguous separator | `"1,499"` gives 1499 (thousands) but `"45,90"` gives 45.90 (decimal) | Correct in both cases |
+| TC-011 | Price | Range | `"$10 - $20"` gives amount 15.0, `is_range=True`, bounds retained | Midpoint with evidence |
+| TC-012 | Price | Was/now | `"Was $49.99 Now $39.99"` gives 39.99, pattern `was_now` | Current price, not the struck-through one |
+| TC-013 | Price | Non-numeric | `"Call for price"`, `"N/A"`, `"free"` gives `amount=None`, `is_valid=False` | Flag `unparseable_price` downstream |
 | TC-014 | Price | Confidence | `"12"` (bare) < `"$12"` (symbol) | 0.60 vs 0.95 |
 | TC-015 | Currency | Symbol resolution | `"£"`, `"A$"`, `"Rs"`, `"ج.م"` | GBP, AUD, INR, EGP |
 | TC-016 | Currency | FX | `convert_to_usd(100, "GBP")` | 127.12 with rate 1.2712 |
 | TC-017 | Currency | Locale heuristic | `detect_currency_locale(url="https://shop.example.co.uk")` | `GBP` |
-| TC-018 | Rating | Scale | `parse_rating("4.2 out of 5")` → 4.2; `parse_rating("84 percent")` → 4.2; `parse_rating("8.5/10")` → 4.25 | Normalised to 0–5 |
+| TC-018 | Rating | Scale | `parse_rating("4.2 out of 5")` gives 4.2; `parse_rating("84 percent")` gives 4.2; `parse_rating("8.5/10")` gives 4.25 | Normalised to 0–5 |
 | TC-019 | Rating | Clamp | `parse_rating("9.9 out of 5")` | 5.0 (clamped) |
 | TC-020 | Availability | Token matrix | `"In stock"`, `"Out of stock"`, `"Pre-order"`, `"Only 3 left"`, `"???"` | `in_stock`, `out_of_stock`, `preorder`, `limited_stock`, `unknown` |
 | TC-021 | URL | Validation | `"https://a.example/x"`, `"http://a"`, `"ftp://a"`, `""` | True, True, False, False |
 | TC-022 | Dedupe | Identical | Same name twice | Score 1.0, strategy `exact` |
-| TC-023 | Dedupe | Tokenisation | `"Widget 256GB"` vs `"Widget 256 GB"` | ≥ 0.90 → duplicate |
+| TC-023 | Dedupe | Tokenisation | `"Widget 256GB"` vs `"Widget 256 GB"` | ≥ 0.90 means duplicate |
 | TC-024 | Dedupe | Edition | `"Hardcover Edition"` vs `"Paperback Edition"` | ≥ 0.90 after stop-word removal |
-| TC-025 | Dedupe | Digit guard | `"Canon EOS R6"` vs `"Canon EOS R5"` | < 0.90 → distinct |
-| TC-026 | Dedupe | Model number | `"Nike Pegasus 40"` vs `"Nike Pegasus 39"` | < 0.90 → distinct |
+| TC-025 | Dedupe | Digit guard | `"Canon EOS R6"` vs `"Canon EOS R5"` | < 0.90 means distinct |
+| TC-026 | Dedupe | Model number | `"Nike Pegasus 40"` vs `"Nike Pegasus 39"` | < 0.90 means distinct |
 | TC-027 | Dedupe | Brand mismatch | `"Sony WH-1000XM5"` vs `"Sony WH-1000XM4"` | < 0.90 |
 | TC-028 | Dedupe | Symmetry | `score(a,b) == score(b,a)` for the whole fixture set | True |
 | TC-029 | Dedupe | Monotonicity | Increasing string damage never increases the score | True |
@@ -138,7 +138,7 @@ flowchart TB
 | TC-065 | Reconciliation | Fuzzy match | Near-identical name, threshold 0.86 | Strategy `fuzzy`, similarity recorded |
 | TC-066 | Reconciliation | Unmatched | Internal-only SKU | Status `unmatched`, `product_id = NULL` |
 | TC-067 | Reconciliation | Price gap | Catalog 100, market 90 | `price_gap_abs = -10`, `price_gap_pct = -10` |
-| TC-068 | Reconciliation | Mismatch flag | Gap 2 % | `is_price_mismatch=True`; gap 0.5 % → False |
+| TC-068 | Reconciliation | Mismatch flag | Gap 2 % | `is_price_mismatch=True`; gap 0.5 % means False |
 | TC-069 | Reconciliation | Performance | 57 SKUs | Under 3 s (measured 104–182 ms) |
 | TC-070 | Bootstrap | Objects | `bootstrap()` | 23 tables, 20 views |
 | TC-071 | Bootstrap | Idempotence | Run twice | No error, no data loss |
@@ -162,7 +162,7 @@ flowchart TB
 | TC-089 | API errors | Conflict | Create a duplicate user email | 409 |
 | TC-090 | API security | Password hash | Any read of a user | `hashed_password` never serialised |
 | TC-091 | API security | API key | Create, use, revoke | Works, then 401 after revocation |
-| TC-092 | Security | Argon2 parameters | `check_needs_rehash` on a weaker hash | True → rehash on next login |
+| TC-092 | Security | Argon2 parameters | `check_needs_rehash` on a weaker hash | True means rehash on next login |
 | TC-093 | Security | JWT claims | Decode an issued token | `iss`, `sub`, `exp`, `type`, `role` present |
 | TC-094 | Security | Lockout audit | Failed logins | `app_audit_log` rows with `status=failure` |
 | TC-095 | Non-functional | Latency | 12 read endpoints, 7 samples | p95 ≤ 500 ms (measured ≤ 38.2 ms) |
@@ -432,7 +432,7 @@ make everything                # install, env, databases, bootstrap, demo, run, 
 
 | Layer | Status in this repository snapshot | Evidence |
 | --- | --- | --- |
-| Unit tests | The `tests/` directory is present and configured (`pyproject.toml`: `testpaths = ["tests"]`, markers `integration` and `slow`), but **no test modules are committed in this snapshot**; `make test` therefore collects 0 tests | `ls tests/` → empty |
+| Unit tests | The `tests/` directory is present and configured (`pyproject.toml`: `testpaths = ["tests"]`, markers `integration` and `slow`), but **no test modules are committed in this snapshot**; `make test` therefore collects 0 tests | `ls tests/` is empty |
 | Deduplication evaluation | The 14-pair evaluation is part of the project's own harness (assumption A3 in `docs/01`); the algorithm is independently reproducible with the snippet in `docs/05` §7.1 | measured 0.9700 / 0.8121 / 0.8034 |
 | API regression | **78/78 checks pass** (`scripts/api_smoke.py`) | Executed against the delivered system |
 | Cross-dialect verification | **No structural drift; DQ score 98.26 on both engines** | `make verify-dialects` |

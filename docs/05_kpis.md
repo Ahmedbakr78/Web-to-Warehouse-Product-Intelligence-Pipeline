@@ -98,7 +98,7 @@ FROM vw_pipeline_health ORDER BY started_at DESC LIMIT 5;
 ```
 
 Measured: mean 56.9 valid records per run, max 58; the measured live run recorded
-`records_extracted=60`, `records_valid=57` → yield 95 %.
+`records_extracted=60`, `records_valid=57` yield 95 %.
 
 ### 2.3 KPI-05 — Rejection rate in the staging zone
 

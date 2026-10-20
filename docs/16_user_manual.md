@@ -86,7 +86,7 @@ Navigation items you cannot use are not rendered; API calls that bypass the UI r
 
 ### 2.3 Sign out
 
-Click the account menu (top right) → **Sign out**. The session is recorded in the audit log with your
+Click the account menu (top right) and choose **Sign out**. The session is recorded in the audit log with your
 IP address. Tokens are held in memory only, so closing the browser also ends the session.
 
 ---
@@ -155,7 +155,7 @@ pages; the page size follows your account preference (default 25).
 | Action | Result |
 | --- | --- |
 | Click a row | Opens the product detail |
-| Tick rows (up to 6) → **Compare** | Side-by-side comparison drawer |
+| Tick rows (up to 6) and press **Compare** | Side-by-side comparison drawer |
 | **Save view** | Stores the current filters, sort and visible columns |
 | **Export CSV** | Downloads the current product list |
 | Search box type-ahead | Suggestions appear after two characters |
@@ -426,7 +426,7 @@ Everything is rebuilt from scratch on each keystroke, so a reload never loses yo
 
 ## 13.2 Feature catalogue
 
-The **Features** screen (Explore → Features) lists everything the platform ships, grouped into
+The **Features** screen (Explore, then Features) lists everything the platform ships, grouped into
 thirteen areas. Use the search box to filter across feature names and details, or the chips to jump to
 one area. Click the copy icon on any feature to put its name on the clipboard. The catalogue is served
 by `GET /api/v1/meta/features`, so it always reflects the deployed code.
@@ -494,7 +494,7 @@ screen.
 | --- | --- |
 | **Save view** | Name it and choose whether to share it with the team |
 | Apply | The filters are replayed; the usage counter is incremented |
-| Favourite (★) | Pins the view to the top of the list |
+| Favourite (star icon) | Pins the view to the top of the list |
 | Delete | Removes the view (only your own views) |
 
 Four views ship with the demo data: *Big price drops*, *Out of stock*, *Electronics movers* and
@@ -533,7 +533,7 @@ read. The scheduled DAG publishes price-movement notifications after a run that 
 
 For scheduled jobs and integrations.
 
-1. Open **Account → API keys**.
+1. Open **Account, then API keys**.
 2. Name the key (for example `nightly-export`) and press **Create**.
 3. **Copy the key immediately** — the full value is shown once and never again. Only the 12-character
    prefix is stored.
@@ -597,10 +597,10 @@ catalogue data are not affected.
 
 | What | How | Format | Limit |
 | --- | --- | --- | --- |
-| Current product list | Products screen → **Export CSV** | CSV | 50,000 rows |
-| Price changes | Changes → Price → **Export** | CSV | Uses the active filters |
-| Any table you can query | Query Lab → run → copy, or use `analytics/report/*` | JSON | 5,000 rows per query |
-| A run's compliance evidence | Compliance screen → **Export** | CSV / JSON | 1,000 log rows |
+| Current product list | Products screen, then **Export CSV** | CSV | 50,000 rows |
+| Price changes | Changes, then Price, then **Export** | CSV | Uses the active filters |
+| Any table you can query | Query Lab, then run, then copy, or use `analytics/report/*` | JSON | 5,000 rows per query |
+| A run's compliance evidence | Compliance screen, then **Export** | CSV / JSON | 1,000 log rows |
 
 The CSV export includes the run context so a file can be interpreted later: `product_id`,
 `canonical_name`, `brand`, `category_name`, `availability`, `price`, `price_usd`, `currency`,
@@ -618,8 +618,8 @@ The CSV export includes the run context so a file can be interpreted later: `pro
 | 403 on the Run pipeline button | Role is `viewer` | Ask for an analyst or admin account |
 | 403 on the Query Lab tab | Role is `viewer` | As above |
 | Dashboard shows 0 products | Pipeline has not run, or the window is too short | `make run-pipeline`; widen the window to 90 days |
-| DQ score dropped below 90 | A source published bad data | Open **Quality → Rule results**, read the message, then re-run with **Strict** |
-| A run shows status `partial` | One source failed; the others completed | Open the run detail → Warnings; fix the source or disable it |
+| DQ score dropped below 90 | A source published bad data | Open **Quality, then Rule results**, read the message, then re-run with **Strict** |
+| A run shows status `partial` | One source failed; the others completed | Open the run detail and read **Warnings**; fix the source or disable it |
 | A run shows status `failed` | A critical rule failed (grain or no observations) | Check `DQ006`/`DQ011` in the run detail |
 | Compliance panel shows 0 requests | Only the offline source has run | `make run-all-sources` |
 | Compliance panel shows blocked requests | A source's `robots.txt` disallows the path | The source is skipped by design; review its terms before re-enabling |
@@ -663,7 +663,7 @@ Yes for everything derived from the warehouse. The Sources preview and any run t
 source require internet access; the synthetic source does not.
 
 **Q. Which currency is used in reports?**
-The USD-normalised column, `price_usd`. Set your preferred display currency under Account → Data.
+The USD-normalised column, `price_usd`. Set your preferred display currency under Account, then Data.
 
 **Q. Who can see the audit log?**
 Administrators. Compliance data such as the HTTP request log is visible to any signed-in user with the

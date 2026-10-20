@@ -133,8 +133,8 @@ Rights are defined once in `app/api/security.py` (`ROLE_RIGHTS`) and enforced by
 | `view_audit` | no | no | yes | `/audit`, `/audit/actions` |
 | `manage_sources` | no | no | yes | Reserved for the future source-management screen |
 
-Verified behaviour (from `scripts/api_smoke.py`): `GET /api/v1/products` without a token → **401**;
-`POST /api/v1/pipeline/run/sync` with the viewer token → **403**.
+Verified behaviour (from `scripts/api_smoke.py`): `GET /api/v1/products` without a token returns **401**;
+`POST /api/v1/pipeline/run/sync` with the viewer token returns **403**.
 
 ---
 
@@ -841,10 +841,10 @@ try {
 ### 9.1 Generating client SDKs and Postman collections
 
 ```bash
-# OpenAPI → typed TypeScript client
+# OpenAPI to a typed TypeScript client
 npx openapi-typescript http://localhost:8000/openapi.json -o src/api/schema.d.ts
 
-# OpenAPI → Postman collection
+# OpenAPI to a Postman collection
 npx openapi-to-postman http://localhost:8000/openapi.json -o docs/assets/postman.json
 
 # Verify the contract is valid

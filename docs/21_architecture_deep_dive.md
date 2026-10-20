@@ -221,7 +221,7 @@ sequenceDiagram
     MW->>MW: start timing
     MW->>AUTH: resolve principal
     AUTH->>AUTH: verify signature and expiry
-    AUTH->>AUTH: load role → required permission
+    AUTH->>AUTH: load role, then required permission
     alt insufficient permission
         AUTH-->>MW: 403 with error envelope
         MW-->>FE: 403 + X-Process-Time-Ms

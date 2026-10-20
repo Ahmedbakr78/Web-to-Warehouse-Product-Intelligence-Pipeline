@@ -9,7 +9,7 @@ is designed so a release can never be half-done.
 Semantic versioning (`MAJOR.MINOR.PATCH`), single source in `VERSION`:
 
 - `MAJOR` — breaking API or schema change.
-- `MINOR` — new sources, endpoints, screens (e.g. 1.9.0 → 1.10.0).
+- `MINOR` — new sources, endpoints, screens (e.g. 1.9.0 to 1.10.0).
 - `PATCH` — fixes with no new surface.
 
 `scripts/sync_version.py` propagates `VERSION` into `pyproject.toml`,
@@ -58,8 +58,8 @@ gh release create v1.11.0 --title "v1.11.0" --notes-file CHANGELOG.md
 **Description:**
 
 > End-to-end product intelligence pipeline: permitted web/API ingestion (34
-> sources) → cleaning → duplicate detection → PostgreSQL/MySQL warehouse with
-> price history → SQL analytics → Airflow orchestration → FastAPI (216 ops) +
+> sources), cleaning, duplicate detection, PostgreSQL/MySQL warehouse with
+> price history, SQL analytics, Airflow orchestration, FastAPI (216 ops) +
 > React dashboard. DEPI Data Engineering capstone.
 
 **Topics:**
@@ -72,7 +72,7 @@ docker  plotly  streamlit  rest-api  depi  data-pipeline  sql-analytics
 
 **Website:** link `website/index.html` (or the Pages URL once enabled).
 
-**Visibility:** Repo → Settings → General → Danger Zone → Change visibility →
+**Visibility:** Repo, then Settings, then General, then Danger Zone, then Change visibility,
 Make private (or `gh repo edit <repo> --visibility private
 --accept-visibility-change-consequences`).
 

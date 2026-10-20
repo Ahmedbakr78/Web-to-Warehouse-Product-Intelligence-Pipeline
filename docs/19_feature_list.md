@@ -10,7 +10,7 @@ endpoint, a CLI command or a documented design decision. Nothing here is aspirat
 **Scale of the system, measured:** 32 ingestion sources · 29 physical tables · 23 analytical views ·
 12 data-quality rules across 6 dimensions · 215 REST route decorators in 23 routers · 9 pipeline stages ·
 33 Airflow task callables · 6 Docker Compose services · 31 numbered documents · 80 Mermaid diagrams ·
-568 automated tests · 104 end-to-end API smoke checks.
+594 automated tests · 104 end-to-end API smoke checks.
 
 Regenerate the numbers above with `python3 scripts/project_stats.py`.
 
@@ -49,7 +49,7 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 | F-003 | Lazy extraction | Sources are generators, so a run stops as soon as the limit is reached | `app/ingestion/sources/*.py` |
 | F-004 | Declarative compliance metadata per source | `terms_url`, `license_note`, `terms_allowed`, `rate_limit_per_minute`, `min_delay_seconds`, `supports_paging` | `app/ingestion/base.py` class variables |
 | F-005 | robots.txt parsing | Standard-library parser with a per-host cache and thread-safe locking | `app/ingestion/robots.py` `RobotsCache` |
-| F-006 | RFC 9309 fallback semantics | 4xx → allow all; 401/403 → disallow; 5xx/network → cached failure | `app/ingestion/robots.py` `_load` |
+| F-006 | RFC 9309 fallback semantics | 4xx means allow all; 401/403 means disallow; 5xx/network means a cached failure | `app/ingestion/robots.py` `_load` |
 | F-007 | Crawl-delay extraction | `Crawl-delay` read from the matched group and returned in the decision | `app/ingestion/robots.py` `RobotsDecision` |
 | F-008 | Sitemap discovery | `Sitemap:` lines collected per host | `app/ingestion/robots.py` `sitemaps` |
 | F-009 | Robots gate in the transport layer | Every request is checked before it is made; a refusal raises `ComplianceError` and is logged | `app/ingestion/http_client.py` `get` |
@@ -60,12 +60,12 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 | F-014 | Exponential backoff with jitter-free doubling | `retry_backoff × 2^attempt` for retryable statuses and network exceptions | `app/ingestion/http_client.py` |
 | F-015 | Circuit breaker | A host that fails five times in a row is skipped without network I/O | `app/ingestion/ratelimit.py` `CircuitBreaker` |
 | F-016 | Disk response cache | Responses cached by URL hash with a TTL, so a repeat run performs zero requests | `app/ingestion/http_client.py` `_read_cache` / `_write_cache` |
-| F-017 | Per-request audit trail | One row per outbound attempt with status, latency, bytes, robots decision, cache flag and retries | `app/ingestion/http_client.py` `HttpAuditEntry` → `ingestion_http_log` |
+| F-017 | Per-request audit trail | One row per outbound attempt with status, latency, bytes, robots decision, cache flag and retries | `app/ingestion/http_client.py` `HttpAuditEntry` writes to `ingestion_http_log` |
 | F-018 | Honest crawler identity | User agent names the bot and publishes a contact address | `app/core/config.py` `ingest_user_agent` |
 | F-019 | Source failure isolation | An exception in one source becomes a warning; the run continues as `partial` | `app/etl/pipeline.py` `_process_source` |
 | F-020 | Bounded extraction | `--limit` plus `_safe_take` prevents a misbehaving source from hanging a run | `app/etl/pipeline.py` |
 | F-021 | Nine source adapters | DummyJSON, FakeStore, Open Library, Google Books, Steam, Open Food Facts Prices (APIs), books.toscrape.com, ScrapeMe.live (HTML), local demo (synthetic) | `app/ingestion/sources/` |
-| F-022 | BeautifulSoup + lxml scraper | Listing → detail crawl, breadcrumb categories, price, stock count, star rating, UPC, image | `app/ingestion/sources/books_to_scrape.py` |
+| F-022 | BeautifulSoup + lxml scraper | Listing then detail crawl, breadcrumb categories, price, stock count, star rating, UPC, image | `app/ingestion/sources/books_to_scrape.py` |
 | F-023 | Deterministic offline source | Seeded generator used for demos, tests and CI, with deliberate quality defects injected | `app/ingestion/sources/local_fixture.py` |
 | F-459 | ScrapeMe.live WooCommerce scraper | Practice-shop sandbox: listing cards carry price, sale pairs, stock flags and category slugs; detail fetch adds description and star rating; listing record kept when detail fails | `app/ingestion/sources/scrapeme.py` |
 | F-460 | Google Books API source | Official Books API with author, publisher, ratings and Google list prices; free key via `GOOGLE_BOOKS_API_KEY`, graceful 429 degradation per subject | `app/ingestion/sources/google_books.py` `app/core/config.py` |
@@ -90,11 +90,11 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 | F-032 | Normalised comparison key | Lower-case alphanumerics, 60 stop-words removed, tokens sorted and de-duplicated | `cleaning.normalise_name_key` |
 | F-033 | Product fingerprint | `sha1(brand_key + "|" + name_key)[:32]` — the exact-match key | `cleaning.name_fingerprint` |
 | F-034 | Blocking key | First four characters of the normalised key; the candidate-generation mechanism | `cleaning.blocking_key` |
-| F-035 | Category synonym map | ~140 mappings to a canonical hierarchy such as `tech → Electronics`, `jewellery → Accessories > Jewellery` | `cleaning.CATEGORY_SYNONYMS` |
+| F-035 | Category synonym map | ~140 mappings to a canonical hierarchy such as `tech` to `Electronics`, `jewellery` to `Accessories > Jewellery` | `cleaning.CATEGORY_SYNONYMS` |
 | F-036 | Breadcrumb normalisation | `/`, `\|`, `»`, `›`, `->`, `=>` all become `>` and each segment is canonicalised | `cleaning.normalise_category` |
 | F-037 | Category slug and level | URL-safe slug for a path; depth counter for the hierarchy | `cleaning.category_slug`, `category_levels` |
 | F-038 | Locale-aware number parsing | Resolves `1,234.56` vs `1.234,56` and the single-separator ambiguity | `cleaning.parse_number` |
-| F-039 | Competing price patterns | Five patterns scored by confidence (ISO code 0.95 → bare number 0.60); the strongest candidate wins | `cleaning.parse_price`, `_PATTERN_CONFIDENCE` |
+| F-039 | Competing price patterns | Five patterns scored by confidence (ISO code 0.95 down to a bare number 0.60); the strongest candidate wins | `cleaning.parse_price`, `_PATTERN_CONFIDENCE` |
 | F-040 | Price-range handling | `$10 – $20` yields the midpoint plus both bounds and `is_range=True` | `cleaning.parse_price` |
 | F-041 | Was/now handling | `Was $49.99 Now $39.99` resolves to the current price with pattern `was_now` | `cleaning.parse_price` |
 | F-042 | Unavailable markers | `free`, `N/A`, `poa`, `call for price`, `tbd` produce a null price and the `unparseable_price` flag | `cleaning._UNAVAILABLE_RE` |
@@ -127,7 +127,7 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 | F-062 | Character-evidence short circuit | Near-identical strings that differ only in punctuation bypass the blend at a 3 % discount | `dedupe.combined_similarity` |
 | F-063 | Brand term | `score × 0.88 + brand_similarity × 0.12` when both brands are known | `dedupe.combined_similarity` |
 | F-064 | Category bonus | Up to +0.03 for an equal or containing category | `dedupe.combined_similarity` |
-| F-065 | Three-stage matching cascade | Fingerprint exact → normalised-name equality → fuzzy above the threshold | `DedupeEngine.find_match` |
+| F-065 | Three-stage matching cascade | Fingerprint exact, then normalised-name equality, then fuzzy above the threshold | `DedupeEngine.find_match` |
 | F-066 | Blocking candidate retrieval | Prefix `LIKE` on `normalized_name` and `canonical_name`, capped at 25, refined by brand | `DedupeEngine._blocking_candidates` |
 | F-067 | Fingerprint cache | Loaded once per run, updated on register and on merge; removes a query per record | `DedupeEngine._load_fingerprints` |
 | F-068 | Merge bookkeeping | Survivor chosen by observation count; absorbed row gets `matched_product_id` and `match_strategy='merged'` | `DedupeEngine.merge_into` |
@@ -235,9 +235,9 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 | --- | --- | --- | --- |
 | F-129 | Twenty analytical views | The semantic layer over the star schema, portable across three engines | `db/views.sql` |
 | F-130 | KPI summary | Products, sources, average/min/max price, average rating, in-stock count, change statistics, event mix, quality, catalog | `analytics.kpi_summary` |
-| F-131 | Daily trend | Observations, products, average price, average rating and in-stock percentage per day | `analytics.daily_trend` → `vw_daily_kpis` |
+| F-131 | Daily trend | Observations, products, average price, average rating and in-stock percentage per day | `analytics.daily_trend` feeds `vw_daily_kpis` |
 | F-132 | Price-change timeline | Daily increase/decrease counts with mean and maximum absolute change | `analytics.price_change_timeline` |
-| F-133 | Top movers | Largest absolute movements with an optional direction filter | `analytics.top_movers` → `vw_top_movers` |
+| F-133 | Top movers | Largest absolute movements with an optional direction filter | `analytics.top_movers` feeds `vw_top_movers` |
 | F-134 | Category breakdown | Observations, price range, rating, new products and changes per category | `analytics.category_breakdown` |
 | F-135 | Brand leaderboard | Product count, price range, rating and in-stock observations per brand | `analytics.brand_leaderboard` |
 | F-136 | Availability summary | In-stock percentage and out-of-stock counts per category | `analytics.availability_summary` |
@@ -410,7 +410,7 @@ The numbering is continuous from F-001 to F-517 with no duplicate or missing ide
 
 | ID | Feature | Description | Where |
 | --- | --- | --- | --- |
-| F-219 | Command palette | Ctrl/Cmd-K or "/" opens a searchable palette: screens **and live product results** with prices, plus quick actions (theme toggle, sidebar toggle, sign out); ↑↓/↵/esc keyboard navigation | `frontend/src/components/AppShell.tsx` `CommandPalette` |
+| F-219 | Command palette | Ctrl/Cmd-K or "/" opens a searchable palette: screens **and live product results** with prices, plus quick actions (theme toggle, sidebar toggle, sign out); arrow-up/arrow-down, Enter and Esc keyboard navigation | `frontend/src/components/AppShell.tsx` `CommandPalette` |
 | F-220 | JSON exports | One-click JSON download of the dashboard snapshot, product list, analytics bundle and change feed (alongside the existing CSV exports) | `frontend/src/lib/format.ts` `downloadJson` + Dashboard/Products/Analytics/Changes |
 | F-221 | RFC-4180 CSV builder | Shared CSV serialiser with proper quoting used by every export button | `frontend/src/lib/format.ts` `toCsv`/`csvCell` |
 | F-222 | Installable PWA | Web app manifest, maskable SVG icon, iOS `apple-touch-icon`, safe-area viewport; installable on desktop/Android/iOS | `frontend/public/manifest.webmanifest`, `frontend/index.html` |
@@ -997,7 +997,7 @@ through the robots gate — 24 return live records, 6 honestly report empty
 | F-532 | Open Library subjects feed | `/search.json` is robots-disallowed — switched to the allowed `/subjects/<subject>.json` feed (verified ALLOW via the app's own gate) | `app/ingestion/sources/openlibrary.py` |
 | F-533 | Dead-host removal | `fakestore_products` unreachable (TCP + HTTP timeout) — removed from DAG and seed defaults; failure isolation already covers future outages | `dags/product_intelligence_pipeline.py`, `app/etl/seed.py` |
 | F-534 | Real-only auto-select | Bare `run-pipeline` excludes `local_demo` — synthetic rows only ever load when explicitly requested | `app/etl/pipeline.py` `_source_codes` |
-| F-535 | One-command real verification | `./run-full-app.sh`: lint → tests → live-source smoke → real SQLite pipeline → frontend → compose, with a `--offline` synthetic fallback | `run-full-app.sh` |
+| F-535 | One-command real verification | `./run-full-app.sh`: lint, tests, live-source smoke, real SQLite pipeline, frontend, compose, with a `--offline` synthetic fallback | `run-full-app.sh` |
 | F-536 | Single entrypoint for everything | `./run.sh` verifies with real data then launches the Docker stack; `--verify-only`, `--offline`, `--quick`, `--stop/--clean/--status` | `run.sh` |
 
 **Revised total: 536 features across 44 areas** (F-001 to F-536).
@@ -1015,7 +1015,7 @@ bandwidth-saving revalidation.
 | F-537 | TVMaze shows source | 250-show pages: genres, network, posters, /10 ratings rescaled to /5 | `app/ingestion/sources/tvmaze.py` |
 | F-538 | Internet Archive texts source | 50M+ public-domain texts via the robots-allowed advancedsearch feed | `app/ingestion/sources/archive.py` |
 | F-539 | DummyJSON recipes source | Grocery-shelf depth: ratings, review counts, tags, meal types, ingredients | `app/ingestion/sources/dummyjson_recipes.py` |
-| F-540 | Scrapy crawling engine | `BookSpider`: listing → detail crawl with robots middleware, autothrottle, item cap; identical `RawProduct` output | `app/ingestion/scrapy_spider.py` |
+| F-540 | Scrapy crawling engine | `BookSpider`: listing then detail crawl with robots middleware, autothrottle, item cap; identical `RawProduct` output | `app/ingestion/scrapy_spider.py` |
 | F-541 | CLI engine switch | `sources preview books_to_scrape --engine scrapy` vs default bs4 | `app/cli/main.py` |
 | F-542 | Conditional GET (304) | ETag / Last-Modified validators sent automatically; 304 serves cache with zero bytes down | `app/ingestion/http_client.py` |
 | F-543 | Validator survival | Validators outlive body TTL (30d) and survive expiry cleanup for revalidation | `app/ingestion/http_client.py` |
@@ -1051,7 +1051,7 @@ the desktop one. The synthetic demo path stays quarantined from production.
 | F-551 | Consistent metric windows | Every KPI tile is scoped to the selected range instead of mixing lifetime and windowed counts | `app/analytics/service.py` |
 | F-552 | Products vs observations | Distinct canonical products and raw price snapshots are two separate, explicitly labelled tiles | `frontend/src/pages/Dashboard.tsx` |
 | F-553 | Observations-per-product ratio | The hint explains the relationship between the two counts instead of repeating one of them | `frontend/src/pages/Dashboard.tsx` |
-| F-554 | Exact-number display mode | Account → Preferences switches every count from compact (33.6k) to exact (33,600) | `frontend/src/lib/format.ts` |
+| F-554 | Exact-number display mode | Account, then Preferences, switches every count from compact (33.6k) to exact (33,600) | `frontend/src/lib/format.ts` |
 | F-555 | Silent reload | Data refreshes in place with no skeleton shimmer, spinner sweep, transition or layout shift | `frontend/src/lib/theme.ts` |
 | F-556 | Silent reload follows the profile | The preference is stored server-side and restored on every device the user signs in from | `frontend/src/hooks/useAuth.tsx` |
 | F-557 | Account preference validation | The API clamps every known preference to its allowed value set, so a hand-written request cannot break the client | `app/api/routers/users.py` |

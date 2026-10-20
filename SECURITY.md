@@ -4,9 +4,9 @@
 
 | Version | Supported |
 | --- | --- |
-| 1.3.x | ✅ |
-| 1.2.x | ✅ |
-| < 1.2 | ❌ |
+| 1.3.x | Yes |
+| 1.2.x | Yes |
+| < 1.2 | No |
 
 ## Reporting a vulnerability
 
@@ -85,9 +85,9 @@ Three roles, checked in the dependency layer on every route:
 
 | Role | Read | Trigger runs | Change settings | Manage users | View audit |
 | --- | --- | --- | --- | --- | --- |
-| `viewer` | ✅ | ❌ | ❌ | ❌ | ❌ |
-| `analyst` | ✅ | ✅ | ✅ | ❌ | ✅ |
-| `admin` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `viewer` | Yes | No | No | No | No |
+| `analyst` | Yes | Yes | Yes | No | Yes |
+| `admin` | Yes | Yes | Yes | Yes | Yes |
 
 ### Auditability
 

@@ -229,7 +229,7 @@ flowchart TD
 
 1. **Normalisation.** `normalise_name_key()` lower-cases, removes non-alphanumerics, drops stop-words
    (`STOPWORDS`, 60 entries including format and edition qualifiers) and **sorts the remaining tokens**.
-2. **Exact key.** If the two normalised keys are equal → score `1.0`.
+2. **Exact key.** If the two normalised keys are equal, the score is `1.0`.
 3. **Character-level forms.**
    - `squash`: lowercase alphanumeric with all separators removed (`256GB` vs `256 GB`).
    - `compact`: the normalised key with spaces removed.
@@ -247,12 +247,12 @@ flowchart TD
 6. **Character-evidence short circuit.** `max(blend, max(compact, squash) × 0.97)` — near-identical
    strings that differ only in punctuation or tokenisation bypass the blend (with a 3 % safety discount).
 7. **Digit-signature factor.** `digit_signature()` extracts the ordered digit runs of a name
-   (`Canon EOS R6` → `('6')`, `Nike Pegasus 40` → `('40')`). Equal → ×1.0; one differing position or
-   length → ×0.85; more → ×0.60.
+   (`Canon EOS R6` gives `('6')`, `Nike Pegasus 40` gives `('40')`). Equal gives ×1.0; one differing position or
+   length gives ×0.85; more gives ×0.60.
 8. **Brand blend.** If both brands are known: `score = score × 0.88 + brand_similarity × 0.12`, where
    brand similarity is 1.0 for equality and a trigram similarity otherwise. If neither brand is known,
    the brand term is 1.0 and the score is unchanged.
-9. **Category bonus.** Equal → +0.03; one containing the other → +0.021; otherwise 0. Clamped to 1.0.
+9. **Category bonus.** Equal gives +0.03; one containing the other gives +0.021; otherwise 0. Clamped to 1.0.
 
 ### 3.3 Worked measurements
 
@@ -260,8 +260,8 @@ flowchart TD
 | --- | --- | --- | --- |
 | `Samsung Galaxy S23 128GB` / `Samsung Galaxy S23 128 GB` | 0.9700 | duplicate | Identical after tokenisation; `squash` short-circuit |
 | `adidas Ultraboost 22` / `Adidas Ultra Boost 22` | 0.9700 | duplicate | Same, punctuation-free |
-| `Canon EOS R6` / `Canon EOS R5` | 0.8121 | distinct | Digit signatures differ → ×0.60 |
-| `Sony WH-1000XM5` / `Sony WH-1000XM4` | 0.8034 | distinct | Digit signatures differ → ×0.60 |
+| `Canon EOS R6` / `Canon EOS R5` | 0.8121 | distinct | Digit signatures differ, so ×0.60 |
+| `Sony WH-1000XM5` / `Sony WH-1000XM4` | 0.8034 | distinct | Digit signatures differ, so ×0.60 |
 | `Clean Architecture` / `Clean Architecture: A Craftsman's Guide` | 0.8812 | distinct | Subtitle tokens reduce the blend |
 
 ### 3.4 Blocking
@@ -271,7 +271,7 @@ flowchart TD
 | Key | First 4 characters of the normalised key (`DEDUPE_BLOCKING_KEY_LENGTH`) | Cheap prefix match; index-friendly `LIKE 'prefix%'` on `normalized_name` |
 | Candidate limit | 25 (`DEDUPE_CANDIDATE_LIMIT`) | Bounds per-record cost to a constant |
 | Brand refinement | If any candidate has the same brand, prefer that subset | Reduces noise in dense categories |
-| Cache | Fingerprint → `product_id` loaded once per run, updated on register/merge | Avoids a query per record |
+| Cache | Fingerprint maps to `product_id`, loaded once per run and updated on register/merge | Avoids a query per record |
 | Cross-source behaviour | The engine is shared across sources in one run, so a product seen in two feeds merges | Proven by the seeded catalog's 68.42 % match rate |
 
 ### 3.5 Catalog reconciliation cascade
@@ -284,7 +284,7 @@ flowchart TD
 | — | No candidate qualifies | `unmatched` | `product_id = NULL` |
 
 Performance: 4-character block index plus a rare-token fallback index reduces the comparison set from
-the whole catalogue to a handful per SKU. Measured 2,975 ms → 104 ms (29×) with identical results.
+the whole catalogue to a handful per SKU. Measured 2,975 ms down to 104 ms (29×) with identical results.
 
 ---
 
@@ -296,10 +296,10 @@ the whole catalogue to a handful per SKU. Measured 2,975 ms → 104 ms (29×) wi
 
 1. **Unicode fold and trim.** NFKC, smart-punctuation translation.
 2. **Unavailable markers.** `free`, `n/a`, `null`, `none`, `unavailable`, `-`, `poa`, `call for
-   price`, `tbd`, `ask for price` → `amount=None`, `confidence=0.0`, `is_valid=False`.
-3. **Ranges.** `$10 - $20` → midpoint 15.0 with `is_range=True`, `range_low`, `range_high`,
+   price`, `tbd`, `ask for price` gives `amount=None`, `confidence=0.0`, `is_valid=False`.
+3. **Ranges.** `$10 - $20` gives midpoint 15.0 with `is_range=True`, `range_low`, `range_high`,
    `confidence=0.7` — unless the text contains `was`, `now`, `mrp`, `rrp`, `list price`.
-4. **Was/now.** `Was $49.99 Now $39.99` → 39.99 with `matched_pattern="was_now"`, confidence 0.85.
+4. **Was/now.** `Was $49.99 Now $39.99` gives 39.99 with `matched_pattern="was_now"`, confidence 0.85.
 5. **Five competing patterns**, each with a confidence:
 
    | Pattern | Example | Confidence |
@@ -320,11 +320,11 @@ the whole catalogue to a handful per SKU. Measured 2,975 ms → 104 ms (29×) wi
 
 | Input | Logic | Result |
 | --- | --- | --- |
-| `1,234.56` | Both separators → right-most is the decimal | 1234.56 |
-| `1.234,56` | Both separators → right-most is the decimal | 1234.56 |
-| `1,499` | One separator, exactly three trailing digits → thousands | 1499 |
-| `45,90` | One separator, two trailing digits → decimal | 45.90 |
-| `1.234.567` | Multiple dots → grouping | 1234567 |
+| `1,234.56` | Both separators, so the right-most is the decimal | 1234.56 |
+| `1.234,56` | Both separators, so the right-most is the decimal | 1234.56 |
+| `1,499` | One separator with exactly three trailing digits, so thousands | 1499 |
+| `45,90` | One separator with two trailing digits, so decimal | 45.90 |
+| `1.234.567` | Multiple dots, so grouping | 1234567 |
 
 ### 4.3 Currency resolution
 
@@ -333,11 +333,11 @@ the whole catalogue to a handful per SKU. Measured 2,975 ms → 104 ms (29×) wi
 1. Exact ISO-4217 match against `STATIC_FX_RATES` (25 currencies).
 2. Symbol/code map `CURRENCY_SYMBOLS` (60 entries, including `£`, `¥`, `₹`, `A$`, `C$`, `ج.م`).
 3. Substring search for codes of three characters or more.
-4. Dominant-symbol heuristic for long blobs (`"Was $49.99 Now $39.99"` → `USD`).
+4. Dominant-symbol heuristic for long blobs (`"Was $49.99 Now $39.99"` gives `USD`).
 5. Fallback to the default or the hint.
 
 `detect_currency_locale(text, url, html)` resolves a page's currency from the host suffix
-(`.co.uk` → GBP, `.de` → EUR, `.co.jp` → JPY, …), then from `itemprop="priceCurrency"` or
+(`.co.uk` gives GBP, `.de` gives EUR, `.co.jp` gives JPY, …), then from `itemprop="priceCurrency"` or
 `"currency":"` markers, then from symbol frequency.
 
 ### 4.4 FX normalisation
@@ -358,12 +358,12 @@ live provider requires changing only `convert_to_usd()` and `dim_currency`.
 
 | Concern | Function | Rule |
 | --- | --- | --- |
-| Product name | `clean_product_name` | HTML strip → NFKC → promo prefix/suffix removal → bracketed-tag removal → punctuation collapse → smart title case only if fully lower-case → truncate at a word boundary |
+| Product name | `clean_product_name` | HTML strip, NFKC, promo prefix/suffix removal, bracketed-tag removal, punctuation collapse, smart title case only if fully lower-case, truncate at a word boundary |
 | Comparison key | `normalise_name_key` | Lower-case, alphanumerics only, stop-words removed, tokens **sorted and de-duplicated** |
-| Category | `normalise_category` | Breadcrumb separators (`/`, `\|`, `»`, `›`, `->`, `=>`) → `>`; per-segment synonym mapping; hierarchy preserved |
+| Category | `normalise_category` | Breadcrumb separators (`/`, `\|`, `»`, `›`, `->`, `=>`) become `>`; per-segment synonym mapping; hierarchy preserved |
 | Brand | `clean_brand` | Strip `by` / `brand:` prefixes; drop values that are stop-words; cap at 128 characters |
 | Rating | `parse_rating(target_scale=5.0)` | `4.2 out of 5`, `84 percent`, `8.5/10`, star counts and bare numbers all rescale; clamped to `[0, scale]` |
-| Availability | `normalise_availability` | Token precedence: out-of-stock → preorder → in-stock → limited → unknown; `in_stock_flag` overrides text |
+| Availability | `normalise_availability` | Token precedence: out-of-stock, preorder, in-stock, limited, unknown; `in_stock_flag` overrides text |
 
 ---
 
@@ -486,8 +486,8 @@ A broken rule degrades to a recorded failure; the remaining 11 rules still run.
 
 ## 7. Configuration reference
 
-Every setting is a field of `Settings` (Pydantic v2). Precedence: real environment variables →
-`.env` file → declared default. Validation happens once at import (and can be refreshed with
+Every setting is a field of `Settings` (Pydantic v2). Precedence: real environment variables, then the
+`.env` file, then the declared default. Validation happens once at import (and can be refreshed with
 `reload_settings()`).
 
 | # | Variable | Type | Default | Effect and valid values |
@@ -743,7 +743,7 @@ source statistics, sync state and every dashboard panel that is keyed by source.
 | --- | --- | --- |
 | Password hashing | Argon2id, `time_cost=2`, `memory_cost=65536`, `parallelism=2` | Memory-hard; `needs_rehash` upgrades old parameters at login |
 | Password policy | ≥ 10 characters, upper, lower, digit, symbol | Enforced server-side in `password_strength()` and by a Pydantic validator |
-| Brute-force control | 5 failures → 15-minute lock, counter reset | Audited with the failure |
+| Brute-force control | 5 failures, then a 15-minute lock and a counter reset | Audited with the failure |
 | Session tokens | HS256 JWT with `sub`, `role`, `email`, `iat`, `exp`, `type`, `iss` | `decode_token` requires `exp`/`sub`, verifies the issuer and the token type |
 | Authorisation | `ROLE_RIGHTS` + `require_rights(...)` dependency | 10 rights across 3 roles; least privilege |
 | API keys | `pip_` + 32 bytes of `secrets.token_urlsafe`, stored as `SHA-256(SECRET_KEY + key)` | Shown once; prefix stored; revocable; 90-day expiry |

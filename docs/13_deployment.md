@@ -269,7 +269,7 @@ named volumes.
 | `api` | build `docker/api.Dockerfile` | FastAPI on port 8000 | healthy `postgres`, healthy `mysql` | `GET /health` every 15 s, 10 retries |
 | `airflow` | `apache/airflow:2.10.5-python3.12` | Webserver; runs `airflow db migrate` then creates the admin user | healthy `postgres` | none (start-up probe via depends_on) |
 | `airflow-scheduler` | `apache/airflow:2.10.5-python3.12` | Scheduler that fires the DAG on schedule | started `airflow` | none |
-| `frontend` | build `frontend/Dockerfile` (nginx) | Serves the built SPA on port 5173 → container port 80 | started `api` | none |
+| `frontend` | build `frontend/Dockerfile` (nginx) | Serves the built SPA on port 5173, mapped to container port 80 | started `api` | none |
 
 ### 5.1 Notable service settings
 
@@ -403,7 +403,7 @@ make airflow-test                    # run the DAG once for a fixed logical date
 | Password strength | ≥ 10 characters with upper, lower, digit and symbol, enforced server-side |
 | Brute-force control | 5 failed logins lock the account for 15 minutes; failures are audited |
 | Transport | JWT HS256 over TLS in production; the API must not be exposed over plain HTTP |
-| Rotation procedure | Change in the secret manager → restart `api` and `airflow` → re-login; see §9 for data impact (none) |
+| Rotation procedure | Change in the secret manager, then restart `api` and `airflow`, then re-login; see §9 for data impact (none) |
 
 ### 8.3 Production hardening checklist
 
@@ -553,7 +553,7 @@ and `dim_currency` are irreplaceable by re-running, which is why they are inside
 | API readiness | `GET /api/v1/health/ready` | `ready = false` | Check the database and the schema |
 | Object completeness | `GET /api/v1/meta/tables` | ≠ 23 tables | Run `init-db` |
 | View completeness | `GET /api/v1/queries/views` | ≠ 20 views | Run `init-db` |
-| Data freshness | `GET /api/v1/quality/latest` → `DQ007` | > 24 h warn, > 48 h fail | Trigger a run |
+| Data freshness | `GET /api/v1/quality/latest` reports `DQ007` | > 24 h warn, > 48 h fail | Trigger a run |
 | DQ score | `GET /api/v1/quality/latest` | < 80 | Investigate the failing rules |
 | Run failures | `GET /api/v1/pipeline/runs?status=failed` | Any | Read `error_message`, re-run |
 | Source failures | `GET /api/v1/pipeline/sources/status` | 3 consecutive | Disable the source |

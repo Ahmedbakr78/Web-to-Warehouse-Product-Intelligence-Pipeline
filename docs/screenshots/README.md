@@ -7,8 +7,8 @@ depend on live data) with this exact procedure so every shot matches:
 1. `./run.sh` — full stack with live data (or `make demo-postgres` for the
    deterministic 120-day dataset).
 2. Sign in as `admin@example.com`, set the theme:
-   - **Light:** Account → Appearance → Light.
-   - **Dark:** Account → Appearance → Dark.
+   - **Light:** Account, then Appearance, then Light.
+   - **Dark:** Account, then Appearance, then Dark.
 3. Viewport **1440×900**, sidebar expanded, `100%` zoom.
 4. Capture: Dashboard, Analytics, Changes, Products (+ one detail page),
    Categories, Catalog, Pipeline, Quality, Sources, Forecast, Reports,

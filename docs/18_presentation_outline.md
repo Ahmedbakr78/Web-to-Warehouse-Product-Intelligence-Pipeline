@@ -28,7 +28,7 @@ demonstration script with the exact commands and URLs to type.
 | Deck | 18 slides (target 45 seconds each) |
 | Live demo | 3 minutes, integrated after slide 11 |
 | Audience | Examination committee: academic supervisor, data-engineering panel, industry observer |
-| Style | Problem → solution → evidence; every claim has a number and a command |
+| Style | Problem, solution, evidence; every claim has a number and a command |
 | Visual language | Mermaid diagrams rendered by GitHub or `make docs-render`; no stock imagery |
 | Backup | Pre-recorded screenshots of each screen + the CLI report output in a text file |
 
@@ -152,11 +152,11 @@ match rate, p95 ≤ 38.2 ms, 3.5 s run, 0 structural drift, 78/78 checks.
 
 ### Slide 14 — Engineering challenges solved
 
-**On screen:** Four challenges with cause → fix → measured effect:
+**On screen:** Four challenges with cause, fix, measured effect:
 
 | Challenge | Fix | Effect |
 | --- | --- | --- |
-| Reconciliation too slow | Blocking index + rare-token fallback | 2,975 ms → 104 ms (29×) |
+| Reconciliation too slow | Blocking index + rare-token fallback | 2,975 ms down to 104 ms (29×) |
 | One model, two engines | Portable types, per-statement view DDL, read-then-write upserts | 0 structural drift, identical DQ score |
 | A failing source killed the run | Per-source isolation | Run becomes `partial`, data stays usable |
 | MySQL DDL invalidates savepoints | One transaction per view statement | 20/20 views on both engines |
@@ -261,7 +261,7 @@ category breakdown. Say: "Sixty-six products, 1,608 price changes in the window,
 
 **2:00–2:30 — Product detail and duplicates (browser)**
 
-Open Products → *Samsung 4K Smart TV 55 inch Plus*. Say: "Price history with 150 observations. The
+Open Products and pick *Samsung 4K Smart TV 55 inch Plus*. Say: "Price history with 150 observations. The
 match strategy is shown — this product was merged with a fuzzy match at 0.98." Open the Duplicate
 candidates tab: "and here is the score breakdown for every near match."
 

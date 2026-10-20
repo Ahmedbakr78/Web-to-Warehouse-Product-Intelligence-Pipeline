@@ -67,7 +67,7 @@ against the marking rubric.
 | Data quality is measured, not claimed | `curl -s localhost:8000/api/v1/quality/latest -H "Authorization: Bearer $TOKEN" \| jq '{score, pass, warn, fail}'` |
 | Deduplication works and is explained | `GET /api/v1/products/1/duplicates` |
 | The model is portable | `make verify-dialects` |
-| The API is secured and stable | `.venv/bin/python scripts/api_smoke.py` → 78/78 |
+| The API is secured and stable | `.venv/bin/python scripts/api_smoke.py` reports 78/78 |
 | Compliance is evidenced | `GET /api/v1/audit/compliance` plus the `ingestion_http_log` table |
 
 ### 1.4 Feedback log (chronological)

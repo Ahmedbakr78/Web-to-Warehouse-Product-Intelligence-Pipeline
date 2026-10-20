@@ -118,12 +118,12 @@ sequenceDiagram
 
 | Message | Type | Cardinality | Notes |
 | --- | --- | --- | --- |
-| `PipelineConfig` | data | 1 → 1 | The only way to start a run |
+| `PipelineConfig` | data | 1 to 1 | The only way to start a run |
 | `fetch(limit)` | call | 1 per source | Generator: the source yields lazily |
 | `can_fetch` | call | 1 per request | Cached per host for `CACHE_TTL_SECONDS` |
 | `acquire(host)` | call | 1 per network request | Blocks until the policy allows it |
 | `transform_product` | call | 1 per record | Pure function; never raises |
-| `find_match` | call | 1 per record | Exact → exact-name → fuzzy cascade |
+| `find_match` | call | 1 per record | Exact, then exact-name, then fuzzy cascade |
 | `insert_snapshot` | call | ≤ 1 per product per run | Second row for the same product is skipped |
 | `evaluate_quality` | call | 1 per run | 12 rule evaluations |
 | `PipelineResult` | return | 1 | Counters, timings, quality, reconciliation, warnings |
@@ -320,13 +320,13 @@ stateDiagram-v2
 
 | Transition | Event written | Table | Condition in code |
 | --- | --- | --- | --- |
-| Candidate → Active | `new` | `chg_product_event` | `previous is None` in `insert_snapshot()` |
-| Active → Active | `recurring` | `chg_product_event` | `previous is not None` and no price change |
-| Active → Active (price) | `chg_price_change` | `chg_price_change` | `change_pct not in (None, 0.0)` |
-| Active → Active (category) | `category_changed` | `chg_product_event` | `previous_category_id != new_category_id` |
-| Active → Suspended | `removed` | `chg_product_event` | `last_seen_at < captured_at - staleness_days` |
-| Suspended → Active | `recurring` | `chg_product_event` | Observed again; `is_active` set back to true |
-| Candidate → Rejected | — | `stg_raw_observation` | `is_valid = false`, `reject_reason` set |
+| Candidate to Active | `new` | `chg_product_event` | `previous is None` in `insert_snapshot()` |
+| Active to Active | `recurring` | `chg_product_event` | `previous is not None` and no price change |
+| Active to Active (price) | `chg_price_change` | `chg_price_change` | `change_pct not in (None, 0.0)` |
+| Active to Active (category) | `category_changed` | `chg_product_event` | `previous_category_id != new_category_id` |
+| Active to Suspended | `removed` | `chg_product_event` | `last_seen_at < captured_at - staleness_days` |
+| Suspended to Active | `recurring` | `chg_product_event` | Observed again; `is_active` set back to true |
+| Candidate to Rejected | — | `stg_raw_observation` | `is_valid = false`, `reject_reason` set |
 | Merged product | `match_strategy = merged` | `dim_product` | `DedupeEngine.merge_into()`; absorbed row keeps `matched_product_id` |
 
 ---
@@ -598,16 +598,16 @@ classDiagram
 
 | Relationship | Cardinality | Where |
 | --- | --- | --- |
-| `ProductSource` → `RawProduct` | 1 → many (lazy) | The source contract yields records |
-| `ProductSource` → `NormalizedProduct` | 1 → 1 | `transform_product(raw)` |
-| `ProductSource` → `CompliantHttpClient` | 1 → 0..1 | Created on first use, closed by `close()` |
-| `Pipeline` → `DedupeEngine` | 1 → 1 per run | Shared across sources so the fingerprint cache is reused |
-| `Pipeline` → `WarehouseLoader` | 1 → 1 per source | Counters merged with `LoadStats.merge()` |
-| `WarehouseLoader` → `NormalizedProduct` | 1 → many | One snapshot per record |
-| `CatalogReconciler` → `CatalogMatchResult` | 1 → many | One per active catalog SKU |
-| `Rule` → `RuleOutcome` | 1 → 1 | Inside a savepoint |
-| `QualityReport` → `RuleOutcome` | 1 → many | 12 per run |
-| `ApiRouter` → models | 1 → many | Routers select from models; the class diagram shows no `DedupeEngine` dependency in the serving layer, which is deliberate |
+| `ProductSource` to `RawProduct` | 1 to many (lazy) | The source contract yields records |
+| `ProductSource` to `NormalizedProduct` | 1 to 1 | `transform_product(raw)` |
+| `ProductSource` to `CompliantHttpClient` | 1 to 0..1 | Created on first use, closed by `close()` |
+| `Pipeline` to `DedupeEngine` | 1 to 1 per run | Shared across sources so the fingerprint cache is reused |
+| `Pipeline` to `WarehouseLoader` | 1 to 1 per source | Counters merged with `LoadStats.merge()` |
+| `WarehouseLoader` to `NormalizedProduct` | 1 to many | One snapshot per record |
+| `CatalogReconciler` to `CatalogMatchResult` | 1 to many | One per active catalog SKU |
+| `Rule` to `RuleOutcome` | 1 to 1 | Inside a savepoint |
+| `QualityReport` to `RuleOutcome` | 1 to many | 12 per run |
+| `ApiRouter` to models | 1 to many | Routers select from models; the class diagram shows no `DedupeEngine` dependency in the serving layer, which is deliberate |
 
 ---
 

@@ -56,9 +56,9 @@ flowchart LR
 
 ### Selection and fallback
 
-- Enough history for a seasonal fit → the seasonal model.
-- Enough for a trend, not for seasonality → damped trend only.
-- Too little history → a flat series with the bands widened to match the
+- Enough history for a seasonal fit gives the seasonal model.
+- Enough for a trend but not for seasonality gives a damped trend only.
+- Too little history gives a flat series with the bands widened to match the
   observed volatility. A flat line is honest; a fabricated curve is not.
 
 ---

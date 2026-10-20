@@ -72,7 +72,7 @@ existing requirement and 2 were rejected as infeasible in scope.
 | P7 | "I need to explain to compliance why we fetched what we fetched." | HTTP audit log and compliance report (FR-015, FR-016) |
 | P8 | "Our IT department says PostgreSQL; finance says MySQL. Pick one." | Dual-dialect support (FR-011) |
 
-### 2.3 Stakeholder → requirement view
+### 2.3 Stakeholder-to-requirement view
 
 ```mermaid
 flowchart LR
@@ -258,7 +258,7 @@ flowchart LR
 | 3 | Source | `fetch(limit)` yields `RawProduct` lazily, obeying robots + rate limit | Per-source exception becomes a run warning; run becomes `partial` |
 | 4 | Loader | `stage()` writes `stg_raw_observation` in batches of `PIPELINE_BATCH_SIZE` | Batch failure aborts the source only |
 | 5 | Cleaner | `transform_product()` returns a valid/invalid record with flags | Never raises; `reject_reason` recorded |
-| 6 | Dedupe | `DedupeEngine.find_match()` → exact → blocked exact → fuzzy | `SourceNotFoundError` only for an unknown code |
+| 6 | Dedupe | `DedupeEngine.find_match()`: exact, then blocked exact, then fuzzy | `SourceNotFoundError` only for an unknown code |
 | 7 | Loader | `upsert_product()` writes `dim_product` and logs `category_changed` | Category change never blocks the load |
 | 8 | Loader | `insert_snapshot()` appends the snapshot and any `chg_price_change` | Duplicate `(product_id, run_id)` prevented by unique constraint |
 | 9 | Loader | `detect_removed()` flags products unseen for `stale_after_days` | Skipped when `skip_removed` is set |
@@ -314,7 +314,7 @@ flowchart LR
 | FR-039 | Persist every DQ outcome for trend analysis | MoSP | Implemented | `dq_rule_result`, `GET /api/v1/quality/trend` |
 | FR-040 | Provide KPI cards, daily trend and category/brand leaderboards | MoSP | Implemented | `GET /api/v1/analytics/*` |
 | FR-041 | Authenticate with email and password and issue JWT access + refresh tokens | MoSP | Implemented | `POST /api/v1/auth/login`, `refresh` |
-| FR-042 | Lock an account after repeated failed logins | Should | Implemented | 5 attempts → 15-minute lock |
+| FR-042 | Lock an account after repeated failed logins | Should | Implemented | 5 attempts, then a 15-minute lock |
 | FR-043 | Enforce three roles with least-privilege rights | MoSP | Implemented | `ROLE_RIGHTS`, `require_rights()` |
 | FR-044 | Support revocable, hashed API keys for machine clients | Should | Implemented | `POST /api/v1/users/{id}/api-keys` |
 | FR-045 | Let users store and share filter presets | Should | Implemented | `app_saved_view`, `/api/v1/saved-views` |
@@ -416,9 +416,9 @@ Every functional requirement maps to the implementing module and to a verificati
 | FR-011 | `app/core/db.py`, `app/models/`, `bootstrap.apply_views()` | `make verify-dialects` |
 | FR-012 | `robots.RobotsCache.can_fetch()`, `http_client.get()` | `GET /api/v1/sources/robots` |
 | FR-013 | `ratelimit.RateLimiter`, `HostState.effective_delay` | `get_shared_limiter().stats()` |
-| FR-014 | `http_client.get()` → `ComplianceError` | Source preview against a disallowed path |
+| FR-014 | `http_client.get()` raises `ComplianceError` | Source preview against a disallowed path |
 | FR-015 | `http_client._read_cache()` / `_write_cache()` | `from_cache` column in the audit summary |
-| FR-016 | `http_client._record()` → `ingestion_http_log` | `GET /api/v1/audit/http` |
+| FR-016 | `http_client._record()` writes to `ingestion_http_log` | `GET /api/v1/audit/http` |
 | FR-017 | `bootstrap.sync_dim_source()`, `dim_source.terms_allowed` | `GET /api/v1/pipeline/sources/status` |
 | FR-018 | `app/models/operations.py:EtlRun`, `vw_pipeline_health` | `GET /api/v1/pipeline/runs` |
 | FR-019 | `dags/product_intelligence_pipeline.py` | `make airflow-test` |
@@ -452,7 +452,7 @@ Every functional requirement maps to the implementing module and to a verificati
 | FR-047 | `routers/notifications.py`, `app_notification` | Smoke check `GET /api/v1/notifications` |
 | FR-048 | `routers/analytics.py:export_products` | Smoke check `analytics/export/products.csv` |
 | FR-049 | `app_audit_log`, `routers/audit.py` | `GET /api/v1/audit` (admin) |
-| FR-050 | `routers/queries.py`, `schemas.QueryRequest` | Smoke checks: `SELECT 1` → 200, `DELETE …` → 422 |
+| FR-050 | `routers/queries.py`, `schemas.QueryRequest` | Smoke checks: `SELECT 1` returns 200, `DELETE …` returns 422 |
 | FR-051 | `routers/settings.py`, `app_setting` | `GET /api/v1/settings/groups` |
 | FR-052 | `app_users.AppUser` preferences, `routers/users.py:update_me` | Smoke check `PATCH /api/v1/users/me` |
 | FR-053 | `routers/users.py` | `GET /api/v1/users`, `GET /api/v1/users/stats` |
@@ -463,7 +463,7 @@ Every functional requirement maps to the implementing module and to a verificati
 | FR-058 | — | Out of scope by decision (docs/01 §3.2) |
 | FR-059 | — | Out of scope by decision (docs/01 §3.2) |
 
-### 8.1 Reverse traceability (module → requirements)
+### 8.1 Reverse traceability (module to requirements)
 
 | Module | Requirements |
 | --- | --- |

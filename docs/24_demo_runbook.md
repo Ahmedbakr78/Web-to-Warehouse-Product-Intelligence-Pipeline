@@ -71,7 +71,7 @@ make frontend-build               # production bundle compiles
 | Demo data present | Dashboard shows 8 KPI tiles with values | `make demo-postgres` |
 | Pipeline run succeeded | Runs screen shows `success` | `make run-pipeline`, read the warning banner |
 | Login works | Dashboard loads after sign-in | `make bootstrap` reseeds the admin account |
-| Reduced motion off | No animation on navigation | Account → Appearance → reduce motion |
+| Reduced motion off | No animation on navigation | Account, then Appearance, then reduce motion |
 | Browser zoom | Set to 100 % | A zoomed browser breaks the layout on a projector |
 
 **Close everything else.** Notifications, a running IDE and a half-used terminal
@@ -201,8 +201,8 @@ it is the strongest single answer to "is this scraping defensible?"
 
 | Situation | Plan | Cut |
 | --- | --- | --- |
-| 3 minutes | Dashboard → Products (one detail) → Catalog match → Audit | Analytics, Changes, Runs, DQ, Query lab |
-| 5 minutes | Dashboard → Products → Changes → Catalog match → Runs → Audit | Analytics, Categories, DQ, Query lab |
+| 3 minutes | Dashboard, then Products (one detail), then Catalog match, then Audit | Analytics, Changes, Runs, DQ, Query lab |
+| 5 minutes | Dashboard, then Products, then Changes, then Catalog match, then Runs, then Audit | Analytics, Categories, DQ, Query lab |
 | 15 minutes | Full walkthrough, then open the floor | Nothing |
 
 **If you are running long,** cut in this order: Analytics, Categories, Builder,

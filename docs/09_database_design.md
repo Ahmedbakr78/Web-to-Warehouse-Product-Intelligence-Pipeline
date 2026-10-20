@@ -576,7 +576,7 @@ stages complete.
 | Entities | `PRODUCT`, `CATEGORY`, `SOURCE`, `CURRENCY`, `DATE`, `PRICE OBSERVATION`, `CATALOG ITEM`, `RUN`, `DATA QUALITY RESULT`, `USER` | 23 tables listed in §2 |
 | Keys | Surrogate integer keys for facts and dimensions; natural keys for reference data (`dim_source.source_code`, `dim_currency.currency_code`, `catalog_product.sku`, `app_setting.key`) | Integer `PRIMARY KEY AUTO_INCREMENT` on PostgreSQL/MySQL; `INTEGER PRIMARY KEY` on SQLite; natural keys are declared directly as primary keys |
 | Attributes | Abstract types (identifier, money, measure, timestamp, category, text) | Concrete types chosen for portability: `VARCHAR(128/512/2048)`, `NUMERIC(18,4)`, `FLOAT`, `JSON`, `DATETIME`, `BOOLEAN`, `BIGINT` |
-| Relationships | One product → many observations; one category → many products; one run → many facts | Implemented with declared foreign keys (18 of them) and covered by indexes |
+| Relationships | One product to many observations; one category to many products; one run to many facts | Implemented with declared foreign keys (18 of them) and covered by indexes |
 | Integrity | Business rules (grain, thresholds, lifecycle) | `UNIQUE` constraints, `CHECK`-by-rule (DQ rules), `NOT NULL`, cascade rules |
 | Derived data | Category rollups, current price, movement percentages | `agg_category_daily` (materialised aggregate) plus 20 views (logical projections) |
 | Security | Roles and rights | 7 `app_*` tables plus the `ROLE_RIGHTS` dictionary in code |

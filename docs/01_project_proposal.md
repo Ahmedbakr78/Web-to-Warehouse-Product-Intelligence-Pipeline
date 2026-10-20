@@ -121,7 +121,7 @@ Objectives are written as SMART goals so that success can be measured rather tha
 | Warehouse | 23 tables in 6 groups, 20 analytical views, category/day aggregate | `app/models/`, `db/views.sql` |
 | Analytics | 21 query functions serving KPIs, trends, leaderboards, movers, drift, compliance | `app/analytics/service.py` |
 | Change detection | Price change, new, recurring, removed, category-changed events with magnitude bands | `app/etl/loader.py`, `app/etl/catalog_reconcile.py` |
-| Catalog reconciliation | 3-stage match cascade (SKU → normalised name → fuzzy), price-gap analysis | `app/etl/catalog_reconcile.py` |
+| Catalog reconciliation | 3-stage match cascade (SKU, then normalised name, then fuzzy), price-gap analysis | `app/etl/catalog_reconcile.py` |
 | Data quality | 12 rules, 6 dimensions, weighted score, persistence of every outcome | `app/etl/dq.py` |
 | Orchestration | Airflow DAG with 2 short-circuit guards, branching notification path, report artifact | `dags/product_intelligence_pipeline.py` |
 | API | 16 routers, 113 documented operations, JWT + API key auth, 3 roles, pagination, OpenAPI | `app/api/` |
@@ -395,7 +395,7 @@ flowchart LR
 | --- | --- |
 | `02_project_plan.md` | The 12-week schedule, milestones and Gantt chart |
 | `05_kpis.md` | How each success criterion is measured, with runnable SQL |
-| `07_requirements_gathering.md` | User stories, acceptance criteria and the FR → module traceability matrix |
+| `07_requirements_gathering.md` | User stories, acceptance criteria and the FR-to-module traceability matrix |
 | `08_system_analysis_design.md` | Use cases and the software architecture |
 | `09_database_design.md` | The 23-table ERD and normalisation argument |
 | `17_technical_documentation.md` | Module map, algorithms and the configuration reference |

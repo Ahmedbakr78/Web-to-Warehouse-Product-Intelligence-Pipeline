@@ -34,7 +34,7 @@ so each screen is implementable — and verifiable — directly against the spec
 | # | Principle | Consequence in the interface |
 | --- | --- | --- |
 | P1 | Data first | No hero images, no gradients behind text, no decorative illustration. The chart or table is the page |
-| P2 | Overview, then zoom, then detail | Dashboard KPI cards → filtered lists → product drawer |
+| P2 | Overview, then zoom, then detail | Dashboard KPI cards, then filtered lists, then the product drawer |
 | P3 | Filters are visible, never hidden | Filters live in a left rail on desktop and in a collapsible sheet on mobile; the active filter count is always shown |
 | P4 | Show the provenance of every number | Screens display the run id, the observation window and the data-quality score where a number appears |
 | P5 | Silent by default | No spinners that flash, no skeleton shimmer, no auto-refresh animation, no page transitions beyond an instant swap |
@@ -556,7 +556,7 @@ token-free shell immediately (no page reload).
 
 ### 6.3 Colour usage rules
 
-1. Colour is never the only carrier of meaning: a price drop shows `▼ -2.3 %` with a down arrow and
+1. Colour is never the only carrier of meaning: a price drop shows `-2.3 %` with a down-arrow icon and
    the `danger` colour; a `warn` DQ rule shows the word `warn`.
 2. Status colours map to data, not to decoration: `success` = price down / rule pass / in stock;
    `danger` = price up / rule fail; `warning` = warn severity or an unmatched catalog row.

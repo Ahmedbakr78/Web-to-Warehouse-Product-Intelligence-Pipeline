@@ -327,7 +327,7 @@ flowchart TB
 
 | Step | Behaviour |
 | --- | --- |
-| Open savepoint | `Rule.run()` → `session.begin_nested()` |
+| Open savepoint | `Rule.run()` opens `session.begin_nested()` |
 | Evaluate | The rule's SQL runs against the run's data |
 | Classify | `_status(observed, threshold)`: pass if ≥ threshold (or ≤ for "lower is better"), warn within 5 % of the threshold, otherwise fail |
 | Persist | `dq_rule_result` row with observed, expected, threshold, counts and message |
@@ -416,7 +416,7 @@ Control flows decide *when* data flows; they are the reason the pipeline degrade
 
 | Control | Decision | Result |
 | --- | --- | --- |
-| Robots gate | `decision.allowed` | `true` → fetch; `false` → raise `ComplianceError`, log, skip the URL |
+| Robots gate | `decision.allowed` | `true` fetches; `false` raises `ComplianceError`, logs, and skips the URL |
 | Circuit breaker | 5 consecutive host failures | Subsequent requests to that host raise `IngestionError` without network I/O |
 | Rate limiter | Token bucket + sliding window + crawl delay | The call sleeps until it is legal to proceed |
 | Source isolation | Exception inside `_process_source()` | Recorded in `sources_failed`; run continues and becomes `partial` |

@@ -80,7 +80,7 @@ collapse in `etl_run.duplicates_merged`.
 
 | Source | Key claim | How this project applies it |
 | --- | --- | --- |
-| RFC 9309 (2022) | `robots.txt` is a **standard for exclusion**: an unavailable file (4xx) means *allow all*, an authorisation failure (401/403) is treated as **complete disallow**, and crawlers must use a matching user-agent token | Implemented literally in `RobotsCache._load()`: 4xx → synthetic allow-all parser, 401/403 → `None` parser (treated as blocked), 5xx/network error → cached failure; `can_fetch()` matches the agent token before falling back to `*` |
+| RFC 9309 (2022) | `robots.txt` is a **standard for exclusion**: an unavailable file (4xx) means *allow all*, an authorisation failure (401/403) is treated as **complete disallow**, and crawlers must use a matching user-agent token | Implemented literally in `RobotsCache._load()`: 4xx gives a synthetic allow-all parser, 401/403 gives a `None` parser (treated as blocked), 5xx/network error gives a cached failure; `can_fetch()` matches the agent token before falling back to `*` |
 | RFC 9309 (2022) | `Crawl-delay` is a non-standard but widely honoured directive | `RobotsDecision.crawl_delay` is pushed into the rate limiter with `RateLimiter.set_crawl_delay()`, and the limiter takes the **slowest** of the global delay, the per-minute budget and the crawl delay (`HostState.effective_delay`) |
 | Klyne & Fielding (1999) | `Retry-After` is the standard way for a server to ask a client to slow down | `_parse_retry_after()` handles both the delay-seconds and the HTTP-date form; a 429/5xx triggers `RateLimiter.penalise()` for the requested duration |
 | RFC 9110 (2022) | Idempotent GET requests are the safe target for a poller; the client identifies itself honestly | `INGEST_USER_AGENT` names the bot and publishes a contact address; only `GET` is used |
@@ -117,13 +117,13 @@ cost is one extra lookup per request, mitigated by a per-host cache with a 1,800
 | Jaro (1995) | The Jaro similarity is robust to transpositions and single-character typos, and is normalised by string length | Implemented in `jaro()`; used through `jaro_winkler()` on the compacted forms so that "256GB" and "256 GB" match |
 | Winkler (1994) | A prefix bonus improves the Jaro measure for record-linkage use where strings share a common beginning (surnames, model names) | `jaro_winkler(prefix_scale=0.1, max_prefix=4)`; the bonus is only applied when the base Jaro score exceeds 0.7, per the original description |
 | Cohen, Ravikumar & Fienberg (2003) / Cohen & Fielding (2007) | No single string metric is universally best; **combining metrics** (edit distance, Jaro-Winkler, token-set) beats any individual measure | The blend `0.20·token_set + 0.15·jaro_winkler + 0.10·trigram + 0.05·levenshtein + 0.20·compact + 0.30·squash` implements exactly that recommendation, with `max(blend, character_evidence·0.97)` allowing a decisive character-level match to short-circuit |
-| Christen (2012) | Record linkage needs **blocking, comparison, classification and evaluation** as distinct stages; duplicate *detection* differs from linkage by removing the assumption that a true match exists | Blocking (§4.1) → comparison (`combined_similarity`) → classification (threshold 0.90) → evaluation (14-case accuracy KPI, `duplicates_in_iterable()` for offline inspection) |
+| Christen (2012) | Record linkage needs **blocking, comparison, classification and evaluation** as distinct stages; duplicate *detection* differs from linkage by removing the assumption that a true match exists | Blocking (§4.1), then comparison (`combined_similarity`), then classification (threshold 0.90), then evaluation (14-case accuracy KPI, `duplicates_in_iterable()` for offline inspection) |
 | Herzog, Scheuren & Winkler (2010) | Blocking is a **quality/time trade-off**: overly aggressive blocking creates false negatives that are invisible | The `_build_indexes()` fallback matters: when the prefix pool is smaller than `min_pool`, a rare-token pre-filter widens the pool, and only then does the code fall back to a bounded slice — blocking can only *widen* the candidate set, never silently narrow it below a floor |
 | Bertoluzza et al. / product-entity literature (see §9) | Product entity resolution differs from person-name resolution: model numbers, units and packaging are semantically decisive | The **digit-signature guard** (`digit_signature`, `digit_signature_factor`) penalises any difference in digit runs, which is what keeps "Canon EOS R6" and "EOS R5" apart (measured 0.8121 and 0.8034 respectively, both below the 0.90 threshold) |
 
 ### 4.2 Decision influenced
 
-Threshold selection is treated as a **measured parameter** rather than folklore: `DEDUPE_SIMILARITY_THRESHOLD=0.90` is validated in `app/core/config.py` (`_clamp_threshold` raises if outside 0–1), exposed in the API metadata (`GET /api/v1/meta` → `limits.dedupe_threshold`), and is reported in the KPI table of `docs/05_kpis.md`. The blend weights, the brand term (`score·0.88 + brand·0.12`) and the category bonus (`+0.03`) are all constants in one function, so a future calibration study only has to change one place.
+Threshold selection is treated as a **measured parameter** rather than folklore: `DEDUPE_SIMILARITY_THRESHOLD=0.90` is validated in `app/core/config.py` (`_clamp_threshold` raises if outside 0–1), exposed in the API metadata (`GET /api/v1/meta` exposes `limits.dedupe_threshold`), and is reported in the KPI table of `docs/05_kpis.md`. The blend weights, the brand term (`score·0.88 + brand·0.12`) and the category bonus (`+0.03`) are all constants in one function, so a future calibration study only has to change one place.
 
 ---
 
@@ -144,7 +144,7 @@ Threshold selection is treated as a **measured parameter** rather than folklore:
 
 Two design decisions came directly from this literature:
 
-1. **Rules must never abort a run.** Each rule evaluates inside a `SAVEPOINT` (`Rule.run()` →
+1. **Rules must never abort a run.** Each rule evaluates inside a `SAVEPOINT` (`Rule.run()` opens
    `session.begin_nested()`); a broken rule is recorded as `fail` with the exception text and the
    pipeline continues. This mirrors the Great Expectations principle that a validation failure is a
    *result*, not a crash.
@@ -187,7 +187,7 @@ smoke test can trigger a run with `limit_per_source=2` in a couple of seconds.
 | --- | --- | --- |
 | WCAG 2.1 (W3C, 2018) | Success criteria 1.4.3 (contrast), 1.4.11 (non-text contrast), 2.1.1 (keyboard), 2.4.7 (focus visible), 4.1.2 (name, role, value) are the AA baseline for a data application | The design system in `docs/12_ui_ux_design.md` specifies ≥ 4.5:1 text contrast, visible focus rings, keyboard-reachable table controls and ARIA live regions for asynchronous pipeline state |
 | Kimball & Ross (2013) | Business users should be able to **self-serve** through a semantic layer, not through IT tickets | The Query Lab (`POST /api/v1/queries/execute`) exposes the 20 views to analysts behind a read-only guard, with five starter queries returned by `GET /api/v1/queries/examples` |
-| Shneiderman (1996) | Overview first, zoom and filter, then details-on-demand — the " mantra" of interactive visual analysis | The dashboard follows it literally: KPI cards (overview) → trend and leaderboard charts (zoom) → product detail with price history and catalog links (details) |
+| Shneiderman (1996) | Overview first, zoom and filter, then details-on-demand — the " mantra" of interactive visual analysis | The dashboard follows it literally: KPI cards (overview), then trend and leaderboard charts (zoom), then product detail with price history and catalog links (details) |
 | Tufte (2001) | **Data-ink ratio**: remove everything that is not data | Dense tables, no decorative gradients, no gratuitous animation; the motion policy is "silent by default" |
 | TanStack Query documentation (2024) | Server state needs explicit caching, invalidation and retry policy | Dashboard reads are declared per screen with a stale window in doc 12 so that a pipeline run can invalidate exactly the affected panels |
 | Recharts / lucide-react documentation | Composable chart primitives and a consistent icon set reduce visual noise | Doc 12 fixes the icon set and the chart types per screen |
@@ -196,7 +196,7 @@ smoke test can trigger a run with `limit_per_source=2` in a couple of seconds.
 
 ### 7.2 Decision influenced
 
-Three roles with a strict capability ladder (viewer → analyst → admin) follow the principle of least
+Three roles with a strict capability ladder (viewer, then analyst, then admin) follow the principle of least
 privilege; `ROLE_RIGHTS` in `app/api/security.py` is a single dictionary that drives both the API
 dependency `require_rights(...)` and the permission list returned to the UI, so the front end can
 hide controls it cannot use without duplicating policy.

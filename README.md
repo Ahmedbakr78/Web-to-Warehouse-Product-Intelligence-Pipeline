@@ -177,7 +177,7 @@ Everything is engineered like a production system, not a demo:
 12 data-quality rules across 6 dimensions, weighted score persisted per run
 35 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
 14 CLI commands  |  6 Docker Compose services  |  33 documents  |  83 Mermaid diagrams
-592 tests  |  104/104 API smoke checks  |  575 catalogued features
+594 tests  |  104/104 API smoke checks  |  575 catalogued features
 ```
 
 | Metric | Count |
@@ -195,7 +195,7 @@ Everything is engineered like a production system, not a demo:
 | Numbered documents      | 33 |
 | Mermaid diagrams        | 83 |
 | Catalogued features     | 575 |
-| Collected test cases    | 592 |
+| Collected test cases    | 594 |
 | API smoke checks        | 104 |
 
 <!-- END:STATS -->
@@ -1316,7 +1316,7 @@ All configuration arrives through environment variables (`.env.example` document
 | **Login / 404** | brand panel, demo-account picker, theme switch, friendly not-found screen |
 
 Every screen is reachable from the sidebar (which becomes an off-canvas drawer on small screens), from
-the command palette (<kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>K</kbd> or <kbd>/</kbd>), and from the mobile
+the command palette (<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>K</kbd> or <kbd>/</kbd>), and from the mobile
 menu. Nothing depends on hover, and every icon-only control carries an accessible label.
 
 Light + dark captures follow the procedure in [docs/screenshots/](docs/screenshots/) (one PNG per
@@ -1618,7 +1618,7 @@ catalogue — so this table can never drift from the shipped record.
 
 | # | Member | GitHub | Role | Weight |
 |---|--------|--------|------|-------|
-| 1 | Ahmed (78102) | [@Ahmedbakr78](https://github.com/Ahmedbakr78) | 👑 Team Lead + Backend/API + Documentation + 9 ETL Stages Owner | 28% |
+| 1 | Ahmed (78102) | [@Ahmedbakr78](https://github.com/Ahmedbakr78) | Team Lead + Backend/API + Documentation + 9 ETL Stages Owner | 28% |
 | 2 | Ahmed Abd alla | [@01124758140](https://github.com/01124758140) | Ingestion & Compliance Lead | 15% |
 | 3 | Ahmed Medhat | [@AhmedMedhatFarouk](https://github.com/AhmedMedhatFarouk) | ETL & Cleaning Lead | 14% |
 | 4 | Eng. Alaa Nasser | [@AlaaNasser-tech](https://github.com/AlaaNasser-tech) | Database & Data Quality Lead | 14% |
@@ -1667,7 +1667,7 @@ curl -s localhost:8000/api/v1/meta/team | python3 -c \
 **Description (paste into About):**
 > End-to-end product intelligence pipeline: permitted web/API ingestion → cleaning → duplicate detection → PostgreSQL warehouse with price history → SQL analytics → Airflow orchestration → FastAPI + dashboard. DEPI Data Engineering capstone.
 
-**Topics (About → ⚙ → Topics):**
+**Topics (About, gear icon, Topics):**
 `web-scraping, beautifulsoup, scrapy, etl, data-engineering, airflow, postgresql, fastapi, python, data-quality, deduplication, price-tracking, data-warehouse, docker, plotly, streamlit, rest-api, depi, data-pipeline, sql-analytics`
 
 **Make private (the owner runs this — nobody else can click it for you):**

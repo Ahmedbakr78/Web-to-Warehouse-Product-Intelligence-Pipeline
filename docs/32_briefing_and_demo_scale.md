@@ -47,7 +47,7 @@ Every insight has the same shape:
   "kind": "opportunity",
   "severity": "high",
   "title": "Product name",
-  "detail": "Category · $19.00 → $15.20 on source_code",
+  "detail": "Category · $19.00 to $15.20 on source_code",
   "metric": "-20.0%",
   "delta": -20.0,
   "icon": "trending-down",
@@ -73,7 +73,7 @@ within two minutes.
 
 ### Account defaults
 
-`Account → Preferences` persists `briefing_window` and `briefing_size` in the
+`Account, then Preferences`, persists `briefing_window` and `briefing_size` in the
 profile's `preferences` JSON. `/briefing` reads them on mount, so every device
 opens the same window and queue length.
 
@@ -129,7 +129,7 @@ and `dim_source` counters are refreshed.
   seed history
 - Catalog SKUs: **13,000**
 - Sources reporting: **31 of 34**
-- Postgres size: ~90 MB at the original seed → substantially larger after the
+- Postgres size: ~90 MB at the original seed, substantially larger after the
   expansion (measure with `docker exec pip-postgres psql -U pip -d pipeline -c
   "SELECT pg_size_pretty(pg_database_size('pipeline'));"`).
 

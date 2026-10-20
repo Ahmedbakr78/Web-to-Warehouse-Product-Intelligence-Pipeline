@@ -24,10 +24,10 @@ could not do.
 
 | Role | Read | Write | Query | Run pipeline | Manage users |
 | --- | --- | --- | --- | --- | --- |
-| `admin` | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `engineer` | ✓ | ✓ | ✓ | ✓ | — |
-| `analyst` | ✓ | ✓ | ✓ | — | — |
-| `viewer` | ✓ | — | — | — | — |
+| `admin` | Yes | Yes | Yes | Yes | Yes |
+| `engineer` | Yes | Yes | Yes | Yes | — |
+| `analyst` | Yes | Yes | Yes | — | — |
+| `viewer` | Yes | — | — | — | — |
 
 Rights are declared once in `ROLE_RIGHTS` and enforced by a dependency factory:
 
@@ -51,7 +51,7 @@ decorative: stored on creation and never read.
 
 ```mermaid
 flowchart TD
-  request[request with pip_ key] --> resolve[resolve key → owner]
+  request[request with pip_ key] --> resolve[resolve key to owner]
   resolve --> check1{owner has the right?}
   check1 -->|no| 403[403 permission_denied]
   check1 -->|yes| check2{key carries the scope?}

@@ -156,7 +156,7 @@ flowchart TB
 | **Preconditions** | Target database reachable; at least one source enabled and allowed by its terms |
 | **Postconditions** | `etl_run` row with status, counters, DQ score; snapshots, changes and events written; `sync_state` and `dim_source` statistics updated; HTTP audit rows written |
 | **Main success scenario** | 1. The runner creates an `etl_run` row (status `running`, trigger recorded). 2. For each enabled source the dimension row is ensured, records are extracted under the robots gate and rate limit, and raw payloads are staged. 3. Each record is cleaned, normalised, priced and validated; invalid records are rejected with a reason. 4. Duplicates are resolved to a canonical product. 5. One snapshot per product is appended and price changes are recorded. 6. Products unseen for the staleness window are marked removed. 7. Category-day aggregates are refreshed. 8. The catalog is reconciled and price gaps stored. 9. Twelve DQ rules are evaluated and persisted. 10. The run is finalised: counters, duration, status. |
-| **Alternative flows** | A source fails → warning recorded, run marked `partial`, remaining sources continue. Catalog is empty → reconciliation skipped. DQ critical rule fails → run marked `failed`. |
+| **Alternative flows** | A source fails and a warning is recorded, the run is marked `partial`, remaining sources continue. An empty catalog means reconciliation is skipped. A failed DQ critical rule marks the run `failed`. |
 | **Post-conditions on failure** | `etl_run.error_message` and `warnings` carry the reason; already committed work stays committed (stage-level granularity is per source). |
 
 ### UC-04 — Resolve duplicates to a canonical product
@@ -167,8 +167,8 @@ flowchart TB
 | **Primary actor** | Pipeline |
 | **Goal** | Ensure one canonical row per real-world product |
 | **Precondition** | A normalised record with a fingerprint and a blocking key |
-| **Main success scenario** | 1. Compute `fingerprint = sha1(brand_key|name_key)[:32]`. 2. If the fingerprint is known → strategy `exact`, score 1.0. 3. Else look for a row with the same `normalized_name` → strategy `blocked_exact`. 4. Else load the blocking candidates (prefix `blocking_key`) and score each with `combined_similarity()`. 5. If the best score ≥ 0.90 → strategy `fuzzy` with the score and the per-measure breakdown. 6. Otherwise → strategy `new`; the loader inserts a new `dim_product`. |
-| **Alternative flow** | Two upstream rows in the same run resolve to the same product → the second snapshot is skipped and `duplicates_merged` is incremented (protects the fact grain). |
+| **Main success scenario** | 1. Compute `fingerprint = sha1(brand_key|name_key)[:32]`. 2. If the fingerprint is known, the strategy is `exact` with score 1.0. 3. Otherwise a row with the same `normalized_name` gives the strategy `blocked_exact`. 4. Else load the blocking candidates (prefix `blocking_key`) and score each with `combined_similarity()`. 5. If the best score is ≥ 0.90, the strategy is `fuzzy` with the score and the per-measure breakdown. 6. Otherwise the strategy is `new`; the loader inserts a new `dim_product`. |
+| **Alternative flow** | Two upstream rows in the same run resolve to the same product, so the second snapshot is skipped and `duplicates_merged` is incremented (protects the fact grain). |
 | **Postcondition** | `dim_product.match_strategy`, `match_score` and `observation_count` reflect the decision; the merge is auditable. |
 
 ### UC-07 — Evaluate data quality
@@ -180,7 +180,7 @@ flowchart TB
 | **Goal** | Produce an auditable quality verdict for the run |
 | **Trigger** | End of every run, `POST /api/v1/pipeline/quality` equivalent (`pip-cli quality`), DAG task `data_quality_gate` |
 | **Main success scenario** | 1. For each of the 12 rules, open a SAVEPOINT. 2. Evaluate the rule SQL. 3. Compute the status from the threshold (`_status`, with a ±5 % warn band). 4. Persist the outcome in `dq_rule_result`. 5. Compute the severity-weighted score. 6. If a **critical** rule failed, mark the run `failed`. |
-| **Alternative flow** | A rule raises → the SAVEPOINT is rolled back and the outcome is recorded as `fail` with the exception message; the remaining rules still run. |
+| **Alternative flow** | A rule raises, the SAVEPOINT is rolled back and the outcome is recorded as `fail` with the exception message; the remaining rules still run. |
 | **Postcondition** | `dq_rule_result` rows, `etl_run.dq_score`, `dq_passed`, `dq_failed`; the Quality screen shows the trend. |
 
 ### UC-08 — Reconcile with the internal catalog
@@ -190,8 +190,8 @@ flowchart TB
 | **Use case ID** | UC-08 |
 | **Primary actor** | Pipeline; secondary: merchandiser |
 | **Goal** | Match each internal SKU to a scraped product and quantify the price gap |
-| **Main success scenario** | 1. Load active catalog rows (≤ 5,000). 2. Load active, recently seen products as candidates and their latest price. 3. Build blocking indexes (4-char prefix and token index). 4. For each SKU: try identifier match → normalised-name match → fuzzy match inside a narrowed pool. 5. Compute `price_gap_abs` and `price_gap_pct`; flag `is_price_mismatch` when the gap ≥ 1 %. 6. Persist the row in `fact_catalog_snapshot`. |
-| **Alternative flow** | No candidate ≥ 0.86 → status `unmatched`, product id null (an internal-only SKU). |
+| **Main success scenario** | 1. Load active catalog rows (≤ 5,000). 2. Load active, recently seen products as candidates and their latest price. 3. Build blocking indexes (4-char prefix and token index). 4. For each SKU: try an identifier match, then a normalised-name match, then a fuzzy match inside a narrowed pool. 5. Compute `price_gap_abs` and `price_gap_pct`; flag `is_price_mismatch` when the gap ≥ 1 %. 6. Persist the row in `fact_catalog_snapshot`. |
+| **Alternative flow** | No candidate at 0.86 or above means status `unmatched` with a null product id (an internal-only SKU). |
 | **Postcondition** | Reconciliation summary: total, matched, unmatched, match rate, price mismatches, average similarity, strategy mix. |
 
 ### UC-10 — Authenticate and authorise
@@ -201,7 +201,7 @@ flowchart TB
 | **Use case ID** | UC-10 |
 | **Primary actor** | Any authenticated user |
 | **Main success scenario** | 1. Post email + password. 2. Look up the user; refuse if unknown or locked. 3. Verify the Argon2id hash (rehash if the parameters changed). 4. Reset the failure counter, update `login_count`, `last_login_at`, `last_login_ip`. 5. Issue an access token (12 h) and a refresh token (30 d). 6. Write an audit row and a welcome notification. |
-| **Alternative flows** | Wrong password → increment `failed_login_count`; at 5, lock for 15 minutes. Inactive user → `401`. Refresh → validate the token type is `refresh`, then re-issue. |
+| **Alternative flows** | A wrong password increments `failed_login_count`; at 5, the account locks for 15 minutes. An inactive user gets `401`. A refresh must validate the token type is `refresh`, then re-issue. |
 | **Postcondition** | Bearer token usable on every protected endpoint; permissions derived from the role. |
 
 ### UC-14 — Run a read-only query
@@ -210,8 +210,8 @@ flowchart TB
 | --- | --- |
 | **Use case ID** | UC-14 |
 | **Primary actor** | Analyst or admin (requires the `query` right) |
-| **Main success scenario** | 1. Validate the statement: must start with `SELECT`, `WITH` or `EXPLAIN` and must not contain a write keyword, a comment or a second statement. 2. Execute with a row cap (`limit`, default 200, max 5,000). 3. Serialise values (Decimal → float, date → ISO 8601, bytes → size placeholder). 4. Return columns, rows, `row_count`, `duration_ms` and `truncated`. |
-| **Alternative flows** | Invalid SQL → `422`; viewer role → `403`. |
+| **Main success scenario** | 1. Validate the statement: must start with `SELECT`, `WITH` or `EXPLAIN` and must not contain a write keyword, a comment or a second statement. 2. Execute with a row cap (`limit`, default 200, max 5,000). 3. Serialise values (Decimal becomes float, date becomes ISO 8601, bytes becomes a size placeholder). 4. Return columns, rows, `row_count`, `duration_ms` and `truncated`. |
+| **Alternative flows** | Invalid SQL gives `422`; the viewer role gives `403`. |
 
 ---
 
@@ -443,8 +443,8 @@ A **layered architecture** with three classic concerns composed:
 
 | Concern | Style applied | Where |
 | --- | --- | --- |
-| Data movement | **Batch ETL** (extract → stage → transform → load → analyse) with a raw landing zone | `app/etl/pipeline.py`, `stg_raw_observation` |
-| Serving | **Layered REST API** (routers → dependencies → services → ORM) | `app/api/routers` → `app/api/deps.py` → `app/analytics/service.py` → `app/models` |
+| Data movement | **Batch ETL** (extract, stage, transform, load, analyse) with a raw landing zone | `app/etl/pipeline.py`, `stg_raw_observation` |
+| Serving | **Layered REST API** (routers, dependencies, services, ORM) | `app/api/routers`, `app/api/deps.py`, `app/analytics/service.py`, `app/models` |
 | Presentation | **MVC-like**: views (React pages) bind to a model (API payloads) with a controller layer provided by React Query hooks | `frontend/src/pages`, `frontend/src/hooks`, `frontend/src/lib` |
 | Orchestration | **Workflow-as-code DAG** with a short-circuit guard | `dags/product_intelligence_pipeline.py` |
 
@@ -482,7 +482,7 @@ A **layered architecture** with three classic concerns composed:
 
 | Tier | Process | Entry point | Configuration |
 | --- | --- | --- | --- |
-| Presentation | Static SPA served by nginx (or the Vite dev server) | `frontend/` build → nginx | `VITE_API_BASE_URL` |
+| Presentation | Static SPA served by nginx (or the Vite dev server) | `frontend/` build to nginx | `VITE_API_BASE_URL` |
 | Serving | uvicorn + FastAPI | `app.api.main:app` | `APP_PORT`, `DATABASE_URL`, `CORS_ORIGINS`, `SECRET_KEY` |
 | Scheduling | Airflow webserver + scheduler | `airflow webserver`, `airflow scheduler` | `PIP_SCHEDULE`, `PIP_DATABASE_URL`, `AIRFLOW__CORE__EXECUTOR` |
 | Data | PostgreSQL 16 and MySQL 8.4 | Docker Compose services `postgres`, `mysql` | `POSTGRES_*`, `MYSQL_*` |
@@ -498,7 +498,7 @@ The full deployment design — services, ports, environment matrix, secrets, bac
 | Concern | Mechanism | Location |
 | --- | --- | --- |
 | Authentication | JWT HS256 access + refresh, API keys for machines | `app/api/security.py` |
-| Authorisation | Role → rights dictionary, dependency factory | `security.ROLE_RIGHTS`, `deps.require_rights()` |
+| Authorisation | Role to rights dictionary, dependency factory | `security.ROLE_RIGHTS`, `deps.require_rights()` |
 | Input validation | Pydantic v2 models; SQL console allow-list | `app/api/schemas.py` |
 | Error handling | Typed domain errors mapped to status codes; global handlers | `app/core/errors.py`, `app/api/main.py` |
 | Logging | Namespaced loggers, ANSI or JSON, rotating file handler | `app/core/logging.py` |
