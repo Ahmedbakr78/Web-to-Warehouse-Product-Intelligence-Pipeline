@@ -102,6 +102,13 @@ def template_list() -> list[dict[str, Any]]:
 def _headline(session: Session, days: int) -> list[dict[str, Any]]:
     kpi = analytics.kpi_summary(session, days=days)
     counts = kpi.get("counts", {})
+    latest = kpi.get("latest", {})
+    changes = kpi.get("changes", {})
+    events = kpi.get("events", {})
+    quality = kpi.get("quality", {})
+    # The KPI payload nests its figures under `latest`, `changes`, `events` and
+    # `quality`. Reading them from the top level silently produced empty tiles.
+    dq_score = _num(quality.get("dq_score"), 2)
     return [
         {
             "type": "tiles",
@@ -114,27 +121,27 @@ def _headline(session: Session, days: int) -> list[dict[str, Any]]:
                 },
                 {
                     "label": "Avg price",
-                    "value": _num(kpi.get("avg_price"), 2),
+                    "value": _num(latest.get("avg_price"), 2),
                     "hint": "USD, latest",
                     "tone": "info",
                 },
                 {
                     "label": "Price changes",
-                    "value": counts.get("chg_price_change"),
+                    "value": changes.get("total_changes"),
                     "hint": f"last {days} days",
                     "tone": "warning",
                 },
                 {
                     "label": "New products",
-                    "value": counts.get("new_products"),
+                    "value": events.get("new"),
                     "hint": f"last {days} days",
                     "tone": "success",
                 },
                 {
                     "label": "Data quality",
-                    "value": _num(kpi.get("dq_score"), 2),
+                    "value": dq_score,
                     "hint": "0-100, 12 rules",
-                    "tone": "success" if (kpi.get("dq_score") or 0) >= 95 else "warning",
+                    "tone": "success" if (dq_score or 0) >= 95 else "warning",
                 },
             ],
         },
@@ -142,10 +149,10 @@ def _headline(session: Session, days: int) -> list[dict[str, Any]]:
             "type": "callout",
             "title": "What this report covers",
             "body": (
-                f"{counts.get('dim_product', 0):,} products across "
-                f"{counts.get('dim_category', 0):,} categories, from "
-                f"{counts.get('dim_source', 0)} registered sources, with "
-                f"{counts.get('chg_product_event', 0):,} lifecycle events recorded."
+                f"{counts.get('dim_product', 0):,} products tracked across "
+                f"{latest.get('sources', 0)} reporting sources, with "
+                f"{changes.get('total_changes', 0):,} price changes and "
+                f"{events.get('new', 0):,} new products in the last {days} days."
             ),
         },
     ]
