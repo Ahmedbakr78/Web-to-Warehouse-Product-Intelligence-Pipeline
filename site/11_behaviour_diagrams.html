@@ -15,7 +15,9 @@
 </head>
 <body>
 <header class="topbar">
-  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
   <a class="brand" href="index.html">
     <span class="brand-mark">W</span>
     <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
@@ -26,7 +28,10 @@
            aria-label="Search documentation" spellcheck="false">
     <div class="search-results" id="results" data-open="false"></div>
   </div>
-  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
 </header>
 <div class="shell">
   <nav class="sidebar" aria-label="Documentation">
@@ -185,7 +190,7 @@
 <tr>
 <th><code>PipelineConfig</code></th>
 <td>data</td>
-<td>1 → 1</td>
+<td>1 to 1</td>
 <td>The only way to start a run</td>
 </tr>
 <tr>
@@ -216,7 +221,7 @@
 <th><code>find_match</code></th>
 <td>call</td>
 <td>1 per record</td>
-<td>Exact → exact-name → fuzzy cascade</td>
+<td>Exact, then exact-name, then fuzzy cascade</td>
 </tr>
 <tr>
 <th><code>insert_snapshot</code></th>
@@ -456,43 +461,43 @@
 <th>Condition in code</th>
 </tr></thead><tbody>
 <tr>
-<th>Candidate → Active</th>
+<th>Candidate to Active</th>
 <td><code>new</code></td>
 <td><code>chg_product_event</code></td>
 <td><code>previous is None</code> in <code>insert_snapshot()</code></td>
 </tr>
 <tr>
-<th>Active → Active</th>
+<th>Active to Active</th>
 <td><code>recurring</code></td>
 <td><code>chg_product_event</code></td>
 <td><code>previous is not None</code> and no price change</td>
 </tr>
 <tr>
-<th>Active → Active (price)</th>
+<th>Active to Active (price)</th>
 <td><code>chg_price_change</code></td>
 <td><code>chg_price_change</code></td>
 <td><code>change_pct not in (None, 0.0)</code></td>
 </tr>
 <tr>
-<td>Active → Active (category)</td>
+<td>Active to Active (category)</td>
 <td><code>category_changed</code></td>
 <td><code>chg_product_event</code></td>
 <td><code>previous_category_id != new_category_id</code></td>
 </tr>
 <tr>
-<th>Active → Suspended</th>
+<th>Active to Suspended</th>
 <td><code>removed</code></td>
 <td><code>chg_product_event</code></td>
 <td><code>last_seen_at &lt; captured_at - staleness_days</code></td>
 </tr>
 <tr>
-<th>Suspended → Active</th>
+<th>Suspended to Active</th>
 <td><code>recurring</code></td>
 <td><code>chg_product_event</code></td>
 <td>Observed again; <code>is_active</code> set back to true</td>
 </tr>
 <tr>
-<th>Candidate → Rejected</th>
+<th>Candidate to Rejected</th>
 <td>—</td>
 <td><code>stg_raw_observation</code></td>
 <td><code>is_valid = false</code>, <code>reject_reason</code> set</td>
@@ -798,53 +803,53 @@
 <th>Where</th>
 </tr></thead><tbody>
 <tr>
-<td><code>ProductSource</code> → <code>RawProduct</code></td>
-<td>1 → many (lazy)</td>
+<td><code>ProductSource</code> to <code>RawProduct</code></td>
+<td>1 to many (lazy)</td>
 <td>The source contract yields records</td>
 </tr>
 <tr>
-<td><code>ProductSource</code> → <code>NormalizedProduct</code></td>
-<td>1 → 1</td>
+<td><code>ProductSource</code> to <code>NormalizedProduct</code></td>
+<td>1 to 1</td>
 <td><code>transform_product(raw)</code></td>
 </tr>
 <tr>
-<td><code>ProductSource</code> → <code>CompliantHttpClient</code></td>
-<td>1 → 0..1</td>
+<td><code>ProductSource</code> to <code>CompliantHttpClient</code></td>
+<td>1 to 0..1</td>
 <td>Created on first use, closed by <code>close()</code></td>
 </tr>
 <tr>
-<td><code>Pipeline</code> → <code>DedupeEngine</code></td>
-<td>1 → 1 per run</td>
+<td><code>Pipeline</code> to <code>DedupeEngine</code></td>
+<td>1 to 1 per run</td>
 <td>Shared across sources so the fingerprint cache is reused</td>
 </tr>
 <tr>
-<td><code>Pipeline</code> → <code>WarehouseLoader</code></td>
-<td>1 → 1 per source</td>
+<td><code>Pipeline</code> to <code>WarehouseLoader</code></td>
+<td>1 to 1 per source</td>
 <td>Counters merged with <code>LoadStats.merge()</code></td>
 </tr>
 <tr>
-<td><code>WarehouseLoader</code> → <code>NormalizedProduct</code></td>
-<td>1 → many</td>
+<td><code>WarehouseLoader</code> to <code>NormalizedProduct</code></td>
+<td>1 to many</td>
 <td>One snapshot per record</td>
 </tr>
 <tr>
-<td><code>CatalogReconciler</code> → <code>CatalogMatchResult</code></td>
-<td>1 → many</td>
+<td><code>CatalogReconciler</code> to <code>CatalogMatchResult</code></td>
+<td>1 to many</td>
 <td>One per active catalog SKU</td>
 </tr>
 <tr>
-<th><code>Rule</code> → <code>RuleOutcome</code></th>
-<td>1 → 1</td>
+<th><code>Rule</code> to <code>RuleOutcome</code></th>
+<td>1 to 1</td>
 <td>Inside a savepoint</td>
 </tr>
 <tr>
-<td><code>QualityReport</code> → <code>RuleOutcome</code></td>
-<td>1 → many</td>
+<td><code>QualityReport</code> to <code>RuleOutcome</code></td>
+<td>1 to many</td>
 <td>12 per run</td>
 </tr>
 <tr>
-<th><code>ApiRouter</code> → models</th>
-<td>1 → many</td>
+<th><code>ApiRouter</code> to models</th>
+<td>1 to many</td>
 <td>Routers select from models; the class diagram shows no <code>DedupeEngine</code> dependency in the serving layer, which is deliberate</td>
 </tr>
 </tbody></table></div>
@@ -885,9 +890,9 @@
 </tbody></table></div>
     </article>
     <div class="doc-foot">
-      <span><a href="10_data_flow_diagrams.html">← Data Flow Diagrams</a></span>
+      <span><a href="10_data_flow_diagrams.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Data Flow Diagrams</a></span>
       <span><a href="../README.md">Source markdown</a></span>
-      <span><a href="12_ui_ux_design.html">UI/UX Design →</a></span>
+      <span><a href="12_ui_ux_design.html">UI/UX Design<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
     </div>
   </main>
 </div>

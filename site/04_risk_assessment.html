@@ -15,7 +15,9 @@
 </head>
 <body>
 <header class="topbar">
-  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
   <a class="brand" href="index.html">
     <span class="brand-mark">W</span>
     <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
@@ -26,7 +28,10 @@
            aria-label="Search documentation" spellcheck="false">
     <div class="search-results" id="results" data-open="false"></div>
   </div>
-  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
 </header>
 <div class="shell">
   <nav class="sidebar" aria-label="Documentation">
@@ -165,7 +170,7 @@
 <td>A required deliverable is missing or the system does not run</td>
 </tr>
 </tbody></table></div>
-<p><strong>Severity = P × I.</strong> Response times: Critical → immediate, High → within 3 days, Medium → within the sprint, Low → monitor.</p>
+<p><strong>Severity = P × I.</strong> Response times: Critical is immediate, High is within 3 days, Medium is within the sprint, Low is monitor only.</p>
 <hr>
 <h2 id="2-risk-heat-map">2. Risk heat map</h2>
 <pre class="mermaid">flowchart TB
@@ -264,7 +269,7 @@
 <td>4</td>
 <td><strong>12 High</strong></td>
 <td>Lead</td>
-<td><code>RobotsCache</code> caches decisions per host for <code>CACHE_TTL_SECONDS</code>; RFC 9309 fallback: 4xx → allow, 401/403 → treat as disallow; local/synthetic sources bypass the network entirely; failure is logged in <code>ingestion_http_log</code> with <code>robots_allowed=false</code></td>
+<td><code>RobotsCache</code> caches decisions per host for <code>CACHE_TTL_SECONDS</code>; RFC 9309 fallback: 4xx means allow, 401/403 means treat as disallow; local/synthetic sources bypass the network entirely; failure is logged in <code>ingestion_http_log</code> with <code>robots_allowed=false</code></td>
 <td>Low</td>
 </tr>
 <tr>
@@ -330,7 +335,7 @@
 <td>3</td>
 <td><strong>9 Medium</strong></td>
 <td>Lead</td>
-<td><code>UTCDateTime</code> TypeDecorator normalises at the boundary: aware → UTC naive on write, naive → UTC-aware on read; every comparison in the pipeline goes through it</td>
+<td><code>UTCDateTime</code> TypeDecorator normalises at the boundary: aware becomes UTC naive on write, naive becomes UTC-aware on read; every comparison in the pipeline goes through it</td>
 <td>Low</td>
 </tr>
 <tr>
@@ -673,9 +678,9 @@
 <p>Risks R13, R14, R19 and R20 are <strong>accepted</strong> with the documented contingency: the project does not depend on Airflow, on a browser build or on live FX data for its acceptance criteria. Risks R1, R2 and R4 are <strong>mitigated in code</strong> and must not be accepted silently in a future release: any change that removes the robots gate, the digit-signature guard or the dialect-portability layer is a regression of a Critical risk.</p>
     </article>
     <div class="doc-foot">
-      <span><a href="03_roles_and_responsibilities.html">← Roles and Responsibilities</a></span>
+      <span><a href="03_roles_and_responsibilities.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Roles and Responsibilities</a></span>
       <span><a href="../README.md">Source markdown</a></span>
-      <span><a href="05_kpis.html">KPIs →</a></span>
+      <span><a href="05_kpis.html">KPIs<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
     </div>
   </main>
 </div>

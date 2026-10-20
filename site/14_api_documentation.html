@@ -15,7 +15,9 @@
 </head>
 <body>
 <header class="topbar">
-  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
   <a class="brand" href="index.html">
     <span class="brand-mark">W</span>
     <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
@@ -26,7 +28,10 @@
            aria-label="Search documentation" spellcheck="false">
     <div class="search-results" id="results" data-open="false"></div>
   </div>
-  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
 </header>
 <div class="shell">
   <nav class="sidebar" aria-label="Documentation">
@@ -317,7 +322,7 @@ curl -s localhost:8000/api/v1/products?page_size=5 -H &quot;Authorization: Beare
 <td>Reserved for the future source-management screen</td>
 </tr>
 </tbody></table></div>
-<p>Verified behaviour (from <code>scripts/api_smoke.py</code>): <code>GET /api/v1/products</code> without a token → <strong>401</strong>; <code>POST /api/v1/pipeline/run/sync</code> with the viewer token → <strong>403</strong>.</p>
+<p>Verified behaviour (from <code>scripts/api_smoke.py</code>): <code>GET /api/v1/products</code> without a token returns <strong>401</strong>; <code>POST /api/v1/pipeline/run/sync</code> with the viewer token returns <strong>403</strong>.</p>
 <hr>
 <h2 id="4-pagination-sorting-and-filtering">4. Pagination, sorting and filtering</h2>
 <h3 id="41-the-paget-envelope">4.1 The <code>Page[T]</code> envelope</h3>
@@ -1118,10 +1123,10 @@ export function useTriggerRun() {
 </tr>
 </tbody></table></div>
 <h3 id="91-generating-client-sdks-and-postman-collections">9.1 Generating client SDKs and Postman collections</h3>
-<pre class="code" data-lang="bash"><code># OpenAPI → typed TypeScript client
+<pre class="code" data-lang="bash"><code># OpenAPI to a typed TypeScript client
 npx openapi-typescript http://localhost:8000/openapi.json -o src/api/schema.d.ts
 
-# OpenAPI → Postman collection
+# OpenAPI to a Postman collection
 npx openapi-to-postman http://localhost:8000/openapi.json -o docs/assets/postman.json
 
 # Verify the contract is valid
@@ -1194,9 +1199,9 @@ print(s[&#x27;openapi&#x27;], len(s[&#x27;paths&#x27;]), &#x27;paths&#x27;, sum(
 </ul>
     </article>
     <div class="doc-foot">
-      <span><a href="13_deployment.html">← Deployment</a></span>
+      <span><a href="13_deployment.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Deployment</a></span>
       <span><a href="../README.md">Source markdown</a></span>
-      <span><a href="15_testing_strategy.html">Testing Strategy →</a></span>
+      <span><a href="15_testing_strategy.html">Testing Strategy<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
     </div>
   </main>
 </div>

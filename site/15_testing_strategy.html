@@ -15,7 +15,9 @@
 </head>
 <body>
 <header class="topbar">
-  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
   <a class="brand" href="index.html">
     <span class="brand-mark">W</span>
     <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
@@ -26,7 +28,10 @@
            aria-label="Search documentation" spellcheck="false">
     <div class="search-results" id="results" data-open="false"></div>
   </div>
-  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
 </header>
 <div class="shell">
   <nav class="sidebar" aria-label="Documentation">
@@ -248,28 +253,28 @@
 <th>TC-010</th>
 <td>Price</td>
 <td>Ambiguous separator</td>
-<td><code>"1,499"</code> → 1499 (thousands) but <code>"45,90"</code> → 45.90 (decimal)</td>
+<td><code>"1,499"</code> gives 1499 (thousands) but <code>"45,90"</code> gives 45.90 (decimal)</td>
 <td>Correct in both cases</td>
 </tr>
 <tr>
 <th>TC-011</th>
 <td>Price</td>
 <td>Range</td>
-<td><code>"$10 - $20"</code> → amount 15.0, <code>is_range=True</code>, bounds retained</td>
+<td><code>"$10 - $20"</code> gives amount 15.0, <code>is_range=True</code>, bounds retained</td>
 <td>Midpoint with evidence</td>
 </tr>
 <tr>
 <th>TC-012</th>
 <td>Price</td>
 <td>Was/now</td>
-<td><code>"Was $49.99 Now $39.99"</code> → 39.99, pattern <code>was_now</code></td>
+<td><code>"Was $49.99 Now $39.99"</code> gives 39.99, pattern <code>was_now</code></td>
 <td>Current price, not the struck-through one</td>
 </tr>
 <tr>
 <th>TC-013</th>
 <td>Price</td>
 <td>Non-numeric</td>
-<td><code>"Call for price"</code>, <code>"N/A"</code>, <code>"free"</code> → <code>amount=None</code>, <code>is_valid=False</code></td>
+<td><code>"Call for price"</code>, <code>"N/A"</code>, <code>"free"</code> gives <code>amount=None</code>, <code>is_valid=False</code></td>
 <td>Flag <code>unparseable_price</code> downstream</td>
 </tr>
 <tr>
@@ -304,7 +309,7 @@
 <th>TC-018</th>
 <td>Rating</td>
 <td>Scale</td>
-<td><code>parse_rating("4.2 out of 5")</code> → 4.2; <code>parse_rating("84 percent")</code> → 4.2; <code>parse_rating("8.5/10")</code> → 4.25</td>
+<td><code>parse_rating("4.2 out of 5")</code> gives 4.2; <code>parse_rating("84 percent")</code> gives 4.2; <code>parse_rating("8.5/10")</code> gives 4.25</td>
 <td>Normalised to 0–5</td>
 </tr>
 <tr>
@@ -340,7 +345,7 @@
 <td>Dedupe</td>
 <td>Tokenisation</td>
 <td><code>"Widget 256GB"</code> vs <code>"Widget 256 GB"</code></td>
-<td>≥ 0.90 → duplicate</td>
+<td>≥ 0.90 means duplicate</td>
 </tr>
 <tr>
 <th>TC-024</th>
@@ -354,14 +359,14 @@
 <td>Dedupe</td>
 <td>Digit guard</td>
 <td><code>"Canon EOS R6"</code> vs <code>"Canon EOS R5"</code></td>
-<td>&lt; 0.90 → distinct</td>
+<td>&lt; 0.90 means distinct</td>
 </tr>
 <tr>
 <th>TC-026</th>
 <td>Dedupe</td>
 <td>Model number</td>
 <td><code>"Nike Pegasus 40"</code> vs <code>"Nike Pegasus 39"</code></td>
-<td>&lt; 0.90 → distinct</td>
+<td>&lt; 0.90 means distinct</td>
 </tr>
 <tr>
 <th>TC-027</th>
@@ -655,7 +660,7 @@
 <td>Reconciliation</td>
 <td>Mismatch flag</td>
 <td>Gap 2 %</td>
-<td><code>is_price_mismatch=True</code>; gap 0.5 % → False</td>
+<td><code>is_price_mismatch=True</code>; gap 0.5 % means False</td>
 </tr>
 <tr>
 <th>TC-069</th>
@@ -823,7 +828,7 @@
 <td>Security</td>
 <td>Argon2 parameters</td>
 <td><code>check_needs_rehash</code> on a weaker hash</td>
-<td>True → rehash on next login</td>
+<td>True means rehash on next login</td>
 </tr>
 <tr>
 <th>TC-093</th>
@@ -1624,7 +1629,7 @@ make everything                # install, env, databases, bootstrap, demo, run, 
 <tr>
 <th>Unit tests</th>
 <td>The <code>tests/</code> directory is present and configured (<code>pyproject.toml</code>: <code>testpaths = ["tests"]</code>, markers <code>integration</code> and <code>slow</code>), but <strong>no test modules are committed in this snapshot</strong>; <code>make test</code> therefore collects 0 tests</td>
-<td><code>ls tests/</code> → empty</td>
+<td><code>ls tests/</code> is empty</td>
 </tr>
 <tr>
 <th>Deduplication evaluation</th>
@@ -1660,9 +1665,9 @@ make everything                # install, env, databases, bootstrap, demo, run, 
 <p><strong>Recommendation.</strong> Before submission, commit the unit and integration suites described above (<code>tests/app/…</code>, <code>tests/integration/…</code>). Until then, the executable evidence for quality is the API smoke suite, the cross-dialect verification and the data-quality framework itself — which is why the DQ rules are treated as tests in production: they run on every load and persist their verdicts.</p>
     </article>
     <div class="doc-foot">
-      <span><a href="14_api_documentation.html">← API Documentation</a></span>
+      <span><a href="14_api_documentation.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>API Documentation</a></span>
       <span><a href="../README.md">Source markdown</a></span>
-      <span><a href="16_user_manual.html">User Manual →</a></span>
+      <span><a href="16_user_manual.html">User Manual<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
     </div>
   </main>
 </div>

@@ -15,7 +15,9 @@
 </head>
 <body>
 <header class="topbar">
-  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
   <a class="brand" href="index.html">
     <span class="brand-mark">W</span>
     <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
@@ -26,7 +28,10 @@
            aria-label="Search documentation" spellcheck="false">
     <div class="search-results" id="results" data-open="false"></div>
   </div>
-  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
 </header>
 <div class="shell">
   <nav class="sidebar" aria-label="Documentation">
@@ -309,7 +314,7 @@ FROM etl_run WHERE status &lt;&gt; &#x27;failed&#x27;;
 -- Yield as exposed by the API view
 SELECT run_id, records_extracted, records_valid, yield_pct, dq_score
 FROM vw_pipeline_health ORDER BY started_at DESC LIMIT 5;</code></pre>
-<p>Measured: mean 56.9 valid records per run, max 58; the measured live run recorded <code>records_extracted=60</code>, <code>records_valid=57</code> → yield 95 %.</p>
+<p>Measured: mean 56.9 valid records per run, max 58; the measured live run recorded <code>records_extracted=60</code>, <code>records_valid=57</code> yield 95 %.</p>
 <h3 id="23-kpi-05--rejection-rate-in-the-staging-zone">2.3 KPI-05 — Rejection rate in the staging zone</h3>
 <pre class="code" data-lang="sql"><code>SELECT ROUND(CAST(100.0 * SUM(CASE WHEN NOT is_valid THEN 1 ELSE 0 END)
                  / NULLIF(COUNT(*), 0) AS DECIMAL(24,2)), 2) AS reject_pct,
@@ -772,9 +777,9 @@ PY</code></pre>
 <p>because <code>TRIGGER</code> is a reserved word. The PostgreSQL measurements in this document are unaffected; see <code>docs/01</code> assumption A6 and <code>docs/20</code> for the fix.</p>
     </article>
     <div class="doc-foot">
-      <span><a href="04_risk_assessment.html">← Risk Assessment</a></span>
+      <span><a href="04_risk_assessment.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Risk Assessment</a></span>
       <span><a href="../README.md">Source markdown</a></span>
-      <span><a href="06_literature_review.html">Literature Review →</a></span>
+      <span><a href="06_literature_review.html">Literature Review<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
     </div>
   </main>
 </div>

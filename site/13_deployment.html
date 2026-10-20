@@ -15,7 +15,9 @@
 </head>
 <body>
 <header class="topbar">
-  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
   <a class="brand" href="index.html">
     <span class="brand-mark">W</span>
     <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
@@ -26,7 +28,10 @@
            aria-label="Search documentation" spellcheck="false">
     <div class="search-results" id="results" data-open="false"></div>
   </div>
-  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
 </header>
 <div class="shell">
   <nav class="sidebar" aria-label="Documentation">
@@ -782,7 +787,7 @@
 <tr>
 <th><code>frontend</code></th>
 <td>build <code>frontend/Dockerfile</code> (nginx)</td>
-<td>Serves the built SPA on port 5173 → container port 80</td>
+<td>Serves the built SPA on port 5173, mapped to container port 80</td>
 <td>started <code>api</code></td>
 <td>none</td>
 </tr>
@@ -1110,7 +1115,7 @@ make airflow-test                    # run the DAG once for a fixed logical date
 </tr>
 <tr>
 <th>Rotation procedure</th>
-<td>Change in the secret manager → restart <code>api</code> and <code>airflow</code> → re-login; see §9 for data impact (none)</td>
+<td>Change in the secret manager, then restart <code>api</code> and <code>airflow</code>, then re-login; see §9 for data impact (none)</td>
 </tr>
 </tbody></table></div>
 <h3 id="83-production-hardening-checklist">8.3 Production hardening checklist</h3>
@@ -1432,7 +1437,7 @@ docker compose start api airflow airflow-scheduler
 </tr>
 <tr>
 <th>Data freshness</th>
-<td><code>GET /api/v1/quality/latest</code> → <code>DQ007</code></td>
+<td><code>GET /api/v1/quality/latest</code> reports <code>DQ007</code></td>
 <td>&gt; 24 h warn, &gt; 48 h fail</td>
 <td>Trigger a run</td>
 </tr>
@@ -1674,9 +1679,9 @@ docker compose exec api python -m app.cli.main status</code></pre>
 </tbody></table></div>
     </article>
     <div class="doc-foot">
-      <span><a href="12_ui_ux_design.html">← UI/UX Design</a></span>
+      <span><a href="12_ui_ux_design.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>UI/UX Design</a></span>
       <span><a href="../README.md">Source markdown</a></span>
-      <span><a href="14_api_documentation.html">API Documentation →</a></span>
+      <span><a href="14_api_documentation.html">API Documentation<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
     </div>
   </main>
 </div>

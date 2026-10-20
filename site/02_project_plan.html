@@ -15,7 +15,9 @@
 </head>
 <body>
 <header class="topbar">
-  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
   <a class="brand" href="index.html">
     <span class="brand-mark">W</span>
     <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
@@ -26,7 +28,10 @@
            aria-label="Search documentation" spellcheck="false">
     <div class="search-results" id="results" data-open="false"></div>
   </div>
-  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
 </header>
 <div class="shell">
   <nav class="sidebar" aria-label="Documentation">
@@ -110,7 +115,7 @@
 </ul>
 <hr>
 <h2 id="1-planning-approach">1. Planning approach</h2>
-<p>The plan follows a requirements → design → build → verify → document sequence, with two deliberate parallel tracks:</p>
+<p>The plan follows a requirements, design, build, verify, document sequence, with two deliberate parallel tracks:</p>
 <ul>
 <li class="depth-0"><strong>Data track</strong> — warehouse schema, cleaning, dedupe, quality, reconciliation. This is the</li>
 </ul>
@@ -334,7 +339,7 @@
 </tbody></table></div>
 <hr>
 <h2 id="4-deliverables-matrix">4. Deliverables matrix</h2>
-<p>Rows are deliverables, columns are the project phases. <code>●</code> = primary owner phase, <code>○</code> = contributing phase, <code>—</code> = not involved.</p>
+<p>Rows are deliverables, columns are the project phases. <code>P</code> = primary owner phase, <code>C</code> = contributing phase, <code>—</code> = not involved.</p>
 <div class='table-scroll'><table><thead><tr>
 <th>Deliverable</th>
 <th>P1 Initiation</th>
@@ -347,8 +352,8 @@
 </tr></thead><tbody>
 <tr>
 <td>Requirements and stakeholders</td>
-<td>●</td>
-<td>○</td>
+<td>P</td>
+<td>C</td>
 <td>—</td>
 <td>—</td>
 <td>—</td>
@@ -357,8 +362,8 @@
 </tr>
 <tr>
 <th>Literature review</th>
-<td>●</td>
-<td>○</td>
+<td>P</td>
+<td>C</td>
 <td>—</td>
 <td>—</td>
 <td>—</td>
@@ -367,143 +372,143 @@
 </tr>
 <tr>
 <td>Database schema (23 tables)</td>
-<td>○</td>
-<td>●</td>
+<td>C</td>
+<td>P</td>
 <td>—</td>
-<td>○</td>
+<td>C</td>
 <td>—</td>
-<td>○</td>
+<td>C</td>
 <td>—</td>
 </tr>
 <tr>
 <th>Analytical views (20)</th>
 <td>—</td>
-<td>○</td>
+<td>C</td>
 <td>—</td>
-<td>●</td>
-<td>○</td>
-<td>○</td>
+<td>P</td>
+<td>C</td>
+<td>C</td>
 <td>—</td>
 </tr>
 <tr>
 <th>Compliance layer</th>
 <td>—</td>
-<td>○</td>
-<td>●</td>
+<td>C</td>
+<td>P</td>
 <td>—</td>
 <td>—</td>
-<td>○</td>
+<td>C</td>
 <td>—</td>
 </tr>
 <tr>
 <th>Cleaning / normalisation</th>
 <td>—</td>
-<td>○</td>
-<td>●</td>
-<td>○</td>
+<td>C</td>
+<td>P</td>
+<td>C</td>
 <td>—</td>
-<td>○</td>
+<td>C</td>
 <td>—</td>
 </tr>
 <tr>
 <th>Deduplication engine</th>
 <td>—</td>
-<td>○</td>
-<td>○</td>
-<td>●</td>
+<td>C</td>
+<td>C</td>
+<td>P</td>
 <td>—</td>
-<td>○</td>
+<td>C</td>
 <td>—</td>
 </tr>
 <tr>
 <th>ETL pipeline</th>
 <td>—</td>
-<td>○</td>
+<td>C</td>
 <td>—</td>
-<td>●</td>
-<td>○</td>
-<td>○</td>
+<td>P</td>
+<td>C</td>
+<td>C</td>
 <td>—</td>
 </tr>
 <tr>
 <th>Data-quality framework</th>
 <td>—</td>
-<td>○</td>
+<td>C</td>
 <td>—</td>
-<td>●</td>
-<td>○</td>
-<td>○</td>
+<td>P</td>
+<td>C</td>
+<td>C</td>
 <td>—</td>
 </tr>
 <tr>
 <th>Catalog reconciliation</th>
 <td>—</td>
-<td>○</td>
+<td>C</td>
 <td>—</td>
-<td>●</td>
-<td>○</td>
-<td>○</td>
+<td>P</td>
+<td>C</td>
+<td>C</td>
 <td>—</td>
 </tr>
 <tr>
 <th>REST API</th>
 <td>—</td>
-<td>○</td>
+<td>C</td>
 <td>—</td>
 <td>—</td>
-<td>●</td>
-<td>○</td>
+<td>P</td>
+<td>C</td>
 <td>—</td>
 </tr>
 <tr>
 <th>Dashboard</th>
 <td>—</td>
-<td>○</td>
+<td>C</td>
 <td>—</td>
 <td>—</td>
-<td>●</td>
-<td>○</td>
+<td>P</td>
+<td>C</td>
 <td>—</td>
 </tr>
 <tr>
 <th>Airflow DAG</th>
 <td>—</td>
-<td>○</td>
+<td>C</td>
 <td>—</td>
-<td>○</td>
-<td>●</td>
-<td>○</td>
+<td>C</td>
+<td>P</td>
+<td>C</td>
 <td>—</td>
 </tr>
 <tr>
 <td>Deployment (Compose, docs)</td>
 <td>—</td>
-<td>○</td>
+<td>C</td>
 <td>—</td>
 <td>—</td>
-<td>○</td>
-<td>●</td>
-<td>○</td>
+<td>C</td>
+<td>P</td>
+<td>C</td>
 </tr>
 <tr>
 <th>Demo dataset</th>
 <td>—</td>
 <td>—</td>
-<td>○</td>
-<td>○</td>
+<td>C</td>
+<td>C</td>
 <td>—</td>
-<td>●</td>
+<td>P</td>
 <td>—</td>
 </tr>
 <tr>
 <th>Documentation set</th>
-<td>○</td>
-<td>●</td>
-<td>○</td>
-<td>○</td>
-<td>○</td>
-<td>●</td>
-<td>●</td>
+<td>C</td>
+<td>P</td>
+<td>C</td>
+<td>C</td>
+<td>C</td>
+<td>P</td>
+<td>P</td>
 </tr>
 </tbody></table></div>
 <h3 id="41-deliverable-traceability-to-acceptance-criteria">4.1 Deliverable traceability to acceptance criteria</h3>
@@ -919,22 +924,22 @@
 <th>Consequence if delayed</th>
 </tr></thead><tbody>
 <tr>
-<td>Compliance layer → connectors</td>
+<td>Compliance layer to connectors</td>
 <td>2 days</td>
 <td>Blocks every extraction-based task</td>
 </tr>
 <tr>
-<th>Dedupe → loader</th>
+<th>Dedupe to loader</th>
 <td>0 days</td>
 <td>Hard dependency; <code>upsert_product()</code> consumes <code>MatchResult</code></td>
 </tr>
 <tr>
-<th>Views → API / dashboard</th>
+<th>Views to API / dashboard</th>
 <td>3 days</td>
 <td>API and UI can start on table queries instead</td>
 </tr>
 <tr>
-<th>API → smoke test</th>
+<th>API to smoke test</th>
 <td>1 day</td>
 <td>Documentation of endpoints slips into W12</td>
 </tr>
@@ -952,9 +957,9 @@
 <p>The plan reserves the last week of slack for documentation, which is the deliverable most exposed to measurement drift — every number quoted in <code>docs/05_kpis.md</code> is re-measured at the end of W11.</p>
     </article>
     <div class="doc-foot">
-      <span><a href="01_project_proposal.html">← Project Proposal</a></span>
+      <span><a href="01_project_proposal.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Project Proposal</a></span>
       <span><a href="../README.md">Source markdown</a></span>
-      <span><a href="03_roles_and_responsibilities.html">Roles and Responsibilities →</a></span>
+      <span><a href="03_roles_and_responsibilities.html">Roles and Responsibilities<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
     </div>
   </main>
 </div>

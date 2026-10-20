@@ -15,7 +15,9 @@
 </head>
 <body>
 <header class="topbar">
-  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
   <a class="brand" href="index.html">
     <span class="brand-mark">W</span>
     <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
@@ -26,7 +28,10 @@
            aria-label="Search documentation" spellcheck="false">
     <div class="search-results" id="results" data-open="false"></div>
   </div>
-  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
 </header>
 <div class="shell">
   <nav class="sidebar" aria-label="Documentation">
@@ -478,7 +483,7 @@
 </tr></thead><tbody>
 <tr>
 <th>Open savepoint</th>
-<td><code>Rule.run()</code> → <code>session.begin_nested()</code></td>
+<td><code>Rule.run()</code> opens <code>session.begin_nested()</code></td>
 </tr>
 <tr>
 <th>Evaluate</th>
@@ -893,7 +898,7 @@
 <tr>
 <th>Robots gate</th>
 <td><code>decision.allowed</code></td>
-<td><code>true</code> → fetch; <code>false</code> → raise <code>ComplianceError</code>, log, skip the URL</td>
+<td><code>true</code> fetches; <code>false</code> raises <code>ComplianceError</code>, logs, and skips the URL</td>
 </tr>
 <tr>
 <th>Circuit breaker</th>
@@ -967,9 +972,9 @@
     WARNED --&gt;|&quot;no&quot;| OK([&quot;Status success&quot;])</pre>
     </article>
     <div class="doc-foot">
-      <span><a href="09_database_design.html">← Database Design</a></span>
+      <span><a href="09_database_design.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Database Design</a></span>
       <span><a href="../README.md">Source markdown</a></span>
-      <span><a href="11_behaviour_diagrams.html">Behaviour Diagrams →</a></span>
+      <span><a href="11_behaviour_diagrams.html">Behaviour Diagrams<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
     </div>
   </main>
 </div>

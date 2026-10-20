@@ -15,7 +15,9 @@
 </head>
 <body>
 <header class="topbar">
-  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
   <a class="brand" href="index.html">
     <span class="brand-mark">W</span>
     <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
@@ -26,7 +28,10 @@
            aria-label="Search documentation" spellcheck="false">
     <div class="search-results" id="results" data-open="false"></div>
   </div>
-  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
 </header>
 <div class="shell">
   <nav class="sidebar" aria-label="Documentation">
@@ -373,7 +378,7 @@ class MySource(ProductSource):
 <h3 id="how-are-passwords-stored">How are passwords stored?</h3>
 <p>Argon2id, memory-hard. Plain text is never stored or logged. Passwords never appear in the audit log or in any API response.</p>
 <h3 id="what-is-an-api-key-and-how-do-i-use-one">What is an API key, and how do I use one?</h3>
-<p>Generated in <strong>Account → API keys</strong>, shown exactly once, hashed at rest thereafter. Send it as a header:</p>
+<p>Generated in <strong>Account, then API keys</strong>, shown exactly once, hashed at rest thereafter. Send it as a header:</p>
 <pre class="code" data-lang="bash"><code>curl -H &quot;X-API-Key: pip_live_...&quot; http://localhost:8000/api/v1/products</code></pre>
 <p>Keys are usage-counted and individually revocable.</p>
 <h3 id="how-do-i-check-that-rbac-really-works">How do I check that RBAC really works?</h3>
@@ -442,7 +447,7 @@ make everything  # full stack: install, databases, bootstrap, demo data, pipelin
 <p>Because each one is reproducible. 321 tests comes from <code>make test</code>, 78 smoke checks from <code>scripts/api_smoke.py</code>, 25 tables and 20 views from <code>make bootstrap</code>, and the DQ score from the Quality screen. A number nobody can reproduce is a number nobody should trust.</p>
 <h3 id="how-do-i-render-the-diagrams-as-svg">How do I render the diagrams as SVG?</h3>
 <pre class="mermaid">flowchart LR
-    A[&quot;Markdown&quot;] --&gt; B[&quot;scripts/diagrams.py&quot;] --&gt; C[&quot;docs/diagrams/out/*.mmd&quot;] --&gt; D[&quot;mmdc → SVG&quot;]
+    A[&quot;Markdown&quot;] --&gt; B[&quot;scripts/diagrams.py&quot;] --&gt; C[&quot;docs/diagrams/out/*.mmd&quot;] --&gt; D[&quot;mmdc to SVG&quot;]
     A --&gt; E[&quot;GitHub renders Mermaid natively&quot;]</pre>
 <pre class="code" data-lang="bash"><code>make docs-render   # extract and render every diagram
 make docs-serve    # serve docs/ locally</code></pre>
@@ -451,7 +456,7 @@ make docs-serve    # serve docs/ locally</code></pre>
 python3 scripts/build_site.py --serve    # build, then serve on :8001</code></pre>
 <p>No dependencies beyond the standard library. It produces one page per document, client-side search over a generated index, and a dark mode that respects system preference.</p>
 <h3 id="the-repo-is-private--how-do-i-show-it-to-someone">The repo is private — how do I show it to someone?</h3>
-<p>Add them as a collaborator (<strong>Settings → Collaborators</strong>), or grant them read access on your plan. GitHub Pages does not serve private repositories on the free plan, which is why the documentation website is built as a portable static directory rather than deployed to Pages.</p>
+<p>Add them as a collaborator (<strong>Settings, then Collaborators</strong>), or grant them read access on your plan. GitHub Pages does not serve private repositories on the free plan, which is why the documentation website is built as a portable static directory rather than deployed to Pages.</p>
 <hr>
 <h2 id="part-7--project-context">Part 7 — Project context</h2>
 <h3 id="what-is-this-project-for">What is this project for?</h3>
@@ -486,9 +491,9 @@ python3 scripts/build_site.py --serve    # build, then serve on :8001</code></pr
 </ul>
     </article>
     <div class="doc-foot">
-      <span><a href="22_data_dictionary.html">← Data Dictionary</a></span>
+      <span><a href="22_data_dictionary.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Data Dictionary</a></span>
       <span><a href="../README.md">Source markdown</a></span>
-      <span><a href="24_demo_runbook.html">Demo Runbook →</a></span>
+      <span><a href="24_demo_runbook.html">Demo Runbook<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
     </div>
   </main>
 </div>

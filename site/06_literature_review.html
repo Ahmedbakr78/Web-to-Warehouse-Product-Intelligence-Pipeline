@@ -15,7 +15,9 @@
 </head>
 <body>
 <header class="topbar">
-  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
   <a class="brand" href="index.html">
     <span class="brand-mark">W</span>
     <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
@@ -26,7 +28,10 @@
            aria-label="Search documentation" spellcheck="false">
     <div class="search-results" id="results" data-open="false"></div>
   </div>
-  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
 </header>
 <div class="shell">
   <nav class="sidebar" aria-label="Documentation">
@@ -181,7 +186,7 @@
 <tr>
 <th>RFC 9309 (2022)</th>
 <td><code>robots.txt</code> is a <strong>standard for exclusion</strong>: an unavailable file (4xx) means <em>allow all</em>, an authorisation failure (401/403) is treated as <strong>complete disallow</strong>, and crawlers must use a matching user-agent token</td>
-<td>Implemented literally in <code>RobotsCache._load()</code>: 4xx → synthetic allow-all parser, 401/403 → <code>None</code> parser (treated as blocked), 5xx/network error → cached failure; <code>can_fetch()</code> matches the agent token before falling back to <code>*</code></td>
+<td>Implemented literally in <code>RobotsCache._load()</code>: 4xx gives a synthetic allow-all parser, 401/403 gives a <code>None</code> parser (treated as blocked), 5xx/network error gives a cached failure; <code>can_fetch()</code> matches the agent token before falling back to <code>*</code></td>
 </tr>
 <tr>
 <th>RFC 9309 (2022)</th>
@@ -274,7 +279,7 @@
 <tr>
 <th>Christen (2012)</th>
 <td>Record linkage needs <strong>blocking, comparison, classification and evaluation</strong> as distinct stages; duplicate <em>detection</em> differs from linkage by removing the assumption that a true match exists</td>
-<td>Blocking (§4.1) → comparison (<code>combined_similarity</code>) → classification (threshold 0.90) → evaluation (14-case accuracy KPI, <code>duplicates_in_iterable()</code> for offline inspection)</td>
+<td>Blocking (§4.1), then comparison (<code>combined_similarity</code>), then classification (threshold 0.90), then evaluation (14-case accuracy KPI, <code>duplicates_in_iterable()</code> for offline inspection)</td>
 </tr>
 <tr>
 <td>Herzog, Scheuren &amp; Winkler (2010)</td>
@@ -288,7 +293,7 @@
 </tr>
 </tbody></table></div>
 <h3 id="42-decision-influenced">4.2 Decision influenced</h3>
-<p>Threshold selection is treated as a <strong>measured parameter</strong> rather than folklore: <code>DEDUPE_SIMILARITY_THRESHOLD=0.90</code> is validated in <code>app/core/config.py</code> (<code>_clamp_threshold</code> raises if outside 0–1), exposed in the API metadata (<code>GET /api/v1/meta</code> → <code>limits.dedupe_threshold</code>), and is reported in the KPI table of <code>docs/05_kpis.md</code>. The blend weights, the brand term (<code>score·0.88 + brand·0.12</code>) and the category bonus (<code>+0.03</code>) are all constants in one function, so a future calibration study only has to change one place.</p>
+<p>Threshold selection is treated as a <strong>measured parameter</strong> rather than folklore: <code>DEDUPE_SIMILARITY_THRESHOLD=0.90</code> is validated in <code>app/core/config.py</code> (<code>_clamp_threshold</code> raises if outside 0–1), exposed in the API metadata (<code>GET /api/v1/meta</code> exposes <code>limits.dedupe_threshold</code>), and is reported in the KPI table of <code>docs/05_kpis.md</code>. The blend weights, the brand term (<code>score·0.88 + brand·0.12</code>) and the category bonus (<code>+0.03</code>) are all constants in one function, so a future calibration study only has to change one place.</p>
 <hr>
 <h2 id="5-theme-4--data-quality">5. Theme 4 — Data quality</h2>
 <h3 id="51-sources-and-findings">5.1 Sources and findings</h3>
@@ -331,7 +336,7 @@
 <h3 id="52-decision-influenced">5.2 Decision influenced</h3>
 <p>Two design decisions came directly from this literature:</p>
 <ul>
-<li class="depth-0"><strong>Rules must never abort a run.</strong> Each rule evaluates inside a <code>SAVEPOINT</code> (<code>Rule.run()</code> →</li>
+<li class="depth-0"><strong>Rules must never abort a run.</strong> Each rule evaluates inside a <code>SAVEPOINT</code> (<code>Rule.run()</code> opens</li>
 </ul>
 <p><code>session.begin_nested()</code>); a broken rule is recorded as <code>fail</code> with the exception text and the pipeline continues. This mirrors the Great Expectations principle that a validation failure is a <em>result</em>, not a crash.</p>
 <ul>
@@ -400,7 +405,7 @@
 <tr>
 <th>Shneiderman (1996)</th>
 <td>Overview first, zoom and filter, then details-on-demand — the " mantra" of interactive visual analysis</td>
-<td>The dashboard follows it literally: KPI cards (overview) → trend and leaderboard charts (zoom) → product detail with price history and catalog links (details)</td>
+<td>The dashboard follows it literally: KPI cards (overview), then trend and leaderboard charts (zoom), then product detail with price history and catalog links (details)</td>
 </tr>
 <tr>
 <th>Tufte (2001)</th>
@@ -429,7 +434,7 @@
 </tr>
 </tbody></table></div>
 <h3 id="72-decision-influenced">7.2 Decision influenced</h3>
-<p>Three roles with a strict capability ladder (viewer → analyst → admin) follow the principle of least privilege; <code>ROLE_RIGHTS</code> in <code>app/api/security.py</code> is a single dictionary that drives both the API dependency <code>require_rights(...)</code> and the permission list returned to the UI, so the front end can hide controls it cannot use without duplicating policy.</p>
+<p>Three roles with a strict capability ladder (viewer, then analyst, then admin) follow the principle of least privilege; <code>ROLE_RIGHTS</code> in <code>app/api/security.py</code> is a single dictionary that drives both the API dependency <code>require_rights(...)</code> and the permission list returned to the UI, so the front end can hide controls it cannot use without duplicating policy.</p>
 <hr>
 <h2 id="8-comparative-synthesis">8. Comparative synthesis</h2>
 <div class='table-scroll'><table><thead><tr>
@@ -588,9 +593,9 @@
 <p>Thirty-one of the 39 entries carry a publisher URL or a standard identifier that was checked while writing this document. The eight entries marked <strong>TV</strong> are believed correct (author, year, title and venue) but their DOI or publication details could not be machine-verified in this offline environment. Before submission, each <strong>TV</strong> entry should be confirmed against the publisher of record; the claims attributed to them are standard in the record-linkage and data-quality literatures and do not affect any implementation in the repository.</p>
     </article>
     <div class="doc-foot">
-      <span><a href="05_kpis.html">← KPIs</a></span>
+      <span><a href="05_kpis.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>KPIs</a></span>
       <span><a href="../README.md">Source markdown</a></span>
-      <span><a href="07_requirements_gathering.html">Requirements →</a></span>
+      <span><a href="07_requirements_gathering.html">Requirements<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
     </div>
   </main>
 </div>

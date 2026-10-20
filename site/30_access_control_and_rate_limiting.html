@@ -15,7 +15,9 @@
 </head>
 <body>
 <header class="topbar">
-  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
   <a class="brand" href="index.html">
     <span class="brand-mark">W</span>
     <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
@@ -26,7 +28,10 @@
            aria-label="Search documentation" spellcheck="false">
     <div class="search-results" id="results" data-open="false"></div>
   </div>
-  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
 </header>
 <div class="shell">
   <nav class="sidebar" aria-label="Documentation">
@@ -114,31 +119,31 @@
 </tr></thead><tbody>
 <tr>
 <th><code>admin</code></th>
-<td>✓</td>
-<td>✓</td>
-<td>✓</td>
-<td>✓</td>
-<td>✓</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes</td>
 </tr>
 <tr>
 <th><code>engineer</code></th>
-<td>✓</td>
-<td>✓</td>
-<td>✓</td>
-<td>✓</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes</td>
 <td>—</td>
 </tr>
 <tr>
 <th><code>analyst</code></th>
-<td>✓</td>
-<td>✓</td>
-<td>✓</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes</td>
 <td>—</td>
 <td>—</td>
 </tr>
 <tr>
 <th><code>viewer</code></th>
-<td>✓</td>
+<td>Yes</td>
 <td>—</td>
 <td>—</td>
 <td>—</td>
@@ -154,7 +159,7 @@ PipelineUser = Annotated[AppUser, Depends(require_rights(&quot;run_pipeline&quot
 <h2 id="3-scopes-authorised-twice">3. Scopes: authorised twice</h2>
 <p>An API key carries its own scopes. Without a second check, <code>scopes</code> would be decorative: stored on creation and never read.</p>
 <pre class="mermaid">flowchart TD
-  request[request with pip_ key] --&gt; resolve[resolve key → owner]
+  request[request with pip_ key] --&gt; resolve[resolve key to owner]
   resolve --&gt; check1{owner has the right?}
   check1 --&gt;|no| 403[403 permission_denied]
   check1 --&gt;|yes| check2{key carries the scope?}
@@ -302,9 +307,9 @@ PipelineUser = Annotated[AppUser, Depends(require_rights(&quot;run_pipeline&quot
 </ul>
     </article>
     <div class="doc-foot">
-      <span><a href="29_two_factor_and_sessions.html">← Two-Factor & Sessions</a></span>
+      <span><a href="29_two_factor_and_sessions.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Two-Factor & Sessions</a></span>
       <span><a href="../README.md">Source markdown</a></span>
-      <span><a href="31_releases.html">Releases →</a></span>
+      <span><a href="31_releases.html">Releases<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
     </div>
   </main>
 </div>

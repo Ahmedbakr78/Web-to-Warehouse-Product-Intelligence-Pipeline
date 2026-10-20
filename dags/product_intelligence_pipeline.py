@@ -3,18 +3,18 @@
 The DAG has 14 tasks. The task graph is:
 
     start
-      └─► check_database_health (ShortCircuit)
-            └─► check_source_compliance (ShortCircuit)
-                  └─► probe_sources
-                        └─► run_pipeline
-                              ├─► detect_changes ──► branch_on_changes
-                              │                        ├─ yes ─► publish_notifications
-                              │                        └─ no  ─► skip_notifications
-                              ├─► data_quality_gate
-                              ├─► build_aggregates
-                              └─► reconcile_catalog
+      └─> check_database_health (ShortCircuit)
+            └─> check_source_compliance (ShortCircuit)
+                  └─> probe_sources
+                        └─> run_pipeline
+                              ├─> detect_changes ──> branch_on_changes
+                              │                        ├─ yes ─> publish_notifications
+                              │                        └─ no  ─> skip_notifications
+                              ├─> data_quality_gate
+                              ├─> build_aggregates
+                              └─> reconcile_catalog
                                     [notifications, quality, aggregates, reconcile]
-                                          └─► publish_report ──► end
+                                          └─> publish_report ──> end
 
 Design notes
 ------------

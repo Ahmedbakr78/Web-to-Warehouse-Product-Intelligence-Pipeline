@@ -15,7 +15,9 @@
 </head>
 <body>
 <header class="topbar">
-  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
   <a class="brand" href="index.html">
     <span class="brand-mark">W</span>
     <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
@@ -26,7 +28,10 @@
            aria-label="Search documentation" spellcheck="false">
     <div class="search-results" id="results" data-open="false"></div>
   </div>
-  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
 </header>
 <div class="shell">
   <nav class="sidebar" aria-label="Documentation">
@@ -71,7 +76,7 @@
       <h1>Requirements</h1>
       <p>User stories, use cases, 84 requirements</p>
     </div>
-    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#table-of-contents">Table of contents</a></li><li class="lvl-2"><a href="#1-elicitation-technique">1. Elicitation technique</a></li><li class="lvl-2"><a href="#2-stakeholder-analysis">2. Stakeholder analysis</a></li><li class="lvl-3"><a href="#21-stakeholder-register">2.1 Stakeholder register</a></li><li class="lvl-3"><a href="#22-pain-points-and-the-requirement-they-generate">2.2 Pain points and the requirement they generate</a></li><li class="lvl-3"><a href="#23-stakeholder--requirement-view">2.3 Stakeholder → requirement view</a></li><li class="lvl-2"><a href="#3-user-stories-with-acceptance-criteria">3. User stories with acceptance criteria</a></li><li class="lvl-3"><a href="#us-01--monitor-the-pipeline-as-a-data-engineer">US-01 — Monitor the pipeline as a data engineer</a></li><li class="lvl-3"><a href="#us-02--find-the-products-that-moved">US-02 — Find the products that moved</a></li><li class="lvl-3"><a href="#us-03--trust-a-product-record">US-03 — Trust a product record</a></li><li class="lvl-3"><a href="#us-04--see-the-data-quality-verdict">US-04 — See the data-quality verdict</a></li><li class="lvl-3"><a href="#us-05--reconcile-against-the-internal-catalog">US-05 — Reconcile against the internal catalog</a></li><li class="lvl-3"><a href="#us-06--stay-inside-the-law">US-06 — Stay inside the law</a></li><li class="lvl-3"><a href="#us-07--query-the-warehouse-as-an-analyst">US-07 — Query the warehouse as an analyst</a></li><li class="lvl-3"><a href="#us-08--compare-with-the-market-without-leaving-the-product">US-08 — Compare with the market without leaving the product</a></li><li class="lvl-3"><a href="#us-09--work-without-the-dashboard">US-09 — Work without the dashboard</a></li><li class="lvl-3"><a href="#us-10--administer-access">US-10 — Administer access</a></li><li class="lvl-2"><a href="#4-use-cases">4. Use cases</a></li><li class="lvl-3"><a href="#41-use-case-catalogue">4.1 Use case catalogue</a></li><li class="lvl-3"><a href="#42-extendflow-of-the-main-use-case-uc-02-in-words">4.2 Extend/flow of the main use case (UC-02 in words)</a></li><li class="lvl-2"><a href="#5-functional-requirements">5. Functional requirements</a></li><li class="lvl-3"><a href="#51-coverage-summary">5.1 Coverage summary</a></li><li class="lvl-2"><a href="#6-non-functional-requirements">6. Non-functional requirements</a></li><li class="lvl-2"><a href="#7-business-rules">7. Business rules</a></li><li class="lvl-2"><a href="#8-traceability-matrix">8. Traceability matrix</a></li><li class="lvl-3"><a href="#81-reverse-traceability-module--requirements">8.1 Reverse traceability (module → requirements)</a></li></ol></details>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#table-of-contents">Table of contents</a></li><li class="lvl-2"><a href="#1-elicitation-technique">1. Elicitation technique</a></li><li class="lvl-2"><a href="#2-stakeholder-analysis">2. Stakeholder analysis</a></li><li class="lvl-3"><a href="#21-stakeholder-register">2.1 Stakeholder register</a></li><li class="lvl-3"><a href="#22-pain-points-and-the-requirement-they-generate">2.2 Pain points and the requirement they generate</a></li><li class="lvl-3"><a href="#23-stakeholder-to-requirement-view">2.3 Stakeholder-to-requirement view</a></li><li class="lvl-2"><a href="#3-user-stories-with-acceptance-criteria">3. User stories with acceptance criteria</a></li><li class="lvl-3"><a href="#us-01--monitor-the-pipeline-as-a-data-engineer">US-01 — Monitor the pipeline as a data engineer</a></li><li class="lvl-3"><a href="#us-02--find-the-products-that-moved">US-02 — Find the products that moved</a></li><li class="lvl-3"><a href="#us-03--trust-a-product-record">US-03 — Trust a product record</a></li><li class="lvl-3"><a href="#us-04--see-the-data-quality-verdict">US-04 — See the data-quality verdict</a></li><li class="lvl-3"><a href="#us-05--reconcile-against-the-internal-catalog">US-05 — Reconcile against the internal catalog</a></li><li class="lvl-3"><a href="#us-06--stay-inside-the-law">US-06 — Stay inside the law</a></li><li class="lvl-3"><a href="#us-07--query-the-warehouse-as-an-analyst">US-07 — Query the warehouse as an analyst</a></li><li class="lvl-3"><a href="#us-08--compare-with-the-market-without-leaving-the-product">US-08 — Compare with the market without leaving the product</a></li><li class="lvl-3"><a href="#us-09--work-without-the-dashboard">US-09 — Work without the dashboard</a></li><li class="lvl-3"><a href="#us-10--administer-access">US-10 — Administer access</a></li><li class="lvl-2"><a href="#4-use-cases">4. Use cases</a></li><li class="lvl-3"><a href="#41-use-case-catalogue">4.1 Use case catalogue</a></li><li class="lvl-3"><a href="#42-extendflow-of-the-main-use-case-uc-02-in-words">4.2 Extend/flow of the main use case (UC-02 in words)</a></li><li class="lvl-2"><a href="#5-functional-requirements">5. Functional requirements</a></li><li class="lvl-3"><a href="#51-coverage-summary">5.1 Coverage summary</a></li><li class="lvl-2"><a href="#6-non-functional-requirements">6. Non-functional requirements</a></li><li class="lvl-2"><a href="#7-business-rules">7. Business rules</a></li><li class="lvl-2"><a href="#8-traceability-matrix">8. Traceability matrix</a></li><li class="lvl-3"><a href="#81-reverse-traceability-module-to-requirements">8.1 Reverse traceability (module to requirements)</a></li></ol></details>
     <article class="doc-body">
 <h2 id="purpose">Purpose</h2>
 <p>This document captures how the requirements of the Web-to-Warehouse Product Intelligence Pipeline were elicited, prioritised and traced. It contains the stakeholder analysis, the user stories with Given/When/Then acceptance criteria, the use cases, the functional-requirement catalogue (<code>FR-001</code> … <code>FR-0xx</code>, prioritised with MoSP / CoD / Should / Won't), the non-functional requirements, and the traceability matrix that maps every functional requirement to the module that implements it and to the check that verifies it.</p>
@@ -250,7 +255,7 @@
 <td>Dual-dialect support (FR-011)</td>
 </tr>
 </tbody></table></div>
-<h3 id="23-stakeholder--requirement-view">2.3 Stakeholder → requirement view</h3>
+<h3 id="23-stakeholder-to-requirement-view">2.3 Stakeholder-to-requirement view</h3>
 <pre class="mermaid">flowchart LR
     ST1[&quot;ST1 Pricing analyst&quot;] --&gt; R1[&quot;FR-020 to FR-026 price and change analytics&quot;]
     ST2[&quot;ST2 Category manager&quot;] --&gt; R2[&quot;FR-027 to FR-031 lifecycle analytics&quot;]
@@ -740,7 +745,7 @@
 <tr>
 <th>6</th>
 <td>Dedupe</td>
-<td><code>DedupeEngine.find_match()</code> → exact → blocked exact → fuzzy</td>
+<td><code>DedupeEngine.find_match()</code>: exact, then blocked exact, then fuzzy</td>
 <td><code>SourceNotFoundError</code> only for an unknown code</td>
 </tr>
 <tr>
@@ -1087,7 +1092,7 @@
 <td>Lock an account after repeated failed logins</td>
 <td>Should</td>
 <td>Implemented</td>
-<td>5 attempts → 15-minute lock</td>
+<td>5 attempts, then a 15-minute lock</td>
 </tr>
 <tr>
 <th>FR-043</th>
@@ -1580,7 +1585,7 @@
 </tr>
 <tr>
 <th>FR-014</th>
-<td><code>http_client.get()</code> → <code>ComplianceError</code></td>
+<td><code>http_client.get()</code> raises <code>ComplianceError</code></td>
 <td>Source preview against a disallowed path</td>
 </tr>
 <tr>
@@ -1590,7 +1595,7 @@
 </tr>
 <tr>
 <th>FR-016</th>
-<td><code>http_client._record()</code> → <code>ingestion_http_log</code></td>
+<td><code>http_client._record()</code> writes to <code>ingestion_http_log</code></td>
 <td><code>GET /api/v1/audit/http</code></td>
 </tr>
 <tr>
@@ -1761,7 +1766,7 @@
 <tr>
 <th>FR-050</th>
 <td><code>routers/queries.py</code>, <code>schemas.QueryRequest</code></td>
-<td>Smoke checks: <code>SELECT 1</code> → 200, <code>DELETE …</code> → 422</td>
+<td>Smoke checks: <code>SELECT 1</code> returns 200, <code>DELETE …</code> returns 422</td>
 </tr>
 <tr>
 <th>FR-051</th>
@@ -1809,7 +1814,7 @@
 <td>Out of scope by decision (docs/01 §3.2)</td>
 </tr>
 </tbody></table></div>
-<h3 id="81-reverse-traceability-module--requirements">8.1 Reverse traceability (module → requirements)</h3>
+<h3 id="81-reverse-traceability-module-to-requirements">8.1 Reverse traceability (module to requirements)</h3>
 <div class='table-scroll'><table><thead><tr>
 <th>Module</th>
 <th>Requirements</th>
@@ -1873,9 +1878,9 @@
 </tbody></table></div>
     </article>
     <div class="doc-foot">
-      <span><a href="06_literature_review.html">← Literature Review</a></span>
+      <span><a href="06_literature_review.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Literature Review</a></span>
       <span><a href="../README.md">Source markdown</a></span>
-      <span><a href="08_system_analysis_design.html">System Analysis and Design →</a></span>
+      <span><a href="08_system_analysis_design.html">System Analysis and Design<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
     </div>
   </main>
 </div>

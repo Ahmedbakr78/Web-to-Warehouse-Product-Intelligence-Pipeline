@@ -15,7 +15,9 @@
 </head>
 <body>
 <header class="topbar">
-  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
   <a class="brand" href="index.html">
     <span class="brand-mark">W</span>
     <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
@@ -26,7 +28,10 @@
            aria-label="Search documentation" spellcheck="false">
     <div class="search-results" id="results" data-open="false"></div>
   </div>
-  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
 </header>
 <div class="shell">
   <nav class="sidebar" aria-label="Documentation">
@@ -393,7 +398,7 @@
 </ul>
 <p>(<code>STOPWORDS</code>, 60 entries including format and edition qualifiers) and <strong>sorts the remaining tokens</strong>.</p>
 <ul>
-<li class="depth-0"><strong>Exact key.</strong> If the two normalised keys are equal → score <code>1.0</code>.</li>
+<li class="depth-0"><strong>Exact key.</strong> If the two normalised keys are equal, the score is <code>1.0</code>.</li>
 <li class="depth-0"><strong>Character-level forms.</strong></li>
 <li class="depth-1"><code>squash</code>: lowercase alphanumeric with all separators removed (<code>256GB</code> vs <code>256 GB</code>).</li>
 <li class="depth-1"><code>compact</code>: the normalised key with spaces removed.</li>
@@ -443,13 +448,13 @@
 <ul>
 <li class="depth-0"><strong>Digit-signature factor.</strong> <code>digit_signature()</code> extracts the ordered digit runs of a name</li>
 </ul>
-<p>(<code>Canon EOS R6</code> → <code>('6')</code>, <code>Nike Pegasus 40</code> → <code>('40')</code>). Equal → ×1.0; one differing position or length → ×0.85; more → ×0.60.</p>
+<p>(<code>Canon EOS R6</code> gives <code>('6')</code>, <code>Nike Pegasus 40</code> gives <code>('40')</code>). Equal gives ×1.0; one differing position or length gives ×0.85; more gives ×0.60.</p>
 <ul>
 <li class="depth-0"><strong>Brand blend.</strong> If both brands are known: <code>score = score × 0.88 + brand_similarity × 0.12</code>, where</li>
 </ul>
 <p>brand similarity is 1.0 for equality and a trigram similarity otherwise. If neither brand is known, the brand term is 1.0 and the score is unchanged.</p>
 <ul>
-<li class="depth-0"><strong>Category bonus.</strong> Equal → +0.03; one containing the other → +0.021; otherwise 0. Clamped to 1.0.</li>
+<li class="depth-0"><strong>Category bonus.</strong> Equal gives +0.03; one containing the other gives +0.021; otherwise 0. Clamped to 1.0.</li>
 </ul>
 <h3 id="33-worked-measurements">3.3 Worked measurements</h3>
 <div class='table-scroll'><table><thead><tr>
@@ -474,13 +479,13 @@
 <td><code>Canon EOS R6</code> / <code>Canon EOS R5</code></td>
 <td>0.8121</td>
 <td>distinct</td>
-<td>Digit signatures differ → ×0.60</td>
+<td>Digit signatures differ, so ×0.60</td>
 </tr>
 <tr>
 <td><code>Sony WH-1000XM5</code> / <code>Sony WH-1000XM4</code></td>
 <td>0.8034</td>
 <td>distinct</td>
-<td>Digit signatures differ → ×0.60</td>
+<td>Digit signatures differ, so ×0.60</td>
 </tr>
 <tr>
 <td><code>Clean Architecture</code> / <code>Clean Architecture: A Craftsman's Guide</code></td>
@@ -512,7 +517,7 @@
 </tr>
 <tr>
 <th>Cache</th>
-<td>Fingerprint → <code>product_id</code> loaded once per run, updated on register/merge</td>
+<td>Fingerprint maps to <code>product_id</code>, loaded once per run and updated on register/merge</td>
 <td>Avoids a query per record</td>
 </tr>
 <tr>
@@ -553,7 +558,7 @@
 <td><code>product_id = NULL</code></td>
 </tr>
 </tbody></table></div>
-<p>Performance: 4-character block index plus a rare-token fallback index reduces the comparison set from the whole catalogue to a handful per SKU. Measured 2,975 ms → 104 ms (29×) with identical results.</p>
+<p>Performance: 4-character block index plus a rare-token fallback index reduces the comparison set from the whole catalogue to a handful per SKU. Measured 2,975 ms down to 104 ms (29×) with identical results.</p>
 <hr>
 <h2 id="4-key-algorithm-2--currency-and-price-normalisation">4. Key algorithm 2 — currency and price normalisation</h2>
 <h3 id="41-price-extraction">4.1 Price extraction</h3>
@@ -562,13 +567,13 @@
 <li class="depth-0"><strong>Unicode fold and trim.</strong> NFKC, smart-punctuation translation.</li>
 <li class="depth-0"><strong>Unavailable markers.</strong> <code>free</code>, <code>n/a</code>, <code>null</code>, <code>none</code>, <code>unavailable</code>, <code>-</code>, <code>poa</code>, `call for</li>
 </ul>
-<p>price<code>, </code>tbd<code>, </code>ask for price<code> → </code>amount=None<code>, </code>confidence=0.0<code>, </code>is_valid=False`.</p>
+<p>price<code>, </code>tbd<code>, </code>ask for price<code> gives </code>amount=None<code>, </code>confidence=0.0<code>, </code>is_valid=False`.</p>
 <ul>
-<li class="depth-0"><strong>Ranges.</strong> <code>$10 - $20</code> → midpoint 15.0 with <code>is_range=True</code>, <code>range_low</code>, <code>range_high</code>,</li>
+<li class="depth-0"><strong>Ranges.</strong> <code>$10 - $20</code> gives midpoint 15.0 with <code>is_range=True</code>, <code>range_low</code>, <code>range_high</code>,</li>
 </ul>
 <p><code>confidence=0.7</code> — unless the text contains <code>was</code>, <code>now</code>, <code>mrp</code>, <code>rrp</code>, <code>list price</code>.</p>
 <ul>
-<li class="depth-0"><strong>Was/now.</strong> <code>Was $49.99 Now $39.99</code> → 39.99 with <code>matched_pattern="was_now"</code>, confidence 0.85.</li>
+<li class="depth-0"><strong>Was/now.</strong> <code>Was $49.99 Now $39.99</code> gives 39.99 with <code>matched_pattern="was_now"</code>, confidence 0.85.</li>
 <li class="depth-0"><strong>Five competing patterns</strong>, each with a confidence:</li>
 </ul>
 <div class='table-scroll'><table><thead><tr>
@@ -619,27 +624,27 @@
 </tr></thead><tbody>
 <tr>
 <th><code>1,234.56</code></th>
-<td>Both separators → right-most is the decimal</td>
+<td>Both separators, so the right-most is the decimal</td>
 <td>1234.56</td>
 </tr>
 <tr>
 <th><code>1.234,56</code></th>
-<td>Both separators → right-most is the decimal</td>
+<td>Both separators, so the right-most is the decimal</td>
 <td>1234.56</td>
 </tr>
 <tr>
 <th><code>1,499</code></th>
-<td>One separator, exactly three trailing digits → thousands</td>
+<td>One separator with exactly three trailing digits, so thousands</td>
 <td>1499</td>
 </tr>
 <tr>
 <th><code>45,90</code></th>
-<td>One separator, two trailing digits → decimal</td>
+<td>One separator with two trailing digits, so decimal</td>
 <td>45.90</td>
 </tr>
 <tr>
 <th><code>1.234.567</code></th>
-<td>Multiple dots → grouping</td>
+<td>Multiple dots, so grouping</td>
 <td>1234567</td>
 </tr>
 </tbody></table></div>
@@ -649,10 +654,10 @@
 <li class="depth-0">Exact ISO-4217 match against <code>STATIC_FX_RATES</code> (25 currencies).</li>
 <li class="depth-0">Symbol/code map <code>CURRENCY_SYMBOLS</code> (60 entries, including <code>£</code>, <code>¥</code>, <code>₹</code>, <code>A$</code>, <code>C$</code>, <code>ج.م</code>).</li>
 <li class="depth-0">Substring search for codes of three characters or more.</li>
-<li class="depth-0">Dominant-symbol heuristic for long blobs (<code>"Was $49.99 Now $39.99"</code> → <code>USD</code>).</li>
+<li class="depth-0">Dominant-symbol heuristic for long blobs (<code>"Was $49.99 Now $39.99"</code> gives <code>USD</code>).</li>
 <li class="depth-0">Fallback to the default or the hint.</li>
 </ul>
-<p><code>detect_currency_locale(text, url, html)</code> resolves a page's currency from the host suffix (<code>.co.uk</code> → GBP, <code>.de</code> → EUR, <code>.co.jp</code> → JPY, …), then from <code>itemprop="priceCurrency"</code> or <code>"currency":"</code> markers, then from symbol frequency.</p>
+<p><code>detect_currency_locale(text, url, html)</code> resolves a page's currency from the host suffix (<code>.co.uk</code> gives GBP, <code>.de</code> gives EUR, <code>.co.jp</code> gives JPY, …), then from <code>itemprop="priceCurrency"</code> or <code>"currency":"</code> markers, then from symbol frequency.</p>
 <h3 id="44-fx-normalisation">4.4 FX normalisation</h3>
 <pre class="code" data-lang="python"><code>def convert_to_usd(amount, currency):
     rate = STATIC_FX_RATES.get((currency or &quot;USD&quot;).upper())
@@ -669,7 +674,7 @@
 <tr>
 <th>Product name</th>
 <td><code>clean_product_name</code></td>
-<td>HTML strip → NFKC → promo prefix/suffix removal → bracketed-tag removal → punctuation collapse → smart title case only if fully lower-case → truncate at a word boundary</td>
+<td>HTML strip, NFKC, promo prefix/suffix removal, bracketed-tag removal, punctuation collapse, smart title case only if fully lower-case, truncate at a word boundary</td>
 </tr>
 <tr>
 <th>Comparison key</th>
@@ -680,7 +685,7 @@
 <th>Category</th>
 <td><code>normalise_category</code></td>
 <td>Breadcrumb separators (<code>/</code>, `\</td>
-<td><code>, </code>»<code>, </code>›<code>, </code>-&gt;<code>, </code>=&gt;<code>) → </code>&gt;`; per-segment synonym mapping; hierarchy preserved</td>
+<td><code>, </code>»<code>, </code>›<code>, </code>-&gt;<code>, </code>=&gt;<code>) become </code>&gt;`; per-segment synonym mapping; hierarchy preserved</td>
 </tr>
 <tr>
 <th>Brand</th>
@@ -695,7 +700,7 @@
 <tr>
 <th>Availability</th>
 <td><code>normalise_availability</code></td>
-<td>Token precedence: out-of-stock → preorder → in-stock → limited → unknown; <code>in_stock_flag</code> overrides text</td>
+<td>Token precedence: out-of-stock, preorder, in-stock, limited, unknown; <code>in_stock_flag</code> overrides text</td>
 </tr>
 </tbody></table></div>
 <hr>
@@ -922,7 +927,7 @@ score           = round( Σ(weight × factor) / Σ(weight) × 100 , 2 )</code></
 <p>A broken rule degrades to a recorded failure; the remaining 11 rules still run.</p>
 <hr>
 <h2 id="7-configuration-reference">7. Configuration reference</h2>
-<p>Every setting is a field of <code>Settings</code> (Pydantic v2). Precedence: real environment variables → <code>.env</code> file → declared default. Validation happens once at import (and can be refreshed with <code>reload_settings()</code>).</p>
+<p>Every setting is a field of <code>Settings</code> (Pydantic v2). Precedence: real environment variables, then the <code>.env</code> file, then the declared default. Validation happens once at import (and can be refreshed with <code>reload_settings()</code>).</p>
 <div class='table-scroll'><table><thead><tr>
 <th>#</th>
 <th>Variable</th>
@@ -1627,7 +1632,7 @@ DEFAULT_SOURCES = [&quot;local_demo&quot;, &quot;dummyjson_products&quot;, &quot
 </tr>
 <tr>
 <th>Brute-force control</th>
-<td>5 failures → 15-minute lock, counter reset</td>
+<td>5 failures, then a 15-minute lock and a counter reset</td>
 <td>Audited with the failure</td>
 </tr>
 <tr>
@@ -1832,9 +1837,9 @@ DEFAULT_SOURCES = [&quot;local_demo&quot;, &quot;dummyjson_products&quot;, &quot
 <p><strong>Logging convention.</strong> Every exception is logged with its type, the message (first line, truncated) and the run id. <code>settings.app_debug</code> adds the traceback. No exception message includes credentials: connection strings pass through <code>describe_target()</code> first.</p>
     </article>
     <div class="doc-foot">
-      <span><a href="16_user_manual.html">← User Manual</a></span>
+      <span><a href="16_user_manual.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>User Manual</a></span>
       <span><a href="../README.md">Source markdown</a></span>
-      <span><a href="18_presentation_outline.html">Presentation Outline →</a></span>
+      <span><a href="18_presentation_outline.html">Presentation Outline<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
     </div>
   </main>
 </div>

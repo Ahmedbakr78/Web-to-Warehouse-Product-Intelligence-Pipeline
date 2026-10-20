@@ -10,7 +10,7 @@
   function applyTheme(t) {
     document.documentElement.setAttribute('data-theme', t);
     var btn = document.getElementById('theme-btn');
-    if (btn) { btn.textContent = t === 'dark' ? '☀' : '☾'; btn.title = 'Switch to ' + (t === 'dark' ? 'light' : 'dark') + ' theme'; }
+    if (btn) { btn.title = 'Switch to ' + (t === 'dark' ? 'light' : 'dark') + ' theme'; }
   }
   var stored = null;
   try { stored = localStorage.getItem(KEY); } catch (e) {}

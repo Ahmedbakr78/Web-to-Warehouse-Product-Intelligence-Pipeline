@@ -15,7 +15,9 @@
 </head>
 <body>
 <header class="topbar">
-  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
   <a class="brand" href="index.html">
     <span class="brand-mark">W</span>
     <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
@@ -26,7 +28,10 @@
            aria-label="Search documentation" spellcheck="false">
     <div class="search-results" id="results" data-open="false"></div>
   </div>
-  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
 </header>
 <div class="shell">
   <nav class="sidebar" aria-label="Documentation">
@@ -75,7 +80,7 @@
     <article class="doc-body">
 <h2 id="purpose">Purpose</h2>
 <p>This document is the complete feature inventory of the Web-to-Warehouse Product Intelligence Pipeline: 575 features grouped into forty-seven areas, each with a one-line description and a reference to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an endpoint, a CLI command or a documented design decision. Nothing here is aspirational.</p>
-<p><strong>Scale of the system, measured:</strong> 32 ingestion sources · 29 physical tables · 23 analytical views · 12 data-quality rules across 6 dimensions · 215 REST route decorators in 23 routers · 9 pipeline stages · 33 Airflow task callables · 6 Docker Compose services · 31 numbered documents · 80 Mermaid diagrams · 568 automated tests · 104 end-to-end API smoke checks.</p>
+<p><strong>Scale of the system, measured:</strong> 35 ingestion sources · 29 physical tables · 23 analytical views · 12 data-quality rules across 6 dimensions · 219 REST route decorators in 24 routers · 9 pipeline stages · 33 Airflow task callables · 6 Docker Compose services · 33 numbered documents · 83 Mermaid diagrams · 594 automated tests · 104 end-to-end API smoke checks.</p>
 <p>Regenerate the numbers above with <code>python3 scripts/project_stats.py</code>.</p>
 <hr>
 <h2 id="table-of-contents">Table of contents</h2>
@@ -136,7 +141,7 @@
 <tr>
 <th>F-006</th>
 <td>RFC 9309 fallback semantics</td>
-<td>4xx → allow all; 401/403 → disallow; 5xx/network → cached failure</td>
+<td>4xx means allow all; 401/403 means disallow; 5xx/network means a cached failure</td>
 <td><code>app/ingestion/robots.py</code> <code>_load</code></td>
 </tr>
 <tr>
@@ -203,7 +208,7 @@
 <th>F-017</th>
 <td>Per-request audit trail</td>
 <td>One row per outbound attempt with status, latency, bytes, robots decision, cache flag and retries</td>
-<td><code>app/ingestion/http_client.py</code> <code>HttpAuditEntry</code> → <code>ingestion_http_log</code></td>
+<td><code>app/ingestion/http_client.py</code> <code>HttpAuditEntry</code> writes to <code>ingestion_http_log</code></td>
 </tr>
 <tr>
 <th>F-018</th>
@@ -232,7 +237,7 @@
 <tr>
 <th>F-022</th>
 <td>BeautifulSoup + lxml scraper</td>
-<td>Listing → detail crawl, breadcrumb categories, price, stock count, star rating, UPC, image</td>
+<td>Listing then detail crawl, breadcrumb categories, price, stock count, star rating, UPC, image</td>
 <td><code>app/ingestion/sources/books_to_scrape.py</code></td>
 </tr>
 <tr>
@@ -350,7 +355,7 @@
 <tr>
 <th>F-035</th>
 <td>Category synonym map</td>
-<td>~140 mappings to a canonical hierarchy such as <code>tech → Electronics</code>, <code>jewellery → Accessories &gt; Jewellery</code></td>
+<td>~140 mappings to a canonical hierarchy such as <code>tech</code> to <code>Electronics</code>, <code>jewellery</code> to <code>Accessories &gt; Jewellery</code></td>
 <td><code>cleaning.CATEGORY_SYNONYMS</code></td>
 </tr>
 <tr>
@@ -375,7 +380,7 @@
 <tr>
 <th>F-039</th>
 <td>Competing price patterns</td>
-<td>Five patterns scored by confidence (ISO code 0.95 → bare number 0.60); the strongest candidate wins</td>
+<td>Five patterns scored by confidence (ISO code 0.95 down to a bare number 0.60); the strongest candidate wins</td>
 <td><code>cleaning.parse_price</code>, <code>_PATTERN_CONFIDENCE</code></td>
 </tr>
 <tr>
@@ -540,7 +545,7 @@
 <tr>
 <th>F-065</th>
 <td>Three-stage matching cascade</td>
-<td>Fingerprint exact → normalised-name equality → fuzzy above the threshold</td>
+<td>Fingerprint exact, then normalised-name equality, then fuzzy above the threshold</td>
 <td><code>DedupeEngine.find_match</code></td>
 </tr>
 <tr>
@@ -991,7 +996,7 @@
 <th>F-131</th>
 <td>Daily trend</td>
 <td>Observations, products, average price, average rating and in-stock percentage per day</td>
-<td><code>analytics.daily_trend</code> → <code>vw_daily_kpis</code></td>
+<td><code>analytics.daily_trend</code> feeds <code>vw_daily_kpis</code></td>
 </tr>
 <tr>
 <th>F-132</th>
@@ -1003,7 +1008,7 @@
 <th>F-133</th>
 <td>Top movers</td>
 <td>Largest absolute movements with an optional direction filter</td>
-<td><code>analytics.top_movers</code> → <code>vw_top_movers</code></td>
+<td><code>analytics.top_movers</code> feeds <code>vw_top_movers</code></td>
 </tr>
 <tr>
 <th>F-134</th>
@@ -1747,7 +1752,7 @@
 <tr>
 <th>F-219</th>
 <td>Command palette</td>
-<td>Ctrl/Cmd-K or "/" opens a searchable palette: screens <strong>and live product results</strong> with prices, plus quick actions (theme toggle, sidebar toggle, sign out); ↑↓/↵/esc keyboard navigation</td>
+<td>Ctrl/Cmd-K or "/" opens a searchable palette: screens <strong>and live product results</strong> with prices, plus quick actions (theme toggle, sidebar toggle, sign out); arrow-up/arrow-down, Enter and Esc keyboard navigation</td>
 <td><code>frontend/src/components/AppShell.tsx</code> <code>CommandPalette</code></td>
 </tr>
 <tr>
@@ -3703,7 +3708,7 @@
 <tr>
 <th>F-535</th>
 <td>One-command real verification</td>
-<td><code>./run-full-app.sh</code>: lint → tests → live-source smoke → real SQLite pipeline → frontend → compose, with a <code>--offline</code> synthetic fallback</td>
+<td><code>./run-full-app.sh</code>: lint, tests, live-source smoke, real SQLite pipeline, frontend, compose, with a <code>--offline</code> synthetic fallback</td>
 <td><code>run-full-app.sh</code></td>
 </tr>
 <tr>
@@ -3743,7 +3748,7 @@
 <tr>
 <th>F-540</th>
 <td>Scrapy crawling engine</td>
-<td><code>BookSpider</code>: listing → detail crawl with robots middleware, autothrottle, item cap; identical <code>RawProduct</code> output</td>
+<td><code>BookSpider</code>: listing then detail crawl with robots middleware, autothrottle, item cap; identical <code>RawProduct</code> output</td>
 <td><code>app/ingestion/scrapy_spider.py</code></td>
 </tr>
 <tr>
@@ -3847,7 +3852,7 @@
 <tr>
 <th>F-554</th>
 <td>Exact-number display mode</td>
-<td>Account → Preferences switches every count from compact (33.6k) to exact (33,600)</td>
+<td>Account, then Preferences, switches every count from compact (33.6k) to exact (33,600)</td>
 <td><code>frontend/src/lib/format.ts</code></td>
 </tr>
 <tr>
@@ -3980,9 +3985,9 @@
 <p><strong>Revised total: 575 features across 47 areas</strong> (F-001 to F-575).</p>
     </article>
     <div class="doc-foot">
-      <span><a href="18_presentation_outline.html">← Presentation Outline</a></span>
+      <span><a href="18_presentation_outline.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Presentation Outline</a></span>
       <span><a href="../README.md">Source markdown</a></span>
-      <span><a href="20_literature_feedback_and_improvements.html">Feedback and Improvements →</a></span>
+      <span><a href="20_literature_feedback_and_improvements.html">Feedback and Improvements<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
     </div>
   </main>
 </div>

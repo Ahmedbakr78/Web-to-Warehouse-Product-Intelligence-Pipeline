@@ -15,7 +15,9 @@
 </head>
 <body>
 <header class="topbar">
-  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
   <a class="brand" href="index.html">
     <span class="brand-mark">W</span>
     <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
@@ -26,7 +28,10 @@
            aria-label="Search documentation" spellcheck="false">
     <div class="search-results" id="results" data-open="false"></div>
   </div>
-  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
 </header>
 <div class="shell">
   <nav class="sidebar" aria-label="Documentation">
@@ -333,7 +338,7 @@
 </tr>
 <tr>
 <th><strong>Alternative flows</strong></th>
-<td>A source fails → warning recorded, run marked <code>partial</code>, remaining sources continue. Catalog is empty → reconciliation skipped. DQ critical rule fails → run marked <code>failed</code>.</td>
+<td>A source fails and a warning is recorded, the run is marked <code>partial</code>, remaining sources continue. An empty catalog means reconciliation is skipped. A failed DQ critical rule marks the run <code>failed</code>.</td>
 </tr>
 <tr>
 <td><strong>Post-conditions on failure</strong></td>
@@ -364,11 +369,11 @@
 <tr>
 <td><strong>Main success scenario</strong></td>
 <td>1. Compute `fingerprint = sha1(brand_key</td>
-<td>name_key)[:32]<code>. 2. If the fingerprint is known → strategy </code>exact<code>, score 1.0. 3. Else look for a row with the same </code>normalized_name<code> → strategy </code>blocked_exact<code>. 4. Else load the blocking candidates (prefix </code>blocking_key<code>) and score each with </code>combined_similarity()<code>. 5. If the best score ≥ 0.90 → strategy </code>fuzzy<code> with the score and the per-measure breakdown. 6. Otherwise → strategy </code>new<code>; the loader inserts a new </code>dim_product`.</td>
+<td>name_key)[:32]<code>. 2. If the fingerprint is known, the strategy is </code>exact<code> with score 1.0. 3. Otherwise a row with the same </code>normalized_name<code> gives the strategy </code>blocked_exact<code>. 4. Else load the blocking candidates (prefix </code>blocking_key<code>) and score each with </code>combined_similarity()<code>. 5. If the best score is ≥ 0.90, the strategy is </code>fuzzy<code> with the score and the per-measure breakdown. 6. Otherwise the strategy is </code>new<code>; the loader inserts a new </code>dim_product`.</td>
 </tr>
 <tr>
 <th><strong>Alternative flow</strong></th>
-<td>Two upstream rows in the same run resolve to the same product → the second snapshot is skipped and <code>duplicates_merged</code> is incremented (protects the fact grain).</td>
+<td>Two upstream rows in the same run resolve to the same product, so the second snapshot is skipped and <code>duplicates_merged</code> is incremented (protects the fact grain).</td>
 </tr>
 <tr>
 <th><strong>Postcondition</strong></th>
@@ -402,7 +407,7 @@
 </tr>
 <tr>
 <th><strong>Alternative flow</strong></th>
-<td>A rule raises → the SAVEPOINT is rolled back and the outcome is recorded as <code>fail</code> with the exception message; the remaining rules still run.</td>
+<td>A rule raises, the SAVEPOINT is rolled back and the outcome is recorded as <code>fail</code> with the exception message; the remaining rules still run.</td>
 </tr>
 <tr>
 <th><strong>Postcondition</strong></th>
@@ -428,11 +433,11 @@
 </tr>
 <tr>
 <td><strong>Main success scenario</strong></td>
-<td>1. Load active catalog rows (≤ 5,000). 2. Load active, recently seen products as candidates and their latest price. 3. Build blocking indexes (4-char prefix and token index). 4. For each SKU: try identifier match → normalised-name match → fuzzy match inside a narrowed pool. 5. Compute <code>price_gap_abs</code> and <code>price_gap_pct</code>; flag <code>is_price_mismatch</code> when the gap ≥ 1 %. 6. Persist the row in <code>fact_catalog_snapshot</code>.</td>
+<td>1. Load active catalog rows (≤ 5,000). 2. Load active, recently seen products as candidates and their latest price. 3. Build blocking indexes (4-char prefix and token index). 4. For each SKU: try an identifier match, then a normalised-name match, then a fuzzy match inside a narrowed pool. 5. Compute <code>price_gap_abs</code> and <code>price_gap_pct</code>; flag <code>is_price_mismatch</code> when the gap ≥ 1 %. 6. Persist the row in <code>fact_catalog_snapshot</code>.</td>
 </tr>
 <tr>
 <th><strong>Alternative flow</strong></th>
-<td>No candidate ≥ 0.86 → status <code>unmatched</code>, product id null (an internal-only SKU).</td>
+<td>No candidate at 0.86 or above means status <code>unmatched</code> with a null product id (an internal-only SKU).</td>
 </tr>
 <tr>
 <th><strong>Postcondition</strong></th>
@@ -458,7 +463,7 @@
 </tr>
 <tr>
 <th><strong>Alternative flows</strong></th>
-<td>Wrong password → increment <code>failed_login_count</code>; at 5, lock for 15 minutes. Inactive user → <code>401</code>. Refresh → validate the token type is <code>refresh</code>, then re-issue.</td>
+<td>A wrong password increments <code>failed_login_count</code>; at 5, the account locks for 15 minutes. An inactive user gets <code>401</code>. A refresh must validate the token type is <code>refresh</code>, then re-issue.</td>
 </tr>
 <tr>
 <th><strong>Postcondition</strong></th>
@@ -480,11 +485,11 @@
 </tr>
 <tr>
 <td><strong>Main success scenario</strong></td>
-<td>1. Validate the statement: must start with <code>SELECT</code>, <code>WITH</code> or <code>EXPLAIN</code> and must not contain a write keyword, a comment or a second statement. 2. Execute with a row cap (<code>limit</code>, default 200, max 5,000). 3. Serialise values (Decimal → float, date → ISO 8601, bytes → size placeholder). 4. Return columns, rows, <code>row_count</code>, <code>duration_ms</code> and <code>truncated</code>.</td>
+<td>1. Validate the statement: must start with <code>SELECT</code>, <code>WITH</code> or <code>EXPLAIN</code> and must not contain a write keyword, a comment or a second statement. 2. Execute with a row cap (<code>limit</code>, default 200, max 5,000). 3. Serialise values (Decimal becomes float, date becomes ISO 8601, bytes becomes a size placeholder). 4. Return columns, rows, <code>row_count</code>, <code>duration_ms</code> and <code>truncated</code>.</td>
 </tr>
 <tr>
 <th><strong>Alternative flows</strong></th>
-<td>Invalid SQL → <code>422</code>; viewer role → <code>403</code>.</td>
+<td>Invalid SQL gives <code>422</code>; the viewer role gives <code>403</code>.</td>
 </tr>
 </tbody></table></div>
 <hr>
@@ -855,13 +860,13 @@
 </tr></thead><tbody>
 <tr>
 <th>Data movement</th>
-<td><strong>Batch ETL</strong> (extract → stage → transform → load → analyse) with a raw landing zone</td>
+<td><strong>Batch ETL</strong> (extract, stage, transform, load, analyse) with a raw landing zone</td>
 <td><code>app/etl/pipeline.py</code>, <code>stg_raw_observation</code></td>
 </tr>
 <tr>
 <th>Serving</th>
-<td><strong>Layered REST API</strong> (routers → dependencies → services → ORM)</td>
-<td><code>app/api/routers</code> → <code>app/api/deps.py</code> → <code>app/analytics/service.py</code> → <code>app/models</code></td>
+<td><strong>Layered REST API</strong> (routers, dependencies, services, ORM)</td>
+<td><code>app/api/routers</code>, <code>app/api/deps.py</code>, <code>app/analytics/service.py</code>, <code>app/models</code></td>
 </tr>
 <tr>
 <th>Presentation</th>
@@ -939,7 +944,7 @@
 <tr>
 <th>Presentation</th>
 <td>Static SPA served by nginx (or the Vite dev server)</td>
-<td><code>frontend/</code> build → nginx</td>
+<td><code>frontend/</code> build to nginx</td>
 <td><code>VITE_API_BASE_URL</code></td>
 </tr>
 <tr>
@@ -982,7 +987,7 @@
 </tr>
 <tr>
 <th>Authorisation</th>
-<td>Role → rights dictionary, dependency factory</td>
+<td>Role to rights dictionary, dependency factory</td>
 <td><code>security.ROLE_RIGHTS</code>, <code>deps.require_rights()</code></td>
 </tr>
 <tr>
@@ -1038,9 +1043,9 @@
 </tbody></table></div>
     </article>
     <div class="doc-foot">
-      <span><a href="07_requirements_gathering.html">← Requirements</a></span>
+      <span><a href="07_requirements_gathering.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Requirements</a></span>
       <span><a href="../README.md">Source markdown</a></span>
-      <span><a href="09_database_design.html">Database Design →</a></span>
+      <span><a href="09_database_design.html">Database Design<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
     </div>
   </main>
 </div>

@@ -15,7 +15,9 @@
 </head>
 <body>
 <header class="topbar">
-  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
   <a class="brand" href="index.html">
     <span class="brand-mark">W</span>
     <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
@@ -26,7 +28,10 @@
            aria-label="Search documentation" spellcheck="false">
     <div class="search-results" id="results" data-open="false"></div>
   </div>
-  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
 </header>
 <div class="shell">
   <nav class="sidebar" aria-label="Documentation">
@@ -109,7 +114,7 @@
 </tr>
 <tr>
 <th>Style</th>
-<td>Problem → solution → evidence; every claim has a number and a command</td>
+<td>Problem, solution, evidence; every claim has a number and a command</td>
 </tr>
 <tr>
 <th>Visual language</th>
@@ -169,7 +174,7 @@
 <p><strong>On screen:</strong> The measured results table (from <code>docs/05</code> §3) — DQ 98.26 on two engines, 39/57 catalog match rate, p95 ≤ 38.2 ms, 3.5 s run, 0 structural drift, 78/78 checks.</p>
 <p><strong>Message:</strong> Every number was produced by a command in front of the panel.</p>
 <h3 id="slide-14--engineering-challenges-solved">Slide 14 — Engineering challenges solved</h3>
-<p><strong>On screen:</strong> Four challenges with cause → fix → measured effect:</p>
+<p><strong>On screen:</strong> Four challenges with cause, fix, measured effect:</p>
 <div class='table-scroll'><table><thead><tr>
 <th>Challenge</th>
 <th>Fix</th>
@@ -178,7 +183,7 @@
 <tr>
 <th>Reconciliation too slow</th>
 <td>Blocking index + rare-token fallback</td>
-<td>2,975 ms → 104 ms (29×)</td>
+<td>2,975 ms down to 104 ms (29×)</td>
 </tr>
 <tr>
 <th>One model, two engines</th>
@@ -314,7 +319,7 @@ curl -s localhost:8000/api/v1/health | head -c 200; echo
 <p><strong>1:30–2:00 — Dashboard (browser)</strong></p>
 <p>Open <code>http://localhost:5173</code>. Point at the KPI cards, then the price-change timeline, then the category breakdown. Say: "Sixty-six products, 1,608 price changes in the window, DQ score 98.26, and 195 of 285 catalog rows matched."</p>
 <p><strong>2:00–2:30 — Product detail and duplicates (browser)</strong></p>
-<p>Open Products → <em>Samsung 4K Smart TV 55 inch Plus</em>. Say: "Price history with 150 observations. The match strategy is shown — this product was merged with a fuzzy match at 0.98." Open the Duplicate candidates tab: "and here is the score breakdown for every near match."</p>
+<p>Open Products and pick <em>Samsung 4K Smart TV 55 inch Plus</em>. Say: "Price history with 150 observations. The match strategy is shown — this product was merged with a fuzzy match at 0.98." Open the Duplicate candidates tab: "and here is the score breakdown for every near match."</p>
 <p><strong>2:30–2:50 — Quality and compliance (browser)</strong></p>
 <p>Open Quality: "12 rules, 6 dimensions, score 98.26, two warnings explained." Open Compliance: "Every outbound request is logged with its robots decision — zero unlogged requests."</p>
 <p><strong>2:50–3:00 — The API (browser: <code>http://localhost:8000/docs</code>)</strong></p>
@@ -418,9 +423,9 @@ curl -s &quot;localhost:8000/api/v1/audit/compliance?days=7&quot; -H &quot;Autho
 <p><strong>Never</strong> spend more than 30 seconds recovering on stage. Switch to the backup narrative and continue with slides 13–18.</p>
     </article>
     <div class="doc-foot">
-      <span><a href="17_technical_documentation.html">← Technical Documentation</a></span>
+      <span><a href="17_technical_documentation.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Technical Documentation</a></span>
       <span><a href="../README.md">Source markdown</a></span>
-      <span><a href="19_feature_list.html">Feature Inventory →</a></span>
+      <span><a href="19_feature_list.html">Feature Inventory<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
     </div>
   </main>
 </div>

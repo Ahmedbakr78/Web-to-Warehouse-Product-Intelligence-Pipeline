@@ -15,7 +15,9 @@
 </head>
 <body>
 <header class="topbar">
-  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
   <a class="brand" href="index.html">
     <span class="brand-mark">W</span>
     <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
@@ -26,7 +28,10 @@
            aria-label="Search documentation" spellcheck="false">
     <div class="search-results" id="results" data-open="false"></div>
   </div>
-  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
 </header>
 <div class="shell">
   <nav class="sidebar" aria-label="Documentation">
@@ -78,7 +83,7 @@
 <p>Semantic versioning (<code>MAJOR.MINOR.PATCH</code>), single source in <code>VERSION</code>:</p>
 <ul>
 <li class="depth-0"><code>MAJOR</code> — breaking API or schema change.</li>
-<li class="depth-0"><code>MINOR</code> — new sources, endpoints, screens (e.g. 1.9.0 → 1.10.0).</li>
+<li class="depth-0"><code>MINOR</code> — new sources, endpoints, screens (e.g. 1.9.0 to 1.10.0).</li>
 <li class="depth-0"><code>PATCH</code> — fixes with no new surface.</li>
 </ul>
 <p><code>scripts/sync_version.py</code> propagates <code>VERSION</code> into <code>pyproject.toml</code>, <code>frontend/package.json</code> and the app settings — never edit those by hand:</p>
@@ -111,13 +116,13 @@ git push origin main v1.11.0
 gh release create v1.11.0 --title &quot;v1.11.0&quot; --notes-file CHANGELOG.md</code></pre>
 <h2 id="github-about-box-paste-ready">GitHub About box (paste-ready)</h2>
 <p><strong>Description:</strong></p>
-<blockquote><p>End-to-end product intelligence pipeline: permitted web/API ingestion (34 sources) → cleaning → duplicate detection → PostgreSQL/MySQL warehouse with price history → SQL analytics → Airflow orchestration → FastAPI (216 ops) + React dashboard. DEPI Data Engineering capstone.</p></blockquote>
+<blockquote><p>End-to-end product intelligence pipeline: permitted web/API ingestion (34 sources), cleaning, duplicate detection, PostgreSQL/MySQL warehouse with price history, SQL analytics, Airflow orchestration, FastAPI (216 ops) + React dashboard. DEPI Data Engineering capstone.</p></blockquote>
 <p><strong>Topics:</strong></p>
 <pre class="code" data-lang=""><code>web-scraping  beautifulsoup  scrapy  etl  data-engineering  airflow  postgresql
 fastapi  python  data-quality  deduplication  price-tracking  data-warehouse
 docker  plotly  streamlit  rest-api  depi  data-pipeline  sql-analytics</code></pre>
 <p><strong>Website:</strong> link <code>website/index.html</code> (or the Pages URL once enabled).</p>
-<p><strong>Visibility:</strong> Repo → Settings → General → Danger Zone → Change visibility → Make private (or <code>gh repo edit &lt;repo&gt; --visibility private --accept-visibility-change-consequences</code>).</p>
+<p><strong>Visibility:</strong> Repo, then Settings, then General, then Danger Zone, then Change visibility, Make private (or <code>gh repo edit &lt;repo&gt; --visibility private --accept-visibility-change-consequences</code>).</p>
 <h2 id="history">History</h2>
 <div class='table-scroll'><table><thead><tr>
 <th>Version</th>
@@ -143,9 +148,9 @@ docker  plotly  streamlit  rest-api  depi  data-pipeline  sql-analytics</code></
 <p>Full detail per version: <code>CHANGELOG.md</code>.</p>
     </article>
     <div class="doc-foot">
-      <span><a href="30_access_control_and_rate_limiting.html">← Access Control & Limits</a></span>
+      <span><a href="30_access_control_and_rate_limiting.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Access Control & Limits</a></span>
       <span><a href="../README.md">Source markdown</a></span>
-      <span><a href="32_briefing_and_demo_scale.html">Morning Briefing & Demo Scale →</a></span>
+      <span><a href="32_briefing_and_demo_scale.html">Morning Briefing & Demo Scale<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
     </div>
   </main>
 </div>

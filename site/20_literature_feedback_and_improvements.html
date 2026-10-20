@@ -15,7 +15,9 @@
 </head>
 <body>
 <header class="topbar">
-  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
   <a class="brand" href="index.html">
     <span class="brand-mark">W</span>
     <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
@@ -26,7 +28,10 @@
            aria-label="Search documentation" spellcheck="false">
     <div class="search-results" id="results" data-open="false"></div>
   </div>
-  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
 </header>
 <div class="shell">
   <nav class="sidebar" aria-label="Documentation">
@@ -247,7 +252,7 @@
 </tr>
 <tr>
 <td>The API is secured and stable</td>
-<td><code>.venv/bin/python scripts/api_smoke.py</code> → 78/78</td>
+<td><code>.venv/bin/python scripts/api_smoke.py</code> reports 78/78</td>
 </tr>
 <tr>
 <th>Compliance is evidenced</th>
@@ -1290,9 +1295,9 @@
 <p><strong>Declaration.</strong> The code, configuration and SQL in this repository are the author's own work. All external data is obtained from sources whose terms permit automated access, and the compliance decisions are documented in <code>docs/01_project_proposal.md</code> §8. Every measured figure in this documentation set is reproducible with the command cited beside it. Where a figure could not be reproduced from this repository snapshot, the assumption is stated explicitly rather than asserted.</p>
     </article>
     <div class="doc-foot">
-      <span><a href="19_feature_list.html">← Feature Inventory</a></span>
+      <span><a href="19_feature_list.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Feature Inventory</a></span>
       <span><a href="../README.md">Source markdown</a></span>
-      <span><a href="21_architecture_deep_dive.html">Architecture Deep Dive →</a></span>
+      <span><a href="21_architecture_deep_dive.html">Architecture Deep Dive<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
     </div>
   </main>
 </div>

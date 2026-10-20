@@ -15,7 +15,9 @@
 </head>
 <body>
 <header class="topbar">
-  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
   <a class="brand" href="index.html">
     <span class="brand-mark">W</span>
     <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
@@ -26,7 +28,10 @@
            aria-label="Search documentation" spellcheck="false">
     <div class="search-results" id="results" data-open="false"></div>
   </div>
-  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
 </header>
 <div class="shell">
   <nav class="sidebar" aria-label="Documentation">
@@ -171,7 +176,7 @@ make frontend-dev               # dashboard on port 5173</code></pre>
 </tbody></table></div>
 <p>Navigation items you cannot use are not rendered; API calls that bypass the UI return <code>403 permission_denied</code>.</p>
 <h3 id="23-sign-out">2.3 Sign out</h3>
-<p>Click the account menu (top right) → <strong>Sign out</strong>. The session is recorded in the audit log with your IP address. Tokens are held in memory only, so closing the browser also ends the session.</p>
+<p>Click the account menu (top right) and choose <strong>Sign out</strong>. The session is recorded in the audit log with your IP address. Tokens are held in memory only, so closing the browser also ends the session.</p>
 <hr>
 <h2 id="3-the-dashboard">3. The dashboard</h2>
 <p>The dashboard answers "what is the state of my data today?" in one screen.</p>
@@ -305,7 +310,7 @@ make frontend-dev               # dashboard on port 5173</code></pre>
 <td>Opens the product detail</td>
 </tr>
 <tr>
-<td>Tick rows (up to 6) → <strong>Compare</strong></td>
+<td>Tick rows (up to 6) and press <strong>Compare</strong></td>
 <td>Side-by-side comparison drawer</td>
 </tr>
 <tr>
@@ -710,7 +715,7 @@ FROM dq_rule_result WHERE status &lt;&gt; &#x27;pass&#x27; ORDER BY evaluated_at
 <p>Everything is rebuilt from scratch on each keystroke, so a reload never loses your composition.</p>
 <hr>
 <h2 id="132-feature-catalogue">13.2 Feature catalogue</h2>
-<p>The <strong>Features</strong> screen (Explore → Features) lists everything the platform ships, grouped into thirteen areas. Use the search box to filter across feature names and details, or the chips to jump to one area. Click the copy icon on any feature to put its name on the clipboard. The catalogue is served by <code>GET /api/v1/meta/features</code>, so it always reflects the deployed code.</p>
+<p>The <strong>Features</strong> screen (Explore, then Features) lists everything the platform ships, grouped into thirteen areas. Use the search box to filter across feature names and details, or the chips to jump to one area. Click the copy icon on any feature to put its name on the clipboard. The catalogue is served by <code>GET /api/v1/meta/features</code>, so it always reflects the deployed code.</p>
 <hr>
 <h2 id="14-account-and-preferences">14. Account and preferences</h2>
 <h3 id="141-profile">14.1 Profile</h3>
@@ -781,7 +786,7 @@ FROM dq_rule_result WHERE status &lt;&gt; &#x27;pass&#x27; ORDER BY evaluated_at
 <td>The filters are replayed; the usage counter is incremented</td>
 </tr>
 <tr>
-<th>Favourite (★)</th>
+<th>Favourite (star icon)</th>
 <td>Pins the view to the top of the list</td>
 </tr>
 <tr>
@@ -833,7 +838,7 @@ FROM dq_rule_result WHERE status &lt;&gt; &#x27;pass&#x27; ORDER BY evaluated_at
 <h2 id="17-api-keys">17. API keys</h2>
 <p>For scheduled jobs and integrations.</p>
 <ul>
-<li class="depth-0">Open <strong>Account → API keys</strong>.</li>
+<li class="depth-0">Open <strong>Account, then API keys</strong>.</li>
 <li class="depth-0">Name the key (for example <code>nightly-export</code>) and press <strong>Create</strong>.</li>
 <li class="depth-0"><strong>Copy the key immediately</strong> — the full value is shown once and never again. Only the 12-character</li>
 </ul>
@@ -902,25 +907,25 @@ FROM dq_rule_result WHERE status &lt;&gt; &#x27;pass&#x27; ORDER BY evaluated_at
 </tr></thead><tbody>
 <tr>
 <th>Current product list</th>
-<td>Products screen → <strong>Export CSV</strong></td>
+<td>Products screen, then <strong>Export CSV</strong></td>
 <td>CSV</td>
 <td>50,000 rows</td>
 </tr>
 <tr>
 <th>Price changes</th>
-<td>Changes → Price → <strong>Export</strong></td>
+<td>Changes, then Price, then <strong>Export</strong></td>
 <td>CSV</td>
 <td>Uses the active filters</td>
 </tr>
 <tr>
 <th>Any table you can query</th>
-<td>Query Lab → run → copy, or use <code>analytics/report/*</code></td>
+<td>Query Lab, then run, then copy, or use <code>analytics/report/*</code></td>
 <td>JSON</td>
 <td>5,000 rows per query</td>
 </tr>
 <tr>
 <td>A run's compliance evidence</td>
-<td>Compliance screen → <strong>Export</strong></td>
+<td>Compliance screen, then <strong>Export</strong></td>
 <td>CSV / JSON</td>
 <td>1,000 log rows</td>
 </tr>
@@ -966,12 +971,12 @@ FROM dq_rule_result WHERE status &lt;&gt; &#x27;pass&#x27; ORDER BY evaluated_at
 <tr>
 <td>DQ score dropped below 90</td>
 <td>A source published bad data</td>
-<td>Open <strong>Quality → Rule results</strong>, read the message, then re-run with <strong>Strict</strong></td>
+<td>Open <strong>Quality, then Rule results</strong>, read the message, then re-run with <strong>Strict</strong></td>
 </tr>
 <tr>
 <td>A run shows status <code>partial</code></td>
 <td>One source failed; the others completed</td>
-<td>Open the run detail → Warnings; fix the source or disable it</td>
+<td>Open the run detail and read <strong>Warnings</strong>; fix the source or disable it</td>
 </tr>
 <tr>
 <td>A run shows status <code>failed</code></td>
@@ -1052,7 +1057,7 @@ FROM dq_rule_result WHERE status &lt;&gt; &#x27;pass&#x27; ORDER BY evaluated_at
 <p><strong>Q. What is the difference between <code>partial</code> and <code>failed</code>?</strong> <code>partial</code> means at least one source failed but the run completed and the data is usable. <code>failed</code> means a critical rule failed — for example the fact grain was violated or no observation was produced.</p>
 <p><strong>Q. Can I delete a fact row?</strong> Not from the UI or the API. Facts are append-only; corrections arrive as new observations. Historical rows are managed only by the documented retention procedure.</p>
 <p><strong>Q. Does the dashboard work offline?</strong> Yes for everything derived from the warehouse. The Sources preview and any run that needs a network source require internet access; the synthetic source does not.</p>
-<p><strong>Q. Which currency is used in reports?</strong> The USD-normalised column, <code>price_usd</code>. Set your preferred display currency under Account → Data.</p>
+<p><strong>Q. Which currency is used in reports?</strong> The USD-normalised column, <code>price_usd</code>. Set your preferred display currency under Account, then Data.</p>
 <p><strong>Q. Who can see the audit log?</strong> Administrators. Compliance data such as the HTTP request log is visible to any signed-in user with the <code>read</code> right.</p>
 <p><strong>Q. How do I reproduce the numbers in the documentation?</strong> Every figure in <code>docs/05_kpis.md</code> has a command next to it. In short: <code>make bootstrap &amp;&amp; make demo-postgres --days 150 &amp;&amp; make run-pipeline &amp;&amp; make verify-dialects</code>, then <code>.venv/bin/python scripts/api_smoke.py</code>.</p>
 <p><strong>Q. The demo password is public — is that a problem?</strong> Not in a development or demonstration environment. Change <code>SEED_*_PASSWORD</code> (or delete the seeded accounts) and set <code>SEED_DEMO_DATA=false</code> before any deployment that matters. See <code>docs/13</code> §8.</p>
@@ -1119,9 +1124,9 @@ FROM dq_rule_result WHERE status &lt;&gt; &#x27;pass&#x27; ORDER BY evaluated_at
 </tbody></table></div>
     </article>
     <div class="doc-foot">
-      <span><a href="15_testing_strategy.html">← Testing Strategy</a></span>
+      <span><a href="15_testing_strategy.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Testing Strategy</a></span>
       <span><a href="../README.md">Source markdown</a></span>
-      <span><a href="17_technical_documentation.html">Technical Documentation →</a></span>
+      <span><a href="17_technical_documentation.html">Technical Documentation<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
     </div>
   </main>
 </div>

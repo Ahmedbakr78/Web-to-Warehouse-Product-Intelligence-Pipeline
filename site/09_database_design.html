@@ -15,7 +15,9 @@
 </head>
 <body>
 <header class="topbar">
-  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
   <a class="brand" href="index.html">
     <span class="brand-mark">W</span>
     <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
@@ -26,7 +28,10 @@
            aria-label="Search documentation" spellcheck="false">
     <div class="search-results" id="results" data-open="false"></div>
   </div>
-  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
 </header>
 <div class="shell">
   <nav class="sidebar" aria-label="Documentation">
@@ -843,7 +848,7 @@
 </tr>
 <tr>
 <th>Relationships</th>
-<td>One product → many observations; one category → many products; one run → many facts</td>
+<td>One product to many observations; one category to many products; one run to many facts</td>
 <td>Implemented with declared foreign keys (18 of them) and covered by indexes</td>
 </tr>
 <tr>
@@ -975,19 +980,19 @@
 </tr>
 </tbody></table></div>
 <h3 id="53-functional-dependencies-informal">5.3 Functional dependencies (informal)</h3>
-<pre class="code" data-lang="text"><code>dim_product.product_id            → canonical_name, normalized_name, brand, category_id, fingerprint, ...
-dim_category.category_id          → name, slug, level, path, parent_id
-dim_category.slug                 → category_id                      (alternate key, UNIQUE)
-dim_source.source_code            → name, kind, base_url, rate_limit_per_minute, ...
-dim_currency.currency_code        → currency_name, symbol, rate_to_usd, as_of
-dim_date.date_id                  → full_date, year, quarter, month, day, is_weekend, ...
-fact_price_snapshot.snapshot_id   → all 25 other columns
+<pre class="code" data-lang="text"><code>dim_product.product_id            -&gt; canonical_name, normalized_name, brand, category_id, fingerprint, ...
+dim_category.category_id         -&gt; name, slug, level, path, parent_id
+dim_category.slug                 -&gt; category_id                      (alternate key, UNIQUE)
+dim_source.source_code            -&gt; name, kind, base_url, rate_limit_per_minute, ...
+dim_currency.currency_code       -&gt; currency_name, symbol, rate_to_usd, as_of
+dim_date.date_id                  -&gt; full_date, year, quarter, month, day, is_weekend, ...
+fact_price_snapshot.snapshot_id  -&gt; all 25 other columns
 UNIQUE(fact_price_snapshot.product_id, run_id)                      (fact grain)
 UNIQUE(chg_price_change.product_id, run_id)
 UNIQUE(fact_catalog_snapshot.run_id, catalog_sku)
 UNIQUE(agg_category_daily.date_id, category_id, source_code)
-app_user.email                    → user_id                          (alternate key, UNIQUE)
-app_api_key.prefix                → key_id                           (indexed lookup key)</code></pre>
+app_user.email                    -&gt; user_id                          (alternate key, UNIQUE)
+app_api_key.prefix                -&gt; key_id                           (indexed lookup key)</code></pre>
 <hr>
 <h2 id="6-keys-constraints-and-referential-integrity">6. Keys, constraints and referential integrity</h2>
 <h3 id="61-primary-and-alternate-keys">6.1 Primary and alternate keys</h3>
@@ -2356,9 +2361,9 @@ for name in order:
 PY</code></pre>
     </article>
     <div class="doc-foot">
-      <span><a href="08_system_analysis_design.html">← System Analysis and Design</a></span>
+      <span><a href="08_system_analysis_design.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>System Analysis and Design</a></span>
       <span><a href="../README.md">Source markdown</a></span>
-      <span><a href="10_data_flow_diagrams.html">Data Flow Diagrams →</a></span>
+      <span><a href="10_data_flow_diagrams.html">Data Flow Diagrams<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
     </div>
   </main>
 </div>
