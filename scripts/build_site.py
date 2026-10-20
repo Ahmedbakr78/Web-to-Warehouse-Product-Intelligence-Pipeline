@@ -106,6 +106,16 @@ NAV: list[tuple[str, str, str]] = [
         "Access Control & Limits",
         "Roles, rights, API-key scopes, sliding-window rate limiting",
     ),
+    (
+        "31_releases.md",
+        "Releases",
+        "Versioning, tagging, release history and the changelog contract",
+    ),
+    (
+        "32_briefing_and_demo_scale.md",
+        "Morning Briefing & Demo Scale",
+        "Ranked action queue, endpoint contract, cache/noise policy, and the idempotent 10x demo expansion",
+    ),
 ]
 
 #: Documents grouped for the sidebar; keys render as section headers.
