@@ -35,6 +35,32 @@ SEVERITY_CRITICAL = "critical"
 
 _SEVERITY_ORDER = {SEVERITY_INFO: 0, SEVERITY_WARN: 1, SEVERITY_ERROR: 2, SEVERITY_CRITICAL: 3}
 
+#: How much a rule of each severity counts towards the weighted score.
+#: Derived from :data:`_SEVERITY_ORDER` so the table and the formula can never
+#: disagree.
+SEVERITY_WEIGHTS: dict[str, float] = {
+    severity: 1 + order * 0.5 for severity, order in _SEVERITY_ORDER.items()
+}
+
+#: How much a rule of each outcome contributes when the weight is applied.
+OUTCOME_FACTORS: dict[str, float] = {"pass": 1.0, "warn": 0.75, "fail": 0.0}
+
+
+def severity_weight(severity: str) -> float:
+    """The weight a rule of this severity carries in the score."""
+    return SEVERITY_WEIGHTS.get(severity, 1.0)
+
+
+def scoring_model() -> dict[str, Any]:
+    """The exact scoring model, so the UI can describe it without guessing."""
+    return {
+        "severity_weights": dict(SEVERITY_WEIGHTS),
+        "outcome_factors": dict(OUTCOME_FACTORS),
+        "formula": "score = sum(severity_weight * outcome_factor) / sum(severity_weight) * 100",
+        "blocking_severity": SEVERITY_CRITICAL,
+        "blocking_status": "fail",
+    }
+
 
 @dataclass
 class RuleOutcome:
@@ -92,10 +118,10 @@ class QualityReport:
             return 100.0
         total = 0.0
         for outcome in self.outcomes:
-            weight = 1 + _SEVERITY_ORDER[outcome.severity] * 0.5
-            factor = {"pass": 1.0, "warn": 0.75, "fail": 0.0}[outcome.status]
+            weight = severity_weight(outcome.severity)
+            factor = OUTCOME_FACTORS[outcome.status]
             total += weight * factor
-        return round((total / sum(1 + _SEVERITY_ORDER[o.severity] * 0.5 for o in self.outcomes)) * 100, 2)
+        return round((total / sum(severity_weight(o.severity) for o in self.outcomes)) * 100, 2)
 
     def summary(self) -> dict[str, Any]:
         by_dimension: dict[str, dict[str, int]] = {}
@@ -709,9 +735,9 @@ def latest_report(session: Session, run_id: str | None = None) -> dict[str, Any]
     total_weight = 0.0
     weighted = 0.0
     for row in rows:
-        weight = 1 + _SEVERITY_ORDER.get(row.severity, 1) * 0.5
+        weight = severity_weight(row.severity)
         total_weight += weight
-        weighted += weight * {"pass": 1.0, "warn": 0.75, "fail": 0.0}.get(row.status, 0.0)
+        weighted += weight * OUTCOME_FACTORS.get(row.status, 0.0)
     return {
         "run_id": run,
         "total": len(rows),
