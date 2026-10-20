@@ -193,3 +193,51 @@ def summary(
     session: DbSession, _user: ReadUser, days: Annotated[int, Query(ge=1, le=3650)] = 30
 ) -> dict[str, Any]:
     return analytics.change_event_summary(session, days=days)
+
+
+@router.get("/detection-rules", summary="How changes are detected and banded")
+def detection_rules(_user: ReadUser) -> dict[str, Any]:
+    """The change-detection rules the pipeline actually applies.
+
+    The dashboard describes this screen in prose; serving the definitions
+    means the description can never drift away from the implementation.
+    """
+    from app.etl.loader import SIGNIFICANT_CHANGE_PCT, magnitude_bands
+
+    return {
+        "comparison": (
+            "Each run compares the newest snapshot of every product against the "
+            "previous one (same product, same source)."
+        ),
+        "significant_change_pct": SIGNIFICANT_CHANGE_PCT,
+        "magnitude_bands": magnitude_bands(),
+        "lifecycle_events": [
+            {
+                "type": "new",
+                "description": "A product seen for the first time emits a 'new' lifecycle event.",
+            },
+            {
+                "type": "removed",
+                "description": (
+                    "A product missing for more than the staleness window emits 'removed'."
+                ),
+            },
+            {
+                "type": "category_changed",
+                "description": (
+                    "A product whose dim_product.category_id changes emits "
+                    "'category_changed' with the old and new category."
+                ),
+            },
+            {
+                "type": "recurring",
+                "description": "A product that reappears after being absent emits 'recurring'.",
+            },
+        ],
+        "views": [
+            "vw_price_changes",
+            "vw_new_products",
+            "vw_removed_products",
+            "vw_category_changes",
+        ],
+    }
