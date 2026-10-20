@@ -1283,7 +1283,7 @@ def best_value(
                    ROUND(CAST(rating / NULLIF(price_usd, 0) AS DECIMAL(24,6)), 4) AS value_score
             FROM vw_product_current
             WHERE is_active AND price_usd IS NOT NULL AND price_usd > 0
-              AND rating IS NOT NULL AND rating >= :min_rating
+              AND rating IS NOT NULL AND rating >= :min_rating AND rating <= 5
               AND rating_count IS NOT NULL AND rating_count >= :min_votes
             ORDER BY rating / NULLIF(price_usd, 0) DESC
             LIMIT :limit
