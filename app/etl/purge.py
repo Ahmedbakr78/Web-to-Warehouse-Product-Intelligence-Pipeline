@@ -77,6 +77,14 @@ def purge_untrusted(database: str | None = None, *, dry_run: bool = False) -> di
         "runs_removed": 0,
     }
     with session_scope(database) as session:
+        # Refresh the classification from the code registry first: the trust
+        # level is a property of the source, and the dimension row may predate
+        # the classification entirely.
+        from app.etl.bootstrap import sync_registry_sources
+
+        sync_registry_sources(session)
+        session.flush()
+
         untrusted = untrusted_source_codes(session)
         if not untrusted:
             return report
@@ -150,12 +158,16 @@ def _products_without_observations(session: Session, codes: list[str]) -> list[i
     """Product ids whose every observation came from an untrusted source."""
     from app.models.dimensions import DimProduct
 
-    trusted_observed = sa.select(sa.distinct(sa.column("product_id"))).where(
-        sa.column("source_code").not_in(codes)
+    trusted_observed = (
+        sa.select(sa.column("product_id"))
+        .select_from(sa.text("fact_price_snapshot"))
+        .distinct()
+        .where(sa.column("source_code").not_in(codes))
     )
-    candidates = sa.select(DimProduct.product_id).where(DimProduct.source_code.in_(codes))
-    statement = candidates.where(
-        ~sa.column("product_id").in_(trusted_observed)
+    statement = (
+        sa.select(DimProduct.product_id)
+        .where(DimProduct.source_code.in_(codes))
+        .where(~sa.column("product_id").in_(trusted_observed))
     )
     return list(session.execute(statement).scalars())
 
@@ -190,14 +202,10 @@ def _runs_without_references(session: Session, codes: list[str]) -> list[str]:
     no observations at all (a failed or rejected run) is *real* operational
     history and is kept.
     """
-    untrusted_only = (
-        sa.select(sa.distinct(sa.column("run_id")))
-        .select_from(sa.text("fact_price_snapshot"))
-        .where(sa.column("source_code").in_(codes))
-    )
     trusted_any = (
-        sa.select(sa.distinct(sa.column("run_id")))
+        sa.select(sa.column("run_id"))
         .select_from(sa.text("fact_price_snapshot"))
+        .distinct()
         .where(sa.column("source_code").not_in(codes))
     )
     statement = (
@@ -206,7 +214,6 @@ def _runs_without_references(session: Session, codes: list[str]) -> list[str]:
         .where(sa.column("source_code").in_(codes))
         .where(~sa.column("run_id").in_(trusted_any))
     )
-    del untrusted_only
     return list(session.execute(statement).scalars())
 
 
