@@ -83,13 +83,13 @@ else
 fi
 
 if [ "$UTF8" -eq 1 ] && [ -z "${NO_COLOR:-}" ]; then
-  GLYPH_OK=$'\342\234\223'        # ✓
+  GLYPH_OK='+'                   # status marker
   GLYPH_WARN='!'
-  GLYPH_ERR=$'\342\234\227'       # ✗
+  GLYPH_ERR='x'
   GLYPH_MID=$'\302\267'           # ·
-  GLYPH_ARROW=$'\342\206\222'     # →
-  GLYPH_DOT=$'\342\227\217'       # ●
-  GLYPH_RING=$'\342\227\213'      # ○
+  GLYPH_ARROW='->'
+  GLYPH_DOT=$'\342\200\242'       # •
+  GLYPH_RING='o'
   BOX_TL=$'\342\225\255'          # ╭
   BOX_TR=$'\342\225\256'          # ╮
   BOX_BL=$'\342\225\260'          # ╰
@@ -118,7 +118,7 @@ TERM_COLS="$(tput cols 2>/dev/null || echo 80)"
 WIDTH="$TERM_COLS"
 if [ "$WIDTH" -gt 88 ]; then WIDTH=88; fi
 if [ "$WIDTH" -lt 60 ]; then WIDTH=60; fi
-# Row layout: │ + space + INNER chars + space + │  →  INNER = WIDTH - 4.
+# Row layout: │ + space + INNER chars + space + │  =>  INNER = WIDTH - 4.
 BOX_INNER=$(( WIDTH - 4 ))
 [ "$UTF8" -eq 1 ] && ELLIPSIS=$'\342\200\246' || ELLIPSIS='+'  # …
 
