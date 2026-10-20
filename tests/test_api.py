@@ -77,9 +77,10 @@ def test_sources_robots_carries_durable_log_totals(client, viewer_token):
     payload = client.get("/api/v1/sources/robots", headers=auth(viewer_token)).json()
     assert set(payload) >= {"stats", "user_agent", "ttl_seconds", "log"}
     log = payload["log"]
-    assert set(log) == {"allowed", "blocked", "total"}
+    assert set(log) >= {"allowed", "blocked", "total", "cached", "fetched", "errors"}
     assert log["total"] == log["allowed"] + log["blocked"]
     assert log["total"] >= 0
+    assert all(isinstance(value, int) and value >= 0 for value in log.values())
 
 
 def test_openapi_schema_is_complete(client):
