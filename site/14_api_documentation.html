@@ -272,7 +272,7 @@ curl -s localhost:8000/api/v1/products?page_size=5 -H &quot;Authorization: Beare
 <td>no</td>
 <td>yes</td>
 <td>yes</td>
-<td><code>POST /pipeline/run</code>, <code>/run/sync</code>, <code>/clear-history</code></td>
+<td><code>POST /pipeline/run</code>, <code>/run/sync</code></td>
 </tr>
 <tr>
 <td><code>manage_alerts</code> / <code>manage_views</code></td>
@@ -441,7 +441,7 @@ curl -s localhost:8000/api/v1/products?page_size=5 -H &quot;Authorization: Beare
 <p>| POST | <code>/api/v1/pipeline/run/sync</code> | run_pipeline (analyst+) | Trigger a pipeline run and wait for the result |  |</p>
 <p>| GET | <code>/api/v1/pipeline/sources/status</code> | optional | Source health with sync state |  |</p>
 <p>| GET | <code>/api/v1/pipeline/stages</code> | read (viewer+) | Stage catalogue and average durations |  |</p>
-<p>| POST | <code>/api/v1/pipeline/clear-history</code> | run_pipeline (analyst+) | Delete run history (admin) | confirm? |</p>
+<p>| POST | <code>/api/v1/pipeline/clear-history</code> | admin | Delete run history; <code>400</code> unless <code>confirm=true</code> | confirm |</p>
 <p>| GET | <code>/api/v1/pipeline/schedule</code> | read (viewer+) | Configured schedule and orchestration status |  |</p>
 <h2 id="products--10-operations">products  (10 operations)</h2>
 <p>| GET | <code>/api/v1/products</code> | read (viewer+) | List / filter products | q?, category?, brand?, source?, availability?, in_stock?, is_active?, min_price?, max_price?, min_rating?, min_change_pct?, max_change_pct?, new_since_days?, observed_within_days? |</p>
@@ -481,7 +481,8 @@ curl -s localhost:8000/api/v1/products?page_size=5 -H &quot;Authorization: Beare
 <p>| POST | <code>/api/v1/alerts</code> | authenticated | Create an alert rule | payload |</p>
 <p>| PATCH | <code>/api/v1/alerts/{alert_id}</code> | authenticated | Update an alert rule | alert_id, payload |</p>
 <p>| DELETE | <code>/api/v1/alerts/{alert_id}</code> | authenticated | Delete an alert rule | alert_id |</p>
-<p>| POST | <code>/api/v1/alerts/evaluate</code> | authenticated | Evaluate my alert rules against the latest data |  |</p>
+<p>| POST | <code>/api/v1/alerts/evaluate</code> | authenticated | Evaluate my alert rules without publishing notifications |  |</p>
+<p>| POST | <code>/api/v1/alerts/publish</code> | admin | Evaluate every active rule and publish in-app/webhook notifications |  |</p>
 <h2 id="authentication--7-operations">authentication  (7 operations)</h2>
 <p>| POST | <code>/api/v1/auth/login</code> | public | Exchange credentials for tokens |  |</p>
 <p>| POST | <code>/api/v1/auth/refresh</code> | public | Rotate an access token |  |</p>

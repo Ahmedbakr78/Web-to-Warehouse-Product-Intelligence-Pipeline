@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Ranked action queue, endpoint contract, cache/noise policy, and the idempotent 10x demo expansion">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Morning Briefing &amp; Demo Scale — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Ranked action queue, endpoint contract, cache/noise policy, and the idempotent 10x demo expansion">
+<title>Morning Briefing &amp; Demo Scale — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.png" type="image/png">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="28-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, 173 operations, worked examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, measured counts, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="Every feature with the file that implements it">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+<a href="24_demo_runbook.html" title="Screen-by-screen live demo script and failure playbook">Demo Runbook</a>
+<a href="25_forecasting_and_anomaly_detection.html" title="Damped Holt-Winters, measured accuracy, three detectors, pricing advice">Forecasting &amp; Anomalies</a>
+<a href="26_background_jobs_and_realtime.html" title="Leases, retries, cancellation, SSE and the cross-worker problem">Background Jobs &amp; Realtime</a>
+<a href="27_reporting_and_document_generation.html" title="Typed blocks rendered to HTML, JSON, CSV and PDF from one definition">Reporting &amp; Documents</a>
+<a href="28_schema_and_migrations.html" title="Alembic, drift detection, views, Airflow isolation">Schema &amp; Migrations</a>
+<a href="29_two_factor_and_sessions.html" title="TOTP enrolment, recovery codes, per-device revocation">Two-Factor &amp; Sessions</a>
+<a href="30_access_control_and_rate_limiting.html" title="Roles, rights, API-key scopes, sliding-window rate limiting">Access Control &amp; Limits</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Morning Briefing &amp; Demo Scale</h1>
+      <p>Ranked action queue, endpoint contract, cache/noise policy, and the idempotent 10x demo expansion</p>
+    </div>
+    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#1-morning-briefing">1. Morning briefing</a></li><li class="lvl-3"><a href="#why-a-composition-layer">Why a composition layer</a></li><li class="lvl-3"><a href="#endpoint">Endpoint</a></li><li class="lvl-3"><a href="#ranking-and-noise-controls">Ranking and noise controls</a></li><li class="lvl-3"><a href="#account-defaults">Account defaults</a></li><li class="lvl-3"><a href="#verification">Verification</a></li><li class="lvl-2"><a href="#2-10x-demo-warehouse">2. 10x demo warehouse</a></li><li class="lvl-3"><a href="#command">Command</a></li><li class="lvl-3"><a href="#what-is-generated">What is generated</a></li><li class="lvl-3"><a href="#resulting-demo-totals">Resulting demo totals</a></li><li class="lvl-3"><a href="#why-some-source-rows-were-removed">Why some source rows were removed</a></li></ol></details>
+    <article class="doc-body">
+<p>This document covers the v1.11 intelligence layer and the synthetic expansion used for demos and screenshots. Both are additive: no existing ingest path, table or metric definition was replaced.</p>
+<h2 id="1-morning-briefing">1. Morning briefing</h2>
+<h3 id="why-a-composition-layer">Why a composition layer</h3>
+<p>The dashboard already had individual reports (movers, volatility, catalog gaps, stockouts, DQ, freshness). A user still had to open five screens to answer “what should I do first?”. The briefing composes those services into one ranked queue so the definition of a price drop or a stale source never forks.</p>
+<p>Source: <code>app/analytics/briefing.py</code>. Transport: <code>app/api/routers/intelligence.py</code>.</p>
+<h3 id="endpoint">Endpoint</h3>
+<pre class="code" data-lang="http"><code>GET /api/v1/intelligence/briefing?days=30&amp;limit=6
+Authorization: Bearer &lt;token&gt;</code></pre>
+<div class='table-scroll'><table><thead><tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Bounds</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th><code>days</code></th>
+<td>integer</td>
+<td>30</td>
+<td>1–3650</td>
+<td>Analysis window</td>
+</tr>
+<tr>
+<th><code>limit</code></th>
+<td>integer</td>
+<td>6</td>
+<td>1–20</td>
+<td>Maximum items per section</td>
+</tr>
+</tbody></table></div>
+<p>Response sections:</p>
+<ul>
+<li class="depth-0"><code>headline</code> — observations, canonical products, live sources, price changes,</li>
+</ul>
+<p>significant changes, new/removed products, DQ score, opportunity/risk counts.</p>
+<ul>
+<li class="depth-0"><code>opportunities</code> — drops, catalog gaps below market, discounts.</li>
+<li class="depth-0"><code>risks</code> — increases, stockout pressure, anomalies, DQ failures, stale sources.</li>
+<li class="depth-0"><code>category_signals</code> — categories ranked by average absolute move.</li>
+<li class="depth-0"><code>freshness</code> — healthy vs stale sources and up to six stale source rows.</li>
+<li class="depth-0"><code>best_value</code> — rating-per-dollar listings with at least ten reviews.</li>
+<li class="depth-0"><code>actions</code> — the merged, severity-ranked queue rendered by the UI.</li>
+</ul>
+<p>Every insight has the same shape:</p>
+<pre class="code" data-lang="json"><code>{
+  &quot;id&quot;: &quot;drop-123&quot;,
+  &quot;kind&quot;: &quot;opportunity&quot;,
+  &quot;severity&quot;: &quot;high&quot;,
+  &quot;title&quot;: &quot;Product name&quot;,
+  &quot;detail&quot;: &quot;Category · $19.00 → $15.20 on source_code&quot;,
+  &quot;metric&quot;: &quot;-20.0%&quot;,
+  &quot;delta&quot;: -20.0,
+  &quot;icon&quot;: &quot;trending-down&quot;,
+  &quot;link&quot;: &quot;/products/123&quot;,
+  &quot;action&quot;: &quot;Review the new price&quot;
+}</code></pre>
+<h3 id="ranking-and-noise-controls">Ranking and noise controls</h3>
+<ul>
+<li class="depth-0">Sort by severity (<code>critical</code>, <code>high</code>, <code>medium</code>, <code>low</code>), then by absolute delta.</li>
+<li class="depth-0">Exclude moves above 65% — these are nearly always unit, currency or ingestion</li>
+</ul>
+<p>errors and belong in the anomaly/DQ screens.</p>
+<ul>
+<li class="depth-0">Exclude catalog gaps above 60% for the same reason.</li>
+<li class="depth-0">Suppress duplicate product IDs and duplicate catalog SKUs from historical</li>
+</ul>
+<p>snapshots.</p>
+<ul>
+<li class="depth-0">Format sub-dollar prices with 4–8 decimals instead of rounding to <code>$0.00</code>.</li>
+<li class="depth-0">Cache the assembled response for 120 seconds per API worker.</li>
+</ul>
+<p>The cache is intentionally in-process. A pipeline run is followed by an API restart in the demo flow; tests and normal page refreshes still see fresh numbers within two minutes.</p>
+<h3 id="account-defaults">Account defaults</h3>
+<p><code>Account → Preferences</code> persists <code>briefing_window</code> and <code>briefing_size</code> in the profile's <code>preferences</code> JSON. <code>/briefing</code> reads them on mount, so every device opens the same window and queue length.</p>
+<h3 id="verification">Verification</h3>
+<pre class="code" data-lang="bash"><code>.venv/bin/python -m pytest tests/test_intelligence.py -q
+curl -s &quot;http://localhost:8000/api/v1/health&quot;</code></pre>
+<p><code>tests/test_intelligence.py</code> covers authentication, the response contract, bounded sections, deep links and 422 validation for an out-of-range window.</p>
+<h2 id="2-10x-demo-warehouse">2. 10x demo warehouse</h2>
+<h3 id="command">Command</h3>
+<pre class="code" data-lang="bash"><code># inside the API container
+docker exec pip-api python -m app.cli.main expand-demo --products 19500 --days 26
+
+# or locally
+.venv/bin/python -m app.cli.main expand-demo --products 19500 --days 26</code></pre>
+<p>The command is idempotent: if the reserved cohort already has at least the requested number of products and any snapshots, it reports live totals and skips.</p>
+<h3 id="what-is-generated">What is generated</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Artefact</th>
+<th>Approximate volume</th>
+</tr></thead><tbody>
+<tr>
+<td>Synthetic products (<code>SYN-000001</code> …)</td>
+<td>19,500</td>
+</tr>
+<tr>
+<th>Price snapshots</th>
+<td>506,000</td>
+</tr>
+<tr>
+<th>Price-change records</th>
+<td>~343,000</td>
+</tr>
+<tr>
+<th>Lifecycle events</th>
+<td>~20,000</td>
+</tr>
+<tr>
+<th>Internal catalog SKUs</th>
+<td>~13,000</td>
+</tr>
+<tr>
+<th>Catalog match snapshots</th>
+<td>~13,000</td>
+</tr>
+</tbody></table></div>
+<p>All rows use source <code>local_demo</code> and the reserved <code>SYN-</code> external-id prefix, so they are easy to identify or delete. The cohort uses deterministic seeds, price walks with periodic promotions, rare clearance shocks, lifecycle gaps, and seeded DQ defects.</p>
+<p>After the append, <code>agg_category_daily</code> is rebuilt from <code>fact_price_snapshot</code> for the generated window. <code>dim_product.current_price</code>, <code>dim_category.product_count</code> and <code>dim_source</code> counters are refreshed.</p>
+<h3 id="resulting-demo-totals">Resulting demo totals</h3>
+<ul>
+<li class="depth-0">Products: <strong>25,076</strong></li>
+<li class="depth-0">Observations: <strong>~538k</strong> after removing 66 known outlier snapshots from the old</li>
+</ul>
+<p>seed history</p>
+<ul>
+<li class="depth-0">Catalog SKUs: <strong>13,000</strong></li>
+<li class="depth-0">Sources reporting: <strong>31 of 34</strong></li>
+<li class="depth-0">Postgres size: ~90 MB at the original seed → substantially larger after the</li>
+</ul>
+<p>expansion (measure with <code>docker exec pip-postgres psql -U pip -d pipeline -c "SELECT pg_size_pretty(pg_database_size('pipeline'));"</code>).</p>
+<h3 id="why-some-source-rows-were-removed">Why some source rows were removed</h3>
+<p>The original <code>local_demo</code> seed had 120 days of history, and several older manual pipeline runs appended a second snapshot for the same product/date. Those runs produced interleaved day-over-day changes in the thousands of percent. v1.11 removes:</p>
+<ul>
+<li class="depth-0">the 66 clearly out-of-range snapshots from historical runs, and</li>
+<li class="depth-0">4,521 non-seed <code>DEMO-</code> snapshots plus their changes/events.</li>
+</ul>
+<p>The remaining seed series is the intended walk (daily moves ≤18%), so movers and charts show credible values.</p>
+    </article>
+    <div class="doc-foot">
+      <span><a href="31_releases.html">← Releases</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

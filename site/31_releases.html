@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Versioning, tagging, release history and the changelog contract">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Releases — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Versioning, tagging, release history and the changelog contract">
+<title>Releases — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.png" type="image/png">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">☰</button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">☾</button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="28-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, 173 operations, worked examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, measured counts, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="Every feature with the file that implements it">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+<a href="24_demo_runbook.html" title="Screen-by-screen live demo script and failure playbook">Demo Runbook</a>
+<a href="25_forecasting_and_anomaly_detection.html" title="Damped Holt-Winters, measured accuracy, three detectors, pricing advice">Forecasting &amp; Anomalies</a>
+<a href="26_background_jobs_and_realtime.html" title="Leases, retries, cancellation, SSE and the cross-worker problem">Background Jobs &amp; Realtime</a>
+<a href="27_reporting_and_document_generation.html" title="Typed blocks rendered to HTML, JSON, CSV and PDF from one definition">Reporting &amp; Documents</a>
+<a href="28_schema_and_migrations.html" title="Alembic, drift detection, views, Airflow isolation">Schema &amp; Migrations</a>
+<a href="29_two_factor_and_sessions.html" title="TOTP enrolment, recovery codes, per-device revocation">Two-Factor &amp; Sessions</a>
+<a href="30_access_control_and_rate_limiting.html" title="Roles, rights, API-key scopes, sliding-window rate limiting">Access Control &amp; Limits</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Releases</h1>
+      <p>Versioning, tagging, release history and the changelog contract</p>
+    </div>
+    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#versioning">Versioning</a></li><li class="lvl-2"><a href="#release-flow">Release flow</a></li><li class="lvl-2"><a href="#github-about-box-paste-ready">GitHub About box (paste-ready)</a></li><li class="lvl-2"><a href="#history">History</a></li></ol></details>
+    <article class="doc-body">
+<p>How this project ships: one version number in exactly one place, a changelog entry per release, an annotated tag, and a GitHub release with notes. The flow is designed so a release can never be half-done.</p>
+<h2 id="versioning">Versioning</h2>
+<p>Semantic versioning (<code>MAJOR.MINOR.PATCH</code>), single source in <code>VERSION</code>:</p>
+<ul>
+<li class="depth-0"><code>MAJOR</code> — breaking API or schema change.</li>
+<li class="depth-0"><code>MINOR</code> — new sources, endpoints, screens (e.g. 1.9.0 → 1.10.0).</li>
+<li class="depth-0"><code>PATCH</code> — fixes with no new surface.</li>
+</ul>
+<p><code>scripts/sync_version.py</code> propagates <code>VERSION</code> into <code>pyproject.toml</code>, <code>frontend/package.json</code> and the app settings — never edit those by hand:</p>
+<pre class="code" data-lang="bash"><code>printf &#x27;1.11.0&#x27; &gt; VERSION
+.venv/bin/python scripts/sync_version.py</code></pre>
+<h2 id="release-flow">Release flow</h2>
+<pre class="mermaid">flowchart LR
+    V[&quot;1 · Bump VERSION&lt;br/&gt;+ sync_version.py&quot;] --&gt; C[&quot;2 · CHANGELOG entry&lt;br/&gt;Keep-a-Changelog&quot;]
+    C --&gt; S[&quot;3 · Stats sync&lt;br/&gt;project_stats + check_stats&quot;]
+    S --&gt; T[&quot;4 · Full verify&lt;br/&gt;./run.sh --verify-only&quot;]
+    T --&gt; G[&quot;5 · Commit + tag&lt;br/&gt;git tag -a vX.Y.Z&quot;]
+    G --&gt; R[&quot;6 · Push + release&lt;br/&gt;gh release create&quot;]</pre>
+<p>Commands (owner runs these — nobody else can release for you):</p>
+<pre class="code" data-lang="bash"><code># 1-2: version + changelog (Unreleased section becomes the new version)
+printf &#x27;1.11.0&#x27; &gt; VERSION
+.venv/bin/python scripts/sync_version.py
+
+# 3: re-measure every structural figure; fail loudly on drift
+.venv/bin/python scripts/check_stats.py docs/stats.json --write
+.venv/bin/python scripts/project_stats.py --sync-readme
+.venv/bin/python scripts/check_stats.py docs/stats.json
+
+# 4: prove it (lint, tests, live sources, real pipeline, frontend, compose)
+./run.sh --verify-only
+
+# 5-6: commit, tag, publish
+git add -A &amp;&amp; git commit -m &quot;Release v1.11.0 — &lt;one-line theme&gt;&quot;
+git tag -a v1.11.0 -m &quot;v1.11.0 — &lt;one-line theme&gt;&quot;
+git push origin main v1.11.0
+gh release create v1.11.0 --title &quot;v1.11.0&quot; --notes-file CHANGELOG.md</code></pre>
+<h2 id="github-about-box-paste-ready">GitHub About box (paste-ready)</h2>
+<p><strong>Description:</strong></p>
+<blockquote><p>End-to-end product intelligence pipeline: permitted web/API ingestion (34 sources) → cleaning → duplicate detection → PostgreSQL/MySQL warehouse with price history → SQL analytics → Airflow orchestration → FastAPI (216 ops) + React dashboard. DEPI Data Engineering capstone.</p></blockquote>
+<p><strong>Topics:</strong></p>
+<pre class="code" data-lang=""><code>web-scraping  beautifulsoup  scrapy  etl  data-engineering  airflow  postgresql
+fastapi  python  data-quality  deduplication  price-tracking  data-warehouse
+docker  plotly  streamlit  rest-api  depi  data-pipeline  sql-analytics</code></pre>
+<p><strong>Website:</strong> link <code>website/index.html</code> (or the Pages URL once enabled).</p>
+<p><strong>Visibility:</strong> Repo → Settings → General → Danger Zone → Change visibility → Make private (or <code>gh repo edit &lt;repo&gt; --visibility private --accept-visibility-change-consequences</code>).</p>
+<h2 id="history">History</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Version</th>
+<th>Theme</th>
+</tr></thead><tbody>
+<tr>
+<th>1.11.0</th>
+<td>Morning Briefing, 10x demo warehouse, account briefing defaults, mobile/theme polish</td>
+</tr>
+<tr>
+<th>1.10.0</th>
+<td>Ingestion Max: TVMaze + Archive.org + DummyJSON recipes, Scrapy engine, conditional GET, team API</td>
+</tr>
+<tr>
+<th>1.9.0</th>
+<td>Real-only defaults, theme memory, modern scrollbars, Account Max, run.sh</td>
+</tr>
+<tr>
+<th>1.8.0</th>
+<td>Query power Max (HAVING, OR logic, saved-view lifecycle, query history)</td>
+</tr>
+</tbody></table></div>
+<p>Full detail per version: <code>CHANGELOG.md</code>.</p>
+    </article>
+    <div class="doc-foot">
+      <span><a href="30_access_control_and_rate_limiting.html">← Access Control & Limits</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="32_briefing_and_demo_scale.html">Morning Briefing & Demo Scale →</a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>
