@@ -36,6 +36,7 @@ import { initials, formatRelative, titleCase, formatPrice } from '@/lib/format'
 import { useAuth } from '@/hooks/useAuth'
 import { NavDrawer, PhoneTabBar, Sidebar, useEdgeSwipeOpen, usePhoneLayout, useRailState } from './Navigation'
 import { useFocusHeading, useScrollRestoration } from '@/hooks/useScrollRestoration'
+import { preloadScreens } from '@/lib/preload'
 
 export default function AppShell() {
   const location = useLocation()
@@ -54,6 +55,12 @@ export default function AppShell() {
   )
   useScrollRestoration()
   useFocusHeading()
+
+  // Warm every route chunk while the browser is idle. The first navigation is
+  // then served from memory instead of flashing a Suspense skeleton.
+  useEffect(() => {
+    preloadScreens()
+  }, [])
 
   // Global shortcuts: Ctrl/Cmd-K or "/" opens the palette, Ctrl/Cmd-B toggles the
   // sidebar, "[" and "]" collapse or expand it, Escape closes any overlay.
