@@ -193,20 +193,20 @@ class Pipeline:
     def _source_codes(self) -> list[str]:
         if self.config.sources:
             return list(dict.fromkeys(self.config.sources))
-        from app.ingestion.base import list_sources
+        from app.ingestion.base import AUTO_SELECTABLE_TRUST, list_sources
         from app.ingestion.dynamic import enabled_dynamic_codes
 
-        # Real-only auto-selection: `local_demo` is synthetic/offline and is
-        # only ever used when explicitly requested (tests, CI, --offline demos).
-        # A bare `run-pipeline` / DAG-without-params therefore collects real
-        # permitted sources and never mixes fake rows into production data.
-        OFFLINE_ONLY = {"local_demo"}
+        # Real-only auto-selection: a source is picked up automatically only when
+        # it publishes genuine market data. Sources whose upstream is a demo
+        # catalogue, a mock API or a local generator are excluded here, so a bare
+        # `run-pipeline` / DAG-without-params never mixes fabricated rows into
+        # production data. They remain reachable by explicit code selection.
         codes = [
             source["code"]
             for source in list_sources()
             if source.get("enabled")
             and source.get("terms_allowed", True)
-            and source["code"] not in OFFLINE_ONLY
+            and source.get("data_trust") in AUTO_SELECTABLE_TRUST
         ]
         # Dashboard-defined rows live in the database, not the registry, so they
         # are unioned here; _process_source resolves each code through the same

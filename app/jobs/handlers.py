@@ -73,9 +73,11 @@ def run_pipeline(job_id: int, report: Report) -> dict[str, Any]:
         created_by=payload.get("created_by"),
     )
     if not config.sources:
-        from app.ingestion.base import list_sources
-
-        config.sources = [source["code"] for source in list_sources() if source["enabled"]]
+        # Leave the list empty and let the pipeline resolve it. The pipeline owns
+        # auto-selection, so it applies the real-only trust rule and also unions
+        # the dashboard-defined sources. Building the list here would duplicate
+        # that rule and could pull a demo or mock feed into a real run.
+        pass
 
     # Stage timings are written by the pipeline; poll the run row so progress is real.
     seen_stages: list[str] = []

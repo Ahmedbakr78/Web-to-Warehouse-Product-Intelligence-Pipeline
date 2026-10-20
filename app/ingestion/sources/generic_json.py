@@ -43,7 +43,7 @@ from typing import Any, ClassVar
 from urllib.parse import urlparse
 
 from app.core.config import settings
-from app.ingestion.base import ProductSource, RawProduct
+from app.ingestion.base import DATA_TRUST_REAL, ProductSource, RawProduct
 
 #: Marker stored in ``dim_source.config`` distinguishing GUI-created rows.
 ADAPTER_NAME = "generic_json"
@@ -130,6 +130,7 @@ def _coerce_availability(value: Any) -> tuple[str | None, bool | None]:
 #: as ``GET /sources/presets`` so the form is one click for common cases.
 PRESETS: dict[str, dict[str, Any]] = {
     "dummyjson": {
+        "data_trust": "synthetic",
         "label": "DummyJSON Products",
         "base_url": "https://dummyjson.com/products",
         "terms_url": "https://dummyjson.com/",
@@ -156,6 +157,7 @@ PRESETS: dict[str, dict[str, Any]] = {
         },
     },
     "fakestore": {
+        "data_trust": "synthetic",
         "label": "FakeStore API",
         "base_url": "https://fakestoreapi.com/products",
         "terms_url": "https://fakestoreapi.com/",
@@ -174,6 +176,7 @@ PRESETS: dict[str, dict[str, Any]] = {
         "pagination": {"style": "none"},
     },
     "shopify": {
+        "data_trust": "real",
         "label": "Shopify store (products.json)",
         "base_url": "https://<store>.myshopify.com/products.json",
         "terms_url": None,
@@ -193,6 +196,7 @@ PRESETS: dict[str, dict[str, Any]] = {
         "pagination": {"style": "none"},
     },
     "openfoodfacts": {
+        "data_trust": "real",
         "label": "Open Food Facts",
         "base_url": "https://world.openfoodfacts.org/cgi/search.pl",
         "terms_url": "https://world.openfoodfacts.org/terms-of-use",
@@ -216,6 +220,7 @@ PRESETS: dict[str, dict[str, Any]] = {
         "params": {"search_terms": "", "json": "1"},
     },
     "openlibrary": {
+        "data_trust": "real",
         "label": "Open Library shelf",
         "base_url": "https://openlibrary.org/subjects/bestsellers.json",
         "terms_url": "https://openlibrary.org/terms-of-use",
@@ -230,6 +235,7 @@ PRESETS: dict[str, dict[str, Any]] = {
         "params": {"limit": "100"},
     },
     "cheapshark": {
+        "data_trust": "real",
         "label": "CheapShark deals",
         "base_url": "https://www.cheapshark.com/api/1.0/deals",
         "terms_url": "https://www.cheapshark.com/api/1.0/",
@@ -252,6 +258,7 @@ PRESETS: dict[str, dict[str, Any]] = {
         "params": {"storeID": "1", "sortBy": "Savings", "desc": "1", "onSale": "1"},
     },
     "itunes": {
+        "data_trust": "real",
         "label": "iTunes Search apps",
         "base_url": "https://itunes.apple.com/search",
         "terms_url": "https://performance-partners.apple.com/search-api",
@@ -273,6 +280,7 @@ PRESETS: dict[str, dict[str, Any]] = {
         "params": {"term": "photo editor", "media": "software", "entity": "software", "country": "US", "limit": "200"},
     },
     "gutendex": {
+        "data_trust": "real",
         "label": "Gutendex books",
         "base_url": "https://gutendex.com/books",
         "terms_url": "https://gutendex.com/",
@@ -292,6 +300,7 @@ PRESETS: dict[str, dict[str, Any]] = {
         },
     },
     "mmobomb": {
+        "data_trust": "real",
         "label": "MMOBomb games",
         "base_url": "https://www.mmobomb.com/api1/games",
         "terms_url": "https://www.mmobomb.com/api",
@@ -310,6 +319,7 @@ PRESETS: dict[str, dict[str, Any]] = {
         "params": {"sort-by": "popularity"},
     },
     "coincap": {
+        "data_trust": "real",
         "label": "CoinCap assets",
         "base_url": "https://api.coincap.io/v2/assets",
         "terms_url": "https://coincap.io/",
@@ -329,6 +339,7 @@ PRESETS: dict[str, dict[str, Any]] = {
         },
     },
     "scryfall": {
+        "data_trust": "real",
         "label": "Scryfall cards",
         "base_url": "https://api.scryfall.com/cards/search",
         "terms_url": "https://scryfall.com/docs/api",
@@ -347,6 +358,7 @@ PRESETS: dict[str, dict[str, Any]] = {
         "params": {"q": "game:paper usd>0", "order": "edhrec"},
     },
     "pokemontcg": {
+        "data_trust": "real",
         "label": "Pokemon TCG cards",
         "base_url": "https://api.pokemontcg.io/v2/cards",
         "terms_url": "https://pokemontcg.io/",
@@ -368,6 +380,7 @@ PRESETS: dict[str, dict[str, Any]] = {
         },
     },
     "bitstamp": {
+        "data_trust": "real",
         "label": "Bitstamp tickers",
         "base_url": "https://www.bitstamp.net/api/v2/ticker/btcusd/",
         "terms_url": "https://www.bitstamp.net/api/",
@@ -382,6 +395,7 @@ PRESETS: dict[str, dict[str, Any]] = {
         "pagination": {"style": "none"},
     },
     "coingecko": {
+        "data_trust": "real",
         "label": "CoinGecko markets",
         "base_url": "https://api.coingecko.com/api/v3/coins/markets",
         "terms_url": "https://www.coingecko.com/en/api_terms",
@@ -404,6 +418,7 @@ PRESETS: dict[str, dict[str, Any]] = {
         "params": {"vs_currency": "usd", "order": "market_cap_desc", "price_change_percentage": "24h"},
     },
     "itunes_ebooks": {
+        "data_trust": "real",
         "label": "iTunes Search ebooks",
         "base_url": "https://itunes.apple.com/search",
         "terms_url": "https://performance-partners.apple.com/search-api",
@@ -425,6 +440,7 @@ PRESETS: dict[str, dict[str, Any]] = {
         "params": {"term": "python programming", "media": "ebook", "entity": "ebook", "country": "US", "limit": "200"},
     },
     "restful_objects": {
+        "data_trust": "synthetic",
         "label": "RESTful API objects",
         "base_url": "https://api.restful-api.dev/objects",
         "terms_url": "https://restful-api.dev/",
@@ -471,6 +487,7 @@ class GenericJsonSource(ProductSource):
             "min_delay_seconds": float(definition.get("min_delay_seconds") or 1.0),
             "enabled": bool(definition.get("enabled", True)),
             "terms_allowed": bool(definition.get("terms_allowed", False)),
+            "data_trust": str(config.get("data_trust") or DATA_TRUST_REAL),
         }
         if not values["name"]:
             values["name"] = values["code"]
@@ -521,6 +538,7 @@ class GenericJsonSource(ProductSource):
             "params": dict(self.extra_params),
             **({"url_template": self.url_template} if self.url_template else {}),
             "currency": self.default_currency,
+            "data_trust": self.data_trust,
         }
 
     # ------------------------------------------------------------------ fetch

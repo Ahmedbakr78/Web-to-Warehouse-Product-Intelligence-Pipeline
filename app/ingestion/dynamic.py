@@ -15,7 +15,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.core.errors import SourceNotFoundError
-from app.ingestion.base import ProductSource, get_source, get_source_class
+from app.ingestion.base import DATA_TRUST_REAL, ProductSource, get_source, get_source_class
 from app.ingestion.sources.generic_json import ADAPTER_NAME, GenericJsonSource
 from app.models.dimensions import DimSource
 
@@ -53,8 +53,23 @@ def dynamic_definitions(session: Session) -> list[dict[str, Any]]:
 
 
 def enabled_dynamic_codes(session: Session) -> list[str]:
-    """Codes the pipeline auto-selects alongside enabled registry sources."""
-    return [row.source_code for row in dynamic_rows(session, enabled_only=True) if row.terms_allowed]
+    """Codes the pipeline auto-selects alongside enabled registry sources.
+
+    Only rows whose configured trust level is ``real`` qualify: a dashboard row
+    may point at a mock API or a demo storefront, and such a feed must never be
+    swept into a run that did not name it explicitly.
+    """
+    from app.ingestion.base import AUTO_SELECTABLE_TRUST
+
+    codes: list[str] = []
+    for row in dynamic_rows(session, enabled_only=True):
+        if not row.terms_allowed:
+            continue
+        config = row.config or {}
+        if str(config.get("data_trust") or DATA_TRUST_REAL) not in AUTO_SELECTABLE_TRUST:
+            continue
+        codes.append(row.source_code)
+    return codes
 
 
 def resolve_source(
