@@ -245,6 +245,36 @@ const BUILDER_PRESETS: { name: string; entity: Entity; patch: Partial<BuilderSta
     entity: 'movers',
     patch: { sortBy: 'price_change_pct', sortDir: 'desc' },
   },
+  {
+    name: '📈 Price Hikes (+15%)',
+    entity: 'price-changes',
+    patch: { minChangePct: '15', significantOnly: true, sortBy: 'price_change_pct', sortDir: 'desc' },
+  },
+  {
+    name: '💸 Discounts under $50',
+    entity: 'products',
+    patch: { maxPrice: '50', sortBy: 'price', sortDir: 'asc' },
+  },
+  {
+    name: '🕳️ Recently Removed',
+    entity: 'removed',
+    patch: { sortBy: 'last_seen_at', sortDir: 'desc' },
+  },
+  {
+    name: '🧾 Catalog Mismatches',
+    entity: 'catalog',
+    patch: { significantOnly: true, sortBy: 'price_difference', sortDir: 'desc' },
+  },
+  {
+    name: '🩺 DQ Failures',
+    entity: 'quality',
+    patch: { availability: 'fail', sortBy: 'severity', sortDir: 'desc' },
+  },
+  {
+    name: '📦 Stale (90d unseen)',
+    entity: 'products',
+    patch: { newSinceDays: '90', sortBy: 'last_seen_at', sortDir: 'asc' },
+  },
 ]
 
 export default function Builder() {
@@ -633,6 +663,31 @@ export default function Builder() {
             </button>
           ))}
         </div>
+
+        {/* Active filters, each removable on its own. */}
+        {filterChips.length ? (
+          <div className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-line/60 pt-3">
+            <span className="mr-1 text-[11px] font-medium text-subtle">Applied:</span>
+            {filterChips.map((chip) => (
+              <button
+                key={String(chip.key)}
+                onClick={() => patch({ [chip.key]: chip.key === 'significantOnly' || chip.key === 'activeOnly' ? false : '' } as Partial<BuilderState>)}
+                title={`Remove the ${chip.label} filter`}
+                className="group flex items-center gap-1 rounded-full border border-brand-500/40 bg-[var(--brand-soft-mix,transparent)] px-2 py-0.5 text-[11px] font-medium text-ink"
+              >
+                <span className="text-subtle">{chip.label}:</span>
+                <span className="max-w-[12rem] truncate">{chip.value}</span>
+                <X className="h-3 w-3 text-subtle group-hover:text-danger" aria-hidden />
+              </button>
+            ))}
+            <button
+              onClick={() => patch({ ...DEFAULT_STATE, columns: DEFAULT_STATE.columns, entity: state.entity })}
+              className="rounded-full px-2 py-0.5 text-[11px] font-medium text-subtle underline underline-offset-2 hover:text-danger"
+            >
+              Clear all
+            </button>
+          </div>
+        ) : null}
       </Card>
 
       {/* ------------------------------------------------------------- controls */}
@@ -1124,20 +1179,38 @@ function plainCell(entity: Entity, key: string, row: any): string {
 }
 
 function countActiveFilters(state: BuilderState): number {
-  return [
-    state.search,
-    state.category,
-    state.brand,
-    state.source,
-    state.availability,
-    state.inStock,
-    state.minPrice,
-    state.maxPrice,
-    state.minRating,
-    state.minChangePct,
-    state.maxChangePct,
-    state.newSinceDays,
-  ].filter(Boolean).length + (state.significantOnly ? 1 : 0)
+  return activeFilterChips(state).length
+}
+
+/**
+ * Every filter that is currently narrowing the result set, as a removable chip.
+ *
+ * The builder applies a lot of filters at once and there is no other way to
+ * see (or undo) the combination as a whole, so the chip bar doubles as the
+ * explanation of what the preview is actually showing.
+ */
+function activeFilterChips(state: BuilderState): { key: keyof BuilderState; label: string; value: string }[] {
+  const chips: { key: keyof BuilderState; label: string; value: string }[] = []
+  const push = (key: keyof BuilderState, label: string, value: string | undefined | null) => {
+    if (value !== undefined && value !== null && String(value).trim() !== '') {
+      chips.push({ key, label, value: String(value) })
+    }
+  }
+  push('search', 'Search', state.search)
+  push('category', 'Category', state.category)
+  push('brand', 'Brand', state.brand)
+  push('source', 'Source', state.source)
+  push('availability', 'Availability', state.availability)
+  push('inStock', 'In stock', state.inStock)
+  push('minPrice', 'Min price', state.minPrice)
+  push('maxPrice', 'Max price', state.maxPrice)
+  push('minRating', 'Min rating', state.minRating)
+  push('minChangePct', 'Min change %', state.minChangePct)
+  push('maxChangePct', 'Max change %', state.maxChangePct)
+  push('newSinceDays', 'Seen within', state.newSinceDays ? `${state.newSinceDays}d` : '')
+  if (state.significantOnly) chips.push({ key: 'significantOnly', label: 'Significant only', value: 'on' })
+  if (state.activeOnly) chips.push({ key: 'activeOnly', label: 'Active only', value: 'on' })
+  return chips
 }
 
 function serialiseFilters(state: BuilderState): Record<string, unknown> {
