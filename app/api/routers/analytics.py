@@ -48,6 +48,21 @@ def brands(
     return analytics.brand_leaderboard(session, limit=limit)
 
 
+@router.get("/brand-comparison", summary="Leading brands on measured, comparable axes")
+def brand_comparison(
+    session: DbSession,
+    _user: ReadUser,
+    limit: Annotated[int, Query(ge=2, le=12)] = 5,
+    freshness_days: Annotated[int, Query(ge=1, le=365)] = 30,
+) -> dict[str, Any]:
+    """Normalised brand scores computed from the warehouse, server-side.
+
+    A score is ``None`` when the measurement behind it does not exist, so the
+    chart can show a gap rather than an invented number.
+    """
+    return analytics.brand_comparison(session, limit=limit, freshness_days=freshness_days)
+
+
 @router.get("/volatility", summary="Most volatile products by price range")
 def volatility(
     session: DbSession,

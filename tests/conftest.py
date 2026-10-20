@@ -21,6 +21,11 @@ os.environ.setdefault("REQUESTS_PER_SECOND", "1000")
 os.environ.setdefault("REQUESTS_PER_MINUTE", "60000")
 os.environ.setdefault("CRAWL_DELAY_FALLBACK_SECONDS", "0")
 os.environ.setdefault("CACHE_ENABLED", "false")
+# FX rates come from a live provider in production. The suite must be
+# hermetic: a live rate moves every day, so a test that asserts a specific
+# conversion would fail whenever the market moved against it (and the
+# network round-trip stalls the rest of the suite).
+os.environ.setdefault("FX_LIVE_RATES", "false")
 # The API's per-caller request budget (240/min) is a production guard. A full
 # suite run issues thousands of requests as the same seed users within a few
 # minutes, so the middleware would 429 unrelated tests depending on file order.
