@@ -39,29 +39,42 @@ def _one(session: Session, statement: Any, params: dict[str, Any] | None = None)
     return rows[0] if rows else {}
 
 
-def table_counts(session: Session) -> dict[str, int]:
+#: The tables whose row counts are published by the API. The health endpoint
+#: and the pipeline totals report every one of them.
+COUNTED_TABLES: tuple[str, ...] = (
+    "dim_product",
+    "dim_category",
+    "dim_source",
+    "dim_currency",
+    "dim_date",
+    "fact_price_snapshot",
+    "fact_catalog_snapshot",
+    "chg_price_change",
+    "chg_product_event",
+    "agg_category_daily",
+    "catalog_product",
+    "etl_run",
+    "dq_rule_result",
+    "stg_raw_observation",
+    "ingestion_http_log",
+    "app_user",
+)
+
+#: The subset the KPI payload carries. Counting every table on every dashboard
+#: load is wasted work: a `COUNT(*)` over a half-million-row fact table is the
+#: single most expensive part of the request, and the dashboard never shows it.
+KPI_COUNTED_TABLES: tuple[str, ...] = (
+    "dim_product",
+    "fact_price_snapshot",
+)
+
+
+def table_counts(session: Session, tables: tuple[str, ...] | list[str] | None = None) -> dict[str, int]:
     """Row counts for the main tables (used by the health endpoint and the CLI)."""
     out: dict[str, int] = {}
     preparer = session.bind.dialect.identifier_preparer if session.bind else None
     quote_fn = preparer.quote if preparer is not None else (lambda name: f'"{name}"')
-    for table in (
-        "dim_product",
-        "dim_category",
-        "dim_source",
-        "dim_currency",
-        "dim_date",
-        "fact_price_snapshot",
-        "fact_catalog_snapshot",
-        "chg_price_change",
-        "chg_product_event",
-        "agg_category_daily",
-        "catalog_product",
-        "etl_run",
-        "dq_rule_result",
-        "stg_raw_observation",
-        "ingestion_http_log",
-        "app_user",
-    ):
+    for table in tables if tables is not None else COUNTED_TABLES:
         try:
             out[table] = session.execute(sa.text(f"SELECT COUNT(*) FROM {quote_fn(table)}")).scalar() or 0
         except Exception:
@@ -74,7 +87,7 @@ def table_counts(session: Session) -> dict[str, int]:
 # --------------------------------------------------------------------------------------
 def kpi_summary(session: Session, days: int = 30) -> dict[str, Any]:
     """Headline numbers for the dashboard cards."""
-    counts = table_counts(session)
+    counts = table_counts(session, KPI_COUNTED_TABLES)
     latest = _one(
         session,
         sa.text(
