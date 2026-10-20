@@ -404,7 +404,10 @@ export default function BriefingPage() {
                       {item.source_code} · {formatPrice(item.price_usd, 'USD')}
                     </p>
                   </div>
-                  <Badge tone="success">{item.rating?.toFixed(1) ?? '—'}★</Badge>
+                  <Badge tone="success">
+                    <Star className="h-3 w-3" aria-hidden />
+                    {item.rating?.toFixed(1) ?? '—'}
+                  </Badge>
                 </Link>
               ))}
               {!data?.best_value.length ? <p className="text-xs text-subtle">No rated listings yet.</p> : null}

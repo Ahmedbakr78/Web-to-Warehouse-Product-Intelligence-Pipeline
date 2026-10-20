@@ -627,7 +627,7 @@ export default function QueryLab() {
 
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <Badge tone={guard.ok ? 'success' : 'danger'}>
-                {guard.ok ? 'read-only ✓' : `rejected: ${guard.reason}`}
+                {guard.ok ? 'read-only' : `rejected: ${guard.reason}`}
               </Badge>
               <Badge tone="neutral">
                 {lineCount} line{lineCount === 1 ? '' : 's'}

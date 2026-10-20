@@ -390,7 +390,7 @@ export default function Analytics() {
               onRowClick={(row: any) => navigate(`/products/${row.product_id}`)}
               columns={[
                 { key: 'product', header: 'Product', render: (row: any) => <span className="font-medium">{row.canonical_name}</span> },
-                { key: 'rating', header: 'Rating', align: 'center', sortValue: (row: any) => row.damped_score, render: (row: any) => (row.rating == null ? '—' : `${Number(row.rating).toFixed(1)} ★ (${formatCompact(row.rating_count ?? 0)})`) },
+                { key: 'rating', header: 'Rating', align: 'center', sortValue: (row: any) => row.damped_score, render: (row: any) => (row.rating == null ? '—' : `${Number(row.rating).toFixed(1)} / 5 (${formatCompact(row.rating_count ?? 0)})`) },
                 { key: 'price', header: 'Price', align: 'right', render: (row: any) => formatPrice(row.price_usd) },
                 { key: 'brand', header: 'Brand', hideBelow: 'md', render: (row: any) => <span className="text-xs text-muted">{row.brand ?? '—'}</span> },
               ]}
@@ -551,7 +551,7 @@ export default function Analytics() {
 
           <Card padded={false} className="xl:col-span-2">
             <div className="p-4 sm:p-5">
-              <CardHeader title="Best value" subtitle="Top-rated listings ranked by rating per dollar (≥4.0 ★, ≥10 votes)" icon={<Star className="h-4 w-4" />} />
+              <CardHeader title="Best value" subtitle="Top-rated listings ranked by rating per dollar (≥4.0 / 5, ≥10 votes)" icon={<Star className="h-4 w-4" />} />
             </div>
             <DataTable
               rows={value.data ?? []}
@@ -562,8 +562,8 @@ export default function Analytics() {
               emptyMessage="No listing qualifies yet — ratings need more votes"
               columns={[
                 { key: 'product', header: 'Product', render: (row: any) => <span className="font-medium">{row.canonical_name}</span> },
-                { key: 'score', header: 'Value', align: 'right', sortValue: (row: any) => row.value_score, render: (row: any) => <Badge tone="success">{Number(row.value_score ?? 0).toFixed(3)} ★/$</Badge> },
-                { key: 'rating', header: 'Rating', align: 'center', render: (row: any) => `${Number(row.rating ?? 0).toFixed(1)} ★ (${formatCompact(row.rating_count ?? 0)})` },
+                { key: 'score', header: 'Value', align: 'right', sortValue: (row: any) => row.value_score, render: (row: any) => <Badge tone="success">{Number(row.value_score ?? 0).toFixed(3)} per $</Badge> },
+                { key: 'rating', header: 'Rating', align: 'center', render: (row: any) => `${Number(row.rating ?? 0).toFixed(1)} / 5 (${formatCompact(row.rating_count ?? 0)})` },
                 { key: 'price', header: 'Price', align: 'right', render: (row: any) => formatPrice(row.price_usd) },
               ]}
             />

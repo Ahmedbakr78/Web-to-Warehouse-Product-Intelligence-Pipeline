@@ -380,7 +380,7 @@ export default function Products() {
             title={watchedOnly ? 'Watchlist is empty here' : 'No products match these filters'}
             message={
               watchedOnly
-                ? 'Star products with the ☆ button to pin them here, or turn off the Watched filter.'
+                ? 'Star products with the Star button to pin them here, or turn off the Watched filter.'
                 : 'Try removing a filter, widening the price range or searching for a different term.'
             }
             icon={<Package className="h-8 w-8" />}
