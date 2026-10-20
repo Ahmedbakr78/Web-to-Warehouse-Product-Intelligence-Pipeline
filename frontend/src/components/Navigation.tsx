@@ -131,7 +131,7 @@ export function NavContent({ collapsed = false, showGroups = true, variant = 'dr
                     <item.icon className="h-[18px] w-[18px] shrink-0" aria-hidden />
                     {!collapsed ? <span className="truncate">{item.label}</span> : null}
                     {!collapsed && item.badge ? (
-                      <span className="ml-auto rounded bg-brand-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-brand-700 dark:bg-brand-500/20 dark:text-brand-300">
+                      <span className="ml-auto rounded brand-soft px-1.5 py-0.5 text-[9px] font-semibold uppercase text-brand-700 dark:text-brand-300">
                         {item.badge}
                       </span>
                     ) : null}

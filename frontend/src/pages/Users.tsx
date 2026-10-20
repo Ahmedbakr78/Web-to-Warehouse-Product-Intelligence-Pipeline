@@ -257,7 +257,7 @@ export default function Users() {
       sortValue: (row) => row.full_name,
       render: (row) => (
         <div className="flex items-center gap-2.5">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-100 text-[11px] font-semibold text-brand-700 dark:bg-brand-500/20 dark:text-brand-200">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full brand-soft text-[11px] font-semibold text-brand-700 dark:text-brand-200">
             {initials(row.full_name || row.email)}
           </span>
           <div className="min-w-0">

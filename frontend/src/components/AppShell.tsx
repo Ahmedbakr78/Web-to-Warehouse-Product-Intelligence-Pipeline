@@ -446,7 +446,7 @@ function CommandPalette({
                   onMouseEnter={() => setCursor(index)}
                   className={cn(
                     'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left',
-                    isActive ? 'bg-brand-50 dark:bg-brand-500/15' : 'hover:bg-surface-3',
+                    isActive ? 'brand-soft' : 'hover:bg-surface-3',
                   )}
                 >
                   <Icon className="h-4 w-4 shrink-0 text-brand-600 dark:text-brand-300" aria-hidden />
@@ -548,7 +548,7 @@ function NotificationBell() {
                     setOpen(false)
                     refetch()
                   }}
-                  className={cn('block w-full border-b border-line px-3 py-2.5 text-left hover:bg-surface-2', !item.is_read && 'bg-brand-50/60 dark:bg-brand-500/10')}
+                  className={cn('block w-full border-b border-line px-3 py-2.5 text-left hover:bg-surface-2', !item.is_read && 'brand-soft')}
                 >
                   <div className="flex items-start gap-2">
                     <Badge tone={item.level === 'critical' ? 'danger' : item.level === 'warning' ? 'warning' : 'info'}>

@@ -541,7 +541,7 @@ export default function Account() {
                   aria-pressed={mode === option.id}
                   className={cn(
                     'group flex flex-col items-start gap-2 rounded-xl border-2 p-2 text-left',
-                    mode === option.id ? 'border-brand-500 bg-brand-500/5' : 'border-line hover:border-line-strong',
+                    mode === option.id ? 'border-brand-500 brand-soft' : 'border-line hover:border-line-strong',
                   )}
                 >
                   {/* Miniature of the real palette so the choice is visual, not textual. */}

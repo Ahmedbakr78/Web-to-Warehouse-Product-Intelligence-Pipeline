@@ -266,7 +266,7 @@ export default function Reports() {
                     }
                     className={cn(
                       'rounded-lg border px-2.5 py-1 text-[11px] font-medium capitalize transition-colors',
-                      on ? 'border-brand-500 bg-brand-500/10 text-brand-600' : 'border-line text-subtle hover:bg-surface-2',
+                      on ? 'border-brand-500 brand-soft text-brand-600 dark:text-brand-300' : 'border-line text-subtle hover:bg-surface-2',
                     )}
                   >
                     {section.replace(/_/g, ' ')}

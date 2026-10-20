@@ -181,7 +181,7 @@ export default function Features() {
             return (
               <Card key={group.key} className="flex flex-col">
                 <div className="flex items-start gap-3 border-b border-line p-4">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-300">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl brand-soft text-brand-600 dark:text-brand-300">
                     <Icon className="h-5 w-5" aria-hidden />
                   </span>
                   <div className="min-w-0 flex-1">

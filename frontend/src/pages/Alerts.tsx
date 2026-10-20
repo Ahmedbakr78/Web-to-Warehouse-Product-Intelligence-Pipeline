@@ -506,7 +506,7 @@ export default function Alerts() {
             ) : (
               <ul className="divide-y divide-line">
                 {notifications.map((item) => (
-                  <li key={item.notification_id} className={item.is_read ? undefined : 'bg-brand-50/50 dark:bg-brand-500/10'}>
+                  <li key={item.notification_id} className={item.is_read ? undefined : 'brand-soft'}>
                     <div className="flex items-start gap-3 px-1 py-3">
                       <Badge tone={levelTone(item.level)} className="mt-0.5 shrink-0">
                         {titleCase(item.level)}

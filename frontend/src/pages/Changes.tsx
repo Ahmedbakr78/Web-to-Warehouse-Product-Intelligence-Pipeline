@@ -412,7 +412,7 @@ export default function Changes() {
               'The SQL views vw_price_changes, vw_new_products, vw_removed_products and vw_category_changes expose all of it to this screen.',
             ].map((step, index) => (
               <li key={index} className="flex gap-2">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-100 text-[10px] font-semibold text-brand-700 dark:bg-brand-500/20 dark:text-brand-300">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full brand-soft text-[10px] font-semibold text-brand-700 dark:text-brand-300">
                   {index + 1}
                 </span>
                 <span className="leading-relaxed">{step}</span>

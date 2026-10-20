@@ -140,7 +140,7 @@ const TONE_CLASS: Record<Tone, string> = {
   danger: 'badge-danger',
   info: 'badge-info',
   neutral: 'badge-neutral',
-  brand: 'bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-200 border-brand-300/40',
+  brand: 'badge-brand',
 }
 
 export function Badge({
@@ -199,7 +199,7 @@ export function StatTile({
   onClick?: () => void
 }) {
   const accent: Record<Tone, string> = {
-    brand: 'text-brand-600 dark:text-brand-300 bg-brand-100/70 dark:bg-brand-500/15',
+    brand: 'text-brand-600 dark:text-brand-300 brand-soft',
     success: 'text-success bg-success-soft',
     warning: 'text-warning bg-warning-soft',
     danger: 'text-danger bg-danger-soft',
@@ -224,7 +224,7 @@ export function StatTile({
         </span>
       ) : null}
       <div className="min-w-0 flex-1">
-        <p className="stat-label truncate text-[10px] sm:text-xs">{label}</p>
+        <p className="stat-label line-clamp-2 text-[10px] leading-tight sm:truncate sm:text-xs">{label}</p>
         <p className="stat-value mt-0.5 truncate text-xl sm:text-2xl">{value}</p>
         {hint ? <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-subtle sm:truncate sm:text-xs">{hint}</p> : null}
         {delta ? <div className="mt-1.5">{delta}</div> : null}

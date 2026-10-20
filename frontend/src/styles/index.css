@@ -610,6 +610,26 @@
     border-color: var(--border);
   }
 
+  .badge-brand {
+    background-color: var(--brand-100);
+    color: var(--brand-700);
+    border-color: color-mix(in srgb, var(--brand-500) 30%, transparent);
+  }
+
+  .dark .badge-brand {
+    background-color: color-mix(in srgb, var(--brand-500) 22%, transparent);
+    color: var(--brand-200);
+    border-color: color-mix(in srgb, var(--brand-500) 40%, transparent);
+  }
+
+  .brand-soft {
+    background-color: var(--brand-100);
+  }
+
+  .dark .brand-soft {
+    background-color: color-mix(in srgb, var(--brand-500) 18%, transparent);
+  }
+
   .table-wrap {
     overflow: auto;
     border-radius: var(--radius);

@@ -324,7 +324,7 @@ export default function BriefingPage() {
                         ? 'bg-danger-soft text-danger'
                         : item.severity === 'medium'
                           ? 'bg-warning-soft text-warning'
-                          : 'bg-brand-100 text-brand-600 dark:bg-brand-500/15 dark:text-brand-300',
+                          : 'brand-soft text-brand-600 dark:text-brand-300',
                     )}
                   >
                     <InsightIcon name={item.icon} className="h-4 w-4" />

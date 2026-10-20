@@ -391,7 +391,7 @@ export function PrivacyPanel({
                 <li
                   key={note.notification_id}
                   className={`rounded-lg border p-2.5 ${
-                    note.is_read ? 'border-line opacity-60' : 'border-brand-500/40 bg-brand-500/5'
+                    note.is_read ? 'border-line opacity-60' : 'border-brand-500 brand-soft'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">

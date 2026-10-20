@@ -109,7 +109,7 @@ export default function LoginPage() {
         <div className="relative grid gap-3">
           {FEATURES.map((feature) => (
             <div key={feature.title} className="flex items-start gap-3 rounded-xl border border-line bg-surface/70 p-3.5">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-300">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg brand-soft text-brand-700 dark:text-brand-300">
                 <feature.icon className="h-4 w-4" aria-hidden />
               </span>
               <div>
