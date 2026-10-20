@@ -803,7 +803,7 @@ graph TB
         ROUTES["24 routers<br/>219 operations"]
         AUTH["Security layer<br/>Argon2id · JWT · API keys · RBAC"]
         GUARD["Guards<br/>error envelope · GZip · timing · rate limit"]
-        BUILDER["Builder DSL<br/>whitelist → parameterised SELECT"]
+        BUILDER["Builder DSL<br/>whitelist to parameterised SELECT"]
         QLAB["Query lab<br/>SELECT / WITH / EXPLAIN only"]
     end
     subgraph Domain["Domain services"]
@@ -940,7 +940,7 @@ stateDiagram-v2
     Pending --> Running: pre-flight guards pass
     Pending --> Skipped: database unreachable
     Pending --> Skipped: robots.txt forbids every source
-    Running --> Running: extract → clean → stage → load
+    Running --> Running: extract, clean, stage, load
     Running --> Validating: 9 stages finished
     Validating --> Succeeded: 12 DQ rules, no critical failure
     Validating --> Failed: critical rule failed
@@ -1331,13 +1331,13 @@ The full threat model, boundary-by-boundary control table and disclosure process
 
 | Boundary | Threat | Control |
 | --- | --- | --- |
-| Web → ingestion | Hostile HTML or JSON payloads | Schema validation, length caps, HTML stripping in the 29-step cleaner |
-| Web → ingestion | Unauthorised crawling | robots.txt enforced in the transport layer before the socket opens |
-| Web → ingestion | Over-fetching a fragile host | Rate limits, circuit breaker, honest `User-Agent`, cached responses |
-| User → API | Credential theft | Argon2id hashing, JWT rotation, API keys hashed at rest, 5-attempt lockout |
-| User → API | Privilege escalation | RBAC enforced server-side per route, not by hiding UI |
-| User → API | SQL injection | Parameterised SQL; the Query Lab is `SELECT`-only with whitelisted identifiers |
-| Any → data | Data exposure | Secrets from environment only, CORS allow-list, gzip, full audit log |
+| Web to ingestion | Hostile HTML or JSON payloads | Schema validation, length caps, HTML stripping in the 29-step cleaner |
+| Web to ingestion | Unauthorised crawling | robots.txt enforced in the transport layer before the socket opens |
+| Web to ingestion | Over-fetching a fragile host | Rate limits, circuit breaker, honest `User-Agent`, cached responses |
+| User to API | Credential theft | Argon2id hashing, JWT rotation, API keys hashed at rest, 5-attempt lockout |
+| User to API | Privilege escalation | RBAC enforced server-side per route, not by hiding UI |
+| User to API | SQL injection | Parameterised SQL; the Query Lab is `SELECT`-only with whitelisted identifiers |
+| Any to data | Data exposure | Secrets from environment only, CORS allow-list, gzip, full audit log |
 
 ```mermaid
 flowchart LR
@@ -1634,13 +1634,13 @@ ownership, and every merge in the repository passes his review.
   API keys), RBAC (admin/analyst/viewer), exports, webhooks, backfill, builder,
   query lab, forecast, reports, saved views, notifications, audit.
 - **9-stage ETL orchestrator** — one `Pipeline.run()` used identically by the
-  CLI, the REST trigger and the Airflow DAG: extract → stage → transform →
-  resolve → load → detect → aggregate → reconcile → quality.
+  CLI, the REST trigger and the Airflow DAG: extract, stage, transform,
+  resolve, load, detect, aggregate, reconcile, quality.
 - **Integration transport** — the in-process/API fallback that lets Airflow 2.10
   (SQLAlchemy 1.4) drive an app that requires SQLAlchemy 2.0 without sharing
   an interpreter.
-- **Catalogues as code** — `app/core/features.py` → `GET /meta/features` and
-  `app/core/team.py` → `GET /meta/team`: the dashboard, docs and website read
+- **Catalogues as code** — `app/core/features.py` maps to `GET /meta/features` and
+  `app/core/team.py` maps to `GET /meta/team`: the dashboard, docs and website read
   the code, never a stale copy.
 - **Documentation architecture** — 31 numbered documents, 80+ Mermaid diagrams,
   data dictionary, README/website/docs alignment, stats-drift CI that fails the
@@ -1665,7 +1665,7 @@ curl -s localhost:8000/api/v1/meta/team | python3 -c \
 > Repo: `https://github.com/Ahmedbakr78/Web-to-Warehouse-Product-Intelligence-Pipeline`
 
 **Description (paste into About):**
-> End-to-end product intelligence pipeline: permitted web/API ingestion → cleaning → duplicate detection → PostgreSQL warehouse with price history → SQL analytics → Airflow orchestration → FastAPI + dashboard. DEPI Data Engineering capstone.
+> End-to-end product intelligence pipeline: permitted web/API ingestion, cleaning, duplicate detection, PostgreSQL warehouse with price history, SQL analytics, Airflow orchestration, FastAPI + dashboard. DEPI Data Engineering capstone.
 
 **Topics (About, gear icon, Topics):**
 `web-scraping, beautifulsoup, scrapy, etl, data-engineering, airflow, postgresql, fastapi, python, data-quality, deduplication, price-tracking, data-warehouse, docker, plotly, streamlit, rest-api, depi, data-pipeline, sql-analytics`
@@ -1676,7 +1676,7 @@ gh auth login
 gh repo edit Ahmedbakr78/Web-to-Warehouse-Product-Intelligence-Pipeline \
   --visibility private --accept-visibility-change-consequences
 ```
-Or: Repo → Settings → General → Danger Zone → Change visibility → Make private.
+Or: Repo, then Settings, then General, then Danger Zone, then Change visibility, then Make private.
 
 **Cut a release:**
 ```bash

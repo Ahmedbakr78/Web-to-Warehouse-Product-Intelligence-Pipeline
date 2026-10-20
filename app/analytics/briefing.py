@@ -108,7 +108,7 @@ def _drop_insights(movers: list[dict[str, Any]], limit: int) -> list[dict[str, A
                 title=str(row.get("canonical_name") or "Product"),
                 detail=(
                     f"{row.get('category_name') or 'Uncategorised'} · "
-                    f"{_money(row.get('previous_price'))} → {_money(row.get('new_price'))} "
+                    f"{_money(row.get('previous_price'))} to {_money(row.get('new_price'))} "
                     f"on {row.get('source_code') or 'source'}"
                 ),
                 metric=_pct(change),
@@ -149,7 +149,7 @@ def _rise_insights(movers: list[dict[str, Any]], limit: int) -> list[dict[str, A
                 title=str(row.get("canonical_name") or "Product"),
                 detail=(
                     f"{row.get('category_name') or 'Uncategorised'} · "
-                    f"{_money(row.get('previous_price'))} → {_money(row.get('new_price'))} "
+                    f"{_money(row.get('previous_price'))} to {_money(row.get('new_price'))} "
                     f"on {row.get('source_code') or 'source'}"
                 ),
                 metric=_pct(change),

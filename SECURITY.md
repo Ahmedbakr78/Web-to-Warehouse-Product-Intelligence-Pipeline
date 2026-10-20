@@ -17,7 +17,7 @@ before any detail becomes visible in the issue tracker.
 
 Report a vulnerability by email to **ahmedbakr78102@gmail.com**, or via GitHub's private reporting:
 
-1. Open the repository → **Security** → **Advisories** → **Report a vulnerability**.
+1. Open the repository, then **Security**, then **Advisories**, then **Report a vulnerability**.
 2. Include the affected component, the reproduction steps, and the impact you observed.
 
 Please do **not** include third-party credentials, live tokens, or customer data in a report.
@@ -59,13 +59,13 @@ flowchart LR
 
 | Boundary | Threat | Control implemented |
 | --- | --- | --- |
-| Web → ingestion | Malicious or hostile HTML/JSON | Schema validation, length caps, HTML stripping in the 29-step cleaner, no code execution from payloads |
-| Web → ingestion | Unauthorised crawling | robots.txt enforced in the transport layer before the socket opens, per-host rate limits, circuit breaker |
-| User → API | Credential theft | Argon2id hashing, JWT access + rotating refresh, API keys shown once and hashed at rest, 5-attempt lockout for 15 minutes |
-| User → API | Privilege escalation | RBAC (viewer / analyst / admin) enforced server-side per route, not by hiding UI |
-| User → API | SQL injection | Parameterised SQL throughout; the Query Lab is SELECT-only with identifier whitelisting and clamped `LIMIT` |
-| Any → data | Sensitive data exposure | `.env` git-ignored, secrets from environment only, CORS allow-list, gzip, audit log of every mutation |
-| API → warehouse | Accidental destructive query | Read-only replicas for analytics paths, statement timeouts, no DDL or DML reachable from user input |
+| Web to ingestion | Malicious or hostile HTML/JSON | Schema validation, length caps, HTML stripping in the 29-step cleaner, no code execution from payloads |
+| Web to ingestion | Unauthorised crawling | robots.txt enforced in the transport layer before the socket opens, per-host rate limits, circuit breaker |
+| User to API | Credential theft | Argon2id hashing, JWT access + rotating refresh, API keys shown once and hashed at rest, 5-attempt lockout for 15 minutes |
+| User to API | Privilege escalation | RBAC (viewer / analyst / admin) enforced server-side per route, not by hiding UI |
+| User to API | SQL injection | Parameterised SQL throughout; the Query Lab is SELECT-only with identifier whitelisting and clamped `LIMIT` |
+| Any to data | Sensitive data exposure | `.env` git-ignored, secrets from environment only, CORS allow-list, gzip, audit log of every mutation |
+| API to warehouse | Accidental destructive query | Read-only replicas for analytics paths, statement timeouts, no DDL or DML reachable from user input |
 
 ## Security controls in place
 

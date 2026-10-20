@@ -37,7 +37,7 @@ def _spider_class() -> Any:
     import scrapy
 
     class BookSpider(scrapy.Spider):
-        """Listing → detail crawl of the scrape sandbox (robots-obeying)."""
+        """Listing then detail crawl of the scrape sandbox (robots-obeying)."""
 
         name = "books_toscrape"
         allowed_domains = ["books.toscrape.com"]

@@ -7,9 +7,9 @@ Pipeline: 575 features grouped into forty-seven areas, each with a one-line desc
 to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an
 endpoint, a CLI command or a documented design decision. Nothing here is aspirational.
 
-**Scale of the system, measured:** 32 ingestion sources · 29 physical tables · 23 analytical views ·
-12 data-quality rules across 6 dimensions · 215 REST route decorators in 23 routers · 9 pipeline stages ·
-33 Airflow task callables · 6 Docker Compose services · 31 numbered documents · 80 Mermaid diagrams ·
+**Scale of the system, measured:** 35 ingestion sources · 29 physical tables · 23 analytical views ·
+12 data-quality rules across 6 dimensions · 219 REST route decorators in 24 routers · 9 pipeline stages ·
+33 Airflow task callables · 6 Docker Compose services · 33 numbered documents · 83 Mermaid diagrams ·
 594 automated tests · 104 end-to-end API smoke checks.
 
 Regenerate the numbers above with `python3 scripts/project_stats.py`.

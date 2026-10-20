@@ -12,7 +12,7 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   'tzinfo'`** — raw SQL returns DATETIME columns as text on SQLite (no native
   type), and the freshness rule called `.tzinfo` on it; the suite masked the
   crash as a failed rule. Timestamps are now parsed with `fromisoformat`
-  (naive → UTC), with an honest `warn` verdict if unparseable. Covered by
+  (naive to UTC), with an honest `warn` verdict if unparseable. Covered by
   `test_dq007_freshness_handles_sqlite_text_timestamps`.
 - **Crawler contact is now real** — `INGEST_USER_AGENT` uses
   `ahmedbakr78102@gmail.com` instead of the placeholder address.
@@ -70,7 +70,7 @@ now wired end to end, and two new ones were added:
 - **The content behind the open drawer could still be scrolled.** The scroll
   lock targeted `document.body`, but the shell scrolls `<main>`. Both are locked
   now.
-- **The drawer stayed open across a phone → desktop resize**, leaving the page
+- **The drawer stayed open across a phone to desktop resize**, leaving the page
   behind it locked and covered by an invisible backdrop. It now closes and
   releases the lock.
 - **Back/forward never restored the scroll position.** The saved offset read
@@ -181,12 +181,12 @@ now wired end to end, and two new ones were added:
 
 ### Added (ingestion Max)
 
-- **Three live-verified sources (31 → 34 adapters):** TVMaze shows, Internet Archive
+- **Three live-verified sources (31 to 34 adapters):** TVMaze shows, Internet Archive
   texts (robots-allowed advancedsearch feed), DummyJSON recipes — all proven with
   real records through cleaning. Rejected with evidence: MercadoLibre (robots
   `Disallow: /`), ITBookStore (all endpoints 404), Jikan (unreachable), BoardGameGeek
   (refuses programmatic access).
-- **Scrapy crawling engine** — `BookSpider` (listing → detail, robots middleware,
+- **Scrapy crawling engine** — `BookSpider` (listing then detail, robots middleware,
   autothrottle, item cap) emitting identical `RawProduct` rows; `sources preview
   books_to_scrape --engine scrapy` (needs `pip install -e ".[scrapy]"`).
 - **Conditional GET** — ETag / Last-Modified validators on every cached response;
@@ -212,7 +212,7 @@ now wired end to end, and two new ones were added:
 - **Per-source aggregates** — `refresh_category_daily(source_code)` scopes SQL and storage by
   source instead of ignoring the argument.
 - **Pipeline docstring** — stage order now matches `STAGE_NAMES`
-  (`… detect → aggregate → reconcile → quality`).
+  (`… detect, aggregate, reconcile, quality`).
 - **Theme toggle memory** — header toggle restores the last dark variant (`pip.last-dark`);
   high-contrast follows the OS so light-HC and dark-HC palettes are both reachable.
 - **Nav icon consistency** — Categories=FolderTree and Audit=Filter match the icon registry;

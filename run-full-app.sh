@@ -194,5 +194,5 @@ printf '  mode      %s\n' "$MODE"
 printf '  sources   %s (limit %s/source)\n' "$SOURCES" "$REAL_LIMIT"
 printf '  warehouse %s\n' "$SQLITE_DB"
 printf '  stack     backend lint+tests, live-source smoke, real pipeline, frontend, compose\n'
-printf '  dashboard ./run-local.sh  →  http://localhost:5173\n'
+printf '  dashboard ./run-local.sh  ->  http://localhost:5173\n'
 printf '  api docs  http://localhost:8000/docs\n\n'
