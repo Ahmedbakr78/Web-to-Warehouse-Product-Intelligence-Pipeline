@@ -33,7 +33,7 @@
 </p>
 
 <p align="center">
-  <b>218 REST operations</b> · <b>29 tables</b> · <b>23 analytical views</b> ·
+  <b>219 REST operations</b> · <b>29 tables</b> · <b>23 analytical views</b> ·
   <b>12 DQ rules</b> · <b>34 registered sources</b> · <b>550 catalogued features</b> ·
   <b>588 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
 </p>
@@ -162,7 +162,7 @@ Everything is engineered like a production system, not a demo:
 | **Orchestration** | Apache Airflow 2.10 DAG | 13 tasks, branch-on-changes, alert fan-out, report publication, sync-run API for demos |
 | **Data quality** | 12-rule framework over 6 dimensions | completeness, validity, uniqueness, accuracy, consistency, timeliness, weighted score |
 | **Change detection** | SQL plus an event engine | price changes banded by magnitude, new and removed products, category drift, lifecycle events |
-| **REST API** | FastAPI | **218 operations in 24 routers**, JWT and API-key auth, RBAC (admin / analyst / viewer), key rotation + editing, multi-level sorting, OpenAPI docs, gzip, timing headers |
+| **REST API** | FastAPI | **219 operations in 24 routers**, JWT and API-key auth, RBAC (admin / analyst / viewer), key rotation + editing, multi-level sorting, OpenAPI docs, gzip, timing headers |
 | **Dashboard** | React 19 + TypeScript + Tailwind + ReCharts | 24 screens, 5 themes, 12 accent colours, 3 densities, command palette, installable PWA, responsive from 320 px |
 | **CLI** | Typer, 14 commands | bootstrap, seed, run, report, verify, quality, sources preview |
 | **Ops** | Docker Compose (6 services), Makefile (30+ targets), GitHub Actions CI | one-command everything |
@@ -173,11 +173,11 @@ Everything is engineered like a production system, not a demo:
 <!-- BEGIN:STATS -->
 
 ```text
-29 physical tables  |  23 analytical views  |  218 REST route decorators in 24 routers
+29 physical tables  |  23 analytical views  |  219 REST route decorators in 24 routers
 12 data-quality rules across 6 dimensions, weighted score persisted per run
 35 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
 14 CLI commands  |  6 Docker Compose services  |  33 documents  |  83 Mermaid diagrams
-588 tests  |  104/104 API smoke checks  |  550 catalogued features
+592 tests  |  104/104 API smoke checks  |  550 catalogued features
 ```
 
 | Metric | Count |
@@ -185,7 +185,7 @@ Everything is engineered like a production system, not a demo:
 | Physical tables         | 29 |
 | Analytical views        | 23 |
 | REST routers            | 24 |
-| REST route decorators   | 218 |
+| REST route decorators   | 219 |
 | Data-quality rules      | 12 |
 | Ingestion sources       | 35 |
 | Airflow task callables  | 33 |
@@ -195,7 +195,7 @@ Everything is engineered like a production system, not a demo:
 | Numbered documents      | 33 |
 | Mermaid diagrams        | 83 |
 | Catalogued features     | 550 |
-| Collected test cases    | 588 |
+| Collected test cases    | 592 |
 | API smoke checks        | 104 |
 
 <!-- END:STATS -->
@@ -317,7 +317,7 @@ flowchart LR
 
     subgraph Ops["Operations"]
         AF["Airflow DAG<br/>13 tasks"]
-        API["FastAPI REST<br/>218 operations"]
+        API["FastAPI REST<br/>219 operations"]
         DQ["12-rule DQ framework"]
     end
 
@@ -360,7 +360,7 @@ flowchart TB
     end
     subgraph Server["FastAPI monolith, modular"]
         MW["CORS - gzip - timing headers"]
-        RT["24 routers, 218 operations"]
+        RT["24 routers, 219 operations"]
         SV["analytics + ETL services"]
         SEC["JWT + API keys - RBAC - audit"]
         MW --> RT --> SV
@@ -657,7 +657,7 @@ The run receives a weighted score; the dashboard charts the 90-day trend.
 
 ### 6 - Serve
 
-The FastAPI app (218 operations) exposes products, changes, analytics, pipeline operations, quality,
+The FastAPI app (219 operations) exposes products, changes, analytics, pipeline operations, quality,
 catalog, sources, the read-only query lab, saved views, notifications, settings and audit. The React
 dashboard consumes it, and both endpoints and UI offer CSV and JSON exports. Airflow triggers the
 whole cycle daily; the API's sync endpoint and the CLI produce the identical `etl_run` record.
@@ -800,7 +800,7 @@ graph TB
         PAL["Command palette<br/>Ctrl/Cmd-K"]
     end
     subgraph Edge["FastAPI application"]
-        ROUTES["24 routers<br/>218 operations"]
+        ROUTES["24 routers<br/>219 operations"]
         AUTH["Security layer<br/>Argon2id · JWT · API keys · RBAC"]
         GUARD["Guards<br/>error envelope · GZip · timing · rate limit"]
         BUILDER["Builder DSL<br/>whitelist → parameterised SELECT"]
@@ -1063,7 +1063,7 @@ Highlights by area:
 
 - JWT access and refresh rotation, API keys (`pip_...`), Argon2id password hashing
 - role-based access control: admin, analyst, viewer, enforced per route server-side
-- 218 operations, OpenAPI and ReDoc documentation, gzip compression, `X-Process-Time-Ms` headers
+- 219 operations, OpenAPI and ReDoc documentation, gzip compression, `X-Process-Time-Ms` headers
 - CSV and JSON exports on the API and in the dashboard
 - one consistent error envelope (`error`, `message`, `details`) with validation detail
 
@@ -1476,7 +1476,7 @@ natively on GitHub; every structural number is tied to a runnable command.
 | 11 | Behaviour Diagrams | sequence, activity, three state diagrams, class diagram |
 | 12 | UI/UX Design | screen wireframes, design system with contrast ratios, WCAG 2.1 AA |
 | 13 | Deployment | stack, deployment and component diagrams, environment matrix, CI/CD, backups |
-| 14 | API Documentation | auth flow, role matrix, all 218 operations, worked examples |
+| 14 | API Documentation | auth flow, role matrix, all 219 operations, worked examples |
 | 15 | Testing Strategy | test pyramid, case plan, UAT, coverage targets, quality gates |
 | 16 | User Manual | sign-in, every screen, filters, exports, alerts, admin, troubleshooting, FAQ |
 | 17 | Technical Documentation | module map, key algorithms, every configuration variable |
@@ -1630,7 +1630,7 @@ catalogue — so this table can never drift from the shipped record.
 Ahmed carries the architecture end to end: every layer below is his direct
 ownership, and every merge in the repository passes his review.
 
-- **FastAPI platform** — 24 routers and 218 operations: auth (JWT rotation +
+- **FastAPI platform** — 24 routers and 219 operations: auth (JWT rotation +
   API keys), RBAC (admin/analyst/viewer), exports, webhooks, backfill, builder,
   query lab, forecast, reports, saved views, notifications, audit.
 - **9-stage ETL orchestrator** — one `Pipeline.run()` used identically by the

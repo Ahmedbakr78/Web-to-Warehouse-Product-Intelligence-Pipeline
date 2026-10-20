@@ -173,9 +173,7 @@ def normalise_events(events: list[str] | None) -> list[str]:
     return cleaned
 
 
-def subscriptions_for_event(
-    session: Session, event: str, *, user_id: int | None = None
-) -> list[AppWebhook]:
+def subscriptions_for_event(session: Session, event: str, *, user_id: int | None = None) -> list[AppWebhook]:
     """Active subscriptions listening to ``event`` (optionally for one user)."""
     query = sa.select(AppWebhook).where(
         AppWebhook.is_active.is_(True),
