@@ -395,6 +395,7 @@ export default function Builder() {
   })
 
   const activeFilters = countActiveFilters(state)
+  const filterChips = activeFilterChips(state)
   // Some entities return a bare array (analytics, movers, sources) while the
   // paged ones return {items, total}: normalise so previews never render empty.
   const rows = Array.isArray(preview.data) ? preview.data : ((preview.data as any)?.items ?? [])
@@ -673,7 +674,7 @@ export default function Builder() {
                 key={String(chip.key)}
                 onClick={() => patch({ [chip.key]: chip.key === 'significantOnly' || chip.key === 'activeOnly' ? false : '' } as Partial<BuilderState>)}
                 title={`Remove the ${chip.label} filter`}
-                className="group flex items-center gap-1 rounded-full border border-brand-500/40 bg-[var(--brand-soft-mix,transparent)] px-2 py-0.5 text-[11px] font-medium text-ink"
+                className="group flex items-center gap-1 rounded-full border border-brand-500/40 brand-soft px-2 py-0.5 text-[11px] font-medium text-ink"
               >
                 <span className="text-subtle">{chip.label}:</span>
                 <span className="max-w-[12rem] truncate">{chip.value}</span>
