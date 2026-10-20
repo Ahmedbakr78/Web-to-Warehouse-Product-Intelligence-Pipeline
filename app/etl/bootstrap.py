@@ -303,14 +303,34 @@ def sync_dim_source(session: Session, source: Any) -> DimSource:
     return row
 
 
+def sync_registry_sources(session: Session) -> int:
+    """Write every registered source into ``dim_source``.
+
+    The pipeline only touches a source it actually collected, so a source that
+    has never run would otherwise be missing from the warehouse - and with it
+    its trust level. Syncing the registry keeps the dimension complete and
+    makes the classification visible before a single row is fetched.
+    """
+    from app.ingestion.base import get_source_class, list_sources
+
+    written = 0
+    for definition in list_sources():
+        source = get_source_class(definition["code"])()
+        sync_dim_source(session, source)
+        written += 1
+    return written
+
+
 def bootstrap(database: str | None = None, *, drop: bool = False) -> dict[str, Any]:
     """Full bootstrap: schema + reference data (+ views)."""
     result = create_schema(database, drop=drop)
     with session_scope(database) as session:
         dates = ensure_date_range(session)
         currencies = seed_dim_currency(session)
+        sources = sync_registry_sources(session)
     result["dim_date_rows_added"] = dates
     result["dim_currency_rows_added"] = currencies
+    result["dim_source_rows_synced"] = sources
     views = apply_views(database)
     result["views_applied"] = views
     log.info("bootstrap complete: %s", {k: v for k, v in result.items() if k != "tables"})
@@ -457,6 +477,7 @@ __all__ = [
     "seed_dim_currency",
     "ensure_date_range",
     "sync_dim_source",
+    "sync_registry_sources",
     "bootstrap",
     "apply_views",
     "drop_views",
