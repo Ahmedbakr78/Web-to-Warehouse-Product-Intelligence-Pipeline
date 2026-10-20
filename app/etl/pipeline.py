@@ -54,6 +54,22 @@ STAGE_NAMES = (
     "quality",
 )
 
+#: What each stage actually does, in the same order as :data:`STAGE_NAMES`.
+#: The API serves this map so the dashboard never has to describe a stage from
+#: its own hardcoded copy - a description that drifts from the implementation is
+#: worse than no description at all.
+STAGE_DESCRIPTIONS: dict[str, str] = {
+    "extract": "robots.txt-gated HTTP fetch of APIs and permitted pages",
+    "stage": "raw payloads land in the staging zone unchanged",
+    "transform": "clean names and categories, normalise price and currency",
+    "resolve": "exact, blocking and fuzzy matching against existing products",
+    "load": "upsert dimensions, append immutable price snapshots",
+    "detect": "compare with the previous snapshot and emit change events",
+    "aggregate": "refresh the pre-aggregated category/day rollup",
+    "reconcile": "match the internal catalog and compute the price gap",
+    "quality": "evaluate the DQ rules across every quality dimension",
+}
+
 
 @dataclass
 class PipelineConfig:

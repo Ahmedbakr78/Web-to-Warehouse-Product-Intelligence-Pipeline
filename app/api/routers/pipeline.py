@@ -432,7 +432,7 @@ def rebuild_aggregates(session: DbSession, user: PipelineUser) -> dict[str, Any]
 
 @router.get("/stages", summary="Stage catalogue and average durations")
 def stages(session: DbSession, _user: ReadUser) -> dict[str, Any]:
-    from app.etl.pipeline import STAGE_NAMES
+    from app.etl.pipeline import STAGE_DESCRIPTIONS, STAGE_NAMES
 
     rows = (
         session.execute(
@@ -450,6 +450,7 @@ def stages(session: DbSession, _user: ReadUser) -> dict[str, Any]:
     )
     return {
         "stages": list(STAGE_NAMES),
+        "descriptions": dict(STAGE_DESCRIPTIONS),
         "by_status": [dict(row) for row in rows],
         "totals": analytics.table_counts(session),
     }
