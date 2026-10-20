@@ -30,6 +30,18 @@ def rules(_user: ReadUser) -> list[dict[str, Any]]:
     return rules_catalog()
 
 
+@router.get("/scoring-model", summary="How the quality score is weighted")
+def scoring_model(_user: ReadUser) -> dict[str, Any]:
+    """The severity weights and outcome factors the score is built from.
+
+    Serving them means the Quality screen can explain the number instead of
+    quoting a copy of the formula that may no longer match the code.
+    """
+    from app.etl.dq import scoring_model as model
+
+    return model()
+
+
 @router.get("/results", response_model=Page[dict[str, Any]], summary="Historical DQ results")
 def results(
     session: DbSession,

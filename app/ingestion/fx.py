@@ -40,6 +40,17 @@ PROVIDERS: tuple[tuple[str, str, str], ...] = (
     ("frankfurter.dev", "https://api.frankfurter.dev/v1/latest?base=USD", "frankfurter"),
 )
 
+#: When false the module never touches the network and always serves the
+#: static reference table. The test suite sets this so a run is hermetic: a
+#: live exchange rate moves every day, and a test that asserts a specific rate
+#: would fail (and the rest of the suite would cascade) whenever the market
+#: moved against it.
+def _live_enabled() -> bool:
+    import os
+
+    return os.environ.get("FX_LIVE_RATES", "true").strip().lower() not in {"0", "false", "off", "no"}
+
+
 _lock = threading.Lock()
 _cache: dict[str, float] = {}
 _cache_meta: dict[str, Any] = {"source": "static_reference_table", "as_of": None, "fetched_at": 0.0}
@@ -121,6 +132,14 @@ def refresh(*, force: bool = False) -> dict[str, Any]:
     is kept and ``source`` reports where those numbers came from.
     """
     global _cache, _cache_meta
+    if not _live_enabled():
+        return {
+            "source": "static_reference_table",
+            "as_of": None,
+            "fetched_at": 0.0,
+            "stale": False,
+            "live_disabled": True,
+        }
     with _lock:
         fresh = time.time() - float(_cache_meta.get("fetched_at") or 0.0)
         if not force and _cache and fresh < RATE_TTL_SECONDS:
