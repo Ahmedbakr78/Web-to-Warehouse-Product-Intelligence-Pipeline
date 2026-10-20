@@ -97,7 +97,13 @@ class Settings(BaseSettings):
     seed_analyst_password: str = "Analyst@12345"
     seed_viewer_email: str = "viewer@example.com"
     seed_viewer_password: str = "Viewer@12345"
-    seed_demo_data: bool = True
+    #: Create the bootstrap accounts on start-up. Off by default: a deployment
+    #: should provision its own accounts (or set this explicitly) rather than
+    #: silently receiving a fixed set of well-known credentials.
+    seed_demo_data: bool = False
+    #: Publish the bootstrap credentials on ``GET /auth/demo-accounts``. Requires
+    #: ``ENABLE_DEMO_ACCOUNTS=true`` and is always off in production.
+    enable_demo_accounts: bool = False
     #: Public self-registration. New accounts always start as viewers; an admin
     #: promotes from the Users screen. Disable in production if accounts are
     #: provisioned centrally (REGISTRATION_ENABLED=false).

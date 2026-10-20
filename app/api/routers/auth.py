@@ -318,11 +318,19 @@ def session_info(user: CurrentUser) -> dict[str, Any]:
     }
 
 
-@router.get("/demo-accounts", summary="Documented demo credentials (development only)")
+@router.get("/demo-accounts", summary="Documented demo credentials (opt-in, off by default)")
 def demo_accounts() -> dict[str, Any]:
-    if settings.is_production:
-        return {"accounts": []}
+    """List the bootstrap accounts, but only when they were explicitly enabled.
+
+    The route is off unless ``ENABLE_DEMO_ACCOUNTS=true`` *and* the environment
+    is not production. Without that flag a caller gets an empty list rather
+    than a working credential pair, so a deployment never publishes accounts it
+    did not ask to publish.
+    """
+    if settings.is_production or not settings.enable_demo_accounts:
+        return {"accounts": [], "enabled": False}
     return {
+        "enabled": True,
         "accounts": [
             {"email": settings.seed_admin_email, "password": settings.seed_admin_password, "role": "admin"},
             {
@@ -335,5 +343,5 @@ def demo_accounts() -> dict[str, Any]:
                 "password": settings.seed_viewer_password,
                 "role": "viewer",
             },
-        ]
+        ],
     }
