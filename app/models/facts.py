@@ -129,6 +129,9 @@ class ChgPriceChange(Base):
         sa.Index("ix_chg_price_date_dir", "date_id", "direction"),
         sa.Index("ix_chg_price_pct", "change_pct"),
         sa.Index("ix_chg_price_significant", "is_significant"),
+        # The dashboard and every report filter price changes by detection
+        # window, so the detection timestamp needs its own index.
+        sa.Index("ix_chg_price_detected", "detected_at"),
     )
 
 
@@ -162,6 +165,8 @@ class ChgProductEvent(Base):
         sa.Index("ix_chg_event_type_date", "event_type", "date_id"),
         sa.Index("ix_chg_event_product", "product_id"),
         sa.Index("ix_chg_event_run", "run_id"),
+        # Lifecycle counters are always windowed by detection time.
+        sa.Index("ix_chg_event_detected", "detected_at"),
     )
 
 
