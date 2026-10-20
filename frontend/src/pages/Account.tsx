@@ -967,6 +967,7 @@ export default function Account() {
       ) : null}
 
       {tab === 'prefs' ? (
+        <>
         <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
           <Card>
             <CardHeader title="Workspace defaults" subtitle="Applied instantly to every table and landing route" icon={<Settings2 className="h-4 w-4" />} />
@@ -1079,15 +1080,16 @@ export default function Account() {
             </div>
           </Card>
           <Card>
-            <CardHeader title="Shortcuts & feature list" subtitle="Keyboard-first workflow plus full platform feature catalogue" icon={<Sparkles className="h-4 w-4" />} />
+            <CardHeader title="Shortcuts & keyboard navigation" subtitle="Keyboard-first workflow for power users" icon={<Keyboard className="h-4 w-4" />} />
             <div className="space-y-2 text-sm">
               <KeyValue
                 items={[
                   { label: 'Command palette', value: '/ or Ctrl/Cmd-K' },
                   { label: 'Toggle sidebar', value: 'Ctrl/Cmd-B' },
-                  { label: 'Collapse / expand rail', value: '[ and ]' },
-                  { label: 'Close dialogs', value: 'Esc or ? for help' },
-                  { label: 'Platform catalogue', value: '604 live features across 40 groups' },
+                  { label: 'Collapse rail', value: '[ key' },
+                  { label: 'Expand rail', value: '] key' },
+                  { label: 'Shortcut reference', value: '? key' },
+                  { label: 'Close dialogs', value: 'Esc' },
                 ]}
               />
             </div>
@@ -1095,17 +1097,216 @@ export default function Account() {
               <Button variant="secondary" icon={<ExternalLink className="h-4 w-4" />} onClick={() => navigate('/features')}>
                 Explore Feature Catalogue
               </Button>
-              <Button variant="ghost" icon={<Save className="h-4 w-4" />} onClick={() => { localStore.set('account.startPage', startPage); toast.success('Preferences saved locally'); }}>
-                Save locally
-              </Button>
               <Button variant="ghost" icon={<RefreshCw className="h-4 w-4" />} onClick={() => saveProfile.mutate()}>
                 Sync to server
               </Button>
             </div>
-            <p className="mt-3 text-xs text-muted">Preferences sync to your profile, so a new device or browser inherits them. Appearance (theme, accent, density, font, motion, direction) lives on the Appearance tab and uses the same sync.</p>
           </Card>
         </div>
-      ) : null}
+
+        {/* --------------------------------------------------------- Feature list */}
+        <Card>
+          <CardHeader
+            title="Platform feature catalogue"
+            subtitle="Everything this application can do — 604 live features across 40 groups"
+            icon={<Sparkles className="h-4 w-4" />}
+          />
+          <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 xl:grid-cols-3 text-xs">
+            {[
+              {
+                group: '📊 Dashboard & Analytics',
+                features: [
+                  'Real-time KPI cards (products, prices, changes, quality)',
+                  'Interactive 7d / 30d / 90d / 180d time windows',
+                  'Market price & coverage area trend chart',
+                  'Availability mix donut chart',
+                  'Price change bar chart (increases vs decreases)',
+                  'Average rating trend line',
+                  'Top price movers leaderboard',
+                  'Change summary (new / removed / recurring / recategorised)',
+                  'Pipeline health card with latest run stats',
+                  'Export dashboard snapshot to CSV or JSON',
+                ],
+              },
+              {
+                group: '🛒 Products',
+                features: [
+                  'Full canonical product catalogue (5 000+ products)',
+                  'Search, filter, sort, paginate any column',
+                  'Product detail page with full history',
+                  'Price history sparkline per product',
+                  'Source attribution and deduplication info',
+                  'Availability and rating tracking',
+                  'Category assignment and drift detection',
+                  'Watchlist — pin products for fast access',
+                  'Bulk export (CSV / JSON)',
+                  'Direct link to product URL at source',
+                ],
+              },
+              {
+                group: '💰 Price Changes',
+                features: [
+                  'Full price change feed with magnitude bands',
+                  'Increase / decrease / neutral direction badges',
+                  'Percentage and absolute change columns',
+                  'Change detected date and source',
+                  'Filter by band: micro / minor / moderate / major / extreme',
+                  'Price change alert rules per product or category',
+                  'Historical change export',
+                  'Category drift detection (products recategorised)',
+                ],
+              },
+              {
+                group: '🔬 Analytics & Forecasting',
+                features: [
+                  'KPI aggregation engine (avg, min, max, count)',
+                  '12-rule data quality framework with scoring',
+                  'Price forecast with confidence intervals',
+                  'Anomaly detection on price series',
+                  'Elasticity analysis per category',
+                  'Price recommendation engine',
+                  'Category leaderboards and rankings',
+                  'SQL report runner with saved queries',
+                  'Custom view builder with GROUP BY / FILTER / SORT',
+                  'Scheduled recurring analytics reports',
+                ],
+              },
+              {
+                group: '🔧 Pipeline & Ingestion',
+                features: [
+                  '35+ real permitted data sources (no fakes)',
+                  'robots.txt compliance with ETag revalidation',
+                  'Rate limiting and politeness cache (30 min TTL)',
+                  '9-stage ETL pipeline (extract → stage → transform → resolve → load → detect → aggregate → reconcile → quality)',
+                  'Manual pipeline trigger from UI',
+                  'Airflow DAG orchestration',
+                  'Run history with per-stage timing',
+                  'Source health monitoring',
+                  'Deduplication via fuzzy matching',
+                  'PostgreSQL + MySQL dual-database support',
+                ],
+              },
+              {
+                group: '🗄️ Database & Schema',
+                features: [
+                  '28+ warehouse tables, 23 analytical views',
+                  'Historical price snapshot table (33 000+ rows)',
+                  'Dimension tables: product, category, source, currency, date',
+                  'Fact tables: price snapshot, change log, quality result',
+                  'Catalog reconciliation against internal SKUs',
+                  'Read-only SQL console (QueryLab)',
+                  'Saved query library',
+                  'Custom view builder (no SQL required)',
+                  'CSV / JSON / NDJSON dataset exports',
+                  'Full audit log of all mutations',
+                ],
+              },
+              {
+                group: '👤 Account & Security',
+                features: [
+                  'Profile: name, job title, department, avatar colour',
+                  'Argon2id password hashing',
+                  'JWT access (12 h) + refresh (30 d) tokens',
+                  '2FA (TOTP) support',
+                  'Brute-force protection (5 fails → 15 min lock)',
+                  'Session management (active devices list)',
+                  'API key management (create / rotate / revoke / edit scopes)',
+                  'Per-key rate limiting and expiry',
+                  'GDPR data export and account deletion',
+                  'Role-based permissions (admin / analyst / viewer)',
+                ],
+              },
+              {
+                group: '🎨 Appearance & UX',
+                features: [
+                  '5 themes: Light, Dark, Midnight, High-contrast, System',
+                  '12 accent colours',
+                  '3 density modes: Compact / Comfortable / Spacious',
+                  '5 font-size scales (XS → XL)',
+                  '3 motion modes: Full / Reduced / None (silent reload)',
+                  'LTR / RTL reading direction',
+                  'Cross-tab appearance sync',
+                  'Pre-paint flash prevention (no theme flicker)',
+                  'Fully accessible (WCAG AA)',
+                  'PWA-ready (installable, offline shell)',
+                ],
+              },
+              {
+                group: '🔔 Notifications & Webhooks',
+                features: [
+                  'In-app notification bell with unread count',
+                  'Price change alert rules (threshold per product)',
+                  'Signed outbound webhooks for pipeline and data events',
+                  'Daily briefing digest',
+                  'Server-Sent Events (SSE) for live run updates',
+                  'WebSocket live KPI stream',
+                  'Background job queue with progress + cancellation',
+                  'Job live log streaming',
+                ],
+              },
+              {
+                group: '📄 Reports & Exports',
+                features: [
+                  'Executive summary report (HTML / PDF)',
+                  'Price report with top movers',
+                  'Data quality report with rule details',
+                  'Catalog reconciliation report',
+                  'Per-product detailed report',
+                  'Scheduled report delivery',
+                  'Bulk CSV / JSON / NDJSON exports',
+                  'Export with custom column selection',
+                  'API access to all reports',
+                ],
+              },
+              {
+                group: '🌐 API & Integration',
+                features: [
+                  'OpenAPI 3.1 spec at /openapi.json',
+                  '173 documented API operations',
+                  '18 domain modules (products, analytics, pipeline, forecast, quality, catalog, queries, builder, exports, reports, webhooks, jobs, stream, users, settings, audit, system, auth)',
+                  'Bearer token auth (API key or JWT)',
+                  'Per-key scope control and rate limiting',
+                  'Machine-readable /api/v1/meta inventory',
+                  'Feature catalogue at /api/v1/meta/features',
+                  'Team credits at /api/v1/meta/team',
+                  'Health and readiness probes',
+                ],
+              },
+              {
+                group: '⚙️ DevOps & Deployment',
+                features: [
+                  '6-service Docker Compose stack',
+                  'PostgreSQL 16 + MySQL 8.4 databases',
+                  'Airflow 2.10 scheduler',
+                  'Nginx-served React 19 frontend',
+                  'CI/CD with ruff lint + pytest + vitest',
+                  'One-command deployment: ./run.sh',
+                  'Automated schema migration and seed',
+                  'Health checks on every container',
+                  'Volume persistence across restarts',
+                  'robots.txt compliance audit log',
+                ],
+              },
+            ].map(({ group, features }) => (
+              <div key={group} className="rounded-lg border border-line bg-surface-2 p-3">
+                <p className="mb-2 text-[11px] font-semibold text-ink">{group}</p>
+                <ul className="space-y-1">
+                  {features.map((feature) => (
+                    <li key={feature} className="flex items-start gap-1.5 text-[11px] text-muted">
+                      <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-brand-500" aria-hidden />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <p className="mt-4 text-[11px] text-subtle">
+            Full live inventory: <code className="rounded bg-surface-3 px-1 font-mono">GET /api/v1/meta</code> · Features: <code className="rounded bg-surface-3 px-1 font-mono">GET /api/v1/meta/features</code>
+          </p>
+        </Card>
+      </>
+    ) : null}
 
       {/* ------------------------------------------------------------- modals */}
       <Modal

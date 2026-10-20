@@ -207,7 +207,7 @@ export default function AppShell() {
 
         {/* pb-20 clears the fixed phone tab bar. */}
         <main className="min-h-0 flex-1 overflow-y-auto">
-          <div className={cn('mx-auto w-full max-w-[1600px] p-3 sm:p-4 lg:p-5', isPhone && 'pb-24')}>
+          <div className={cn('mx-auto w-full max-w-[1600px] p-3 sm:p-4 lg:p-5', isPhone && 'pb-[calc(5rem+env(safe-area-inset-bottom,0px))]')}>
             <Outlet />
           </div>
         </main>

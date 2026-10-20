@@ -908,3 +908,46 @@
     animation: backdropFadeIn 0.2s ease-out forwards;
   }
 }
+
+/* =====================================================================================
+   Scrollbar suppression — hidden globally so the UI is seamless / frameless.
+   The underlying scroll still works; only the track/thumb is invisible.
+   ===================================================================================== */
+* {
+  scrollbar-width: none;         /* Firefox */
+  -ms-overflow-style: none;      /* IE / Edge Legacy */
+}
+*::-webkit-scrollbar {
+  display: none;                 /* Chrome / Safari / Opera */
+}
+
+/* =====================================================================================
+   Silent reload — when motion is set to "none" every CSS transition and keyframe
+   animation is disabled so navigation, data reloads, and refreshes feel instant
+   with zero visual noise or skeleton flash.
+   ===================================================================================== */
+[data-motion='none'],
+[data-motion='none'] *,
+[data-motion='none'] *::before,
+[data-motion='none'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  transition-delay: 0ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* =====================================================================================
+   Mobile improvements — full-bleed layout, touch-safe bottom padding, and
+   no horizontal overflow on narrow viewports.
+   ===================================================================================== */
+@media (max-width: 639px) {
+  .mobile-full {
+    width: 100%;
+    max-width: 100%;
+  }
+  /* Prevent horizontal scroll caused by wide tables on phones */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+}

@@ -161,9 +161,9 @@ export default function Dashboard() {
       {/* ------------------------------------------------------------- KPI cards */}
       <div className="grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-4">
         <StatTile
-          label="Products observed"
-          value={formatCompact(latest.products ?? 0)}
-          hint={`${formatCompact(latest.products ?? 0)} observed products`}
+          label="Canonical products"
+          value={formatCompact(counts.dim_product ?? latest.products ?? 0)}
+          hint={`${formatCompact(latest.sources ?? 0)} sources · ${formatCompact(latest.products ?? 0)} observations`}
           icon={<Package className="h-4 w-4" />}
         />
         <StatTile
