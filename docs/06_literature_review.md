@@ -152,7 +152,7 @@ Two design decisions came directly from this literature:
    `Σ(weight × factor) / Σ(weight) × 100` with `weight = 1 + 0.5 × severity_rank` and
    `factor ∈ {pass: 1.0, warn: 0.75, fail: 0.0}`; only `severity == critical` failures are
    *blocking* (`QualityReport.blocking_failures`). This separation is what lets the system report a
-   98.26 score while still failing hard on a violated fact grain.
+   high score while still failing hard on a violated fact grain.
 
 ---
 
@@ -186,7 +186,7 @@ smoke test can trigger a run with `limit_per_source=2` in a couple of seconds.
 | Source | Key claim | How this project applies it |
 | --- | --- | --- |
 | WCAG 2.1 (W3C, 2018) | Success criteria 1.4.3 (contrast), 1.4.11 (non-text contrast), 2.1.1 (keyboard), 2.4.7 (focus visible), 4.1.2 (name, role, value) are the AA baseline for a data application | The design system in `docs/12_ui_ux_design.md` specifies ≥ 4.5:1 text contrast, visible focus rings, keyboard-reachable table controls and ARIA live regions for asynchronous pipeline state |
-| Kimball & Ross (2013) | Business users should be able to **self-serve** through a semantic layer, not through IT tickets | The Query Lab (`POST /api/v1/queries/execute`) exposes the 20 views to analysts behind a read-only guard, with five starter queries returned by `GET /api/v1/queries/examples` |
+| Kimball & Ross (2013) | Business users should be able to **self-serve** through a semantic layer, not through IT tickets | The Query Lab (`POST /api/v1/queries/execute`) exposes the 23 views to analysts behind a read-only guard, with five starter queries returned by `GET /api/v1/queries/examples` |
 | Shneiderman (1996) | Overview first, zoom and filter, then details-on-demand — the " mantra" of interactive visual analysis | The dashboard follows it literally: KPI cards (overview), then trend and leaderboard charts (zoom), then product detail with price history and catalog links (details) |
 | Tufte (2001) | **Data-ink ratio**: remove everything that is not data | Dense tables, no decorative gradients, no gratuitous animation; the motion policy is "silent by default" |
 | TanStack Query documentation (2024) | Server state needs explicit caching, invalidation and retry policy | Dashboard reads are declared per screen with a stale window in doc 12 so that a pipeline run can invalidate exactly the affected panels |

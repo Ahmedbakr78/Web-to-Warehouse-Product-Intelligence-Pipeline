@@ -342,7 +342,7 @@
 <ul>
 <li class="depth-0"><strong>Severity must change the score, and only critical failures may block.</strong> The weighted score is</li>
 </ul>
-<p><code>Σ(weight × factor) / Σ(weight) × 100</code> with <code>weight = 1 + 0.5 × severity_rank</code> and <code>factor ∈ {pass: 1.0, warn: 0.75, fail: 0.0}</code>; only <code>severity == critical</code> failures are <em>blocking</em> (<code>QualityReport.blocking_failures</code>). This separation is what lets the system report a 98.26 score while still failing hard on a violated fact grain.</p>
+<p><code>Σ(weight × factor) / Σ(weight) × 100</code> with <code>weight = 1 + 0.5 × severity_rank</code> and <code>factor ∈ {pass: 1.0, warn: 0.75, fail: 0.0}</code>; only <code>severity == critical</code> failures are <em>blocking</em> (<code>QualityReport.blocking_failures</code>). This separation is what lets the system report a high score while still failing hard on a violated fact grain.</p>
 <hr>
 <h2 id="6-theme-5--data-integration-and-orchestration">6. Theme 5 — Data integration and orchestration</h2>
 <h3 id="61-sources-and-findings">6.1 Sources and findings</h3>
@@ -400,7 +400,7 @@
 <tr>
 <th>Kimball &amp; Ross (2013)</th>
 <td>Business users should be able to <strong>self-serve</strong> through a semantic layer, not through IT tickets</td>
-<td>The Query Lab (<code>POST /api/v1/queries/execute</code>) exposes the 20 views to analysts behind a read-only guard, with five starter queries returned by <code>GET /api/v1/queries/examples</code></td>
+<td>The Query Lab (<code>POST /api/v1/queries/execute</code>) exposes the 23 views to analysts behind a read-only guard, with five starter queries returned by <code>GET /api/v1/queries/examples</code></td>
 </tr>
 <tr>
 <th>Shneiderman (1996)</th>

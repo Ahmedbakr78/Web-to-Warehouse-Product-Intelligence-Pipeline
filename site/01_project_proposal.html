@@ -216,7 +216,7 @@
 </tr>
 <tr>
 <td>SQL analysis and visualisation</td>
-<td><code>db/views.sql</code> (20 views), <code>app/analytics/service.py</code>, <code>app/api/routers/analytics.py</code></td>
+<td><code>db/views.sql</code> (23 views), <code>app/analytics/service.py</code>, <code>app/api/routers/analytics.py</code></td>
 </tr>
 <tr>
 <td>Optional extension: REST API</td>
@@ -280,7 +280,7 @@
 <td>Run on more than one analytical database</td>
 <td>Dialects with an identical structural model and identical DQ score</td>
 <td>2 (PostgreSQL, MySQL)</td>
-<td>2 — PostgreSQL 16.15 and MySQL 8.4.11, both DQ score 98.26</td>
+<td>2 — PostgreSQL 16.15 and MySQL 8.4.11, <code>make verify-dialects</code> shows the same score on both</td>
 </tr>
 <tr>
 <th>O8</th>
@@ -366,7 +366,7 @@
 </tr>
 <tr>
 <th>Warehouse</th>
-<td>23 tables in 6 groups, 20 analytical views, category/day aggregate</td>
+<td>29 tables in 6 groups, 23 analytical views, category/day aggregate</td>
 <td><code>app/models/</code>, <code>db/views.sql</code></td>
 </tr>
 <tr>
@@ -461,10 +461,10 @@
         I1[&quot;5 compliant sources&quot;]
         I2[&quot;Cleaning and currency normalisation&quot;]
         I3[&quot;Fuzzy deduplication&quot;]
-        I4[&quot;23 tables and 20 views&quot;]
+        I4[&quot;29 tables and 23 views&quot;]
         I5[&quot;12 DQ rules&quot;]
         I6[&quot;Airflow orchestration&quot;]
-        I7[&quot;113 REST operations&quot;]
+        I7[&quot;222 REST operations&quot;]
         I8[&quot;CLI and Docker Compose&quot;]
     end
     OUT -.-&gt;|&quot;explicitly refused&quot;| IN</pre>
@@ -571,7 +571,7 @@
 <tr>
 <th>D2</th>
 <td>Database schema</td>
-<td><code>app/models/</code> — 23 tables across 6 groups</td>
+<td><code>app/models/</code> — 29 tables across 6 groups</td>
 <td>Complete</td>
 </tr>
 <tr>
@@ -601,7 +601,7 @@
 <tr>
 <th>D7</th>
 <td>SQL analysis</td>
-<td><code>db/views.sql</code> (20 views) + <code>app/analytics/service.py</code></td>
+<td><code>db/views.sql</code> (23 views) + <code>app/analytics/service.py</code></td>
 <td>Complete</td>
 </tr>
 <tr>
@@ -648,14 +648,14 @@
 <tr>
 <th>AC1</th>
 <td>Physical warehouse objects created from the ORM</td>
-<td>23 tables</td>
-<td>23 tables on PostgreSQL 16.15 and MySQL 8.4.11</td>
+<td>29 tables</td>
+<td>29 tables on PostgreSQL 16.15 and MySQL 8.4.11</td>
 <td><code>make bootstrap</code> then <code>GET /api/v1/meta/tables</code></td>
 </tr>
 <tr>
 <th>AC2</th>
 <td>Analytical views applied on both dialects</td>
-<td>20 views</td>
+<td>23 views</td>
 <td>20 / 20 on both</td>
 <td><code>make bootstrap-mysql</code> then <code>GET /api/v1/queries/views</code></td>
 </tr>
@@ -670,7 +670,7 @@
 <th>AC4</th>
 <td>Data-quality score identical across dialects</td>
 <td>Equal</td>
-<td>98.26 on both</td>
+<td>the same measured score on both</td>
 <td><code>make verify-dialects</code></td>
 </tr>
 <tr>
@@ -962,7 +962,7 @@
 <th>E7</th>
 <td>Do not process personal data</td>
 <td>Only product attributes are stored; no customer identifiers exist in the model</td>
-<td><code>app/models/</code> (23 tables, none personal)</td>
+<td><code>app/models/</code> (29 tables, none personal)</td>
 </tr>
 <tr>
 <th>E8</th>

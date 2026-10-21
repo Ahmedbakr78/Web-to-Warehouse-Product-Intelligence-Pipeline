@@ -130,7 +130,7 @@
 <tr>
 <th>O6</th>
 <td>Measure data quality on six dimensions and fail only on critical rules</td>
-<td>12 rules, score 98.26</td>
+<td>12 rules, a weighted score persisted per run</td>
 </tr>
 <tr>
 <th>O7</th>
@@ -521,7 +521,7 @@
 </tr>
 <tr>
 <th>Warehouse</th>
-<td>23 tables, 20 views, append-only facts, conformed dimensions</td>
+<td>29 tables, 23 views, append-only facts, conformed dimensions</td>
 <td>8</td>
 <td>FR-011, FR-018</td>
 </tr>
@@ -551,7 +551,7 @@
 </tr>
 <tr>
 <th>Serving</th>
-<td>113 REST operations, paging, OpenAPI</td>
+<td>222 REST operations, paging, OpenAPI</td>
 <td>3</td>
 <td>FR-020 … FR-025</td>
 </tr>
@@ -662,7 +662,7 @@
         FAC[&quot;Facts&lt;br/&gt;fact_price_snapshot, fact_catalog_snapshot,&lt;br/&gt;agg_category_daily&quot;]
         CHG[&quot;Change feeds&lt;br/&gt;chg_price_change, chg_product_event&quot;]
         OPS[&quot;Operations&lt;br/&gt;etl_run, dq_rule_result,&lt;br/&gt;ingestion_http_log, sync_state&quot;]
-        VIEWS[&quot;20 analytical views vw_*&quot;]
+        VIEWS[&quot;23 analytical views vw_*&quot;]
     end
 
     subgraph ANA[&quot;Analytics - app/analytics&quot;]

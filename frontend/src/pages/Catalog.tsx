@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Building2, FileDown, Filter, GitCompare, Play, RefreshCw, TrendingDown, TrendingUp, Upload } from 'lucide-react'
+import { Building2, FileDown, Filter, GitCompare, Play, RefreshCw, TrendingDown, TrendingUp, TriangleAlert, Upload } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { BarSeries, DonutChart } from '@/components/charts'
@@ -45,6 +45,12 @@ export default function Catalog() {
   const debouncedSearch = useDebounce(search, 300)
 
   const summary = useApiQuery(['catalog-summary'], () => endpoints.catalogSummary())
+  // The catalogue is the retailer's own list. When it still holds generated
+  // placeholders, the screen says so - a gap against a placeholder price is
+  // not a finding about the market.
+  const catalogueTotal = Number((summary.data as any)?.catalogue_total ?? 0)
+  const generatedCatalogue = Number((summary.data as any)?.catalogue_generated ?? 0)
+  const isDemoCatalogue = generatedCatalogue > 0
   const opportunities = useApiQuery(['catalog-opportunities'], () => endpoints.catalogOpportunities(20))
   const catalogProducts = useApiQuery(['catalog-skus'], () => endpoints.catalogProducts({ page: 1, page_size: 200 }))
   const runs = useApiQuery(['runs-min'], () => endpoints.runs({ page: 1, page_size: 25 }))
@@ -104,6 +110,18 @@ export default function Catalog() {
 
   return (
     <div className="space-y-4">
+      {isDemoCatalogue ? (
+        <div className="flex items-start gap-2 rounded-xl border border-warning/40 bg-warning-soft p-3 text-xs leading-relaxed text-muted">
+          <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden />
+          <span>
+            <strong className="font-semibold text-ink">Demo catalogue.</strong>{' '}
+            {formatNumber(generatedCatalogue)} of {formatNumber(catalogueTotal)} internal SKUs are
+            generated placeholders, not an imported product list. Every price gap below is measured
+            against those placeholders. Import your own catalogue, or remove the placeholders with
+            <code className="rounded bg-surface-3 px-1 font-mono">purge-demo-catalog</code>.
+          </span>
+        </div>
+      ) : null}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Tabs
           active={tab}

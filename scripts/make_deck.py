@@ -56,6 +56,52 @@ def load_stats() -> dict:
     return data
 
 
+def measured_counts() -> dict[str, str]:
+    """The figures the deck quotes, measured rather than written by hand.
+
+    A literal in the deck is a claim nobody re-checks, and the deck is what a
+    reviewer reads first. Every number here is counted from the repository.
+    """
+    counts: dict[str, str] = {}
+
+    # The Python modules mypy type-checks.
+    modules = sorted((ROOT / "app").rglob("*.py"))
+    counts["python_modules"] = str(len(modules))
+
+    # The dashboard routes.
+    app_tsx = ROOT / "frontend" / "src" / "App.tsx"
+    if app_tsx.is_file():
+        import re as _re
+
+        routes = set(_re.findall(r'path="([^"]*)"', app_tsx.read_text(encoding="utf-8")))
+        routes.discard("*")
+        counts["screens"] = str(len(routes))
+
+    # The pages the documentation site publishes.
+    site_dir = ROOT / "site"
+    if site_dir.is_dir():
+        counts["site_pages"] = str(len(list(site_dir.glob("*.html"))))
+
+    # The internal links the published site resolves.
+    link_checker = ROOT / "scripts" / "check_links.py"
+    if link_checker.is_file() and site_dir.is_dir():
+        import subprocess
+        import sys as _sys
+
+        result = subprocess.run(
+            [_sys.executable, str(link_checker), str(site_dir)],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        import re as _re
+
+        match = _re.search(r"Checked (\d+) internal links", result.stdout)
+        if match:
+            counts["doc_links"] = match.group(1)
+    return counts
+
+
 def feature_groups() -> list[tuple[str, int]]:
     """Read the catalogue without importing the app, so this works anywhere."""
     path = ROOT / "app" / "core" / "features.py"
@@ -168,6 +214,7 @@ def slide(body: str, title: str, lede: str = "") -> str:
 def build_html(stats: dict) -> str:
     groups = feature_groups()
     group_total = sum(count for _, count in groups)
+    measured = measured_counts()
 
     slides: list[str] = []
 
@@ -382,15 +429,15 @@ def build_html(stats: dict) -> str:
       <p class="lede">What has to pass before this counts as working.</p>
       <table>
         <tr><th>Gate</th><th style="text-align:right">Result</th></tr>
-        <tr><td>pytest (unit + integration)</td><td class="num">{esc(stats.get("test_cases", 408))} passed</td></tr>
+        <tr><td>pytest (unit + integration)</td><td class="num">{esc(stats.get("test_cases", "-"))} passed</td></tr>
         <tr><td>API smoke, against the running stack</td><td class="num">{esc(stats.get("api_smoke_checks", 104))} passed</td></tr>
         <tr><td>Ruff (app, tests, scripts, DAGs, migrations)</td><td class="num">clean</td></tr>
-        <tr><td>mypy</td><td class="num">clean, 83 files</td></tr>
+        <tr><td>mypy</td><td class="num">clean, {esc(measured.get("python_modules", "-"))} files</td></tr>
         <tr><td>TypeScript, ESLint at zero warnings, production build</td><td class="num">clean</td></tr>
-        <tr><td>Render smoke test, every screen</td><td class="num">23 screens</td></tr>
+        <tr><td>Render smoke test, every screen</td><td class="num">{esc(measured.get("screens", "-"))} screens</td></tr>
         <tr><td>alembic check</td><td class="num">no drift</td></tr>
-        <tr><td>Mermaid diagrams rendered</td><td class="num">{esc(stats.get("mermaid_diagrams", 80))} of {esc(stats.get("mermaid_diagrams", 80))}</td></tr>
-        <tr><td>Documentation links resolved</td><td class="num">1216</td></tr>
+        <tr><td>Mermaid diagrams rendered</td><td class="num">{esc(stats.get("mermaid_diagrams", "-"))} of {esc(stats.get("mermaid_diagrams", "-"))}</td></tr>
+        <tr><td>Documentation links resolved</td><td class="num">{esc(measured.get("doc_links", "-"))}</td></tr>
       </table>
       <p class="note">Structural figures are measured by <code>scripts/project_stats.py</code> and
       pinned by <code>scripts/check_stats.py</code>, which fails when a documented number stops
@@ -413,8 +460,8 @@ def build_html(stats: dict) -> str:
       </div>
       <div class="grid g3" style="margin-top:5mm">
         {tile(str(stats.get("documentation_documents", 30)), "documents", PRIMARY)}
-        {tile(str(stats.get("mermaid_diagrams", 80)), "Mermaid diagrams", SECONDARY)}
-        {tile("114", "static site pages", ACCENT)}
+        {tile(str(stats.get("mermaid_diagrams", "-")), "Mermaid diagrams", SECONDARY)}
+        {tile(measured.get("site_pages", "-"), "static site pages", ACCENT)}
       </div>
       """,
             "documentation",

@@ -3,7 +3,7 @@
 ## Purpose
 
 This document is the database design of the Web-to-Warehouse Product Intelligence Pipeline. It
-presents the entity-relationship diagram for all 25 physical tables with real columns, keys and
+presents the entity-relationship diagram for all 29 physical tables with real columns, keys and
 cardinalities; the logical versus physical schema; the normalisation argument (3NF for the
 dimensions, deliberate denormalisation inside the facts); the indexing, partitioning and retention
 strategy; and the per-dialect data-type mapping that keeps PostgreSQL and MySQL in agreement.
@@ -35,7 +35,7 @@ Every column, key, index and constraint in this document is generated from the S
 | --- | --- | --- |
 | G1 | Answer "what did this product cost, and when?" without scanning text | `fact_price_snapshot` is append-only with a declared grain and a surrogate `date_id` |
 | G2 | Make every descriptive attribute reusable across subjects | Five conformed dimensions (`dim_product`, `dim_category`, `dim_date`, `dim_source`, `dim_currency`) |
-| G3 | Keep analytical SQL simple for non-technical users | 20 views (`db/views.sql`) hide every join; the API and Query Lab only select from views |
+| G3 | Keep analytical SQL simple for non-technical users | 23 views (`db/views.sql`) hide every join; the API and Query Lab only select from views |
 | G4 | Run unchanged on PostgreSQL 16, MySQL 8.4 and SQLite | Dialect-portable column types, no vendor SQL, per-statement view application |
 | G5 | Make automated decisions inspectable | `match_strategy`, `match_score`, `quality_flags`, `payload_hash`, `fx_rate_to_usd` |
 | G6 | Be able to explain every number on a dashboard | `etl_run` counters, `dq_rule_result` outcomes, `ingestion_http_log` per request |
@@ -46,7 +46,7 @@ Every column, key, index and constraint in this document is generated from the S
 
 ## 2. Table inventory
 
-25 physical tables in 6 logical groups (the grouping is also exposed by the API at
+29 physical tables in 6 logical groups (the grouping is also exposed by the API at
 `GET /api/v1/meta/tables`).
 
 | Group | Count | Tables |
@@ -573,12 +573,12 @@ stages complete.
 
 | Aspect | Logical model | Physical model |
 | --- | --- | --- |
-| Entities | `PRODUCT`, `CATEGORY`, `SOURCE`, `CURRENCY`, `DATE`, `PRICE OBSERVATION`, `CATALOG ITEM`, `RUN`, `DATA QUALITY RESULT`, `USER` | 23 tables listed in §2 |
+| Entities | `PRODUCT`, `CATEGORY`, `SOURCE`, `CURRENCY`, `DATE`, `PRICE OBSERVATION`, `CATALOG ITEM`, `RUN`, `DATA QUALITY RESULT`, `USER` | 29 tables listed in §2 |
 | Keys | Surrogate integer keys for facts and dimensions; natural keys for reference data (`dim_source.source_code`, `dim_currency.currency_code`, `catalog_product.sku`, `app_setting.key`) | Integer `PRIMARY KEY AUTO_INCREMENT` on PostgreSQL/MySQL; `INTEGER PRIMARY KEY` on SQLite; natural keys are declared directly as primary keys |
 | Attributes | Abstract types (identifier, money, measure, timestamp, category, text) | Concrete types chosen for portability: `VARCHAR(128/512/2048)`, `NUMERIC(18,4)`, `FLOAT`, `JSON`, `DATETIME`, `BOOLEAN`, `BIGINT` |
 | Relationships | One product to many observations; one category to many products; one run to many facts | Implemented with declared foreign keys (18 of them) and covered by indexes |
 | Integrity | Business rules (grain, thresholds, lifecycle) | `UNIQUE` constraints, `CHECK`-by-rule (DQ rules), `NOT NULL`, cascade rules |
-| Derived data | Category rollups, current price, movement percentages | `agg_category_daily` (materialised aggregate) plus 20 views (logical projections) |
+| Derived data | Category rollups, current price, movement percentages | `agg_category_daily` (materialised aggregate) plus 23 views (logical projections) |
 | Security | Roles and rights | 7 `app_*` tables plus the `ROLE_RIGHTS` dictionary in code |
 | Time | Business date and observation timestamp | `dim_date.date_id` (`YYYYMMDD` surrogate) for the business date; `UTCDateTime` for every instant |
 
@@ -748,7 +748,7 @@ enforced by the loader and verified by the DQ framework rather than by `CHECK` c
 
 ### 7.2 Index count
 
-The model declares **43 named indexes and unique constraints** across the 23 tables
+The model declares **43 named indexes and unique constraints** across the 29 tables
 (`Base.metadata` reports them as `Index` and `UniqueConstraint` objects). `app/cli/main.py
 check-schema` verifies that the physical schema still matches the ORM definition, so a forgotten
 migration is detected immediately.

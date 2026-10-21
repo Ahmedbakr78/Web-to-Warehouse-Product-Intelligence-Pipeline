@@ -20,7 +20,7 @@ is a renderer over that one list.
 
 ```mermaid
 flowchart LR
-  views[(20 analytical views)] --> template[template function]
+  views[(23 analytical views)] --> template[template function]
   template --> blocks[typed blocks]
   blocks --> screen[React block renderer]
   blocks --> html[server-side HTML]

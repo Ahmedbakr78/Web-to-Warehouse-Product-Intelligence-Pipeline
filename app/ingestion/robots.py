@@ -22,6 +22,7 @@ from urllib.parse import urljoin, urlparse
 
 from app.core.config import settings
 from app.core.logging import get_logger
+from app.ingestion.compliance import rule_for as compliance_rule
 
 log = get_logger(__name__)
 
@@ -148,7 +149,7 @@ class RobotsCache:
             self.stats["blocked"] += 1
             return RobotsDecision(
                 allowed=False,
-                rule="robots-unauthorised:disallow (RFC 9309 - 401/403 on robots.txt)",
+                rule=compliance_rule("unauthorised"),
                 crawl_delay=None,
                 sitemaps=(),
             )
@@ -160,7 +161,7 @@ class RobotsCache:
             allowed = True
             decision = RobotsDecision(
                 allowed=allowed,
-                rule="robots-unavailable:fallback-allow (robots.txt could not be fetched)",
+                rule=compliance_rule("unreachable"),
                 crawl_delay=None,
                 sitemaps=sitemaps,
             )
@@ -188,7 +189,7 @@ class RobotsCache:
         return self.can_fetch(url).crawl_delay
 
     def sitemaps(self, url: str) -> tuple[str, ...]:
-        _, maps = self._get_parser(url)
+        _, maps, _denied = self._get_parser(url)
         return maps
 
     def clear(self) -> None:

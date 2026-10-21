@@ -227,7 +227,7 @@
 <th>How to verify in 60 seconds</th>
 </tr></thead><tbody>
 <tr>
-<td>23 tables and 20 views exist</td>
+<td>29 tables and 23 views exist</td>
 <td>`curl -s localhost:8000/api/v1/meta/tables \</td>
 <td>jq '.tables \</td>
 <td>length'<code> and </code>GET /api/v1/queries/views \</td>
@@ -785,7 +785,7 @@
 <tr>
 <th>Measured data quality</th>
 <td>Yes</td>
-<td>12 rules, 6 dimensions, score 98.26 persisted per run</td>
+<td>12 rules, 6 dimensions, a weighted score persisted per run</td>
 <td>Rules are production code, not a test artefact</td>
 </tr>
 <tr>
@@ -1153,7 +1153,7 @@
 <tr>
 <th>ER diagram</th>
 <td><code>09_database_design.md</code> §3</td>
-<td>Complete (23 tables)</td>
+<td>Complete (29 tables)</td>
 </tr>
 <tr>
 <td>Logical and physical schema</td>

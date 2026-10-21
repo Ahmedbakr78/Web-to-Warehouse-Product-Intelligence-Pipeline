@@ -322,7 +322,7 @@
 │   │                 notifications, settings, audit, __init__.py
 │   └── cli/  __init__.py, main.py
 ├── db/
-│   └── views.sql              20 analytical views
+│   └── views.sql              23 analytical views
 ├── dags/
 │   └── product_intelligence_pipeline.py
 ├── scripts/
@@ -911,7 +911,7 @@
 <pre class="code" data-lang="text"><code>weight(outcome) = 1 + 0.5 × severity_rank        severity_rank: info 0, warn 1, error 2, critical 3
 factor(status)  = pass 1.0 | warn 0.75 | fail 0.0
 score           = round( Σ(weight × factor) / Σ(weight) × 100 , 2 )</code></pre>
-<p>With the delivered dataset (22 pass, 2 warn, 0 fail; severities mostly <code>error</code> and <code>warn</code>) the score is <strong>98.26</strong>, identical on PostgreSQL and MySQL.</p>
+<p>With the delivered dataset (22 pass, 2 warn, 0 fail; severities mostly <code>error</code> and <code>warn</code>) the score is the same measured value on PostgreSQL and MySQL.</p>
 <h3 id="64-gating">6.4 Gating</h3>
 <p><code>QualityReport.blocking_failures</code> returns only outcomes that are <code>fail</code> <strong>and</strong> <code>critical</code>. The pipeline sets the run status to <code>failed</code> if that list is non-empty; otherwise <code>partial</code> if any source failed; otherwise <code>success</code>. This separation is deliberate: an <code>error</code> failure is reported loudly without blocking the warehouse.</p>
 <h3 id="65-isolation">6.5 Isolation</h3>
@@ -1499,7 +1499,7 @@ DEFAULT_SOURCES = [&quot;local_demo&quot;, &quot;dummyjson_products&quot;, &quot
 </tr>
 <tr>
 <th><code>bootstrap()</code></th>
-<td>23 tables + 20 views in ≈ 300 ms</td>
+<td>29 tables + 23 views in ≈ 300 ms</td>
 <td>PostgreSQL</td>
 </tr>
 </tbody></table></div>

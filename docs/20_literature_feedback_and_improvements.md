@@ -62,7 +62,7 @@ against the marking rubric.
 
 | Claim | How to verify in 60 seconds |
 | --- | --- |
-| 23 tables and 20 views exist | `curl -s localhost:8000/api/v1/meta/tables \| jq '.tables \| length'` and `GET /api/v1/queries/views \| jq length` |
+| 29 tables and 23 views exist | `curl -s localhost:8000/api/v1/meta/tables \| jq '.tables \| length'` and `GET /api/v1/queries/views \| jq length` |
 | The pipeline runs end to end | `make run-pipeline --quiet` (≈ 3.5 s) |
 | Data quality is measured, not claimed | `curl -s localhost:8000/api/v1/quality/latest -H "Authorization: Bearer $TOKEN" \| jq '{score, pass, warn, fail}'` |
 | Deduplication works and is explained | `GET /api/v1/products/1/duplicates` |
@@ -187,7 +187,7 @@ flowchart LR
 | Four change classes via SQL | Yes | `chg_price_change`, `chg_product_event`, four views | Fully queryable without the application |
 | Duplicate resolution | Yes | 14/14 pairs at 0.90; blocking optimisation | The digit-signature guard is the strongest single idea |
 | Catalog reconciliation | Yes | 39/57 matched (68.42 %), 36 price gaps | The unmatched 30 % are internal-only SKUs by design |
-| Measured data quality | Yes | 12 rules, 6 dimensions, score 98.26 persisted per run | Rules are production code, not a test artefact |
+| Measured data quality | Yes | 12 rules, 6 dimensions, a weighted score persisted per run | Rules are production code, not a test artefact |
 | Two SQL engines | Yes | 0 structural drift, identical DQ score | One known reserved-word defect remains (A1) |
 | Secure API | Yes | 113 operations, 3 roles, 78/78 checks | API keys and audit are implemented, not stubbed |
 | Airflow orchestration | Yes | 13 tasks, guards, branch, retries | Optional import keeps the CLI usable without Airflow |
@@ -280,7 +280,7 @@ official rubric. Each row cites the artefact that supports the claim.
 | Problem statement and objectives | `08_system_analysis_design.md` §1 | Complete |
 | Use-case diagram and descriptions | `08_system_analysis_design.md` §2–§3 | Complete |
 | Software architecture and style | `08_system_analysis_design.md` §5–§6 | Complete |
-| ER diagram | `09_database_design.md` §3 | Complete (23 tables) |
+| ER diagram | `09_database_design.md` §3 | Complete (29 tables) |
 | Logical and physical schema | `09_database_design.md` §4 | Complete |
 | DFDs | `10_data_flow_diagrams.md` | Complete (levels 0, 1, 2a–c) |
 | Sequence diagrams | `11_behaviour_diagrams.md` §1–§2 | Complete |

@@ -44,7 +44,7 @@ architecture style (layered batch ETL with a read-only serving API and an MVC-li
 | O3 | Detect four change classes with SQL | `chg_price_change`, `chg_product_event` |
 | O4 | Resolve duplicates without a third-party matching library | `app/ingestion/dedupe.py`, 14/14 pairs |
 | O5 | Reconcile with the internal catalog and quantify the price gap | `fact_catalog_snapshot` (39/57 matched) |
-| O6 | Measure data quality on six dimensions and fail only on critical rules | 12 rules, score 98.26 |
+| O6 | Measure data quality on six dimensions and fail only on critical rules | 12 rules, a weighted score persisted per run |
 | O7 | Run identically on PostgreSQL and MySQL | `make verify-dialects` |
 | O8 | Serve the warehouse read-only over a secure, role-gated API | 113 operations, 78/78 smoke checks |
 | O9 | Be orchestrated on a schedule with recoverable tasks | Airflow DAG, 13 tasks, 2 retries each |
@@ -224,12 +224,12 @@ flowchart TB
 | Ingestion | Source contract, 5 sources, bounded extraction, compliant transport | 17 | `docs/07` FR-001 … FR-019 |
 | Preparation | Name/category cleaning, price + currency normalisation, rating and availability parsing | 6 | FR-006 … FR-008, FR-056 |
 | Resolution | Fingerprint match, blocking, blended fuzzy scoring, merge bookkeeping | 2 | FR-009, FR-010 |
-| Warehouse | 23 tables, 20 views, append-only facts, conformed dimensions | 8 | FR-011, FR-018 |
+| Warehouse | 29 tables, 23 views, append-only facts, conformed dimensions | 8 | FR-011, FR-018 |
 | Change detection | New, recurring, removed, category changed, price change with bands | 5 | FR-027 … FR-031 |
 | Reconciliation | 3-stage match cascade, price gap, market position | 4 | FR-032 … FR-035 |
 | Quality | 12 rules, 6 dimensions, weighted score, blocking semantics | 4 | FR-036 … FR-039 |
 | Analytics | KPI cards, trends, leaderboards, reports, CSV export | 4 | FR-040, FR-048, FR-026 |
-| Serving | 113 REST operations, paging, OpenAPI | 3 | FR-020 … FR-025 |
+| Serving | 222 REST operations, paging, OpenAPI | 3 | FR-020 … FR-025 |
 | Security | Argon2id, JWT, 3 roles, API keys, audit | 7 | FR-041 … FR-044, FR-049 |
 | Operations | CLI, Makefile, Airflow, demo seed, cross-dialect verification | 6 | FR-018, FR-019, FR-054 … FR-057 |
 
@@ -284,7 +284,7 @@ flowchart LR
         FAC["Facts<br/>fact_price_snapshot, fact_catalog_snapshot,<br/>agg_category_daily"]
         CHG["Change feeds<br/>chg_price_change, chg_product_event"]
         OPS["Operations<br/>etl_run, dq_rule_result,<br/>ingestion_http_log, sync_state"]
-        VIEWS["20 analytical views vw_*"]
+        VIEWS["23 analytical views vw_*"]
     end
 
     subgraph ANA["Analytics - app/analytics"]

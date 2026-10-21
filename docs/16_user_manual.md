@@ -49,7 +49,7 @@ and, where it helps, the API path behind it.
 | Interactive API docs | `http://localhost:8000/docs` |
 | Demo accounts | `admin@example.com`, `analyst@example.com`, `viewer@example.com` |
 | Default passwords | `Admin@12345`, `Analyst@12345`, `Viewer@12345` |
-| Expected data state | 23 tables, 20 views, 60 demo products, 150 days of history, DQ score 98.26 |
+| Expected data state | 29 tables, 23 views, and the products the pipeline collected from the permitted public sources. The DQ score is measured per run - read it from `GET /api/v1/quality/latest` |
 
 If the dashboard cannot be reached, ask the operator to run:
 
@@ -281,7 +281,7 @@ reviewed or disabled.
 
 | Element | Meaning |
 | --- | --- |
-| Score | 0–100, weighted by rule severity. The demo dataset scores **98.26** |
+| Score | 0–100, weighted by rule severity. It is a measurement of the current warehouse, not a constant - read it from `GET /api/v1/quality/latest` |
 | pass / warn / fail | Rule counts. `warn` means the value is within 5 % of the threshold |
 | Blocking | Rules that failed at `critical` severity — any entry here means the run was marked `failed` |
 | Dimension matrix | Rules grouped by completeness, validity, uniqueness, consistency, accuracy and timeliness |

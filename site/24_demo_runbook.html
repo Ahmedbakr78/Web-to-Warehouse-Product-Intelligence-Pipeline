@@ -84,7 +84,7 @@
 <h3 id="the-one-rule-that-makes-a-demo-reliable">The one rule that makes a demo reliable</h3>
 <p><strong>Never demonstrate against live web sources.</strong> Real HTTP responses change between rehearsal and delivery, and a source that worked yesterday may rate-limit you today. Demonstrate against the seeded dataset, which is byte-for-byte identical on every run, and keep live ingestion for the single moment you are asked to prove the compliance layer works.</p>
 <pre class="code" data-lang="bash"><code>make up &amp;&amp; make db-wait          # 6 services healthy
-make bootstrap                   # 25 tables, 20 views, demo users
+make bootstrap                   # 29 tables, 23 views, demo users
 make demo-postgres               # deterministic 120-day dataset
 make run-pipeline                # one live pipeline run, ~3.5 s</code></pre>
 <p>Then open three tabs and leave them open:</p>

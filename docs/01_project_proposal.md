@@ -74,7 +74,7 @@ resolution, change detection, catalog reconciliation and a measured data-quality
 | SQL to identify price / new / removed / category changes | `chg_price_change`, `chg_product_event`, views `vw_price_changes`, `vw_new_products`, `vw_removed_products`, `vw_category_changes` |
 | Orchestrate with Airflow | `dags/product_intelligence_pipeline.py` |
 | Data-quality checks | `app/etl/dq.py` (12 rules, 6 dimensions) |
-| SQL analysis and visualisation | `db/views.sql` (20 views), `app/analytics/service.py`, `app/api/routers/analytics.py` |
+| SQL analysis and visualisation | `db/views.sql` (23 views), `app/analytics/service.py`, `app/api/routers/analytics.py` |
 | Optional extension: REST API | `app/api/` (16 routers, 113 documented operations) |
 
 ---
@@ -91,7 +91,7 @@ Objectives are written as SMART goals so that success can be measured rather tha
 | O4 | Resolve duplicates correctly | Curated pair set classified correctly at threshold 0.90 | 14/14 | 14/14 (see `docs/05_kpis.md`, assumption A3) |
 | O5 | Enforce web-compliance by construction | Sources with `terms_allowed` and a robots gate in front of every request | 100 % | 100 %; every request logged in `ingestion_http_log` |
 | O6 | Measure data quality, not assume it | Number of executable rules across the six dimensions | ≥ 10 rules / 6 dimensions | 12 rules / 6 dimensions |
-| O7 | Run on more than one analytical database | Dialects with an identical structural model and identical DQ score | 2 (PostgreSQL, MySQL) | 2 — PostgreSQL 16.15 and MySQL 8.4.11, both DQ score 98.26 |
+| O7 | Run on more than one analytical database | Dialects with an identical structural model and identical DQ score | 2 (PostgreSQL, MySQL) | 2 — PostgreSQL 16.15 and MySQL 8.4.11, `make verify-dialects` shows the same score on both |
 | O8 | Expose the warehouse over an API | Documented REST operations behind authentication and RBAC | ≥ 50 | 113 operations / 16 routers |
 | O9 | Orchestrate with Airflow | DAG with guard, extract, load, quality, aggregate, reconcile, notify, report tasks | 1 DAG, ≥ 8 tasks | 13 tasks in `product_intelligence_pipeline` |
 | O10 | Keep the run fast enough for a daily schedule | End-to-end pipeline duration for a full multi-source run | < 10 minutes | ≈ 3.5 s for the measured live run (60 records extracted, 57 loaded) |
@@ -118,7 +118,7 @@ Objectives are written as SMART goals so that success can be measured rather tha
 | Compliance | `robots.txt` parsing and caching, per-host rate limiting, `Crawl-delay`, `Retry-After`, disk response cache, per-request audit log, terms allow-list | `app/ingestion/robots.py`, `ratelimit.py`, `http_client.py`, `compliance.py` |
 | Cleaning | Unicode folding, promo-noise removal, stop-word comparison keys, category synonym mapping, price/currency/rating/availability parsing, FX normalisation | `app/ingestion/cleaning.py` (818 lines) |
 | Deduplication | SHA-1 fingerprint exact match, 4-char blocking, blended similarity (Levenshtein, Jaro-Winkler, token-set, trigram Dice, digit-signature guard) | `app/ingestion/dedupe.py` |
-| Warehouse | 23 tables in 6 groups, 20 analytical views, category/day aggregate | `app/models/`, `db/views.sql` |
+| Warehouse | 29 tables in 6 groups, 23 analytical views, category/day aggregate | `app/models/`, `db/views.sql` |
 | Analytics | 21 query functions serving KPIs, trends, leaderboards, movers, drift, compliance | `app/analytics/service.py` |
 | Change detection | Price change, new, recurring, removed, category-changed events with magnitude bands | `app/etl/loader.py`, `app/etl/catalog_reconcile.py` |
 | Catalog reconciliation | 3-stage match cascade (SKU, then normalised name, then fuzzy), price-gap analysis | `app/etl/catalog_reconcile.py` |
@@ -156,10 +156,10 @@ flowchart LR
         I1["5 compliant sources"]
         I2["Cleaning and currency normalisation"]
         I3["Fuzzy deduplication"]
-        I4["23 tables and 20 views"]
+        I4["29 tables and 23 views"]
         I5["12 DQ rules"]
         I6["Airflow orchestration"]
-        I7["113 REST operations"]
+        I7["222 REST operations"]
         I8["CLI and Docker Compose"]
     end
     OUT -.->|"explicitly refused"| IN
@@ -213,12 +213,12 @@ Manage `HI` closely, keep `HI2` informed through read-only compliance endpoints,
 | # | Deliverable (from the brief) | Artefact | Status |
 | --- | --- | --- | --- |
 | D1 | Scraper / API ingestion module | `app/ingestion/` (8 modules + 5 sources) | Complete |
-| D2 | Database schema | `app/models/` — 23 tables across 6 groups | Complete |
+| D2 | Database schema | `app/models/` — 29 tables across 6 groups | Complete |
 | D3 | Historical product-price table | `fact_price_snapshot` + `vw_price_history` | Complete |
 | D4 | ETL pipeline | `app/etl/pipeline.py` (9 instrumented stages) | Complete |
 | D5 | Airflow DAG | `dags/product_intelligence_pipeline.py` | Complete |
 | D6 | Data-quality checks | `app/etl/dq.py` — 12 rules / 6 dimensions | Complete |
-| D7 | SQL analysis | `db/views.sql` (20 views) + `app/analytics/service.py` | Complete |
+| D7 | SQL analysis | `db/views.sql` (23 views) + `app/analytics/service.py` | Complete |
 | D8 | Visualisation | Analytics REST layer consumed by the React dashboard | Complete |
 | D9 | Documentation | `docs/01` … `docs/20` | Complete |
 | D10 | Optional extension — REST API | `app/api/` — 113 operations | Complete |
@@ -234,10 +234,10 @@ the command in the last column.
 
 | ID | Acceptance criterion | Threshold | Measured | How to verify |
 | --- | --- | --- | --- | --- |
-| AC1 | Physical warehouse objects created from the ORM | 23 tables | 23 tables on PostgreSQL 16.15 and MySQL 8.4.11 | `make bootstrap` then `GET /api/v1/meta/tables` |
-| AC2 | Analytical views applied on both dialects | 20 views | 20 / 20 on both | `make bootstrap-mysql` then `GET /api/v1/queries/views` |
+| AC1 | Physical warehouse objects created from the ORM | 29 tables | 29 tables on PostgreSQL 16.15 and MySQL 8.4.11 | `make bootstrap` then `GET /api/v1/meta/tables` |
+| AC2 | Analytical views applied on both dialects | 23 views | 20 / 20 on both | `make bootstrap-mysql` then `GET /api/v1/queries/views` |
 | AC3 | Structural tables identical across dialects | 0 drift in `dim_category`, `dim_source`, `dim_currency`, `catalog_product`, `app_user`, `dim_date` | 0 drift | `make verify-dialects` |
-| AC4 | Data-quality score identical across dialects | Equal | 98.26 on both | `make verify-dialects` |
+| AC4 | Data-quality score identical across dialects | Equal | the same measured score on both | `make verify-dialects` |
 | AC5 | Deduplication accuracy on the curated pair set | 14/14 at threshold 0.90 | 14/14 | `DedupeEngine` evaluation harness (assumption A3) |
 | AC6 | Live run produces loadable records | > 0 snapshots | 57 snapshots, 48 price changes, 6 new products, 39/57 catalog SKUs matched (68.42 %) | `make run-pipeline` |
 | AC7 | Pipeline duration acceptable for a daily schedule | < 600 s | ≈ 3.5 s (3,481 ms) | `make run-pipeline` stage timings |
@@ -311,7 +311,7 @@ optional refinements.
 | E4 | Identify the crawler honestly | `INGEST_USER_AGENT="ProductIntelligenceBot/1.0 (+…; contact: …)"` | `app/core/config.py:79` |
 | E5 | Stay inside the published rate limits | Token bucket + sliding window + `Crawl-delay` + `Retry-After` back-off | `app/ingestion/ratelimit.py` |
 | E6 | Do not re-request data that was already collected | Disk cache keyed by URL hash with `CACHE_TTL_SECONDS=1800` | `app/ingestion/http_client.py:154` |
-| E7 | Do not process personal data | Only product attributes are stored; no customer identifiers exist in the model | `app/models/` (23 tables, none personal) |
+| E7 | Do not process personal data | Only product attributes are stored; no customer identifiers exist in the model | `app/models/` (29 tables, none personal) |
 | E8 | Keep the evidence of compliance for the auditor | One `ingestion_http_log` row per outbound request, including blocked attempts | `app/models/operations.py:91` |
 | E9 | Respect data-source licences | `dim_source.license_note` records the licence of every source; books.toscrape data is explicitly non-commercial | `app/etl/bootstrap.py:179` |
 | E10 | Do not retain data indefinitely | `retention.snapshot_days` = 730 setting exists; retention policy documented in doc 09 | `app/etl/seed.py:89` |

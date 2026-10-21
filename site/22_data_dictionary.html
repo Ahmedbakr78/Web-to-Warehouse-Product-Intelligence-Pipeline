@@ -120,7 +120,7 @@ subgraph CORE[&quot;Analytical core (10 tables)&quot;]
         RAW[&quot;stg_raw_observation&quot;]
     end
     RAW -.validated and promoted.-&gt; DP</pre>
-<p><strong>25 tables</strong> in total: 5 dimensions, 2 facts, 1 aggregate, 2 change tables, 1 staging table, 4 operational tables, 9 application tables (including the two webhook tables added in v1.3), 1 catalog table. Plus <strong>20 analytical views</strong> in <a href="../db/views.sql">db/views.sql</a>.</p>
+<p><strong>29 tables</strong> in total: 5 dimensions, 2 facts, 1 aggregate, 2 change tables, 1 staging table, 4 operational tables, 9 application tables (including the two webhook tables added in v1.3), 1 catalog table. Plus <strong>23 analytical views</strong> in <a href="../db/views.sql">db/views.sql</a>.</p>
 <hr>
 <h2 id="2-dimensions">2. Dimensions</h2>
 <h3 id="21-dim_product--product-identity">2.1 <code>dim_product</code> — product identity</h3>

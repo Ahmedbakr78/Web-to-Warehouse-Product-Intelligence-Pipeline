@@ -110,12 +110,15 @@ now wired end to end, and two new ones were added:
 
 ### Verified
 
-- 592 backend tests pass (`pytest`), 51 frontend tests pass (`vitest`).
-- `ruff check app/` clean, `eslint --max-warnings 0` clean,
-  `tsc --noEmit` clean.
-- The production warehouse holds **zero** synthetic rows: no `local_demo`
-  source, no `SYN-` identifiers, no `demo.local` URLs, no seeded match
-  strategies and no `seed-` runs.
+- The backend and frontend test suites pass, `ruff check app/` clean,
+  `eslint --max-warnings 0` clean, `tsc --noEmit` clean. The current counts
+  are in [`docs/stats.json`](docs/stats.json) and are re-measured by
+  `make stats`.
+- The warehouse holds **zero** non-market rows. Prove it for your own
+  database with
+  `python scripts/audit_no_fakes.py --database <url>` - it walks every table
+  that records an upstream and exits non-zero the moment a row cannot be
+  traced back to a source classified as real market data.
 - The compliance layer refused a robots-forbidden URL and throttled a second
   host during a live run, exactly as designed.
 

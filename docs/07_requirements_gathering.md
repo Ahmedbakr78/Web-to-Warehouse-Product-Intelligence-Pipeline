@@ -140,7 +140,7 @@ flowchart LR
 | --- | --- |
 | 1 | **Given** the `read` right, **when** I request `GET /api/v1/quality/rules`, **then** I receive 12 rules, each with `code`, `name`, `dimension`, `severity` and `description`, and no evaluator function |
 | 2 | **Given** at least one run, **when** I request `GET /api/v1/quality/latest`, **then** the response contains `score`, `pass`, `warn`, `fail` and a `rules[]` array with `observed_value`, `expected_value` and `message` |
-| 3 | **Given** the delivered demo dataset, **when** I read the score, **then** it is `98.26` with 0 failing rules |
+| 3 | **Given** a warehouse with a completed evaluation, **when** I read the score, **then** it is the measured weighted value and the rule outcomes match it |
 | 4 | **Given** a run whose snapshot grain was violated, **when** `DQ006` is evaluated, **then** its status is `fail`, its severity is `critical`, and the run status becomes `failed` |
 | 5 | **Given** any rule whose SQL is broken, **when** it is evaluated, **then** the framework records `status = "fail"` with the exception message and the other rules still run |
 
@@ -201,7 +201,7 @@ flowchart LR
 
 | # | Acceptance criterion |
 | --- | --- |
-| 1 | **Given** a fresh checkout, **when** I run `make bootstrap`, **then** 23 tables and 20 views are created and the summary is printed |
+| 1 | **Given** a fresh checkout, **when** I run `make bootstrap`, **then** 29 tables and 23 views are created and the summary is printed |
 | 2 | **Given** a seeded database, **when** I run `make run-pipeline`, **then** the run summary table, the stage timings and the warnings are printed |
 | 3 | **Given** two configured databases, **when** I run `make verify-dialects`, **then** a comparison table plus a structural-drift verdict is printed |
 | 4 | **Given** a failing run, **when** I inspect `make analytics`, **then** the DQ table lists each failing rule with its message |

@@ -19,7 +19,7 @@ compliance layer works.
 
 ```bash
 make up && make db-wait          # 6 services healthy
-make bootstrap                   # 25 tables, 20 views, demo users
+make bootstrap                   # 29 tables, 23 views, demo users
 make demo-postgres               # deterministic 120-day dataset
 make run-pipeline                # one live pipeline run, ~3.5 s
 ```

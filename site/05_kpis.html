@@ -338,7 +338,7 @@ SELECT ROUND(CAST(
   / NULLIF(SUM(1.0 + CASE severity WHEN &#x27;warn&#x27; THEN 0.5 WHEN &#x27;error&#x27; THEN 1.0 ELSE 1.5 END), 0)
   AS DECIMAL(24,6)), 2) AS recomputed_score
 FROM dq_rule_result WHERE run_id = (SELECT MAX(run_id) FROM dq_rule_result);</code></pre>
-<p>Measured: <strong>98.26</strong> (22 rule evaluations pass, 2 warn, 0 fail) — identical on PostgreSQL and MySQL. The two warnings are <code>DQ009</code> (single-step price movement &gt; 50 % in seeded history) and <code>DQ010</code> (availability unknown on part of the corpus).</p>
+<p>Measured per run from the persisted <code>dq_rule_result</code> rows — identical on PostgreSQL and MySQL. The score depends on the data in the warehouse, so read the current value from <code>GET /api/v1/quality/latest</code> rather than expecting a fixed number. The two warnings are <code>DQ009</code> (single-step price movement &gt; 50 % in seeded history) and <code>DQ010</code> (availability unknown on part of the corpus).</p>
 <h3 id="25-kpi-08--kpi-09--deduplication">2.5 KPI-08 / KPI-09 — Deduplication</h3>
 <pre class="code" data-lang="sql"><code>SELECT ROUND(CAST(100.0 * SUM(duplicates_merged) / NULLIF(SUM(records_extracted), 0)
                  AS DECIMAL(24,2)), 2) AS merge_rate_pct,
@@ -401,11 +401,11 @@ FROM fact_price_snapshot GROUP BY currency ORDER BY 2 DESC;</code></pre>
 <p>Measured lifecycle mix: <code>recurring</code> 8,219 · <code>new</code> 83 · <code>category_changed</code> 16 · <code>removed</code> 8. Magnitude bands: <code>minor</code> 4,120 · <code>small</code> 2,721 · <code>moderate</code> 1,024 · <code>large</code> 153 · <code>major</code> 44. Currency mix after normalisation: USD 4,858 · GBP 1,795 · EUR 1,649 — three currencies collapsed into one comparable USD measure.</p>
 <h3 id="211-kpi-19--cross-dialect-parity">2.11 KPI-19 — Cross-dialect parity</h3>
 <pre class="code" data-lang="bash"><code>make verify-dialects        # app.cli.main verify --databases postgres,mysql</code></pre>
-<p>The command compares the six <em>structural</em> tables (<code>dim_category</code>, <code>dim_source</code>, <code>dim_currency</code>, <code>catalog_product</code>, <code>app_user</code>, <code>dim_date</code>) and the DQ score, and reports fact-table differences informationally (they depend on how many runs each target has executed). Measured: <strong>zero structural drift</strong>, identical DQ score 98.26 on both engines.</p>
+<p>The command compares the six <em>structural</em> tables (<code>dim_category</code>, <code>dim_source</code>, <code>dim_currency</code>, <code>catalog_product</code>, <code>app_user</code>, <code>dim_date</code>) and the DQ score, and reports fact-table differences informationally (they depend on how many runs each target has executed). Measured: <strong>zero structural drift</strong>, the same measured DQ score on both engines.</p>
 <h3 id="212-kpi-20--object-completeness">2.12 KPI-20 — Object completeness</h3>
 <pre class="code" data-lang="bash"><code>curl -s localhost:8000/api/v1/meta/tables | jq &#x27;.tables | length&#x27;      # 23
 curl -s localhost:8000/api/v1/queries/views -H &quot;Authorization: Bearer $TOKEN&quot; | jq &#x27;length&#x27;   # 20</code></pre>
-<p>Measured: <strong>23 tables</strong>, <strong>20 views</strong> on both PostgreSQL and MySQL.</p>
+<p>Measured: <strong>29 tables</strong>, <strong>23 views</strong> on both PostgreSQL and MySQL.</p>
 <hr>
 <h2 id="3-targets-versus-measured-values">3. Targets versus measured values</h2>
 <div class='table-scroll'><table><thead><tr>
@@ -453,7 +453,7 @@ curl -s localhost:8000/api/v1/queries/views -H &quot;Authorization: Bearer $TOKE
 <tr>
 <th>KPI-06 DQ score</th>
 <td>≥ 90</td>
-<td>98.26</td>
+<td>measured per run</td>
 <td>Met</td>
 <td><code>etl_run.dq_score</code></td>
 </tr>
@@ -550,7 +550,7 @@ curl -s localhost:8000/api/v1/queries/views -H &quot;Authorization: Bearer $TOKE
 </tr>
 <tr>
 <td>KPI-20 Object completeness</td>
-<td>23 tables / 20 views</td>
+<td>29 tables / 23 views</td>
 <td>23 / 20 on both engines</td>
 <td>Met</td>
 <td><code>GET /api/v1/meta/tables</code></td>
@@ -728,7 +728,7 @@ done | sort -n | awk &#x27;{a[NR]=$1} END {printf &quot;p50=%.4fs p95=%.4fs max=
 <pre class="code" data-lang="bash"><code># 0. Environment
 make install &amp;&amp; make env &amp;&amp; make up-db &amp;&amp; make db-wait
 
-# 1. Schema + reference data + views (23 tables, 20 views)
+# 1. Schema + reference data + views (29 tables, 23 views)
 make bootstrap
 
 # 2. Demo dataset (60 products, 150 days of history)

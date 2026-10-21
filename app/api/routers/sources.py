@@ -466,11 +466,16 @@ def preview(code: str, session: DbSession, _user: ReadUser, limit: int = 5) -> d
             )
     finally:
         source.close()
+    # The trust level travels with the preview, so a modal that shows a
+    # generated record says so in the same breath as the record.
+    trust = getattr(source, "data_trust", "real")
     return {
         "code": code,
         "requested": limit,
         "returned": len(records),
         "http_calls": source.http_calls,
         "errors": source.errors,
+        "data_trust": trust,
+        "is_synthetic": trust != "real",
         "records": records,
     }

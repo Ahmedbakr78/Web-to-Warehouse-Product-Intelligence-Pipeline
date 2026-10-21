@@ -51,13 +51,13 @@ Structural figures are exact and re-verifiable:
 
 | Claim | Verify with |
 | --- | --- |
-| 28 tables, 20 views | `make bootstrap`, or `make stats` |
-| 173 REST operations in 23 routers | `http://localhost:8000/docs`, or `make stats` |
+| 29 tables, 23 views | `make bootstrap`, or `make stats` |
+| 222 REST operations in 23 routers | `http://localhost:8000/docs`, or `make stats` |
 | 408 tests pass | `make test` |
 | 104 API smoke checks pass | `.venv/bin/python scripts/api_smoke.py` |
 | ruff and mypy clean | `make lint` and `make typecheck` |
 | No schema drift | `make db-check` |
-| 80 Mermaid diagrams | `make docs-render` |
+| 88 Mermaid diagrams | `make docs-render` |
 | 12 DQ rules and the score | Quality screen, or `pip-cli quality` |
 
 `scripts/project_stats.py` recounts all of these, `scripts/check_stats.py` fails

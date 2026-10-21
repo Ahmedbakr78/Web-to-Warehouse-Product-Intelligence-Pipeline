@@ -51,6 +51,31 @@ NAMESPACE_TABLES = ("dim_product", "fact_price_snapshot", "chg_price_change")
 #: The reserved namespace synthetic products are written under.
 SYNTHETIC_PREFIX = "SYN-"
 
+#: The retailer's own catalogue. The seeded demo catalogue is *generated*, so
+#: it is not market data either - it is the "our list price" side of every
+#: reconciliation and price-gap figure, and a reader must be able to tell a
+#: seeded catalogue from an imported one.
+CATALOG_TABLE = "catalog_product"
+
+#: How a seeded catalogue row is recognised.
+CATALOG_SEED_MARKERS: tuple[tuple[str, str], ...] = (
+    ("product_url", "internal.local"),
+    ("supplier", "Acme Imports"),
+    ("supplier", "Globex Supply"),
+    ("supplier", "Initech Wholesale"),
+    ("supplier", "Umbrella Ltd"),
+)
+
+
+def _quote(engine, name: str) -> str:
+    """Quote an identifier the way the connected dialect expects.
+
+    MySQL does not accept a double-quoted identifier unless it runs in
+    ANSI_QUOTES mode, so the audit has to ask the dialect rather than assume.
+    """
+    preparer = engine.dialect.identifier_preparer
+    return preparer.quote(name)
+
 
 def _rollup_inputs(
     conn,
@@ -106,6 +131,7 @@ def audit(database_url: str, *, allow_sandbox: bool = False) -> dict:
     accepted = {"real", "sandbox"} if allow_sandbox else {"real"}
     engine = sa.create_engine(database_url, future=True)
     findings: list[dict] = []
+    notes: list[str] = []
     per_table: dict[str, dict] = {}
 
     with engine.connect() as conn:
@@ -119,7 +145,9 @@ def audit(database_url: str, *, allow_sandbox: bool = False) -> dict:
             if table not in tables:
                 continue
             rows = conn.execute(
-                sa.text(f'SELECT source_code, COUNT(*) FROM "{table}" GROUP BY source_code')
+                sa.text(
+                    f"SELECT source_code, COUNT(*) FROM {_quote(engine, table)} GROUP BY source_code"
+                )
             ).all()
             counts = dict(rows)
             per_table[table] = counts
@@ -162,7 +190,9 @@ def audit(database_url: str, *, allow_sandbox: bool = False) -> dict:
             if table not in tables:
                 continue
             count = conn.execute(
-                sa.text(f'SELECT COUNT(*) FROM "{table}" WHERE source_code LIKE :prefix').bindparams(
+                sa.text(
+                    f"SELECT COUNT(*) FROM {_quote(engine, table)} WHERE source_code LIKE :prefix"
+                ).bindparams(
                     prefix=f"{SYNTHETIC_PREFIX}%"
                 )
             ).scalar()
@@ -176,10 +206,34 @@ def audit(database_url: str, *, allow_sandbox: bool = False) -> dict:
                     }
                 )
 
+        if CATALOG_TABLE in tables:
+            # The internal catalogue is the *retailer's* own product list, not
+            # market data, so a generated one is a placeholder rather than a
+            # fabricated observation. It is reported as a note - with the
+            # command that removes it - and it does not make the *market* data
+            # suspect. A reader is told, not left to guess.
+            count = int(
+                conn.execute(
+                    sa.text(f"SELECT COUNT(*) FROM {_quote(engine, CATALOG_TABLE)}")
+                ).scalar()
+                or 0
+            )
+            if count:
+                notes.append(
+                    f"{count} row(s) in {CATALOG_TABLE} - the internal catalogue is a generated "
+                    f"placeholder, not an imported product list "
+                    f"(remove it with: python -m app.cli.main purge-demo-catalog)"
+                )
+
         total_rows = 0
         for table in ("dim_product", "fact_price_snapshot"):
             if table in tables:
-                total_rows += int(conn.execute(sa.text(f'SELECT COUNT(*) FROM "{table}"')).scalar() or 0)
+                total_rows += int(
+                    conn.execute(
+                        sa.text(f"SELECT COUNT(*) FROM {_quote(engine, table)}")
+                    ).scalar()
+                    or 0
+                )
 
     engine.dispose()
     return {
@@ -190,6 +244,7 @@ def audit(database_url: str, *, allow_sandbox: bool = False) -> dict:
         "rows_per_table": per_table,
         "rows_audited": total_rows,
         "findings": findings,
+        "notes": notes,
         "clean": not findings,
     }
 
@@ -217,6 +272,8 @@ def main() -> int:
                 detail = ", ".join(f"{code}={count}" for code, count in sorted(counts.items()))
                 print(f"  {table:24s} {detail}")
         print(f"rows audited        {report['rows_audited']}")
+        for note in report.get("notes", []):
+            print(f"note                {note}")
         if report["clean"]:
             print("RESULT              CLEAN - every row traces back to a real, permitted source")
         else:

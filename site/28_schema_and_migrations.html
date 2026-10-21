@@ -91,7 +91,7 @@
 <li class="depth-0"><strong>Silent drift.</strong> Adding a column to a model does nothing to an existing</li>
 </ul>
 <p>database, so the schema and the code quietly diverge until a query fails.</p>
-<p>Alembic fixes all three. <code>migrations/versions/0001_initial</code> creates <strong>28 tables</strong> and applies the <strong>20 analytical views</strong>, so an empty database reaches exactly the state the application expects.</p>
+<p>Alembic fixes all three. <code>migrations/versions/0001_initial</code> creates <strong>29 tables</strong> and applies the <strong>23 analytical views</strong>, so an empty database reaches exactly the state the application expects.</p>
 <hr>
 <h2 id="2-migration-layout">2. Migration layout</h2>
 <pre class="code" data-lang=""><code>alembic.ini                  # script_location and the sqlalchemy.url placeholder
@@ -110,8 +110,8 @@ migrations/
   autogen --&gt; exclude[exclude foreign tables]
   exclude --&gt; revision[revision file, reviewed by hand]
   revision --&gt; apply[alembic upgrade head]
-  apply --&gt; tables[28 tables]
-  apply --&gt; views[20 views]</pre>
+  apply --&gt; tables[29 tables]
+  apply --&gt; views[23 views]</pre>
 <hr>
 <h2 id="3-applying-migrations">3. Applying migrations</h2>
 <pre class="code" data-lang="bash"><code>make db-upgrade          # alembic upgrade head
@@ -128,9 +128,9 @@ alembic check</code></pre>
 <h2 id="4-views-belong-to-the-schema">4. Views belong to the schema</h2>
 <p>The analytical layer is 20 SQL views. They are not created by the application at runtime and they are not fixtures — the initial revision applies them through <code>apply_views()</code>, and the downgrade drops them in the reverse order.</p>
 <pre class="mermaid">flowchart LR
-  raw[(28 base tables)] --&gt; facts[(fact_* tables)]
+  raw[(29 base tables)] --&gt; facts[(fact_* tables)]
   raw --&gt; dims[(dim_* tables)]
-  facts --&gt; views[20 analytical views]
+  facts --&gt; views[23 analytical views]
   dims --&gt; views
   views --&gt; api[REST API]
   views --&gt; reports[reports]
@@ -153,7 +153,7 @@ alembic check</code></pre>
 </tr></thead><tbody>
 <tr>
 <td><code>alembic upgrade head</code> on an empty database</td>
-<td>Creates all 28 tables and applies the 20 views</td>
+<td>Creates all 29 tables and applies the 23 views</td>
 </tr>
 <tr>
 <td><code>alembic upgrade head</code> again</td>

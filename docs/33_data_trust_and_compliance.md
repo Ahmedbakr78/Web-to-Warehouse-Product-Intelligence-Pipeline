@@ -2,9 +2,11 @@
 
 > **The single most important property of this warehouse.** Every row in
 > `fact_price_snapshot` is an observation of a *real* upstream that permits
-> automated access. Nothing is invented, nothing is seeded, and nothing is
+> automated access. A pipeline run collects only sources classified as real
+> market data, so nothing is invented, nothing is seeded, and nothing is
 > generated inside the process. This document explains how that guarantee is
-> designed, enforced, and proven.
+> designed, enforced, and proven - and how to check it for yourself with
+> `python scripts/audit_no_fakes.py --database <url>`.
 
 ---
 
@@ -224,10 +226,14 @@ the rules.
 
 | Situation | Behaviour | RFC 9309 reference |
 | --- | --- | --- |
-| `robots.txt` unreachable (4xx) | Allow | "Unavailable" means allow all |
-| `robots.txt` unreachable (5xx / network) | Allow, but the failure is logged | "Unavailable" means allow all, with the error recorded |
-| `robots.txt` returns 401 / 403 | Disallow the whole host | "Unauthorised" means disallow all |
+| `robots.txt` returns 404 (any 4xx other than 401/403) | Allow | "Unavailable" means allow all |
+| `robots.txt` returns 5xx | Allow, and the decision is labelled a fallback rather than a published rule | Not covered by RFC 9309; a temporary server error must not take a source offline |
+| `robots.txt` is unreachable (DNS, TLS, reset) | Allow, and the decision is labelled a fallback rather than a published rule | Nothing was published, so nothing forbids the request |
+| `robots.txt` returns 401 / 403 | **Disallow the whole host** | "Unauthorised" means disallow all |
 | Path is disallowed | `ComplianceError` — the request is never made | Per-rule matching |
+
+The rule strings above are the ones the audit log records, and they are defined
+once in `app/ingestion/compliance.py`, so the code and this table cannot drift.
 
 The live run in this repository demonstrates it working: during a real
 collection run the pipeline logged
@@ -262,7 +268,7 @@ for the rest of the run without any further network I/O.
 The crawler names itself and publishes a contact address:
 
 ```text
-User-Agent: ProductIntelligenceBot/1.12 (+https://github.com/Ahmedbakr78/Web-to-Warehouse-Product-Intelligence-Pipeline)
+User-Agent: ProductIntelligenceBot/1.0 (+https://github.com/Ahmedbakr78; contact: ahmedbakr78102@gmail.com)
 ```
 
 `INGEST_USER_AGENT` is configurable, and the default contains a real address

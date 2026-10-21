@@ -674,7 +674,7 @@
 <td>Bootstrap</td>
 <td>Objects</td>
 <td><code>bootstrap()</code></td>
-<td>23 tables, 20 views</td>
+<td>29 tables, 23 views</td>
 </tr>
 <tr>
 <th>TC-071</th>
@@ -1040,7 +1040,7 @@
 <th>IT-07</th>
 <td><code>test_bootstrap_views</code></td>
 <td>Empty database</td>
-<td>23 tables, 20 views; twice without error</td>
+<td>29 tables, 23 views; twice without error</td>
 <td>integration</td>
 </tr>
 <tr>
@@ -1643,12 +1643,12 @@ make everything                # install, env, databases, bootstrap, demo, run, 
 </tr>
 <tr>
 <td>Cross-dialect verification</td>
-<td><strong>No structural drift; DQ score 98.26 on both engines</strong></td>
+<td><strong>Identical schema; the same measured DQ score on both engines</strong></td>
 <td><code>make verify-dialects</code></td>
 </tr>
 <tr>
 <th>Schema completeness</th>
-<td><strong>23 tables, 20 views on both engines</strong></td>
+<td><strong>29 tables, 23 views on both engines</strong></td>
 <td><code>GET /api/v1/meta/tables</code>, <code>GET /api/v1/queries/views</code></td>
 </tr>
 <tr>

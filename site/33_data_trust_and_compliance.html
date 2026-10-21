@@ -78,7 +78,7 @@
     </div>
     <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#the-three-trust-levels">The three trust levels</a></li><li class="lvl-3"><a href="#why-sandbox-is-not-real">Why sandbox is not real</a></li><li class="lvl-2"><a href="#selection-how-a-run-decides-what-to-collect">Selection: how a run decides what to collect</a></li><li class="lvl-3"><a href="#the-guarantee-stated-precisely">The guarantee, stated precisely</a></li><li class="lvl-2"><a href="#the-purge-sweep">The purge sweep</a></li><li class="lvl-3"><a href="#what-the-purge-reports">What the purge reports</a></li><li class="lvl-2"><a href="#compliance-robotstxt-terms-and-rate-limits">Compliance: robots.txt, terms and rate limits</a></li><li class="lvl-3"><a href="#robotstxt">robots.txt</a></li><li class="lvl-3"><a href="#rate-limiting">Rate limiting</a></li><li class="lvl-3"><a href="#honest-identity">Honest identity</a></li><li class="lvl-2"><a href="#what-the-audit-trail-looks-like">What the audit trail looks like</a></li><li class="lvl-2"><a href="#proving-it-on-a-live-warehouse">Proving it on a live warehouse</a></li><li class="lvl-2"><a href="#where-the-trust-level-is-visible-in-the-product">Where the trust level is visible in the product</a></li><li class="lvl-2"><a href="#design-rationale">Design rationale</a></li><li class="lvl-2"><a href="#related-documents">Related documents</a></li></ol></details>
     <article class="doc-body">
-<blockquote><p><strong>The single most important property of this warehouse.</strong> Every row in <code>fact_price_snapshot</code> is an observation of a <em>real</em> upstream that permits automated access. Nothing is invented, nothing is seeded, and nothing is generated inside the process. This document explains how that guarantee is designed, enforced, and proven.</p></blockquote>
+<blockquote><p><strong>The single most important property of this warehouse.</strong> Every row in <code>fact_price_snapshot</code> is an observation of a <em>real</em> upstream that permits automated access. A pipeline run collects only sources classified as real market data, so nothing is invented, nothing is seeded, and nothing is generated inside the process. This document explains how that guarantee is designed, enforced, and proven - and how to check it for yourself with <code>python scripts/audit_no_fakes.py --database &lt;url&gt;</code>.</p></blockquote>
 <hr>
 <h2 id="purpose">Purpose</h2>
 <p>A product-intelligence warehouse is only useful if the numbers in it were <em>observed</em>. A pipeline that quietly mixes a mock storefront's invented catalogue into the same tables as Open Library's real records produces a report that looks authoritative and is entirely fictional. That failure mode is invisible in every downstream number: averages, medians, price-change counts and rankings are all perfectly well-formed and all wrong.</p>
@@ -246,18 +246,23 @@ Rows removed
 <th>RFC 9309 reference</th>
 </tr></thead><tbody>
 <tr>
-<td><code>robots.txt</code> unreachable (4xx)</td>
+<td><code>robots.txt</code> returns 404 (any 4xx other than 401/403)</td>
 <td>Allow</td>
 <td>"Unavailable" means allow all</td>
 </tr>
 <tr>
-<td><code>robots.txt</code> unreachable (5xx / network)</td>
-<td>Allow, but the failure is logged</td>
-<td>"Unavailable" means allow all, with the error recorded</td>
+<th><code>robots.txt</code> returns 5xx</th>
+<td>Allow, and the decision is labelled a fallback rather than a published rule</td>
+<td>Not covered by RFC 9309; a temporary server error must not take a source offline</td>
+</tr>
+<tr>
+<td><code>robots.txt</code> is unreachable (DNS, TLS, reset)</td>
+<td>Allow, and the decision is labelled a fallback rather than a published rule</td>
+<td>Nothing was published, so nothing forbids the request</td>
 </tr>
 <tr>
 <td><code>robots.txt</code> returns 401 / 403</td>
-<td>Disallow the whole host</td>
+<td><strong>Disallow the whole host</strong></td>
 <td>"Unauthorised" means disallow all</td>
 </tr>
 <tr>
@@ -266,6 +271,7 @@ Rows removed
 <td>Per-rule matching</td>
 </tr>
 </tbody></table></div>
+<p>The rule strings above are the ones the audit log records, and they are defined once in <code>app/ingestion/compliance.py</code>, so the code and this table cannot drift.</p>
 <p>The live run in this repository demonstrates it working: during a real collection run the pipeline logged</p>
 <pre class="code" data-lang="text"><code>robots.txt blocked url=https://api.coingecko.com/api/v3/coins/markets?… agent=ProductIntelligenceBot</code></pre>
 <p>and continued with the remaining 19 sources. A blocked source produces a warning, not a failed run.</p>
@@ -283,7 +289,7 @@ Rows removed
 <p>A host that fails five times in a row trips the circuit breaker and is skipped for the rest of the run without any further network I/O.</p>
 <h3 id="honest-identity">Honest identity</h3>
 <p>The crawler names itself and publishes a contact address:</p>
-<pre class="code" data-lang="text"><code>User-Agent: ProductIntelligenceBot/1.12 (+https://github.com/Ahmedbakr78/Web-to-Warehouse-Product-Intelligence-Pipeline)</code></pre>
+<pre class="code" data-lang="text"><code>User-Agent: ProductIntelligenceBot/1.0 (+https://github.com/Ahmedbakr78; contact: ahmedbakr78102@gmail.com)</code></pre>
 <p><code>INGEST_USER_AGENT</code> is configurable, and the default contains a real address rather than a placeholder.</p>
 <hr>
 <h2 id="what-the-audit-trail-looks-like">What the audit trail looks like</h2>

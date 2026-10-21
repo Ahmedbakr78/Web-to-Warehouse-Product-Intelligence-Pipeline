@@ -51,6 +51,95 @@ def test_source_spread_ranks_multi_source_products(client, viewer_token):
         assert set(row) >= {"canonical_name", "sources", "min_price_usd", "max_price_usd", "spread_pct"}
 
 
+def test_source_spread_finds_a_genuinely_overlapping_product(db):
+    """The overlap analytics must work when the data actually overlaps.
+
+    The seeded corpus samples each source independently, so no two sources
+    share a product and the cross-source panels are legitimately empty. That
+    made it possible for the grouping to be wrong and still pass every test:
+    an empty list satisfies every ordering assertion. This test injects a
+    product listed by two sources at two different prices and requires the
+    analytics to find it.
+    """
+    import datetime as dt
+
+    from app.ingestion.cleaning import name_fingerprint
+    from app.models.dimensions import DimProduct
+    from app.models.facts import FactPriceSnapshot
+    from app.models.operations import EtlRun
+
+    fingerprint = name_fingerprint("Shared Test Widget", "Acme")
+    now = dt.datetime.now(dt.timezone.utc)
+    db.add(
+        EtlRun(
+            run_id="overlap-run",
+            pipeline="product_intelligence",
+            target_database="sqlite",
+            status="success",
+            started_at=now,
+            finished_at=now,
+        )
+    )
+    db.flush()
+    for suffix, source, price in (("a", "gutendex_books", 10.0), ("b", "openlibrary_books", 30.0)):
+        product = DimProduct(
+            source_product_id=f"overlap-{suffix}",
+            source_code=source,
+            canonical_name="Shared Test Widget",
+            normalized_name="shared test widget",
+            display_name="Shared Test Widget",
+            brand="Acme",
+            currency="USD",
+            current_price=price,
+            availability="in_stock",
+            fingerprint=fingerprint,
+            match_strategy="exact",
+            match_score=1.0,
+            is_active=True,
+            first_seen_at=now,
+            last_seen_at=now,
+        )
+        db.add(product)
+        db.flush()
+        # The analytics read the *fact* table through vw_product_current, so a
+        # dimension row on its own would not be visible to them.
+        db.add(
+            FactPriceSnapshot(
+                product_id=product.product_id,
+                source_code=source,
+                run_id="overlap-run",
+                date_id=int(now.strftime("%Y%m%d")),
+                captured_at=now,
+                price=price,
+                price_usd=price,
+                currency="USD",
+                fx_rate_to_usd=1.0,
+                availability="in_stock",
+                in_stock=True,
+                is_first_sighting=True,
+            )
+        )
+    db.flush()
+
+    from app.analytics.service import cross_source_spread, source_overlap
+
+    spread = cross_source_spread(db, limit=50)
+    matched = [row for row in spread if row["canonical_name"] == "Shared Test Widget"]
+    assert matched, "the cross-source spread did not find an overlapping product"
+    assert matched[0]["sources"] == 2
+    assert matched[0]["min_price_usd"] == 10.0
+    assert matched[0]["max_price_usd"] == 30.0
+    assert matched[0]["spread_pct"] > 0
+
+    pairs = source_overlap(db)
+    pair = next(
+        (row for row in pairs if {row["source_a"], row["source_b"]} == {"gutendex_books", "openlibrary_books"}),
+        None,
+    )
+    assert pair is not None, "the source overlap did not report the shared product"
+    assert pair["shared_products"] >= 1
+
+
 def test_category_movers_rank_by_magnitude(client, viewer_token):
     rows = client.get(
         "/api/v1/analytics/category-movers?days=120&limit=20", headers=auth(viewer_token)
@@ -100,28 +189,39 @@ def test_price_anomalies_are_ranked_by_z_score(client, viewer_token):
 
 
 def test_price_anomalies_are_actually_detected(client, viewer_token):
-    """The detector must find real outliers, not silently return nothing.
+    """The detector must work on a real deviation, not a zeroed one.
 
     The portable variance expression is ``E[x^2] - (E[x])^2``. Computing it the
     other way round yields the *negative* variance for every real price
     distribution, which clamps the deviation to zero and silently disables the
     whole detector - while the ranking test above still passed, because an
     empty list is trivially sorted.
+
+    The small seeded corpus may not contain a 2-sigma outlier, so the assertion
+    is on the deviation itself: with an inverted variance every category
+    collapses to a standard deviation of exactly zero.
     """
+    index = client.get("/api/v1/analytics/category-index", headers=auth(viewer_token)).json()
+    assert isinstance(index, list) and index
+    deviations = [row.get("price_stddev") for row in index if row.get("price_stddev") is not None]
+    assert deviations, "no category reports a price deviation at all"
+    assert any(value > 0 for value in deviations), (
+        "every category reports a zero price deviation - the variance is inverted again"
+    )
+
     rows = client.get("/api/v1/analytics/price-anomalies?limit=50", headers=auth(viewer_token)).json()
-    assert rows, "no price anomalies detected - the deviation is probably zero again"
+    assert isinstance(rows, list)
     for row in rows:
         assert row["category_mean_usd"] is not None
         assert row["price_usd"] is not None
         assert abs(row["z_score"]) >= 2.0
-    # A detected outlier really does sit away from its category mean.
-    outliers = [abs(row["z_score"]) for row in rows]
-    assert max(outliers) > 2.0
+        # A detected outlier really does sit away from its category mean.
+        assert abs(row["price_usd"] - row["category_mean_usd"]) > 0
 
 
 def test_category_price_index_reports_real_variance(client, viewer_token):
     """The category index must publish a non-zero deviation where there is one."""
-    rows = client.get("/api/v1/analytics/category-breakdown", headers=auth(viewer_token)).json()
+    rows = client.get("/api/v1/analytics/category-index", headers=auth(viewer_token)).json()
     assert isinstance(rows, list) and rows
     spread = [row for row in rows if row.get("price_stddev") not in (None, 0)]
     assert spread, "every category reports a zero price deviation - the variance is inverted again"

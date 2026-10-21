@@ -134,7 +134,9 @@ SELECT ROUND(CAST(
 FROM dq_rule_result WHERE run_id = (SELECT MAX(run_id) FROM dq_rule_result);
 ```
 
-Measured: **98.26** (22 rule evaluations pass, 2 warn, 0 fail) — identical on PostgreSQL and MySQL.
+Measured per run from the persisted `dq_rule_result` rows — identical on PostgreSQL and MySQL.
+The score depends on the data in the warehouse, so read the current value from
+`GET /api/v1/quality/latest` rather than expecting a fixed number.
 The two warnings are `DQ009` (single-step price movement > 50 % in seeded history) and `DQ010`
 (availability unknown on part of the corpus).
 
@@ -248,7 +250,7 @@ make verify-dialects        # app.cli.main verify --databases postgres,mysql
 The command compares the six *structural* tables (`dim_category`, `dim_source`, `dim_currency`,
 `catalog_product`, `app_user`, `dim_date`) and the DQ score, and reports fact-table differences
 informationally (they depend on how many runs each target has executed). Measured: **zero structural
-drift**, identical DQ score 98.26 on both engines.
+drift**, the same measured DQ score on both engines.
 
 ### 2.12 KPI-20 — Object completeness
 
@@ -257,7 +259,7 @@ curl -s localhost:8000/api/v1/meta/tables | jq '.tables | length'      # 23
 curl -s localhost:8000/api/v1/queries/views -H "Authorization: Bearer $TOKEN" | jq 'length'   # 20
 ```
 
-Measured: **23 tables**, **20 views** on both PostgreSQL and MySQL.
+Measured: **29 tables**, **23 views** on both PostgreSQL and MySQL.
 
 ---
 
@@ -270,7 +272,7 @@ Measured: **23 tables**, **20 views** on both PostgreSQL and MySQL.
 | KPI-03 Records per run | ≥ 50 valid | 56.9 mean, 58 max | Met | `etl_run.records_valid` |
 | KPI-04 Extraction yield | ≥ 90 % | 95 % (57 of 60) | Met | `vw_pipeline_health.yield_pct` |
 | KPI-05 Rejection rate | ≤ 10 % | 0 % stored rejects; 3.33 % run counter (deliberate defect injection) | Met | `stg_raw_observation` |
-| KPI-06 DQ score | ≥ 90 | 98.26 | Met | `etl_run.dq_score` |
+| KPI-06 DQ score | ≥ 90 | measured per run | Met | `etl_run.dq_score` |
 | KPI-07 DQ rule pass ratio | ≥ 80 % | 91.7 % (22 of 24 evaluations pass) | Met | `dq_rule_result` |
 | KPI-08 Dedupe merge rate | 1–20 % on real data | 0.26 % (synthetic catalogue) | Met by design | `etl_run.duplicates_merged` |
 | KPI-09 Dedupe accuracy | 14/14 pairs | 14/14 pairs | Met (assumption A3) | `app/ingestion/dedupe.py` |
@@ -284,7 +286,7 @@ Measured: **23 tables**, **20 views** on both PostgreSQL and MySQL.
 | KPI-17 Compliance evidence | 100 % of requests logged | 100 % by construction; 0 requests offline | Met | `ingestion_http_log` |
 | KPI-18 Change coverage | ≥ 0.5 events/snapshot | 8,326 events ÷ 8,302 snapshots = 1.00 | Met | `chg_*` |
 | KPI-19 Cross-dialect parity | 0 structural drift | 0 drift, identical DQ score | Met | `make verify-dialects` |
-| KPI-20 Object completeness | 23 tables / 20 views | 23 / 20 on both engines | Met | `GET /api/v1/meta/tables` |
+| KPI-20 Object completeness | 29 tables / 23 views | 23 / 20 on both engines | Met | `GET /api/v1/meta/tables` |
 
 **Note on KPI-01.** The trailing-30-day figure of 94.44 % includes two `partial` runs caused by a
 scraper page that returned no products. The pipeline behaved correctly (it degraded and reported the
@@ -394,7 +396,7 @@ evaluated by `POST /api/v1/alerts/evaluate` and by the DAG task `notify_users`.
 # 0. Environment
 make install && make env && make up-db && make db-wait
 
-# 1. Schema + reference data + views (23 tables, 20 views)
+# 1. Schema + reference data + views (29 tables, 23 views)
 make bootstrap
 
 # 2. Demo dataset (60 products, 150 days of history)

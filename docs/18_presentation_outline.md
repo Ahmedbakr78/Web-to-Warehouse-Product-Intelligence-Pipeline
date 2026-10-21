@@ -118,7 +118,7 @@ cascade with the 39/57 result.
 ### Slide 9 — Data quality
 
 **On screen:** The six dimensions, the 12 rules, the severity-weighted score formula, and the measured
-report (98.26, 22 pass / 2 warn / 0 fail).
+report (read the current score off `GET /api/v1/quality/latest` - it is a measurement).
 
 **Message:** Quality is measured per run, persisted, and only critical failures block.
 
@@ -145,7 +145,7 @@ report (98.26, 22 pass / 2 warn / 0 fail).
 
 ### Slide 13 — Results
 
-**On screen:** The measured results table (from `docs/05` §3) — DQ 98.26 on two engines, 39/57 catalog
+**On screen:** The measured results table (from `docs/05` §3) — the DQ score on two engines, 39/57 catalog
 match rate, p95 ≤ 38.2 ms, 3.5 s run, 0 structural drift, 78/78 checks.
 
 **Message:** Every number was produced by a command in front of the panel.
@@ -159,7 +159,7 @@ match rate, p95 ≤ 38.2 ms, 3.5 s run, 0 structural drift, 78/78 checks.
 | Reconciliation too slow | Blocking index + rare-token fallback | 2,975 ms down to 104 ms (29×) |
 | One model, two engines | Portable types, per-statement view DDL, read-then-write upserts | 0 structural drift, identical DQ score |
 | A failing source killed the run | Per-source isolation | Run becomes `partial`, data stays usable |
-| MySQL DDL invalidates savepoints | One transaction per view statement | 20/20 views on both engines |
+| MySQL DDL invalidates savepoints | One transaction per view statement | 20/23 views on both engines |
 
 ### Slide 15 — Limitations and known issues
 
@@ -181,7 +181,7 @@ fact table, provider-backed FX, an alerting service, a committed test suite, ML 
 
 **On screen:** One sentence per contribution; contact; repository; "Questions?"
 
-> "One pipeline, five permitted sources, 23 tables, 20 views, 12 quality rules, 104 API operations,
+> "One pipeline, five permitted sources, 29 tables, 23 views, 12 quality rules, 104 API operations,
 > two database engines, and a compliance trail for every request we made."
 
 ---
@@ -190,12 +190,12 @@ fact table, provider-backed FX, an alerting service, a committed test suite, ML 
 
 | Likely question | Short answer | Evidence to show |
 | --- | --- | --- |
-| Why is scraping the right approach instead of supplier feeds? | Feeds are per-supplier, per-format and usually paid; the sandbox sites used here are published for exactly this purpose, so the engineering problem can be studied legally | `app/ingestion/sources/books_to_scrape.py` docstring; `docs/01` §8.2 |
+| Why is scraping the right approach instead of supplier feeds? | Feeds are per-supplier, per-format and usually paid, so the pipeline collects from permitted public endpoints instead. A source is only used when its terms allow it and its `robots.txt` permits the crawler | `app/ingestion/compliance.py`; `docs/01` §8.2 |
 | How do you know you are not breaking the law? | Compliance is enforced in the transport layer, the terms position is recorded per source, and every request is audited with its robots decision | `RobotsCache`, `ingestion_http_log`, `GET /api/v1/audit/compliance` |
 | How accurate is your deduplication? | 14/14 on the project's curated pair set at threshold 0.90; six measures blended; a digit-signature guard handles model numbers; the score and breakdown are stored per product and exposed by the API | `docs/05` §7.1, `GET /api/v1/products/{id}/duplicates` |
 | How do you avoid false merges? | The digit-signature factor penalises differing numeric runs; the brand term is weighted 12 %; the category adds at most 3 %; a merge is reversible because the absorbed row keeps `matched_product_id` | `dedupe.py`, `dim_product.matched_product_id` |
-| What is the data quality of the warehouse? | A severity-weighted 98.26 out of 100 across 12 rules and 6 dimensions, persisted per run; two warnings are explained and no blocking failure | `GET /api/v1/quality/latest` |
-| Why a star schema and not a flat table? | Facts stay small, dimensions are reused across three facts, and 20 views hide the joins so analysts never write them | `db/views.sql`, `vw_daily_kpis` |
+| What is the data quality of the warehouse? | A severity-weighted score across 12 rules and 6 dimensions, persisted per run. Read the current score off `GET /api/v1/quality/latest` on the day - it is a measurement, not a fixed number | `GET /api/v1/quality/latest` |
+| Why a star schema and not a flat table? | Facts stay small, dimensions are reused across three facts, and 23 views hide the joins so analysts never write them | `db/views.sql`, `vw_daily_kpis` |
 | Why support MySQL as well as PostgreSQL? | The retailer may not choose the engine; the same model loads on both with no vendor SQL, and the DQ score is identical — that is a portability guarantee, not a claim | `make verify-dialects` |
 | How do you handle timezones and money? | One `UTCDateTime` decorator normalises every timestamp at the boundary; money is `NUMERIC(18,4)` and the FX rate used is stored with each observation | `app/models/base.py` |
 | What happens if a source breaks? | The run degrades to `partial`, the failure is a warning, the sync state records consecutive failures, and after three the source is disabled | `pipeline._process_source`, `sync_state` |
@@ -234,12 +234,14 @@ curl -s localhost:8000/api/v1/health | head -c 200; echo
 pip-cli status | head -25
 ```
 
-Say: "23 tables, 20 views, 66 products, 8,302 price snapshots over 150 days."
+Say (read the numbers off `pip-cli status` on the day, never from this page):
+"29 tables, 23 analytical views, and a warehouse holding only rows collected from permitted
+public sources."
 
 **0:30–1:00 — Run the pipeline live (terminal)**
 
 ```bash
-pip-cli run-pipeline --sources local_demo,dummyjson_products --limit 25 --quiet
+pip-cli run-pipeline --sources gutendex_books,openlibrary_books,itunes_apps --limit 25 --quiet
 ```
 
 Say: "One command. Nine instrumented stages, compliance-gated extraction, dedupe, change detection,
@@ -256,7 +258,8 @@ Say: "Top movers, category drift and the quality report — all of it SQL, no ha
 **1:30–2:00 — Dashboard (browser)**
 
 Open `http://localhost:5173`. Point at the KPI cards, then the price-change timeline, then the
-category breakdown. Say: "Sixty-six products, 1,608 price changes in the window, DQ score 98.26, and
+category breakdown. Say (from the screen, not from memory): "the product count, the price changes in the
+window, the measured DQ score, and
 195 of 285 catalog rows matched."
 
 **2:00–2:30 — Product detail and duplicates (browser)**
@@ -267,7 +270,7 @@ candidates tab: "and here is the score breakdown for every near match."
 
 **2:30–2:50 — Quality and compliance (browser)**
 
-Open Quality: "12 rules, 6 dimensions, score 98.26, two warnings explained." Open Compliance: "Every
+Open Quality: "12 rules, 6 dimensions, and the score the API just returned." Open Compliance: "Every
 outbound request is logged with its robots decision — zero unlogged requests."
 
 **2:50–3:00 — The API (browser: `http://localhost:8000/docs`)**
@@ -282,7 +285,7 @@ pip-cli verify
 ```
 
 Say: "The same model, the same data, two engines — zero structural drift and an identical data-quality
-score of 98.26 on PostgreSQL 16 and MySQL 8.4."
+score on PostgreSQL 16 and MySQL 8.4 - `make verify-dialects` shows them side by side."
 
 ### 4.4 Backup: the same story with `curl`
 
@@ -330,7 +333,7 @@ curl -s "localhost:8000/api/v1/audit/compliance?days=7" -H "Authorization: Beare
 | --- | --- | --- |
 | API does not start | `pip-cli status`; check the port; start with `--port 8001` and use `curl` | "Let me show the same evidence through the CLI, which uses the same code." |
 | Database is down | `make db-wait`; if that fails, show the SQLite fallback: `ACTIVE_DATABASE=sqlite` | "The warehouse is the same model; only the engine differs." |
-| No internet | Use `--sources local_demo` — the synthetic source needs no network | "This is the offline source; it is how the project is demonstrated without internet access." |
+| No internet | Use `--sources local_demo` — the synthetic source needs no network. It is clearly labelled as synthetic and is never collected by an automatic run | "This is the offline source; it generates its own data, so it is labelled synthetic and is excluded from every automatic run." |
 | Dashboard is blank | Switch to Swagger UI at `/docs` and run `GET /analytics/kpi` | "Here is the same contract the dashboard consumes." |
 | Everything fails | Present the results slide with the measured table from `docs/05` §3 | "These numbers were measured and re-measurable; the commands are in the documentation." |
 

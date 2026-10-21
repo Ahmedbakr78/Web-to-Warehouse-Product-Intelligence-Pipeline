@@ -259,7 +259,7 @@
 <td><strong>15 Critical</strong></td>
 <td>Lead</td>
 <td>Dialect-portable column types (<code>UTCDateTime</code>, <code>JSONType</code>, <code>Numeric(18,4)</code>); no <code>ON CONFLICT</code> / <code>ON DUPLICATE KEY</code> anywhere — upserts are read-then-write in <code>WarehouseLoader</code>; <code>bootstrap()</code> applies each view statement in its own transaction; <code>make verify-dialects</code> compares structural row counts and DQ score</td>
-<td>Low — verified: identical structural counts and DQ 98.26 on both</td>
+<td>Low — verified: identical schema and the same measured DQ score on both</td>
 </tr>
 <tr>
 <th>R5</th>

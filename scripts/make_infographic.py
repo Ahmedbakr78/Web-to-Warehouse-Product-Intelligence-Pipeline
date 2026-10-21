@@ -105,16 +105,19 @@ def _measured_stats() -> dict[str, str]:
     The infographic must never quote a number the stats pipeline does not
     measure; fallbacks preserve the last known values if the file is missing.
     """
+    # The fallback only fires when the measured snapshot is missing. It
+    # carries no numbers of its own: a stale literal here is how the slide
+    # ended up claiming "5 ingestion sources" while the code shipped 34.
     fallback = {
-        "ingestion_sources": "10",
-        "rest_route_decorators": "195",
-        "test_cases": "491",
-        "physical_tables": "28",
-        "analytical_views": "20",
-        "data_quality_rules": "12",
-        "documentation_documents": "30",
-        "mermaid_diagrams": "80",
-        "rest_routers": "24",
+        "ingestion_sources": "-",
+        "rest_route_decorators": "-",
+        "test_cases": "-",
+        "physical_tables": "-",
+        "analytical_views": "-",
+        "data_quality_rules": "-",
+        "documentation_documents": "-",
+        "mermaid_diagrams": "-",
+        "rest_routers": "-",
         "dq_score": _measured_dq_score(),
     }
     try:

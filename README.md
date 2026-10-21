@@ -180,7 +180,7 @@ Everything is engineered like a production system, not a demo:
 12 data-quality rules across 6 dimensions, weighted score persisted per run
 34 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
 16 CLI commands  |  6 Docker Compose services  |  34 documents  |  88 Mermaid diagrams
-601 tests  |  104/104 API smoke checks  |  666 catalogued features
+615 tests  |  104/104 API smoke checks  |  666 catalogued features
 ```
 
 | Metric | Count |
@@ -200,18 +200,21 @@ Everything is engineered like a production system, not a demo:
 | Catalogued features (live API catalogue) | 666 |
 | Documented features (F-ID inventory)     | 612 |
 | Documented feature areas                 | 47 |
-| Collected test cases                     | 601 |
+| Collected test cases                     | 615 |
 | API smoke checks                         | 104 |
 
 <!-- END:STATS -->
 
-Demo dataset after `make demo-postgres` (120 days, seeded, deterministic — counts will differ
-slightly with a different `--days` or after live runs):
+**Synthetic** demo dataset after `make demo-postgres` (120 days, deterministic). These rows are
+*generated*, not observed — they exist to exercise the screens, and they are labelled as
+synthetic everywhere. The launcher does not load them by default:
 
 ```text
-263 product identities  |  10,135 price snapshots  |  8,062 price changes
-10,159 lifecycle events  |  60 internal catalog SKUs  |  1,539 reconciliation comparisons
+90 product identities  |  9,854 price snapshots  |  9,660 price changes
+9,879 lifecycle events  |  90 internal catalog SKUs
 ```
+
+Run `python -m app.cli.main purge-untrusted` to remove every row a non-market source wrote.
 
 > **On numbers in this README.** Structural figures (tables, views, routes, tests, rules) are exact
 > and re-verifiable — they are measured from the code by `scripts/project_stats.py` and pinned in
@@ -234,9 +237,10 @@ cp .env.example .env              # then edit secrets, or keep the demo defaults
 make up                           # postgres + mysql + api + airflow + frontend
 make db-wait                      # block until both databases are healthy
 
-# one-time: schema + 29 tables + 23 views + demo users + 120 days of demo data
+# one-time: schema + 29 tables + 23 views + the bootstrap accounts
 make bootstrap
-make demo-postgres                # use --database mysql for the MySQL twin
+make run-pipeline                 # collect from the permitted public sources
+# make demo-postgres             # OPTIONAL: synthetic demo data (generated, not market data)
 
 open http://localhost:5173        # dashboard (admin@example.com / Admin@12345)
 open http://localhost:8000/docs   # interactive OpenAPI documentation
@@ -1651,7 +1655,7 @@ natively on GitHub; every structural number is tied to a runnable command.
 ### The documentation website
 
 All thirty documents are also published as a browsable site, with client-side search, a dark mode
-that follows the system preference, and all 80 Mermaid diagrams rendered to SVG:
+that follows the system preference, and all 88 Mermaid diagrams rendered to SVG:
 
 ```bash
 make site             # build ./site — standard library only, nothing to install

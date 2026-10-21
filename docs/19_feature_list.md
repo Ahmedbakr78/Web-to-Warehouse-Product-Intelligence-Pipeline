@@ -12,7 +12,7 @@ own Feature Catalogue is served by `GET /api/v1/meta/features` and groups the sa
 smaller number of user-facing areas, so the two numbers are measured on different axes and are
 reported separately by `python3 scripts/project_stats.py`.
 
-**Scale of the system, measured:** 35 ingestion sources · 29 physical tables · 23 analytical views ·
+**Scale of the system, measured:** 34 ingestion sources · 29 physical tables · 23 analytical views ·
 12 data-quality rules across 6 dimensions · 222 REST route decorators in 24 routers · 9 pipeline stages ·
 33 Airflow task callables · 6 Docker Compose services · 34 numbered documents · 88 Mermaid diagrams ·
 594 automated tests · 104 end-to-end API smoke checks.
@@ -255,7 +255,7 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 | F-143 | Price history series | Per-product time series with the change context | `analytics.price_history` |
 | F-144 | Query plan explorer | Dialect-aware `EXPLAIN` for any view | `analytics.query_explain` |
 | F-145 | CSV export | The current product list as CSV, capped at 50,000 rows | `GET /api/v1/analytics/export/products.csv` |
-| F-146 | Table inventory API | 23 tables grouped into the six logical groups | `GET /api/v1/meta/tables` |
+| F-146 | Table inventory API | 29 tables grouped into the six logical groups | `GET /api/v1/meta/tables` |
 
 ---
 
@@ -529,7 +529,7 @@ Integrations (export, webhooks, backfill) and run comparison. Every row ships be
 | F-306 | Review ownership | Explicit code ownership so every change has a named reviewer | `.github/CODEOWNERS` |
 | F-307 | Measurement provenance | The README and docs index state which figures are structural and re-verifiable and which are measurements that vary with data volume and hardware, so a number is never presented as a constant when it is not one | `README.md`, `docs/README.md` |
 | F-308 | Architecture rationale with rejected alternatives | Every significant decision records what was chosen, what was rejected, why, and the measured consequence — including the 29× reconciliation optimisation that preserved identical output | `docs/21_architecture_deep_dive.md` |
-| F-309 | Complete data dictionary | All 23 tables with every column, type, nullability and meaning, plus controlled vocabularies, magnitude bands, the view catalogue and a dialect-portability table | `docs/22_data_dictionary.md` |
+| F-309 | Complete data dictionary | All 29 tables with every column, type, nullability and meaning, plus controlled vocabularies, magnitude bands, the view catalogue and a dialect-portability table | `docs/22_data_dictionary.md` |
 | F-310 | Glossary and FAQ | Defined terms and questions across setup, the pipeline, data quality, security and development — including how to add a source in six steps | `docs/23_glossary_and_faq.md` |
 | F-311 | Demo runbook | Screen-by-screen live demo script with exact URLs, the sentence worth saying at each step, time-boxed 3/5/8-minute variants, a pre-flight checklist, the five questions that always get asked, and a failure playbook that falls back to `curl` when the browser dies | `docs/24_demo_runbook.md` |
 
@@ -651,7 +651,7 @@ Free unlimited operations and releases.
 | F-386 | Single canonical version | VERSION feeds API, CLI, pyproject and dashboard via sync_version.py | `Makefile` `scripts/project_stats.py` `website/index.html` |
 | F-387 | Stats sync gate | project_stats.py rewrites README block; check_stats.py fails CI on drift | `Makefile` `scripts/project_stats.py` `website/index.html` |
 | F-388 | 30 numbered docs | Proposal through access-control, each with purpose plus Mermaid | `Makefile` `scripts/project_stats.py` `website/index.html` |
-| F-389 | 80 Mermaid diagrams | Context, stack, sequences, DAG, ER, DFD, deployment — rendered to SVG | `Makefile` `scripts/project_stats.py` `website/index.html` |
+| F-389 | 88 Mermaid diagrams | Context, stack, sequences, DAG, ER, DFD, deployment — rendered to SVG | `Makefile` `scripts/project_stats.py` `website/index.html` |
 | F-390 | Infographic 2560x1440 | One 16:9 DEPI Data Engineering slide, freshness-gated by generator | `Makefile` `scripts/project_stats.py` `website/index.html` |
 | F-391 | 12-slide deck | make deck builds PDF from measured counts in the DEPI palette | `Makefile` `scripts/project_stats.py` `website/index.html` |
 | F-392 | Multi-section website | Hero, features from live OpenAPI, docs, quickstart, About — light/dark/system | `Makefile` `scripts/project_stats.py` `website/index.html` |

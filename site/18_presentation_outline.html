@@ -158,7 +158,7 @@
 <p><strong>On screen:</strong> The four event types with the measured event mix; the three-stage reconciliation cascade with the 39/57 result.</p>
 <p><strong>Message:</strong> Price history, four change classes and a quantified market position.</p>
 <h3 id="slide-9--data-quality">Slide 9 — Data quality</h3>
-<p><strong>On screen:</strong> The six dimensions, the 12 rules, the severity-weighted score formula, and the measured report (98.26, 22 pass / 2 warn / 0 fail).</p>
+<p><strong>On screen:</strong> The six dimensions, the 12 rules, the severity-weighted score formula, and the measured report (read the current score off <code>GET /api/v1/quality/latest</code> - it is a measurement).</p>
 <p><strong>Message:</strong> Quality is measured per run, persisted, and only critical failures block.</p>
 <blockquote><p>"The score is severity-weighted, and only <code>critical</code> rules can fail a run. Rules execute inside a savepoint, so a broken rule degrades to a recorded failure instead of killing the load."</p></blockquote>
 <h3 id="slide-10--orchestration-and-operations">Slide 10 — Orchestration and operations</h3>
@@ -171,7 +171,7 @@
 <p><strong>On screen:</strong> The browser and a terminal. Use the script in §4 exactly.</p>
 <p><strong>Message:</strong> "Here is the system, end to end, in three minutes."</p>
 <h3 id="slide-13--results">Slide 13 — Results</h3>
-<p><strong>On screen:</strong> The measured results table (from <code>docs/05</code> §3) — DQ 98.26 on two engines, 39/57 catalog match rate, p95 ≤ 38.2 ms, 3.5 s run, 0 structural drift, 78/78 checks.</p>
+<p><strong>On screen:</strong> The measured results table (from <code>docs/05</code> §3) — the DQ score on two engines, 39/57 catalog match rate, p95 ≤ 38.2 ms, 3.5 s run, 0 structural drift, 78/78 checks.</p>
 <p><strong>Message:</strong> Every number was produced by a command in front of the panel.</p>
 <h3 id="slide-14--engineering-challenges-solved">Slide 14 — Engineering challenges solved</h3>
 <p><strong>On screen:</strong> Four challenges with cause, fix, measured effect:</p>
@@ -198,7 +198,7 @@
 <tr>
 <td>MySQL DDL invalidates savepoints</td>
 <td>One transaction per view statement</td>
-<td>20/20 views on both engines</td>
+<td>20/23 views on both engines</td>
 </tr>
 </tbody></table></div>
 <h3 id="slide-15--limitations-and-known-issues">Slide 15 — Limitations and known issues</h3>
@@ -210,7 +210,7 @@
 <p><strong>On screen:</strong> Six items with effort and benefit (from <code>docs/20</code> §2): incremental sync, partitioned fact table, provider-backed FX, an alerting service, a committed test suite, ML forecasting.</p>
 <h3 id="slide-18--conclusion-and-questions">Slide 18 — Conclusion and questions</h3>
 <p><strong>On screen:</strong> One sentence per contribution; contact; repository; "Questions?"</p>
-<blockquote><p>"One pipeline, five permitted sources, 23 tables, 20 views, 12 quality rules, 104 API operations, two database engines, and a compliance trail for every request we made."</p></blockquote>
+<blockquote><p>"One pipeline, five permitted sources, 29 tables, 23 views, 12 quality rules, 104 API operations, two database engines, and a compliance trail for every request we made."</p></blockquote>
 <hr>
 <h2 id="3-qa-preparation">3. Q&amp;A preparation</h2>
 <div class='table-scroll'><table><thead><tr>
@@ -220,8 +220,8 @@
 </tr></thead><tbody>
 <tr>
 <td>Why is scraping the right approach instead of supplier feeds?</td>
-<td>Feeds are per-supplier, per-format and usually paid; the sandbox sites used here are published for exactly this purpose, so the engineering problem can be studied legally</td>
-<td><code>app/ingestion/sources/books_to_scrape.py</code> docstring; <code>docs/01</code> §8.2</td>
+<td>Feeds are per-supplier, per-format and usually paid, so the pipeline collects from permitted public endpoints instead. A source is only used when its terms allow it and its <code>robots.txt</code> permits the crawler</td>
+<td><code>app/ingestion/compliance.py</code>; <code>docs/01</code> §8.2</td>
 </tr>
 <tr>
 <td>How do you know you are not breaking the law?</td>
@@ -240,12 +240,12 @@
 </tr>
 <tr>
 <td>What is the data quality of the warehouse?</td>
-<td>A severity-weighted 98.26 out of 100 across 12 rules and 6 dimensions, persisted per run; two warnings are explained and no blocking failure</td>
+<td>A severity-weighted score across 12 rules and 6 dimensions, persisted per run. Read the current score off <code>GET /api/v1/quality/latest</code> on the day - it is a measurement, not a fixed number</td>
 <td><code>GET /api/v1/quality/latest</code></td>
 </tr>
 <tr>
 <td>Why a star schema and not a flat table?</td>
-<td>Facts stay small, dimensions are reused across three facts, and 20 views hide the joins so analysts never write them</td>
+<td>Facts stay small, dimensions are reused across three facts, and 23 views hide the joins so analysts never write them</td>
 <td><code>db/views.sql</code>, <code>vw_daily_kpis</code></td>
 </tr>
 <tr>
@@ -309,24 +309,24 @@ curl -s localhost:8000/api/v1/health | head -c 200; echo
 <h3 id="42-the-script-minute-by-minute">4.2 The script, minute by minute</h3>
 <p><strong>0:00–0:30 — Prove the warehouse exists (terminal)</strong></p>
 <pre class="code" data-lang="bash"><code>pip-cli status | head -25</code></pre>
-<p>Say: "23 tables, 20 views, 66 products, 8,302 price snapshots over 150 days."</p>
+<p>Say (read the numbers off <code>pip-cli status</code> on the day, never from this page): "29 tables, 23 analytical views, and a warehouse holding only rows collected from permitted public sources."</p>
 <p><strong>0:30–1:00 — Run the pipeline live (terminal)</strong></p>
-<pre class="code" data-lang="bash"><code>pip-cli run-pipeline --sources local_demo,dummyjson_products --limit 25 --quiet</code></pre>
+<pre class="code" data-lang="bash"><code>pip-cli run-pipeline --sources gutendex_books,openlibrary_books,itunes_apps --limit 25 --quiet</code></pre>
 <p>Say: "One command. Nine instrumented stages, compliance-gated extraction, dedupe, change detection, catalog reconciliation and twelve quality rules. It finished in under four seconds."</p>
 <p><strong>1:00–1:30 — Show the run detail (browser: Pipeline screen, or terminal)</strong></p>
 <pre class="code" data-lang="bash"><code>pip-cli report --days 30 --limit 5</code></pre>
 <p>Say: "Top movers, category drift and the quality report — all of it SQL, no hard-coded numbers."</p>
 <p><strong>1:30–2:00 — Dashboard (browser)</strong></p>
-<p>Open <code>http://localhost:5173</code>. Point at the KPI cards, then the price-change timeline, then the category breakdown. Say: "Sixty-six products, 1,608 price changes in the window, DQ score 98.26, and 195 of 285 catalog rows matched."</p>
+<p>Open <code>http://localhost:5173</code>. Point at the KPI cards, then the price-change timeline, then the category breakdown. Say (from the screen, not from memory): "the product count, the price changes in the window, the measured DQ score, and 195 of 285 catalog rows matched."</p>
 <p><strong>2:00–2:30 — Product detail and duplicates (browser)</strong></p>
 <p>Open Products and pick <em>Samsung 4K Smart TV 55 inch Plus</em>. Say: "Price history with 150 observations. The match strategy is shown — this product was merged with a fuzzy match at 0.98." Open the Duplicate candidates tab: "and here is the score breakdown for every near match."</p>
 <p><strong>2:30–2:50 — Quality and compliance (browser)</strong></p>
-<p>Open Quality: "12 rules, 6 dimensions, score 98.26, two warnings explained." Open Compliance: "Every outbound request is logged with its robots decision — zero unlogged requests."</p>
+<p>Open Quality: "12 rules, 6 dimensions, and the score the API just returned." Open Compliance: "Every outbound request is logged with its robots decision — zero unlogged requests."</p>
 <p><strong>2:50–3:00 — The API (browser: <code>http://localhost:8000/docs</code>)</strong></p>
 <p>Say: "113 documented operations, JWT plus role-based access, and 78 automated checks that exercise all of it — including the 401 and the 403."</p>
 <h3 id="43-optional-20-second-flourish-cross-dialect-parity">4.3 Optional 20-second flourish: cross-dialect parity</h3>
 <pre class="code" data-lang="bash"><code>pip-cli verify</code></pre>
-<p>Say: "The same model, the same data, two engines — zero structural drift and an identical data-quality score of 98.26 on PostgreSQL 16 and MySQL 8.4."</p>
+<p>Say: "The same model, the same data, two engines — zero structural drift and an identical data-quality score on PostgreSQL 16 and MySQL 8.4 - <code>make verify-dialects</code> shows them side by side."</p>
 <h3 id="44-backup-the-same-story-with-curl">4.4 Backup: the same story with <code>curl</code></h3>
 <p>If the dashboard is unavailable, the demo still works:</p>
 <pre class="code" data-lang="bash"><code>TOKEN=$(curl -s -X POST localhost:8000/api/v1/auth/login -H &#x27;content-type: application/json&#x27; \
@@ -406,8 +406,8 @@ curl -s &quot;localhost:8000/api/v1/audit/compliance?days=7&quot; -H &quot;Autho
 </tr>
 <tr>
 <th>No internet</th>
-<td>Use <code>--sources local_demo</code> — the synthetic source needs no network</td>
-<td>"This is the offline source; it is how the project is demonstrated without internet access."</td>
+<td>Use <code>--sources local_demo</code> — the synthetic source needs no network. It is clearly labelled as synthetic and is never collected by an automatic run</td>
+<td>"This is the offline source; it generates its own data, so it is labelled synthetic and is excluded from every automatic run."</td>
 </tr>
 <tr>
 <th>Dashboard is blank</th>

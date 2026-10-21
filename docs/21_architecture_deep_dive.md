@@ -52,7 +52,7 @@ flowchart TB
     end
 
     subgraph DATA["Data plane — app/models"]
-        WH[("25 tables · 20 views")]
+        WH[("29 tables · 23 views")]
     end
 
     WEB --> HTTP
@@ -161,7 +161,7 @@ flowchart LR
         S1["Seeded PRNG, fixed date"] --> S2["Identical output every time"]
         S2 --> S3["Same charts, same numbers, every rehearsal"]
     end
-    Live -.both write the same.-> WH[("25 tables")]
+    Live -.both write the same.-> WH[("29 tables")]
     Seeded -.schema and DQ.-> WH
 ```
 
@@ -277,7 +277,7 @@ flowchart TB
         CE["chg_product_event"]
     end
     subgraph SERVE["6 · Views — the only read surface"]
-        VW["20 analytical views"]
+        VW["23 analytical views"]
     end
 
     STG --> CONFORM --> FACT --> AGG --> VW

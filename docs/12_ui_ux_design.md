@@ -195,7 +195,7 @@ rows). No screen links to itself. No dead ends: every list has an export or a pa
 | KPI                                                                   |
 | +-------------+ +-------------+ +-------------+ +-------------+ +-----------+ |
 | | Products    | | Price chgs  | | New / rmv   | | DQ score    | | Catalog   | |
-| | 66          | | 412         | | 6 / 0       | | 98.26       | | 39/57     | |
+| | 66          | | 412         | | 6 / 0       | | measured    | | 39/57     | |
 | | +2 this week| | 48 signif.  | | 7 recat.    | | 0 failures  | | 68.4%     | |
 | +-------------+ +-------------+ +-------------+ +-------------+ +-----------+ |
 |                                                                           |
@@ -367,8 +367,8 @@ Each panel maps 1:1 to an endpoint: `/analytics/category-index`, `/analytics/ava
 | +------------------------------------------------------------------------+ |
 | | run_id | status | trigger | target | started | dur | ext | valid | DQ | warn | |
 | +------------------------------------------------------------------------+ |
-| | 6d795cd6f4 | success | cli | postgres | 03:08 | 0.2 s | 2 | 2 | 98.26 | - | |
-| | bde43996c1 | success | airflow | postgres | 02:31 | 3.5 s | 60 | 57 | 98.26 | - | |
+| | 6d795cd6f4 | success | cli | postgres | 03:08 | 0.2 s | 2 | 2 | 86.05 | - | |
+| | bde43996c1 | success | airflow | postgres | 02:31 | 3.5 s | 60 | 57 | 86.05 | - | |
 +---------------------------------------------------------------------------+
 | Source health table: source | kind | rate | last run | success % | duration | |
 |                                consecutive failures | sync status         |
@@ -399,7 +399,7 @@ The button is only rendered for roles with `run_pipeline`.
 
 ```text
 +------------------------- Quality ------------------- [Re-evaluate] -------+
-| Score 98.26 | pass 22 | warn 2 | fail 0 | blocking: none              |
+| Score 86.05 | pass 10 | warn 0 | fail 2 | blocking: none              |
 | Dimension matrix: completeness 4 rules | validity 3 | uniqueness 2 |        |
 | consistency 1 | accuracy 1 | timeliness 1                                |
 +---------------------------------------------------------------------------+

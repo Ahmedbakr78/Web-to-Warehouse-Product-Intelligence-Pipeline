@@ -68,6 +68,68 @@ def measure() -> dict[str, int]:
     return json.loads(result.stdout)
 
 
+#: The figures that appear in prose, with the pattern that quotes them, and
+#: the values that were once correct. Only a *stale* value is a problem: a
+#: document that says "5 dimensions, 2 facts" is quoting a subset, not the
+#: total, and must not be reported as drift.
+PROSE_FIGURES: tuple[tuple[str, str, tuple[int, ...]], ...] = (
+    ("physical_tables", r"(\d+)\s+(?:physical\s+)?tables\b", (23, 25, 28)),
+    ("analytical_views", r"(\d+)\s+analytical\s+views\b", (20,)),
+    ("rest_route_decorators", r"(\d+)\s+REST\s+(?:route\s+decorators|operations)\b", (113, 173, 194, 216)),
+    ("data_quality_rules", r"(\d+)\s+data-quality\s+rules\b", ()),
+    ("ingestion_sources", r"(\d+)\s+(?:ingestion\s+sources|source\s+adapters)\b", (5, 35)),
+    ("airflow_tasks", r"(\d+)\s+Airflow\s+tasks\b", ()),
+    ("mermaid_diagrams", r"(\d+)\s+Mermaid\s+diagrams\b", (80, 88)),
+)
+
+
+def _prose_files() -> list[Path]:
+    """The documents whose figures are pinned."""
+    files = [ROOT / "README.md", ROOT / "docs" / "README.md"]
+    files.extend(sorted((ROOT / "docs").glob("*.md")))
+    return [path for path in files if path.is_file()]
+
+
+def check_prose(recorded: dict) -> list[str]:
+    """Find a pinned figure that a document still quotes with an old value.
+
+    The check is deliberately narrow: it only looks for the *current* value in
+    a sentence that quotes a figure, and reports the documents that mention a
+    *different* value for the same thing. A document that never mentions the
+    figure is not a problem, and a document that mentions it correctly is
+    not a problem.
+    """
+    import re
+
+    problems: list[str] = []
+    files = _prose_files()
+    for key, pattern, stale in PROSE_FIGURES:
+        value = recorded.get(key)
+        if not isinstance(value, int) or value <= 0:
+            continue
+        stale_values = {item for item in stale if item != value}
+        if not stale_values:
+            continue
+        for path in files:
+            try:
+                text = path.read_text(encoding="utf-8")
+            except OSError:
+                continue
+            # A figure can be split across a line break ("28\ntables"), so
+            # the text is searched with its whitespace collapsed.
+            flat = re.sub(r"\s+", " ", text)
+            for match in re.finditer(pattern, flat):
+                quoted = int(match.group(1))
+                if quoted not in stale_values:
+                    continue
+                problems.append(
+                    f"  {path.relative_to(ROOT)}: quotes {quoted} "
+                    f"where the measured {DESCRIPTIONS.get(key, key)} is {value} "
+                    f'-> "{match.group(0)}"'
+                )
+    return problems
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     parser.add_argument("snapshot", nargs="?", default="docs/stats.json")
@@ -129,6 +191,16 @@ def main() -> int:
 
     if unmeasured:
         print("Not measurable statically (skipped): " + ", ".join(unmeasured))
+
+    prose = check_prose(recorded)
+    if prose:
+        print("\nProse drift detected:\n")
+        print("\n".join(prose))
+        print(
+            "\nThe pinned figures are also written into README.md and docs/*.md. "
+            "Update the sentences that quote them, then run `make stats-update`."
+        )
+        return 1
 
     if drift:
         print("\nDocumentation drift detected:\n")

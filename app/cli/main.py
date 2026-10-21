@@ -259,6 +259,33 @@ def purge_untrusted_cmd(
         _status_line("Purge complete")
 
 
+@app.command("purge-demo-catalog")
+def purge_demo_catalog_cmd(
+    database: str = DB_OPTION,
+    dry_run: bool = typer.Option(False, "--dry-run", help="Report what would be removed"),
+) -> None:
+    """Remove the generated placeholder catalogue.
+
+    The catalogue is the *retailer's* own product list - the side the market
+    prices are compared against. The demo seeder writes a placeholder one so
+    the reconciliation screens have something to show; this command removes it
+    so the warehouse holds only the catalogue that was really imported.
+    """
+    from app.etl.catalog_purge import purge_demo_catalog
+
+    console.rule(f"[bold]Purging the generated catalogue from {describe_target(database)}")
+    report = purge_demo_catalog(database, dry_run=dry_run)
+    _kv_table(
+        "Demo catalogue" + (" (dry run)" if dry_run else " - removed"),
+        {
+            "rows found": str(report["found"]),
+            "rows removed": str(report["removed"]),
+        },
+    )
+    if not dry_run:
+        _status_line("The catalogue now holds only imported rows")
+
+
 @app.command("refresh-fx")
 def refresh_fx_cmd(
     database: str = DB_OPTION,
@@ -478,18 +505,29 @@ def run_pipeline(
 
     selected = [item.strip() for item in sources.split(",")] if sources else []
     console.rule(f"[bold]Pipeline run on {describe_target(database)}")
-    result = Pipeline(
-        PipelineConfig(
-            sources=selected,
-            database=database,
-            limit_per_source=limit,
-            strict=strict,
-            skip_dq=skip_dq,
-            skip_catalog=skip_catalog,
-            trigger=trigger,
-            created_by="cli",
-        )
-    ).run()
+    from app.core.errors import PipelineError
+
+    try:
+        result = Pipeline(
+            PipelineConfig(
+                sources=selected,
+                database=database,
+                limit_per_source=limit,
+                strict=strict,
+                skip_dq=skip_dq,
+                skip_catalog=skip_catalog,
+                trigger=trigger,
+                created_by="cli",
+            )
+        ).run()
+    except PipelineError as exc:
+        # A refused run (a source whose terms forbid polling, for example) is
+        # an answer, not a crash.
+        console.print(f"[err]{exc}[/]")
+        hint = getattr(exc, "details", None) or {}
+        if hint.get("hint"):
+            console.print(f"[dim]{hint['hint']}[/dim]")
+        raise typer.Exit(code=2) from exc
 
     table = Table(title=f"Run {result.run_id}", header_style="bold cyan")
     table.add_column("metric")

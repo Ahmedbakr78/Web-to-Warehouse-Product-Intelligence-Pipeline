@@ -165,3 +165,36 @@ def test_the_fallback_rule_does_not_claim_an_allow_list():
     cache = robots_module.RobotsCache()
     decision = cache.can_fetch("local://demo-catalogue/products")
     assert "allow-listed" not in decision.rule
+
+
+def test_the_compliance_policy_matches_what_the_code_does():
+    """The stated policy and the implemented policy must agree.
+
+    ``app/ingestion/compliance.py`` is the single statement of the rules. A
+    guarantee that the code no longer honours is a false claim, so the
+    outcomes the policy declares are checked against the decisions the
+    transport actually makes.
+    """
+    from app.ingestion import compliance
+
+    assert compliance.POLICY_VERSION
+    assert compliance.GUARANTEES
+
+    # The policy knows which outcomes let a request through, and the
+    # unauthorised one is not among them.
+    assert "unauthorised" not in compliance.allowed_outcomes()
+    assert "unavailable" in compliance.allowed_outcomes()
+
+    # Every outcome the policy describes has a rule string that names the
+    # decision it makes.
+    for outcome in compliance.ROBOTS_POLICY:
+        rule = compliance.rule_for(outcome)
+        assert (
+            rule
+            and rule != "robots.txt:allow"
+            or outcome
+            in {
+                "unavailable",
+                "not-applicable",
+            }
+        )

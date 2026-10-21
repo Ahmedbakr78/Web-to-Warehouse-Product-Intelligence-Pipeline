@@ -13,14 +13,14 @@ flowchart TB
         Q3["Blocking decision<br/>critical failures only"]
     end
 
-    V["20 analytical views<br/>vw_*"]
+    V["23 analytical views<br/>vw_*"]
     AN["Analytics service<br/>21 query functions"]
 
     subgraph P6B["6c Serve"]
         AU["Authenticate<br/>JWT or API key"]
         RB["Authorise<br/>role to rights"]
         VAL["Validate<br/>Pydantic models"]
-        EP["113 REST operations<br/>16 routers"]
+        EP["222 REST operations<br/>16 routers"]
         CSV["CSV export"]
     end
 

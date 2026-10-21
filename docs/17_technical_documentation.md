@@ -160,7 +160,7 @@ Depi_Ahmed_Abobakr_Project/
 │   │                 notifications, settings, audit, __init__.py
 │   └── cli/  __init__.py, main.py
 ├── db/
-│   └── views.sql              20 analytical views
+│   └── views.sql              23 analytical views
 ├── dags/
 │   └── product_intelligence_pipeline.py
 ├── scripts/
@@ -457,7 +457,7 @@ score           = round( Σ(weight × factor) / Σ(weight) × 100 , 2 )
 ```
 
 With the delivered dataset (22 pass, 2 warn, 0 fail; severities mostly `error` and `warn`) the score
-is **98.26**, identical on PostgreSQL and MySQL.
+is the same measured value on PostgreSQL and MySQL.
 
 ### 6.4 Gating
 
@@ -695,7 +695,7 @@ source statistics, sync state and every dashboard panel that is keyed by source.
 | Catalog reconciliation (57 SKUs) | 104 ms cold, 182 ms warm | After blocking; was 2,975 ms |
 | API p95 (12 read endpoints) | ≤ 38.2 ms | PostgreSQL, 8,302 snapshots |
 | `GET /products/facets` | 36.5 ms median | Five `GROUP BY` queries over `vw_product_current` |
-| `bootstrap()` | 23 tables + 20 views in ≈ 300 ms | PostgreSQL |
+| `bootstrap()` | 29 tables + 23 views in ≈ 300 ms | PostgreSQL |
 
 ### 9.2 Design choices that buy performance
 

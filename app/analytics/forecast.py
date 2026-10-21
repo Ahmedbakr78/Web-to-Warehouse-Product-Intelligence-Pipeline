@@ -585,6 +585,16 @@ def forecast_series(
 
     result = damped_holt_winters(values, horizon, period=period)
     forecast, widths, indices = result.values, result.widths, result.seasonal_indices
+    # A series shorter than three points cannot be fitted: the model repeats
+    # the last observation. Saying "damped_holt_winters" for that would dress
+    # a flat line up as a fitted projection, so the model is named for what
+    # actually produced the numbers.
+    model = "damped_holt_winters" if len(values) >= 3 else "flat_last_observation"
+    reason = (
+        None
+        if len(values) >= 3
+        else (f"only {len(values)} observation(s) - the last price is repeated, no model was fitted")
+    )
     scores = backtest(values, horizon, backtest_holdout, period=period) if len(values) > 20 else {}
 
     # Last date plus one day per horizon step.
@@ -610,7 +620,8 @@ def forecast_series(
 
     return Forecast(
         product_id=product_id,
-        model="damped_holt_winters",
+        model=model,
+        reason=reason,
         points=dated,
         mape_pct=scores.get("mape_pct"),
         mae=scores.get("mae"),

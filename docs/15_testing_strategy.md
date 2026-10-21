@@ -140,7 +140,7 @@ flowchart TB
 | TC-067 | Reconciliation | Price gap | Catalog 100, market 90 | `price_gap_abs = -10`, `price_gap_pct = -10` |
 | TC-068 | Reconciliation | Mismatch flag | Gap 2 % | `is_price_mismatch=True`; gap 0.5 % means False |
 | TC-069 | Reconciliation | Performance | 57 SKUs | Under 3 s (measured 104–182 ms) |
-| TC-070 | Bootstrap | Objects | `bootstrap()` | 23 tables, 20 views |
+| TC-070 | Bootstrap | Objects | `bootstrap()` | 29 tables, 23 views |
 | TC-071 | Bootstrap | Idempotence | Run twice | No error, no data loss |
 | TC-072 | Bootstrap | Views | Apply on MySQL | 20/20 applied, each in its own transaction |
 | TC-073 | Bootstrap | Reference data | `seed_dim_currency()` | 25 rows, all `rate_to_usd > 0` |
@@ -214,7 +214,7 @@ flowchart TB
 | IT-04 | `test_loader_change_detection` | Two runs with different prices | `chg_price_change` row with the right band | integration |
 | IT-05 | `test_removal_detection` | Seed `last_seen_at` 10 days ago | `removed` event, `is_active=False` | integration |
 | IT-06 | `test_reconciliation` | Seed 10 catalog rows | Match statuses plausible; gaps consistent | integration |
-| IT-07 | `test_bootstrap_views` | Empty database | 23 tables, 20 views; twice without error | integration |
+| IT-07 | `test_bootstrap_views` | Empty database | 29 tables, 23 views; twice without error | integration |
 | IT-08 | `test_dialect_parity` | PostgreSQL + MySQL | Structural tables identical | integration, slow |
 | IT-09 | `test_api_auth` | FastAPI `TestClient` | Login, `/me`, refresh, lockout | integration |
 | IT-10 | `test_api_rbac` | Three role tokens | 200/403/401 matrix correct | integration |
@@ -435,8 +435,8 @@ make everything                # install, env, databases, bootstrap, demo, run, 
 | Unit tests | The `tests/` directory is present and configured (`pyproject.toml`: `testpaths = ["tests"]`, markers `integration` and `slow`), but **no test modules are committed in this snapshot**; `make test` therefore collects 0 tests | `ls tests/` is empty |
 | Deduplication evaluation | The 14-pair evaluation is part of the project's own harness (assumption A3 in `docs/01`); the algorithm is independently reproducible with the snippet in `docs/05` §7.1 | measured 0.9700 / 0.8121 / 0.8034 |
 | API regression | **78/78 checks pass** (`scripts/api_smoke.py`) | Executed against the delivered system |
-| Cross-dialect verification | **No structural drift; DQ score 98.26 on both engines** | `make verify-dialects` |
-| Schema completeness | **23 tables, 20 views on both engines** | `GET /api/v1/meta/tables`, `GET /api/v1/queries/views` |
+| Cross-dialect verification | **Identical schema; the same measured DQ score on both engines** | `make verify-dialects` |
+| Schema completeness | **29 tables, 23 views on both engines** | `GET /api/v1/meta/tables`, `GET /api/v1/queries/views` |
 | Latency budget | **p95 ≤ 38.2 ms** across 12 endpoints | doc 05 §5 |
 | Run budget | **≈ 3.5 s** for the measured multi-source run | `etl_run.duration_ms` |
 

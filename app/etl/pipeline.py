@@ -208,7 +208,12 @@ class Pipeline:
 
     def _source_codes(self) -> list[str]:
         if self.config.sources:
-            return list(dict.fromkeys(self.config.sources))
+            # An explicit list may name a source that is not auto-selectable
+            # (a sandbox, a mock API) - that is the operator's choice. It may
+            # NOT name a source whose site terms forbid automated access: the
+            # Sources screen tells the user such a source is "excluded from
+            # every run", and that promise has to hold on this path too.
+            return self._reject_terms_blocked(list(dict.fromkeys(self.config.sources)))
         from app.ingestion.base import AUTO_SELECTABLE_TRUST, list_sources
         from app.ingestion.dynamic import enabled_dynamic_codes
 
@@ -236,6 +241,50 @@ class Pipeline:
         except Exception as exc:  # noqa: BLE001 - a dynamic lookup must not kill the run
             log.debug("dynamic source lookup skipped: %s", exc)
         return codes
+
+    def _reject_terms_blocked(self, codes: list[str]) -> list[str]:
+        """Drop sources whose site terms forbid automated access.
+
+        A source can be disabled for two different reasons: the operator
+        turned it off, or the terms of the site forbid polling it. The first is
+        a preference the operator may override by naming the source; the
+        second is a legal boundary, so it is refused however the source was
+        selected.
+        """
+        from app.core.errors import PipelineError
+        from app.ingestion.base import get_source_class
+        from app.ingestion.dynamic import is_dynamic_row
+
+        allowed: list[str] = []
+        blocked: list[str] = []
+        for code in codes:
+            try:
+                source = get_source_class(code)()
+                terms_ok = bool(source.terms_allowed)
+            except Exception:
+                # A dashboard-defined row: its own terms flag decides.
+                terms_ok = True
+                try:
+                    from app.core.db import session_scope
+                    from app.models.dimensions import DimSource
+
+                    database = (self.config.database or settings.active_database).lower()
+                    with session_scope(database) as session:
+                        row = session.get(DimSource, code)
+                        if row is not None and is_dynamic_row(row):
+                            terms_ok = bool(row.terms_allowed)
+                except Exception:  # pragma: no cover - a lookup must not kill the run
+                    terms_ok = True
+            if terms_ok:
+                allowed.append(code)
+            else:
+                blocked.append(code)
+        if blocked:
+            raise PipelineError(
+                "the site terms forbid automated access to: " + ", ".join(blocked),
+                details={"hint": "remove the source, or confirm the terms permit polling it"},
+            )
+        return allowed
 
     # ------------------------------------------------------------------ main
     def run(self) -> PipelineResult:

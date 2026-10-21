@@ -270,7 +270,10 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "name": "Price parser",
                 "detail": "Ranges, was/pricing text, thousands separators, 18+ currency symbols",
             },
-            {"name": "Currency conversion", "detail": "Live FX rates to USD from a free provider, with a static table as the fallback"},
+            {
+                "name": "Currency conversion",
+                "detail": "Live FX rates to USD from a free provider, with a static table as the fallback",
+            },
             {"name": "Rating parser", "detail": "Stars, counts, 0-5 scaling"},
             {"name": "Availability normaliser", "detail": "in_stock / out_of_stock / pre_order / unknown"},
             {"name": "Brand extraction", "detail": "Cleaned and validated against the product name"},

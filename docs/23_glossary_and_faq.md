@@ -385,7 +385,7 @@ score. Candidates are narrowed by blocking indexes before comparison. Above `DED
 | DQ011 | Timeliness | Fresh observation for every active product |
 | DQ012 | Validity | Staging rejection rate below 5 % |
 
-### Why is the score 98.26 and not 100?
+### Why is the score below 100?
 
 One rule returns `warn` rather than `pass`. The weighted score reflects that — a warning is not a
 failure, and a project that reports 100 % while a rule is warning is not measuring honestly. Check
@@ -508,7 +508,7 @@ to run on every save.
 ### Why do the docs quote specific numbers?
 
 Because each one is reproducible. 321 tests comes from `make test`, 78 smoke checks from
-`scripts/api_smoke.py`, 25 tables and 20 views from `make bootstrap`, and the DQ score from the
+`scripts/api_smoke.py`, 29 tables and 23 views from `make bootstrap`, and the DQ score from the
 Quality screen. A number nobody can reproduce is a number nobody should trust.
 
 ### How do I render the diagrams as SVG?

@@ -152,11 +152,23 @@ def summary(session: DbSession, _user: ReadUser, run_id: str | None = None) -> d
         .mappings()
         .all()
     )
+    # The catalogue is the retailer's own product list. When it still holds the
+    # generated placeholder rows, the screen says so - a price gap computed
+    # against a generated list price is not a finding about the market.
+    from app.etl.catalog_purge import demo_catalog_rows
+
+    catalogue_rows = len(demo_catalog_rows(session))
+    catalogue_total = int(
+        session.execute(sa.text("SELECT COUNT(*) FROM catalog_product")).scalar() or 0
+    )
     return {
         "totals": dict(totals),
         "by_strategy": [dict(row) for row in by_strategy],
         "by_supplier": [dict(row) for row in by_supplier],
         "run_id": run_id,
+        "catalogue_total": catalogue_total,
+        "catalogue_generated": catalogue_rows,
+        "catalogue_is_demo": catalogue_rows > 0,
     }
 
 
@@ -237,7 +249,14 @@ IMPORT_MAX_ROWS = 5000
 
 @router.get("/template", summary="Download a catalog-import CSV template")
 def import_template(_user: ReadUser) -> PlainTextResponse:
-    """Header plus two example rows, so a spreadsheet opens it correctly."""
+    """Header plus two example rows, so a spreadsheet opens it correctly.
+
+    The example rows are placeholders, and the file says so on every row: the
+    brand is ``Example``, the supplier is ``Main supplier`` and the URL is on
+    ``example.com``. A row that reached the catalogue with those values would
+    be a placeholder that was never replaced, and it has to be recognisable
+    as one.
+    """
     buffer = io.StringIO()
     writer = csv.DictWriter(buffer, fieldnames=list(IMPORT_COLUMNS))
     writer.writeheader()
@@ -246,7 +265,13 @@ def import_template(_user: ReadUser) -> PlainTextResponse:
     return PlainTextResponse(
         buffer.getvalue(),
         media_type="text/csv; charset=utf-8",
-        headers={"Content-Disposition": 'attachment; filename="catalog-template.csv"'},
+        headers={
+            "Content-Disposition": 'attachment; filename="catalog-template.csv"',
+            "X-Catalog-Template-Note": (
+                "The two data rows are PLACEHOLDERS. Replace them with your own "
+                "products, or delete them before importing."
+            ),
+        },
     )
 
 

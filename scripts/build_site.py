@@ -172,30 +172,45 @@ NAV_GROUPS: list[tuple[str, list[str]]] = [
     ),
 ]
 
-STATS = [
-    ("28", "physical tables"),
-    ("20", "analytical views"),
-    ("173", "REST operations"),
-    ("12", "data-quality rules"),
-    ("5", "ingestion sources"),
-    ("33", "Airflow tasks"),
-    ("397", "automated tests"),
-    ("104", "API smoke checks"),
-    ("233", "catalogued features"),
-    ("30", "documents"),
-    ("80", "Mermaid diagrams"),
-]
+
+#: The figures the site publishes, read from the measured snapshot instead of
+#: being written by hand. A literal list here was the reason the published site
+#: claimed "5 ingestion sources" and "233 catalogued features" while the code
+#: shipped 34 and 666.
+def _stat_rows() -> list[tuple[str, str]]:
+    import json
+
+    data: dict = {}
+    path = ROOT / "docs" / "stats.json"
+    if path.is_file():
+        data = json.loads(path.read_text(encoding="utf-8"))
+        data.pop("_comment", None)
+    wanted = (
+        ("physical_tables", "physical tables"),
+        ("analytical_views", "analytical views"),
+        ("rest_route_decorators", "REST operations"),
+        ("data_quality_rules", "data-quality rules"),
+        ("ingestion_sources", "ingestion sources"),
+        ("airflow_tasks", "Airflow tasks"),
+        ("test_cases", "automated tests"),
+        ("api_smoke_checks", "API smoke checks"),
+        ("catalogued_features", "catalogued features"),
+        ("documentation_documents", "documents"),
+        ("mermaid_diagrams", "Mermaid diagrams"),
+    )
+    return [(str(data.get(key, "-")), label) for key, label in wanted]
+
 
 PIPELINE_STEPS = [
     (
         "Retrieve",
         "robots.txt gate, token-bucket rate limit, circuit breaker, response cache, per-request audit",
     ),
-    ("Clean", "29 normalisation steps, 18+ currency formats, offline FX table, fixed vocabularies"),
+    ("Clean", "29 normalisation steps, 18+ currency formats, live FX rates, fixed vocabularies"),
     ("Load", "resumable staging, then idempotent dimension and fact merges on natural keys"),
     ("Detect", "price changes banded by magnitude, new/removed/recategorised events, catalog reconciliation"),
     ("Quality", "12 rules across 6 dimensions, weighted score persisted per run, 90-day trend"),
-    ("Serve", "113 REST operations, 20 dashboard screens, CSV/JSON exports, read-only query lab"),
+    ("Serve", "222 REST operations, 23 dashboard screens, CSV/JSON exports, read-only query lab"),
 ]
 
 QUICKSTART = [
@@ -204,11 +219,16 @@ QUICKSTART = [
         "make up && make db-wait",
         "PostgreSQL 16, MySQL 8.4, the API, Airflow and the dashboard",
     ),
-    ("Create the schema", "make bootstrap", "23 tables, 20 views, demo users and reference data"),
-    ("Load the demo dataset", "make demo-postgres", "130 products and 150 days of price history"),
+    ("Create the schema", "make bootstrap", "29 tables, 23 views, the bootstrap accounts and reference data"),
+    ("Collect real data", "make run-pipeline", "live permitted sources, real price snapshots"),
+    (
+        "Optional: demo dataset",
+        "make demo-postgres",
+        "SYNTHETIC products and 120 days of generated history - not market data",
+    ),
     ("Run the pipeline", "make run-pipeline", "Ingest, clean, load, detect changes and score quality"),
     ("Open the dashboard", "open http://localhost:5173", "admin@example.com / Admin@12345"),
-    ("Verify everything", "make check", "ruff, mypy and the 255-test suite"),
+    ("Verify everything", "make check", "ruff, mypy and the full test suite"),
 ]
 
 
@@ -1067,7 +1087,7 @@ def doc_page(fname: str, title: str, blurb: str) -> tuple[str, dict]:
 def landing_page() -> str:
     """The site home page: what this is, how to run it, and where to read next."""
     stats = "".join(
-        f'<div class="stat"><b>{v}</b><span>{html.escape(label)}</span></div>' for v, label in STATS
+        f'<div class="stat"><b>{v}</b><span>{html.escape(label)}</span></div>' for v, label in _stat_rows()
     )
     steps = "".join(
         f'<div class="step"><b><span class="num">{i}</span>{html.escape(n)}</b><p>{html.escape(d)}</p></div>'
@@ -1090,7 +1110,7 @@ def landing_page() -> str:
       <h1>{html.escape(TITLE)}</h1>
       <p>{html.escape(SUBTITLE)}. A DEPI data-engineering graduation project: a compliance-first
       crawler feeds a Kimball star schema on PostgreSQL and MySQL, twelve data-quality rules score
-      every load, and 113 REST operations with a React dashboard make the result explorable.</p>
+      every load, and 222 REST operations with a React dashboard make the result explorable.</p>
       <div class="cta">
         <a href="{QUICKSTART[0][1].split()[0] and "03_roles_and_responsibilities.html"}">Read the documentation</a>
         <a class="secondary" href="14_api_documentation.html">API reference</a>

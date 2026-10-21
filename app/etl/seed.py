@@ -36,6 +36,15 @@ log = get_logger(__name__)
 
 SEED_SALT = 20260101
 
+#: Every catalogue row the demo seeder writes carries this marker. The
+#: catalogue is the *retailer's* own product list, not market data, so a seeded
+#: one is a placeholder rather than a fake observation - but it has to be
+#: identifiable, and removable with one command.
+DEMO_CATALOG_ATTRIBUTES: dict[str, Any] = {
+    "catalog_origin": "demo-seed",
+    "note": "Generated placeholder catalogue - replace it with your own import.",
+}
+
 
 # --------------------------------------------------------------------------------------
 # Application users / settings
@@ -361,6 +370,7 @@ def seed_catalog(session: Session, products: Iterable[SeedProduct], *, match_rat
                     qty_on_hand=rng.randint(0, 400),
                     status="active",
                     product_url=f"https://internal.local/products/INT-{index + 1:05d}",
+                    attributes=DEMO_CATALOG_ATTRIBUTES,
                 )
             )
             created += 1
@@ -381,6 +391,7 @@ def seed_catalog(session: Session, products: Iterable[SeedProduct], *, match_rat
                 currency="USD",
                 qty_on_hand=rng.randint(0, 400),
                 status="active" if rng.random() > 0.08 else "discontinued",
+                attributes=DEMO_CATALOG_ATTRIBUTES,
             )
         )
         created += 1
@@ -426,6 +437,7 @@ def seed_extra_catalog_skus(session: Session, count: int = 60) -> int:
                 qty_on_hand=rng.randint(0, 400),
                 status="active" if rng.random() > 0.1 else "discontinued",
                 product_url=f"https://internal.local/products/{sku}",
+                attributes=DEMO_CATALOG_ATTRIBUTES,
             )
         )
         created += 1

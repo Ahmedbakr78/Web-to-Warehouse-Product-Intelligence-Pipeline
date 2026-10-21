@@ -688,8 +688,8 @@ curl -s &quot;localhost:8000/api/v1/analytics/kpi?days=30&quot; -H &quot;Authori
   },
   &quot;events&quot;: { &quot;recurring&quot;: 1710, &quot;new&quot;: 6, &quot;removed&quot;: 2, &quot;category_changed&quot;: 7 },
   &quot;quality&quot;: {
-    &quot;run_id&quot;: &quot;6d795cd6f43945a7b99bf123a5a6f1c3&quot;, &quot;rules_passed&quot;: 22,
-    &quot;rules_warned&quot;: 2, &quot;rules_failed&quot;: 0, &quot;rules_total&quot;: 24, &quot;dq_score&quot;: 98.26
+    &quot;run_id&quot;: &quot;24f334b0e01c49e39b936514345930df&quot;, &quot;rules_passed&quot;: 10,
+    &quot;rules_warned&quot;: 0, &quot;rules_failed&quot;: 2, &quot;rules_total&quot;: 12, &quot;dq_score&quot;: 86.05
   },
   &quot;catalog&quot;: { &quot;total&quot;: 285, &quot;matched&quot;: 195, &quot;price_mismatches&quot;: 180 },
   &quot;generated_at&quot;: &quot;2026-10-04T15:24:45Z&quot;
@@ -736,7 +736,7 @@ curl -s &quot;localhost:8000/api/v1/analytics/kpi?days=30&quot; -H &quot;Authori
 <pre class="code" data-lang="bash"><code>curl -s localhost:8000/api/v1/quality/latest -H &quot;Authorization: Bearer $TOKEN&quot; | jq</code></pre>
 <pre class="code" data-lang="json"><code>{
   &quot;run_id&quot;: &quot;6d795cd6f43945a7b99bf123a5a6f1c3&quot;,
-  &quot;total&quot;: 24, &quot;pass&quot;: 22, &quot;warn&quot;: 2, &quot;fail&quot;: 0, &quot;score&quot;: 98.26,
+  &quot;total&quot;: 12, &quot;pass&quot;: 10, &quot;warn&quot;: 0, &quot;fail&quot;: 2, &quot;score&quot;: 86.05, &quot;evaluated&quot;: true,
   &quot;evaluated_at&quot;: &quot;2026-03-04T03:08:12Z&quot;,
   &quot;rules&quot;: [
     { &quot;code&quot;: &quot;DQ001&quot;, &quot;name&quot;: &quot;Required fields populated&quot;, &quot;dimension&quot;: &quot;completeness&quot;,
@@ -779,7 +779,7 @@ curl -s &quot;localhost:8000/api/v1/analytics/kpi?days=30&quot; -H &quot;Authori
     &quot;new_products&quot;: 0, &quot;removed_products&quot;: 0, &quot;category_changes&quot;: 0,
     &quot;categories_created&quot;: 0, &quot;http_log_rows&quot;: 0
   },
-  &quot;quality&quot;: { &quot;total&quot;: 12, &quot;pass&quot;: 10, &quot;warn&quot;: 2, &quot;fail&quot;: 0, &quot;score&quot;: 98.26,
+  &quot;quality&quot;: { &quot;total&quot;: 12, &quot;pass&quot;: 10, &quot;warn&quot;: 0, &quot;fail&quot;: 2, &quot;score&quot;: 86.05, &quot;evaluated&quot;: true,
                &quot;blocking&quot;: [], &quot;errors&quot;: [] },
   &quot;reconciliation&quot;: { &quot;total&quot;: 57, &quot;matched&quot;: 39, &quot;unmatched&quot;: 18, &quot;match_rate_pct&quot;: 68.42,
                       &quot;price_mismatches&quot;: 36, &quot;avg_similarity&quot;: 1.0,
@@ -793,7 +793,7 @@ curl -s &quot;localhost:8000/api/v1/analytics/kpi?days=30&quot; -H &quot;Authori
     { &quot;stage&quot;: &quot;detect&quot;, &quot;duration_ms&quot;: 1.9, &quot;rows&quot;: 0, &quot;detail&quot;: &quot;0 new, 0 price changes, 0 removed, 0 category changes&quot; },
     { &quot;stage&quot;: &quot;aggregate&quot;, &quot;duration_ms&quot;: 5.2, &quot;rows&quot;: 18, &quot;detail&quot;: &quot;18 category-day aggregates&quot; },
     { &quot;stage&quot;: &quot;reconcile&quot;, &quot;duration_ms&quot;: 182.0, &quot;rows&quot;: 57, &quot;detail&quot;: &quot;39/57 catalog SKUs matched&quot; },
-    { &quot;stage&quot;: &quot;quality&quot;, &quot;duration_ms&quot;: 8.7, &quot;rows&quot;: 12, &quot;detail&quot;: &quot;score 98.26 (10 pass / 2 warn / 0 fail)&quot; }
+    { &quot;stage&quot;: &quot;quality&quot;, &quot;duration_ms&quot;: 8.7, &quot;rows&quot;: 12, &quot;detail&quot;: &quot;score 86.05 (10 pass / 0 warn / 2 fail)&quot; }
   ],
   &quot;warnings&quot;: [],
   &quot;sources_processed&quot;: [&quot;local_demo&quot;],

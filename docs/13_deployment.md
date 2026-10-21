@@ -176,7 +176,7 @@ flowchart TB
     end
 
     subgraph ASSETS["Repository assets"]
-        SQL[("db/views.sql<br/>20 views")]
+        SQL[("db/views.sql<br/>23 views")]
         DAG["dags/product_intelligence_pipeline.py"]
         MK["Makefile"]
         ENV[(".env.example")]
@@ -341,7 +341,7 @@ behind TLS; keep 5432, 3306 and 8080 on an internal network reachable only by th
 cp .env.example .env                 # then edit SECRET_KEY and credentials
 make install                         # venv + dependencies [postgres,mysql,dev,scrapy]
 make up-db && make db-wait           # databases only
-make bootstrap                       # 23 tables + 20 views + reference data
+make bootstrap                       # 29 tables + 23 views + reference data
 make demo-postgres                   # demo dataset (optional but recommended)
 make demo-mysql                      # the same dataset on MySQL
 make run-pipeline                    # one live multi-source run
@@ -489,7 +489,7 @@ docker compose start api airflow airflow-scheduler
 | RPO | ≤ 24 h (daily dump) | The warehouse is rebuilt by the next pipeline run |
 | RTO | ≤ 60 min | Restore is a single `pg_restore` plus `init-db` |
 | Drill frequency | Every sprint in the final three sprints | Rehearsed on a scratch database, not on production |
-| Verified recovery | Row counts compared with `app.cli.main status` | 23 tables, 20 views, DQ score equal to the recorded value |
+| Verified recovery | Row counts compared with `app.cli.main status` | 29 tables, 23 views, DQ score equal to the recorded value |
 
 The **fact tables are recoverable by re-running the pipeline**: because extraction is polite and
 cached, a rebuild costs minutes. Only the *account* tables (`app_*`), `catalog_product`, `dim_date`
@@ -551,8 +551,8 @@ and `dim_currency` are irreplaceable by re-running, which is why they are inside
 | --- | --- | --- | --- |
 | API liveness | `GET /api/v1/health` | `status != ok` | Restart the container |
 | API readiness | `GET /api/v1/health/ready` | `ready = false` | Check the database and the schema |
-| Object completeness | `GET /api/v1/meta/tables` | ≠ 23 tables | Run `init-db` |
-| View completeness | `GET /api/v1/queries/views` | ≠ 20 views | Run `init-db` |
+| Object completeness | `GET /api/v1/meta/tables` | ≠ 29 tables | Run `init-db` |
+| View completeness | `GET /api/v1/queries/views` | ≠ 23 views | Run `init-db` |
 | Data freshness | `GET /api/v1/quality/latest` reports `DQ007` | > 24 h warn, > 48 h fail | Trigger a run |
 | DQ score | `GET /api/v1/quality/latest` | < 80 | Investigate the failing rules |
 | Run failures | `GET /api/v1/pipeline/runs?status=failed` | Any | Read `error_message`, re-run |

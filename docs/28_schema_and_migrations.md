@@ -18,8 +18,8 @@ convenient and wrong in three specific ways:
 3. **Silent drift.** Adding a column to a model does nothing to an existing
    database, so the schema and the code quietly diverge until a query fails.
 
-Alembic fixes all three. `migrations/versions/0001_initial` creates **28
-tables** and applies the **20 analytical views**, so an empty database reaches
+Alembic fixes all three. `migrations/versions/0001_initial` creates **29
+tables** and applies the **23 analytical views**, so an empty database reaches
 exactly the state the application expects.
 
 ---
@@ -56,8 +56,8 @@ flowchart TD
   autogen --> exclude[exclude foreign tables]
   exclude --> revision[revision file, reviewed by hand]
   revision --> apply[alembic upgrade head]
-  apply --> tables[28 tables]
-  apply --> views[20 views]
+  apply --> tables[29 tables]
+  apply --> views[23 views]
 ```
 
 ---
@@ -94,9 +94,9 @@ runtime and they are not fixtures — the initial revision applies them through
 
 ```mermaid
 flowchart LR
-  raw[(28 base tables)] --> facts[(fact_* tables)]
+  raw[(29 base tables)] --> facts[(fact_* tables)]
   raw --> dims[(dim_* tables)]
-  facts --> views[20 analytical views]
+  facts --> views[23 analytical views]
   dims --> views
   views --> api[REST API]
   views --> reports[reports]
@@ -129,7 +129,7 @@ autogenerate has nothing foreign to exclude beyond the version tables.
 
 | Check | Result |
 | --- | --- |
-| `alembic upgrade head` on an empty database | Creates all 28 tables and applies the 20 views |
+| `alembic upgrade head` on an empty database | Creates all 29 tables and applies the 23 views |
 | `alembic upgrade head` again | No-op, idempotent |
 | `alembic downgrade -1` | Drops the views and tables cleanly |
 | `alembic check` | No drift |

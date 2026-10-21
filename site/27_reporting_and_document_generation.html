@@ -84,7 +84,7 @@
 <p>Report builders usually fail in one of two ways. Either the PDF is written with its own layout code and quietly drifts from the screen, or the export is defined twice — once for display and once for download — and the two disagree within a release.</p>
 <p>The fix is structural: <strong>a report is a list of typed blocks</strong>, and every format is a renderer over that one list.</p>
 <pre class="mermaid">flowchart LR
-  views[(20 analytical views)] --&gt; template[template function]
+  views[(23 analytical views)] --&gt; template[template function]
   template --&gt; blocks[typed blocks]
   blocks --&gt; screen[React block renderer]
   blocks --&gt; html[server-side HTML]

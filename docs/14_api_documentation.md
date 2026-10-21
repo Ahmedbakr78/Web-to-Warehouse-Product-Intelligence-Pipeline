@@ -447,8 +447,8 @@ curl -s "localhost:8000/api/v1/analytics/kpi?days=30" -H "Authorization: Bearer 
   },
   "events": { "recurring": 1710, "new": 6, "removed": 2, "category_changed": 7 },
   "quality": {
-    "run_id": "6d795cd6f43945a7b99bf123a5a6f1c3", "rules_passed": 22,
-    "rules_warned": 2, "rules_failed": 0, "rules_total": 24, "dq_score": 98.26
+    "run_id": "24f334b0e01c49e39b936514345930df", "rules_passed": 10,
+    "rules_warned": 0, "rules_failed": 2, "rules_total": 12, "dq_score": 86.05
   },
   "catalog": { "total": 285, "matched": 195, "price_mismatches": 180 },
   "generated_at": "2026-10-04T15:24:45Z"
@@ -528,7 +528,7 @@ curl -s localhost:8000/api/v1/quality/latest -H "Authorization: Bearer $TOKEN" |
 ```json
 {
   "run_id": "6d795cd6f43945a7b99bf123a5a6f1c3",
-  "total": 24, "pass": 22, "warn": 2, "fail": 0, "score": 98.26,
+  "total": 12, "pass": 10, "warn": 0, "fail": 2, "score": 86.05, "evaluated": true,
   "evaluated_at": "2026-03-04T03:08:12Z",
   "rules": [
     { "code": "DQ001", "name": "Required fields populated", "dimension": "completeness",
@@ -588,7 +588,7 @@ curl -s -X POST localhost:8000/api/v1/pipeline/run/sync \
     "new_products": 0, "removed_products": 0, "category_changes": 0,
     "categories_created": 0, "http_log_rows": 0
   },
-  "quality": { "total": 12, "pass": 10, "warn": 2, "fail": 0, "score": 98.26,
+  "quality": { "total": 12, "pass": 10, "warn": 0, "fail": 2, "score": 86.05, "evaluated": true,
                "blocking": [], "errors": [] },
   "reconciliation": { "total": 57, "matched": 39, "unmatched": 18, "match_rate_pct": 68.42,
                       "price_mismatches": 36, "avg_similarity": 1.0,
@@ -602,7 +602,7 @@ curl -s -X POST localhost:8000/api/v1/pipeline/run/sync \
     { "stage": "detect", "duration_ms": 1.9, "rows": 0, "detail": "0 new, 0 price changes, 0 removed, 0 category changes" },
     { "stage": "aggregate", "duration_ms": 5.2, "rows": 18, "detail": "18 category-day aggregates" },
     { "stage": "reconcile", "duration_ms": 182.0, "rows": 57, "detail": "39/57 catalog SKUs matched" },
-    { "stage": "quality", "duration_ms": 8.7, "rows": 12, "detail": "score 98.26 (10 pass / 2 warn / 0 fail)" }
+    { "stage": "quality", "duration_ms": 8.7, "rows": 12, "detail": "score 86.05 (10 pass / 0 warn / 2 fail)" }
   ],
   "warnings": [],
   "sources_processed": ["local_demo"],

@@ -143,7 +143,7 @@
     end
 
     subgraph DATA[&quot;Data plane — app/models&quot;]
-        WH[(&quot;25 tables · 20 views&quot;)]
+        WH[(&quot;29 tables · 23 views&quot;)]
     end
 
     WEB --&gt; HTTP
@@ -212,7 +212,7 @@
         S1[&quot;Seeded PRNG, fixed date&quot;] --&gt; S2[&quot;Identical output every time&quot;]
         S2 --&gt; S3[&quot;Same charts, same numbers, every rehearsal&quot;]
     end
-    Live -.both write the same.-&gt; WH[(&quot;25 tables&quot;)]
+    Live -.both write the same.-&gt; WH[(&quot;29 tables&quot;)]
     Seeded -.schema and DQ.-&gt; WH</pre>
 <p>A demo where the numbers move between rehearsals is a demo that cannot be rehearsed. Live ingestion still exists and is fully exercised — it just is not what the presentation depends on.</p>
 <h3 id="35-fuzzy-matching-with-a-blocking-index-not-a-naive-scan">3.5 Fuzzy matching with a blocking index, not a naive scan</h3>
@@ -297,7 +297,7 @@
         CE[&quot;chg_product_event&quot;]
     end
     subgraph SERVE[&quot;6 · Views — the only read surface&quot;]
-        VW[&quot;20 analytical views&quot;]
+        VW[&quot;23 analytical views&quot;]
     end
 
     STG --&gt; CONFORM --&gt; FACT --&gt; AGG --&gt; VW

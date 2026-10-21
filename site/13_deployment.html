@@ -448,7 +448,7 @@
     end
 
     subgraph ASSETS[&quot;Repository assets&quot;]
-        SQL[(&quot;db/views.sql&lt;br/&gt;20 views&quot;)]
+        SQL[(&quot;db/views.sql&lt;br/&gt;23 views&quot;)]
         DAG[&quot;dags/product_intelligence_pipeline.py&quot;]
         MK[&quot;Makefile&quot;]
         ENV[(&quot;.env.example&quot;)]
@@ -1019,7 +1019,7 @@
 <pre class="code" data-lang="bash"><code>cp .env.example .env                 # then edit SECRET_KEY and credentials
 make install                         # venv + dependencies [postgres,mysql,dev,scrapy]
 make up-db &amp;&amp; make db-wait           # databases only
-make bootstrap                       # 23 tables + 20 views + reference data
+make bootstrap                       # 29 tables + 23 views + reference data
 make demo-postgres                   # demo dataset (optional but recommended)
 make demo-mysql                      # the same dataset on MySQL
 make run-pipeline                    # one live multi-source run
@@ -1241,7 +1241,7 @@ docker compose start api airflow airflow-scheduler
 <tr>
 <th>Verified recovery</th>
 <td>Row counts compared with <code>app.cli.main status</code></td>
-<td>23 tables, 20 views, DQ score equal to the recorded value</td>
+<td>29 tables, 23 views, DQ score equal to the recorded value</td>
 </tr>
 </tbody></table></div>
 <p>The <strong>fact tables are recoverable by re-running the pipeline</strong>: because extraction is polite and cached, a rebuild costs minutes. Only the <em>account</em> tables (<code>app_*</code>), <code>catalog_product</code>, <code>dim_date</code> and <code>dim_currency</code> are irreplaceable by re-running, which is why they are inside the same dump.</p>
@@ -1426,13 +1426,13 @@ docker compose start api airflow airflow-scheduler
 <tr>
 <th>Object completeness</th>
 <td><code>GET /api/v1/meta/tables</code></td>
-<td>≠ 23 tables</td>
+<td>≠ 29 tables</td>
 <td>Run <code>init-db</code></td>
 </tr>
 <tr>
 <th>View completeness</th>
 <td><code>GET /api/v1/queries/views</code></td>
-<td>≠ 20 views</td>
+<td>≠ 23 views</td>
 <td>Run <code>init-db</code></td>
 </tr>
 <tr>

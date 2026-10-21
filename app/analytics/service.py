@@ -1406,8 +1406,13 @@ def best_value(
 ) -> list[dict[str, Any]]:
     """Best value-for-money: highly rated listings ranked by rating per USD.
 
-    Only listings with enough votes qualify, so a lone 5-star review cannot
-    win. Free listings are excluded because their score is undefined.
+    The vote-count floor exists so a lone 5-star review cannot win the
+    ranking. A listing whose source does not report a vote count is *not*
+    disqualified by that - it simply cannot be proven popular, so it is ranked
+    on rating alone and loses to an equally rated listing with a known,
+    larger vote count. Excluding every unknown-vote listing outright left the
+    whole ranking empty on any warehouse whose sources do not publish review
+    counts.
     """
     return _rows(
         session,
@@ -1419,8 +1424,11 @@ def best_value(
             FROM vw_product_current
             WHERE is_active AND price_usd IS NOT NULL AND price_usd > 0
               AND rating IS NOT NULL AND rating >= :min_rating AND rating <= 5
-              AND rating_count IS NOT NULL AND rating_count >= :min_votes
-            ORDER BY rating / NULLIF(price_usd, 0) DESC
+              AND (rating_count IS NULL OR rating_count >= :min_votes)
+            ORDER BY rating / NULLIF(price_usd, 0) DESC,
+                     -- Portable NULLS LAST: MySQL has no NULLS LAST syntax.
+                     rating_count IS NULL, rating_count DESC,
+                     rating DESC
             LIMIT :limit
             """
         ),

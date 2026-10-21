@@ -81,7 +81,7 @@
 <h2 id="purpose">Purpose</h2>
 <p>This document is the complete feature inventory of the Web-to-Warehouse Product Intelligence Pipeline: 604 features grouped into forty-seven areas, each with a one-line description and a reference to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an endpoint, a CLI command or a documented design decision. Nothing here is aspirational.</p>
 <p>This inventory is the <em>engineering</em> index: it names the file behind every capability. The dashboard's own Feature Catalogue is served by <code>GET /api/v1/meta/features</code> and groups the same platform into a smaller number of user-facing areas, so the two numbers are measured on different axes and are reported separately by <code>python3 scripts/project_stats.py</code>.</p>
-<p><strong>Scale of the system, measured:</strong> 35 ingestion sources · 29 physical tables · 23 analytical views · 12 data-quality rules across 6 dimensions · 222 REST route decorators in 24 routers · 9 pipeline stages · 33 Airflow task callables · 6 Docker Compose services · 34 numbered documents · 88 Mermaid diagrams · 594 automated tests · 104 end-to-end API smoke checks.</p>
+<p><strong>Scale of the system, measured:</strong> 34 ingestion sources · 29 physical tables · 23 analytical views · 12 data-quality rules across 6 dimensions · 222 REST route decorators in 24 routers · 9 pipeline stages · 33 Airflow task callables · 6 Docker Compose services · 34 numbered documents · 88 Mermaid diagrams · 594 automated tests · 104 end-to-end API smoke checks.</p>
 <p>Regenerate the numbers above with <code>python3 scripts/project_stats.py</code>.</p>
 <hr>
 <h2 id="table-of-contents">Table of contents</h2>
@@ -1086,7 +1086,7 @@
 <tr>
 <th>F-146</th>
 <td>Table inventory API</td>
-<td>23 tables grouped into the six logical groups</td>
+<td>29 tables grouped into the six logical groups</td>
 <td><code>GET /api/v1/meta/tables</code></td>
 </tr>
 </tbody></table></div>
@@ -2128,7 +2128,7 @@
 <p>| F-306 | Review ownership | Explicit code ownership so every change has a named reviewer | <code>.github/CODEOWNERS</code> |</p>
 <p>| F-307 | Measurement provenance | The README and docs index state which figures are structural and re-verifiable and which are measurements that vary with data volume and hardware, so a number is never presented as a constant when it is not one | <code>README.md</code>, <code>docs/README.md</code> |</p>
 <p>| F-308 | Architecture rationale with rejected alternatives | Every significant decision records what was chosen, what was rejected, why, and the measured consequence — including the 29× reconciliation optimisation that preserved identical output | <code>docs/21_architecture_deep_dive.md</code> |</p>
-<p>| F-309 | Complete data dictionary | All 23 tables with every column, type, nullability and meaning, plus controlled vocabularies, magnitude bands, the view catalogue and a dialect-portability table | <code>docs/22_data_dictionary.md</code> |</p>
+<p>| F-309 | Complete data dictionary | All 29 tables with every column, type, nullability and meaning, plus controlled vocabularies, magnitude bands, the view catalogue and a dialect-portability table | <code>docs/22_data_dictionary.md</code> |</p>
 <p>| F-310 | Glossary and FAQ | Defined terms and questions across setup, the pipeline, data quality, security and development — including how to add a source in six steps | <code>docs/23_glossary_and_faq.md</code> |</p>
 <p>| F-311 | Demo runbook | Screen-by-screen live demo script with exact URLs, the sentence worth saying at each step, time-boxed 3/5/8-minute variants, a pre-flight checklist, the five questions that always get asked, and a failure playbook that falls back to <code>curl</code> when the browser dies | <code>docs/24_demo_runbook.md</code> |</p>
 <p><strong>Final total: 295 features across 17 areas</strong> (F-001 to F-295). Section 17 adds the export, webhook, backfill and run-comparison capabilities shipped in v1.4.</p>
@@ -2642,7 +2642,7 @@
 </tr>
 <tr>
 <th>F-389</th>
-<td>80 Mermaid diagrams</td>
+<td>88 Mermaid diagrams</td>
 <td>Context, stack, sequences, DAG, ER, DFD, deployment — rendered to SVG</td>
 <td><code>Makefile</code> <code>scripts/project_stats.py</code> <code>website/index.html</code></td>
 </tr>
