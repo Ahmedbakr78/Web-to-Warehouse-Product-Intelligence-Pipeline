@@ -157,7 +157,11 @@ jobs:
           MYSQL_URL: ""
           SEED_ADMIN_EMAIL: admin@example.com
           SEED_ADMIN_PASSWORD: Admin@12345
-        run: python -m app.cli.main bootstrap --days 30
+        # The smoke test has to run against a warehouse that holds rows, or
+        # half its checks are skipped for want of data. The seeded dataset is a
+        # *test* fixture: it is created here, in a throwaway CI database, and
+        # never reaches a deployment. The default bootstrap seeds nothing.
+        run: python -m app.cli.main bootstrap --with-demo-data --days 30
 
       - name: Smoke test every endpoint
         env:
