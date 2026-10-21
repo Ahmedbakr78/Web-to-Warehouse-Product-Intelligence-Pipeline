@@ -175,7 +175,7 @@ step "Fetching LIVE records from real sources (network proof, no DB)"
 if [ "$OFFLINE" -eq 1 ]; then
   info "offline mode — skipping live fetch (synthetic source used below instead)"
 else
-  "$PY" - "$SOURCES" "$REAL_LIMIT" <<'PY'
+  "$PY" - "$SOURCES" "${SMOKE_LIMIT:-5}" <<'PY'
 import sys
 import time
 
@@ -216,12 +216,21 @@ for code in sys.argv[1].split(","):
     source = registry[code]
     assert source.get("data_trust") == DATA_TRUST_REAL, f"{code} is not a real source"
     assert source.get("terms_allowed", True), f"{code} is terms-blocked"
+    # The source is named before the request, so a slow upstream is visible
+    # while it happens instead of looking like a hung step.
+    print(f"    {code}: fetching...", flush=True)
+    started = time.monotonic()
     rows, attempts = fetch_with_retry(code)
+    elapsed = time.monotonic() - started
     assert rows, f"REAL source returned 0 records on {attempts} attempts: {code}"
     assert all((r.name or "").strip() for r in rows), f"blank names from {code}"
     total += len(rows)
     suffix = f" (took {attempts} attempts)" if attempts > 1 else ""
-    print(f"    {code}: {len(rows)} live records{suffix}, e.g. {rows[0].name[:60]!r}")
+    print(
+        f"    {code}: {len(rows)} live records{suffix} in {elapsed:.1f}s"
+        f", e.g. {rows[0].name[:60]!r}",
+        flush=True,
+    )
 print(f"    TOTAL live records: {total} (all real, zero synthetic)")
 PY
   ok "live real-source smoke passed"
