@@ -34,7 +34,15 @@ VENV="${VENV:-.venv}"
 PY="$VENV/bin/python"
 REAL_SOURCES="${REAL_SOURCES:-openlibrary_books,gutendex_books,itunes_ebooks,itunes_apps,steam_store,cheapshark_deals,openfoodfacts_prices,tvmaze_shows}"
 REAL_LIMIT="${REAL_LIMIT:-40}"
-SQLITE_DB="${SQLITE_DB:-/tmp/pip-real-test.db}"
+# The verification warehouses are unique per run.
+#
+# A fixed path means two verification runs - or a verification run and a local
+# `pytest` - write the same SQLite file at the same time, and the loser sees a
+# wall of "UNIQUE constraint failed" errors that have nothing to do with its
+# own code. A unique path removes the collision entirely.
+RUN_ID="$$-$(date +%s)"
+SQLITE_DB="${SQLITE_DB:-/tmp/pip-real-test-$RUN_ID.db}"
+TEST_DB="${SQLITE_DB%.db}-tests.db"
 export SQLITE_DB
 VERSION="$(cat VERSION 2>/dev/null || echo dev)"
 
@@ -157,7 +165,7 @@ else
   # One run, not two: every test gets its own copy of the seeded warehouse, so
   # the suite no longer depends on the order the files are collected in.
   run_step "backend tests (full suite, SQLite)" 3 \
-    env PIP_TEST_DATABASE_URL="${PIP_TEST_DATABASE_URL:-sqlite:///$SQLITE_DB-tests}" \
+    env PIP_TEST_DATABASE_URL="${PIP_TEST_DATABASE_URL:-sqlite:///$TEST_DB}" \
     "$PY" -m pytest tests/ --tb=short -q
 fi
 ok "backend tests passed"
@@ -345,6 +353,12 @@ else
 fi
 
 # ---------------------------------------------------------------- summary
+# The verification warehouses are scratch space: they are removed on the way out
+# so a run never leaves hundreds of megabytes behind.
+rm -f "$SQLITE_DB" "$SQLITE_DB-wal" "$SQLITE_DB-shm" \
+      "$TEST_DB" "$TEST_DB-wal" "$TEST_DB-shm" \
+      "${SQLITE_DB%.db}-selftest.db" "${SQLITE_DB%.db}-selftest.db-wal" "${SQLITE_DB%.db}-selftest.db-shm"
+
 printf '\n%s%sFULL APP TEST: PASS%s\n' "$GREEN" "$BOLD" "$NC"
 printf '  mode      %s\n' "$MODE"
 printf '  sources   %s (limit %s/source)\n' "$SOURCES" "$REAL_LIMIT"
