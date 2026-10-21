@@ -97,9 +97,12 @@ jobs:
         env:
           DATABASE_URL: postgresql+psycopg2://pip:pip@127.0.0.1:5432/pipeline_test
           MYSQL_URL: mysql+pymysql://pip:pip@127.0.0.1:3306/pipeline_test?charset=utf8mb4
+        # Both engines are loaded with the same deterministic dataset, so the
+        # cross-dialect comparison below compares like with like. The seed is
+        # a test fixture in a throwaway CI database.
         run: |
-          python -m app.cli.main bootstrap --database postgres --days 30
-          python -m app.cli.main bootstrap --database mysql --days 30
+          python -m app.cli.main bootstrap --database postgres --with-demo-data --days 30
+          python -m app.cli.main bootstrap --database mysql --with-demo-data --days 30
 
       - name: Run the pipeline on both targets
         env:
