@@ -68,12 +68,18 @@ export function preloadScreens(): () => void {
     // page, a closed tab. Nothing is left to preload into, so stop here rather
     // than schedule work that will throw.
     if (typeof window === 'undefined') return
-    const host = window as Window & {
+    // A plain shape rather than an intersection with `Window`: narrowing an
+    // optional member of an intersection collapses the whole type to `never`
+    // in the else branch, which takes `setTimeout` with it.
+    type IdleHost = {
       requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number
       cancelIdleCallback?: (id: number) => void
+      setTimeout: (cb: () => void, ms: number) => number
     }
-    if (typeof host.requestIdleCallback === 'function') {
-      const id = host.requestIdleCallback(callback, { timeout: 2500 })
+    const host = window as unknown as IdleHost
+    const idle = host.requestIdleCallback
+    if (typeof idle === 'function') {
+      const id = idle(callback, { timeout: 2500 })
       pending = { kind: 'idle', id }
     } else {
       const id = host.setTimeout(callback, 600)

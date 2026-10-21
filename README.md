@@ -323,6 +323,39 @@ That single command does the whole thing:
 ./run.sh --help          # every option
 ```
 
+### The local links
+
+Once `./run.sh` has finished, these are the addresses to open:
+
+| What | URL | Notes |
+| --- | --- | --- |
+| **Dashboard** | **http://localhost:5173** | The React application. Sign in with `admin@example.com` / `Admin@12345` |
+| **REST API** | **http://localhost:8000/api/v1** | The base path; every operation is under it |
+| **API health** | http://localhost:8000/api/v1/health | JSON: database, dialect, latency and the source registry |
+| **Interactive API docs** | http://localhost:8000/docs | Swagger UI, generated from the code |
+| **ReDoc reference** | http://localhost:8000/redoc | The same contract, rendered as reference documentation |
+| **OpenAPI schema** | http://localhost:8000/openapi.json | The machine-readable contract |
+| **Airflow** | http://localhost:8080 | The DAG, the schedule and the run history (`admin` / `admin`) |
+| **PostgreSQL** | `localhost:5432` | `pipeline` database, `pip` / `pip` |
+| **MySQL** | `localhost:3306` | `pipeline` database, `pip` / `pip` |
+
+The dashboard talks to the API through the same origin, so there is nothing to configure and no
+CORS to set up. If a port is already taken, change it in `.env` (`API_PORT`, `FRONTEND_PORT`,
+`AIRFLOW_PORT`) and run `./run.sh` again.
+
+The documentation site is a separate static build, because it is generated from `docs/` and is
+not part of the running application:
+
+```bash
+make site-serve         # builds docs/ into site/ and serves it on http://localhost:8001
+```
+
+To see the health of every service at any time:
+
+```bash
+./run.sh --status        # or: docker compose ps
+```
+
 ### Option A - full stack in Docker (recommended)
 
 ```bash

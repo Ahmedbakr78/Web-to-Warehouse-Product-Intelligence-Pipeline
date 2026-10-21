@@ -59,7 +59,10 @@ export default function QueryHistoryPanel({ onLoad }: { onLoad: (sql: string) =>
     onError: (error: Error) => toast.error('Could not clear history', error.message),
   })
 
-  const entries: any[] = history.data ?? []
+  // The endpoint returns a list, but `?? []` only covers null and undefined:
+  // a paginated envelope or an error object would reach `.some` and throw
+  // during render, which blanks the whole screen instead of one panel.
+  const entries: any[] = Array.isArray(history.data) ? history.data : []
   const visible = filter === 'snippets' ? entries.filter((entry) => entry.is_saved) : entries
 
   return (
