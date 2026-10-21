@@ -11,6 +11,7 @@
 #   ./run.sh --stop          stop the stack (data kept)
 #   ./run.sh --clean         stop the stack and delete volumes
 #   ./run.sh --status        health of every service
+#   ./run.sh --logs [name]   follow one service's logs (api, frontend, …)
 #   ./run.sh --help          this help
 #
 # What "full" means here:
@@ -47,7 +48,8 @@ for arg in "$@"; do
     --no-verify) VERIFY=0 ;;
     --offline|--quick|--no-frontend) VERIFY_ARGS+=("$arg") ;;
     --stop|--clean|--status) VERIFY=0; LAUNCH=1; LOCAL_ARGS+=("$arg"); ACTION="${arg#--}" ;;
-    --rebuild|--reset|--no-seed|--open) LOCAL_ARGS+=("$arg") ;;
+    --logs) VERIFY=0; LAUNCH=1; LOCAL_ARGS+=("$arg"); ACTION="logs" ;;
+    --rebuild|--reset|--no-seed|--seed|--open) LOCAL_ARGS+=("$arg") ;;
     -h|--help)
       sed -n '2,35p' "$0" | sed 's/^# \?//'
       exit 0 ;;
