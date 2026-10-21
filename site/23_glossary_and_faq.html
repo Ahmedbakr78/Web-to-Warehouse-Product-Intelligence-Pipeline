@@ -82,7 +82,7 @@
 <hr>
 <h2 id="part-1--glossary">Part 1 — Glossary</h2>
 <h3 id="a">A</h3>
-<p><strong>Airflow DAG</strong> — the directed acyclic graph in <code>dags/product_intelligence_pipeline.py</code> that orchestrates the run: 13 tasks, with a real branch that skips notification when no changes were detected.</p>
+<p><strong>Airflow DAG</strong> — the directed acyclic graph in <code>dags/product_intelligence_pipeline.py</code> that orchestrates the run: 33 task callables, with a real branch that skips notification when no changes were detected.</p>
 <p><strong>Analytical view</strong> — a named <code>SELECT</code> stored in the database (<code>db/views.sql</code>). Views are the only read surface the API and query lab use, which keeps query logic in one place instead of scattered across endpoints.</p>
 <p><strong>Argon2id</strong> — the password hashing algorithm used for <code>app_user.hashed_password</code>. Memory-hard, and currently the recommended choice for password storage.</p>
 <p><strong>Availability</strong> — the normalised stock state of a product, from the closed vocabulary <code>in_stock</code>, <code>out_of_stock</code>, <code>backorder</code>, <code>preorder</code>, <code>discontinued</code>, <code>unknown</code>.</p>

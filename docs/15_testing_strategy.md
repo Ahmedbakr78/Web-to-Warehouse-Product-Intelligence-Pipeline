@@ -169,7 +169,7 @@ flowchart TB
 | TC-096 | Non-functional | Run duration | Full multi-source run | < 600 s (measured ≈ 3.5 s) |
 | TC-097 | Non-functional | Headers | Any response | `X-Process-Time-Ms` and `X-Database` present |
 | TC-098 | Non-functional | Gzip | Response > 1 KB | `content-encoding: gzip` |
-| TC-099 | Regression | Smoke suite | All 78 checks | 78/78 pass |
+| TC-099 | Regression | Smoke suite | All 78 checks | 104/104 pass |
 | TC-100 | Regression | Cross-dialect | `make verify-dialects` | No structural drift, equal DQ score |
 
 ---
@@ -222,7 +222,7 @@ flowchart TB
 | IT-12 | `test_api_query_lab` | Analyst token | `SELECT` 200; `DELETE` 422; `SELECT`+`;` 422 | integration |
 | IT-13 | `test_api_pipeline_trigger` | Analyst token | `run/sync` with `limit_per_source=2` returns a result | integration |
 | IT-14 | `test_csv_export` | Seeded dataset | Header plus N rows, correct `Content-Disposition` | integration |
-| IT-15 | `test_airflow_dag` | Airflow installed | DAG imports, `AIRFLOW_AVAILABLE`, 13 tasks | slow |
+| IT-15 | `test_airflow_dag` | Airflow installed | DAG imports, `AIRFLOW_AVAILABLE`, 33 task callables | slow |
 | IT-16 | `test_source_preview` | `local_demo`, `limit=3` | 3 cleaned records, 0 http calls | integration |
 
 ---
@@ -305,9 +305,9 @@ Coverage is produced by `make test-cov` (pytest-cov, `term-missing` plus an HTML
 | Coverage | `make test-cov` | ≥ 85 % line, ≥ 80 % branch | Release |
 | Schema | `make check-schema` | No missing table | Release |
 | Parity | `make verify-dialects` | No structural drift, equal DQ score | Release |
-| API | `scripts/api_smoke.py` | 78/78 | Release |
+| API | `scripts/api_smoke.py` | 104/104 | Release |
 | Frontend | `make frontend-lint`, `make frontend-build` | Clean | Release |
-| Docs | `ls -l docs/` and the diagram syntax check | 20 documents present and non-empty | Submission |
+| Docs | `ls -l docs/` and the diagram syntax check | 38 documents present and non-empty | Submission |
 | KPI | `make analytics` | DQ score ≥ 80 | Submission |
 
 ---
@@ -434,7 +434,7 @@ make everything                # install, env, databases, bootstrap, demo, run, 
 | --- | --- | --- |
 | Unit tests | The `tests/` directory is present and configured (`pyproject.toml`: `testpaths = ["tests"]`, markers `integration` and `slow`), but **no test modules are committed in this snapshot**; `make test` therefore collects 0 tests | `ls tests/` is empty |
 | Deduplication evaluation | The 14-pair evaluation is part of the project's own harness (assumption A3 in `docs/01`); the algorithm is independently reproducible with the snippet in `docs/05` §7.1 | measured 0.9700 / 0.8121 / 0.8034 |
-| API regression | **78/78 checks pass** (`scripts/api_smoke.py`) | Executed against the delivered system |
+| API regression | **104/104 checks pass** (`scripts/api_smoke.py`) | Executed against the delivered system |
 | Cross-dialect verification | **Identical schema; the same measured DQ score on both engines** | `make verify-dialects` |
 | Schema completeness | **29 tables, 23 views on both engines** | `GET /api/v1/meta/tables`, `GET /api/v1/queries/views` |
 | Latency budget | **p95 ≤ 38.2 ms** across 12 endpoints | doc 05 §5 |

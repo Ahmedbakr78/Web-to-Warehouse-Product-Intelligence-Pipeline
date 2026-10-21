@@ -222,7 +222,7 @@ seeds a throwaway synthetic warehouse and fails if the audit accepts it.
 | **Deduplication** | 4-signal fuzzy matcher | jaro-winkler, token-set, trigram and digit signatures, block-indexed for O(n) candidate pools |
 | **Warehouse** | SQLAlchemy 2.0 Core ORM | **29 physical tables, 23 analytical views**, identical schema on PostgreSQL 16 and MySQL 8.4 |
 | **ETL** | 9-stage Python pipeline | stage timings, counters, warnings, resumable staging table, idempotent loads |
-| **Orchestration** | Apache Airflow 2.10 DAG | 13 tasks, branch-on-changes, alert fan-out, report publication, sync-run API for demos |
+| **Orchestration** | Apache Airflow 2.10 DAG | 33 task callables, branch-on-changes, alert fan-out, report publication, sync-run API for demos |
 | **Data quality** | 12-rule framework over 6 dimensions | completeness, validity, uniqueness, accuracy, consistency, timeliness, weighted score |
 | **Change detection** | SQL plus an event engine | price changes banded by magnitude, new and removed products, category drift, lifecycle events |
 | **REST API** | FastAPI | **222 operations in 24 routers**, JWT and API-key auth, RBAC (admin / analyst / viewer), key rotation + editing, multi-level sorting, OpenAPI docs, gzip, timing headers |
@@ -239,7 +239,7 @@ seeds a throwaway synthetic warehouse and fails if the audit accepts it.
 29 physical tables  |  23 analytical views  |  222 REST route decorators in 24 routers
 12 data-quality rules across 6 dimensions, weighted score persisted per run
 34 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
-17 CLI commands  |  6 Docker Compose services  |  37 documents  |  101 Mermaid diagrams
+17 CLI commands  |  6 Docker Compose services  |  37 documents  |  104 Mermaid diagrams
 625 tests  |  104/104 API smoke checks  |  666 catalogued features
 ```
 
@@ -256,7 +256,7 @@ seeds a throwaway synthetic warehouse and fails if the audit accepts it.
 | Pipeline stages                          | 9 |
 | Docker Compose services                  | 6 |
 | Numbered documents                       | 37 |
-| Mermaid diagrams                         | 101 |
+| Mermaid diagrams                         | 104 |
 | Catalogued features (live API catalogue) | 666 |
 | Documented features (F-ID inventory)     | 612 |
 | Documented feature areas                 | 47 |
@@ -421,7 +421,7 @@ flowchart LR
     end
 
     subgraph Ops["Operations"]
-        AF["Airflow DAG<br/>13 tasks"]
+        AF["Airflow DAG<br/>33 task callables"]
         API["FastAPI REST<br/>222 operations"]
         DQ["12-rule DQ framework"]
     end
@@ -1309,7 +1309,7 @@ Highlights by area:
 ### v1.3: discovery, aggregation and self-service
 
 - **Feature catalogue** — `GET /meta/features` + `/features` screen: 378 features, 30 groups, searchable
-- **Aggregate builder** — `POST /builder/query` + `/builder/schema`: 11 entities, 6 aggregates,
+- **Aggregate builder** — `POST /builder/query` + `/builder/schema`: 13 entities, 6 aggregates,
   15 operators, whitelist-assembled parameterised SQL, chart preview, generated SQL, cURL copy
 - **Filter builder Max** — 12 entities (products, price-changes, runs, quality, catalog, new, removed, movers, sources, categories, brands, availability), SQL + cURL copy, CSV/JSON export, saved views, cross-entity join recipes
 - **Account self-service Max** — 9 tabs: profile, appearance, security, devices & 2FA, API keys, alerts, activity, data & privacy, preferences; `GET /users/me/export`, `DELETE /users/me`, `GET /audit/me`
@@ -1540,7 +1540,7 @@ All configuration arrives through environment variables (`.env.example` document
 | **Catalog** | internal SKUs versus scraped market prices, reconciliation summary, pricing opportunities |
 | **Sources** | registry cards with compliance metadata, robots.txt statistics, raw-versus-cleaned preview |
 | **Query Lab** | read-only SQL console over the 23 views, table inventory, starter examples, CSV export |
-| **Builder** | two modes: *filter & customise* (facets, columns, order, saved presets) and *group & aggregate* (11 entities, six measures, fifteen operators, bar chart, generated SQL, cURL copy, exports) |
+| **Builder** | two modes: *filter & customise* (facets, columns, order, saved presets) and *group & aggregate* (13 entities, six measures, fifteen operators, bar chart, generated SQL, cURL copy, exports) |
 | **Features** | searchable, filterable catalogue of all 666 catalogued features in 42 groups, each with an icon and copy-to-clipboard |
 | **Alerts** | alert rules with thresholds and channels, notification feed, evaluate action |
 | **Webhooks** | outbound event subscriptions with HMAC-signed payloads, one-time secret reveal and rotation, test delivery, per-attempt delivery log |
@@ -1700,7 +1700,7 @@ repeatedly.
 | Decision | Effect |
 | --- | --- |
 | Index `captured_at` and `detected_at` | A windowed query became an index-only scan instead of a sequential scan of the whole fact table |
-| The KPI payload counts only what it publishes | 290 ms → 150 ms, and it no longer degrades as the fact table grows |
+| The KPI payload counts only what it publishes | 290 ms down to 150 ms, and it no longer degrades as the fact table grows |
 | An append-only fact grain | The write path never contends; history is a consequence of the schema, not a feature added to it |
 
 ---
@@ -1715,7 +1715,7 @@ app/
   core/           settings, engines, logging, error envelope
   etl/            pipeline, loader, DQ framework, catalog reconcile, seed
   ingestion/      base contract, robots, rate limiter, HTTP client, cleaning, dedupe
-    sources/      34 adapters (JSON APIs, BeautifulSoup scrapers, synthetic)
+    sources/      35 adapters (JSON APIs, BeautifulSoup scrapers, synthetic)
   models/         SQLAlchemy models: dimensions, facts, operations, app
 dags/             Airflow DAG: product_intelligence_pipeline
 db/
@@ -1724,16 +1724,16 @@ db/
 frontend/         React 19 dashboard: 23 screens, PWA, design system
   public/         manifest, icons
   src/            pages, components, hooks, libs
-docs/             34 numbered documents plus an index with diagrams
+docs/             37 numbered documents plus an index with diagrams
   diagrams/out/   Mermaid sources extracted for SVG rendering
   assets/         generated infographic (SVG master + PNG + HTML preview)
 scripts/
-  api_smoke.py            regression suite (86 checks)
+  api_smoke.py            regression suite (104 checks)
   build_site.py           dependency-free documentation website builder
   run_analysis.py         runs the standalone SQL analyses
   make_infographic.py     generates the roadmap infographic
   diagrams.py            extract, validate and render all Mermaid diagrams
-tests/            pytest unit + integration suite (426 tests)
+tests/            pytest unit + integration suite (625 tests)
 website/          single-file project landing page (index.html) with light/dark themes
 .github/
   workflows/ci.yml        ruff, mypy, pytest, eslint, tsc, vite build
@@ -1748,6 +1748,38 @@ docker/                     api.Dockerfile + airflow.Dockerfile
 Makefile                      30+ targets
 pyproject.toml                package configuration and tool settings
 ```
+
+---
+
+## How to read this repository
+
+The repository is large because the brief is large, but it is not complicated. This is the order
+that gets you from "what is this" to "I could change this safely" in about twenty minutes.
+
+| If you want to… | Start here | Then read |
+| --- | --- | --- |
+| **See it run** | `make install && make up-db && make bootstrap` | [Quick start](#quick-start) |
+| **Understand the shape** | `app/etl/pipeline.py` | [The pipeline end-to-end](#the-pipeline-end-to-end) |
+| **Understand the data** | `app/models/dimensions.py` and `app/models/facts.py` | [Data model](#data-model), [docs/22_data_dictionary.md](docs/22_data_dictionary.md) |
+| **Understand the API** | `app/api/main.py` and `app/api/routers/` | [docs/14_api_documentation.md](docs/14_api_documentation.md) |
+| **Understand the UI** | `frontend/src/App.tsx` and `frontend/src/components/AppShell.tsx` | [Screens](#screens) |
+| **Understand the compliance story** | `app/ingestion/robots.py` | [Data trust and compliance](#data-trust-and-compliance), [docs/33_data_trust_and_compliance.md](docs/33_data_trust_and_compliance.md) |
+| **Understand the quality story** | `app/etl/dq.py` | [Data quality](#data-quality) |
+| **Judge the engineering** | `tests/` and `.github/workflows/ci.yml` | [Testing and verification](#testing-and-verification) |
+| **Prepare the defence** | `docs/18_presentation_outline.md` | [docs/24_demo_runbook.md](docs/24_demo_runbook.md) |
+
+Three conventions run through the whole codebase, so once you know them you can read any file:
+
+1. **The transport is the compliance boundary.** Nothing fetches a URL directly. Every request goes
+   through `app/ingestion/http_client.py`, which is the only place that consults robots.txt, applies
+   the rate limit, uses the cache and writes the audit row. If a feature needs to fetch something,
+   it goes through that client — so a new source cannot accidentally bypass the rules.
+2. **Nothing is written without a source.** Every fact row carries the `source_code` it came from,
+   and `dim_source` carries the trust level of that source. That is what makes the no-fake audit
+   possible.
+3. **The dashboard reads the API, never the database.** The React application has no credentials
+   and no SQL access; every number it shows came through a documented endpoint, which is why the
+   same figures appear in the CLI report, the API smoke test and the documentation.
 
 ---
 
@@ -1774,7 +1806,7 @@ map** - find the question, follow the arrow.
 | 11 | Behaviour Diagrams | sequence, activity, three state diagrams, class diagram |
 | 12 | UI/UX Design | screen wireframes, design system with contrast ratios, WCAG 2.1 AA |
 | 13 | Deployment | stack, deployment and component diagrams, environment matrix, CI/CD, backups |
-| 14 | API Documentation | auth flow, role matrix, all 219 operations, worked examples |
+| 14 | API Documentation | auth flow, role matrix, all 222 operations, worked examples |
 | 15 | Testing Strategy | test pyramid, case plan, UAT, coverage targets, quality gates |
 | 16 | User Manual | sign-in, every screen, filters, exports, alerts, admin, troubleshooting, FAQ |
 | 17 | Technical Documentation | module map, key algorithms, every configuration variable |
@@ -1869,7 +1901,7 @@ six-step guide with code is in docs/17.
 | **v1.7.0** | GUI source onboarding | add-source dialog with compliance pre-check, endpoint presets, field mapping, enable/disable and history-guarded delete |
 | **v1.6.1** | Polish and fixes | theme-flash fix, drawer swipe-to-close, live job progress, version-drift fix, lint/format gate |
 | **v1.4.0** | Run comparison and export | run-vs-run diff with 12 metric deltas, universal dataset export (CSV/JSON/XLSX), product watchlists, self-registration |
-| **v1.3.0** | Discovery and self-service | feature-catalogue API and screen, aggregate builder (`POST /builder/query` over 11 entities), account data export and deletion, personal activity feed, refined scrollbars, mobile drawer polish, container healthcheck fix, secret removed from the template |
+| **v1.3.0** | Discovery and self-service | feature-catalogue API and screen, aggregate builder (`POST /builder/query` over 13 entities), account data export and deletion, personal activity feed, refined scrollbars, mobile drawer polish, container healthcheck fix, secret removed from the template |
 | **v1.2.0** | Platform | command palette, PWA install, saved views, alert rules, notification centre, Settings and Users administration, audit trail |
 | **v1.1.0** | Dashboard experience | light/dark/system themes, 6 accents, 3 densities, responsive shell, builder, query lab |
 
@@ -1965,7 +1997,7 @@ ownership, and every merge in the repository passes his review.
   build when prose and code disagree.
 - **Release management** — semantic versioning, Keep-a-Changelog, annotated
   tags, GitHub releases; see [docs/31_releases.md](docs/31_releases.md).
-- **Quality gates** — ruff, mypy, pytest (579 tests), API smoke (104 checks),
+- **Quality gates** — ruff, mypy, pytest (625 tests), API smoke (104 checks),
   cross-dialect parity, frontend typecheck/lint/vitest/build.
 
 Full file-level responsibility map: [CONTRIBUTORS.md](CONTRIBUTORS.md) · RACI matrix:

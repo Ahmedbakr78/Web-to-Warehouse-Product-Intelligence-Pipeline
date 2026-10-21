@@ -67,7 +67,7 @@ against the marking rubric.
 | Data quality is measured, not claimed | `curl -s localhost:8000/api/v1/quality/latest -H "Authorization: Bearer $TOKEN" \| jq '{score, pass, warn, fail}'` |
 | Deduplication works and is explained | `GET /api/v1/products/1/duplicates` |
 | The model is portable | `make verify-dialects` |
-| The API is secured and stable | `.venv/bin/python scripts/api_smoke.py` reports 78/78 |
+| The API is secured and stable | `.venv/bin/python scripts/api_smoke.py` reports 104/104 |
 | Compliance is evidenced | `GET /api/v1/audit/compliance` plus the `ingestion_http_log` table |
 
 ### 1.4 Feedback log (chronological)
@@ -189,8 +189,8 @@ flowchart LR
 | Catalog reconciliation | Yes | 39/57 matched (68.42 %), 36 price gaps | The unmatched 30 % are internal-only SKUs by design |
 | Measured data quality | Yes | 12 rules, 6 dimensions, a weighted score persisted per run | Rules are production code, not a test artefact |
 | Two SQL engines | Yes | 0 structural drift, identical DQ score | One known reserved-word defect remains (A1) |
-| Secure API | Yes | 113 operations, 3 roles, 78/78 checks | API keys and audit are implemented, not stubbed |
-| Airflow orchestration | Yes | 13 tasks, guards, branch, retries | Optional import keeps the CLI usable without Airflow |
+| Secure API | Yes | 222 operations, 3 roles, 104/104 checks | API keys and audit are implemented, not stubbed |
+| Airflow orchestration | Yes | 33 task callables, guards, branch, retries | Optional import keeps the CLI usable without Airflow |
 | Operable without the UI | Yes | 11 CLI commands, 30+ Make targets | Demonstrations never depend on the browser |
 
 ### 3.2 Strengths
@@ -245,9 +245,9 @@ official rubric. Each row cites the artefact that supports the claim.
 | 6 | Data-flow and behaviour modelling | 6 % | Level 0/1/2 DFDs, data dictionary, sequence, activity, two state and a class diagram | 88 | `docs/10`, `docs/11` |
 | 7 | Implementation quality | 14 % | Layered packages, pure domain logic, portability, no vendor SQL, 218 features | 90 | `docs/17`, `docs/19` |
 | 8 | Data engineering depth (ETL, quality, change detection) | 12 % | Nine instrumented stages, 12 DQ rules with a weighted score, four change classes, reconciliation with blocking | 93 | `app/etl/`, `db/views.sql` |
-| 9 | Testing and verification | 10 % | 100-case plan, 78/78 API checks, cross-dialect verification, DQ as executable assertions — but unit suites not committed | 74 | `docs/15`, `scripts/api_smoke.py` |
+| 9 | Testing and verification | 10 % | 100-case plan, 104/104 API checks, cross-dialect verification, DQ as executable assertions — but unit suites not committed | 74 | `docs/15`, `scripts/api_smoke.py` |
 | 10 | Compliance, ethics and security | 6 % | RFC 9309 gate, terms allow-list, audit trail, Argon2id, JWT, RBAC, API keys, audit log | 92 | `docs/01` §8, `docs/17` §10 |
-| 11 | Documentation quality | 10 % | 20 documents, Mermaid diagrams, runnable measurement SQL, generated artefacts, assumptions recorded | 95 | `docs/` |
+| 11 | Documentation quality | 10 % | 38 documents, Mermaid diagrams, runnable measurement SQL, generated artefacts, assumptions recorded | 95 | `docs/` |
 | 12 | Presentation and defence | — | Deck, 3-minute demo script, Q&A preparation, rehearsal plan | 90 | `docs/18` |
 | — | **Weighted total** | **100 %** | — | **≈ 90 %** | — |
 
@@ -289,7 +289,7 @@ official rubric. Each row cites the artefact that supports the claim.
 | Class diagram | `11_behaviour_diagrams.md` §7 | Complete |
 | UI design | `12_ui_ux_design.md` | Complete (12 screens, design system, WCAG) |
 | Deployment plan | `13_deployment.md` | Complete |
-| API documentation | `14_api_documentation.md` | Complete (113 operations) |
+| API documentation | `14_api_documentation.md` | Complete (222 operations) |
 | Testing documents | `15_testing_strategy.md` | Complete |
 | User manual | `16_user_manual.md` | Complete |
 | Feature list | `19_feature_list.md` | Complete (218 features) |

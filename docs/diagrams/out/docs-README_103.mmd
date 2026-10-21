@@ -37,7 +37,14 @@ flowchart LR
         D28["28 Schema"]
         D29["29 Two-factor"]
         D30["30 Access control"]
+        D31["31 Releases"]
         D32["32 Briefing"]
         D33["33 Data trust"]
     end
+    subgraph EVIDENCE["Scale, presence and decisions"]
+        D34["34 Performance"]
+        D35["35 GitHub presence"]
+        D36["36 Decision log"]
+    end
     PLAN --> DESIGN --> BUILD --> DEEP
+    DEEP --> EVIDENCE

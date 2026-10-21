@@ -220,7 +220,7 @@
 </tr>
 <tr>
 <td>Optional extension: REST API</td>
-<td><code>app/api/</code> (16 routers, 113 documented operations)</td>
+<td><code>app/api/</code> (24 routers, 113 documented operations)</td>
 </tr>
 </tbody></table></div>
 <hr>
@@ -287,14 +287,14 @@
 <td>Expose the warehouse over an API</td>
 <td>Documented REST operations behind authentication and RBAC</td>
 <td>≥ 50</td>
-<td>113 operations / 16 routers</td>
+<td>222 operations / 24 routers</td>
 </tr>
 <tr>
 <th>O9</th>
 <td>Orchestrate with Airflow</td>
 <td>DAG with guard, extract, load, quality, aggregate, reconcile, notify, report tasks</td>
 <td>1 DAG, ≥ 8 tasks</td>
-<td>13 tasks in <code>product_intelligence_pipeline</code></td>
+<td>33 task callables in <code>product_intelligence_pipeline</code></td>
 </tr>
 <tr>
 <th>O10</th>
@@ -396,7 +396,7 @@
 </tr>
 <tr>
 <th>API</th>
-<td>16 routers, 113 documented operations, JWT + API key auth, 3 roles, pagination, OpenAPI</td>
+<td>24 routers, 113 documented operations, JWT + API key auth, 3 roles, pagination, OpenAPI</td>
 <td><code>app/api/</code></td>
 </tr>
 <tr>
@@ -406,7 +406,7 @@
 </tr>
 <tr>
 <th>Documentation</th>
-<td>The 20 documents in <code>docs/</code></td>
+<td>The 38 documents in <code>docs/</code></td>
 <td><code>docs/</code></td>
 </tr>
 </tbody></table></div>
@@ -619,7 +619,7 @@
 <tr>
 <th>D10</th>
 <td>Optional extension — REST API</td>
-<td><code>app/api/</code> — 113 operations</td>
+<td><code>app/api/</code> — 222 operations</td>
 <td>Complete</td>
 </tr>
 <tr>
@@ -704,8 +704,8 @@
 <tr>
 <th>AC9</th>
 <td>API regression suite green</td>
-<td>78/78 checks pass</td>
-<td>78/78</td>
+<td>104/104 checks pass</td>
+<td>104/104</td>
 <td><code>.venv/bin/python scripts/api_smoke.py</code></td>
 </tr>
 <tr>
@@ -844,7 +844,7 @@
 </tr>
 <tr>
 <th>WP18</th>
-<td>Documentation set (20 documents)</td>
+<td>Documentation set (38 documents)</td>
 <td>40</td>
 <td><code>docs/</code></td>
 </tr>

@@ -252,7 +252,7 @@
 </tr>
 <tr>
 <td>The API is secured and stable</td>
-<td><code>.venv/bin/python scripts/api_smoke.py</code> reports 78/78</td>
+<td><code>.venv/bin/python scripts/api_smoke.py</code> reports 104/104</td>
 </tr>
 <tr>
 <th>Compliance is evidenced</th>
@@ -797,13 +797,13 @@
 <tr>
 <th>Secure API</th>
 <td>Yes</td>
-<td>113 operations, 3 roles, 78/78 checks</td>
+<td>222 operations, 3 roles, 104/104 checks</td>
 <td>API keys and audit are implemented, not stubbed</td>
 </tr>
 <tr>
 <th>Airflow orchestration</th>
 <td>Yes</td>
-<td>13 tasks, guards, branch, retries</td>
+<td>33 task callables, guards, branch, retries</td>
 <td>Optional import keeps the CLI usable without Airflow</td>
 </tr>
 <tr>
@@ -1006,7 +1006,7 @@
 <th>9</th>
 <td>Testing and verification</td>
 <td>10 %</td>
-<td>100-case plan, 78/78 API checks, cross-dialect verification, DQ as executable assertions — but unit suites not committed</td>
+<td>100-case plan, 104/104 API checks, cross-dialect verification, DQ as executable assertions — but unit suites not committed</td>
 <td>74</td>
 <td><code>docs/15</code>, <code>scripts/api_smoke.py</code></td>
 </tr>
@@ -1022,7 +1022,7 @@
 <th>11</th>
 <td>Documentation quality</td>
 <td>10 %</td>
-<td>20 documents, Mermaid diagrams, runnable measurement SQL, generated artefacts, assumptions recorded</td>
+<td>38 documents, Mermaid diagrams, runnable measurement SQL, generated artefacts, assumptions recorded</td>
 <td>95</td>
 <td><code>docs/</code></td>
 </tr>
@@ -1198,7 +1198,7 @@
 <tr>
 <th>API documentation</th>
 <td><code>14_api_documentation.md</code></td>
-<td>Complete (113 operations)</td>
+<td>Complete (222 operations)</td>
 </tr>
 <tr>
 <th>Testing documents</th>

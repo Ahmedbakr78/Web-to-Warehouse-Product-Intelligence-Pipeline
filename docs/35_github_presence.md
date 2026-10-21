@@ -30,7 +30,7 @@ GitHub allows up to 350 characters. This one is 331.
 Web-to-Warehouse Product Intelligence Pipeline: compliant ingestion from 35
 public sources, fuzzy duplicate detection, a 29-table Kimball warehouse on
 PostgreSQL + MySQL with price history, 12 data-quality rules, Airflow
-orchestration, 219 REST operations and a React 19 dashboard. DEPI Data
+orchestration, 222 REST operations and a React 19 dashboard. DEPI Data
 Engineering capstone.
 ```
 
@@ -38,8 +38,8 @@ Engineering capstone.
 
 ```
 A compliance-first product intelligence pipeline: permitted web/API ingestion
-→ cleaning → dedupe → PostgreSQL/MySQL warehouse with price history → SQL
-analytics → Airflow → FastAPI + React. Every row provably observed.
+then cleaning, then dedupe, then a PostgreSQL/MySQL warehouse with price history,
+then SQL analytics, then Airflow, then FastAPI + React. Every row provably observed.
 ```
 
 **Longer variant** (for a README header or a conference submission):
@@ -66,7 +66,7 @@ walks every table and a self-test proving the audit rejects synthetic data.
 
 ```
 Permitted-source product intelligence: ETL, dedupe, Kimball warehouse on
-PostgreSQL + MySQL, 12 DQ rules, Airflow, 219 REST ops, React dashboard.
+PostgreSQL + MySQL, 12 DQ rules, Airflow, 222 REST ops, React dashboard.
 ```
 
 **Website:**
@@ -75,7 +75,7 @@ PostgreSQL + MySQL, 12 DQ rules, Airflow, 219 REST ops, React dashboard.
 https://ahmedbakr78.github.io/Web-to-Warehouse-Product-Intelligence-Pipeline/
 ```
 
-**Topics** — copy the whole block into *Settings → Topics*:
+**Topics** — copy the whole block into *Settings, then Topics*:
 
 ```
 web-scraping
@@ -346,7 +346,7 @@ flowchart LR
 | `scripts/check_stats.py` | Fails when a figure quoted in the README or the docs no longer matches `docs/stats.json` |
 | `make stats-update` | Re-measures and rewrites the snapshot, so the update is one command |
 
-That is why the README badge says `575 catalogued features` and the
+That is why the README badge says `666 catalogued features` and the
 dashboard says `629 entries in 42 groups`: they are measured by two
 different collectors on two different axes, and both are labelled.
 

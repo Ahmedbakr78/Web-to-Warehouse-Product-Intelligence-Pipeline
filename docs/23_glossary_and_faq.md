@@ -10,7 +10,7 @@ this project.
 ### A
 
 **Airflow DAG** — the directed acyclic graph in `dags/product_intelligence_pipeline.py` that
-orchestrates the run: 13 tasks, with a real branch that skips notification when no changes were
+orchestrates the run: 33 task callables, with a real branch that skips notification when no changes were
 detected.
 
 **Analytical view** — a named `SELECT` stored in the database (`db/views.sql`). Views are the only

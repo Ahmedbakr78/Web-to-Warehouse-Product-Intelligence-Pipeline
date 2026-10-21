@@ -3,7 +3,7 @@
 ## Purpose
 
 This document is the complete feature inventory of the Web-to-Warehouse Product Intelligence
-Pipeline: 604 features grouped into forty-seven areas, each with a one-line description and a reference
+Pipeline: 612 features grouped into forty-seven areas, each with a one-line description and a reference
 to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an
 endpoint, a CLI command or a documented design decision. Nothing here is aspirational.
 
@@ -384,7 +384,7 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 | F-196 | Rich terminal reports | Tables, panels and colour-coded status for runs, movers, drift, quality and sources | `app/cli/main.py` |
 | F-197 | Cross-dialect verification | Compares structural counts and the DQ score across targets and reports drift | `pip-cli verify` |
 | F-198 | Thirty-plus Make targets | One-command install, databases, bootstrap, demo, pipeline, API, tests, frontend, Airflow, docs | `Makefile` |
-| F-199 | Airflow DAG with 13 tasks | Two short-circuit guards, extraction, change detection, DQ gate, aggregates, reconciliation, branch, notification and report | `dags/product_intelligence_pipeline.py` |
+| F-199 | Airflow DAG with 33 task callables | Two short-circuit guards, extraction, change detection, DQ gate, aggregates, reconciliation, branch, notification and report | `dags/product_intelligence_pipeline.py` |
 | F-200 | Recoverable orchestration | Two retries with exponential back-off, 45-minute execution timeout, `max_active_runs=1` | DAG `DEFAULT_ARGS` |
 | F-201 | Change-aware branching | Notifications run only when the run actually produced changes (XCom branch) | DAG `branch_on_changes` |
 | F-202 | Report artefact | The analytics report is written to `var/artifacts/report-*.json` by the DAG | DAG `publish_report` |
@@ -501,7 +501,7 @@ beneath them.
 | F-237 | Feature catalogue in `/meta` | `/meta` derives `features` (flat names) and the new `feature_groups` count from the catalogue module instead of a hand-maintained list | `app/api/routers/health.py` |
 | F-238 | Feature catalogue screen | New `/features` dashboard screen rendering the catalogue as icon-headed cards with a search box, group chips, copy-to-clipboard per feature and a source-of-truth footer | `frontend/src/pages/Features.tsx` |
 | F-239 | Catalogue search and filtering | Live filter over feature names, details and group titles; chip row switches areas; an empty state guides the user to broader terms | `frontend/src/pages/Features.tsx` |
-| F-240 | Builder schema endpoint | `GET /builder/schema` publishes 11 entities, their columns with types and groupable flags, 15 operators with value types, and the aggregate list; drives the builder UI | `app/api/routers/builder.py` `schema` |
+| F-240 | Builder schema endpoint | `GET /builder/schema` publishes 13 entities, their columns with types and groupable flags, 15 operators with value types, and the aggregate list; drives the builder UI | `app/api/routers/builder.py` `schema` |
 | F-241 | Aggregate query endpoint | `POST /builder/query` runs a structured read-only query: group-by, six aggregate functions, filters, sort, paging; returns rows, total, duration and the generated SQL | `app/api/routers/builder.py` `run_query` |
 | F-242 | Whitelisted identifier SQL assembly | Every identifier reaching the SQL text comes from the server-side `ENTITIES` whitelist; every value is a bind parameter, making injection structurally impossible | `app/api/routers/builder.py` `_build_sql` |
 | F-243 | Fifteen filter operators | `eq`, `ne`, `gt`, `gte`, `lt`, `lte`, `contains`, `not_contains`, `starts_with`, `ends_with`, `in`, `not_in`, `between`, `empty`, `not_empty` with per-operator input handling | `app/api/routers/builder.py` `OPERATORS` |

@@ -76,7 +76,7 @@
       <h1>Team &amp; Roles</h1>
       <p>The six members, their weights and function ownership</p>
     </div>
-    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#ownership-map">Ownership map</a></li><li class="lvl-2"><a href="#function-inventory-lead">Function inventory (lead)</a></li></ol></details>
+    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#ownership-map">Ownership map</a></li><li class="lvl-2"><a href="#the-lanes-in-detail">The lanes in detail</a></li><li class="lvl-3"><a href="#ahmed-78102--team-lead-backend-integration-documentation--28">Ahmed (78102) — Team Lead, Backend, Integration, Documentation — 28%</a></li><li class="lvl-3"><a href="#ahmed-abd-alla--ingestion--compliance-lead--15">Ahmed Abd alla — Ingestion &amp; Compliance Lead — 15%</a></li><li class="lvl-3"><a href="#ahmed-medhat--etl--cleaning-lead--14">Ahmed Medhat — ETL &amp; Cleaning Lead — 14%</a></li><li class="lvl-3"><a href="#eng-alaa-nasser--database--data-quality-lead--14">Eng. Alaa Nasser — Database &amp; Data Quality Lead — 14%</a></li><li class="lvl-3"><a href="#legecy007--frontend--dashboard-lead--15">legecy007 — Frontend &amp; Dashboard Lead — 15%</a></li><li class="lvl-3"><a href="#mennatullah-ahmed--devops--orchestration-lead--14">Mennatullah Ahmed — DevOps &amp; Orchestration Lead — 14%</a></li><li class="lvl-2"><a href="#how-the-work-actually-flowed">How the work actually flowed</a></li><li class="lvl-2"><a href="#review-and-merge-policy">Review and merge policy</a></li><li class="lvl-2"><a href="#effort-split-and-why">Effort split, and why</a></li></ol></details>
     <article class="doc-body">
 <p><strong>Track:</strong> Data Engineering (DEPI Digital Egypt Pioneers Initiative) <strong>Source of truth:</strong> <code>app/core/team.py</code> maps to <code>GET /api/v1/meta/team</code>. This document, the README team table and the website team section all mirror that module.</p>
 <div class='table-scroll'><table><thead><tr>
@@ -93,7 +93,7 @@
 <td><a href="https://github.com/Ahmedbakr78">@Ahmedbakr78</a></td>
 <td>Team Lead + Backend/API + Documentation + 9 ETL Stages Owner</td>
 <td>28%</td>
-<td>FastAPI + 34 Docs + 9 ETL Stages + Integration</td>
+<td>FastAPI + 37 Docs + 9 ETL Stages + Integration</td>
 </tr>
 <tr>
 <th>2</th>
@@ -137,14 +137,19 @@
 </tr>
 </tbody></table></div>
 <p>Total: <strong>100%</strong>. See <code>CONTRIBUTORS.md</code> for the file-level responsibility map and <code>docs/03_roles_and_responsibilities.md</code> for the RACI matrix.</p>
+<hr>
+<h2 id="purpose">Purpose</h2>
+<p>A graduation project is judged on two things: what was built, and who built it. The first is visible in the repository; the second is usually a name on a slide. This document makes the second as inspectable as the first: every lane names the files it owns, the pull requests it carries, and the acceptance criteria that decide whether a piece of work is finished.</p>
+<p>The split is not a guess. Each weight is the fraction of the delivered code that the lane owns, and the ownership is recorded in <code>CONTRIBUTORS.md</code> and derived from the commit history rather than asserted here.</p>
+<hr>
 <h2 id="ownership-map">Ownership map</h2>
 <pre class="mermaid">flowchart TB
     subgraph Lead[&quot;Ahmed (78102) — 28%, owns every layer&quot;]
-        API[&quot;FastAPI platform&lt;br/&gt;24 routers · 219 ops · auth/RBAC&quot;]
+        API[&quot;FastAPI platform&lt;br/&gt;24 routers · 222 ops · auth/RBAC&quot;]
         ETL[&quot;9-stage ETL&lt;br/&gt;CLI = API = Airflow&quot;]
         INT[&quot;Integration transport&lt;br/&gt;in-process with REST fallback&quot;]
         CAT[&quot;Catalogues as code&lt;br/&gt;features + team APIs&quot;]
-        DOCS[&quot;34 docs + 88 diagrams&lt;br/&gt;README/website alignment&quot;]
+        DOCS[&quot;37 docs + 101 diagrams&lt;br/&gt;README/website alignment&quot;]
         REL[&quot;Releases + quality gates&lt;br/&gt;versions, tags, CI&quot;]
         API --&gt; ETL --&gt; INT
         CAT --&gt; DOCS --&gt; REL
@@ -160,18 +165,372 @@
     ETL --&gt; FE
     OPS -.schedules.-&gt; ETL
     Lead -.reviews every merge.-&gt; Crew</pre>
-<h2 id="function-inventory-lead">Function inventory (lead)</h2>
-<p>Ahmed's eight function groups (each maps to shipped code, verified by tests):</p>
+<hr>
+<h2 id="the-lanes-in-detail">The lanes in detail</h2>
+<h3 id="ahmed-78102--team-lead-backend-integration-documentation--28">Ahmed (78102) — Team Lead, Backend, Integration, Documentation — 28%</h3>
+<p>The only lane that touches every layer, because the seams between layers are where a project of this shape usually breaks: the CLI has to behave like the API, the API like the Airflow DAG, and the documentation has to match what the code actually does.</p>
+<p><strong>Owned surfaces</strong></p>
+<div class='table-scroll'><table><thead><tr>
+<th>Surface</th>
+<th>Where</th>
+<th>What "done" means</th>
+</tr></thead><tbody>
+<tr>
+<th>FastAPI platform</th>
+<td><code>app/api/</code> — 24 routers, 222 operations</td>
+<td>Every route is authenticated, authorised by role, and covered by a smoke check</td>
+</tr>
+<tr>
+<th>The 9-stage ETL</th>
+<td><code>app/etl/pipeline.py</code></td>
+<td>The CLI, the REST trigger and the Airflow DAG produce the same result from the same input</td>
+</tr>
+<tr>
+<th>Integration transport</th>
+<td><code>dags/product_intelligence_pipeline.py</code></td>
+<td>The DAG calls the pipeline in-process, and falls back to the REST API across the SQLAlchemy version split</td>
+</tr>
+<tr>
+<th>Catalogues as code</th>
+<td><code>app/core/features.py</code>, <code>app/core/team.py</code></td>
+<td>The dashboard, the API and this file read the same module, so no two of them can disagree</td>
+</tr>
+<tr>
+<th>Documentation</th>
+<td><code>docs/00–36</code>, <code>README.md</code>, <code>website/</code></td>
+<td>Every number in the prose is measured by <code>scripts/project_stats.py</code> and fails CI when it drifts</td>
+</tr>
+<tr>
+<th>Releases</th>
+<td><code>docs/31_releases.md</code>, <code>VERSION</code>, tags</td>
+<td>The version in three places, a changelog entry, and a green CI run</td>
+</tr>
+<tr>
+<th>Review</th>
+<td>every merge</td>
+<td>Nothing reaches <code>main</code> without a passing pipeline and a reading reviewer</td>
+</tr>
+</tbody></table></div>
+<p><strong>Eight function groups, each mapped to shipped code and verified by tests:</strong></p>
 <ul>
-<li class="depth-0">FastAPI platform — <code>app/api/</code> (auth, RBAC, exports, webhooks, backfill, builder, lab).</li>
-<li class="depth-0">9-stage ETL — <code>app/etl/pipeline.py</code>, identical across CLI/REST/Airflow triggers.</li>
-<li class="depth-0">Integration transport — <code>dags/</code> fallback layer across the SQLAlchemy version split.</li>
-<li class="depth-0">Catalogues as code — <code>app/core/features.py</code>, <code>app/core/team.py</code> + <code>/meta/*</code> APIs.</li>
-<li class="depth-0">Documentation — <code>docs/00–33</code>, README, website, stats-drift CI.</li>
-<li class="depth-0">Releases — <code>docs/31_releases.md</code>, tags, GitHub releases.</li>
-<li class="depth-0">Quality gates — ruff/mypy/pytest/smoke/parity/frontend CI jobs.</li>
-<li class="depth-0">Review — every merge, every number in this file.</li>
+<li class="depth-0"><strong>FastAPI platform</strong> — <code>app/api/</code> (auth, RBAC, exports, webhooks, backfill,</li>
 </ul>
+<p>builder, query lab, jobs, settings, audit).</p>
+<ul>
+<li class="depth-0"><strong>9-stage ETL</strong> — <code>app/etl/pipeline.py</code>, identical across the CLI, REST and</li>
+</ul>
+<p>Airflow triggers.</p>
+<ul>
+<li class="depth-0"><strong>Integration transport</strong> — the <code>dags/</code> fallback layer that bridges the</li>
+</ul>
+<p>SQLAlchemy version split between Airflow 2.10 and the application.</p>
+<ul>
+<li class="depth-0"><strong>Catalogues as code</strong> — <code>app/core/features.py</code> and <code>app/core/team.py</code>,</li>
+</ul>
+<p>exposed through <code>/meta/features</code> and <code>/meta/team</code>.</p>
+<ul>
+<li class="depth-0"><strong>Documentation</strong> — 37 numbered documents, 101 Mermaid diagrams, the</li>
+</ul>
+<p>README, the website, and the statistics-drift CI job.</p>
+<ul>
+<li class="depth-0"><strong>Releases</strong> — <code>docs/31_releases.md</code>, the version files, the tags and the</li>
+</ul>
+<p>GitHub releases.</p>
+<ul>
+<li class="depth-0"><strong>Quality gates</strong> — the ruff, mypy, pytest, smoke, parity, frontend and</li>
+</ul>
+<p>documentation CI jobs.</p>
+<ul>
+<li class="depth-0"><strong>Review</strong> — every merge, and every number in this file.</li>
+</ul>
+<h3 id="ahmed-abd-alla--ingestion--compliance-lead--15">Ahmed Abd alla — Ingestion &amp; Compliance Lead — 15%</h3>
+<p>Owns the boundary between the project and the public internet, which is the part of the system with the least tolerance for error.</p>
+<p><strong>Owned surfaces</strong></p>
+<div class='table-scroll'><table><thead><tr>
+<th>Surface</th>
+<th>Where</th>
+<th>What "done" means</th>
+</tr></thead><tbody>
+<tr>
+<th>Source adapters</th>
+<td><code>app/ingestion/sources/</code> — 34 registered</td>
+<td>Every adapter declares its trust level and its terms position</td>
+</tr>
+<tr>
+<th>The robots.txt gate</th>
+<td><code>app/ingestion/robots.py</code></td>
+<td>A decision is made before the request, and it is written to the audit log</td>
+</tr>
+<tr>
+<th>The compliance policy</th>
+<td><code>app/ingestion/compliance.py</code></td>
+<td>The guarantees in the code and the guarantees in the documentation are the same list, checked by a test</td>
+</tr>
+<tr>
+<td>Rate limiting and politeness</td>
+<td><code>app/ingestion/ratelimit.py</code>, <code>app/ingestion/http_client.py</code></td>
+<td>No host is asked for more than its terms allow</td>
+</tr>
+<tr>
+<th>The request audit trail</th>
+<td><code>app/models/operations.py</code> writes to <code>ingestion_http_log</code></td>
+<td>Every request records its URL, its status and its robots decision</td>
+</tr>
+</tbody></table></div>
+<p><strong>Acceptance criteria for this lane</strong></p>
+<ul>
+<li class="depth-0">A source whose terms forbid polling is never collected, however it is</li>
+</ul>
+<p>selected.</p>
+<ul>
+<li class="depth-0">A <code>robots.txt</code> that answers 401/403 disallows the whole host, per</li>
+</ul>
+<p>RFC 9309.</p>
+<ul>
+<li class="depth-0">Every request is auditable from the SQL up, including the ones that were</li>
+</ul>
+<p>refused.</p>
+<h3 id="ahmed-medhat--etl--cleaning-lead--14">Ahmed Medhat — ETL &amp; Cleaning Lead — 14%</h3>
+<p>Owns the transformation between a raw payload and a warehouse row.</p>
+<p><strong>Owned surfaces</strong></p>
+<div class='table-scroll'><table><thead><tr>
+<th>Surface</th>
+<th>Where</th>
+<th>What "done" means</th>
+</tr></thead><tbody>
+<tr>
+<th>The 29-step cleaner</th>
+<td><code>app/ingestion/cleaning.py</code></td>
+<td>Names, categories, prices, ratings, availability and URLs are normalised identically every time</td>
+</tr>
+<tr>
+<th>Deduplication</th>
+<td><code>app/ingestion/dedupe.py</code></td>
+<td>Six measures, blended, with the score and the breakdown stored per product</td>
+</tr>
+<tr>
+<th>The loader</th>
+<td><code>app/etl/loader.py</code></td>
+<td>The write path is idempotent, and a re-run appends rather than overwrites</td>
+</tr>
+<tr>
+<th>Change detection</th>
+<td><code>app/etl/loader.py</code></td>
+<td>A price change becomes a row with a direction, a magnitude band and a significance flag</td>
+</tr>
+</tbody></table></div>
+<p><strong>Acceptance criteria for this lane</strong></p>
+<ul>
+<li class="depth-0">The same raw record always produces the same cleaned record.</li>
+<li class="depth-0">A merge is reversible: the absorbed product keeps its <code>matched_product_id</code>.</li>
+<li class="depth-0">A record that cannot be cleaned is rejected with a reason, never silently</li>
+</ul>
+<p>dropped.</p>
+<h3 id="eng-alaa-nasser--database--data-quality-lead--14">Eng. Alaa Nasser — Database &amp; Data Quality Lead — 14%</h3>
+<p>Owns the model, the dialect portability and the quality gate.</p>
+<p><strong>Owned surfaces</strong></p>
+<div class='table-scroll'><table><thead><tr>
+<th>Surface</th>
+<th>Where</th>
+<th>What "done" means</th>
+</tr></thead><tbody>
+<tr>
+<th>The schema</th>
+<td><code>app/models/</code> — 29 tables</td>
+<td>One model, loaded identically on PostgreSQL and MySQL</td>
+</tr>
+<tr>
+<th>The analytical views</th>
+<td><code>db/views.sql</code> — 23 views</td>
+<td>Portable SQL only, so the same view means the same thing on both engines</td>
+</tr>
+<tr>
+<th>Migrations</th>
+<td><code>migrations/versions/</code></td>
+<td>A deployment can move from any revision to head, on either dialect</td>
+</tr>
+<tr>
+<th>The quality framework</th>
+<td><code>app/etl/dq.py</code> — 12 rules, 6 dimensions</td>
+<td>A rule that cannot be evaluated fails the run it is in, not the suite</td>
+</tr>
+<tr>
+<td>Cross-dialect verification</td>
+<td><code>app/cli/main.py</code> with the <code>verify</code> command</td>
+<td>The same schema, the same views and the same score on both engines</td>
+</tr>
+</tbody></table></div>
+<p><strong>Acceptance criteria for this lane</strong></p>
+<ul>
+<li class="depth-0"><code>make verify-dialects</code> reports an identical schema and an identical score.</li>
+<li class="depth-0">A migration runs on PostgreSQL <em>and</em> MySQL from any starting revision.</li>
+<li class="depth-0">A score that was never measured is reported as absent, not as perfect.</li>
+</ul>
+<h3 id="legecy007--frontend--dashboard-lead--15">legecy007 — Frontend &amp; Dashboard Lead — 15%</h3>
+<p>Owns everything the user touches.</p>
+<p><strong>Owned surfaces</strong></p>
+<div class='table-scroll'><table><thead><tr>
+<th>Surface</th>
+<th>Where</th>
+<th>What "done" means</th>
+</tr></thead><tbody>
+<tr>
+<th>The 23 screens</th>
+<td><code>frontend/src/pages/</code></td>
+<td>Every screen renders real data, with no console error and no failed request</td>
+</tr>
+<tr>
+<th>The design system</th>
+<td><code>frontend/src/components/ui.tsx</code>, <code>frontend/src/styles/index.css</code></td>
+<td>Five palettes, three densities, three motion modes, all persisted and all respecting the operating system</td>
+</tr>
+<tr>
+<th>The API client</th>
+<td><code>frontend/src/lib/api.ts</code></td>
+<td>One place knows how to talk to the API, including token refresh</td>
+</tr>
+<tr>
+<th>Accessibility and mobile</th>
+<td><code>frontend/src/components/AppShell.tsx</code></td>
+<td>The drawer, the phone tab bar and the keyboard map work the same on a 390 px screen as on a desktop</td>
+</tr>
+</tbody></table></div>
+<p><strong>Acceptance criteria for this lane</strong></p>
+<ul>
+<li class="depth-0">No screen shows a number the API did not send.</li>
+<li class="depth-0">The app is usable at 390 px with no horizontal scrolling.</li>
+<li class="depth-0">Every icon is an icon, never a text glyph.</li>
+</ul>
+<h3 id="mennatullah-ahmed--devops--orchestration-lead--14">Mennatullah Ahmed — DevOps &amp; Orchestration Lead — 14%</h3>
+<p>Owns the machinery that runs the project and the checks that keep it honest.</p>
+<p><strong>Owned surfaces</strong></p>
+<div class='table-scroll'><table><thead><tr>
+<th>Surface</th>
+<th>Where</th>
+<th>What "done" means</th>
+</tr></thead><tbody>
+<tr>
+<th>The Airflow DAG</th>
+<td><code>dags/product_intelligence_pipeline.py</code> — 33 task callables</td>
+<td>A scheduled run produces the same warehouse as a manual one</td>
+</tr>
+<tr>
+<th>The stack</th>
+<td><code>docker-compose.yml</code> — 6 services</td>
+<td>One command brings the whole platform up, health-checked</td>
+</tr>
+<tr>
+<th>The CI pipeline</th>
+<td><code>.github/workflows/ci.yml</code> — 6 jobs</td>
+<td>Every job can fail, and does fail when it should</td>
+</tr>
+<tr>
+<th>The verification scripts</th>
+<td><code>scripts/</code>, <code>run-full-app.sh</code>, <code>run-local.sh</code></td>
+<td>One command proves the whole platform, on real data</td>
+</tr>
+</tbody></table></div>
+<p><strong>Acceptance criteria for this lane</strong></p>
+<ul>
+<li class="depth-0"><code>./run-full-app.sh</code> passes in <em>real</em> mode, against the live permitted</li>
+</ul>
+<p>sources, with no synthetic data anywhere in the warehouse.</p>
+<ul>
+<li class="depth-0">A failing job blocks the merge.</li>
+</ul>
+<hr>
+<h2 id="how-the-work-actually-flowed">How the work actually flowed</h2>
+<pre class="mermaid">sequenceDiagram
+    participant OPS as DevOps lane
+    participant ING as Ingestion lane
+    participant CLN as ETL lane
+    participant DB as Data lane
+    participant FE as Frontend lane
+    participant LEAD as Lead
+
+    OPS-&gt;&gt;ING: a source is added to the registry
+    ING-&gt;&gt;ING: declare its trust level and terms
+    ING-&gt;&gt;CLN: hand over the raw payload shape
+    CLN-&gt;&gt;DB: hand over the cleaned record shape
+    DB-&gt;&gt;FE: the view the screen will read
+    FE-&gt;&gt;FE: build the screen against the real endpoint
+    FE-&gt;&gt;LEAD: the pull request
+    LEAD-&gt;&gt;LEAD: review, then the CI gates decide</pre>
+<p>The order is not arbitrary. A screen built against a view that does not exist yet is a screen that shows a spinner forever; a cleaner written against a payload that has not been agreed is a cleaner with a guess in it. Each lane hands over a <em>contract</em> - a column name, a trust level, a status code - and the next lane builds against that contract rather than against a mock.</p>
+<hr>
+<h2 id="review-and-merge-policy">Review and merge policy</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Rule</th>
+<th>Why</th>
+</tr></thead><tbody>
+<tr>
+<td>Every pull request is reviewed by the lead</td>
+<td>The seams between lanes are where defects hide</td>
+</tr>
+<tr>
+<td>CI must be green before a merge</td>
+<td>A red build is a broken promise to the reviewer</td>
+</tr>
+<tr>
+<td>No commit touches a number in the documentation alone</td>
+<td>The number is measured, so the prose follows the code, never the other way round</td>
+</tr>
+<tr>
+<td>The statistics-drift job fails on a stale figure</td>
+<td>A wrong number in the README is a defect, not a typo</td>
+</tr>
+<tr>
+<td>The no-fake audit runs against a real warehouse</td>
+<td>The claim in the documentation is checked by the database, not asserted</td>
+</tr>
+</tbody></table></div>
+<p>The last row matters most for this project in particular: the guarantee that the warehouse holds only observed market data is enforced by <code>scripts/audit_no_fakes.py</code>, which walks every table that records an upstream and exits non-zero the moment a row cannot be traced back to a source classified as real.</p>
+<hr>
+<h2 id="effort-split-and-why">Effort split, and why</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Lane</th>
+<th>Weight</th>
+<th>Delivered surface</th>
+<th>Why this share</th>
+</tr></thead><tbody>
+<tr>
+<th>Lead</th>
+<td>28%</td>
+<td>24 routers, 9 ETL stages, 37 documents, the release process</td>
+<td>The lead owns the interfaces <em>between</em> the lanes, and the documentation that has to match all of them</td>
+</tr>
+<tr>
+<th>Ingestion</th>
+<td>15%</td>
+<td>34 adapters, robots.txt, rate limiting, the audit trail</td>
+<td>The highest-risk surface: it touches third-party systems and has to be right about them</td>
+</tr>
+<tr>
+<th>Frontend</th>
+<td>15%</td>
+<td>23 screens, the design system, mobile and accessibility</td>
+<td>The user-facing surface is the product, and it is the largest single body of work in a dashboard</td>
+</tr>
+<tr>
+<th>Cleaning &amp; ETL</th>
+<td>14%</td>
+<td>29 cleaning steps, deduplication, the loader, change detection</td>
+<td>The correctness core: everything downstream trusts it</td>
+</tr>
+<tr>
+<th>Data &amp; quality</th>
+<td>14%</td>
+<td>29 tables, 23 views, migrations, 12 rules, cross-dialect verification</td>
+<td>The model has to be right on two engines at once</td>
+</tr>
+<tr>
+<th>DevOps</th>
+<td>14%</td>
+<td>The Airflow DAG, the stack, six CI jobs, the verification scripts</td>
+<td>The machinery that makes the other five lanes verifiable</td>
+</tr>
+</tbody></table></div>
+<p>The weights sum to 100 % and each one is the fraction of the delivered code that the lane owns.</p>
     </article>
     <div class="doc-foot">
       <span><a href="readme.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Overview</a></span>

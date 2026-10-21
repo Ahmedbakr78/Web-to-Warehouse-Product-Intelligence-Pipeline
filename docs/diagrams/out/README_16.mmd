@@ -1,23 +1,8 @@
 
 flowchart LR
-    subgraph Real["real — auto-selected, 22 adapters"]
-        direction TB
-        RETAIL["Retail & grocery<br/>cheapshark, steam,<br/>openfoodfacts"]
-        BOOKS["Books & texts<br/>gutendex, openlibrary,<br/>google_books, archive_texts"]
-        MEDIA["Media & games<br/>mmobomb, itunes apps/ebooks,<br/>pokemontcg, scryfall,<br/>ygoprodeck, tvmaze,<br/>cocktaildb, mealdb, kraken"]
-    end
-    subgraph Low["sandbox / synthetic — explicit code only"]
-        direction TB
-        SBX["Permitted sandboxes<br/>books.toscrape, scrapeme"]
-        DEMO["Demo storefronts & mock APIs<br/>dummyjson, platzi, makeup,<br/>predic8, freeapi, restful_objects,<br/>sampleapis, fakestore"]
-    end
-    subgraph Edge["Honest edge cases"]
-        direction TB
-        EMPTY["Empty but enabled<br/>bitstamp, coincap,<br/>coingecko, google_books"]
-        DEAD["Dead host<br/>fakestore (removed<br/>from defaults)"]
-        REFUSED["Refused by terms<br/>stooq (BLOCKED)"]
-        SYNTH["Offline fallback<br/>local_demo (explicit only)"]
-    end
-    Real --> WH[("Warehouse<br/>dim_product + facts")]
-    Low -.explicit --sources only.-> WH
-    Edge -.partial runs only.-> WH
+    SRC["Source adapter<br/><i>declares data_trust</i>"] --> SEL{"Auto-select?<br/>trust == real?"}
+    SEL -->|yes| WH["Warehouse<br/><i>observed rows only</i>"]
+    SEL -->|no| EX["Explicit --sources<br/><i>audited request</i>"] --> WH
+    WH --> AUD["ingestion_http_log<br/><i>robots decision per request</i>"]
+    WH --> PURGE["Purge sweep<br/><i>removes + reports</i>"]
+    PURGE --> WH

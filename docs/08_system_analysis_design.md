@@ -46,8 +46,8 @@ architecture style (layered batch ETL with a read-only serving API and an MVC-li
 | O5 | Reconcile with the internal catalog and quantify the price gap | `fact_catalog_snapshot` (39/57 matched) |
 | O6 | Measure data quality on six dimensions and fail only on critical rules | 12 rules, a weighted score persisted per run |
 | O7 | Run identically on PostgreSQL and MySQL | `make verify-dialects` |
-| O8 | Serve the warehouse read-only over a secure, role-gated API | 113 operations, 78/78 smoke checks |
-| O9 | Be orchestrated on a schedule with recoverable tasks | Airflow DAG, 13 tasks, 2 retries each |
+| O8 | Serve the warehouse read-only over a secure, role-gated API | 222 operations, 104/104 smoke checks |
+| O9 | Be orchestrated on a schedule with recoverable tasks | Airflow DAG, 33 task callables, 2 retries each |
 | O10 | Be operable without the UI | CLI with 12 commands, Makefile with 30+ targets |
 
 ### 1.3 Constraints
@@ -294,7 +294,7 @@ flowchart LR
     end
 
     subgraph API["Serving - app/api"]
-        FAPI["FastAPI routers<br/>16 routers, 113 operations"]
+        FAPI["FastAPI routers<br/>24 routers, 222 operations"]
         SEC["Security<br/>JWT HS256, Argon2id, RBAC"]
         DSH["React dashboard<br/>Vite + TypeScript + Tailwind"]
     end

@@ -1,32 +1,14 @@
 
-sequenceDiagram
-    autonumber
-    participant SRC as Source adapter
-    participant HC as HTTP client (the only egress point)
-    participant CB as Circuit breaker
-    participant RB as robots cache
-    participant RL as Rate limiter
-    participant NET as The web
-    participant LOG as ingestion_http_log
-
-    SRC->>HC: get(url)
-    HC->>CB: is this host open?
-    alt breaker open after 5 failures
-        CB-->>HC: skip — zero network I/O
-        HC->>LOG: record circuit_open
-        HC-->>SRC: SkipRequest
-    else closed
-        HC->>RB: allowed(host, path)?
-        RB-->>HC: decision + crawl_delay
-        HC->>LOG: record robots decision
-        alt disallowed by robots.txt
-            HC-->>SRC: ComplianceError — nothing fetched
-        else allowed
-            HC->>RL: acquire delay
-            RL-->>HC: slowest of global, budget and Crawl-delay
-            HC->>NET: the actual request
-            NET-->>HC: response
-            HC->>LOG: status, latency, bytes, retries
-            HC-->>SRC: FetchResult
-        end
+flowchart LR
+    subgraph Run["One etl_run, nine stages"]
+        direction LR
+        S1["1 retrieve"] --> S2["2 validate"] --> S3["3 clean"] --> S4["4 stage"]
+        S4 --> S5["5 load dims"] --> S6["6 load facts"] --> S7["7 dedupe"]
+        S7 --> S8["8 detect"] --> S9["9 quality"]
     end
+    S1 -.records_extracted.-> RC[("etl_run counters")]
+    S4 -.records_rejected.-> RC
+    S6 -.records_inserted.-> RC
+    S7 -.duplicates_merged.-> RC
+    S8 -.price_changes.-> RC
+    S9 -.dq_score.-> RC

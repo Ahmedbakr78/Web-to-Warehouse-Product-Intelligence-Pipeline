@@ -61,7 +61,7 @@ flowchart LR
         P2["deps<br/>session, paging, auth, RBAC"]
         P3["security<br/>Argon2id, JWT, API keys, rights"]
         P4["schemas<br/>Pydantic contracts"]
-        P5["routers/*<br/>16 routers"]
+        P5["routers/*<br/>24 routers"]
     end
     subgraph OPS["Operations"]
         O1["app.cli.main<br/>12 commands"]
@@ -121,7 +121,7 @@ flowchart LR
 | `app/api/security.py` | Passwords, tokens, API keys, rights | `hash_password`, `verify_password`, `create_access_token`, `decode_token`, `generate_api_key`, `ROLE_RIGHTS`, `has_right`, `at_least` |
 | `app/api/schemas.py` | Request/response contracts | `Page[T]`, `ProductSummary`, `ProductDetail`, `PriceChangeRead`, `QueryRequest`, `TokenResponse`, … |
 | `app/cli/main.py` | Operator CLI | `init-db`, `bootstrap`, `seed-demo`, `run-pipeline`, `report`, `quality`, `verify`, `serve`, `status`, `check-schema`, `version`, `sources`, `user` |
-| `dags/product_intelligence_pipeline.py` | Airflow DAG | 13 tasks, guards, branch, report artefact |
+| `dags/product_intelligence_pipeline.py` | Airflow DAG | 33 task callables, guards, branch, report artefact |
 
 ---
 
@@ -165,7 +165,7 @@ Depi_Ahmed_Abobakr_Project/
 │   └── product_intelligence_pipeline.py
 ├── scripts/
 │   └── api_smoke.py           78-check API regression
-├── docs/                      20 documents (this set)
+├── docs/                      38 documents (this set)
 ├── tests/                     pytest suite (not committed in this snapshot)
 ├── frontend/                  React + Vite + TypeScript app
 ├── var/                       runtime: http-cache, logs, artifacts, sqlite fallback

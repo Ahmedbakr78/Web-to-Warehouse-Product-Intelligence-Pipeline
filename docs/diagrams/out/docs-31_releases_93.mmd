@@ -1,0 +1,13 @@
+
+flowchart TB
+    A["Something is wrong<br/>in production"] --> B{"Is the data wrong<br/>or the code wrong?"}
+    B -->|"the code"| C["Revert the commit<br/>and redeploy"]
+    B -->|"the data"| D["Stop the pipeline<br/>make run-pipeline is now explicit"]
+    D --> E["Assess the blast radius<br/>purge-untrusted --dry-run"]
+    E --> F{"Is a source<br/>compromised?"}
+    F -->|"yes"| G["Disable the source<br/>pip-cli sources update"]
+    F -->|"no"| H["Repair the affected rows"]
+    G --> I["purge-untrusted<br/>and re-collect"]
+    C --> J["Redeploy the previous tag<br/>docker compose up -d --build"]
+    I --> K["Re-verify<br/>./run-full-app.sh"]
+    J --> K

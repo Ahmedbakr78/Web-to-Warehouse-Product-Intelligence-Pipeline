@@ -75,7 +75,7 @@ resolution, change detection, catalog reconciliation and a measured data-quality
 | Orchestrate with Airflow | `dags/product_intelligence_pipeline.py` |
 | Data-quality checks | `app/etl/dq.py` (12 rules, 6 dimensions) |
 | SQL analysis and visualisation | `db/views.sql` (23 views), `app/analytics/service.py`, `app/api/routers/analytics.py` |
-| Optional extension: REST API | `app/api/` (16 routers, 113 documented operations) |
+| Optional extension: REST API | `app/api/` (24 routers, 113 documented operations) |
 
 ---
 
@@ -92,8 +92,8 @@ Objectives are written as SMART goals so that success can be measured rather tha
 | O5 | Enforce web-compliance by construction | Sources with `terms_allowed` and a robots gate in front of every request | 100 % | 100 %; every request logged in `ingestion_http_log` |
 | O6 | Measure data quality, not assume it | Number of executable rules across the six dimensions | ≥ 10 rules / 6 dimensions | 12 rules / 6 dimensions |
 | O7 | Run on more than one analytical database | Dialects with an identical structural model and identical DQ score | 2 (PostgreSQL, MySQL) | 2 — PostgreSQL 16.15 and MySQL 8.4.11, `make verify-dialects` shows the same score on both |
-| O8 | Expose the warehouse over an API | Documented REST operations behind authentication and RBAC | ≥ 50 | 113 operations / 16 routers |
-| O9 | Orchestrate with Airflow | DAG with guard, extract, load, quality, aggregate, reconcile, notify, report tasks | 1 DAG, ≥ 8 tasks | 13 tasks in `product_intelligence_pipeline` |
+| O8 | Expose the warehouse over an API | Documented REST operations behind authentication and RBAC | ≥ 50 | 222 operations / 24 routers |
+| O9 | Orchestrate with Airflow | DAG with guard, extract, load, quality, aggregate, reconcile, notify, report tasks | 1 DAG, ≥ 8 tasks | 33 task callables in `product_intelligence_pipeline` |
 | O10 | Keep the run fast enough for a daily schedule | End-to-end pipeline duration for a full multi-source run | < 10 minutes | ≈ 3.5 s for the measured live run (60 records extracted, 57 loaded) |
 
 ### 2.1 Secondary objectives
@@ -124,9 +124,9 @@ Objectives are written as SMART goals so that success can be measured rather tha
 | Catalog reconciliation | 3-stage match cascade (SKU, then normalised name, then fuzzy), price-gap analysis | `app/etl/catalog_reconcile.py` |
 | Data quality | 12 rules, 6 dimensions, weighted score, persistence of every outcome | `app/etl/dq.py` |
 | Orchestration | Airflow DAG with 2 short-circuit guards, branching notification path, report artifact | `dags/product_intelligence_pipeline.py` |
-| API | 16 routers, 113 documented operations, JWT + API key auth, 3 roles, pagination, OpenAPI | `app/api/` |
+| API | 24 routers, 113 documented operations, JWT + API key auth, 3 roles, pagination, OpenAPI | `app/api/` |
 | Operations | Typer/rich CLI (12 commands), Makefile (30+ targets), Docker Compose (6 services) | `app/cli/main.py`, `Makefile`, `docker-compose.yml` |
-| Documentation | The 20 documents in `docs/` | `docs/` |
+| Documentation | The 38 documents in `docs/` | `docs/` |
 
 ### 3.2 Out of scope
 
@@ -221,7 +221,7 @@ Manage `HI` closely, keep `HI2` informed through read-only compliance endpoints,
 | D7 | SQL analysis | `db/views.sql` (23 views) + `app/analytics/service.py` | Complete |
 | D8 | Visualisation | Analytics REST layer consumed by the React dashboard | Complete |
 | D9 | Documentation | `docs/01` … `docs/20` | Complete |
-| D10 | Optional extension — REST API | `app/api/` — 113 operations | Complete |
+| D10 | Optional extension — REST API | `app/api/` — 222 operations | Complete |
 | D11 | Cross-dialect verification | `make verify-dialects` (`app/cli/main.py verify`) | Complete |
 | D12 | API smoke test | `scripts/api_smoke.py` — 78 checks | Complete |
 
@@ -242,7 +242,7 @@ the command in the last column.
 | AC6 | Live run produces loadable records | > 0 snapshots | 57 snapshots, 48 price changes, 6 new products, 39/57 catalog SKUs matched (68.42 %) | `make run-pipeline` |
 | AC7 | Pipeline duration acceptable for a daily schedule | < 600 s | ≈ 3.5 s (3,481 ms) | `make run-pipeline` stage timings |
 | AC8 | API authenticated and role-gated | 401 without token, 403 for insufficient role | Observed in smoke test | `scripts/api_smoke.py` |
-| AC9 | API regression suite green | 78/78 checks pass | 78/78 | `.venv/bin/python scripts/api_smoke.py` |
+| AC9 | API regression suite green | 104/104 checks pass | 104/104 | `.venv/bin/python scripts/api_smoke.py` |
 | AC10 | Compliance evidence produced | Every outbound request logged | 100 % logged with `robots_allowed`, `robots_rule`, `from_cache`, `retry_count` | `GET /api/v1/audit/compliance` |
 | AC11 | Demo dataset rich enough for analysis | ≥ 8,000 snapshots | 60 products, 8,182 snapshots, 8,047 price changes, 8,199 lifecycle events / 150 days | `make demo-postgres` |
 | AC12 | No source queried when its terms are not allow-listed | 0 violations | 0 violations | `dim_source.terms_allowed`, `sync_dim_source()` |
@@ -276,7 +276,7 @@ commercial infrastructure was purchased.
 | WP15 | Docker Compose and deployment documentation | 12 | Doc 13 |
 | WP16 | Seed data, demo dataset, cross-dialect verification | 16 | `app/etl/seed.py` |
 | WP17 | Smoke test and API documentation | 14 | `scripts/api_smoke.py`, doc 14 |
-| WP18 | Documentation set (20 documents) | 40 | `docs/` |
+| WP18 | Documentation set (38 documents) | 40 | `docs/` |
 | WP19 | Review, demonstration, defence preparation | 14 | Docs 18, 20 |
 | — | **Total** | **442** | — |
 

@@ -1,19 +1,21 @@
 
-sequenceDiagram
-    autonumber
-    participant U as User
-    participant FE as React dashboard
-    participant API as FastAPI
-    participant DQ as Auth dependency
-    participant WH as Warehouse
-    participant AU as app_audit_log
-
-    U->>FE: opens Products screen
-    FE->>API: GET /products?page=1&q=phone (Bearer JWT)
-    API->>DQ: verify token, check "read" right
-    DQ-->>API: user ok (1, admin)
-    API->>WH: SELECT from vw_product_current (LIMIT, sort)
-    WH-->>API: rows + total
-    API-->>FE: page payload (X-Process-Time-Ms header)
-    FE-->>U: table renders from cache first (stale-while-revalidate)
-    Note over AU: every mutating call also writes user, action, ip, agent to app_audit_log
+flowchart TB
+    subgraph Browser["Client"]
+        RE["React 19 - TypeScript - TanStack Query - Recharts"]
+    end
+    subgraph Server["FastAPI monolith, modular"]
+        MW["CORS - gzip - timing headers"]
+        RT["24 routers, 222 operations"]
+        SV["analytics + ETL services"]
+        SEC["JWT + API keys - RBAC - audit"]
+        MW --> RT --> SV
+        SEC -.guards every route.-> RT
+    end
+    subgraph Data["Data plane"]
+        PG[("PostgreSQL 16, primary")]
+        MY[("MySQL 8.4, dialect twin")]
+        FS[("Response cache + run artefacts")]
+    end
+    RE -->|"/api/v1 with JWT"| MW
+    SV --> PG & MY
+    HC2["Ingestion client"] --> FS

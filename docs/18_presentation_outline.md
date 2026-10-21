@@ -177,7 +177,7 @@ report (read the current score off `GET /api/v1/quality/latest` - it is a measur
 ### Slide 13 — Results
 
 **On screen:** The measured results table (from `docs/05` §3) — the DQ score on two engines, 39/57 catalog
-match rate, p95 ≤ 38.2 ms, 3.5 s run, 0 structural drift, 78/78 checks.
+match rate, p95 ≤ 38.2 ms, 3.5 s run, 0 structural drift, 104/104 checks.
 
 **Message:** Every number was produced by a command in front of the panel.
 

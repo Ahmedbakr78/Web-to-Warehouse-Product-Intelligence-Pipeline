@@ -1,7 +1,7 @@
 # Documentation Index
 
 Web-to-Warehouse Product Intelligence Pipeline — DEPI graduation project, Data
-Engineering track. Thirty-seven documents covering the proposal, planning,
+Engineering track. Thirty-eight documents covering the proposal, planning,
 requirements, design, implementation evidence and evaluation.
 
 Every diagram is Mermaid, rendered natively by GitHub and to SVG for the static
@@ -47,10 +47,17 @@ flowchart LR
         D28["28 Schema"]
         D29["29 Two-factor"]
         D30["30 Access control"]
+        D31["31 Releases"]
         D32["32 Briefing"]
         D33["33 Data trust"]
     end
+    subgraph EVIDENCE["Scale, presence and decisions"]
+        D34["34 Performance"]
+        D35["35 GitHub presence"]
+        D36["36 Decision log"]
+    end
     PLAN --> DESIGN --> BUILD --> DEEP
+    DEEP --> EVIDENCE
 ```
 
 | # | Document | What it covers |
@@ -64,17 +71,17 @@ flowchart LR
 | 06 | [Literature Review](06_literature_review.md) | Six themes, 39 sources with verification status, synthesis and research gaps |
 | 07 | [Requirements Gathering](07_requirements_gathering.md) | Stakeholders, 10 user stories with Given/When/Then, 20 use cases, 58 FRs, 26 NFRs, traceability |
 | 08 | [System Analysis and Design](08_system_analysis_design.md) | Use-case diagram, architecture diagram, style and rationale |
-| 09 | [Database Design](09_database_design.md) | Generated 28-table ERD, logical versus physical schema, normalisation, indexing, retention, dialect types |
+| 09 | [Database Design](09_database_design.md) | Generated 29-table ERD, logical versus physical schema, normalisation, indexing, retention, dialect types |
 | 10 | [Data Flow Diagrams](10_data_flow_diagrams.md) | Level 0/1/2 DFDs, data dictionary, control flows |
 | 11 | [Behaviour Diagrams](11_behaviour_diagrams.md) | Sequence, activity, three state diagrams, class diagram |
 | 12 | [UI/UX Design](12_ui_ux_design.md) | Screen wireframes, design system with contrast ratios, WCAG 2.1 AA, breakpoints, motion policy |
 | 13 | [Deployment](13_deployment.md) | Stack, deployment and component diagrams, environment matrix, Compose services, ports, secrets, backup, scaling, CI/CD |
-| 14 | [API Documentation](14_api_documentation.md) | Auth flow, role matrix, 173 operations, worked examples in curl/Python/JS, errors, versioning |
+| 14 | [API Documentation](14_api_documentation.md) | Auth flow, role matrix, 222 operations, worked examples in curl/Python/JS, errors, versioning |
 | 15 | [Testing Strategy](15_testing_strategy.md) | Test pyramid, case plan, UAT scenarios, coverage targets, quality gates, defect management |
 | 16 | [User Manual](16_user_manual.md) | Sign-in, every screen, filters, exports, saved views, alerts, admin, troubleshooting, FAQ |
 | 17 | [Technical Documentation](17_technical_documentation.md) | Module map, key algorithms, every configuration variable, source extension, performance and security |
 | 18 | [Presentation Outline](18_presentation_outline.md) | Defence deck, Q&A preparation, three-minute demo script, rehearsal and fallback plans |
-| 19 | [Feature Inventory](19_feature_list.md) | 311 features in sixteen areas (F-001 to F-311), each with a file reference |
+| 19 | [Feature Inventory](19_feature_list.md) | 612 features in forty-seven areas (F-001 to F-612), each with a file reference |
 | 20 | [Feedback and Improvements](20_literature_feedback_and_improvements.md) | Lecturer feedback template, prioritised improvements, self-assessment and rubric |
 | 21 | [Architecture Deep Dive](21_architecture_deep_dive.md) | Design drivers, decisions with rejected alternatives, request lifecycle, warehouse layering, known limitations |
 | 22 | [Data Dictionary](22_data_dictionary.md) | Every table, column, type and meaning; controlled vocabularies; view catalogue; dialect portability |
@@ -140,12 +147,12 @@ Structural figures are exact and re-verifiable:
 | Claim | Verify with |
 | --- | --- |
 | 29 tables, 23 views | `make bootstrap`, or `make stats` |
-| 222 REST operations in 23 routers | `http://localhost:8000/docs`, or `make stats` |
-| 408 tests pass | `make test` |
+| 222 REST operations in 24 routers | `http://localhost:8000/docs`, or `make stats` |
+| 625 tests pass | `make test` |
 | 104 API smoke checks pass | `.venv/bin/python scripts/api_smoke.py` |
 | ruff and mypy clean | `make lint` and `make typecheck` |
 | No schema drift | `make db-check` |
-| 100+ Mermaid diagrams | `make docs-render` |
+| 104 Mermaid diagrams | `make docs-render` |
 | 12 DQ rules and the score | Quality screen, or `pip-cli quality` |
 
 `scripts/project_stats.py` recounts all of these, `scripts/check_stats.py` fails
@@ -165,14 +172,14 @@ named alongside.
 
 | Fact | Value |
 | --- | --- |
-| Version | 1.5.0 |
-| Physical tables / analytical views | 28 / 20, identical on PostgreSQL 16 and MySQL 8.4 |
-| REST operations / routers | 173 / 23 |
-| Feature inventory / runtime catalogue | 311 rows in 16 areas (`docs/19`) / 233 features in 24 groups (`GET /meta/features`) |
+| Version | 1.12.1 |
+| Physical tables / analytical views | 29 / 23, identical on PostgreSQL 16 and MySQL 8.4 |
+| REST operations / routers | 222 / 24 |
+| Feature inventory / runtime catalogue | 612 rows in 47 areas (`docs/19`) / 666 features in 42 groups (`GET /meta/features`) |
 | Data-quality rules / dimensions | 12 / 6, verdicts persisted per run |
-| Ingestion sources | 5 (3 APIs, 1 HTML scraper, 1 offline synthetic) |
-| Documentation documents / diagrams | 30 / 80 Mermaid, all rendering to SVG |
-| API regression suite | 408 pytest cases, 104 smoke checks |
+| Ingestion sources | 34 registered adapters: 31 JSON APIs, 2 HTML scrapers, 1 offline synthetic — 21 of them classified as real market data |
+| Documentation documents / diagrams | 38 / 104 Mermaid, all rendering to SVG |
+| API regression suite | 625 pytest cases, 104 smoke checks |
 | Demo accounts | `admin@example.com` / `Admin@12345`, `analyst@example.com` / `Analyst@12345`, `viewer@example.com` / `Viewer@12345` |
 
 ---
@@ -217,5 +224,5 @@ make infographic   # the 2560x1440 DEPI poster
 
 - `README.md` at the repository root — orientation and quick start
 - `docs/stats.json` — the machine-readable counts, pinned by `make stats-update`
-- `site/` — the generated static site, 33 pages plus assets
+- `site/` — the generated static site, 40 pages plus assets
 - `CHANGELOG.md` — what changed in each version

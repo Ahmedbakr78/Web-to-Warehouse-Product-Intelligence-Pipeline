@@ -78,7 +78,7 @@
     </div>
     <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#which-document-answers-which-question">Which document answers which question</a></li><li class="lvl-2"><a href="#how-to-read-these-numbers">How to read these numbers</a></li><li class="lvl-2"><a href="#measured-facts-referenced-throughout">Measured facts referenced throughout</a></li><li class="lvl-2"><a href="#reading-order">Reading order</a></li><li class="lvl-2"><a href="#quick-commands">Quick commands</a></li><li class="lvl-2"><a href="#related">Related</a></li></ol></details>
     <article class="doc-body">
-<p>Web-to-Warehouse Product Intelligence Pipeline — DEPI graduation project, Data Engineering track. Thirty-seven documents covering the proposal, planning, requirements, design, implementation evidence and evaluation.</p>
+<p>Web-to-Warehouse Product Intelligence Pipeline — DEPI graduation project, Data Engineering track. Thirty-eight documents covering the proposal, planning, requirements, design, implementation evidence and evaluation.</p>
 <p>Every diagram is Mermaid, rendered natively by GitHub and to SVG for the static site. Every structural number is measured by a script and re-verifiable with the command cited beside it.</p>
 <pre class="mermaid">flowchart LR
     subgraph PLAN[&quot;Planning and evidence&quot;]
@@ -118,10 +118,17 @@
         D28[&quot;28 Schema&quot;]
         D29[&quot;29 Two-factor&quot;]
         D30[&quot;30 Access control&quot;]
+        D31[&quot;31 Releases&quot;]
         D32[&quot;32 Briefing&quot;]
         D33[&quot;33 Data trust&quot;]
     end
-    PLAN --&gt; DESIGN --&gt; BUILD --&gt; DEEP</pre>
+    subgraph EVIDENCE[&quot;Scale, presence and decisions&quot;]
+        D34[&quot;34 Performance&quot;]
+        D35[&quot;35 GitHub presence&quot;]
+        D36[&quot;36 Decision log&quot;]
+    end
+    PLAN --&gt; DESIGN --&gt; BUILD --&gt; DEEP
+    DEEP --&gt; EVIDENCE</pre>
 <div class='table-scroll'><table><thead><tr>
 <th>#</th>
 <th>Document</th>
@@ -175,7 +182,7 @@
 <tr>
 <th>09</th>
 <td><a href="09_database_design.html">Database Design</a></td>
-<td>Generated 28-table ERD, logical versus physical schema, normalisation, indexing, retention, dialect types</td>
+<td>Generated 29-table ERD, logical versus physical schema, normalisation, indexing, retention, dialect types</td>
 </tr>
 <tr>
 <th>10</th>
@@ -200,7 +207,7 @@
 <tr>
 <th>14</th>
 <td><a href="14_api_documentation.html">API Documentation</a></td>
-<td>Auth flow, role matrix, 173 operations, worked examples in curl/Python/JS, errors, versioning</td>
+<td>Auth flow, role matrix, 222 operations, worked examples in curl/Python/JS, errors, versioning</td>
 </tr>
 <tr>
 <th>15</th>
@@ -225,7 +232,7 @@
 <tr>
 <th>19</th>
 <td><a href="19_feature_list.html">Feature Inventory</a></td>
-<td>311 features in sixteen areas (F-001 to F-311), each with a file reference</td>
+<td>612 features in forty-seven areas (F-001 to F-612), each with a file reference</td>
 </tr>
 <tr>
 <th>20</th>
@@ -394,11 +401,11 @@
 <td><code>make bootstrap</code>, or <code>make stats</code></td>
 </tr>
 <tr>
-<td>222 REST operations in 23 routers</td>
+<td>222 REST operations in 24 routers</td>
 <td><code>http://localhost:8000/docs</code>, or <code>make stats</code></td>
 </tr>
 <tr>
-<th>408 tests pass</th>
+<th>625 tests pass</th>
 <td><code>make test</code></td>
 </tr>
 <tr>
@@ -414,7 +421,7 @@
 <td><code>make db-check</code></td>
 </tr>
 <tr>
-<th>100+ Mermaid diagrams</th>
+<th>104 Mermaid diagrams</th>
 <td><code>make docs-render</code></td>
 </tr>
 <tr>
@@ -432,19 +439,19 @@
 </tr></thead><tbody>
 <tr>
 <th>Version</th>
-<td>1.5.0</td>
+<td>1.12.1</td>
 </tr>
 <tr>
 <td>Physical tables / analytical views</td>
-<td>28 / 20, identical on PostgreSQL 16 and MySQL 8.4</td>
+<td>29 / 23, identical on PostgreSQL 16 and MySQL 8.4</td>
 </tr>
 <tr>
 <td>REST operations / routers</td>
-<td>173 / 23</td>
+<td>222 / 24</td>
 </tr>
 <tr>
 <td>Feature inventory / runtime catalogue</td>
-<td>311 rows in 16 areas (<code>docs/19</code>) / 233 features in 24 groups (<code>GET /meta/features</code>)</td>
+<td>612 rows in 47 areas (<code>docs/19</code>) / 666 features in 42 groups (<code>GET /meta/features</code>)</td>
 </tr>
 <tr>
 <td>Data-quality rules / dimensions</td>
@@ -452,15 +459,15 @@
 </tr>
 <tr>
 <th>Ingestion sources</th>
-<td>5 (3 APIs, 1 HTML scraper, 1 offline synthetic)</td>
+<td>34 registered adapters: 31 JSON APIs, 2 HTML scrapers, 1 offline synthetic — 21 of them classified as real market data</td>
 </tr>
 <tr>
 <td>Documentation documents / diagrams</td>
-<td>30 / 80 Mermaid, all rendering to SVG</td>
+<td>38 / 104 Mermaid, all rendering to SVG</td>
 </tr>
 <tr>
 <th>API regression suite</th>
-<td>408 pytest cases, 104 smoke checks</td>
+<td>625 pytest cases, 104 smoke checks</td>
 </tr>
 <tr>
 <th>Demo accounts</th>
@@ -511,7 +518,7 @@ make infographic   # the 2560x1440 DEPI poster</code></pre>
 <ul>
 <li class="depth-0"><code>README.md</code> at the repository root — orientation and quick start</li>
 <li class="depth-0"><code>docs/stats.json</code> — the machine-readable counts, pinned by <code>make stats-update</code></li>
-<li class="depth-0"><code>site/</code> — the generated static site, 33 pages plus assets</li>
+<li class="depth-0"><code>site/</code> — the generated static site, 40 pages plus assets</li>
 <li class="depth-0"><code>CHANGELOG.md</code> — what changed in each version</li>
 </ul>
     </article>

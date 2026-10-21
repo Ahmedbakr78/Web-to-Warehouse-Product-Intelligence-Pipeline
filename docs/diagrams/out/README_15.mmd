@@ -1,8 +1,14 @@
 
-flowchart LR
-    SRC["Source adapter<br/><i>declares data_trust</i>"] --> SEL{"Auto-select?<br/>trust == real?"}
-    SEL -->|yes| WH["Warehouse<br/><i>observed rows only</i>"]
-    SEL -->|no| EX["Explicit --sources<br/><i>audited request</i>"] --> WH
-    WH --> AUD["ingestion_http_log<br/><i>robots decision per request</i>"]
-    WH --> PURGE["Purge sweep<br/><i>removes + reports</i>"]
-    PURGE --> WH
+stateDiagram-v2
+    [*] --> Pending: schedule 03:00 or manual trigger
+    Pending --> Running: pre-flight guards pass
+    Pending --> Skipped: database unreachable
+    Pending --> Skipped: robots.txt forbids every source
+    Running --> Running: extract, clean, stage, load
+    Running --> Validating: 9 stages finished
+    Validating --> Succeeded: 12 DQ rules, no critical failure
+    Validating --> Failed: critical rule failed
+    Running --> Failed: unexpected exception after retries
+    Succeeded --> [*]: etl_run closed, notifications raised
+    Failed --> [*]: etl_run stores the error message
+    Skipped --> [*]: guards short-circuit the branch

@@ -1,34 +1,32 @@
 
 sequenceDiagram
     autonumber
-    participant U as User
-    participant FE as React
-    participant MW as Middleware
-    participant AUTH as Security dependency
-    participant RT as Router
-    participant SVC as Analytics service
-    participant DB as Warehouse
-    participant AUD as app_audit_log
+    participant SRC as Source adapter
+    participant HC as HTTP client
+    participant RB as robots cache
+    participant RL as Rate limiter
+    participant CB as Circuit breaker
+    participant NET as The web
+    participant LOG as ingestion_http_log
 
-    U->>FE: open Analytics
-    FE->>MW: GET /api/v1/analytics/category-index (Bearer JWT)
-    MW->>MW: CORS origin check
-    MW->>MW: start timing
-    MW->>AUTH: resolve principal
-    AUTH->>AUTH: verify signature and expiry
-    AUTH->>AUTH: load role, then required permission
-    alt insufficient permission
-        AUTH-->>MW: 403 with error envelope
-        MW-->>FE: 403 + X-Process-Time-Ms
-    else permitted
-        AUTH-->>RT: user, role
-        RT->>SVC: fetch category index
-        SVC->>DB: SELECT ... FROM vw_category_price_index
-        DB-->>SVC: rows
-        SVC-->>RT: shaped payload
-        RT-->>MW: response
-        MW->>MW: gzip if accepted
-        MW-->>FE: 200 + X-Process-Time-Ms
-        FE->>FE: render chart from cache
+    SRC->>HC: get(url)
+    HC->>CB: is host open?
+    alt breaker open
+        CB-->>HC: SkipRequest(reason=circuit_open)
+        HC->>LOG: record, no network call
+        HC-->>SRC: SkipRequest
+    else breaker closed
+        HC->>RB: is_allowed(host, path)
+        RB-->>HC: allow / disallow + crawl_delay
+        HC->>LOG: record robots decision
+        alt disallowed
+            HC-->>SRC: ComplianceError
+        else allowed
+            HC->>RL: acquire()
+            RL-->>HC: delay honoured
+            HC->>NET: request
+            NET-->>HC: response
+            HC->>LOG: status, latency, bytes, retries
+            HC-->>SRC: FetchResult
+        end
     end
-    Note over AUD: mutating requests additionally write<br/>user, action, ip, user_agent

@@ -88,7 +88,7 @@ Every column, key, index and constraint in this document is generated from the S
 
 ## 3. Entity-relationship diagram
 
-### 3.1 Analytical and operational core (16 tables)
+### 3.1 Analytical and operational core (29 tables)
 
 ```mermaid
 erDiagram

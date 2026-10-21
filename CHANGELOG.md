@@ -181,7 +181,7 @@ something, and the phone behaves like the desktop.**
   'tzinfo'`** — raw SQL returns DATETIME columns as text on SQLite (no native
   type), and the freshness rule called `.tzinfo` on it; the suite masked the
   crash as a failed rule. Timestamps are now parsed with `fromisoformat`
-  (naive → UTC), with an honest `warn` verdict if unparseable. Covered by
+  (naive to UTC), with an honest `warn` verdict if unparseable. Covered by
   `test_dq007_freshness_handles_sqlite_text_timestamps`.
 - **Crawler contact is now real** — `INGEST_USER_AGENT` uses
   `ahmedbakr78102@gmail.com` instead of the placeholder address.

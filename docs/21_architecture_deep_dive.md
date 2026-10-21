@@ -35,7 +35,7 @@ flowchart TB
     end
 
     subgraph API["Interface — app/api"]
-        RT["16 routers, 113 operations"]
+        RT["24 routers, 222 operations"]
         SEC["Security dependency<br/>JWT · API key · RBAC · audit"]
     end
 

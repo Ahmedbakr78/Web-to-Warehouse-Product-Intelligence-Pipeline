@@ -76,9 +76,14 @@
       <h1>Releases</h1>
       <p>Versioning, tagging, release history and the changelog contract</p>
     </div>
-    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#versioning">Versioning</a></li><li class="lvl-2"><a href="#release-flow">Release flow</a></li><li class="lvl-2"><a href="#github-about-box-paste-ready">GitHub About box (paste-ready)</a></li><li class="lvl-2"><a href="#pre-flight-checklist">Pre-flight checklist</a></li><li class="lvl-2"><a href="#what-a-release-note-must-contain">What a release note must contain</a></li><li class="lvl-2"><a href="#history">History</a></li><li class="lvl-2"><a href="#related">Related</a></li></ol></details>
+    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#versioning">Versioning</a></li><li class="lvl-2"><a href="#release-flow">Release flow</a></li><li class="lvl-2"><a href="#github-about-box-paste-ready">GitHub About box (paste-ready)</a></li><li class="lvl-2"><a href="#pre-flight-checklist">Pre-flight checklist</a></li><li class="lvl-2"><a href="#what-a-release-note-must-contain">What a release note must contain</a></li><li class="lvl-2"><a href="#rolling-back">Rolling back</a></li><li class="lvl-2"><a href="#history">History</a></li><li class="lvl-3"><a href="#what-the-versions-added-in-one-line-each">What the versions added, in one line each</a></li><li class="lvl-2"><a href="#related">Related</a></li></ol></details>
     <article class="doc-body">
 <p>How this project ships: one version number in exactly one place, a changelog entry per release, an annotated tag, and a GitHub release with notes. The flow is designed so a release can never be half-done.</p>
+<hr>
+<h2 id="purpose">Purpose</h2>
+<p>A release is a promise. This document describes the promise, how it is made, how it is checked, and what happens when it has to be undone. It exists because the failure mode of a project like this one is not a broken feature — it is a <em>claim</em> that no longer holds: a README that says "no synthetic rows" while the launcher seeds 9,854 of them, a dashboard tile that shows a perfect score for a warehouse nobody checked, a topic tag for a technology the project does not use.</p>
+<p>Every claim in this repository is therefore either <strong>measured</strong> (and the measurement fails CI when it drifts) or <strong>removed</strong>.</p>
+<hr>
 <h2 id="versioning">Versioning</h2>
 <p>Semantic versioning (<code>MAJOR.MINOR.PATCH</code>), single source in <code>VERSION</code>:</p>
 <ul>
@@ -87,8 +92,10 @@
 <li class="depth-0"><code>PATCH</code> — fixes with no new surface.</li>
 </ul>
 <p><code>scripts/sync_version.py</code> propagates <code>VERSION</code> into <code>pyproject.toml</code>, <code>frontend/package.json</code> and the app settings — never edit those by hand:</p>
-<pre class="code" data-lang="bash"><code>printf &#x27;1.11.0&#x27; &gt; VERSION
+<pre class="code" data-lang="bash"><code>printf &#x27;1.12.1&#x27; &gt; VERSION
 .venv/bin/python scripts/sync_version.py</code></pre>
+<p>The API reports the same number at <code>GET /api/v1/meta</code>, so a running deployment can always be checked against the tag it was built from.</p>
+<hr>
 <h2 id="release-flow">Release flow</h2>
 <pre class="mermaid">flowchart LR
     V[&quot;1 · Bump VERSION&lt;br/&gt;+ sync_version.py&quot;] --&gt; C[&quot;2 · CHANGELOG entry&lt;br/&gt;Keep-a-Changelog&quot;]
@@ -98,7 +105,7 @@
     G --&gt; R[&quot;6 · Push + release&lt;br/&gt;gh release create&quot;]</pre>
 <p>Commands (owner runs these — nobody else can release for you):</p>
 <pre class="code" data-lang="bash"><code># 1-2: version + changelog (Unreleased section becomes the new version)
-printf &#x27;1.11.0&#x27; &gt; VERSION
+printf &#x27;1.12.1&#x27; &gt; VERSION
 .venv/bin/python scripts/sync_version.py
 
 # 3: re-measure every structural figure; fail loudly on drift
@@ -110,20 +117,24 @@ printf &#x27;1.11.0&#x27; &gt; VERSION
 ./run.sh --verify-only
 
 # 5-6: commit, tag, publish
-git add -A &amp;&amp; git commit -m &quot;Release v1.11.0 — &lt;one-line theme&gt;&quot;
-git tag -a v1.11.0 -m &quot;v1.11.0 — &lt;one-line theme&gt;&quot;
-git push origin main v1.11.0
-gh release create v1.11.0 --title &quot;v1.11.0&quot; --notes-file CHANGELOG.md</code></pre>
+git add -A &amp;&amp; git commit -m &quot;Release v1.12.1 — &lt;one-line theme&gt;&quot;
+git tag -a v1.12.1 -m &quot;v1.12.1 — &lt;one-line theme&gt;&quot;
+git push origin main v1.12.1
+gh release create v1.12.1 --title &quot;v1.12.1&quot; --notes-file CHANGELOG.md</code></pre>
+<hr>
 <h2 id="github-about-box-paste-ready">GitHub About box (paste-ready)</h2>
 <p><strong>Description:</strong></p>
-<blockquote><p>End-to-end product intelligence pipeline: permitted web/API ingestion (35 sources), compliance-first cleaning, fuzzy duplicate detection, PostgreSQL and MySQL warehouse with price history, SQL analytics, Airflow orchestration, FastAPI (219 ops) and a React 19 dashboard. Every row is provably observed market data. DEPI Data Engineering capstone.</p></blockquote>
+<blockquote><p>End-to-end product intelligence pipeline: permitted web/API ingestion (34 source adapters), compliance-first cleaning, fuzzy duplicate detection, PostgreSQL and MySQL warehouse with price history, SQL analytics, Airflow orchestration, FastAPI (222 operations) and a React 19 dashboard. Every row is provably observed market data — proven by an audit that walks the warehouse and exits non-zero on a fabricated row. DEPI Data Engineering capstone.</p></blockquote>
 <p><strong>Topics:</strong></p>
 <pre class="code" data-lang=""><code>web-scraping  beautifulsoup  scrapy  etl  data-engineering  airflow  postgresql
 fastapi  python  data-quality  deduplication  price-tracking  data-warehouse
-docker  plotly  streamlit  rest-api  depi  data-pipeline  sql-analytics
-data-lineage  provenance  robots-txt  rate-limiting  analytics-engineering
-product-intelligence  kimball  react  typescript  airflow-dag  etl-pipeline
-observability  alerting  openapi  clickhouse  duckdb  pandas  numpy</code></pre>
+docker  rest-api  depi  data-pipeline  sql-analytics  data-lineage  provenance
+robots-txt  rate-limiting  analytics-engineering  product-intelligence  kimball
+react  typescript  airflow-dag  etl-pipeline  observability  alerting  openapi
+mysql  sqlalchemy  alembic  react-query  recharts  tailwindcss  pytest  mypy
+ruff  vitest  pydantic  httpx  numpy  pandas  weasyprint  argon2  totp
+sse  docker-compose  github-actions  data-contracts  provenance-audit</code></pre>
+<p>Every topic names a technology the repository actually depends on. The list used to carry <code>streamlit</code>, <code>clickhouse</code> and <code>plotly</code> — none of which the project uses — which is exactly the kind of small lie that makes a topic list worthless.</p>
 <p><strong>Website:</strong> link <code>website/index.html</code> (or the Pages URL once enabled).</p>
 <p><strong>Visibility:</strong> Repo, then Settings, then General, then Danger Zone, then Change visibility, Make private (or <code>gh repo edit &lt;repo&gt; --visibility private --accept-visibility-change-consequences</code>).</p>
 <hr>
@@ -207,8 +218,15 @@ observability  alerting  openapi  clickhouse  duckdb  pandas  numpy</code></pre>
 <td><code>make infographic</code></td>
 <td>the assets are regenerated from the live stats</td>
 </tr>
+<tr>
+<th>13</th>
+<td>The warehouse is provably real</td>
+<td><code>make audit</code></td>
+<td>"CLEAN - every row traces back to a real, permitted source"</td>
+</tr>
 </tbody></table></div>
-<p>Steps 8 to 12 are the ones that catch the failures a unit test cannot: a source that started returning garbage, a table that grew without an index, a documentation page that stopped existing.</p>
+<p>Steps 8 to 13 are the ones that catch the failures a unit test cannot: a source that started returning garbage, a table that grew without an index, a documentation page that stopped existing, a row that reached the warehouse from a feed nobody checked.</p>
+<p>Step 13 deserves its own line. It is the one command that proves the project's central claim, and it runs against the <em>live</em> database rather than a freshly seeded one.</p>
 <hr>
 <h2 id="what-a-release-note-must-contain">What a release note must contain</h2>
 <pre class="mermaid">flowchart LR
@@ -244,13 +262,37 @@ observability  alerting  openapi  clickhouse  duckdb  pandas  numpy</code></pre>
 <td>The commands that were run and their results.</td>
 </tr>
 </tbody></table></div>
-<p>The last section is what distinguishes a release note from a wish list. It should quote real output — <code>594 passed</code>, <code>104/104</code>, <code>No drift: all 15 pinned figures match</code> — not intentions.</p>
+<p>The last section is what distinguishes a release note from a wish list. It should quote real output — the pass count from <code>pytest</code>, <code>104/104</code> from the smoke test, <code>No drift: all N pinned figures match</code> from the statistics gate — not intentions.</p>
+<p>The <strong>Fixed</strong> section has a rule of its own: a bug entry that does not say what now prevents it recurring is not finished. Half of the 1.12.1 entries are of that shape, because half of the bugs were <em>missing guards</em> rather than wrong logic.</p>
+<hr>
+<h2 id="rolling-back">Rolling back</h2>
+<p>A rollback is part of the release plan, not an afterthought.</p>
+<pre class="mermaid">flowchart TB
+    A[&quot;Something is wrong&lt;br/&gt;in production&quot;] --&gt; B{&quot;Is the data wrong&lt;br/&gt;or the code wrong?&quot;}
+    B --&gt;|&quot;the code&quot;| C[&quot;Revert the commit&lt;br/&gt;and redeploy&quot;]
+    B --&gt;|&quot;the data&quot;| D[&quot;Stop the pipeline&lt;br/&gt;make run-pipeline is now explicit&quot;]
+    D --&gt; E[&quot;Assess the blast radius&lt;br/&gt;purge-untrusted --dry-run&quot;]
+    E --&gt; F{&quot;Is a source&lt;br/&gt;compromised?&quot;}
+    F --&gt;|&quot;yes&quot;| G[&quot;Disable the source&lt;br/&gt;pip-cli sources update&quot;]
+    F --&gt;|&quot;no&quot;| H[&quot;Repair the affected rows&quot;]
+    G --&gt; I[&quot;purge-untrusted&lt;br/&gt;and re-collect&quot;]
+    C --&gt; J[&quot;Redeploy the previous tag&lt;br/&gt;docker compose up -d --build&quot;]
+    I --&gt; K[&quot;Re-verify&lt;br/&gt;./run-full-app.sh&quot;]
+    J --&gt; K</pre>
+<p><strong>Rolling the code back</strong> is the cheap case: the previous tag is a full snapshot, and the Docker images are rebuilt from it.</p>
+<pre class="code" data-lang="bash"><code>git checkout v1.12.0 &amp;&amp; docker compose up -d --build</code></pre>
+<p><strong>Rolling the data back</strong> is the expensive one, and the reason the warehouse is append-only. A price snapshot is never updated in place, so a bad run <em>appends</em> rows rather than corrupting the history. The repair is therefore a delete of the offending rows — which is exactly what <code>purge-untrusted</code> does when a source's trust level is lowered.</p>
+<p><strong>A hotfix</strong> follows the same path as a release, at a smaller scale: bump the patch version, add the changelog entry, run the pre-flight, tag, push. A hotfix that skips the changelog is a bug that will be reintroduced.</p>
 <hr>
 <h2 id="history">History</h2>
 <div class='table-scroll'><table><thead><tr>
 <th>Version</th>
 <th>Theme</th>
 </tr></thead><tbody>
+<tr>
+<th>1.12.1</th>
+<td>Nothing in the product is a stub: measured metrics, real-only ingestion, honest quality reporting, portable migrations, checked documentation</td>
+</tr>
 <tr>
 <th>1.12.0</th>
 <td>Truthful metrics, silent reload &amp; mobile parity; window indexes; hermetic test suite</td>
@@ -273,6 +315,36 @@ observability  alerting  openapi  clickhouse  duckdb  pandas  numpy</code></pre>
 </tr>
 </tbody></table></div>
 <p>Full detail per version: <code>CHANGELOG.md</code>.</p>
+<h3 id="what-the-versions-added-in-one-line-each">What the versions added, in one line each</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Version</th>
+<th>The one thing it added</th>
+</tr></thead><tbody>
+<tr>
+<th>1.12.1</th>
+<td>The guarantee became checkable: a source can no longer be laundered into market data, a quality score can no longer be invented, and the documentation's figures are verified rather than asserted</td>
+</tr>
+<tr>
+<th>1.12.0</th>
+<td>The dashboard stopped lying: one window for every tile, two labels for "products" and "observations", and five preferences that were saved but read by nobody</td>
+</tr>
+<tr>
+<th>1.11.0</th>
+<td>A morning briefing, and a warehouse large enough to make the analytics believable</td>
+</tr>
+<tr>
+<th>1.10.0</th>
+<td>The ingestion surface grew: three more sources, a Scrapy engine, conditional GET</td>
+</tr>
+<tr>
+<th>1.9.0</th>
+<td>The defaults became real-only, and the launcher became one command</td>
+</tr>
+<tr>
+<th>1.8.0</th>
+<td>The query lab learned <code>HAVING</code>, <code>OR</code> logic and a saved-view lifecycle</td>
+</tr>
+</tbody></table></div>
 <hr>
 <h2 id="related">Related</h2>
 <div class='table-scroll'><table><thead><tr>
@@ -282,6 +354,10 @@ observability  alerting  openapi  clickhouse  duckdb  pandas  numpy</code></pre>
 <tr>
 <td><a href="33_data_trust_and_compliance.html">33 — Data Trust &amp; Compliance</a></td>
 <td>Why a release cannot quietly introduce fabricated rows</td>
+</tr>
+<tr>
+<td><a href="34_performance_and_scale.html">34 — Performance &amp; Scale</a></td>
+<td>The measurements a release note quotes</td>
 </tr>
 <tr>
 <td><a href="24_demo_runbook.html">24 — Demo Runbook</a></td>

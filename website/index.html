@@ -1002,7 +1002,7 @@ python -m app.cli.main purge-untrusted           # delete and report
             <code class="mono">detected_at</code> had none, so the planner sequential-scanned the whole fact table on
             every dashboard load. Three indexes, built concurrently, replaced the scan with an index-only scan.</li>
         <li><b>The KPI payload stopped counting what it does not publish.</b> It ran <code class="mono">COUNT(*)</code>
-            against sixteen tables to build a dictionary the dashboard read one entry of. <b>290 ms → 150 ms.</b></li>
+            against sixteen tables to build a dictionary the dashboard read one entry of. <b>290 ms down to 150 ms.</b></li>
         <li><b>An append-only fact grain.</b> Re-observing a product appends a row rather than updating one, so the write
             path never contends and the read path scans a time-ordered structure.</li>
       </ul>
@@ -1912,6 +1912,7 @@ make frontend-dev  # dashboard on :5173</pre>
     </div>
     <div class="table-wrap"><table class="tight">
       <tr><th>Version</th><th>Date</th><th>Highlights</th></tr>
+      <tr><td><span class="pill">v1.12.1</span></td><td class="nw">2026-10-21</td><td>Nothing in the product is a stub any more — a source can no longer be laundered into market data, a quality score is no longer invented for an unevaluated warehouse, the synthetic dataset is opt-in, migrations run on MySQL, the documentation's figures are checked rather than asserted, and the products screen opens six times faster</td></tr>
       <tr><td><span class="pill">v1.12.0</span></td><td class="nw">2026-10-21</td><td>Truthful metrics, silent reload &amp; mobile parity — every dashboard tile scoped to the same window, five previously-dead preferences wired end to end, a new exact-number display mode, the mobile drawer lock and resize bugs fixed, three window indexes added, the FX test made hermetic</td></tr>
       <tr><td><span class="pill">v1.11.0</span></td><td class="nw">2026-10-20</td><td>Morning Briefing &amp; the 10x demo warehouse — the <code class="mono">/briefing</code> action queue, <code class="mono">expand-demo</code> taking the demo to 25,076 products and 550k+ observations, briefing defaults on the profile, mobile and theme polish</td></tr>
       <tr><td><span class="pill">v1.10.0</span></td><td class="nw">2026-10-15</td><td>Ingestion Max — TVMaze, Archive.org texts and DummyJSON recipes (34 adapters), a Scrapy engine beside BeautifulSoup, conditional-GET revalidation, real-only pipeline defaults, theme memory, one-command <code class="mono">./run.sh</code>, the team API</td></tr>
@@ -2062,7 +2063,7 @@ from ~290 ms to ~150 ms.</pre>
 <footer>
   <div class="wrap foot-in">
     <span>Web-to-Warehouse Product Intelligence Pipeline · built for a retailer's morning market picture.</span>
-    <span>MIT licensed · DEPI Data Engineering · 666 features · 29 tables · 23 views · 222 API ops · 35 sources · 37 documents</span>
+    <span>MIT licensed · DEPI Data Engineering · 666 features · 29 tables · 23 views · 222 API ops · 34 sources · 38 documents</span>
   </div>
 </footer>
 

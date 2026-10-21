@@ -76,7 +76,7 @@
       <h1>Performance &amp; Scale</h1>
       <p>Measured latencies, table sizes, the index strategy, capacity planning and the honest limits</p>
     </div>
-    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#the-measured-system">The measured system</a></li><li class="lvl-3"><a href="#where-the-rows-come-from">Where the rows come from</a></li><li class="lvl-2"><a href="#measured-response-times">Measured response times</a></li><li class="lvl-3"><a href="#in-process-query-cost">In-process query cost</a></li><li class="lvl-2"><a href="#the-three-decisions-that-make-it-scale">The three decisions that make it scale</a></li><li class="lvl-3"><a href="#1-the-kpi-payload-stopped-counting-what-it-does-not-publish">1. The KPI payload stopped counting what it does not publish</a></li><li class="lvl-3"><a href="#2-the-windowed-timestamps-carry-an-index">2. The windowed timestamps carry an index</a></li><li class="lvl-3"><a href="#3-the-fact-grain-is-append-only">3. The fact grain is append-only</a></li><li class="lvl-2"><a href="#capacity-planning">Capacity planning</a></li><li class="lvl-3"><a href="#what-breaks-first-and-what-it-costs">What breaks first, and what it costs</a></li><li class="lvl-3"><a href="#the-pre-aggregate-that-already-exists">The pre-aggregate that already exists</a></li><li class="lvl-2"><a href="#the-cost-side-politeness-is-a-budget">The cost side: politeness is a budget</a></li><li class="lvl-2"><a href="#honest-limits">Honest limits</a></li><li class="lvl-2"><a href="#how-to-re-measure-all-of-this">How to re-measure all of this</a></li><li class="lvl-2"><a href="#related-documents">Related documents</a></li></ol></details>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#the-measured-system">The measured system</a></li><li class="lvl-3"><a href="#where-the-rows-come-from">Where the rows come from</a></li><li class="lvl-2"><a href="#measured-response-times">Measured response times</a></li><li class="lvl-3"><a href="#in-process-query-cost">In-process query cost</a></li><li class="lvl-2"><a href="#the-three-decisions-that-make-it-scale">The three decisions that make it scale</a></li><li class="lvl-3"><a href="#1-the-kpi-payload-stopped-counting-what-it-does-not-publish">1. The KPI payload stopped counting what it does not publish</a></li><li class="lvl-3"><a href="#2-the-facets-counted-a-price-they-did-not-need">2. The facets counted a price they did not need</a></li><li class="lvl-3"><a href="#3-the-distinct-product-count-stopped-sorting-the-whole-table">3. The distinct-product count stopped sorting the whole table</a></li><li class="lvl-3"><a href="#4-the-windowed-timestamps-carry-an-index">4. The windowed timestamps carry an index</a></li><li class="lvl-3"><a href="#the-covering-indexes">The covering indexes</a></li><li class="lvl-3"><a href="#measuring-it-again">Measuring it again</a></li><li class="lvl-3"><a href="#5-the-fact-grain-is-append-only">5. The fact grain is append-only</a></li><li class="lvl-2"><a href="#capacity-planning">Capacity planning</a></li><li class="lvl-3"><a href="#what-breaks-first-and-what-it-costs">What breaks first, and what it costs</a></li><li class="lvl-3"><a href="#the-pre-aggregate-that-already-exists">The pre-aggregate that already exists</a></li><li class="lvl-2"><a href="#the-cost-side-politeness-is-a-budget">The cost side: politeness is a budget</a></li><li class="lvl-2"><a href="#honest-limits">Honest limits</a></li><li class="lvl-2"><a href="#how-to-re-measure-all-of-this">How to re-measure all of this</a></li><li class="lvl-2"><a href="#related-documents">Related documents</a></li></ol></details>
     <article class="doc-body">
 <blockquote><p><strong>Every number in this document was measured on the running system</strong>, not estimated. The command that produced each figure is given with it, so any claim here can be re-derived and falsified.</p></blockquote>
 <hr>
@@ -374,8 +374,25 @@ KPI_COUNTED_TABLES: tuple[str, ...] = (
     &quot;dim_product&quot;,
     &quot;fact_price_snapshot&quot;,
 )</code></pre>
-<p>The full set stays available on the health endpoint and the pipeline totals report, where it belongs. <strong>Measured effect: 290 ms → 150 ms</strong> for the dashboard query.</p>
-<h3 id="2-the-windowed-timestamps-carry-an-index">2. The windowed timestamps carry an index</h3>
+<p>The full set stays available on the health endpoint and the pipeline totals report, where it belongs. <strong>Measured effect: 290 ms down to 150 ms</strong> for the dashboard query.</p>
+<h3 id="2-the-facets-counted-a-price-they-did-not-need">2. The facets counted a price they did not need</h3>
+<p>The products screen opens with <code>GET /products/facets</code>, which fills four dropdowns: category, brand, source and availability. It counted all four over <code>vw_product_current</code> - the view whose per-product <em>"latest snapshot"</em> is a correlated subquery - and then a fifth time over the same view for the price band. The expensive join was paid five times, once per dropdown.</p>
+<p>Three of the four facets are attributes of the <em>product</em>, not of its latest price, and the product's own source is always the source its latest snapshot came from (verified: 14,685 products, 0 divergences). So they are counted straight from <code>dim_product</code>, and only the price band still needs a price.</p>
+<p><strong>Measured effect: 1,048 ms down to 190 ms</strong> for the facets request. The counts are identical, with one deliberate difference: the product table also includes the two products that never received a snapshot, which the view's join drops. A product that was collected <em>is</em> a product of that source.</p>
+<h3 id="3-the-distinct-product-count-stopped-sorting-the-whole-table">3. The distinct-product count stopped sorting the whole table</h3>
+<p><code>COUNT(DISTINCT product_id)</code> mixed into the main <code>SELECT</code> forces the planner to sort every matching row on disk to deduplicate it - a 4 MB external merge sort on an 83,000-row table. As its own hash aggregate the same number is an index-only scan:</p>
+<pre class="code" data-lang="sql"><code>-- Before: external merge sort, 4 MB spilled, 291 ms
+--   Sort Method: external merge  Disk: 4216kB
+--   -&gt;  Seq Scan on fact_price_snapshot (actual time=0.056..73.049 rows=83306)
+
+-- After: a hash aggregate over an index-only scan, 107 ms
+--   -&gt;  HashAggregate (actual time=46.359..50.507 rows=14685)
+--         -&gt;  Index Only Scan using ix_fact_price_captured_product</code></pre>
+<p>The same shape was applied to the source-coverage aggregate, which groups every observation by source:</p>
+<pre class="code" data-lang="sql"><code>-- Before: sequential scan + external merge sort, 4 MB spilled, 181 ms
+-- After: an index-only scan, 22 ms
+--   -&gt;  Index Only Scan using ix_fact_price_source_cover</code></pre>
+<h3 id="4-the-windowed-timestamps-carry-an-index">4. The windowed timestamps carry an index</h3>
 <p>Every headline number is a window: <em>"price changes in the last 30 days"</em>, <em>"observations in the last 7 days"</em>. Those queries filter on <code>captured_at</code> (facts) and <code>detected_at</code> (change tables) — and neither column had an index, so the planner sequential-scanned the whole fact table on every dashboard load.</p>
 <p>The plan before and after, from the live database:</p>
 <pre class="code" data-lang="sql"><code>-- Before: 83,306 rows scanned, 71 ms
@@ -418,7 +435,91 @@ WHERE captured_at &gt;= now() - interval &#x27;30 days&#x27;;
 <pre class="code" data-lang="sql"><code>CREATE INDEX CONCURRENTLY IF NOT EXISTS &quot;ix_fact_price_captured_product&quot;
   ON &quot;fact_price_snapshot&quot; (&quot;captured_at&quot;, &quot;product_id&quot;);</code></pre>
 <p>A sequential scan is still chosen when the window covers most of the table — which is correct, and cheaper. The index pays off exactly when the data outgrows the window, which is the case that matters.</p>
-<h3 id="3-the-fact-grain-is-append-only">3. The fact grain is append-only</h3>
+<h3 id="the-covering-indexes">The covering indexes</h3>
+<p>Three more indexes were added in revision <code>0008_covering_aggregate_indexes</code>. They are <em>covering</em>: the columns the aggregate needs are stored in the index itself, so the query never has to visit the table at all.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Index</th>
+<th>Columns</th>
+<th>INCLUDE</th>
+<th>Serves</th>
+</tr></thead><tbody>
+<tr>
+<td><code>ix_fact_price_source_cover</code></td>
+<td><code>(source_code, product_id)</code></td>
+<td><code>price_usd, rating, captured_at</code></td>
+<td><code>vw_source_coverage</code> — every observation grouped by source</td>
+</tr>
+<tr>
+<td><code>ix_fact_price_date_cover</code></td>
+<td><code>(date_id, product_id)</code></td>
+<td><code>price_usd, rating, in_stock</code></td>
+<td><code>vw_daily_kpis</code> and <code>vw_category_price_index</code> — the daily rollups</td>
+</tr>
+<tr>
+<td><code>ix_fact_price_product_source</code></td>
+<td><code>(product_id, source_code, snapshot_id)</code></td>
+<td>—</td>
+<td><code>vw_product_current</code> — the per-product <em>"latest snapshot"</em> lookup</td>
+</tr>
+</tbody></table></div>
+<p>The source-coverage aggregate is the clearest example. Before, it was a sequential scan and an external merge sort that spilled 4 MB to disk:</p>
+<pre class="code" data-lang="sql"><code>-- Before: 181 ms, 4 MB spilled
+--   Sort Method: external merge  Disk: 3992kB
+--   -&gt;  Seq Scan on fact_price_snapshot  (actual time=0.048..23.467 rows=83306)
+
+-- After: 22 ms, no spill
+--   -&gt;  Index Only Scan using ix_fact_price_source_cover
+--         (actual time=0.066..9.897 rows=83306)</code></pre>
+<p>The third index is the one that matters most as the table grows. The <code>vw_product_current</code> view finds each product's latest snapshot with a correlated subquery, and it runs once per product:</p>
+<pre class="code" data-lang="sql"><code>-- Before: an index scan that had to read six rows to find one
+--   -&gt;  Index Scan using ix_fact_price_source_cover (actual time=0.005..0.008 rows=6)
+
+-- After: a single-row index-only MAX
+--   -&gt;  Index Only Scan Backward using ix_fact_price_product_source
+--         (actual time=0.004..0.004 rows=1)</code></pre>
+<h3 id="measuring-it-again">Measuring it again</h3>
+<p>Both numbers in this chapter were produced by scripts that are in the repository, so they can be re-measured rather than believed:</p>
+<pre class="code" data-lang="bash"><code># The queries, inside the database
+python3 scripts/measure_performance.py --database &quot;$DATABASE_URL&quot; --repeat 5
+
+# The endpoints, over HTTP, as a user meets them
+python3 scripts/measure_endpoints.py --url http://localhost:8000 --repeat 7</code></pre>
+<p><code>measure_endpoints.py</code> reports the <strong>median</strong> of several runs, because a single sample is dominated by whatever else the machine happened to be doing. The result on the live warehouse, after the changes above:</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Endpoint</th>
+<th>Median</th>
+</tr></thead><tbody>
+<tr>
+<th><code>GET /products/facets</code></th>
+<td>190 ms</td>
+</tr>
+<tr>
+<td><code>GET /analytics/kpi?days=30</code></td>
+<td>120 ms</td>
+</tr>
+<tr>
+<td><code>GET /products?page=1&amp;page_size=25</code></td>
+<td>54 ms</td>
+</tr>
+<tr>
+<td><code>GET /changes/price?days=90</code></td>
+<td>48 ms</td>
+</tr>
+<tr>
+<th><code>GET /catalog/summary</code></th>
+<td>40 ms</td>
+</tr>
+<tr>
+<th><code>GET /sources</code></th>
+<td>27 ms</td>
+</tr>
+<tr>
+<th><code>GET /quality/latest</code></th>
+<td>19 ms</td>
+</tr>
+</tbody></table></div>
+<p>One pass over every endpoint the dashboard reads now costs <strong>2.8 seconds</strong> across twenty-three calls, most of which are under 50 ms.</p>
+<h3 id="5-the-fact-grain-is-append-only">5. The fact grain is append-only</h3>
 <p>The fact grain is <em>product x source x captured_at</em>, enforced by a unique constraint. Re-observing a product <strong>appends</strong> a row rather than updating one, so the write path never contends and the read path is a pure scan of a time-ordered structure.</p>
 <pre class="mermaid">flowchart LR
     A[&quot;Product observed&lt;br/&gt;again&quot;] --&gt; B[&quot;New fact row&lt;br/&gt;captured_at = now&quot;]

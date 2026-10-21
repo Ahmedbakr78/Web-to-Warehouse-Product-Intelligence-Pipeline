@@ -6,7 +6,7 @@ flowchart TB
         ING["app.ingestion<br/>base, cleaning, dedupe,<br/>robots, ratelimit, http_client, sources"]
         ETL["app.etl<br/>pipeline, loader, dq,<br/>catalog_reconcile, bootstrap, seed"]
         ANA["app.analytics<br/>service"]
-        API["app.api<br/>main, deps, security,<br/>schemas, 16 routers"]
+        API["app.api<br/>main, deps, security,<br/>schemas, 24 routers"]
         MODELS["app.models<br/>base, dimensions, facts,<br/>operations, catalog, app_users"]
         CLIM["app.cli<br/>main"]
     end

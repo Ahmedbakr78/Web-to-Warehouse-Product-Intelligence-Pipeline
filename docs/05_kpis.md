@@ -282,7 +282,7 @@ Measured: **29 tables**, **23 views** on both PostgreSQL and MySQL.
 | KPI-13 Source success rate | ≥ 95 % | 100 % for the offline source; live sources reported per run | Met | `dim_source` |
 | KPI-14 Source coverage | ≥ 3 sources | 5 registered, 3 used in the Airflow default set | Met | `list_sources()` |
 | KPI-15 API p95 latency | < 500 ms | ≤ 38.2 ms worst of 12 endpoints | Met | §5 |
-| KPI-16 API availability | 78/78 checks | 78/78 checks pass | Met | `scripts/api_smoke.py` |
+| KPI-16 API availability | 104/104 checks | 104/104 checks pass | Met | `scripts/api_smoke.py` |
 | KPI-17 Compliance evidence | 100 % of requests logged | 100 % by construction; 0 requests offline | Met | `ingestion_http_log` |
 | KPI-18 Change coverage | ≥ 0.5 events/snapshot | 8,326 events ÷ 8,302 snapshots = 1.00 | Met | `chg_*` |
 | KPI-19 Cross-dialect parity | 0 structural drift | 0 drift, identical DQ score | Met | `make verify-dialects` |

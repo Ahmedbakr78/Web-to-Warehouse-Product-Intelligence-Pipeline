@@ -143,10 +143,54 @@ KPI_COUNTED_TABLES: tuple[str, ...] = (
 ```
 
 The full set stays available on the health endpoint and the pipeline totals
-report, where it belongs. **Measured effect: 290 ms → 150 ms** for the
+report, where it belongs. **Measured effect: 290 ms down to 150 ms** for the
 dashboard query.
 
-### 2. The windowed timestamps carry an index
+### 2. The facets counted a price they did not need
+
+The products screen opens with `GET /products/facets`, which fills four
+dropdowns: category, brand, source and availability. It counted all four over
+`vw_product_current` - the view whose per-product *"latest snapshot"* is a
+correlated subquery - and then a fifth time over the same view for the price
+band. The expensive join was paid five times, once per dropdown.
+
+Three of the four facets are attributes of the *product*, not of its latest
+price, and the product's own source is always the source its latest snapshot
+came from (verified: 14,685 products, 0 divergences). So they are counted
+straight from `dim_product`, and only the price band still needs a price.
+
+**Measured effect: 1,048 ms down to 190 ms** for the facets request. The counts
+are identical, with one deliberate difference: the product table also
+includes the two products that never received a snapshot, which the view's
+join drops. A product that was collected *is* a product of that source.
+
+### 3. The distinct-product count stopped sorting the whole table
+
+`COUNT(DISTINCT product_id)` mixed into the main `SELECT` forces the planner
+to sort every matching row on disk to deduplicate it - a 4 MB external merge
+sort on an 83,000-row table. As its own hash aggregate the same number is an
+index-only scan:
+
+```sql
+-- Before: external merge sort, 4 MB spilled, 291 ms
+--   Sort Method: external merge  Disk: 4216kB
+--   ->  Seq Scan on fact_price_snapshot (actual time=0.056..73.049 rows=83306)
+
+-- After: a hash aggregate over an index-only scan, 107 ms
+--   ->  HashAggregate (actual time=46.359..50.507 rows=14685)
+--         ->  Index Only Scan using ix_fact_price_captured_product
+```
+
+The same shape was applied to the source-coverage aggregate, which groups
+every observation by source:
+
+```sql
+-- Before: sequential scan + external merge sort, 4 MB spilled, 181 ms
+-- After: an index-only scan, 22 ms
+--   ->  Index Only Scan using ix_fact_price_source_cover
+```
+
+### 4. The windowed timestamps carry an index
 
 Every headline number is a window: *"price changes in the last 30 days"*,
 *"observations in the last 7 days"*. Those queries filter on `captured_at`
@@ -188,7 +232,75 @@ A sequential scan is still chosen when the window covers most of the table —
 which is correct, and cheaper. The index pays off exactly when the data
 outgrows the window, which is the case that matters.
 
-### 3. The fact grain is append-only
+### The covering indexes
+
+Three more indexes were added in revision `0008_covering_aggregate_indexes`.
+They are *covering*: the columns the aggregate needs are stored in the index
+itself, so the query never has to visit the table at all.
+
+| Index | Columns | INCLUDE | Serves |
+| --- | --- | --- | --- |
+| `ix_fact_price_source_cover` | `(source_code, product_id)` | `price_usd, rating, captured_at` | `vw_source_coverage` — every observation grouped by source |
+| `ix_fact_price_date_cover` | `(date_id, product_id)` | `price_usd, rating, in_stock` | `vw_daily_kpis` and `vw_category_price_index` — the daily rollups |
+| `ix_fact_price_product_source` | `(product_id, source_code, snapshot_id)` | — | `vw_product_current` — the per-product *"latest snapshot"* lookup |
+
+The source-coverage aggregate is the clearest example. Before, it was a
+sequential scan and an external merge sort that spilled 4 MB to disk:
+
+```sql
+-- Before: 181 ms, 4 MB spilled
+--   Sort Method: external merge  Disk: 3992kB
+--   ->  Seq Scan on fact_price_snapshot  (actual time=0.048..23.467 rows=83306)
+
+-- After: 22 ms, no spill
+--   ->  Index Only Scan using ix_fact_price_source_cover
+--         (actual time=0.066..9.897 rows=83306)
+```
+
+The third index is the one that matters most as the table grows. The
+`vw_product_current` view finds each product's latest snapshot with a
+correlated subquery, and it runs once per product:
+
+```sql
+-- Before: an index scan that had to read six rows to find one
+--   ->  Index Scan using ix_fact_price_source_cover (actual time=0.005..0.008 rows=6)
+
+-- After: a single-row index-only MAX
+--   ->  Index Only Scan Backward using ix_fact_price_product_source
+--         (actual time=0.004..0.004 rows=1)
+```
+
+### Measuring it again
+
+Both numbers in this chapter were produced by scripts that are in the
+repository, so they can be re-measured rather than believed:
+
+```bash
+# The queries, inside the database
+python3 scripts/measure_performance.py --database "$DATABASE_URL" --repeat 5
+
+# The endpoints, over HTTP, as a user meets them
+python3 scripts/measure_endpoints.py --url http://localhost:8000 --repeat 7
+```
+
+`measure_endpoints.py` reports the **median** of several runs, because a
+single sample is dominated by whatever else the machine happened to be doing.
+The result on the live warehouse, after the changes above:
+
+| Endpoint | Median |
+| --- | ---: |
+| `GET /products/facets` | 190 ms |
+| `GET /analytics/kpi?days=30` | 120 ms |
+| `GET /products?page=1&page_size=25` | 54 ms |
+| `GET /changes/price?days=90` | 48 ms |
+| `GET /catalog/summary` | 40 ms |
+| `GET /sources` | 27 ms |
+| `GET /quality/latest` | 19 ms |
+
+One pass over every endpoint the dashboard reads now costs **2.8 seconds**
+across twenty-three calls, most of which are under 50 ms.
+
+### 5. The fact grain is append-only
 
 The fact grain is *product x source x captured_at*, enforced by a unique
 constraint. Re-observing a product **appends** a row rather than updating one,

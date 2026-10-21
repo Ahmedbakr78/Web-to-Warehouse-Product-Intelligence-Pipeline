@@ -4,7 +4,7 @@
 
 This document is the complete reference for the REST API of the Web-to-Warehouse Product Intelligence
 Pipeline: the authentication flow, the role matrix, an operation-by-operation catalogue of all
-**110 documented operations** across 16 routers, the error catalogue, the pagination convention, the
+**110 documented operations** across 24 routers, the error catalogue, the pagination convention, the
 versioning policy, instructions for the interactive OpenAPI documentation, and worked examples in
 `curl`, Python and JavaScript.
 
@@ -326,7 +326,7 @@ parameter, and grouped queries may only sort by grouping columns or aggregate al
 ```jsonc
 // POST /api/v1/builder/query
 {
-  "entity": "products",              // one of 11 entities (see GET /builder/schema)
+  "entity": "products",              // one of 12 entities (see GET /builder/schema)
   "columns": ["canonical_name"],     // ignored when group_by or aggregates are present
   "group_by": ["category_name"],
   "aggregates": [

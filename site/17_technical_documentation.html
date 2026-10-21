@@ -130,7 +130,7 @@
         P2[&quot;deps&lt;br/&gt;session, paging, auth, RBAC&quot;]
         P3[&quot;security&lt;br/&gt;Argon2id, JWT, API keys, rights&quot;]
         P4[&quot;schemas&lt;br/&gt;Pydantic contracts&quot;]
-        P5[&quot;routers/*&lt;br/&gt;16 routers&quot;]
+        P5[&quot;routers/*&lt;br/&gt;24 routers&quot;]
     end
     subgraph OPS[&quot;Operations&quot;]
         O1[&quot;app.cli.main&lt;br/&gt;12 commands&quot;]
@@ -285,7 +285,7 @@
 <tr>
 <td><code>dags/product_intelligence_pipeline.py</code></td>
 <td>Airflow DAG</td>
-<td>13 tasks, guards, branch, report artefact</td>
+<td>33 task callables, guards, branch, report artefact</td>
 </tr>
 </tbody></table></div>
 <hr>
@@ -327,7 +327,7 @@
 │   └── product_intelligence_pipeline.py
 ├── scripts/
 │   └── api_smoke.py           78-check API regression
-├── docs/                      20 documents (this set)
+├── docs/                      38 documents (this set)
 ├── tests/                     pytest suite (not committed in this snapshot)
 ├── frontend/                  React + Vite + TypeScript app
 ├── var/                       runtime: http-cache, logs, artifacts, sqlite fallback

@@ -1,69 +1,52 @@
 
 flowchart TB
-    RAW[("D1 staging zone<br/>raw payloads")]
+    SRC["External<br/>Permitted sources"]
+    OP["External<br/>Operators and scheduler"]
+    USR["External<br/>Analysts, managers,<br/>administrators"]
 
-    subgraph P3["3 Prepare"]
-        C1["Unicode fold and<br/>promo-noise removal"]
-        C2["Category synonym<br/>mapping and hierarchy"]
-        C3["Price and currency parse<br/>then USD conversion"]
-        C4["Rating rescale to 0-5<br/>availability mapping"]
-        C5["Quality flags<br/>and reject reasons"]
-        F1["Fingerprint<br/>SHA-1 of name and brand"]
-        K1["Blocking key<br/>first 4 characters"]
+    subgraph L1["Level 1 processes"]
+        P1["1. Collect<br/>robots gate, rate limit,<br/>cache, retry, audit"]
+        P2["2. Stage<br/>raw landing zone"]
+        P3["3. Prepare<br/>clean, normalise, price"]
+        P4["4. Resolve<br/>block and match duplicates"]
+        P5["5. Load and analyse<br/>snapshots, changes, aggregates,<br/>catalog reconciliation"]
+        P6["6. Measure and serve<br/>DQ rules, analytics, REST API,<br/>dashboard"]
     end
 
-    subgraph P4["4 Resolve"]
-        B1["Exact fingerprint<br/>match"]
-        B2["Normalised-name<br/>equality"]
-        B3["Blocking candidate<br/>retrieval max 25"]
-        B4["Blended similarity<br/>token-set, Jaro-Winkler,<br/>trigram, Levenshtein"]
-        B5["Digit-signature<br/>guard and brand term"]
-        B6["Decision<br/>threshold 0.90"]
-    end
+    D1[("D1 stg_raw_observation<br/>raw payloads")]
+    D2[("D2 dim_product<br/>canonical products")]
+    D3[("D3 fact_price_snapshot<br/>price history")]
+    D4[("D4 chg_price_change<br/>chg_product_event")]
+    D5[("D5 fact_catalog_snapshot<br/>catalog comparison")]
+    D6[("D6 agg_category_daily<br/>category rollup")]
+    D7[("D7 etl_run, dq_rule_result,<br/>ingestion_http_log, sync_state")]
+    D8[("D8 app_user, app_saved_view,<br/>app_alert_rule, app_notification,<br/>app_audit_log, app_setting")]
 
-    subgraph P5["5 Load and analyse"]
-        L1["Upsert dimension<br/>dim_product, dim_category"]
-        L2["Append snapshot<br/>fact_price_snapshot"]
-        L3["Emit price change<br/>chg_price_change"]
-        L4["Emit lifecycle event<br/>chg_product_event"]
-        L5["Detect removals<br/>7-day staleness"]
-        L6["Refresh category<br/>aggregate"]
-        L7["Reconcile catalog<br/>and compute price gaps"]
-    end
-
-    DP[("D2 dim_product")]
-    DS[("D3 fact_price_snapshot")]
-    DC[("D4 change feeds")]
-    DA[("D6 aggregate")]
-    DK[("D5 catalog comparison")]
-    ERR[("staging rejection<br/>is_valid, reject_reason")]
-
-    RAW --> C1 --> C2 --> C3 --> C4 --> C5
-    C5 --> F1
-    C5 --> K1
-    F1 --> B1
-    K1 --> B3
-    B1 --> B6
-    B2 --> B6
-    B3 --> B4 --> B5 --> B6
-    DP --> B2
-    DP --> B3
-    B6 --> L1
-    C5 --> L1
-    DP --> L1
-    L1 --> L2
-    DP -->|"previous snapshot"| L2
-    L2 --> DS
-    L2 --> L3
-    L2 --> L4
-    L3 --> DC
-    L4 --> DC
-    L1 --> L5
-    L5 --> DC
-    L2 --> L6
-    DA --> L6
-    L6 --> DA
-    L1 --> L7
-    DS --> L7
-    L7 --> DK
-    C5 -->|"invalid record"| ERR
+    SRC -->|"HTML / JSON / synthetic"| P1
+    OP -->|"run configuration"| P1
+    P1 -->|"raw records"| P2
+    P2 -->|"staged rows"| D1
+    D1 -->|"raw payloads"| P3
+    P3 -->|"normalised records"| P4
+    D2 -->|"existing products"| P4
+    P4 -->|"canonical product"| P5
+    D2 -->|"product dimension"| P5
+    P5 -->|"snapshots"| D3
+    P5 -->|"change events"| D4
+    P5 -->|"category rollup"| D6
+    P5 -->|"reconciliation rows"| D5
+    D5 -->|"catalog products"| P5
+    P5 -->|"counts and timings"| D7
+    P1 -->|"request audit"| D7
+    P5 -->|"warehouse content"| P6
+    D3 --> P6
+    D4 --> P6
+    D5 --> P6
+    D6 --> P6
+    D7 --> P6
+    D8 <-->|"identity, preferences, alerts"| P6
+    P6 -->|"answers, charts, exports"| USR
+    USR -->|"triggers, filters, alert rules"| P6
+    P6 -->|"notifications"| D8
+    P6 -->|"run status and DQ score"| OP
+    D7 -->|"source statistics and cursors"| P1

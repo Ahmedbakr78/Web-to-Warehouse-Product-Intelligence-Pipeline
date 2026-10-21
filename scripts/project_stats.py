@@ -234,6 +234,10 @@ def feature_areas() -> int:
     return len(re.findall(r"^## \d+\. ", path.read_text(encoding="utf-8"), re.M))
 
 
+class MeasurementError(RuntimeError):
+    """Raised when a structural figure could not be measured."""
+
+
 COLLECTORS = {
     "physical_tables": tables,
     "analytical_views": views,
@@ -299,6 +303,12 @@ def stats_block(stats: dict[str, int]) -> str:
     Written as a table rather than prose so a reviewer reading the diff can see
     exactly which figure moved, without reading a sentence to find the number.
     """
+    # A figure that could not be measured is reported as -1. Writing that into
+    # the block would replace a real number with a placeholder, so a failed
+    # measurement must never reach the README. The caller is told instead.
+    missing = sorted(key for key, value in stats.items() if value < 0)
+    if missing:
+        raise MeasurementError("could not measure: " + ", ".join(missing) + " - the block was left untouched")
     rows = [(label, stats.get(key, -1)) for key, label in LABELS.items() if key not in {"test_functions"}]
     width = max(len(label) for label, _ in rows)
 
@@ -432,10 +442,12 @@ def main() -> int:
         print(json.dumps(stats, indent=2, sort_keys=True))
         return 0
 
-    if args.sync_readme:
-        return sync_readme(stats)
-    if args.check_readme:
-        return sync_readme(stats, check=True)
+    if args.sync_readme or args.check_readme:
+        try:
+            return sync_readme(stats, check=args.check_readme)
+        except MeasurementError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
 
     width = max(len(label) for label in LABELS.values())
     print("| Metric | Count |")

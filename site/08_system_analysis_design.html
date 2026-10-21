@@ -140,12 +140,12 @@
 <tr>
 <th>O8</th>
 <td>Serve the warehouse read-only over a secure, role-gated API</td>
-<td>113 operations, 78/78 smoke checks</td>
+<td>222 operations, 104/104 smoke checks</td>
 </tr>
 <tr>
 <th>O9</th>
 <td>Be orchestrated on a schedule with recoverable tasks</td>
-<td>Airflow DAG, 13 tasks, 2 retries each</td>
+<td>Airflow DAG, 33 task callables, 2 retries each</td>
 </tr>
 <tr>
 <th>O10</th>
@@ -672,7 +672,7 @@
     end
 
     subgraph API[&quot;Serving - app/api&quot;]
-        FAPI[&quot;FastAPI routers&lt;br/&gt;16 routers, 113 operations&quot;]
+        FAPI[&quot;FastAPI routers&lt;br/&gt;24 routers, 222 operations&quot;]
         SEC[&quot;Security&lt;br/&gt;JWT HS256, Argon2id, RBAC&quot;]
         DSH[&quot;React dashboard&lt;br/&gt;Vite + TypeScript + Tailwind&quot;]
     end

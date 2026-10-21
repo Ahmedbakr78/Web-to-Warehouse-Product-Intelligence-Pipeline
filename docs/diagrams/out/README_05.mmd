@@ -1,30 +1,19 @@
 
 sequenceDiagram
     autonumber
-    participant A as Trigger (Airflow / API / CLI)
-    participant P as Pipeline
-    participant S as Source adapters
-    participant RC as robots + limiter + cache
-    participant STG as stg_raw_observation
-    participant WH as warehouse tables
-    participant CH as change detector
-    participant DQF as DQ framework
+    participant U as User
+    participant FE as React dashboard
+    participant API as FastAPI
+    participant DQ as Auth dependency
+    participant WH as Warehouse
+    participant AU as app_audit_log
 
-    A->>P: PipelineConfig (sources, limit, strict)
-    P->>WH: insert etl_run (status running)
-    loop per source
-        P->>S: fetch(limit) generator
-        S->>RC: get(url)
-        RC->>RC: robots gate + delay + breaker
-        RC-->>S: FetchResult (or ComplianceError)
-        S-->>P: RawProduct stream
-        P->>P: validate + clean + normalise
-        P->>STG: bulk stage rows with flags
-    end
-    P->>WH: upsert dimensions, insert facts
-    P->>WH: dedupe merges above 0.90
-    P->>CH: detect changes vs previous snapshots
-    CH-->>WH: chg_price_change + chg_product_event rows
-    P->>DQF: evaluate 12 rules for run_id
-    DQF-->>WH: dq_rule_result verdicts + score
-    P->>WH: close etl_run (success / partial, timings, counters)
+    U->>FE: opens Products screen
+    FE->>API: GET /products?page=1&q=phone (Bearer JWT)
+    API->>DQ: verify token, check "read" right
+    DQ-->>API: user ok (1, admin)
+    API->>WH: SELECT from vw_product_current (LIMIT, sort)
+    WH-->>API: rows + total
+    API-->>FE: page payload (X-Process-Time-Ms header)
+    FE-->>U: table renders from cache first (stale-while-revalidate)
+    Note over AU: every mutating call also writes user, action, ip, agent to app_audit_log

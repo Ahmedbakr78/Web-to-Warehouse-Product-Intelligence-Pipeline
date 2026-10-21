@@ -1,4 +1,4 @@
-# 36 — Decision Log (v1.9 → v1.12)
+# 36 — Decision Log (v1.9 through v1.12)
 
 > **[21 — Architecture Deep Dive](21_architecture_deep_dive.md)** records the
 > foundational decisions: why the compliance gate lives in the transport, why

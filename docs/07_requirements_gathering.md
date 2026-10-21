@@ -291,7 +291,7 @@ flowchart LR
 | FR-016 | Log every outbound request for audit | MoSP | Implemented | `ingestion_http_log` (one row per request) |
 | FR-017 | Allow only sources whose terms permit automated access | MoSP | Implemented | `terms_allowed`, `sync_dim_source()` |
 | FR-018 | Persist one row per pipeline run with counters, status and timings | MoSP | Implemented | `etl_run`, `vw_pipeline_health` |
-| FR-019 | Orchestrate the pipeline with Airflow including pre-flight guards | MoSP | Implemented | `dags/product_intelligence_pipeline.py`, 13 tasks |
+| FR-019 | Orchestrate the pipeline with Airflow including pre-flight guards | MoSP | Implemented | `dags/product_intelligence_pipeline.py`, 33 task callables |
 | FR-020 | List products with paging, sorting and free-text search | MoSP | Implemented | `GET /api/v1/products` |
 | FR-021 | Filter products by category, brand, source, availability, price, rating, change and recency | MoSP | Implemented | 14 query parameters on the list endpoint |
 | FR-022 | Show a product detail with price history, changes, events and catalog links | MoSP | Implemented | `GET /api/v1/products/{id}` |

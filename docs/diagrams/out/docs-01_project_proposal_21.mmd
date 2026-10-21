@@ -1,29 +1,20 @@
 
 flowchart LR
-    P["01 Project Proposal"] --> PL["02 Project Plan"]
-    P --> R["03 Roles and Responsibilities"]
-    P --> RK["04 Risk Assessment"]
-    P --> K["05 KPIs"]
-    P --> L["06 Literature Review"]
-    P --> REQ["07 Requirements Gathering"]
-    REQ --> SA["08 System Analysis and Design"]
-    SA --> DB["09 Database Design"]
-    SA --> DFD["10 Data Flow Diagrams"]
-    SA --> BEH["11 Behaviour Diagrams"]
-    SA --> UI["12 UI/UX Design"]
-    SA --> DEP["13 Deployment"]
-    SA --> API["14 API Documentation"]
-    SA --> TS["15 Testing Strategy"]
-    SA --> UM["16 User Manual"]
-    SA --> TD["17 Technical Documentation"]
-    K --> TS
-    PL --> R
-    RK --> K
-    L --> REQ
-    UI --> UM
-    API --> UM
-    TD --> API
-    DEP --> TD
-    PL --> PRES["18 Presentation Outline"]
-    TD --> FL["19 Feature List"]
-    L --> FB["20 Feedback and Improvements"]
+    subgraph OUT["Out of scope"]
+        O1["Bypass auth / paywall / CAPTCHA"]
+        O2["Personal data"]
+        O3["Streaming ingestion"]
+        O4["ML forecasting"]
+        O5["Multi-tenant isolation"]
+    end
+    subgraph IN["In scope - delivered"]
+        I1["5 compliant sources"]
+        I2["Cleaning and currency normalisation"]
+        I3["Fuzzy deduplication"]
+        I4["29 tables and 23 views"]
+        I5["12 DQ rules"]
+        I6["Airflow orchestration"]
+        I7["222 REST operations"]
+        I8["CLI and Docker Compose"]
+    end
+    OUT -.->|"explicitly refused"| IN
