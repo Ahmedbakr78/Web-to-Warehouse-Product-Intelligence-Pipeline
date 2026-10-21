@@ -127,6 +127,34 @@
 </tbody></table></div>
 <hr>
 <h2 id="2-slide-deck-18-slides">2. Slide deck (18 slides)</h2>
+<pre class="mermaid">flowchart LR
+    subgraph OPEN[&quot;Slides 1 to 3 - the problem&quot;]
+        S1[&quot;Title, team, scope&quot;]
+        S2[&quot;The retailer&#x27;s problem&lt;br/&gt;manual collection, inconsistent records&quot;]
+        S3[&quot;What was built&lt;br/&gt;34 sources to a dimensional warehouse&quot;]
+    end
+    subgraph PROVE[&quot;Slides 4 to 9 - the evidence&quot;]
+        S4[&quot;Architecture&lt;br/&gt;nine stages, two dialects&quot;]
+        S5[&quot;Data model&lt;br/&gt;grains and keys&quot;]
+        S6[&quot;Data trust&lt;br/&gt;robots, rate limits, provenance&quot;]
+        S7[&quot;Data quality&lt;br/&gt;twelve rules, six dimensions&quot;]
+        S8[&quot;Four challenges&lt;br/&gt;cause, fix, measured effect&quot;]
+        S9[&quot;What the numbers are&lt;br/&gt;284 products, 8 live sources&quot;]
+    end
+    subgraph SHOW[&quot;Slides 10 to 13 - the product&quot;]
+        S10[&quot;The dashboard&lt;br/&gt;light and dark, mobile&quot;]
+        S11[&quot;The API&lt;br/&gt;222 operations, OpenAPI&quot;]
+        S12[&quot;Documentation&lt;br/&gt;34 documents, 88 diagrams&quot;]
+        S13[&quot;Testing&lt;br/&gt;625 tests, live smoke&quot;]
+    end
+    subgraph CLOSE[&quot;Slides 14 to 18 - the close&quot;]
+        S14[&quot;Live demo&lt;br/&gt;three minutes&quot;]
+        S15[&quot;Delivered against the brief&quot;]
+        S16[&quot;Honest limitations&lt;br/&gt;and next steps&quot;]
+        S17[&quot;Team and split of work&quot;]
+        S18[&quot;Questions&quot;]
+    end
+    S1 --&gt; S2 --&gt; S3 --&gt; S4 --&gt; S5 --&gt; S6 --&gt; S7 --&gt; S8 --&gt; S9 --&gt; S10 --&gt; S11 --&gt; S12 --&gt; S13 --&gt; S14 --&gt; S15 --&gt; S16 --&gt; S17 --&gt; S18</pre>
 <h3 id="slide-1--title">Slide 1 — Title</h3>
 <p><strong>On screen:</strong> Project title, track, name, supervisor, date, repository link (private), one-line abstract.</p>
 <blockquote><p>"Web-to-Warehouse Product Intelligence Pipeline. A compliant, orchestrated and testable ETL platform that turns permitted public web sources into a dimensional warehouse with full price history, duplicate resolution, catalog reconciliation and a measured data-quality posture."</p></blockquote>

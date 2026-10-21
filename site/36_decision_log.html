@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Every engineering decision from v1.9 to v1.12, with the context, the consequence and the rejected alternatives">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Decision Log — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Every engineering decision from v1.9 to v1.12, with the context, the consequence and the rejected alternatives">
+<title>Decision Log — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.png" type="image/png">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="28-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, 173 operations, worked examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, measured counts, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="Every feature with the file that implements it">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+<a href="24_demo_runbook.html" title="Screen-by-screen live demo script and failure playbook">Demo Runbook</a>
+<a href="25_forecasting_and_anomaly_detection.html" title="Damped Holt-Winters, measured accuracy, three detectors, pricing advice">Forecasting &amp; Anomalies</a>
+<a href="26_background_jobs_and_realtime.html" title="Leases, retries, cancellation, SSE and the cross-worker problem">Background Jobs &amp; Realtime</a>
+<a href="27_reporting_and_document_generation.html" title="Typed blocks rendered to HTML, JSON, CSV and PDF from one definition">Reporting &amp; Documents</a>
+<a href="28_schema_and_migrations.html" title="Alembic, drift detection, views, Airflow isolation">Schema &amp; Migrations</a>
+<a href="29_two_factor_and_sessions.html" title="TOTP enrolment, recovery codes, per-device revocation">Two-Factor &amp; Sessions</a>
+<a href="30_access_control_and_rate_limiting.html" title="Roles, rights, API-key scopes, sliding-window rate limiting">Access Control &amp; Limits</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Decision Log</h1>
+      <p>Every engineering decision from v1.9 to v1.12, with the context, the consequence and the rejected alternatives</p>
+    </div>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#d-01--classify-every-source-by-data-trust">D-01 — Classify every source by data trust</a></li><li class="lvl-2"><a href="#d-02--trust-the-classification-and-purge-what-it-excludes">D-02 — Trust the classification, and purge what it excludes</a></li><li class="lvl-2"><a href="#d-03--index-the-timestamps-not-just-the-keys">D-03 — Index the timestamps, not just the keys</a></li><li class="lvl-2"><a href="#d-04--compute-the-variance-as-ex²--ex²">D-04 — Compute the variance as E[x²] − (E[x])²</a></li><li class="lvl-2"><a href="#d-05--read-a-dedicated-count-field-as-a-number">D-05 — Read a dedicated count field as a number</a></li><li class="lvl-2"><a href="#d-06--do-not-disqualify-a-listing-for-a-vote-count-it-never-had">D-06 — Do not disqualify a listing for a vote count it never had</a></li><li class="lvl-2"><a href="#d-07--make-the-test-suite-hermetic">D-07 — Make the test suite hermetic</a></li><li class="lvl-2"><a href="#d-08--scope-every-dashboard-tile-to-the-same-window">D-08 — Scope every dashboard tile to the same window</a></li><li class="lvl-2"><a href="#d-09--implement-the-silent-reload-preference-instead-of-shipping-it-dead">D-09 — Implement the silent-reload preference instead of shipping it dead</a></li><li class="lvl-2"><a href="#d-10--let-a-preference-that-changes-the-app-be-a-real-preference">D-10 — Let a preference that changes the app be a real preference</a></li><li class="lvl-2"><a href="#d-11--make-the-no-fake-audit-prove-it-can-fail">D-11 — Make the no-fake audit prove it can fail</a></li><li class="lvl-2"><a href="#d-12--do-not-let-a-passing-assertion-hide-an-empty-result">D-12 — Do not let a passing assertion hide an empty result</a></li><li class="lvl-2"><a href="#the-decision-map">The decision map</a></li><li class="lvl-2"><a href="#how-to-add-a-decision">How to add a decision</a></li><li class="lvl-2"><a href="#related-documents">Related documents</a></li></ol></details>
+    <article class="doc-body">
+<blockquote><p><strong><a href="21_architecture_deep_dive.html">21 — Architecture Deep Dive</a></strong> records the foundational decisions: why the compliance gate lives in the transport, why the facts are snapshots, why the schema is a star, why seeding is deterministic. This document records the decisions taken <strong>after</strong> that document was written — the ones a reader of the deep dive would otherwise find missing.</p></blockquote>
+<hr>
+<h2 id="purpose">Purpose</h2>
+<p>An architecture document written once goes stale. The decisions that shaped v1.9 through v1.12 — the trust model, the index strategy, the silent-reload policy, the hermetic test suite — are as load-bearing as the original ones, and they are not in the deep dive.</p>
+<p>Each entry follows the same shape, so they can be read side by side:</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Field</th>
+<th>What it answers</th>
+</tr></thead><tbody>
+<tr>
+<th><strong>Context</strong></th>
+<td>The pressure that forced a decision</td>
+</tr>
+<tr>
+<th><strong>Decision</strong></th>
+<td>What was chosen, and where it lives in the code</td>
+</tr>
+<tr>
+<th><strong>Consequence</strong></th>
+<td>What it costs, and what it buys</td>
+</tr>
+<tr>
+<th><strong>Rejected</strong></th>
+<td>The alternatives that were considered and why they lost</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="d-01--classify-every-source-by-data-trust">D-01 — Classify every source by data trust</h2>
+<p><strong>Context.</strong> The pipeline had 35 adapters. Some returned genuine market records (Open Library, iTunes, Open Food Facts). Others returned a <em>published demo catalogue</em> (DummyJSON, FakeStore, Platzi, Predic8) or a fictional bookshop (books.toscrape.com). The HTTP was real in every case, so nothing in the transport could tell them apart — and a report whose averages were computed from a mock storefront's invented inventory looked exactly as authoritative as one computed from real prices.</p>
+<p><strong>Decision.</strong> Every source class declares a <code>data_trust</code> level — <code>real</code>, <code>sandbox</code> or <code>synthetic</code> — and the pipeline's auto-selection admits only <code>real</code>.</p>
+<pre class="code" data-lang="python"><code>DATA_TRUST_REAL = &quot;real&quot;
+DATA_TRUST_SANDBOX = &quot;sandbox&quot;
+DATA_TRUST_SYNTHETIC = &quot;synthetic&quot;
+
+#: Trust levels that may be selected automatically by a pipeline run. Anything
+#: below this must be requested explicitly by code, never by omission.
+AUTO_SELECTABLE_TRUST = frozenset({DATA_TRUST_REAL})</code></pre>
+<p><strong>Consequence.</strong> A bare <code>run-pipeline</code> — and therefore the scheduled Airflow DAG — cannot write a row that was not observed. The registry guard in the verification suite proves it on every build. The cost: 15 of the 35 adapters are no longer reachable by omission, and a demo that wanted the fictional bookshop has to name it.</p>
+<p><strong>Rejected.</strong></p>
+<div class='table-scroll'><table><thead><tr>
+<th>Alternative</th>
+<th>Why it lost</th>
+</tr></thead><tbody>
+<tr>
+<td>A blocklist of known-bad sources</td>
+<td>A blocklist has to be updated every time a source is added, and the failure mode is silent and permanent. A default-deny declaration makes a new source <em>safe</em> until someone says otherwise.</td>
+</tr>
+<tr>
+<td>A <code>terms_allowed</code> flag only</td>
+<td>It answers "may I fetch this?", not "is this market data?". Those are different questions — books.toscrape.com is freely fetchable and still not market data.</td>
+</tr>
+<tr>
+<th>Filtering at read time</th>
+<td>The rows would still be in the warehouse, so every average would still be contaminated. The guarantee has to be at write time <em>and</em> at read time.</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="d-02--trust-the-classification-and-purge-what-it-excludes">D-02 — Trust the classification, and purge what it excludes</h2>
+<p><strong>Context.</strong> D-01 stops new non-<code>real</code> rows. It does nothing about the rows already written — and a source can be reclassified after the fact (a demo storefront becomes a real marketplace, or the other way round).</p>
+<p><strong>Decision.</strong> A purge sweep that removes the rows a below-<code>real</code> source wrote, and reports exactly what it removed.</p>
+<pre class="code" data-lang="bash"><code>pip-cli purge-untrusted --dry-run    # report without deleting
+pip-cli purge-untrusted              # delete and report</code></pre>
+<p>Deletion order respects the foreign keys: staging and facts first, then the products that no longer have any observation, then the runs that no longer reference anything. The <code>dim_source</code> row of every purged source is <strong>kept</strong> — it is the record of <em>why</em> the data was removed — but the source is disabled so no future run picks it up.</p>
+<p><strong>Consequence.</strong> The warehouse can be brought back into compliance with one command, and the reason is never lost. The cost: the purge is a destructive operation, so it ships with a dry run and an auditable report.</p>
+<p><strong>Rejected.</strong></p>
+<div class='table-scroll'><table><thead><tr>
+<th>Alternative</th>
+<th>Why it lost</th>
+</tr></thead><tbody>
+<tr>
+<td>Deleting the source row as well</td>
+<td>The audit trail needs the reason. "We removed 11,076 rows" is only credible if the repository still records which source produced them and why it was removed.</td>
+</tr>
+<tr>
+<td>Blocking the purge in production</td>
+<td>Then a reclassification could never take effect, and the classification would be advisory rather than enforced.</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="d-03--index-the-timestamps-not-just-the-keys">D-03 — Index the timestamps, not just the keys</h2>
+<p><strong>Context.</strong> Every headline number in the product is a window: <em>"price changes in the last 30 days"</em>, <em>"observations in the last 7 days"</em>. Those queries filter on <code>captured_at</code> and <code>detected_at</code>. Neither column carried an index, so the planner sequential-scanned the whole fact table on every dashboard load.</p>
+<pre class="code" data-lang="sql"><code>-- The plan, before the fix
+ Aggregate (actual time=70.710..70.714 rows=1)
+   -&gt;  Sort (Sort Key: product_id, Sort Method: quicksort)
+         -&gt;  Seq Scan on fact_price_snapshot  (actual time=41.665 rows=45949)
+               Filter: (captured_at &gt;= (now() - &#x27;30 days&#x27;::interval))</code></pre>
+<p><strong>Decision.</strong> Three indexes, created <strong>concurrently</strong> on PostgreSQL so a large table is never locked during the build.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Index</th>
+<th>Table</th>
+<th>Columns</th>
+<th>Serves</th>
+</tr></thead><tbody>
+<tr>
+<td><code>ix_fact_price_captured_product</code></td>
+<td><code>fact_price_snapshot</code></td>
+<td><code>(captured_at, product_id)</code></td>
+<td>the window filter <em>and</em> the distinct-product count</td>
+</tr>
+<tr>
+<th><code>ix_chg_event_detected</code></th>
+<td><code>chg_product_event</code></td>
+<td><code>(detected_at)</code></td>
+<td>the lifecycle counters</td>
+</tr>
+<tr>
+<th><code>ix_chg_price_detected</code></th>
+<td><code>chg_price_change</code></td>
+<td><code>(detected_at)</code></td>
+<td>the price-change counters</td>
+</tr>
+</tbody></table></div>
+<p><strong>Consequence.</strong> A one-day window becomes an index-only scan. A thirty-day window covering most of the table still uses a sequential scan — which is correct, and cheaper. The indexes pay off exactly when the data outgrows the window.</p>
+<p><strong>Rejected.</strong></p>
+<div class='table-scroll'><table><thead><tr>
+<th>Alternative</th>
+<th>Why it lost</th>
+</tr></thead><tbody>
+<tr>
+<td>Materialised views for every window</td>
+<td>A 7d, 30d, 90d and 180d aggregate is four things to keep correct, and a scheduled refresh makes them stale between refreshes. An index is always right.</td>
+</tr>
+<tr>
+<th>A <code>date_id</code> column only</th>
+<td><code>date_id</code> is a surrogate key (<code>20261021</code>), not a timestamp, and it cannot be range-scanned efficiently against a moving <code>now()</code>.</td>
+</tr>
+<tr>
+<td>Partitioning straight away</td>
+<td>Correct for a million-row-per-day warehouse, and premature for this one. The index gets the same asymptotics for a fraction of the operational cost.</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="d-04--compute-the-variance-as-ex²--ex²">D-04 — Compute the variance as <code>E[x²] − (E[x])²</code></h2>
+<p><strong>Context.</strong> The project needs a portable population standard deviation because SQLite has no <code>STDDEV</code> and MySQL and PostgreSQL disagree on the name. The expression that was written computes <code>(E[x])² − E[x²]</code> — the <em>negative</em> of the variance — for every real price distribution. The <code>CASE WHEN … &lt; 0 THEN 0</code> guard then clamped the deviation to zero, so:</p>
+<ul>
+<li class="depth-0">the z-score denominator was zero and the **anomaly detector could never</li>
+</ul>
+<p>fire**;</p>
+<ul>
+<li class="depth-0"><code>vw_category_price_index</code> and <code>vw_price_volatility</code> published a deviation of</li>
+</ul>
+<p>exactly <code>0.0000</code> for all 1,599 categories and 8,774 category-days.</p>
+<p><strong>Decision.</strong> <code>AVG(x <em> x) - AVG(x) </em> AVG(x)</code>, in the service, in both views and in the query-lab example.</p>
+<p><strong>Consequence.</strong> 286 categories now publish a real deviation and the anomaly detector finds genuine outliers — a $991 trading card against a $10.89 category mean.</p>
+<p><strong>Rejected.</strong></p>
+<div class='table-scroll'><table><thead><tr>
+<th>Alternative</th>
+<th>Why it lost</th>
+</tr></thead><tbody>
+<tr>
+<td><code>STDDEV</code> with a dialect switch</td>
+<td>The project loads one schema on two engines; a portable expression keeps the views identical everywhere.</td>
+</tr>
+<tr>
+<th><code>VAR_SAMP</code> / <code>VARIANCE</code></th>
+<td>Same portability problem.</td>
+</tr>
+<tr>
+<td>Pre-computed category statistics</td>
+<td>Adds a table to keep in sync with the facts, for a number the planner can derive in microseconds.</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="d-05--read-a-dedicated-count-field-as-a-number">D-05 — Read a dedicated count field as a number</h2>
+<p><strong>Context.</strong> Every API adapter that reports a review count fills <code>rating_count_text</code> with a bare integer (<code>"4523"</code>), because that is what the upstream's JSON contains. The rating parser only matched a count written with a unit word (<code>"4523 reviews"</code>, <code>"128 ratings"</code>) — a pattern that exists for counts <em>scraped out of free text</em>. The result: <code>rating_count</code> was NULL in all 65,554 snapshots, and the "best value" ranking, which required <code>rating_count &gt;= 10</code>, had no candidates at all.</p>
+<p><strong>Decision.</strong> A dedicated count field is read as an integer; the unit-word pattern stays for counts scraped from free text.</p>
+<pre class="code" data-lang="python"><code>if count_text:
+    stripped = normalise_unicode(count_text).strip()
+    if stripped and _BARE_COUNT_RE.fullmatch(stripped):
+        parsed = parse_number(stripped)
+        if parsed is not None:
+            return int(parsed)</code></pre>
+<p>The bare-number pattern deliberately excludes a decimal point, so a stray rating value is never mistaken for a vote count.</p>
+<p><strong>Consequence.</strong> 4,288 snapshots now carry a real vote count and the "best value" panel ranks genuine listings.</p>
+<p><strong>Rejected.</strong></p>
+<div class='table-scroll'><table><thead><tr>
+<th>Alternative</th>
+<th>Why it lost</th>
+</tr></thead><tbody>
+<tr>
+<td>Keep one regex for both shapes</td>
+<td>The unit word is not always there, and requiring it throws away a perfectly good number.</td>
+</tr>
+<tr>
+<td>Require the adapter to add the unit word</td>
+<td>Puts a display convention into every adapter for the sake of one parser, and breaks the moment a new adapter forgets it.</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="d-06--do-not-disqualify-a-listing-for-a-vote-count-it-never-had">D-06 — Do not disqualify a listing for a vote count it never had</h2>
+<p><strong>Context.</strong> Even with the count parsed, requiring <code>rating_count &gt;= 10</code> excludes every listing whose source does not publish review counts — which is most of them. The ranking was empty by construction.</p>
+<p><strong>Decision.</strong> An unknown vote count is not disqualifying. A listing that cannot be proven popular ranks on rating and loses to an equally rated listing with a known, larger count.</p>
+<pre class="code" data-lang="sql"><code>AND (rating_count IS NULL OR rating_count &gt;= :min_votes)
+ORDER BY rating / NULLIF(price_usd, 0) DESC,
+         rating_count IS NULL,   -- portable NULLS LAST: MySQL has no NULLS LAST
+         rating_count DESC,
+         rating DESC</code></pre>
+<p><strong>Consequence.</strong> The panel populates. The trade is explicit: a listing with an unknown vote count can appear in the ranking, but it can never beat one with a proven larger count at the same rating.</p>
+<p><strong>Rejected.</strong></p>
+<div class='table-scroll'><table><thead><tr>
+<th>Alternative</th>
+<th>Why it lost</th>
+</tr></thead><tbody>
+<tr>
+<th>Keep the strict floor</th>
+<td>Empty panel. The rule was protecting against a rare case at the cost of the common one.</td>
+</tr>
+<tr>
+<th>Synthesise a vote count</th>
+<td>That is fabricating a fact, which is the one thing this project refuses to do.</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="d-07--make-the-test-suite-hermetic">D-07 — Make the test suite hermetic</h2>
+<p><strong>Context.</strong> <code>test_convert_to_usd_uses_reference_table</code> asserted a specific exchange rate. The production path derives that rate from a live provider, so the test passed only while the market agreed with it. When it moved, the assertion failed — and took 59 other tests with it, because a shared SQLite file was being written by two sessions at once.</p>
+<p><strong>Decision.</strong> FX rates are live in production and pinned in tests.</p>
+<pre class="code" data-lang="python"><code># conftest.py
+# FX rates come from a live provider in production. The suite must be
+# hermetic: a live rate moves every day, so a test that asserts a specific
+# conversion would fail whenever the market moved against it.
+os.environ.setdefault(&quot;FX_LIVE_RATES&quot;, &quot;false&quot;)</code></pre>
+<p><strong>Consequence.</strong> The suite is deterministic. The cost: a change in the reference table has to be a deliberate act, not an accident of the day.</p>
+<p><strong>Rejected.</strong></p>
+<div class='table-scroll'><table><thead><tr>
+<th>Alternative</th>
+<th>Why it lost</th>
+</tr></thead><tbody>
+<tr>
+<td>Mock the provider in the test</td>
+<td>Works, but every test that touches a price would need the mock, and the mock would drift from the real provider's shape. One environment switch is simpler and covers everything.</td>
+</tr>
+<tr>
+<td>Assert a range instead of an exact rate</td>
+<td>A weaker assertion that still fails when the provider is unreachable.</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="d-08--scope-every-dashboard-tile-to-the-same-window">D-08 — Scope every dashboard tile to the same window</h2>
+<p><strong>Context.</strong> The dashboard showed the <em>all-time</em> catalogue size next to tiles that were scoped to the selected 7/30/90/180-day range. Switching the range changed most numbers but not that one, which is exactly the kind of inconsistency that makes a reader stop trusting the screen.</p>
+<p><strong>Decision.</strong> Every tile is scoped to the window, and <em>products</em> (canonical identities) and <em>observations</em> (price snapshots) became two separate, explicitly labelled tiles with the ratio between them in the hint.</p>
+<p><strong>Consequence.</strong> The range switch now moves every windowed number, and <code>Sources reporting</code> correctly does not move, because the number of reporting sources does not depend on the window.</p>
+<p><strong>Rejected.</strong></p>
+<div class='table-scroll'><table><thead><tr>
+<th>Alternative</th>
+<th>Why it lost</th>
+</tr></thead><tbody>
+<tr>
+<td>Keep the all-time count, label it "all time"</td>
+<td>Still mixes two windows on one screen, and a reader has to remember which tile is the odd one out.</td>
+</tr>
+<tr>
+<td>Show only the windowed count</td>
+<td>Loses the sense of catalogue size, which is a different and useful number. Two tiles, two labels, no ambiguity.</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="d-09--implement-the-silent-reload-preference-instead-of-shipping-it-dead">D-09 — Implement the silent-reload preference instead of shipping it dead</h2>
+<p><strong>Context.</strong> The account screen had a <em>silent app reload</em> toggle. It was saved to the profile, read back into the form, and written back — and no other code in the repository read it. It was a control that did nothing, which is worse than no control at all.</p>
+<p><strong>Decision.</strong> Implement it properly: a <code>data-silent</code> attribute on <code>&lt;html&gt;</code> that disables every transition, every keyframe and the skeleton shimmer, with the previous data kept on screen until the new payload arrives.</p>
+<p><strong>Consequence.</strong> The toggle now does what it says, and it follows the user across devices, because it is stored server-side.</p>
+<p><strong>Rejected.</strong></p>
+<div class='table-scroll'><table><thead><tr>
+<th>Alternative</th>
+<th>Why it lost</th>
+</tr></thead><tbody>
+<tr>
+<th>Remove the toggle</th>
+<td>The need is real: a "do not disturb me while I am reading" mode. Removing the control would have hidden a legitimate requirement instead of meeting it.</td>
+</tr>
+<tr>
+<td>Implement it as a React state only</td>
+<td>The point is that <em>nothing</em> moves, including CSS the React tree does not own. A DOM-level attribute is the only way to guarantee that.</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="d-10--let-a-preference-that-changes-the-app-be-a-real-preference">D-10 — Let a preference that changes the app be a real preference</h2>
+<p><strong>Context.</strong> Five more preferences were dead in the same way: auto-refresh, the default chart type, the default time range, the default export format and copy-code-on-click. They were all saved to the profile and read by nobody.</p>
+<p><strong>Decision.</strong> Wire all five, add a sixth (exact-number display), and make the API the place that guarantees they are usable: the preferences are merged rather than replaced, and every known preference is clamped to its allowed value set.</p>
+<pre class="code" data-lang="python"><code>merged = dict(user.preferences or {})
+merged.update(data[&quot;preferences&quot;])
+data[&quot;preferences&quot;] = _normalise_preferences(merged)</code></pre>
+<p><strong>Consequence.</strong> A hand-written API call can no longer put the dashboard into a state it cannot render, and changing one preference no longer wipes the others.</p>
+<p><strong>Rejected.</strong></p>
+<div class='table-scroll'><table><thead><tr>
+<th>Alternative</th>
+<th>Why it lost</th>
+</tr></thead><tbody>
+<tr>
+<td>Validate on the client only</td>
+<td>The API is a public surface. A caller that skips the client must not be able to store a value the UI cannot render.</td>
+</tr>
+<tr>
+<td>Replace the preferences blob</td>
+<td>A client that only wants to change the number format would silently delete the briefing window, the export format and the silent-reload flag.</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="d-11--make-the-no-fake-audit-prove-it-can-fail">D-11 — Make the no-fake audit prove it can fail</h2>
+<p><strong>Context.</strong> An audit that always passes is not an audit. The verification suite already ran the no-fake check over every row; it did not prove the check could <em>reject</em> anything.</p>
+<p><strong>Decision.</strong> The verification seeds a throwaway warehouse with the synthetic demo dataset, asserts the audit <strong>rejects</strong> it, purges the synthetic rows, and asserts the audit now passes.</p>
+<pre class="code" data-lang="bash"><code>if audit_no_fakes.py --database &quot;$FAKE_DB&quot;; then
+  die &quot;the no-fake audit accepted a warehouse full of synthetic rows — it cannot be trusted&quot;
+fi</code></pre>
+<p><strong>Consequence.</strong> The guarantee is tested in both directions. The cost: the verification takes a few seconds longer, and needs write access to a throwaway database.</p>
+<p><strong>Rejected.</strong></p>
+<div class='table-scroll'><table><thead><tr>
+<th>Alternative</th>
+<th>Why it lost</th>
+</tr></thead><tbody>
+<tr>
+<td>Trust the audit because it passes</td>
+<td>A check that has never failed is indistinguishable from a check that cannot fail.</td>
+</tr>
+<tr>
+<td>Unit-test the audit's SQL</td>
+<td>Tests the query, not the judgement. The self-test exercises the whole path the operator uses.</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="d-12--do-not-let-a-passing-assertion-hide-an-empty-result">D-12 — Do not let a passing assertion hide an empty result</h2>
+<p><strong>Context.</strong> Two test families were passing on nothing. <code>assert scores == sorted(scores, reverse=True)</code> is true of <code>[]</code>, so the anomaly-ranking test stayed green while the detector was completely disabled. The same was true of the cross-source overlap tests.</p>
+<p><strong>Decision.</strong> A test that asserts an <em>ordering</em> must also assert that there is something to order, or it must assert the property that would have caught the defect.</p>
+<pre class="code" data-lang="python"><code># The deviation itself is the regression, not the outlier count.
+deviations = [row.get(&quot;price_stddev&quot;) for row in index if row.get(&quot;price_stddev&quot;) is not None]
+assert any(value &gt; 0 for value in deviations), (
+    &quot;every category reports a zero price deviation - the variance is inverted again&quot;
+)</code></pre>
+<p>Where the data legitimately has no overlap, the test now <em>injects</em> an overlapping product and requires the analytics to find it.</p>
+<p><strong>Consequence.</strong> The three defects this caught would now fail the build.</p>
+<p><strong>Rejected.</strong></p>
+<div class='table-scroll'><table><thead><tr>
+<th>Alternative</th>
+<th>Why it lost</th>
+</tr></thead><tbody>
+<tr>
+<td>Seed more demo products so an outlier appears</td>
+<td>Depends on the seed's distribution, so the test would keep drifting. Asserting the deviation is the direct check.</td>
+</tr>
+<tr>
+<th>Delete the vacuous tests</th>
+<td>They were guarding a real contract. The fix is to make them mean something, not to remove them.</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="the-decision-map">The decision map</h2>
+<pre class="mermaid">flowchart TB
+    subgraph TRUTH[&quot;Truth of the data&quot;]
+        D01[&quot;D-01 Trust levels&quot;] --&gt; D02[&quot;D-02 Purge sweep&quot;]
+        D11[&quot;D-11 Audit proves it can fail&quot;] --&gt; D02
+    end
+    subgraph USABLE[&quot;The features actually work&quot;]
+        D03[&quot;D-03 Window indexes&quot;] --&gt; D09[&quot;D-09 Silent reload&quot;]
+        D04[&quot;D-04 Correct variance&quot;] --&gt; D05[&quot;D-05 Count as a number&quot;]
+        D05 --&gt; D06[&quot;D-06 Unknown votes do not disqualify&quot;]
+        D10[&quot;D-10 Preferences are real&quot;]
+    end
+    subgraph TRUSTED[&quot;The tests can be trusted&quot;]
+        D07[&quot;D-07 Hermetic suite&quot;] --&gt; D12[&quot;D-12 No assertion on nothing&quot;]
+    end
+    D08[&quot;D-08 One window everywhere&quot;]
+    TRUTH --&gt; USABLE
+    TRUSTED --&gt; USABLE
+    D08 --&gt; USABLE</pre>
+<hr>
+<h2 id="how-to-add-a-decision">How to add a decision</h2>
+<ul>
+<li class="depth-0">Number it <code>D-NN</code>, continuing the sequence.</li>
+<li class="depth-0">Write <strong>Context</strong> first — the pressure, not the conclusion.</li>
+<li class="depth-0">State the <strong>Decision</strong> and point at the file that implements it.</li>
+<li class="depth-0">Write the <strong>Consequence</strong> honestly, including the cost.</li>
+<li class="depth-0">List the <strong>Rejected</strong> alternatives and why each lost. A decision without a</li>
+</ul>
+<p>rejected alternative was not a decision; it was the only option.</p>
+<p>Keep it in this file rather than a separate ADR directory, so the whole decision history is one document a reviewer can read in one sitting.</p>
+<hr>
+<h2 id="related-documents">Related documents</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Document</th>
+<th>Covers</th>
+</tr></thead><tbody>
+<tr>
+<td><a href="21_architecture_deep_dive.html">21 — Architecture Deep Dive</a></td>
+<td>The foundational decisions, with layer boundaries and the request lifecycle</td>
+</tr>
+<tr>
+<td><a href="33_data_trust_and_compliance.html">33 — Data Trust &amp; Compliance</a></td>
+<td>D-01, D-02 and D-11 in full</td>
+</tr>
+<tr>
+<td><a href="34_performance_and_scale.html">34 — Performance &amp; Scale</a></td>
+<td>D-03 in full, with the measured numbers</td>
+</tr>
+<tr>
+<td><a href="15_testing_strategy.html">15 — Testing Strategy</a></td>
+<td>D-07 and D-12 in full, with the test matrix</td>
+</tr>
+<tr>
+<td><a href="12_ui_ux_design.html">12 — UI/UX Design</a></td>
+<td>D-08, D-09 and D-10 in full, with the design system</td>
+</tr>
+</tbody></table></div>
+    </article>
+    <div class="doc-foot">
+      <span><a href="35_github_presence.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>GitHub Presence</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

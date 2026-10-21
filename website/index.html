@@ -240,6 +240,9 @@
       <a href="#trust">Data trust</a>
       <a href="#warehouse">Warehouse</a>
       <a href="#quality">Quality</a>
+      <a href="#performance">Performance</a>
+      <a href="#numbers">Numbers</a>
+      <a href="#decisions">Decisions</a>
       <a href="#api">API</a>
       <a href="#dashboard">Dashboard</a>
       <a href="#team">Team</a>
@@ -264,6 +267,9 @@
       <a href="#schema">Schema</a>
       <a href="#warehouse">Warehouse</a>
       <a href="#quality">Quality</a>
+      <a href="#performance">Performance</a>
+      <a href="#numbers">Numbers</a>
+      <a href="#decisions">Decisions</a>
       <a href="#api">API</a>
       <a href="#dashboard">Dashboard</a>
       <a href="#topics">DEPI topics</a>
@@ -304,7 +310,7 @@
       <div class="stat"><b>29</b><span>Warehouse tables</span></div>
       <div class="stat"><b>23</b><span>Analytical views</span></div>
       <div class="stat"><b>222</b><span>REST operations</span></div>
-      <div class="stat"><b>596</span></div>
+      <div class="stat"><b>625</b><span>Automated tests</span></div>
       <div class="stat"><b>35</b><span>Ingestion sources</span></div>
       <div class="stat"><b>612</b><span>Catalogued features</span></div>
       <div class="stat"><b>12</b><span>Data-quality rules</span></div>
@@ -959,6 +965,172 @@ python -m app.cli.main purge-untrusted           # delete and report
   </div>
 </section>
 
+<section id="performance">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Measured</span>
+      <h2>What it actually costs, at the current size</h2>
+      <p>Measured on the running stack, not estimated. The command that produced each figure is in
+         <code>docs/34_performance_and_scale.md</code>, so every claim here can be re-derived.</p>
+    </div>
+    <div class="stats" style="margin-top:0">
+      <div class="stat">
+        <span>Observations</span>
+        <b>83,306</b>
+        <p style="margin:8px 0 0;font-size:12px;color:var(--muted);line-height:1.5">price snapshots, 14,685 canonical products, 17 live sources, 278 MB total</p>
+      </div>
+      <div class="stat">
+        <span>KPI request</span>
+        <b>306 ms</b>
+        <p style="margin:8px 0 0;font-size:12px;color:var(--muted);line-height:1.5">every dashboard number in one request, over the wire, with auth</p>
+      </div>
+      <div class="stat">
+        <span>Product page</span>
+        <b>92 ms</b>
+        <p style="margin:8px 0 0;font-size:12px;color:var(--muted);line-height:1.5">a paginated, sorted, faceted product page</p>
+      </div>
+      <div class="stat">
+        <span>Health</span>
+        <b>12 ms</b>
+        <p style="margin:8px 0 0;font-size:12px;color:var(--muted);line-height:1.5">database ping plus the source registry</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <p style="margin:0 0 8px"><b>The three decisions that make it scale:</b></p>
+      <ul class="ticks" style="margin:0">
+        <li><b>Indexes on the timestamps every windowed query filters on.</b> <code class="mono">captured_at</code> and
+            <code class="mono">detected_at</code> had none, so the planner sequential-scanned the whole fact table on
+            every dashboard load. Three indexes, built concurrently, replaced the scan with an index-only scan.</li>
+        <li><b>The KPI payload stopped counting what it does not publish.</b> It ran <code class="mono">COUNT(*)</code>
+            against sixteen tables to build a dictionary the dashboard read one entry of. <b>290 ms → 150 ms.</b></li>
+        <li><b>An append-only fact grain.</b> Re-observing a product appends a row rather than updating one, so the write
+            path never contends and the read path scans a time-ordered structure.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="numbers">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">The whole system, measured</span>
+      <h2>Every structural figure, and how to re-derive it</h2>
+      <p style="max-width:70ch">None of these numbers is typed by hand. They are measured from the
+         source tree and the schema by one script, snapshotted into
+         <code class="mono">docs/stats.json</code>, and re-checked by CI on every commit. A figure
+         that drifts fails the build instead of quietly becoming a lie.</p>
+    </div>
+    <div class="cols">
+      <div class="card">
+        <h3>Collection and cleaning</h3>
+        <ul class="ticks" style="margin:0">
+          <li><b>35</b> source modules, <b>34</b> registered in the dimension table</li>
+          <li><b>9</b> pipeline stages, from extract to quality</li>
+          <li><b>29</b> steps in the cleaning routine</li>
+          <li><b>3</b> matching strategies: fingerprint, blocked exact, fuzzy</li>
+          <li><b>0.90</b> fuzzy similarity threshold, validated on labelled pairs</li>
+          <li><b>3</b> trust levels: real, sandbox, synthetic</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Warehouse</h3>
+        <ul class="ticks" style="margin:0">
+          <li><b>29</b> physical tables across both dialects</li>
+          <li><b>23</b> analytical views, owned and versioned by migration</li>
+          <li><b>5</b> conformed dimensions, <b>3</b> fact tables</li>
+          <li><b>2</b> change feeds: price change and product event</li>
+          <li><b>1</b> daily category aggregate, refreshed per run</li>
+          <li><b>2</b> engines, one model, verified table by table in CI</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Serving</h3>
+        <ul class="ticks" style="margin:0">
+          <li><b>222</b> REST route decorators in <b>24</b> routers</li>
+          <li><b>3</b> roles, enforced server-side on every route</li>
+          <li><b>1</b> read-only SQL surface: the query lab</li>
+          <li><b>1</b> aggregate builder over the same views</li>
+          <li><b>17</b> CLI commands</li>
+          <li><b>6</b> Docker Compose services</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Evidence</h3>
+        <ul class="ticks" style="margin:0">
+          <li><b>625</b> automated tests, green on SQLite with no service</li>
+          <li><b>104</b> end-to-end API smoke checks</li>
+          <li><b>12</b> data-quality rules across <b>6</b> dimensions</li>
+          <li><b>37</b> numbered documents</li>
+          <li><b>100+</b> Mermaid diagrams, rendered to SVG</li>
+          <li><b>666</b> catalogued features in <b>42</b> areas</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h3>Re-derive any of it</h3>
+      <pre class="mono" style="margin:8px 0 0;font-size:12.5px;line-height:1.8"># the measured table
+python3 scripts/project_stats.py
+
+# the machine-readable snapshot CI compares against
+python3 scripts/project_stats.py --json
+
+# prove the warehouse holds nothing but real data
+python3 scripts/audit_no_fakes.py --database "sqlite:///./var/pipeline.sqlite3"
+
+# the whole platform, end to end, against live sources
+./run.sh --verify-only</pre>
+    </div>
+  </div>
+</section>
+
+<section id="decisions">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Engineering</span>
+      <h2>The decisions, and the alternatives they beat</h2>
+      <p>Twelve decisions are recorded in full in <code>docs/36_decision_log.md</code> — the context that forced
+         each one, the consequence it carries, and the alternatives that were rejected and why they lost.</p>
+    </div>
+    <div class="grid three">
+      <div class="card">
+        <h3>Trust levels, not a blocklist</h3>
+        <p>Every source declares <code class="mono">real</code>, <code class="mono">sandbox</code> or
+           <code class="mono">synthetic</code>. A bare run collects only <code class="mono">real</code>. A new source is
+           safe until someone says otherwise — a blocklist has to be updated every time one is added, and its failure
+           mode is silent.</p>
+      </div>
+      <div class="card">
+        <h3>Append-only facts, never overwritten</h3>
+        <p>The grain is product × source × captured_at, enforced by a unique constraint. History is a consequence of
+           the schema rather than a feature bolted onto it, which is why "what was the price last week?" is a
+           one-line query.</p>
+      </div>
+      <div class="card">
+        <h3>Compliance in the transport</h3>
+        <p>The robots.txt gate sits below the source adapters, so no adapter can bypass it — including a new one
+           someone writes next year. Refusals are logged with the rule that caused them.</p>
+      </div>
+      <div class="card">
+        <h3>Tests that can fail</h3>
+        <p>The no-fake audit is seeded with a synthetic warehouse and required to <em>reject</em> it, then the purge
+           runs and the audit is required to accept the result. A check that has never failed is indistinguishable
+           from a check that cannot fail.</p>
+      </div>
+      <div class="card">
+        <h3>One window on every tile</h3>
+        <p>An all-time count next to windowed counts made the range switch look broken. Every tile is now scoped to
+         the same window, and products and observations are two separately labelled numbers.</p>
+      </div>
+      <div class="card">
+        <h3>Portability over dialect purity</h3>
+        <p>One schema on PostgreSQL and MySQL, one portable variance expression, one portable null-ordering
+           convention. <code class="mono">make verify-dialects</code> proves there is no structural drift between
+           the two engines.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="api">
   <div class="wrap">
     <div class="sec-head">
@@ -1484,8 +1656,67 @@ curl -X POST http://localhost:8000/api/v1/queries/execute \
     <div class="sec-head">
       <span class="kicker">Technology</span>
       <h2>The stack, and why</h2>
+      <p style="max-width:70ch">Every choice below was made for a reason the project could defend in
+         a review. Nothing here needs a licence, a key or a credit card, and every layer can be
+         replaced without rewriting the one above it.</p>
     </div>
-    <div class="badges">
+    <div class="cols">
+      <div class="card">
+        <h3>Collection and compliance</h3>
+        <ul class="ticks" style="margin:0">
+          <li><b>httpx</b> — one async HTTP client for every source, so rate limiting, retries,
+              conditional GET and the audit log are implemented once</li>
+          <li><b>BeautifulSoup with lxml</b> — the HTML parse for permitted pages</li>
+          <li><b>Scrapy</b> — a second, real crawling engine for the sites that need its scheduler
+              and middleware, producing the same record type</li>
+          <li><b>RFC 9309</b> — the robots.txt parser, honoured per request rather than per host</li>
+          <li><b>urllib.robotparser</b> — the standard library parser, wrapped for caching and for
+              the RFC's unavailable-means-allow rule</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Warehouse and serving</h3>
+        <ul class="ticks" style="margin:0">
+          <li><b>SQLAlchemy 2.0</b> — one model set compiles to identical DDL on both engines, so
+              the two dialects cannot drift</li>
+          <li><b>PostgreSQL 16 and MySQL 8.4</b> — the brief asks for both, and the cross-dialect
+              CI job compares them table by table</li>
+          <li><b>FastAPI</b> — the OpenAPI document is generated from the code, so the published
+              contract cannot drift from the implementation</li>
+          <li><b>Pydantic v2</b> — request and response validation at the edge, which is why a
+              malformed body is a 422 rather than a 500</li>
+          <li><b>Alembic</b> — schema migrations with drift detection in CI</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Orchestration and operations</h3>
+        <ul class="ticks" style="margin:0">
+          <li><b>Airflow 2.10</b> — the schedule and the retries; the pipeline itself is a plain
+              Python object the DAG calls, so it runs with or without Airflow</li>
+          <li><b>Docker Compose</b> — six services, one command, no cloud account</li>
+          <li><b>GitHub Actions</b> — six jobs: backend, frontend, docs, API smoke, cross-dialect
+              parity and the documentation-drift gate</li>
+          <li><b>pytest, vitest</b> — the suite runs on SQLite with no service required, so a
+              contributor can verify the project in one command</li>
+          <li><b>Ruff and mypy</b> — lint and types as a gate, not a suggestion</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Dashboard</h3>
+        <ul class="ticks" style="margin:0">
+          <li><b>React 19 with TypeScript 5</b> — the data layer is typed end to end, from the
+              OpenAPI schema to the table cell</li>
+          <li><b>TanStack Query 5</b> — caching, invalidation and the silent refresh that keeps a
+              screen from flashing while it reloads</li>
+          <li><b>Recharts 2</b> — the charts, themed from the same CSS variables as everything else</li>
+          <li><b>Tailwind CSS 3</b> — the design tokens are CSS custom properties, so a theme change
+              repaints the whole application without a re-render</li>
+          <li><b>lucide-react</b> — one icon set, no emoji anywhere in the product</li>
+          <li><b>Vite 6</b> — a production build in under a minute</li>
+        </ul>
+      </div>
+    </div>
+    <div class="badges" style="margin-top:14px">
       <span class="badge">Python <b>3.12</b></span>
       <span class="badge">FastAPI <b>0.142</b></span>
       <span class="badge">SQLAlchemy <b>2.0</b></span>
@@ -1702,14 +1933,79 @@ make frontend-dev  # dashboard on :5173</pre>
     <div class="sec-head">
       <span class="kicker">About</span>
       <h2>Compliance-first, warehouse-grade, free forever</h2>
+      <p style="max-width:70ch">A DEPI Data Engineering capstone that turns permitted public product
+         data into a warehouse a retailer can actually plan on. The interesting part is not the
+         scraping; it is that every record can be traced back to the endpoint that produced it, and
+         that the whole system is verified against live sources rather than fixtures.</p>
     </div>
-    <div class="card">
-      <p style="margin:0;color:var(--muted)">A retailer needs the market picture every morning. This pipeline replaces manual copy-paste with robots-gated ingestion from 34 registered sources, 29-step cleaning, fuzzy dedupe, a 29-table Kimball star on PostgreSQL + MySQL, 12 DQ rules, Airflow orchestration, forecasting, webhooks, backfill and a 23-screen React dashboard — no paid APIs, SQLite-runnable tests, one-command verification.</p>
-      <div class="badges" style="margin-top:14px">
-        <span class="badge">Topics <b>etl · airflow · fastapi · react · postgres · mysql · data-quality · scraping · warehouse · dashboard</b></span>
-        <span class="badge">Releases <b>v1.9.0 to v1.12.0</b></span>
-        <span class="badge">License <b>MIT</b></span>
-        <span class="badge">Track <b>DEPI Data Engineering</b></span>
+    <div class="cols">
+      <div class="card">
+        <h3>The problem it solves</h3>
+        <p style="margin:0;color:var(--muted)">A buying team needs the market picture every morning:
+           what changed, what is new, what disappeared, what the internal catalog is losing to.
+           Doing that by hand is slow and produces inconsistent records, because every analyst
+           copies, retypes and re-prices the same pages. This pipeline does the collection
+           mechanically and leaves a queryable history behind.</p>
+        <ul class="ticks" style="margin-top:12px">
+          <li><b>Continuous collection</b> from permitted APIs and websites, on a schedule</li>
+          <li><b>One canonical catalogue</b> instead of one spreadsheet per analyst</li>
+          <li><b>Price history</b>, not a snapshot, so change is a query rather than a diff</li>
+          <li><b>Evidence for every row</b>: the source, the request, the rate, the timestamp</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Who it is for</h3>
+        <ul class="ticks" style="margin:0">
+          <li><b>Merchandising</b> — category and brand price indices, movers, stockout pressure</li>
+          <li><b>Pricing</b> — gap against the internal catalog, discount and anomaly detection</li>
+          <li><b>Data engineering</b> — a conformed model, a run ledger, a quality score per run</li>
+          <li><b>Audit and legal</b> — a request-level log proving what was fetched and why</li>
+          <li><b>The panel</b> — a system that runs with one command and no paid API</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>What it deliberately does not do</h3>
+        <p style="margin:0 0 10px;color:var(--muted)">Stating the limits is part of the deliverable.
+           These are choices, not omissions:</p>
+        <ul class="ticks" style="margin:0">
+          <li><b>No authentication-walled sources.</b> Every upstream is public and key-less.</li>
+          <li><b>No scraping of sites that refuse it.</b> A blocked robots.txt ends the request,
+              recorded as a refusal rather than a failure.</li>
+          <li><b>No invented data in production.</b> Synthetic rows exist only in the demo seed and
+              are excluded from every automatic run.</li>
+          <li><b>No paid forecasting model.</b> The forecast is a damped Holt-Winters fit with a
+              measured error, and it says so when the history is too short.</li>
+          <li><b>No silent fallback.</b> When a rate or a source is unavailable, the record says
+              which one it used.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h3>How to judge it in five minutes</h3>
+      <div class="cols">
+        <div>
+          <ol style="margin:0;padding-left:20px;color:var(--muted);font-size:13.5px;line-height:1.7">
+            <li>Run <code>./run.sh --verify-only</code> and watch the live sources answer.</li>
+            <li>Read the run ledger: every stage, its duration and its counters.</li>
+            <li>Open the dashboard and press the range selector; every tile moves together.</li>
+            <li>Ask the Query Lab for the rows behind a number, and read the SQL it ran.</li>
+            <li>Check the audit log: every outbound request, its verdict and its cost.</li>
+          </ol>
+        </div>
+        <div>
+          <div class="badges">
+            <span class="badge">Topics <b>etl · airflow · fastapi · react · postgres · mysql · data-quality · scraping · warehouse · dashboard</b></span>
+            <span class="badge">Releases <b>v1.9.0 to v1.12.0</b></span>
+            <span class="badge">License <b>MIT</b></span>
+            <span class="badge">Track <b>DEPI Data Engineering</b></span>
+            <span class="badge">Sources <b>34 registered, 35 modules</b></span>
+            <span class="badge">Cost to run <b>zero</b></span>
+          </div>
+          <p style="margin:12px 0 0;color:var(--muted);font-size:13px">
+            The whole platform is MIT licensed, runs on a laptop with SQLite for the test suite, and
+            scales to PostgreSQL and MySQL for the real thing. The only cost is the electricity.
+          </p>
+        </div>
       </div>
     </div>
   </div>
@@ -1766,7 +2062,7 @@ from ~290 ms to ~150 ms.</pre>
 <footer>
   <div class="wrap foot-in">
     <span>Web-to-Warehouse Product Intelligence Pipeline · built for a retailer's morning market picture.</span>
-    <span>MIT licensed · DEPI Data Engineering · 666 features · 29 tables · 23 views · 222 API ops · 34 sources</span>
+    <span>MIT licensed · DEPI Data Engineering · 666 features · 29 tables · 23 views · 222 API ops · 35 sources · 37 documents</span>
   </div>
 </footer>
 

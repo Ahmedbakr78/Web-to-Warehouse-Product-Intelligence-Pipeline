@@ -76,15 +76,62 @@
       <h1>Overview</h1>
       <p>What the project is and how to run it</p>
     </div>
-    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#how-to-read-these-numbers">How to read these numbers</a></li><li class="lvl-2"><a href="#measured-facts-referenced-throughout">Measured facts referenced throughout</a></li><li class="lvl-2"><a href="#reading-order">Reading order</a></li><li class="lvl-2"><a href="#quick-commands">Quick commands</a></li><li class="lvl-2"><a href="#related">Related</a></li></ol></details>
+    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#which-document-answers-which-question">Which document answers which question</a></li><li class="lvl-2"><a href="#how-to-read-these-numbers">How to read these numbers</a></li><li class="lvl-2"><a href="#measured-facts-referenced-throughout">Measured facts referenced throughout</a></li><li class="lvl-2"><a href="#reading-order">Reading order</a></li><li class="lvl-2"><a href="#quick-commands">Quick commands</a></li><li class="lvl-2"><a href="#related">Related</a></li></ol></details>
     <article class="doc-body">
-<p>Web-to-Warehouse Product Intelligence Pipeline — DEPI graduation project, Data Engineering track. Thirty-two documents covering the proposal, planning, requirements, design, implementation evidence and evaluation.</p>
+<p>Web-to-Warehouse Product Intelligence Pipeline — DEPI graduation project, Data Engineering track. Thirty-seven documents covering the proposal, planning, requirements, design, implementation evidence and evaluation.</p>
 <p>Every diagram is Mermaid, rendered natively by GitHub and to SVG for the static site. Every structural number is measured by a script and re-verifiable with the command cited beside it.</p>
+<pre class="mermaid">flowchart LR
+    subgraph PLAN[&quot;Planning and evidence&quot;]
+        D1[&quot;01 Proposal&quot;]
+        D2[&quot;02 Plan&quot;]
+        D3[&quot;03 Roles&quot;]
+        D4[&quot;04 Risk&quot;]
+        D5[&quot;05 KPIs&quot;]
+        D6[&quot;06 Literature&quot;]
+        D7[&quot;07 Requirements&quot;]
+    end
+    subgraph DESIGN[&quot;Design&quot;]
+        D8[&quot;08 System analysis&quot;]
+        D9[&quot;09 Database&quot;]
+        D10[&quot;10 Data flow&quot;]
+        D11[&quot;11 Behaviour&quot;]
+        D12[&quot;12 UI and UX&quot;]
+        D13[&quot;13 Deployment&quot;]
+        D14[&quot;14 API&quot;]
+    end
+    subgraph BUILD[&quot;Implementation evidence&quot;]
+        D15[&quot;15 Testing&quot;]
+        D16[&quot;16 User manual&quot;]
+        D17[&quot;17 Technical&quot;]
+        D18[&quot;18 Presentation&quot;]
+        D19[&quot;19 Feature inventory&quot;]
+        D20[&quot;20 Feedback&quot;]
+    end
+    subgraph DEEP[&quot;Deep dives and operations&quot;]
+        D21[&quot;21 Architecture&quot;]
+        D22[&quot;22 Data dictionary&quot;]
+        D23[&quot;23 Glossary&quot;]
+        D24[&quot;24 Demo runbook&quot;]
+        D25[&quot;25 Forecasting&quot;]
+        D26[&quot;26 Jobs and realtime&quot;]
+        D27[&quot;27 Reporting&quot;]
+        D28[&quot;28 Schema&quot;]
+        D29[&quot;29 Two-factor&quot;]
+        D30[&quot;30 Access control&quot;]
+        D32[&quot;32 Briefing&quot;]
+        D33[&quot;33 Data trust&quot;]
+    end
+    PLAN --&gt; DESIGN --&gt; BUILD --&gt; DEEP</pre>
 <div class='table-scroll'><table><thead><tr>
 <th>#</th>
 <th>Document</th>
 <th>What it covers</th>
 </tr></thead><tbody>
+<tr>
+<th>00</th>
+<td><a href="00_team.html">Team, Roles &amp; Effort Split</a></td>
+<td>The six members, their weights and function ownership, and the ownership map</td>
+</tr>
 <tr>
 <th>01</th>
 <td><a href="01_project_proposal.html">Project Proposal</a></td>
@@ -236,6 +283,11 @@
 <td>Roles and rights, scoped API keys enforced twice, sliding-window limits with honest headers</td>
 </tr>
 <tr>
+<th>31</th>
+<td><a href="31_releases.html">Releases</a></td>
+<td>Versioning, tagging, the pre-flight checklist, the GitHub About box and the topics list</td>
+</tr>
+<tr>
 <th>32</th>
 <td><a href="32_briefing_and_demo_scale.html">Morning Briefing &amp; Demo Scale</a></td>
 <td>Ranked action queue, endpoint contract, cache/noise policy, and the idempotent 10x demo expansion</td>
@@ -244,6 +296,90 @@
 <th>33</th>
 <td><a href="33_data_trust_and_compliance.html">Data Trust &amp; Compliance</a></td>
 <td>The three trust levels, auto-selection rules, the purge sweep, robots.txt enforcement and the request-level audit trail</td>
+</tr>
+<tr>
+<th>34</th>
+<td><a href="34_performance_and_scale.html">Performance &amp; Scale</a></td>
+<td>Measured latencies, table sizes, the index strategy, capacity planning and the honest limits</td>
+</tr>
+<tr>
+<th>35</th>
+<td><a href="35_github_presence.html">GitHub Presence</a></td>
+<td>The repository description, topics, About box, social preview, branching strategy and release packaging</td>
+</tr>
+<tr>
+<th>36</th>
+<td><a href="36_decision_log.html">Decision Log</a></td>
+<td>Every engineering decision from v1.9 to v1.12, with the context, the consequence and the rejected alternatives</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="which-document-answers-which-question">Which document answers which question</h2>
+<p>The index is complete, but completeness is not the same as navigability. This is the short map: find the question, follow the arrow.</p>
+<pre class="mermaid">flowchart TB
+    Q1{&quot;Why does this project exist?&quot;} --&gt; D1[&quot;01 Proposal&lt;br/&gt;problem, scope, ethics&quot;]
+    Q2{&quot;Who did what?&quot;} --&gt; D0[&quot;00 Team + 03 Roles&lt;br/&gt;weights, RACI, hours&quot;]
+    Q3{&quot;What might go wrong?&quot;} --&gt; D2[&quot;04 Risk + 05 KPIs&lt;br/&gt;20 risks, 20 measured KPIs&quot;]
+    Q4{&quot;What does it have to do?&quot;} --&gt; D3[&quot;07 Requirements&lt;br/&gt;stories, use cases, 84 FRs&quot;]
+    Q5{&quot;How is it built?&quot;} --&gt; D4[&quot;08 Analysis + 21 Deep Dive&lt;br/&gt;+ 36 Decision Log&quot;]
+    Q6{&quot;What does the data look like?&quot;} --&gt; D5[&quot;09 Database + 22 Data Dictionary&lt;br/&gt;+ 10 DFDs + 11 Behaviour&quot;]
+    Q7{&quot;How do I call it?&quot;} --&gt; D6[&quot;14 API Documentation&quot;]
+    Q8{&quot;How do I use it?&quot;} --&gt; D7[&quot;16 User Manual&lt;br/&gt;+ 24 Demo Runbook&quot;]
+    Q9{&quot;Is it correct?&quot;} --&gt; D8[&quot;15 Testing Strategy&lt;br/&gt;+ 33 Data Trust&quot;]
+    Q10{&quot;Is it fast?&quot;} --&gt; D9[&quot;34 Performance &amp; Scale&quot;]
+    Q11{&quot;Why is it like this?&quot;} --&gt; D10[&quot;36 Decision Log&lt;br/&gt;+ 31 Releases&quot;]
+    Q12{&quot;What can it do?&quot;} --&gt; D11[&quot;19 Feature Inventory&lt;br/&gt;+ 17 Technical&quot;]</pre>
+<div class='table-scroll'><table><thead><tr>
+<th>The question</th>
+<th>Open</th>
+</tr></thead><tbody>
+<tr>
+<td><em>Why does this project exist?</em></td>
+<td><a href="01_project_proposal.html">01 Project Proposal</a></td>
+</tr>
+<tr>
+<td><em>Who did what, and who reviews it?</em></td>
+<td><a href="00_team.html">00 Team</a>, <a href="03_roles_and_responsibilities.html">03 Roles</a>, <a href="../contributors.html">CONTRIBUTORS.md</a></td>
+</tr>
+<tr>
+<td><em>What could go wrong, and how is it measured?</em></td>
+<td><a href="04_risk_assessment.html">04 Risk</a>, <a href="05_kpis.html">05 KPIs</a></td>
+</tr>
+<tr>
+<td><em>What must the system do?</em></td>
+<td><a href="07_requirements_gathering.html">07 Requirements</a></td>
+</tr>
+<tr>
+<td><em>How is it built, and why?</em></td>
+<td><a href="08_system_analysis_design.html">08 Analysis</a>, <a href="21_architecture_deep_dive.html">21 Deep Dive</a>, <a href="36_decision_log.html">36 Decision Log</a></td>
+</tr>
+<tr>
+<td><em>What does the data look like?</em></td>
+<td><a href="09_database_design.html">09 Database</a>, <a href="22_data_dictionary.html">22 Data Dictionary</a>, <a href="10_data_flow_diagrams.html">10 DFDs</a>, <a href="11_behaviour_diagrams.html">11 Behaviour</a></td>
+</tr>
+<tr>
+<th><em>How do I call the API?</em></th>
+<td><a href="14_api_documentation.html">14 API Documentation</a></td>
+</tr>
+<tr>
+<td><em>How do I use the product?</em></td>
+<td><a href="16_user_manual.html">16 User Manual</a>, <a href="24_demo_runbook.html">24 Demo Runbook</a></td>
+</tr>
+<tr>
+<td><em>How do I know it is correct?</em></td>
+<td><a href="15_testing_strategy.html">15 Testing</a>, <a href="33_data_trust_and_compliance.html">33 Data Trust</a></td>
+</tr>
+<tr>
+<td><em>Will it hold up under load?</em></td>
+<td><a href="34_performance_and_scale.html">34 Performance &amp; Scale</a></td>
+</tr>
+<tr>
+<td><em>What is in the box, and how is it shaped?</em></td>
+<td><a href="19_feature_list.html">19 Feature Inventory</a>, <a href="17_technical_documentation.html">17 Technical</a></td>
+</tr>
+<tr>
+<td><em>How is it released and presented?</em></td>
+<td><a href="31_releases.html">31 Releases</a>, <a href="35_github_presence.html">35 GitHub Presence</a>, <a href="18_presentation_outline.html">18 Presentation</a></td>
 </tr>
 </tbody></table></div>
 <hr>
@@ -278,7 +414,7 @@
 <td><code>make db-check</code></td>
 </tr>
 <tr>
-<th>88 Mermaid diagrams</th>
+<th>100+ Mermaid diagrams</th>
 <td><code>make docs-render</code></td>
 </tr>
 <tr>
@@ -348,6 +484,10 @@
 </ul>
 <p>warehouse guarantees that every row was really observed.</p>
 <ul>
+<li class="depth-0"><strong><a href="36_decision_log.html">36 Decision Log</a></strong> — why the system is the way it is,</li>
+</ul>
+<p>including the alternatives that were rejected.</p>
+<ul>
 <li class="depth-0"><strong><a href="14_api_documentation.html">14 API Documentation</a></strong> and</li>
 </ul>
 <p><strong><a href="16_user_manual.html">16 User Manual</a></strong> — the two views most reviewers want.</p>
@@ -378,7 +518,7 @@ make infographic   # the 2560x1440 DEPI poster</code></pre>
     <div class="doc-foot">
       <span></span>
       <span><a href="../README.md">Source markdown</a></span>
-      <span><a href="01_project_proposal.html">Project Proposal<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+      <span><a href="00_team.html">Team & Roles<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
     </div>
   </main>
 </div>

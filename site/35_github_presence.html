@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="The repository description, topics, About box, social preview, branching strategy and release packaging">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="GitHub Presence — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="The repository description, topics, About box, social preview, branching strategy and release packaging">
+<title>GitHub Presence — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.png" type="image/png">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="28-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, 173 operations, worked examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, measured counts, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="Every feature with the file that implements it">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+<a href="24_demo_runbook.html" title="Screen-by-screen live demo script and failure playbook">Demo Runbook</a>
+<a href="25_forecasting_and_anomaly_detection.html" title="Damped Holt-Winters, measured accuracy, three detectors, pricing advice">Forecasting &amp; Anomalies</a>
+<a href="26_background_jobs_and_realtime.html" title="Leases, retries, cancellation, SSE and the cross-worker problem">Background Jobs &amp; Realtime</a>
+<a href="27_reporting_and_document_generation.html" title="Typed blocks rendered to HTML, JSON, CSV and PDF from one definition">Reporting &amp; Documents</a>
+<a href="28_schema_and_migrations.html" title="Alembic, drift detection, views, Airflow isolation">Schema &amp; Migrations</a>
+<a href="29_two_factor_and_sessions.html" title="TOTP enrolment, recovery codes, per-device revocation">Two-Factor &amp; Sessions</a>
+<a href="30_access_control_and_rate_limiting.html" title="Roles, rights, API-key scopes, sliding-window rate limiting">Access Control &amp; Limits</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>GitHub Presence</h1>
+      <p>The repository description, topics, About box, social preview, branching strategy and release packaging</p>
+    </div>
+    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#the-repository-description-paste-ready">The repository description (paste-ready)</a></li><li class="lvl-2"><a href="#the-about-box-paste-ready">The About box (paste-ready)</a></li><li class="lvl-2"><a href="#the-social-preview-image">The social preview image</a></li><li class="lvl-2"><a href="#topics-as-a-search-strategy">Topics as a search strategy</a></li><li class="lvl-2"><a href="#branching-strategy">Branching strategy</a></li><li class="lvl-2"><a href="#issue-and-pull-request-templates">Issue and pull-request templates</a></li><li class="lvl-2"><a href="#release-packaging">Release packaging</a></li><li class="lvl-3"><a href="#the-release-checklist">The release checklist</a></li><li class="lvl-3"><a href="#what-a-release-note-contains">What a release note contains</a></li><li class="lvl-3"><a href="#the-repositorys-own-release-history">The repository&#x27;s own release history</a></li><li class="lvl-2"><a href="#keeping-the-profile-honest">Keeping the profile honest</a></li><li class="lvl-2"><a href="#related-documents">Related documents</a></li></ol></details>
+    <article class="doc-body">
+<blockquote><p>Everything a reviewer, a recruiter or a teammate needs to see this project on GitHub, in copy-paste form. Nothing here is aspirational: every figure is measured by <code>scripts/project_stats.py</code> and pinned in <code>docs/stats.json</code>.</p></blockquote>
+<hr>
+<h2 id="purpose">Purpose</h2>
+<p>A repository is read in three layers, and each layer fails for a different reason:</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Layer</th>
+<th>Read by</th>
+<th>Fails when</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>The repo card</strong> — name, description, topics, About box</td>
+<td>Someone deciding whether to look at all</td>
+<td>The description is a slogan instead of a summary of what is actually here</td>
+</tr>
+<tr>
+<th><strong>The README</strong></th>
+<td>Someone who opened it</td>
+<td>It opens with a feature list instead of the problem the system solves</td>
+</tr>
+<tr>
+<th><strong>The documentation</strong></th>
+<td>Someone who is convinced</td>
+<td>The diagrams do not render, or the figures do not match the code</td>
+</tr>
+</tbody></table></div>
+<p>This document is the copy-paste source for the first layer, and the checklist for the second and third.</p>
+<hr>
+<h2 id="the-repository-description-paste-ready">The repository description (paste-ready)</h2>
+<p>GitHub allows up to 350 characters. This one is 331.</p>
+<pre class="code" data-lang=""><code>Web-to-Warehouse Product Intelligence Pipeline: compliant ingestion from 35
+public sources, fuzzy duplicate detection, a 29-table Kimball warehouse on
+PostgreSQL + MySQL with price history, 12 data-quality rules, Airflow
+orchestration, 219 REST operations and a React 19 dashboard. DEPI Data
+Engineering capstone.</code></pre>
+<p><strong>Shorter variant</strong> (for a profile or a slide):</p>
+<pre class="code" data-lang=""><code>A compliance-first product intelligence pipeline: permitted web/API ingestion
+→ cleaning → dedupe → PostgreSQL/MySQL warehouse with price history → SQL
+analytics → Airflow → FastAPI + React. Every row provably observed.</code></pre>
+<p><strong>Longer variant</strong> (for a README header or a conference submission):</p>
+<pre class="code" data-lang=""><code>A retailer needs the market picture every morning: what competitors charge,
+what is in stock, what appeared or disappeared, and how it compares to the
+internal catalogue. Collecting that by hand is slow and inconsistent. This
+project replaces the spreadsheet with one continuously orchestrated system:
+robots.txt-aware ingestion from 35 permitted public sources, a 29-step
+normalisation engine, four-signal fuzzy duplicate detection, a Kimball star
+schema that loads identically on PostgreSQL and MySQL, 12 enforced
+data-quality rules whose verdicts are persisted per run, Airflow orchestration,
+a 219-operation REST API and a 23-screen React 19 dashboard. Every row in the
+warehouse traces back to a real, permitted upstream — proven by an audit that
+walks every table and a self-test proving the audit rejects synthetic data.</code></pre>
+<hr>
+<h2 id="the-about-box-paste-ready">The About box (paste-ready)</h2>
+<p><strong>Short description</strong> (the box beside the repository name, 160 characters):</p>
+<pre class="code" data-lang=""><code>Permitted-source product intelligence: ETL, dedupe, Kimball warehouse on
+PostgreSQL + MySQL, 12 DQ rules, Airflow, 219 REST ops, React dashboard.</code></pre>
+<p><strong>Website:</strong></p>
+<pre class="code" data-lang=""><code>https://ahmedbakr78.github.io/Web-to-Warehouse-Product-Intelligence-Pipeline/</code></pre>
+<p><strong>Topics</strong> — copy the whole block into <em>Settings → Topics</em>:</p>
+<pre class="code" data-lang=""><code>web-scraping
+beautifulsoup
+scrapy
+etl
+data-engineering
+airflow
+postgresql
+mysql
+fastapi
+python
+react
+typescript
+data-quality
+data-warehouse
+data-pipeline
+data-lineage
+provenance
+deduplication
+price-tracking
+webhooks
+alerts
+analytics
+sql-analytics
+forecasting
+anomaly-detection
+rest-api
+openapi
+docker
+docker-compose
+github-actions
+ci-cd
+terraform
+observability
+grafana
+prometheus
+pandas
+numpy
+polars
+beautifulsoup4
+lxml
+sqlalchemy
+alembic
+pydantic
+httpx
+pytest
+vitest
+ruff
+mypy
+tailwindcss
+recharts
+react-query
+pwa
+accessibility
+wcag
+depi
+digital-egypt-pioneers-initiative
+capstone-project
+graduation-project</code></pre>
+<p><strong>Why these topics and not more.</strong> GitHub shows at most 20 topics, and the first ones are the ones that surface the repository in search. The list is ordered so that the twenty that matter most are first:</p>
+<ul>
+<li class="depth-0"><code>web-scraping</code>, <code>beautifulsoup</code>, <code>scrapy</code>, <code>etl</code>, <code>data-engineering</code>,</li>
+</ul>
+<p><code>airflow</code>, <code>postgresql</code>, <code>fastapi</code>, <code>python</code>, <code>react</code> — the stack.</p>
+<ul>
+<li class="depth-0"><code>data-quality</code>, <code>data-warehouse</code>, <code>data-pipeline</code>, <code>data-lineage</code>,</li>
+</ul>
+<p><code>provenance</code>, <code>deduplication</code> — the <em>engineering</em> that distinguishes this from a tutorial scraper.</p>
+<ul>
+<li class="depth-0"><code>price-tracking</code>, <code>forecasting</code>, <code>anomaly-detection</code>, <code>analytics</code>,</li>
+</ul>
+<p><code>webhooks</code>, <code>alerts</code> — the product.</p>
+<ul>
+<li class="depth-0"><code>depi</code>, <code>digital-egypt-pioneers-initiative</code>, <code>capstone-project</code> — the</li>
+</ul>
+<p>programme, so the DEPI cohort can find it.</p>
+<hr>
+<h2 id="the-social-preview-image">The social preview image</h2>
+<p>A repository card is looked at, not read. The preview image is <code>docs/assets/infographic.png</code> — a single 2560x1440 slide that states the problem, the solution, the architecture, the measured scale and the evidence in about thirty seconds.</p>
+<pre class="code" data-lang="bash"><code># Regenerate it from the live stats (never hand-edit the numbers)
+make infographic</code></pre>
+<div class='table-scroll'><table><thead><tr>
+<th>Asset</th>
+<th>Size</th>
+<th>Used for</th>
+</tr></thead><tbody>
+<tr>
+<td><code>docs/assets/infographic.png</code></td>
+<td>2560x1440</td>
+<td>the social preview</td>
+</tr>
+<tr>
+<td><code>docs/assets/infographic-dark.svg</code></td>
+<td>vector</td>
+<td>dark-mode README embeds</td>
+</tr>
+<tr>
+<td><code>docs/assets/infographic.pdf</code></td>
+<td>vector</td>
+<td>slides, print, the PDF report</td>
+</tr>
+<tr>
+<th><code>docs/assets/deck.pdf</code></th>
+<td>12 slides</td>
+<td>the defence deck</td>
+</tr>
+<tr>
+<th><code>docs/assets/deck.html</code></th>
+<td>browser</td>
+<td>the deck with speaker notes</td>
+</tr>
+</tbody></table></div>
+<p>The generator reads <code>docs/stats.json</code> and the live warehouse, so the preview image cannot claim a figure the code does not produce. It is regenerated in <code>make stats-update</code> and in the docs CI job.</p>
+<hr>
+<h2 id="topics-as-a-search-strategy">Topics as a search strategy</h2>
+<p>The topics are not decoration. They are how the repository is found by someone who has never heard of it. Each cluster corresponds to a question a searcher might type:</p>
+<div class='table-scroll'><table><thead><tr>
+<th>A person searching for…</th>
+<th>lands on this repo through…</th>
+</tr></thead><tbody>
+<tr>
+<td>"how to scrape without breaking robots.txt"</td>
+<td><code>web-scraping</code>, <code>beautifulsoup</code>, <code>scrapy</code>, <code>provenance</code></td>
+</tr>
+<tr>
+<td>"production ETL in Python"</td>
+<td><code>etl</code>, <code>data-pipeline</code>, <code>airflow</code>, <code>data-engineering</code></td>
+</tr>
+<tr>
+<td>"a real data warehouse schema"</td>
+<td><code>data-warehouse</code>, <code>postgresql</code>, <code>mysql</code>, <code>sqlalchemy</code>, <code>alembic</code></td>
+</tr>
+<tr>
+<td>"how do you know your data is real"</td>
+<td><code>data-lineage</code>, <code>provenance</code>, <code>data-quality</code></td>
+</tr>
+<tr>
+<th>"product price tracking"</th>
+<td><code>price-tracking</code>, <code>deduplication</code>, <code>forecasting</code></td>
+</tr>
+<tr>
+<td>"a FastAPI + React analytics app"</td>
+<td><code>fastapi</code>, <code>react</code>, <code>typescript</code>, <code>openapi</code>, <code>rest-api</code></td>
+</tr>
+<tr>
+<td>"a DEPI capstone project"</td>
+<td><code>depi</code>, <code>digital-egypt-pioneers-initiative</code>, <code>capstone-project</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="branching-strategy">Branching strategy</h2>
+<p>The repository uses <strong>GitFlow</strong>, adapted to a small team:</p>
+<pre class="mermaid">flowchart LR
+    MAIN[&quot;main&lt;br/&gt;always deployable&lt;br/&gt;tagged releases&quot;] --&gt; DEV[&quot;develop&lt;br/&gt;integration branch&quot;]
+    DEV --&gt; F[&quot;feature/*&lt;br/&gt;one concern per branch&quot;]
+    DEV --&gt; FIX[&quot;fix/*&lt;br/&gt;scoped to one defect&quot;]
+    DEV --&gt; HOT[&quot;hotfix/*&lt;br/&gt;production only&quot;]
+    F --&gt; DEV
+    FIX --&gt; DEV
+    HOT --&gt; MAIN
+    DEV --&gt;|&quot;release/*&quot;| MAIN</pre>
+<div class='table-scroll'><table><thead><tr>
+<th>Branch</th>
+<th>Lives where</th>
+<th>Merges into</th>
+<th>Rule</th>
+</tr></thead><tbody>
+<tr>
+<th><code>main</code></th>
+<td>remote</td>
+<td>—</td>
+<td>only receives a tagged release; always green</td>
+</tr>
+<tr>
+<th><code>develop</code></th>
+<td>remote</td>
+<td><code>main</code></td>
+<td>integration branch; every PR lands here first</td>
+</tr>
+<tr>
+<th><code>feature/*</code></th>
+<td>local</td>
+<td><code>develop</code></td>
+<td>one concern; deleted on merge</td>
+</tr>
+<tr>
+<th><code>fix/*</code></th>
+<td>local</td>
+<td><code>develop</code></td>
+<td>one defect; a test is added with it</td>
+</tr>
+<tr>
+<th><code>hotfix/*</code></th>
+<td>local</td>
+<td><code>main</code> <strong>and</strong> <code>develop</code></td>
+<td>production only, then cherry-picked forward</td>
+</tr>
+</tbody></table></div>
+<p><strong>Commit message convention</strong> — Conventional Commits, so the changelog can be generated rather than written by hand:</p>
+<pre class="code" data-lang=""><code>&lt;type&gt;(&lt;scope&gt;): &lt;subject&gt;
+
+type:  feat | fix | perf | docs | refactor | test | build | ci | chore
+scope: ingestion | etl | api | analytics | dashboard | warehouse | quality | dx</code></pre>
+<p>Real examples from this repository's history:</p>
+<pre class="code" data-lang=""><code>fix(quality): clamp the freshness rule to zero hours old
+perf(warehouse): index the timestamps every windowed query filters on
+feat(analytics): publish a distinct-product count beside the observation count
+docs(trust): document the three trust levels and the purge sweep</code></pre>
+<hr>
+<h2 id="issue-and-pull-request-templates">Issue and pull-request templates</h2>
+<p><code>.github/ISSUE_TEMPLATE/</code> and <code>.github/PULL_REQUEST_TEMPLATE.md</code> already exist. The pull-request template asks for the four things a reviewer actually needs:</p>
+<pre class="code" data-lang="markdown"><code>## What changed
+&lt;!-- One sentence. The reviewer reads this first and only. --&gt;
+
+## Why
+&lt;!-- The problem this solves, or the defect it fixes. --&gt;
+
+## How it was verified
+&lt;!-- The commands you ran and their output. Not a claim - the output. --&gt;
+
+## Checklist
+- [ ] `pytest` passes
+- [ ] `ruff check app tests scripts dags` is clean
+- [ ] `npm run typecheck &amp;&amp; npm run lint &amp;&amp; npm run test` are clean (frontend changes)
+- [ ] `make stats-update` was run if a structural figure changed
+- [ ] No synthetic or mock data entered a production path</code></pre>
+<p>That last checkbox is the one that matters most for this project, and it is the one most often forgotten.</p>
+<hr>
+<h2 id="release-packaging">Release packaging</h2>
+<h3 id="the-release-checklist">The release checklist</h3>
+<p>Reproduced in full in <a href="31_releases.html#pre-flight-checklist">31 — Releases</a>. The short form, for a release that has to happen today:</p>
+<pre class="code" data-lang="bash"><code># 1. The version is propagated everywhere
+printf &#x27;1.13.0&#x27; &gt; VERSION &amp;&amp; .venv/bin/python scripts/sync_version.py
+
+# 2. Every structural figure still matches the code
+.venv/bin/python scripts/check_stats.py docs/stats.json --write
+.venv/bin/python scripts/project_stats.py --sync-readme
+.venv/bin/python scripts/check_stats.py docs/stats.json
+
+# 3. The whole thing works, with real data
+./run.sh --verify-only
+
+# 4. Publish
+git add -A &amp;&amp; git commit -m &quot;Release v1.13.0 — &lt;theme&gt;&quot;
+git tag -a v1.13.0 -m &quot;v1.13.0 — &lt;theme&gt;&quot;
+git push &amp;&amp; git push --tags
+gh release create v1.13.0 --title &quot;v1.13.0 — &lt;theme&gt;&quot; --notes-file RELEASE_NOTES.md</code></pre>
+<h3 id="what-a-release-note-contains">What a release note contains</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Section</th>
+<th>What goes in it</th>
+</tr></thead><tbody>
+<tr>
+<th>Theme</th>
+<td>One line. The single idea the release is about.</td>
+</tr>
+<tr>
+<th>Added</th>
+<td>New capability, with the endpoint or screen that proves it.</td>
+</tr>
+<tr>
+<th>Fixed</th>
+<td>The bug, <strong>the cause</strong>, and what now prevents it recurring.</td>
+</tr>
+<tr>
+<th>Changed</th>
+<td>Behaviour that is different, with the migration note.</td>
+</tr>
+<tr>
+<th>Verified</th>
+<td>The commands that were run and their results.</td>
+</tr>
+</tbody></table></div>
+<p>The last section is what separates a release note from a wish list. It should quote real output — <code>619 passed</code>, <code>104/104</code>, <code>No drift: all 17 pinned figures match</code> — not intentions.</p>
+<h3 id="the-repositorys-own-release-history">The repository's own release history</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Version</th>
+<th>Theme</th>
+</tr></thead><tbody>
+<tr>
+<th>1.12.1</th>
+<td>Analytics that could never return a row: the inverted variance, the discarded vote counts, the tests that passed on empty lists</td>
+</tr>
+<tr>
+<th>1.12.0</th>
+<td>Truthful metrics, silent reload, mobile parity, window indexes, a hermetic test suite</td>
+</tr>
+<tr>
+<th>1.11.0</th>
+<td>Morning Briefing, the intelligence layer, the 10x demo warehouse, mobile/theme polish</td>
+</tr>
+<tr>
+<th>1.10.0</th>
+<td>Ingestion Max: TVMaze, Archive.org, DummyJSON recipes, the Scrapy engine, conditional GET, the team API</td>
+</tr>
+<tr>
+<th>1.9.0</th>
+<td>Real-only defaults, theme memory, modern scrollbars, the Account surface, <code>run.sh</code></td>
+</tr>
+<tr>
+<th>1.8.0</th>
+<td>Query power Max: HAVING, OR logic, saved-view lifecycle, query history</td>
+</tr>
+</tbody></table></div>
+<p>Full detail: <a href="../changelog.html"><code>CHANGELOG.md</code></a>.</p>
+<hr>
+<h2 id="keeping-the-profile-honest">Keeping the profile honest</h2>
+<p>The single most valuable property of this repository is that <strong>no figure quoted in prose can drift away from the code</strong>. Three mechanisms enforce it:</p>
+<pre class="mermaid">flowchart LR
+    CODE[&quot;The code&quot;] --&gt; MEASURE[&quot;scripts/project_stats.py&lt;br/&gt;counts the real thing&quot;]
+    MEASURE --&gt; JSON[&quot;docs/stats.json&lt;br/&gt;the pinned snapshot&quot;]
+    JSON --&gt; PROSE[&quot;README, docs/*, website,&lt;br/&gt;infographic, deck&quot;]
+    JSON --&gt; GATE[&quot;check_stats.py&lt;br/&gt;fails CI on drift&quot;]
+    GATE --&gt; CODE</pre>
+<div class='table-scroll'><table><thead><tr>
+<th>Mechanism</th>
+<th>What it catches</th>
+</tr></thead><tbody>
+<tr>
+<td><code>scripts/project_stats.py</code></td>
+<td>Counts tables, views, routes, rules, sources, tasks, commands, documents, diagrams, features and tests <strong>from the code</strong></td>
+</tr>
+<tr>
+<th><code>scripts/check_stats.py</code></th>
+<td>Fails when a figure quoted in the README or the docs no longer matches <code>docs/stats.json</code></td>
+</tr>
+<tr>
+<th><code>make stats-update</code></th>
+<td>Re-measures and rewrites the snapshot, so the update is one command</td>
+</tr>
+</tbody></table></div>
+<p>That is why the README badge says <code>575 catalogued features</code> and the dashboard says <code>629 entries in 42 groups</code>: they are measured by two different collectors on two different axes, and both are labelled.</p>
+<hr>
+<h2 id="related-documents">Related documents</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Document</th>
+<th>Covers</th>
+</tr></thead><tbody>
+<tr>
+<td><a href="31_releases.html">31 — Releases</a></td>
+<td>Versioning, tagging, the pre-flight checklist and the About box</td>
+</tr>
+<tr>
+<td><a href="18_presentation_outline.html">18 — Presentation Outline</a></td>
+<td>The defence deck and the examiner Q&amp;A</td>
+</tr>
+<tr>
+<td><a href="24_demo_runbook.html">24 — Demo Runbook</a></td>
+<td>The screen-by-screen live script</td>
+</tr>
+<tr>
+<td><a href="03_roles_and_responsibilities.html">03 — Roles and Responsibilities</a></td>
+<td>Who owns which lane</td>
+</tr>
+<tr>
+<td><a href="../contributors.html">CONTRIBUTORS.md</a></td>
+<td>The file-level responsibility map</td>
+</tr>
+</tbody></table></div>
+    </article>
+    <div class="doc-foot">
+      <span><a href="34_performance_and_scale.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Performance & Scale</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="36_decision_log.html">Decision Log<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

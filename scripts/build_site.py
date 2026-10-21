@@ -52,6 +52,7 @@ MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs"
 #: Ordered navigation. Each entry is (filename, title, blurb).
 NAV: list[tuple[str, str, str]] = [
     ("README.md", "Overview", "What the project is and how to run it"),
+    ("00_team.md", "Team & Roles", "The six members, their weights and function ownership"),
     ("01_project_proposal.md", "Project Proposal", "Problem, objectives, scope, stakeholders, ethics"),
     ("02_project_plan.md", "Project Plan", "Twelve-week schedule, milestones, deliverables"),
     ("03_roles_and_responsibilities.md", "Roles and Responsibilities", "Team roles, RACI, hours log"),
@@ -120,6 +121,21 @@ NAV: list[tuple[str, str, str]] = [
         "33_data_trust_and_compliance.md",
         "Data Trust & Compliance",
         "The three trust levels, auto-selection rules, the purge sweep, robots.txt enforcement and the audit trail",
+    ),
+    (
+        "34_performance_and_scale.md",
+        "Performance & Scale",
+        "Measured latencies, table sizes, the index strategy, capacity planning and the honest limits",
+    ),
+    (
+        "35_github_presence.md",
+        "GitHub Presence",
+        "The repository description, topics, About box, social preview, branching strategy and release packaging",
+    ),
+    (
+        "36_decision_log.md",
+        "Decision Log",
+        "Every engineering decision from v1.9 to v1.12, with the context, the consequence and the rejected alternatives",
     ),
 ]
 

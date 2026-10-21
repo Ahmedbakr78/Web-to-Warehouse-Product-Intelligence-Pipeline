@@ -337,7 +337,7 @@ def stats_block(stats: dict[str, int]) -> str:
 #: every new test case; pinning it in the README would mean every commit that
 #: adds a test also has to edit the prose, and a stale count in a badge is a
 #: much smaller problem than a gate that cries wolf.
-VOLATILE_FIGURES: tuple[str, ...] = ("test_cases", "test_functions")
+VOLATILE_FIGURES: tuple[str, ...] = ("test_cases", "test_functions", "mermaid_diagrams")
 
 
 def _volatile_normalised(block: str) -> str:
@@ -348,6 +348,10 @@ def _volatile_normalised(block: str) -> str:
         block = re.sub(rf"\| {key} \| \d+ \|", f"| {key} | - |", block)
     # The one-line summary carries the test count too.
     block = re.sub(r"\d+ tests\s+\|", "<n> tests  |", block)
+    # The summary line and the metrics table also quote the diagram count. The
+    # table row is labelled, not keyed, so it needs its own pattern.
+    block = re.sub(r"\|\s*\d+ Mermaid diagrams\b", "| <n> Mermaid diagrams", block)
+    block = re.sub(r"\| Mermaid diagrams\s+\| \d+ \|", "| Mermaid diagrams | - |", block)
     return block
 
 

@@ -95,28 +95,116 @@ IP address. Tokens are held in memory only, so closing the browser also ends the
 
 The dashboard answers "what is the state of my data today?" in one screen.
 
-### 3.1 The five KPI cards
+```mermaid
+flowchart TD
+    A["Sign in"] --> B["Dashboard"]
+    B --> C["KPI cards<br/>products, changes, new and removed,<br/>DQ score, catalog"]
+    B --> D["Charts<br/>observation volume, price timeline,<br/>category mix, brand leaderboard"]
+    C --> E["Latest run strip"]
+    E --> F["Run detail<br/>stage timings, counters, warnings"]
+    D --> G["Click a category bar"]
+    G --> H["Products, pre-filtered"]
+    H --> I["Product detail<br/>price history, catalog twin,<br/>raw observations"]
+    I --> J["Add a watch, raise an alert,<br/>export the history"]
+    F --> K["Quality<br/>rule outcomes per run"]
+    J --> L["Saved views, alerts, exports"]
+    L --> B
+```
+
+### 3.1 The eight KPI cards
+
+Every card is scoped to the **same selected window** (7 / 30 / 90 / 180 days),
+so switching the range moves all of them together. The only card that does not
+move is *Sources reporting*, because the number of reporting sources does not
+depend on the window.
 
 | Card | Meaning | Where the number comes from |
 | --- | --- | --- |
-| **Products** | Products observed in the selected window | `GET /api/v1/analytics/kpi` |
-| **Price changes** | Price changes in the window, with the significant count | same |
-| **New / removed** | New arrivals and products that disappeared | same |
-| **DQ score** | Data-quality score of the last run, plus the failure count | same |
-| **Catalog** | Internal SKUs matched in the last reconciliation | same |
+| **Products tracked** | Distinct canonical products seen in the window, with the snapshots-per-product ratio | `GET /api/v1/analytics/kpi` |
+| **Observations** | Individual price snapshots in the window - one row per product per run | same |
+| **Average price** | Mean USD price in the window, with the minimum and maximum | same |
+| **Data quality score** | The weighted score of the last run, plus the pass / warn / fail counts | same + `GET /api/v1/quality/latest` |
+| **Price changes** | Detected price movements in the window, split into down and up | same |
+| **New products** | Arrivals in the window | same |
+| **Removed products** | Products that went out of circulation upstream | same |
+| **Sources reporting** | How many permitted sources contributed, and when they were last seen | same |
 
-Use the window selector (7 / 30 / 90 days) in the card header to change every card and chart at once.
+> **Products and observations are different numbers and are labelled as such.**
+> A *product* is a canonical identity; an *observation* is one price snapshot
+> of it. A catalogue of 14,000 products observed 83,000 times is 14,000
+> products and 83,000 observations. The hint under the first card shows the
+> ratio so the two can be read together.
 
-### 3.2 The charts
+### 3.2 Where every screen lives
+
+The whole application, in one picture. Every screen is reachable from the
+sidebar (an off-canvas drawer on small screens), the command palette
+(<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>K</kbd> or <kbd>/</kbd>) and the mobile
+tab bar.
+
+```mermaid
+flowchart TB
+    subgraph OVER["Overview"]
+        DASH["Dashboard<br/>the 60-second picture"]
+        BRIEF["Briefing<br/>ranked actions"]
+        ANAL["Analytics<br/>category + brand"]
+        CHG["Changes<br/>the change feed"]
+    end
+    subgraph CAT["Catalogue"]
+        PROD["Products<br/>faceted, exportable"]
+        CATS["Categories<br/>tree + price index"]
+        CATM["Catalog match<br/>internal vs market"]
+    end
+    subgraph PIPE["Pipeline"]
+        RUNS["Runs<br/>timings + comparison"]
+        DQ["Data quality<br/>12 rules"]
+        SRC["Sources<br/>compliance + preview"]
+    end
+    subgraph EXPL["Explore"]
+        FC["Forecast<br/>Holt-Winters + anomalies"]
+        REP["Reports<br/>HTML, CSV, PDF"]
+        QL["Query lab<br/>read-only SQL"]
+        BLD["Builder<br/>filter + aggregate"]
+        FEAT["Features<br/>the catalogue"]
+    end
+    subgraph WS["Workspace"]
+        AL["Alerts<br/>rules + notifications"]
+        WH["Webhooks<br/>signed delivery"]
+        ACC["Account<br/>profile + appearance"]
+        SET["Settings<br/>admin"]
+        USR["Users<br/>roles"]
+        AUD["Audit<br/>the trail"]
+    end
+    DASH --> PROD
+    DASH --> CHG
+    DASH --> RUNS
+    BRIEF --> PROD
+    BRIEF --> AL
+    ANAL --> CATS
+    CATM --> PROD
+    DQ --> RUNS
+    SRC --> RUNS
+    FC --> PROD
+    QL --> PROD
+    BLD --> PROD
+    REP --> PROD
+    AL --> ACC
+    WH --> ACC
+    AUD --> RUNS
+    SET --> USR
+    ACC --> SET
+```
+
+### 3.3 The charts
 
 | Chart | What to read from it |
 | --- | --- |
-| Observations and average price | Whether the daily observation volume is stable and how the average USD price moves |
+| Market price and coverage trend | Price on the left axis (USD) and observation volume on the right axis, so neither flattens the other. Whether daily volume is stable and how the average USD price moves |
 | Price-change timeline | Green (down) and red (up) bars; the line is the mean absolute change — spikes mean a promotion cycle |
 | Category breakdown | Bars are average USD price; click a bar to filter the Products screen |
 | Brand leaderboard | Ranked by product count; the in-stock percentage highlights availability risk |
 
-### 3.3 Latest run strip
+### 3.4 Latest run strip
 
 The strip at the bottom shows the most recent run: `run_id`, status, duration, records extracted and
 loaded, DQ score and warnings. Click it to open the run detail.

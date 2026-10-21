@@ -79,9 +79,10 @@
 ## Table of contents
 
 1. [Why this project exists](#why-this-project-exists)
-2. [What was built](#what-was-built)
-3. [Quick start](#quick-start)
-4. [Architecture](#architecture)
+2. [The invariants the system holds](#the-invariants-the-system-holds)
+3. [What was built](#what-was-built)
+4. [Quick start](#quick-start)
+5. [Architecture](#architecture)
    - [System overview](#system-overview)
    - [System context](#system-context-level-0-data-flow)
    - [Application stack](#application-stack-layered)
@@ -91,36 +92,38 @@
    - [ER diagram](#er-diagram-warehouse-core)
    - [Data flow](#data-flow-level-1)
    - [Deployment view](#deployment-view)
-5. [The pipeline end-to-end](#the-pipeline-end-to-end)
+6. [The pipeline end-to-end](#the-pipeline-end-to-end)
    - [1 - Retrieve](#1---retrieve)
    - [2 - Clean](#2---clean)
    - [3 - Load](#3---load)
    - [4 - Detect](#4---detect)
    - [5 - Quality](#5---quality)
    - [6 - Serve](#6---serve)
-6. [Design decisions](#design-decisions)
+7. [Design decisions](#design-decisions)
    - [Decision register](#decision-register)
    - [Component view](#component-view)
    - [Class view](#class-view-of-the-ingestion-contract)
    - [Run state diagram](#state-of-a-pipeline-run)
-7. [Data model](#data-model)
-8. [Data quality](#data-quality)
-9. [Data trust and compliance](#data-trust-and-compliance)
-10. [Feature catalogue](#feature-catalogue)
-11. [Ingestion source catalog](#ingestion-source-catalog)
-12. [Configuration reference](#configuration-reference)
-13. [Screens](#screens)
-14. [Security](#security)
-15. [Testing and verification](#testing-and-verification)
-16. [Performance](#performance)
-17. [Repository layout](#repository-layout)
-18. [Documentation](#documentation)
-19. [FAQ and troubleshooting](#faq-and-troubleshooting)
-20. [Releases](#releases)
-21. [Roadmap](#roadmap)
-22. [Team](#team)
-23. [Acknowledgements](#acknowledgements)
-24. [License](#license)
+8. [Data model](#data-model)
+9. [Data quality](#data-quality)
+10. [Data trust and compliance](#data-trust-and-compliance)
+11. [Feature catalogue](#feature-catalogue)
+12. [Ingestion source catalog](#ingestion-source-catalog)
+13. [Integrations](#integrations-export-webhooks-and-backfill)
+14. [Configuration reference](#configuration-reference)
+15. [Screens](#screens)
+16. [Security](#security)
+17. [Testing and verification](#testing-and-verification)
+18. [Performance](#performance)
+19. [Repository layout](#repository-layout)
+20. [How to read this repository](#how-to-read-this-repository)
+21. [Documentation](#documentation)
+22. [FAQ and troubleshooting](#faq-and-troubleshooting)
+23. [Releases](#releases)
+24. [Roadmap](#roadmap)
+25. [Team](#team)
+26. [Acknowledgements](#acknowledgements)
+27. [License](#license)
 
 ---
 
@@ -152,6 +155,63 @@ Everything is engineered like a production system, not a demo:
 
 ---
 
+## The invariants the system holds
+
+Most of what makes a data pipeline trustworthy is not a feature but a promise: a property that
+holds no matter which code path runs. These are the promises this repository makes, and each one
+is enforced by code and covered by a test rather than by a comment.
+
+```mermaid
+flowchart TB
+    subgraph LAW1["Source promises"]
+        I1["A refused URL is never requested"]
+        I2["Every outbound call is logged"]
+        I3["A rate limit is never exceeded"]
+    end
+    subgraph LAW2["Row promises"]
+        I4["A product is written once,<br/>however many sources saw it"]
+        I5["A price snapshot is append-only"]
+        I6["A row names the source it came from"]
+    end
+    subgraph LAW3["Run promises"]
+        I7["A failed source never fails the run"]
+        I8["A rule never aborts the suite"]
+        I9["Re-running never duplicates a row"]
+        I10["A run is scored,<br/>not assumed"]
+    end
+    subgraph LAW4["Delivery promises"]
+        I11["The API returns only what the user may see"]
+        I12["The SQL surface is read-only"]
+        I13["Every figure in the docs is measured"]
+    end
+    LAW1 --> LAW2 --> LAW3 --> LAW4
+```
+
+| # | Invariant | Enforced by | Proven by |
+| --- | --- | --- | --- |
+| 1 | A URL that robots.txt refuses is never requested; the refusal is recorded instead | `app/ingestion/robots.py`, `app/ingestion/http_client.py` | `tests/test_ingestion.py`, `tests/test_ingestion_more.py` |
+| 2 | Every outbound request leaves a row in `ingestion_http_log` with its verdict, status and duration | `app/ingestion/http_client.py` | `tests/test_integrations.py`, `tests/test_new_features.py` |
+| 3 | A source's rate limit is never exceeded, in the transport and again in the scheduler | `app/ingestion/ratelimit.py` | `tests/test_new_features.py` |
+| 4 | One canonical product is written however many sources observed it | `app/ingestion/dedupe.py` | `tests/test_dedupe.py` |
+| 5 | A price observation is appended, never updated, so history cannot be rewritten | `app/etl/loader.py` | `tests/test_etl_pipeline.py` |
+| 6 | Every stored row names the source it came from, and that source carries a trust level | `app/models/dimensions.py`, `app/etl/purge.py` | `scripts/audit_no_fakes.py`, `tests/test_no_fakes_audit.py` |
+| 7 | A source that fails produces a `partial` run; the other sources still land | `app/etl/pipeline.py` | `tests/test_pipeline_resilience.py` |
+| 8 | A broken data-quality rule is recorded as a failure and the remaining rules still run | `app/etl/dq.py` | `tests/test_etl_pipeline.py` |
+| 9 | Re-running the pipeline merges rather than duplicates | `app/etl/loader.py` | `tests/test_etl_pipeline.py` |
+| 10 | A run's quality score is computed from the rules that ran, with severity weights | `app/etl/dq.py` | `tests/test_etl_pipeline.py` |
+| 11 | The API returns only the rows the caller's role permits | `app/api/deps.py` | `tests/test_api.py`, `tests/test_security.py` |
+| 12 | The query surface accepts `SELECT`, `WITH` and `EXPLAIN` only, with a row cap | `app/api/routers/queries.py` | `tests/test_query_history.py` |
+| 13 | Every structural figure in this repository is measured by a script and re-checked by CI | `scripts/project_stats.py`, `scripts/check_stats.py` | the "Project statistics" CI job |
+| 14 | Synthetic rows never reach a production run, and the ones that exist can be found and purged | `app/etl/pipeline.py`, `app/etl/purge.py` | `tests/test_new_sources.py`, `scripts/audit_no_fakes.py` |
+
+The last one deserves a note. "No fake data" is easy to claim and easy to break, so it is enforced
+from both ends: the pipeline refuses to auto-select a source that is not classified `real`, and
+`scripts/audit_no_fakes.py` walks every table that records an upstream and fails if a single row
+cannot be traced back to a permitted source. The audit is itself proved — the verification run
+seeds a throwaway synthetic warehouse and fails if the audit accepts it.
+
+---
+
 ## What was built
 
 | Component | Technology | Scale |
@@ -179,7 +239,7 @@ Everything is engineered like a production system, not a demo:
 29 physical tables  |  23 analytical views  |  222 REST route decorators in 24 routers
 12 data-quality rules across 6 dimensions, weighted score persisted per run
 34 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
-17 CLI commands  |  6 Docker Compose services  |  34 documents  |  88 Mermaid diagrams
+17 CLI commands  |  6 Docker Compose services  |  37 documents  |  101 Mermaid diagrams
 625 tests  |  104/104 API smoke checks  |  666 catalogued features
 ```
 
@@ -195,8 +255,8 @@ Everything is engineered like a production system, not a demo:
 | CLI commands                             | 17 |
 | Pipeline stages                          | 9 |
 | Docker Compose services                  | 6 |
-| Numbered documents                       | 34 |
-| Mermaid diagrams                         | 88 |
+| Numbered documents                       | 37 |
+| Mermaid diagrams                         | 101 |
 | Catalogued features (live API catalogue) | 666 |
 | Documented features (F-ID inventory)     | 612 |
 | Documented feature areas                 | 47 |
@@ -1605,15 +1665,43 @@ requires the audit to pass. A check that never fails proves nothing.
 
 ## Performance
 
-Measured on a laptop container stack (the harness is in docs/05):
+Measured on the running stack (PostgreSQL 16.15, 12 cores, 32 GB) holding
+**83,306 observations · 14,685 products · 17 live sources · 278 MB**. Every
+figure is reproducible with the command beside it, and the full analysis is in
+**[docs/34_performance_and_scale.md](docs/34_performance_and_scale.md)**.
 
-| Metric | Budget | Measured |
-| --- | --- | --- |
-| API p95 latency (12 hot endpoints) | 200 ms | 38.2 ms |
-| Pipeline run (demo plus cached sources) | 60 s | about 3.5 s |
-| Bootstrap (29 tables plus 23 views) | 10 s | about 4 s |
-| Dashboard first load (lazy chunked routes) | 2 s | about 0.9 s gzipped |
-| Repeat run with warm response cache | any | zero outbound requests |
+| Endpoint | Latency | What it does |
+| --- | ---: | --- |
+| `GET /health` | 12 ms | database ping + source registry |
+| `GET /quality/latest` | 41 ms | the persisted DQ report |
+| `GET /sources` | 47 ms | the source registry with compliance metadata |
+| `GET /pipeline/runs/latest` | 59 ms | the last run with stage timings |
+| `GET /changes/top-movers` | 61 ms | the largest price movements |
+| `GET /products?page_size=25` | 92 ms | a paginated, sorted, faceted product page |
+| `GET /analytics/trend?days=30` | 215 ms | the daily price and coverage series |
+| `GET /analytics/kpi?days=30` | 306 ms | every dashboard number, one request |
+
+| Other | Measured |
+| --- | ---: |
+| Bootstrap (29 tables + 23 views) | ~4 s |
+| Full 20-source pipeline run, cold cache | 3 m 55 s |
+| Full 20-source pipeline run, warm cache | ~1 m 40 s |
+| Repeat run with a warm response cache | zero outbound requests |
+| Dashboard first load (lazy chunked routes) | ~0.9 s gzipped |
+
+The run time is dominated by **waiting for upstreams that say so**, not by the
+database: `openfoodfacts_prices` allows 10 requests a minute, and one
+`robots.txt` refusal removes a source from the run entirely. That is the
+compliance layer working, and it is the reason the pipeline is safe to run
+repeatedly.
+
+**The three decisions that keep it fast as the data grows:**
+
+| Decision | Effect |
+| --- | --- |
+| Index `captured_at` and `detected_at` | A windowed query became an index-only scan instead of a sequential scan of the whole fact table |
+| The KPI payload counts only what it publishes | 290 ms → 150 ms, and it no longer degrades as the fact table grows |
+| An append-only fact grain | The write path never contends; history is a consequence of the schema, not a feature added to it |
 
 ---
 
@@ -1665,8 +1753,11 @@ pyproject.toml                package configuration and tool settings
 
 ## Documentation
 
-All thirty-four documents live in [docs/](docs/README.md). Every diagram is Mermaid and renders
+All thirty-seven documents live in [docs/](docs/README.md). Every diagram is Mermaid and renders
 natively on GitHub; every structural number is tied to a runnable command.
+
+Not sure which one to open? **[docs/README.md](docs/README.md) has a question-to-document
+map** - find the question, follow the arrow.
 
 | # | Document | Contents |
 | --- | --- | --- |
@@ -1703,11 +1794,14 @@ natively on GitHub; every structural number is tied to a runnable command.
 | 31 | **Releases** | versioning, tagging, the pre-flight checklist, the GitHub About box and the topics list |
 | 32 | **Morning Briefing & Demo Scale** | the ranked action queue, its endpoint contract, and the idempotent 10x demo expansion |
 | 33 | **Data Trust & Compliance** | the three trust levels, the auto-selection rule, the purge sweep, robots.txt semantics and the request-level audit trail |
+| 34 | **Performance & Scale** | measured latencies, table sizes, the index strategy, capacity planning and the honest limits |
+| 35 | **GitHub Presence** | the repository description, topics, About box, social preview, branching strategy and release packaging |
+| 36 | **Decision Log** | every engineering decision from v1.9 to v1.12, with the context, the consequence and the rejected alternatives |
 
 ### The documentation website
 
 All thirty documents are also published as a browsable site, with client-side search, a dark mode
-that follows the system preference, and all 88 Mermaid diagrams rendered to SVG:
+that follows the system preference, and all 100+ Mermaid diagrams rendered to SVG:
 
 ```bash
 make site             # build ./site — standard library only, nothing to install

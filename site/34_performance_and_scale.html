@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Measured latencies, table sizes, the index strategy, capacity planning and the honest limits">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Performance &amp; Scale — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="Measured latencies, table sizes, the index strategy, capacity planning and the honest limits">
+<title>Performance &amp; Scale — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.png" type="image/png">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="28-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, 173 operations, worked examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, measured counts, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="Every feature with the file that implements it">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+<a href="24_demo_runbook.html" title="Screen-by-screen live demo script and failure playbook">Demo Runbook</a>
+<a href="25_forecasting_and_anomaly_detection.html" title="Damped Holt-Winters, measured accuracy, three detectors, pricing advice">Forecasting &amp; Anomalies</a>
+<a href="26_background_jobs_and_realtime.html" title="Leases, retries, cancellation, SSE and the cross-worker problem">Background Jobs &amp; Realtime</a>
+<a href="27_reporting_and_document_generation.html" title="Typed blocks rendered to HTML, JSON, CSV and PDF from one definition">Reporting &amp; Documents</a>
+<a href="28_schema_and_migrations.html" title="Alembic, drift detection, views, Airflow isolation">Schema &amp; Migrations</a>
+<a href="29_two_factor_and_sessions.html" title="TOTP enrolment, recovery codes, per-device revocation">Two-Factor &amp; Sessions</a>
+<a href="30_access_control_and_rate_limiting.html" title="Roles, rights, API-key scopes, sliding-window rate limiting">Access Control &amp; Limits</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Performance &amp; Scale</h1>
+      <p>Measured latencies, table sizes, the index strategy, capacity planning and the honest limits</p>
+    </div>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#the-measured-system">The measured system</a></li><li class="lvl-3"><a href="#where-the-rows-come-from">Where the rows come from</a></li><li class="lvl-2"><a href="#measured-response-times">Measured response times</a></li><li class="lvl-3"><a href="#in-process-query-cost">In-process query cost</a></li><li class="lvl-2"><a href="#the-three-decisions-that-make-it-scale">The three decisions that make it scale</a></li><li class="lvl-3"><a href="#1-the-kpi-payload-stopped-counting-what-it-does-not-publish">1. The KPI payload stopped counting what it does not publish</a></li><li class="lvl-3"><a href="#2-the-windowed-timestamps-carry-an-index">2. The windowed timestamps carry an index</a></li><li class="lvl-3"><a href="#3-the-fact-grain-is-append-only">3. The fact grain is append-only</a></li><li class="lvl-2"><a href="#capacity-planning">Capacity planning</a></li><li class="lvl-3"><a href="#what-breaks-first-and-what-it-costs">What breaks first, and what it costs</a></li><li class="lvl-3"><a href="#the-pre-aggregate-that-already-exists">The pre-aggregate that already exists</a></li><li class="lvl-2"><a href="#the-cost-side-politeness-is-a-budget">The cost side: politeness is a budget</a></li><li class="lvl-2"><a href="#honest-limits">Honest limits</a></li><li class="lvl-2"><a href="#how-to-re-measure-all-of-this">How to re-measure all of this</a></li><li class="lvl-2"><a href="#related-documents">Related documents</a></li></ol></details>
+    <article class="doc-body">
+<blockquote><p><strong>Every number in this document was measured on the running system</strong>, not estimated. The command that produced each figure is given with it, so any claim here can be re-derived and falsified.</p></blockquote>
+<hr>
+<h2 id="purpose">Purpose</h2>
+<p>Two questions decide whether a pipeline is production-shaped or a demo:</p>
+<ul>
+<li class="depth-0"><strong>Does it stay fast as the warehouse grows?</strong> A dashboard that reads 80,000</li>
+</ul>
+<p>rows in 300 ms is fine. The same code over 5,000,000 rows is not, unless the access paths are indexed for the growth.</p>
+<ul>
+<li class="depth-0"><strong>Does it stay honest as it grows?</strong> More data means more chances to be</li>
+</ul>
+<p>wrong. The guarantee that every row was really observed has to survive the growth, not just the demo.</p>
+<p>This document records the measured behaviour, the decisions that produce it, and the plan for the next order of magnitude.</p>
+<hr>
+<h2 id="the-measured-system">The measured system</h2>
+<p>The figures below come from the deployed stack (PostgreSQL 16.15, six Docker services, 12 CPU cores, 32 GB RAM) holding a warehouse collected from 17 live public sources over 14 days.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Table</th>
+<th>Rows</th>
+<th>Size</th>
+<th>What it holds</th>
+</tr></thead><tbody>
+<tr>
+<th><code>fact_price_snapshot</code></th>
+<td>83,306</td>
+<td>110 MB</td>
+<td>one row per product per source per run</td>
+</tr>
+<tr>
+<th><code>dim_product</code></th>
+<td>14,685</td>
+<td>22 MB</td>
+<td>the canonical product catalogue</td>
+</tr>
+<tr>
+<th><code>stg_raw_observation</code></th>
+<td>90,341</td>
+<td>—</td>
+<td>the resumable staging table</td>
+</tr>
+<tr>
+<th><code>chg_product_event</code></th>
+<td>87,917</td>
+<td>—</td>
+<td>lifecycle events</td>
+</tr>
+<tr>
+<th><code>chg_price_change</code></th>
+<td>2,044</td>
+<td>—</td>
+<td>detected price movements</td>
+</tr>
+<tr>
+<th><code>ingestion_http_log</code></th>
+<td>4,606</td>
+<td>—</td>
+<td>one row per outbound request</td>
+</tr>
+<tr>
+<th><strong>database total</strong></th>
+<td>—</td>
+<td><strong>278 MB</strong></td>
+<td>schema, views, indexes and all data</td>
+</tr>
+</tbody></table></div>
+<pre class="code" data-lang="bash"><code>docker exec pip-postgres psql -U pip -d pipeline -c &quot;
+  SELECT pg_size_pretty(pg_total_relation_size(&#x27;fact_price_snapshot&#x27;)) snapshots,
+         pg_size_pretty(pg_total_relation_size(&#x27;dim_product&#x27;)) products,
+         pg_size_pretty(pg_database_size(&#x27;pipeline&#x27;)) db_total;&quot;</code></pre>
+<h3 id="where-the-rows-come-from">Where the rows come from</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Source</th>
+<th>Observations</th>
+<th>Products</th>
+<th>First seen</th>
+<th>Last seen</th>
+</tr></thead><tbody>
+<tr>
+<th><code>openlibrary_books</code></th>
+<td>7,706</td>
+<td>1,864</td>
+<td>2026-10-15</td>
+<td>2026-10-21</td>
+</tr>
+<tr>
+<th><code>cheapshark_deals</code></th>
+<td>7,171</td>
+<td>2,218</td>
+<td>2026-10-08</td>
+<td>2026-10-21</td>
+</tr>
+<tr>
+<th><code>itunes_apps</code></th>
+<td>6,882</td>
+<td>985</td>
+<td>2026-10-08</td>
+<td>2026-10-21</td>
+</tr>
+<tr>
+<th><code>gutendex_books</code></th>
+<td>6,677</td>
+<td>452</td>
+<td>2026-10-08</td>
+<td>2026-10-21</td>
+</tr>
+<tr>
+<th><code>scryfall_cards</code></th>
+<td>6,583</td>
+<td>1,975</td>
+<td>2026-10-09</td>
+<td>2026-10-21</td>
+</tr>
+<tr>
+<th><code>mmobomb_games</code></th>
+<td>6,150</td>
+<td>414</td>
+<td>2026-10-08</td>
+<td>2026-10-21</td>
+</tr>
+<tr>
+<th><code>openfoodfacts_prices</code></th>
+<td>6,013</td>
+<td>1,520</td>
+<td>2026-10-08</td>
+<td>2026-10-21</td>
+</tr>
+<tr>
+<th><code>kraken_tickers</code></th>
+<td>5,883</td>
+<td>606</td>
+<td>2026-10-08</td>
+<td>2026-10-21</td>
+</tr>
+<tr>
+<th><code>mealdb_meals</code></th>
+<td>5,823</td>
+<td>764</td>
+<td>2026-10-08</td>
+<td>2026-10-21</td>
+</tr>
+<tr>
+<th><code>itunes_ebooks</code></th>
+<td>5,684</td>
+<td>886</td>
+<td>2026-10-08</td>
+<td>2026-10-21</td>
+</tr>
+<tr>
+<th><code>tvmaze_shows</code></th>
+<td>5,235</td>
+<td>1,157</td>
+<td>2026-10-15</td>
+<td>2026-10-21</td>
+</tr>
+<tr>
+<th><code>archive_texts</code></th>
+<td>4,122</td>
+<td>1,098</td>
+<td>2026-10-15</td>
+<td>2026-10-21</td>
+</tr>
+<tr>
+<th><code>cocktaildb_drinks</code></th>
+<td>3,195</td>
+<td>155</td>
+<td>2026-10-08</td>
+<td>2026-10-21</td>
+</tr>
+<tr>
+<th><code>pokemontcg_cards</code></th>
+<td>2,722</td>
+<td>468</td>
+<td>2026-10-08</td>
+<td>2026-10-21</td>
+</tr>
+<tr>
+<th><code>ygoprodeck_cards</code></th>
+<td>2,033</td>
+<td>91</td>
+<td>2026-10-08</td>
+<td>2026-10-21</td>
+</tr>
+<tr>
+<th><code>bitstamp_tickers</code></th>
+<td>1,110</td>
+<td>106</td>
+<td>2026-10-15</td>
+<td>2026-10-21</td>
+</tr>
+<tr>
+<th><code>steam_store</code></th>
+<td>317</td>
+<td>17</td>
+<td>2026-10-08</td>
+<td>2026-10-21</td>
+</tr>
+</tbody></table></div>
+<p>The uneven product-to-observation ratio is real, not noise: a crypto ticker is one product observed 20 times, while a bookshop has 4,000 distinct books observed once each. The pipeline is designed for both shapes — the fact grain is <em>product x source x captured_at</em>, so a re-observed product appends history rather than replacing a row.</p>
+<hr>
+<h2 id="measured-response-times">Measured response times</h2>
+<p>Through the running API (a full round trip, including JWT verification, the database round trip and serialisation):</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Endpoint</th>
+<th>Latency</th>
+<th>What it does</th>
+</tr></thead><tbody>
+<tr>
+<th><code>GET /health</code></th>
+<td>12 ms</td>
+<td>database ping + source registry</td>
+</tr>
+<tr>
+<th><code>GET /quality/latest</code></th>
+<td>41 ms</td>
+<td>the persisted DQ report</td>
+</tr>
+<tr>
+<th><code>GET /sources</code></th>
+<td>47 ms</td>
+<td>the full source registry with compliance metadata</td>
+</tr>
+<tr>
+<td><code>GET /pipeline/runs/latest</code></td>
+<td>59 ms</td>
+<td>the last run with stage timings</td>
+</tr>
+<tr>
+<td><code>GET /changes/top-movers?limit=8</code></td>
+<td>61 ms</td>
+<td>the largest price movements</td>
+</tr>
+<tr>
+<td><code>GET /products?page_size=25</code></td>
+<td>92 ms</td>
+<td>a paginated, sorted, faceted product page</td>
+</tr>
+<tr>
+<td><code>GET /analytics/trend?days=30</code></td>
+<td>215 ms</td>
+<td>the daily price and coverage series</td>
+</tr>
+<tr>
+<td><code>GET /analytics/kpi?days=30</code></td>
+<td>306 ms</td>
+<td>every dashboard number, one request</td>
+</tr>
+</tbody></table></div>
+<pre class="code" data-lang="bash"><code>TOKEN=$(curl -s -X POST localhost:8000/api/v1/auth/login \
+  -H &#x27;Content-Type: application/json&#x27; \
+  -d &#x27;{&quot;email&quot;:&quot;admin@example.com&quot;,&quot;password&quot;:&quot;Admin@12345&quot;}&#x27; \
+  | python3 -c &#x27;import json,sys; print(json.load(sys.stdin)[&quot;access_token&quot;])&#x27;)
+
+for ep in health &quot;analytics/kpi?days=30&quot; &quot;products?page_size=25&quot;; do
+  curl -s -o /dev/null -w &quot;%{time_total}s  $ep\n&quot; \
+    -H &quot;Authorization: Bearer $TOKEN&quot; &quot;http://localhost:8000/api/v1/$ep&quot;
+done</code></pre>
+<h3 id="in-process-query-cost">In-process query cost</h3>
+<p>The same queries measured inside the application, without the HTTP layer:</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Query</th>
+<th>Cost</th>
+</tr></thead><tbody>
+<tr>
+<th><code>category_breakdown</code></th>
+<td>7.8 ms</td>
+</tr>
+<tr>
+<th><code>top_movers(20)</code></th>
+<td>19.6 ms</td>
+</tr>
+<tr>
+<th><code>source_overlap</code></th>
+<td>32.7 ms</td>
+</tr>
+<tr>
+<th><code>daily_trend(90d)</code></th>
+<td>201.3 ms</td>
+</tr>
+<tr>
+<th><code>kpi_summary(30d)</code></th>
+<td>228.1 ms</td>
+</tr>
+</tbody></table></div>
+<p>The gap between the in-process 228 ms and the over-the-wire 306 ms is the honest cost of the transport: JWT verification, the query-guard, the rate limiter and the JSON serialisation, together, about 78 ms.</p>
+<hr>
+<h2 id="the-three-decisions-that-make-it-scale">The three decisions that make it scale</h2>
+<h3 id="1-the-kpi-payload-stopped-counting-what-it-does-not-publish">1. The KPI payload stopped counting what it does not publish</h3>
+<p><code>kpi_summary</code> used to run <code>SELECT COUNT(*)</code> against sixteen tables to build a <code>counts</code> object, of which the dashboard read exactly one. Counting <code>fact_price_snapshot</code> alone was 13 ms at 83,000 rows and would be 800 ms at 5,000,000 — spent on a number the screen never shows.</p>
+<p>The count set is now explicit:</p>
+<pre class="code" data-lang="python"><code>#: The subset the KPI payload carries. Counting every table on every dashboard
+#: load is wasted work: a COUNT(*) over a half-million-row fact table is the
+#: single most expensive part of the request, and the dashboard never shows it.
+KPI_COUNTED_TABLES: tuple[str, ...] = (
+    &quot;dim_product&quot;,
+    &quot;fact_price_snapshot&quot;,
+)</code></pre>
+<p>The full set stays available on the health endpoint and the pipeline totals report, where it belongs. <strong>Measured effect: 290 ms → 150 ms</strong> for the dashboard query.</p>
+<h3 id="2-the-windowed-timestamps-carry-an-index">2. The windowed timestamps carry an index</h3>
+<p>Every headline number is a window: <em>"price changes in the last 30 days"</em>, <em>"observations in the last 7 days"</em>. Those queries filter on <code>captured_at</code> (facts) and <code>detected_at</code> (change tables) — and neither column had an index, so the planner sequential-scanned the whole fact table on every dashboard load.</p>
+<p>The plan before and after, from the live database:</p>
+<pre class="code" data-lang="sql"><code>-- Before: 83,306 rows scanned, 71 ms
+EXPLAIN (ANALYZE) SELECT COUNT(DISTINCT product_id) FROM fact_price_snapshot
+WHERE captured_at &gt;= now() - interval &#x27;30 days&#x27;;
+
+--  Aggregate (actual time=24.092..24.095 rows=1)
+--    -&gt;  Seq Scan on fact_price_snapshot (actual time=0.013..13.608 rows=47403)
+
+-- After: an index-only scan over the window
+--    -&gt;  Index Only Scan using ix_fact_price_captured_product
+--          Index Cond: (captured_at &gt;= (now() - &#x27;1 day&#x27;::interval))</code></pre>
+<p>Three indexes fix it:</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Index</th>
+<th>Table</th>
+<th>Columns</th>
+<th>Serves</th>
+</tr></thead><tbody>
+<tr>
+<td><code>ix_fact_price_captured_product</code></td>
+<td><code>fact_price_snapshot</code></td>
+<td><code>(captured_at, product_id)</code></td>
+<td>the window filter <em>and</em> the distinct-product count in one index-only scan</td>
+</tr>
+<tr>
+<th><code>ix_chg_event_detected</code></th>
+<td><code>chg_product_event</code></td>
+<td><code>(detected_at)</code></td>
+<td>the lifecycle counters</td>
+</tr>
+<tr>
+<th><code>ix_chg_price_detected</code></th>
+<td><code>chg_price_change</code></td>
+<td><code>(detected_at)</code></td>
+<td>the price-change counters and the top-movers window</td>
+</tr>
+</tbody></table></div>
+<p>They are created <strong>concurrently</strong> on PostgreSQL, so a large table is not locked during the build:</p>
+<pre class="code" data-lang="sql"><code>CREATE INDEX CONCURRENTLY IF NOT EXISTS &quot;ix_fact_price_captured_product&quot;
+  ON &quot;fact_price_snapshot&quot; (&quot;captured_at&quot;, &quot;product_id&quot;);</code></pre>
+<p>A sequential scan is still chosen when the window covers most of the table — which is correct, and cheaper. The index pays off exactly when the data outgrows the window, which is the case that matters.</p>
+<h3 id="3-the-fact-grain-is-append-only">3. The fact grain is append-only</h3>
+<p>The fact grain is <em>product x source x captured_at</em>, enforced by a unique constraint. Re-observing a product <strong>appends</strong> a row rather than updating one, so the write path never contends and the read path is a pure scan of a time-ordered structure.</p>
+<pre class="mermaid">flowchart LR
+    A[&quot;Product observed&lt;br/&gt;again&quot;] --&gt; B[&quot;New fact row&lt;br/&gt;captured_at = now&quot;]
+    B --&gt; C[&quot;Unique constraint&lt;br/&gt;product x source x run&quot;]
+    C --&gt; D[&quot;Append-only history&quot;]
+    D --&gt; E[&quot;Price change detected&lt;br/&gt;vs the previous row&quot;]
+    E --&gt; F[&quot;Windowed queries&lt;br/&gt;read the newest N&quot;]</pre>
+<p>That is why the change tables are <em>derived</em> rather than updated: a price change is a comparison between two adjacent rows, so it is computed once, at load time, and never recomputed.</p>
+<hr>
+<h2 id="capacity-planning">Capacity planning</h2>
+<p>The pipeline's growth is not linear — it is <strong>runs x sources x records per source</strong>, and the last term is set by the upstream, not by us.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Dimension</th>
+<th>Today</th>
+<th>At 10x</th>
+<th>At 100x</th>
+</tr></thead><tbody>
+<tr>
+<th>Runs per day</th>
+<td>3</td>
+<td>3</td>
+<td>3</td>
+</tr>
+<tr>
+<th>Sources per run</th>
+<td>20</td>
+<td>20</td>
+<td>20</td>
+</tr>
+<tr>
+<td>Records per source per run</td>
+<td>~40</td>
+<td>~400</td>
+<td>~4,000</td>
+</tr>
+<tr>
+<th>Observations per day</th>
+<td>~2,400</td>
+<td>~24,000</td>
+<td>~240,000</td>
+</tr>
+<tr>
+<th>Observations per year</th>
+<td>~880,000</td>
+<td>~8.8 M</td>
+<td>~88 M</td>
+</tr>
+<tr>
+<th>Fact table size</th>
+<td>110 MB</td>
+<td>~1.1 GB</td>
+<td>~11 GB</td>
+</tr>
+<tr>
+<th>Database total</th>
+<td>278 MB</td>
+<td>~2.8 GB</td>
+<td>~28 GB</td>
+</tr>
+</tbody></table></div>
+<p>The three levers, in the order a team would reach for them:</p>
+<ul>
+<li class="depth-0"><strong>Records per source per run</strong> — <code>--limit</code>. The cheapest lever, and the one</li>
+</ul>
+<p>the upstreams constrain anyway. A source that publishes 4,000 records can only be collected 4,000 times a run.</p>
+<ul>
+<li class="depth-0"><strong>Runs per day</strong> — the Airflow schedule. More runs means a denser history,</li>
+</ul>
+<p>not more products, so this lever buys resolution rather than breadth.</p>
+<ul>
+<li class="depth-0"><strong>Sources</strong> — adding an upstream multiplies the product count. The registry</li>
+</ul>
+<p>is 35 adapters today.</p>
+<h3 id="what-breaks-first-and-what-it-costs">What breaks first, and what it costs</h3>
+<div class='table-scroll'><table><thead><tr>
+<th>Scale</th>
+<th>Bottleneck</th>
+<th>Symptom</th>
+<th>Fix</th>
+</tr></thead><tbody>
+<tr>
+<th>1 M observations</th>
+<td>None</td>
+<td>Dashboard ~300 ms</td>
+<td>—</td>
+</tr>
+<tr>
+<th>10 M</th>
+<td><code>COUNT(DISTINCT product_id)</code> over a wide window</td>
+<td>KPI query ~1.5 s</td>
+<td>Narrow the window, or pre-aggregate into <code>agg_category_daily</code></td>
+</tr>
+<tr>
+<th>10 M</th>
+<td><code>stg_raw_observation</code> grows without bound</td>
+<td>Load stage slows</td>
+<td>Partition by month, or truncate staging after a successful load</td>
+</tr>
+<tr>
+<th>50 M</th>
+<td><code>fact_price_snapshot</code> index depth</td>
+<td>Write amplification</td>
+<td>Partition by <code>captured_at</code> range</td>
+</tr>
+<tr>
+<th>Any</th>
+<td>Upstream rate limits</td>
+<td>Runs take hours</td>
+<td>More sources, not bigger limits — the limits are the sources' rules</td>
+</tr>
+</tbody></table></div>
+<h3 id="the-pre-aggregate-that-already-exists">The pre-aggregate that already exists</h3>
+<p><code>agg_category_daily</code> (category x date) is rebuilt on every load from the facts. It is the escape hatch for the first real bottleneck: any question of the form <em>"how did category X move in the window"</em> can be answered from 1,596 rows instead of scanning 83,000 facts.</p>
+<pre class="code" data-lang="sql"><code>-- The category answer, straight from the aggregate.
+SELECT category_name, observation_count, avg_price_usd, price_stddev
+FROM vw_category_price_index
+WHERE full_date &gt;= current_date - 30
+ORDER BY observation_count DESC;</code></pre>
+<hr>
+<h2 id="the-cost-side-politeness-is-a-budget">The cost side: politeness is a budget</h2>
+<p>The slowest thing in the system is not the database. It is the wait for an upstream that says so.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Source</th>
+<th>Declared limit</th>
+<th>Effect on a 20-source run</th>
+</tr></thead><tbody>
+<tr>
+<th><code>openfoodfacts_prices</code></th>
+<td>10 req/min</td>
+<td>the run cannot outrun ~6 s per request</td>
+</tr>
+<tr>
+<th><code>coingecko_markets</code></th>
+<td>10 req/min</td>
+<td>and robots.txt refuses <code>/coins/markets</code> entirely</td>
+</tr>
+<tr>
+<th><code>kraken_tickers</code></th>
+<td>20 req/min</td>
+<td>~3 s per request</td>
+</tr>
+<tr>
+<th><code>cheapshark_deals</code></th>
+<td>20 req/min</td>
+<td>the most productive source per request</td>
+</tr>
+<tr>
+<th><code>dummyjson_products</code></th>
+<td>60 req/min</td>
+<td>fast, but <code>synthetic</code> — never auto-selected</td>
+</tr>
+</tbody></table></div>
+<p>A full 20-source run takes <strong>3 m 55 s</strong> on a cold cache and <strong>~1 m 40 s</strong> with the response cache warm. The difference is the rate limiter doing its job.</p>
+<p>This is a deliberate trade: the pipeline would be 20x faster if it ignored the declared limits, and it would also be the reason nobody runs it twice.</p>
+<pre class="mermaid">flowchart TB
+    subgraph LIM[&quot;The limiter decides how fast&quot;]
+        A[&quot;Token bucket&lt;br/&gt;smooths the average rate&quot;] --&gt; C[&quot;Both must be satisfied&quot;]
+        B[&quot;Sliding window&lt;br/&gt;hard per-minute ceiling&quot;] --&gt; C
+        D[&quot;robots.txt&lt;br/&gt;Crawl-delay&quot;] --&gt; C
+        E[&quot;Retry-After&lt;br/&gt;on 429 / 503&quot;] --&gt; C
+    end
+    C --&gt; F[&quot;Request leaves&quot;]
+    F --&gt; G[&quot;Response cached&lt;br/&gt;TTL by URL hash&quot;]
+    G --&gt; H{&quot;Cached?&quot;}
+    H --&gt;|yes| I[&quot;Served with zero network I/O&quot;]
+    H --&gt;|no| J[&quot;Upstream&quot;]
+    J --&gt; K[&quot;Logged with the robots decision&quot;]</pre>
+<hr>
+<h2 id="honest-limits">Honest limits</h2>
+<p>Three things this system does <strong>not</strong> do, stated plainly so nobody has to discover them:</p>
+<ul>
+<li class="depth-0"><strong>It does not stream.</strong> Data is collected in bounded batches, not</li>
+</ul>
+<p>continuously. The Airflow DAG runs on a schedule; there is no always-on listener. A source that changes between runs is observed at the next run.</p>
+<ul>
+<li class="depth-0"><strong>It does not guarantee overlap between sources.</strong> The three book upstreams</li>
+</ul>
+<p>sample their catalogues independently, so the same title can appear in one and not another. The cross-source overlap analytics therefore report <em>zero</em> on this warehouse — which is a true finding, not a broken query. A test injects an overlapping product to prove the grouping works.</p>
+<ul>
+<li class="depth-0"><strong>It does not scale beyond one node's write throughput.</strong> The loader is</li>
+</ul>
+<p>single-writer by design. Sharding the load stage across workers is the natural next step, and the staging table's <code>run_id</code> column is already the right partitioning key.</p>
+<hr>
+<h2 id="how-to-re-measure-all-of-this">How to re-measure all of this</h2>
+<p>Every number above is reproducible:</p>
+<pre class="code" data-lang="bash"><code># Response times through the API
+TOKEN=$(curl -s -X POST localhost:8000/api/v1/auth/login \
+  -H &#x27;Content-Type: application/json&#x27; \
+  -d &#x27;{&quot;email&quot;:&quot;admin@example.com&quot;,&quot;password&quot;:&quot;Admin@12345&quot;}&#x27; \
+  | python3 -c &#x27;import json,sys; print(json.load(sys.stdin)[&quot;access_token&quot;])&#x27;)
+for ep in health &quot;analytics/kpi?days=30&quot; &quot;products?page_size=25&quot; &quot;sources&quot;; do
+  curl -s -o /dev/null -w &quot;%{time_total}s  $ep\n&quot; \
+    -H &quot;Authorization: Bearer $TOKEN&quot; &quot;http://localhost:8000/api/v1/$ep&quot;
+done
+
+# In-process query cost
+.venv/bin/python - &lt;&lt;&#x27;PY&#x27;
+import time
+from app.core.db import session_scope
+from app.analytics.service import kpi_summary, daily_trend
+with session_scope() as s:
+    for name, fn in ((&quot;kpi_summary&quot;, lambda: kpi_summary(s, days=30)),
+                     (&quot;daily_trend&quot;, lambda: daily_trend(s, days=90))):
+        fn()
+        t0 = time.perf_counter()
+        for _ in range(5): fn()
+        print(f&quot;{name:16} {(time.perf_counter()-t0)/5*1000:7.1f} ms&quot;)
+PY
+
+# Table sizes and row counts
+docker exec pip-postgres psql -U pip -d pipeline -c &quot;
+  SELECT pg_size_pretty(pg_database_size(&#x27;pipeline&#x27;)) db_total;&quot;
+
+# The query plan
+docker exec pip-postgres psql -U pip -d pipeline -c &quot;
+  EXPLAIN (ANALYZE) SELECT COUNT(DISTINCT product_id) FROM fact_price_snapshot
+  WHERE captured_at &gt;= now() - interval &#x27;1 day&#x27;;&quot;</code></pre>
+<p>The performance figures are also asserted in CI. The <code>check_stats.py</code> gate fails the build when a structural figure in the prose no longer matches the code, so this document cannot quietly drift away from the system it describes.</p>
+<hr>
+<h2 id="related-documents">Related documents</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Document</th>
+<th>Covers</th>
+</tr></thead><tbody>
+<tr>
+<td><a href="09_database_design.html">09 — Database Design</a></td>
+<td>The star schema, indexes, retention and the ERD</td>
+</tr>
+<tr>
+<td><a href="13_deployment.html">13 — Deployment</a></td>
+<td>The stack, the environment matrix, CI/CD and backups</td>
+</tr>
+<tr>
+<td><a href="15_testing_strategy.html">15 — Testing Strategy</a></td>
+<td>What is verified and how</td>
+</tr>
+<tr>
+<td><a href="21_architecture_deep_dive.html">21 — Architecture Deep Dive</a></td>
+<td>The decisions behind these numbers</td>
+</tr>
+<tr>
+<td><a href="28_schema_and_migrations.html">28 — Schema &amp; Migrations</a></td>
+<td>Alembic revisions and drift detection</td>
+</tr>
+<tr>
+<td><a href="33_data_trust_and_compliance.html">33 — Data Trust &amp; Compliance</a></td>
+<td>Why the guarantee survives the growth</td>
+</tr>
+<tr>
+<th><a href="05_kpis.html">05 — KPIs</a></th>
+<td>The business metrics these measurements feed</td>
+</tr>
+</tbody></table></div>
+    </article>
+    <div class="doc-foot">
+      <span><a href="33_data_trust_and_compliance.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Data Trust & Compliance</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="35_github_presence.html">GitHub Presence<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

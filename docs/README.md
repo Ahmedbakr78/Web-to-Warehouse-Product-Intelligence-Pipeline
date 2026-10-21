@@ -1,15 +1,61 @@
 # Documentation Index
 
 Web-to-Warehouse Product Intelligence Pipeline — DEPI graduation project, Data
-Engineering track. Thirty-two documents covering the proposal, planning, requirements,
-design, implementation evidence and evaluation.
+Engineering track. Thirty-seven documents covering the proposal, planning,
+requirements, design, implementation evidence and evaluation.
 
 Every diagram is Mermaid, rendered natively by GitHub and to SVG for the static
 site. Every structural number is measured by a script and re-verifiable with the
 command cited beside it.
 
+```mermaid
+flowchart LR
+    subgraph PLAN["Planning and evidence"]
+        D1["01 Proposal"]
+        D2["02 Plan"]
+        D3["03 Roles"]
+        D4["04 Risk"]
+        D5["05 KPIs"]
+        D6["06 Literature"]
+        D7["07 Requirements"]
+    end
+    subgraph DESIGN["Design"]
+        D8["08 System analysis"]
+        D9["09 Database"]
+        D10["10 Data flow"]
+        D11["11 Behaviour"]
+        D12["12 UI and UX"]
+        D13["13 Deployment"]
+        D14["14 API"]
+    end
+    subgraph BUILD["Implementation evidence"]
+        D15["15 Testing"]
+        D16["16 User manual"]
+        D17["17 Technical"]
+        D18["18 Presentation"]
+        D19["19 Feature inventory"]
+        D20["20 Feedback"]
+    end
+    subgraph DEEP["Deep dives and operations"]
+        D21["21 Architecture"]
+        D22["22 Data dictionary"]
+        D23["23 Glossary"]
+        D24["24 Demo runbook"]
+        D25["25 Forecasting"]
+        D26["26 Jobs and realtime"]
+        D27["27 Reporting"]
+        D28["28 Schema"]
+        D29["29 Two-factor"]
+        D30["30 Access control"]
+        D32["32 Briefing"]
+        D33["33 Data trust"]
+    end
+    PLAN --> DESIGN --> BUILD --> DEEP
+```
+
 | # | Document | What it covers |
 | --- | --- | --- |
+| 00 | [Team, Roles & Effort Split](00_team.md) | The six members, their weights and function ownership, and the ownership map |
 | 01 | [Project Proposal](01_project_proposal.md) | Problem, objectives, scope, stakeholders, acceptance criteria, effort and budget, ethical and legal position, assumptions |
 | 02 | [Project Plan](02_project_plan.md) | 12-week Gantt chart, milestones, deliverables matrix, resource allocation, sprint plan |
 | 03 | [Task Assignment and Roles](03_roles_and_responsibilities.md) | Team roles, RACI for deliverables and decisions, communication plan, hours-log template |
@@ -40,8 +86,50 @@ command cited beside it.
 | 28 | [Schema & Migrations](28_schema_and_migrations.md) | Alembic revisions, drift detection, view ownership, and why Airflow lives in its own database |
 | 29 | [Two-Factor Authentication & Sessions](29_two_factor_and_sessions.md) | TOTP enrolment, encrypted secrets, single-use recovery codes, per-device revocation |
 | 30 | [Access Control, API Keys & Rate Limiting](30_access_control_and_rate_limiting.md) | Roles and rights, scoped API keys enforced twice, sliding-window limits with honest headers |
+| 31 | [Releases](31_releases.md) | Versioning, tagging, the pre-flight checklist, the GitHub About box and the topics list |
 | 32 | [Morning Briefing & Demo Scale](32_briefing_and_demo_scale.md) | Ranked action queue, endpoint contract, cache/noise policy, and the idempotent 10x demo expansion |
 | 33 | [Data Trust & Compliance](33_data_trust_and_compliance.md) | The three trust levels, auto-selection rules, the purge sweep, robots.txt enforcement and the request-level audit trail |
+| 34 | [Performance & Scale](34_performance_and_scale.md) | Measured latencies, table sizes, the index strategy, capacity planning and the honest limits |
+| 35 | [GitHub Presence](35_github_presence.md) | The repository description, topics, About box, social preview, branching strategy and release packaging |
+| 36 | [Decision Log](36_decision_log.md) | Every engineering decision from v1.9 to v1.12, with the context, the consequence and the rejected alternatives |
+
+---
+
+## Which document answers which question
+
+The index is complete, but completeness is not the same as navigability. This
+is the short map: find the question, follow the arrow.
+
+```mermaid
+flowchart TB
+    Q1{"Why does this project exist?"} --> D1["01 Proposal<br/>problem, scope, ethics"]
+    Q2{"Who did what?"} --> D0["00 Team + 03 Roles<br/>weights, RACI, hours"]
+    Q3{"What might go wrong?"} --> D2["04 Risk + 05 KPIs<br/>20 risks, 20 measured KPIs"]
+    Q4{"What does it have to do?"} --> D3["07 Requirements<br/>stories, use cases, 84 FRs"]
+    Q5{"How is it built?"} --> D4["08 Analysis + 21 Deep Dive<br/>+ 36 Decision Log"]
+    Q6{"What does the data look like?"} --> D5["09 Database + 22 Data Dictionary<br/>+ 10 DFDs + 11 Behaviour"]
+    Q7{"How do I call it?"} --> D6["14 API Documentation"]
+    Q8{"How do I use it?"} --> D7["16 User Manual<br/>+ 24 Demo Runbook"]
+    Q9{"Is it correct?"} --> D8["15 Testing Strategy<br/>+ 33 Data Trust"]
+    Q10{"Is it fast?"} --> D9["34 Performance & Scale"]
+    Q11{"Why is it like this?"} --> D10["36 Decision Log<br/>+ 31 Releases"]
+    Q12{"What can it do?"} --> D11["19 Feature Inventory<br/>+ 17 Technical"]
+```
+
+| The question | Open |
+| --- | --- |
+| *Why does this project exist?* | [01 Project Proposal](01_project_proposal.md) |
+| *Who did what, and who reviews it?* | [00 Team](00_team.md), [03 Roles](03_roles_and_responsibilities.md), [CONTRIBUTORS.md](../CONTRIBUTORS.md) |
+| *What could go wrong, and how is it measured?* | [04 Risk](04_risk_assessment.md), [05 KPIs](05_kpis.md) |
+| *What must the system do?* | [07 Requirements](07_requirements_gathering.md) |
+| *How is it built, and why?* | [08 Analysis](08_system_analysis_design.md), [21 Deep Dive](21_architecture_deep_dive.md), [36 Decision Log](36_decision_log.md) |
+| *What does the data look like?* | [09 Database](09_database_design.md), [22 Data Dictionary](22_data_dictionary.md), [10 DFDs](10_data_flow_diagrams.md), [11 Behaviour](11_behaviour_diagrams.md) |
+| *How do I call the API?* | [14 API Documentation](14_api_documentation.md) |
+| *How do I use the product?* | [16 User Manual](16_user_manual.md), [24 Demo Runbook](24_demo_runbook.md) |
+| *How do I know it is correct?* | [15 Testing](15_testing_strategy.md), [33 Data Trust](33_data_trust_and_compliance.md) |
+| *Will it hold up under load?* | [34 Performance & Scale](34_performance_and_scale.md) |
+| *What is in the box, and how is it shaped?* | [19 Feature Inventory](19_feature_list.md), [17 Technical](17_technical_documentation.md) |
+| *How is it released and presented?* | [31 Releases](31_releases.md), [35 GitHub Presence](35_github_presence.md), [18 Presentation](18_presentation_outline.md) |
 
 ---
 
@@ -57,7 +145,7 @@ Structural figures are exact and re-verifiable:
 | 104 API smoke checks pass | `.venv/bin/python scripts/api_smoke.py` |
 | ruff and mypy clean | `make lint` and `make typecheck` |
 | No schema drift | `make db-check` |
-| 88 Mermaid diagrams | `make docs-render` |
+| 100+ Mermaid diagrams | `make docs-render` |
 | 12 DQ rules and the score | Quality screen, or `pip-cli quality` |
 
 `scripts/project_stats.py` recounts all of these, `scripts/check_stats.py` fails
@@ -101,10 +189,12 @@ If you are reviewing this for the first time:
    forecasting, jobs and realtime, reporting, migrations, two-factor, access control.
 4. **[33 Data Trust & Compliance](33_data_trust_and_compliance.md)** — how the
    warehouse guarantees that every row was really observed.
-5. **[14 API Documentation](14_api_documentation.md)** and
+5. **[36 Decision Log](36_decision_log.md)** — why the system is the way it is,
+   including the alternatives that were rejected.
+6. **[14 API Documentation](14_api_documentation.md)** and
    **[16 User Manual](16_user_manual.md)** — the two views most reviewers want.
-6. **[15 Testing Strategy](15_testing_strategy.md)** — what is verified, and how.
-7. **[24 Demo Runbook](24_demo_runbook.md)** — if you are seeing it live.
+7. **[15 Testing Strategy](15_testing_strategy.md)** — what is verified, and how.
+8. **[24 Demo Runbook](24_demo_runbook.md)** — if you are seeing it live.
 
 ---
 

@@ -1,0 +1,29 @@
+
+flowchart LR
+    subgraph OPEN["Slides 1 to 3 - the problem"]
+        S1["Title, team, scope"]
+        S2["The retailer's problem<br/>manual collection, inconsistent records"]
+        S3["What was built<br/>34 sources to a dimensional warehouse"]
+    end
+    subgraph PROVE["Slides 4 to 9 - the evidence"]
+        S4["Architecture<br/>nine stages, two dialects"]
+        S5["Data model<br/>grains and keys"]
+        S6["Data trust<br/>robots, rate limits, provenance"]
+        S7["Data quality<br/>twelve rules, six dimensions"]
+        S8["Four challenges<br/>cause, fix, measured effect"]
+        S9["What the numbers are<br/>284 products, 8 live sources"]
+    end
+    subgraph SHOW["Slides 10 to 13 - the product"]
+        S10["The dashboard<br/>light and dark, mobile"]
+        S11["The API<br/>222 operations, OpenAPI"]
+        S12["Documentation<br/>34 documents, 88 diagrams"]
+        S13["Testing<br/>625 tests, live smoke"]
+    end
+    subgraph CLOSE["Slides 14 to 18 - the close"]
+        S14["Live demo<br/>three minutes"]
+        S15["Delivered against the brief"]
+        S16["Honest limitations<br/>and next steps"]
+        S17["Team and split of work"]
+        S18["Questions"]
+    end
+    S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> S7 --> S8 --> S9 --> S10 --> S11 --> S12 --> S13 --> S14 --> S15 --> S16 --> S17 --> S18

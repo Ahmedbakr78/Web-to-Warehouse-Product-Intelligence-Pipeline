@@ -1,0 +1,43 @@
+
+flowchart LR
+    subgraph PLAN["Planning and evidence"]
+        D1["01 Proposal"]
+        D2["02 Plan"]
+        D3["03 Roles"]
+        D4["04 Risk"]
+        D5["05 KPIs"]
+        D6["06 Literature"]
+        D7["07 Requirements"]
+    end
+    subgraph DESIGN["Design"]
+        D8["08 System analysis"]
+        D9["09 Database"]
+        D10["10 Data flow"]
+        D11["11 Behaviour"]
+        D12["12 UI and UX"]
+        D13["13 Deployment"]
+        D14["14 API"]
+    end
+    subgraph BUILD["Implementation evidence"]
+        D15["15 Testing"]
+        D16["16 User manual"]
+        D17["17 Technical"]
+        D18["18 Presentation"]
+        D19["19 Feature inventory"]
+        D20["20 Feedback"]
+    end
+    subgraph DEEP["Deep dives and operations"]
+        D21["21 Architecture"]
+        D22["22 Data dictionary"]
+        D23["23 Glossary"]
+        D24["24 Demo runbook"]
+        D25["25 Forecasting"]
+        D26["26 Jobs and realtime"]
+        D27["27 Reporting"]
+        D28["28 Schema"]
+        D29["29 Two-factor"]
+        D30["30 Access control"]
+        D32["32 Briefing"]
+        D33["33 Data trust"]
+    end
+    PLAN --> DESIGN --> BUILD --> DEEP

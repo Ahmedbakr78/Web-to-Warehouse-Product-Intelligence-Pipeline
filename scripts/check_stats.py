@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -31,7 +32,11 @@ ROOT = Path(__file__).resolve().parent.parent
 SNAPSHOT = ROOT / "docs" / "stats.json"
 
 #: Keys whose value legitimately differs per run and must not be pinned.
-VOLATILE = {"test_cases"}
+#: The test count moves with every new test case and the diagram count with
+#: every new diagram, so pinning either would mean the gate fails on every
+#: commit that adds one. The exact numbers live in the generated statistics
+#: block in README.md, which is checked separately by `--check-readme`.
+VOLATILE = {"test_cases", "mermaid_diagrams"}
 
 #: How each key should be described when reporting a drift.
 DESCRIPTIONS = {
@@ -79,7 +84,7 @@ PROSE_FIGURES: tuple[tuple[str, str, tuple[int, ...]], ...] = (
     ("data_quality_rules", r"(\d+)\s+data-quality\s+rules\b", ()),
     ("ingestion_sources", r"(\d+)\s+(?:ingestion\s+sources|source\s+adapters)\b", (5, 35)),
     ("airflow_tasks", r"(\d+)\s+Airflow\s+tasks\b", ()),
-    ("mermaid_diagrams", r"(\d+)\s+Mermaid\s+diagrams\b", (80, 88)),
+    ("mermaid_diagrams", r"(\d+)\s+Mermaid\s+diagrams\b", (80, 88, 99)),
 )
 
 
@@ -88,6 +93,18 @@ def _prose_files() -> list[Path]:
     files = [ROOT / "README.md", ROOT / "docs" / "README.md"]
     files.extend(sorted((ROOT / "docs").glob("*.md")))
     return [path for path in files if path.is_file()]
+
+
+#: The generated statistics block is written by `project_stats.py --sync-readme`
+#: and verified separately by `project_stats.py --check-readme`. Scanning it here
+#: as well would report the block as stale on every commit that changes a
+#: figure, which is exactly the noise this check exists to avoid.
+_STATS_BLOCK = re.compile(r"<!--\s*BEGIN:STATS\s*-->.*?<!--\s*END:STATS\s*-->", re.S)
+
+
+def _strip_generated_block(text: str) -> str:
+    """Remove the generated statistics block from a document."""
+    return _STATS_BLOCK.sub("", text)
 
 
 def check_prose(recorded: dict) -> list[str]:
@@ -117,7 +134,7 @@ def check_prose(recorded: dict) -> list[str]:
                 continue
             # A figure can be split across a line break ("28\ntables"), so
             # the text is searched with its whitespace collapsed.
-            flat = re.sub(r"\s+", " ", text)
+            flat = re.sub(r"\s+", " ", _strip_generated_block(text))
             for match in re.finditer(pattern, flat):
                 quoted = int(match.group(1))
                 if quoted not in stale_values:

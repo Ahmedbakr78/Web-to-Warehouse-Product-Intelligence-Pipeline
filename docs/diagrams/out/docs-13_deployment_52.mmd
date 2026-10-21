@@ -1,41 +1,55 @@
 
 flowchart TB
-    subgraph BACK["Backend package app"]
-        direction LR
-        CORE["app.core<br/>config, db, errors, logging"]
-        ING["app.ingestion<br/>base, cleaning, dedupe,<br/>robots, ratelimit, http_client, sources"]
-        ETL["app.etl<br/>pipeline, loader, dq,<br/>catalog_reconcile, bootstrap, seed"]
-        ANA["app.analytics<br/>service"]
-        API["app.api<br/>main, deps, security,<br/>schemas, 16 routers"]
-        MODELS["app.models<br/>base, dimensions, facts,<br/>operations, catalog, app_users"]
-        CLIM["app.cli<br/>main"]
+    subgraph EDGE["Edge"]
+        B["Browser<br/>React SPA served by nginx :80"]
+        CLI["Operator shell<br/>curl / Python / CLI"]
     end
 
-    subgraph ASSETS["Repository assets"]
-        SQL[("db/views.sql<br/>23 views")]
-        DAG["dags/product_intelligence_pipeline.py"]
-        MK["Makefile"]
-        ENV[(".env.example")]
-        SMOKE["scripts/api_smoke.py"]
-        CFG["pyproject.toml"]
+    subgraph HOST["Single application host"]
+        direction TB
+        subgraph SERVE["Serving tier"]
+            NG["nginx<br/>static bundle + /api proxy"]
+            API1["uvicorn worker 1<br/>FastAPI :8000"]
+            API2["uvicorn worker 2<br/>FastAPI :8000"]
+        end
+        subgraph SCHED["Scheduling tier"]
+            AFB["airflow webserver :8080"]
+            AFS["airflow scheduler"]
+            AFX["task processes LocalExecutor"]
+        end
+        subgraph JOBS["Batch tier"]
+            JOB["python -m app.cli.main<br/>run-pipeline / bootstrap / seed"]
+        end
+        FS[("Filesystem var/<br/>http-cache, logs, artifacts")]
     end
 
-    CORE --> MODELS
-    ING --> CORE
-    ING --> MODELS
-    ETL --> CORE
-    ETL --> ING
-    ETL --> MODELS
-    ANA --> MODELS
-    API --> ANA
-    API --> ETL
-    API --> MODELS
-    API --> CORE
-    CLIM --> ETL
-    CLIM --> API
-    CLIM --> CORE
-    ETL --> SQL
-    MK --> CLIM
-    MK --> DAG
-    SMOKE --> API
-    CFG --> CORE
+    subgraph DATA["Data tier"]
+        PG[("PostgreSQL 16<br/>:5432")]
+        MY[("MySQL 8.4<br/>:3306")]
+        VOL[("Docker volumes<br/>pg_data, mysql_data,<br/>airflow_logs")]
+    end
+
+    EXT["External sources<br/>DummyJSON, FakeStore,<br/>Open Library, books.toscrape.com"]
+
+    B --> NG
+    NG --> API1
+    NG --> API2
+    CLI --> API1
+    AFB --> AFS
+    AFS --> AFX
+    AFX --> JOB
+    API1 --> PG
+    API2 --> PG
+    API1 -.-> MY
+    API2 -.-> MY
+    AFB --> PG
+    AFX --> PG
+    JOB --> PG
+    JOB -.-> MY
+    PG --> VOL
+    MY --> VOL
+    API1 <--> FS
+    API2 <--> FS
+    JOB <--> FS
+    AFX --> EXT
+    JOB --> EXT

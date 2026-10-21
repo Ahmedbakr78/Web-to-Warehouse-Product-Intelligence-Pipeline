@@ -1,0 +1,7 @@
+
+flowchart LR
+    CODE["The code"] --> MEASURE["scripts/project_stats.py<br/>counts the real thing"]
+    MEASURE --> JSON["docs/stats.json<br/>the pinned snapshot"]
+    JSON --> PROSE["README, docs/*, website,<br/>infographic, deck"]
+    JSON --> GATE["check_stats.py<br/>fails CI on drift"]
+    GATE --> CODE

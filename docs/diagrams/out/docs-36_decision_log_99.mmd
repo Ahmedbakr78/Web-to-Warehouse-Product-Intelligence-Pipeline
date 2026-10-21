@@ -1,0 +1,19 @@
+
+flowchart TB
+    subgraph TRUTH["Truth of the data"]
+        D01["D-01 Trust levels"] --> D02["D-02 Purge sweep"]
+        D11["D-11 Audit proves it can fail"] --> D02
+    end
+    subgraph USABLE["The features actually work"]
+        D03["D-03 Window indexes"] --> D09["D-09 Silent reload"]
+        D04["D-04 Correct variance"] --> D05["D-05 Count as a number"]
+        D05 --> D06["D-06 Unknown votes do not disqualify"]
+        D10["D-10 Preferences are real"]
+    end
+    subgraph TRUSTED["The tests can be trusted"]
+        D07["D-07 Hermetic suite"] --> D12["D-12 No assertion on nothing"]
+    end
+    D08["D-08 One window everywhere"]
+    TRUTH --> USABLE
+    TRUSTED --> USABLE
+    D08 --> USABLE

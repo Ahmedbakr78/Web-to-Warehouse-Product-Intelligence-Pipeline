@@ -158,13 +158,27 @@ def list_products(
 
 @router.get("/facets", summary="Facet counts for the products screen")
 def facets(session: DbSession, _user: ReadUser) -> dict[str, Any]:
+    """The counts that fill the filter dropdowns.
+
+    Four of the five facets are attributes of the *product* - its category,
+    brand, source and availability - so they are counted straight from
+    ``dim_product``. Only the price band needs a price, and that comes from
+    the product's latest snapshot.
+
+    Counting them through ``vw_product_current`` instead meant running the
+    view's per-product "latest snapshot" lookup once per facet. That view is
+    the right shape for a row that carries a price and a rating; it is the
+    wrong shape for a count of names, and it made this one endpoint the
+    slowest on the products screen by an order of magnitude.
+    """
     categories = (
         session.execute(
             sa.text(
                 """
-            SELECT category_name, COUNT(*) AS count FROM vw_product_current
-            WHERE category_name IS NOT NULL
-            GROUP BY category_name ORDER BY count DESC LIMIT 40
+            SELECT c.name AS category_name, COUNT(*) AS count
+            FROM dim_product p JOIN dim_category c ON c.category_id = p.category_id
+            WHERE c.name IS NOT NULL
+            GROUP BY c.name ORDER BY count DESC, c.name LIMIT 40
             """
             )
         )
@@ -175,8 +189,8 @@ def facets(session: DbSession, _user: ReadUser) -> dict[str, Any]:
         session.execute(
             sa.text(
                 """
-            SELECT brand, COUNT(*) AS count FROM vw_product_current
-            WHERE brand IS NOT NULL GROUP BY brand ORDER BY count DESC LIMIT 40
+            SELECT brand, COUNT(*) AS count FROM dim_product
+            WHERE brand IS NOT NULL GROUP BY brand ORDER BY count DESC, brand LIMIT 40
             """
             )
         )
@@ -187,8 +201,8 @@ def facets(session: DbSession, _user: ReadUser) -> dict[str, Any]:
         session.execute(
             sa.text(
                 """
-            SELECT source_code, COUNT(*) AS count FROM vw_product_current
-            WHERE source_code IS NOT NULL GROUP BY source_code ORDER BY count DESC
+            SELECT source_code, COUNT(*) AS count FROM dim_product
+            WHERE source_code IS NOT NULL GROUP BY source_code ORDER BY count DESC, source_code
             """
             )
         )
@@ -199,8 +213,8 @@ def facets(session: DbSession, _user: ReadUser) -> dict[str, Any]:
         session.execute(
             sa.text(
                 """
-            SELECT availability, COUNT(*) AS count FROM vw_product_current
-            WHERE availability IS NOT NULL GROUP BY availability ORDER BY count DESC
+            SELECT availability, COUNT(*) AS count FROM dim_product
+            WHERE availability IS NOT NULL GROUP BY availability ORDER BY count DESC, availability
             """
             )
         )
@@ -212,13 +226,19 @@ def facets(session: DbSession, _user: ReadUser) -> dict[str, Any]:
             sa.text(
                 """
             SELECT CASE
-                     WHEN price_usd < 25 THEN 'a_0_25'
-                     WHEN price_usd < 100 THEN 'b_25_100'
-                     WHEN price_usd < 500 THEN 'c_100_500'
-                     WHEN price_usd < 1000 THEN 'd_500_1000'
+                     WHEN s.price_usd < 25 THEN 'a_0_25'
+                     WHEN s.price_usd < 100 THEN 'b_25_100'
+                     WHEN s.price_usd < 500 THEN 'c_100_500'
+                     WHEN s.price_usd < 1000 THEN 'd_500_1000'
                      ELSE 'e_1000_plus' END AS band,
                    COUNT(*) AS count
-            FROM vw_product_current WHERE price_usd IS NOT NULL GROUP BY band ORDER BY band
+            FROM dim_product p
+            JOIN fact_price_snapshot s
+              ON s.snapshot_id = (
+                    SELECT MAX(s2.snapshot_id) FROM fact_price_snapshot s2
+                    WHERE s2.product_id = p.product_id AND s2.source_code = p.source_code
+              )
+            WHERE s.price_usd IS NOT NULL GROUP BY band ORDER BY band
             """
             )
         )

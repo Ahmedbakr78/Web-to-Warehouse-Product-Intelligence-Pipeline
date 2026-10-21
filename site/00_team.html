@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="The six members, their weights and function ownership">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Team &amp; Roles — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="The six members, their weights and function ownership">
+<title>Team &amp; Roles — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.png" type="image/png">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="28-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, 173 operations, worked examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, measured counts, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="Every feature with the file that implements it">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+<a href="24_demo_runbook.html" title="Screen-by-screen live demo script and failure playbook">Demo Runbook</a>
+<a href="25_forecasting_and_anomaly_detection.html" title="Damped Holt-Winters, measured accuracy, three detectors, pricing advice">Forecasting &amp; Anomalies</a>
+<a href="26_background_jobs_and_realtime.html" title="Leases, retries, cancellation, SSE and the cross-worker problem">Background Jobs &amp; Realtime</a>
+<a href="27_reporting_and_document_generation.html" title="Typed blocks rendered to HTML, JSON, CSV and PDF from one definition">Reporting &amp; Documents</a>
+<a href="28_schema_and_migrations.html" title="Alembic, drift detection, views, Airflow isolation">Schema &amp; Migrations</a>
+<a href="29_two_factor_and_sessions.html" title="TOTP enrolment, recovery codes, per-device revocation">Two-Factor &amp; Sessions</a>
+<a href="30_access_control_and_rate_limiting.html" title="Roles, rights, API-key scopes, sliding-window rate limiting">Access Control &amp; Limits</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Team &amp; Roles</h1>
+      <p>The six members, their weights and function ownership</p>
+    </div>
+    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#ownership-map">Ownership map</a></li><li class="lvl-2"><a href="#function-inventory-lead">Function inventory (lead)</a></li></ol></details>
+    <article class="doc-body">
+<p><strong>Track:</strong> Data Engineering (DEPI Digital Egypt Pioneers Initiative) <strong>Source of truth:</strong> <code>app/core/team.py</code> maps to <code>GET /api/v1/meta/team</code>. This document, the README team table and the website team section all mirror that module.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>#</th>
+<th>Member</th>
+<th>GitHub</th>
+<th>Role</th>
+<th>Weight</th>
+<th>Main component</th>
+</tr></thead><tbody>
+<tr>
+<th>1</th>
+<td>Ahmed (78102)</td>
+<td><a href="https://github.com/Ahmedbakr78">@Ahmedbakr78</a></td>
+<td>Team Lead + Backend/API + Documentation + 9 ETL Stages Owner</td>
+<td>28%</td>
+<td>FastAPI + 34 Docs + 9 ETL Stages + Integration</td>
+</tr>
+<tr>
+<th>2</th>
+<td>Ahmed Abd alla</td>
+<td><a href="https://github.com/01124758140">@01124758140</a></td>
+<td>Ingestion &amp; Compliance Lead</td>
+<td>15%</td>
+<td>robots.txt + 34 adapters + rate limiter</td>
+</tr>
+<tr>
+<th>3</th>
+<td>Ahmed Medhat</td>
+<td><a href="https://github.com/AhmedMedhatFarouk">@AhmedMedhatFarouk</a></td>
+<td>ETL &amp; Cleaning Lead</td>
+<td>14%</td>
+<td>29-step cleaner + dedupe + ETL support</td>
+</tr>
+<tr>
+<th>4</th>
+<td>Eng. Alaa Nasser</td>
+<td><a href="https://github.com/AlaaNasser-tech">@AlaaNasser-tech</a></td>
+<td>Database &amp; Data Quality Lead</td>
+<td>14%</td>
+<td>29 tables + 23 views + 12 DQ rules</td>
+</tr>
+<tr>
+<th>5</th>
+<td>legecy007</td>
+<td><a href="https://github.com/legecy007">@legecy007</a></td>
+<td>Frontend / Dashboard Lead</td>
+<td>15%</td>
+<td>React 19 + 23 screens + PWA + themes</td>
+</tr>
+<tr>
+<th>6</th>
+<td>Mennatullah Ahmed</td>
+<td><a href="https://github.com/mennatullahahmed01-debug">@mennatullahahmed01-debug</a></td>
+<td>DevOps &amp; Orchestration Lead</td>
+<td>14%</td>
+<td>Airflow + Docker + CI/CD + scripts</td>
+</tr>
+</tbody></table></div>
+<p>Total: <strong>100%</strong>. See <code>CONTRIBUTORS.md</code> for the file-level responsibility map and <code>docs/03_roles_and_responsibilities.md</code> for the RACI matrix.</p>
+<h2 id="ownership-map">Ownership map</h2>
+<pre class="mermaid">flowchart TB
+    subgraph Lead[&quot;Ahmed (78102) — 28%, owns every layer&quot;]
+        API[&quot;FastAPI platform&lt;br/&gt;24 routers · 219 ops · auth/RBAC&quot;]
+        ETL[&quot;9-stage ETL&lt;br/&gt;CLI = API = Airflow&quot;]
+        INT[&quot;Integration transport&lt;br/&gt;in-process with REST fallback&quot;]
+        CAT[&quot;Catalogues as code&lt;br/&gt;features + team APIs&quot;]
+        DOCS[&quot;34 docs + 88 diagrams&lt;br/&gt;README/website alignment&quot;]
+        REL[&quot;Releases + quality gates&lt;br/&gt;versions, tags, CI&quot;]
+        API --&gt; ETL --&gt; INT
+        CAT --&gt; DOCS --&gt; REL
+    end
+    subgraph Crew[&quot;Specialist lanes (72%)&quot;]
+        ING[&quot;Ahmed Abd alla · 15%&lt;br/&gt;ingestion &amp; compliance&quot;]
+        CLN[&quot;Ahmed Medhat · 14%&lt;br/&gt;cleaning &amp; dedupe&quot;]
+        DB[&quot;Alaa Nasser · 14%&lt;br/&gt;warehouse &amp; quality&quot;]
+        FE[&quot;legecy007 · 15%&lt;br/&gt;dashboard &amp; themes&quot;]
+        OPS[&quot;Mennatullah · 14%&lt;br/&gt;Airflow, Docker, CI&quot;]
+    end
+    ING &amp; CLN &amp; DB --&gt; ETL
+    ETL --&gt; FE
+    OPS -.schedules.-&gt; ETL
+    Lead -.reviews every merge.-&gt; Crew</pre>
+<h2 id="function-inventory-lead">Function inventory (lead)</h2>
+<p>Ahmed's eight function groups (each maps to shipped code, verified by tests):</p>
+<ul>
+<li class="depth-0">FastAPI platform — <code>app/api/</code> (auth, RBAC, exports, webhooks, backfill, builder, lab).</li>
+<li class="depth-0">9-stage ETL — <code>app/etl/pipeline.py</code>, identical across CLI/REST/Airflow triggers.</li>
+<li class="depth-0">Integration transport — <code>dags/</code> fallback layer across the SQLAlchemy version split.</li>
+<li class="depth-0">Catalogues as code — <code>app/core/features.py</code>, <code>app/core/team.py</code> + <code>/meta/*</code> APIs.</li>
+<li class="depth-0">Documentation — <code>docs/00–33</code>, README, website, stats-drift CI.</li>
+<li class="depth-0">Releases — <code>docs/31_releases.md</code>, tags, GitHub releases.</li>
+<li class="depth-0">Quality gates — ruff/mypy/pytest/smoke/parity/frontend CI jobs.</li>
+<li class="depth-0">Review — every merge, every number in this file.</li>
+</ul>
+    </article>
+    <div class="doc-foot">
+      <span><a href="readme.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Overview</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="01_project_proposal.html">Project Proposal<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

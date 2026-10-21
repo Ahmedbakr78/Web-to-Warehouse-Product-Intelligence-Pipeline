@@ -1,30 +1,40 @@
 
-flowchart TB
-    subgraph CLIENTS["Clients"]
-        BR["Browser - React dashboard"]
-        CL["curl / Python / JS clients"]
+sequenceDiagram
+    participant SCH as Scheduler or CLI
+    participant PIPE as Pipeline
+    participant SRC as ProductSource
+    participant HTTP as CompliantHttpClient
+    participant ROB as RobotsCache
+    participant STG as stg_raw_observation
+    participant CLN as cleaning
+    participant DD as DedupeEngine
+    participant LD as WarehouseLoader
+    participant WH as Warehouse tables
+    participant DQ as dq.evaluate_quality
+    participant RC as CatalogReconciler
+
+    SCH->>PIPE: PipelineConfig(sources, limit, strict)
+    PIPE->>WH: create etl_run status running
+    loop for each source
+        PIPE->>SRC: fetch(limit)
+        SRC->>HTTP: get(url)
+        HTTP->>ROB: can_fetch(url, user_agent)
+        ROB-->>HTTP: RobotsDecision allowed
+        HTTP->>SRC: FetchResult text or json
+        SRC-->>PIPE: RawProduct
+        PIPE->>STG: batch insert raw payload
+        PIPE->>CLN: transform_product(raw)
+        CLN-->>PIPE: NormalizedProduct with flags
+        PIPE->>DD: find_match(name, brand, category)
+        DD->>WH: blocking candidates
+        DD-->>PIPE: MatchResult strategy and score
+        PIPE->>LD: upsert_product and insert_snapshot
+        LD->>WH: dim_product, fact_price_snapshot, chg_*
+        PIPE->>LD: detect_removed and refresh aggregates
     end
-    subgraph SERVE["Serving tier"]
-        API["FastAPI on port 8000"]
-        NGINX["Static assets - nginx in the frontend image"]
-    end
-    subgraph SCHED["Scheduling tier"]
-        AF["Airflow 2.10.5 webserver port 8080"]
-        AFS["Airflow scheduler LocalExecutor"]
-    end
-    subgraph DATA["Data tier"]
-        PG[("PostgreSQL 16 port 5432")]
-        MY[("MySQL 8.4 port 3306")]
-    end
-    subgraph EXT["External"]
-        UP["Upstream APIs and sandbox site"]
-    end
-    BR --> NGINX
-    NGINX --> API
-    CL --> API
-    API --> PG
-    API -.-> MY
-    AF --> AFS
-    AFS --> PG
-    API --> UP
-    AFS --> UP
+    PIPE->>RC: run(persist)
+    RC->>WH: fact_catalog_snapshot
+    PIPE->>DQ: evaluate_quality(session, run_id)
+    DQ->>WH: dq_rule_result
+    PIPE->>WH: finalise etl_run status and counters
+    PIPE-->>SCH: PipelineResult

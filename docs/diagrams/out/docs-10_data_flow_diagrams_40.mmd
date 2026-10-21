@@ -1,20 +1,50 @@
 
-flowchart TD
-    START(["Run requested"]) --> HEALTH{"Database reachable?"}
-    HEALTH -->|"no"| STOP1(["Abort - status failed"])
-    HEALTH -->|"yes"| COMPLY{"At least one source<br/>passes robots and terms?"}
-    COMPLY -->|"no"| STOP2(["Abort before crawling"])
-    COMPLY -->|"yes"| LOOP["For each source"]
-    LOOP --> FETCH["Fetch under compliance gate"]
-    FETCH --> SRCERR{"Source error?"}
-    SRCERR -->|"yes"| WARN["Record warning - mark source failed"]
-    SRCERR -->|"no"| LOAD["Stage, prepare, resolve, load"]
-    WARN --> NEXT{"More sources?"}
-    LOAD --> NEXT
-    NEXT -->|"yes"| LOOP
-    NEXT -->|"no"| POST["Aggregates and catalog reconciliation"]
-    POST --> DQGATE{"Any critical DQ failure?"}
-    DQGATE -->|"yes"| FAILED(["Status failed"])
-    DQGATE -->|"no"| WARNED{"Any source failed?"}
-    WARNED -->|"yes"| PARTIAL(["Status partial"])
-    WARNED -->|"no"| OK(["Status success"])
+flowchart TB
+    DS[("D3 fact_price_snapshot")]
+    DC[("D4 change feeds")]
+    DK[("D5 catalog comparison")]
+    DA[("D6 aggregate")]
+    DP[("D2 dimensions")]
+    DR[("D7 operations<br/>etl_run, dq_rule_result,<br/>ingestion_http_log")]
+
+    subgraph P6A["6a Measure quality"]
+        Q1["12 rules in SAVEPOINTs"]
+        Q2["Severity-weighted score"]
+        Q3["Blocking decision<br/>critical failures only"]
+    end
+
+    V["23 analytical views<br/>vw_*"]
+    AN["Analytics service<br/>21 query functions"]
+
+    subgraph P6B["6c Serve"]
+        AU["Authenticate<br/>JWT or API key"]
+        RB["Authorise<br/>role to rights"]
+        VAL["Validate<br/>Pydantic models"]
+        EP["222 REST operations<br/>16 routers"]
+        CSV["CSV export"]
+    end
+
+    UI["Dashboard<br/>React and Vite"]
+    USR["Analysts, managers,<br/>administrators"]
+
+    DS --> Q1
+    DC --> Q1
+    DA --> Q1
+    DP --> Q1
+    Q1 --> Q2 --> Q3
+    Q3 -->|"verdict"| DR
+
+    DS --> V
+    DC --> V
+    DK --> V
+    DA --> V
+    DP --> V
+    V --> AN
+    AN --> EP
+    EP --> CSV
+
+    USR -->|"credentials"| AU
+    AU --> RB --> VAL --> EP
+    EP -->|"JSON"| UI
+    UI -->|"fetch, filter, sort"| USR
+    EP -->|"answers"| USR

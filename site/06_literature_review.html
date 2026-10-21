@@ -437,6 +437,37 @@
 <p>Three roles with a strict capability ladder (viewer, then analyst, then admin) follow the principle of least privilege; <code>ROLE_RIGHTS</code> in <code>app/api/security.py</code> is a single dictionary that drives both the API dependency <code>require_rights(...)</code> and the permission list returned to the UI, so the front end can hide controls it cannot use without duplicating policy.</p>
 <hr>
 <h2 id="8-comparative-synthesis">8. Comparative synthesis</h2>
+<pre class="mermaid">flowchart LR
+    subgraph LIT[&quot;Literature and standards&quot;]
+        L1[&quot;Kimball and Ross&lt;br/&gt;grain-first modelling&quot;]
+        L2[&quot;RFC 9309&lt;br/&gt;robots and crawl rules&quot;]
+        L3[&quot;Christen&lt;br/&gt;record linkage stages&quot;]
+        L4[&quot;Shneiderman&lt;br/&gt;overview then zoom&quot;]
+        L5[&quot;Great Expectations&lt;br/&gt;validation is a result&quot;]
+        L6[&quot;Inmon&lt;br/&gt;strictly separated reference data&quot;]
+    end
+    subgraph DEC[&quot;Decision taken in this repository&quot;]
+        D1[&quot;Three conformed dimensions&lt;br/&gt;three facts, two change feeds&quot;]
+        D2[&quot;RobotsCache plus audit log&lt;br/&gt;no request is ever made when refused&quot;]
+        D3[&quot;Fingerprint, then blocked exact,&lt;br/&gt;then fuzzy at 0.90&quot;]
+        D4[&quot;KPI cards, then charts,&lt;br/&gt;then the product drawer&quot;]
+        D5[&quot;Twelve executable rules&lt;br/&gt;each inside a savepoint&quot;]
+        D6[&quot;Internal catalog kept outside&lt;br/&gt;the analytical model&quot;]
+    end
+    subgraph IMP[&quot;Where it lives in the code&quot;]
+        M1[&quot;app/models&lt;br/&gt;dim_product, dim_category, dim_source&quot;]
+        M2[&quot;app/ingestion/robots.py&lt;br/&gt;app/ingestion/http_client.py&quot;]
+        M3[&quot;app/ingestion/dedupe.py&lt;br/&gt;app/etl/loader.py&quot;]
+        M4[&quot;frontend/src/pages/Dashboard.tsx&lt;br/&gt;frontend/src/pages/Products.tsx&quot;]
+        M5[&quot;app/etl/dq.py&lt;br/&gt;app/models/facts.py&quot;]
+        M6[&quot;app/etl/catalog_reconcile.py&lt;br/&gt;app/models/catalog.py&quot;]
+    end
+    L1 --&gt; D1 --&gt; M1
+    L2 --&gt; D2 --&gt; M2
+    L3 --&gt; D3 --&gt; M3
+    L4 --&gt; D4 --&gt; M4
+    L5 --&gt; D5 --&gt; M5
+    L6 --&gt; D6 --&gt; M6</pre>
 <div class='table-scroll'><table><thead><tr>
 <th>Design question</th>
 <th>Inmon (2002)</th>

@@ -14,10 +14,58 @@ reported separately by `python3 scripts/project_stats.py`.
 
 **Scale of the system, measured:** 34 ingestion sources · 29 physical tables · 23 analytical views ·
 12 data-quality rules across 6 dimensions · 222 REST route decorators in 24 routers · 9 pipeline stages ·
-33 Airflow task callables · 6 Docker Compose services · 34 numbered documents · 88 Mermaid diagrams ·
+33 Airflow task callables · 6 Docker Compose services · 34 numbered documents · 100+ Mermaid diagrams ·
 625 automated tests · 104 end-to-end API smoke checks.
 
 Regenerate the numbers above with `python3 scripts/project_stats.py`.
+
+---
+
+## How the feature areas fit together
+
+```mermaid
+flowchart TB
+    subgraph P1["Pillar 1 - Collect responsibly"]
+        A1["Ingestion and web compliance"]
+        A2["Cleaning and normalisation"]
+        A3["Duplicate resolution"]
+        A4["Catalogue reconciliation"]
+    end
+    subgraph P2["Pillar 2 - Model and measure"]
+        B1["Warehouse model"]
+        B2["ETL pipeline"]
+        B3["Change detection"]
+        B4["Data quality"]
+        B5["Schema and migrations"]
+    end
+    subgraph P3["Pillar 3 - Serve and analyse"]
+        C1["Analytics and SQL reporting"]
+        C2["Query and aggregate builder"]
+        C3["Forecasting and anomaly detection"]
+        C4["Reports and document generation"]
+        C5["Realtime streaming"]
+        C6["Background job queue"]
+    end
+    subgraph P4["Pillar 4 - Trust and operate"]
+        D1["Security and access control"]
+        D2["Two-factor and session control"]
+        D3["Operations, orchestration and DX"]
+        D4["Engineering quality gates"]
+        D5["Data trust and compliance"]
+    end
+    subgraph P5["Pillar 5 - Use the product"]
+        E1["Dashboard and user experience"]
+        E2["Appearance and personalisation"]
+        E3["Account self-service"]
+        E4["Notifications, alerts and webhooks"]
+        E5["Ingestion source onboarding"]
+    end
+    P1 --> P2 --> P3
+    P2 --> P4
+    P3 --> P5
+    P4 --> P5
+    E5 -.->|"feedback loop:<br/>a new source is added without a code change"| P1
+```
 
 ---
 
@@ -651,7 +699,7 @@ Free unlimited operations and releases.
 | F-386 | Single canonical version | VERSION feeds API, CLI, pyproject and dashboard via sync_version.py | `Makefile` `scripts/project_stats.py` `website/index.html` |
 | F-387 | Stats sync gate | project_stats.py rewrites README block; check_stats.py fails CI on drift | `Makefile` `scripts/project_stats.py` `website/index.html` |
 | F-388 | 30 numbered docs | Proposal through access-control, each with purpose plus Mermaid | `Makefile` `scripts/project_stats.py` `website/index.html` |
-| F-389 | 88 Mermaid diagrams | Context, stack, sequences, DAG, ER, DFD, deployment — rendered to SVG | `Makefile` `scripts/project_stats.py` `website/index.html` |
+| F-389 | 100+ Mermaid diagrams | Context, stack, sequences, DAG, ER, DFD, deployment — rendered to SVG | `Makefile` `scripts/project_stats.py` `website/index.html` |
 | F-390 | Infographic 2560x1440 | One 16:9 DEPI Data Engineering slide, freshness-gated by generator | `Makefile` `scripts/project_stats.py` `website/index.html` |
 | F-391 | 12-slide deck | make deck builds PDF from measured counts in the DEPI palette | `Makefile` `scripts/project_stats.py` `website/index.html` |
 | F-392 | Multi-section website | Hero, features from live OpenAPI, docs, quickstart, About — light/dark/system | `Makefile` `scripts/project_stats.py` `website/index.html` |

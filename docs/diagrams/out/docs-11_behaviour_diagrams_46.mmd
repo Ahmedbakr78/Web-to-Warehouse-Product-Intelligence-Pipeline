@@ -1,14 +1,27 @@
 
 stateDiagram-v2
-    [*] --> pending: Pipeline created
-    pending --> running: etl_run row written
-    running --> running: sources processed one by one
-    running --> partial: at least one source failed
-    running --> failed: source error with strict mode<br/>or pipeline_fail_fast
-    running --> failed: critical DQ rule failed
-    running --> success: all sources ok and no blocking rule
-    partial --> running: re-run of the failing source
-    success --> [*]
-    partial --> [*]
-    failed --> [*]
-    failed --> running: manual retry creates a new run_id
+    [*] --> Candidate: record staged
+    Candidate --> Active: first sighting<br/>event new
+    Candidate --> Rejected: name too short<br/>reject_reason recorded
+    Rejected --> [*]: retained in the staging zone only
+
+    Active --> Active: recurring observation<br/>price and rating refreshed
+    Active --> Suspended: unseen for the staleness window<br/>event removed
+    Active --> Active: recategorised<br/>event category_changed
+
+    Suspended --> Active: seen again<br/>event recurring
+    Suspended --> Retired: still unseen after the review window
+    Retired --> Active: returned to the source
+
+    note right of Active
+        is_active = true
+        observation_count increments
+        first_seen_at fixed
+        last_seen_at updated
+    end note
+
+    note right of Suspended
+        is_active = false
+        is still queryable with is_active filter
+        last_seen_at frozen
+    end note

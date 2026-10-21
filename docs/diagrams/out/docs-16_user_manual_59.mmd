@@ -1,0 +1,51 @@
+
+flowchart TB
+    subgraph OVER["Overview"]
+        DASH["Dashboard<br/>the 60-second picture"]
+        BRIEF["Briefing<br/>ranked actions"]
+        ANAL["Analytics<br/>category + brand"]
+        CHG["Changes<br/>the change feed"]
+    end
+    subgraph CAT["Catalogue"]
+        PROD["Products<br/>faceted, exportable"]
+        CATS["Categories<br/>tree + price index"]
+        CATM["Catalog match<br/>internal vs market"]
+    end
+    subgraph PIPE["Pipeline"]
+        RUNS["Runs<br/>timings + comparison"]
+        DQ["Data quality<br/>12 rules"]
+        SRC["Sources<br/>compliance + preview"]
+    end
+    subgraph EXPL["Explore"]
+        FC["Forecast<br/>Holt-Winters + anomalies"]
+        REP["Reports<br/>HTML, CSV, PDF"]
+        QL["Query lab<br/>read-only SQL"]
+        BLD["Builder<br/>filter + aggregate"]
+        FEAT["Features<br/>the catalogue"]
+    end
+    subgraph WS["Workspace"]
+        AL["Alerts<br/>rules + notifications"]
+        WH["Webhooks<br/>signed delivery"]
+        ACC["Account<br/>profile + appearance"]
+        SET["Settings<br/>admin"]
+        USR["Users<br/>roles"]
+        AUD["Audit<br/>the trail"]
+    end
+    DASH --> PROD
+    DASH --> CHG
+    DASH --> RUNS
+    BRIEF --> PROD
+    BRIEF --> AL
+    ANAL --> CATS
+    CATM --> PROD
+    DQ --> RUNS
+    SRC --> RUNS
+    FC --> PROD
+    QL --> PROD
+    BLD --> PROD
+    REP --> PROD
+    AL --> ACC
+    WH --> ACC
+    AUD --> RUNS
+    SET --> USR
+    ACC --> SET

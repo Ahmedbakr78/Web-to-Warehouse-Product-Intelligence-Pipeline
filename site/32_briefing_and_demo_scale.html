@@ -80,6 +80,45 @@
     <article class="doc-body">
 <p>This document covers the v1.11 intelligence layer and the synthetic expansion used for demos and screenshots. Both are additive: no existing ingest path, table or metric definition was replaced.</p>
 <h2 id="1-morning-briefing">1. Morning briefing</h2>
+<pre class="mermaid">flowchart LR
+    subgraph SRC[&quot;Existing services, reused unchanged&quot;]
+        S1[&quot;movers&quot;]
+        S2[&quot;volatility&quot;]
+        S3[&quot;catalog gaps&quot;]
+        S4[&quot;stockouts&quot;]
+        S5[&quot;anomalies&quot;]
+        S6[&quot;data quality&quot;]
+        S7[&quot;freshness&quot;]
+        S8[&quot;best value&quot;]
+    end
+    subgraph BRIEF[&quot;Briefing composer&quot;]
+        B1[&quot;One definition of a price drop&lt;br/&gt;and of a stale source&quot;]
+        B2[&quot;Opportunity section&quot;]
+        B3[&quot;Risk section&quot;]
+        B4[&quot;Category signals&quot;]
+        B5[&quot;Freshness&quot;]
+        B6[&quot;Best value&quot;]
+    end
+    subgraph OUT[&quot;What the user gets&quot;]
+        O1[&quot;Headline counters&quot;]
+        O2[&quot;One ranked action queue,&lt;br/&gt;severity ordered&quot;]
+        O3[&quot;A link to the screen&lt;br/&gt;that proves each item&quot;]
+    end
+    S1 --&gt; B2
+    S2 --&gt; B3
+    S3 --&gt; B2
+    S4 --&gt; B3
+    S5 --&gt; B3
+    S6 --&gt; B3
+    S7 --&gt; B5
+    S8 --&gt; B6
+    B1 --&gt; B2
+    B1 --&gt; B3
+    B2 --&gt; O2
+    B3 --&gt; O2
+    B5 --&gt; O1
+    B6 --&gt; O1
+    O2 --&gt; O3</pre>
 <h3 id="why-a-composition-layer">Why a composition layer</h3>
 <p>The dashboard already had individual reports (movers, volatility, catalog gaps, stockouts, DQ, freshness). A user still had to open five screens to answer “what should I do first?”. The briefing composes those services into one ranked queue so the definition of a price drop or a stale source never forks.</p>
 <p>Source: <code>app/analytics/briefing.py</code>. Transport: <code>app/api/routers/intelligence.py</code>.</p>

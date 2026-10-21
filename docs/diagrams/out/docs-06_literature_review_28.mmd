@@ -1,0 +1,32 @@
+
+flowchart LR
+    subgraph LIT["Literature and standards"]
+        L1["Kimball and Ross<br/>grain-first modelling"]
+        L2["RFC 9309<br/>robots and crawl rules"]
+        L3["Christen<br/>record linkage stages"]
+        L4["Shneiderman<br/>overview then zoom"]
+        L5["Great Expectations<br/>validation is a result"]
+        L6["Inmon<br/>strictly separated reference data"]
+    end
+    subgraph DEC["Decision taken in this repository"]
+        D1["Three conformed dimensions<br/>three facts, two change feeds"]
+        D2["RobotsCache plus audit log<br/>no request is ever made when refused"]
+        D3["Fingerprint, then blocked exact,<br/>then fuzzy at 0.90"]
+        D4["KPI cards, then charts,<br/>then the product drawer"]
+        D5["Twelve executable rules<br/>each inside a savepoint"]
+        D6["Internal catalog kept outside<br/>the analytical model"]
+    end
+    subgraph IMP["Where it lives in the code"]
+        M1["app/models<br/>dim_product, dim_category, dim_source"]
+        M2["app/ingestion/robots.py<br/>app/ingestion/http_client.py"]
+        M3["app/ingestion/dedupe.py<br/>app/etl/loader.py"]
+        M4["frontend/src/pages/Dashboard.tsx<br/>frontend/src/pages/Products.tsx"]
+        M5["app/etl/dq.py<br/>app/models/facts.py"]
+        M6["app/etl/catalog_reconcile.py<br/>app/models/catalog.py"]
+    end
+    L1 --> D1 --> M1
+    L2 --> D2 --> M2
+    L3 --> D3 --> M3
+    L4 --> D4 --> M4
+    L5 --> D5 --> M5
+    L6 --> D6 --> M6

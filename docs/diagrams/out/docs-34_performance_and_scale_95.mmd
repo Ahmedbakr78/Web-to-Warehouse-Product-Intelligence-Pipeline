@@ -1,0 +1,7 @@
+
+flowchart LR
+    A["Product observed<br/>again"] --> B["New fact row<br/>captured_at = now"]
+    B --> C["Unique constraint<br/>product x source x run"]
+    C --> D["Append-only history"]
+    D --> E["Price change detected<br/>vs the previous row"]
+    E --> F["Windowed queries<br/>read the newest N"]

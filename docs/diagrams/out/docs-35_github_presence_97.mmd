@@ -1,0 +1,10 @@
+
+flowchart LR
+    MAIN["main<br/>always deployable<br/>tagged releases"] --> DEV["develop<br/>integration branch"]
+    DEV --> F["feature/*<br/>one concern per branch"]
+    DEV --> FIX["fix/*<br/>scoped to one defect"]
+    DEV --> HOT["hotfix/*<br/>production only"]
+    F --> DEV
+    FIX --> DEV
+    HOT --> MAIN
+    DEV -->|"release/*"| MAIN
