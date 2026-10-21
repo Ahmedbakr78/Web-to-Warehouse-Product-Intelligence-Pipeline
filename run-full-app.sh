@@ -280,6 +280,10 @@ if [ "$NO_FRONTEND" -eq 1 ]; then
   info "frontend steps skipped (--no-frontend)"
 else
   step "Frontend typecheck + lint"
+  # The incremental build info is dropped first: `tsc -b` writes it during the
+  # production build, and a cache that outlives the sources it describes can
+  # report a type error that no longer exists (or hide one that does).
+  rm -f frontend/tsconfig.app.tsbuildinfo frontend/tsconfig.node.tsbuildinfo
   (cd frontend && run_step "frontend typecheck" 2 npm run typecheck)
   (cd frontend && run_step "frontend lint" 2 npm run lint)
   if [ "$QUICK" -eq 0 ]; then
