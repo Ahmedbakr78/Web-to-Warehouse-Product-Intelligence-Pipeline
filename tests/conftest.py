@@ -31,8 +31,14 @@ os.environ.setdefault("FX_LIVE_RATES", "false")
 # minutes, so the middleware would 429 unrelated tests depending on file order.
 # The limiter itself is covered by unit tests in test_new_features.py.
 os.environ.setdefault("RATE_LIMIT_ENABLED", "false")
+# The background job worker is a daemon thread that polls the warehouse. It is
+# disabled for the suite: a test restores the database between cases, and the
+# worker's poll would race that write ("database is locked"). The queue itself
+# is covered directly by the job-queue unit tests.
+os.environ.setdefault("JOB_WORKER_ENABLED", "false")
 
 import pytest  # noqa: E402
+import sqlalchemy as sa  # noqa: E402
 
 from app.core.db import dispose_all, get_engine, session_scope  # noqa: E402
 from app.etl.bootstrap import bootstrap, drop_views  # noqa: E402
@@ -60,17 +66,40 @@ def database() -> str:
     dispose_all()
 
 
-@pytest.fixture()
-def clean_database(database: str) -> str:
-    """Per-test isolation: delete every warehouse row but keep the schema."""
+@pytest.fixture(scope="session")
+def seeded_rows(database: str) -> dict[str, tuple[sa.Table, list[dict]]]:
+    """Every seeded row, captured so each test can be restored exactly.
+
+    Re-seeding 30 days of history for every test would add minutes to the
+    suite, so the seeded rows are captured once and written back between
+    tests. The restore runs inside a single transaction, which keeps it safe
+    while the API's background worker holds its own connection open.
+    """
     engine = get_engine(database)
-    drop_views(database)
+    captured: dict[str, tuple[sa.Table, list[dict]]] = {}
+    with engine.connect() as conn:
+        for table in Base.metadata.sorted_tables:
+            rows = [dict(row) for row in conn.execute(sa.select(table)).mappings()]
+            captured[table.name] = (table, rows)
+    return captured
+
+
+@pytest.fixture()
+def clean_database(database: str, seeded_rows: dict[str, tuple[sa.Table, list[dict]]]) -> str:
+    """Per-test isolation: every test starts from the same seeded warehouse.
+
+    Without this, state written by one test (2FA enrolments, sessions, watch
+    lists, saved views, settings) leaks into the next one and the result
+    depends on the order pytest happens to collect the files in.
+    """
+    engine = get_engine(database)
     with engine.begin() as conn:
         for table in reversed(Base.metadata.sorted_tables):
             conn.exec_driver_sql(f'DELETE FROM "{table.name}"')
-    bootstrap(database)
-    run_full_seed(database, days=30)
-    yield database
+        for table, rows in seeded_rows.values():
+            if rows:
+                conn.execute(table.insert(), rows)
+    return database
 
 
 @pytest.fixture()
@@ -80,7 +109,7 @@ def session(clean_database: str):
 
 
 @pytest.fixture()
-def db(database: str):
+def db(clean_database: str):
     """Read-only session against the seeded demo warehouse."""
-    with session_scope(database) as db_session:
+    with session_scope(clean_database) as db_session:
         yield db_session

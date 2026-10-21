@@ -14,8 +14,8 @@ from app.core.db import read_session
 pytestmark = pytest.mark.integration
 
 
-@pytest.fixture(scope="module")
-def client(database):
+@pytest.fixture()
+def client(clean_database):
     """A TestClient bound to a bootstrapped + seeded database."""
     with TestClient(app) as test_client:
         yield test_client

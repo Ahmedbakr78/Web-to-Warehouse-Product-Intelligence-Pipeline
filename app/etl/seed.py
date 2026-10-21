@@ -40,6 +40,25 @@ SEED_SALT = 20260101
 # --------------------------------------------------------------------------------------
 # Application users / settings
 # --------------------------------------------------------------------------------------
+def default_preferences() -> dict[str, Any]:
+    """The preference set every account starts with.
+
+    The values mirror the dashboard's own defaults (``usePreferences.ts``) so the
+    API hands a client a complete, renderable set instead of a partial one the
+    client has to guess the rest of.
+    """
+    return {
+        "notifications": {"price_drop": True, "dq_failure": True, "new_product": False},
+        "dashboard": {"default_range": "30d", "chart_type": "area"},
+        "number_format": "compact",
+        "auto_refresh": "off",
+        "default_export_format": "csv",
+        "silent_reload": True,
+        "copy_code_on_click": True,
+        "start_page": "/",
+    }
+
+
 def seed_users(session: Session) -> int:
     """Create the demo accounts documented in the README (idempotent)."""
     from app.api.security import hash_password
@@ -92,10 +111,7 @@ def seed_users(session: Session) -> int:
                 is_verified=True,
                 login_count=0,
                 password_changed_at=dt.datetime.now(dt.timezone.utc),
-                preferences={
-                    "notifications": {"price_drop": True, "dq_failure": True, "new_product": False},
-                    "dashboard": {"default_range": "30d", "chart_type": "area"},
-                },
+                preferences=default_preferences(),
             )
         )
         created += 1

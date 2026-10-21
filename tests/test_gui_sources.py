@@ -21,8 +21,8 @@ from app.models.dimensions import DimSource
 pytestmark = pytest.mark.integration
 
 
-@pytest.fixture(scope="module")
-def client(database):
+@pytest.fixture()
+def client(clean_database):
     with TestClient(app) as test_client:
         yield test_client
 

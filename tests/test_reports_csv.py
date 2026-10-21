@@ -14,8 +14,8 @@ from app.api.security import create_access_token
 pytestmark = pytest.mark.integration
 
 
-@pytest.fixture(scope="module")
-def client(database):
+@pytest.fixture()
+def client(clean_database):
     with TestClient(app) as test_client:
         yield test_client
 
