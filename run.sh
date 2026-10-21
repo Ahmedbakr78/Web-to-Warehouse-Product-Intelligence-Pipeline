@@ -41,14 +41,22 @@ VERIFY_ARGS=()
 LAUNCH=1
 LOCAL_ARGS=()
 ACTION="run"
+# `--logs <service>` takes a value, so the loop has to know that the next
+# argument belongs to it instead of treating it as an unknown option.
+EXPECT_VALUE=0
 
 for arg in "$@"; do
+  if [ "$EXPECT_VALUE" -eq 1 ]; then
+    LOCAL_ARGS+=("$arg")
+    EXPECT_VALUE=0
+    continue
+  fi
   case "$arg" in
     --verify-only) LAUNCH=0; ACTION="verify" ;;
     --no-verify) VERIFY=0 ;;
     --offline|--quick|--no-frontend) VERIFY_ARGS+=("$arg") ;;
     --stop|--clean|--status) VERIFY=0; LAUNCH=1; LOCAL_ARGS+=("$arg"); ACTION="${arg#--}" ;;
-    --logs) VERIFY=0; LAUNCH=1; LOCAL_ARGS+=("$arg"); ACTION="logs" ;;
+    --logs) VERIFY=0; LAUNCH=1; LOCAL_ARGS+=("$arg"); ACTION="logs"; EXPECT_VALUE=1 ;;
     --rebuild|--reset|--no-seed|--seed|--open) LOCAL_ARGS+=("$arg") ;;
     -h|--help)
       sed -n '2,35p' "$0" | sed 's/^# \?//'
@@ -57,6 +65,11 @@ for arg in "$@"; do
     *) echo "error: unknown option '$arg' (try --help)" >&2; exit 1 ;;
   esac
 done
+
+if [ "$EXPECT_VALUE" -eq 1 ]; then
+  echo "error: --logs needs a service name (api, frontend, postgres, mysql, airflow)" >&2
+  exit 1
+fi
 
 if [ "$VERIFY" -eq 1 ]; then
   echo "==> [1/2] VERIFYING the full app with real data (no fakes)"
