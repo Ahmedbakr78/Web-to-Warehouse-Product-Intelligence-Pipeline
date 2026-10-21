@@ -159,20 +159,22 @@ services:
       - airflow_logs:/opt/airflow/logs
     command: airflow scheduler
     healthcheck:
-      # The scheduler has no HTTP endpoint and the image ships no `ps`, so its
-      # liveness is read from the Airflow metadata database: the scheduler
-      # writes a heartbeat row, and a scheduler that has died stops writing it.
+      # The scheduler exposes no HTTP endpoint, so its liveness is read from
+      # the Airflow metadata database: the scheduler writes a heartbeat row,
+      # and a scheduler that has died stops writing it.
       test:
-        - "CMD-SHELL"
+        - CMD-SHELL
         - >-
-          python -c "import os,sys,sqlalchemy as sa;
-          e=sa.create_engine(os.environ['AIRFLOW__CORE__DATABASE__SQL_ALCHEMY_CONN']);
-          c=e.connect();
-          sys.exit(0 if c.execute(sa.text('SELECT 1')).scalar() else 1)"
+          python -c 'import os, sys, sqlalchemy as sa;
+          u = os.environ.get("AIRFLOW__DATABASE__SQL_ALCHEMY_CONN") or os.environ.get("AIRFLOW__CORE__DATABASE__SQL_ALCHEMY_CONN");
+          e = sa.create_engine(u);
+          c = e.connect();
+          n = c.execute(sa.text("SELECT COUNT(*) FROM job WHERE job_type = :t AND latest_heartbeat > (NOW() - INTERVAL :i)"), {"t": "SchedulerJob", "i": "5 minutes"}).scalar();
+          sys.exit(0 if n else 1)'
       interval: 30s
       timeout: 15s
       retries: 5
-      start_period: 40s
+      start_period: 60s
     depends_on:
       airflow: {condition: service_started}
       api: {condition: service_started}
