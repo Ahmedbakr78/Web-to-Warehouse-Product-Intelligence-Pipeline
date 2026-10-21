@@ -177,21 +177,51 @@ if [ "$OFFLINE" -eq 1 ]; then
 else
   "$PY" - "$SOURCES" "$REAL_LIMIT" <<'PY'
 import sys
+import time
+
 from app.ingestion.base import DATA_TRUST_REAL, get_source, list_sources
+
 registry = {source["code"]: source for source in list_sources()}
+limit = int(sys.argv[2])
 total = 0
+
+
+def fetch_with_retry(code, attempts=3):
+    """Fetch a source, retrying an empty result.
+
+    A source that returns nothing *once* is almost always a transient blip - a
+    rate limit, a cold cache upstream, a connection reset. Treating that as a
+    hard failure made the whole verification flaky and stopped the run before
+    the app was ever launched. Three attempts, with a short backoff, separates
+    "the network hiccupped" from "this source is broken".
+    """
+    last = 0
+    for attempt in range(1, attempts + 1):
+        src = get_source(code)
+        try:
+            rows = list(src.fetch(limit=limit))
+        finally:
+            src.close()
+        if rows:
+            return rows, attempt
+        last = attempt
+        if attempt < attempts:
+            print(f"    {code}: empty response, retrying ({attempt}/{attempts})")
+            time.sleep(2 * attempt)
+    return [], last
+
+
 for code in sys.argv[1].split(","):
     code = code.strip()
     source = registry[code]
     assert source.get("data_trust") == DATA_TRUST_REAL, f"{code} is not a real source"
     assert source.get("terms_allowed", True), f"{code} is terms-blocked"
-    src = get_source(code)
-    rows = list(src.fetch(limit=int(sys.argv[2])))
-    assert rows, f"REAL source returned 0 records: {code}"
+    rows, attempts = fetch_with_retry(code)
+    assert rows, f"REAL source returned 0 records on {attempts} attempts: {code}"
     assert all((r.name or "").strip() for r in rows), f"blank names from {code}"
     total += len(rows)
-    print(f"    {code}: {len(rows)} live records, e.g. {rows[0].name[:60]!r}")
-    src.close()
+    suffix = f" (took {attempts} attempts)" if attempts > 1 else ""
+    print(f"    {code}: {len(rows)} live records{suffix}, e.g. {rows[0].name[:60]!r}")
 print(f"    TOTAL live records: {total} (all real, zero synthetic)")
 PY
   ok "live real-source smoke passed"
