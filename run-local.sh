@@ -405,10 +405,10 @@ links_card() {
   box_dim "(or create your own account on the sign-in page)"
   box_mid
   box_h "Next"
-  box_row "    ./run-local.sh --status         health of every service"
-  box_row "    ./run-local.sh --logs [name]    follow one service (api, frontend, …)"
-  box_row "    ./run-local.sh --stop           stop the stack, keep the data"
-  box_row "    ./run-local.sh --reset          start again from scratch"
+  box_row "    ./run.sh --status              health of every service"
+  box_row "    ./run-local.sh --logs [name]   follow one service (api, frontend, …)"
+  box_row "    ./run.sh --stop                stop the stack, keep the data"
+  box_row "    ./run.sh --reset               start again from scratch"
   box_bottom
 }
 
