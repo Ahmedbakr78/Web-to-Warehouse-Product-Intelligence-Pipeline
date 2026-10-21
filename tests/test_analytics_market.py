@@ -99,6 +99,36 @@ def test_price_anomalies_are_ranked_by_z_score(client, viewer_token):
         }
 
 
+def test_price_anomalies_are_actually_detected(client, viewer_token):
+    """The detector must find real outliers, not silently return nothing.
+
+    The portable variance expression is ``E[x^2] - (E[x])^2``. Computing it the
+    other way round yields the *negative* variance for every real price
+    distribution, which clamps the deviation to zero and silently disables the
+    whole detector - while the ranking test above still passed, because an
+    empty list is trivially sorted.
+    """
+    rows = client.get("/api/v1/analytics/price-anomalies?limit=50", headers=auth(viewer_token)).json()
+    assert rows, "no price anomalies detected - the deviation is probably zero again"
+    for row in rows:
+        assert row["category_mean_usd"] is not None
+        assert row["price_usd"] is not None
+        assert abs(row["z_score"]) >= 2.0
+    # A detected outlier really does sit away from its category mean.
+    outliers = [abs(row["z_score"]) for row in rows]
+    assert max(outliers) > 2.0
+
+
+def test_category_price_index_reports_real_variance(client, viewer_token):
+    """The category index must publish a non-zero deviation where there is one."""
+    rows = client.get("/api/v1/analytics/category-breakdown", headers=auth(viewer_token)).json()
+    assert isinstance(rows, list) and rows
+    spread = [row for row in rows if row.get("price_stddev") not in (None, 0)]
+    assert spread, "every category reports a zero price deviation - the variance is inverted again"
+    for row in spread:
+        assert row["price_stddev"] > 0
+
+
 def test_source_overlap_pairs_are_unique_and_ordered(client, viewer_token):
     rows = client.get("/api/v1/analytics/source-overlap", headers=auth(viewer_token)).json()
     assert isinstance(rows, list)

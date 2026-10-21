@@ -118,3 +118,50 @@ def test_local_and_synthetic_sources_skip_robots():
 def test_decision_dataclass_is_truthy():
     assert bool(RobotsDecision(allowed=True, rule="robots.txt:allow")) is True
     assert bool(RobotsDecision(allowed=False, rule="robots.txt:disallow")) is False
+
+
+def test_an_unauthorised_robots_txt_disallows_the_host(monkeypatch):
+    """RFC 9309: a 401/403 on robots.txt means the whole host is off limits.
+
+    A site that refuses to publish its robots.txt has not granted permission
+    to crawl it, so the request must not be made.
+    """
+    import urllib.error
+
+    from app.ingestion import robots as robots_module
+
+    def refuse(url, *args, **kwargs):
+        raise urllib.error.HTTPError(url, 403, "Forbidden", None, None)
+
+    monkeypatch.setattr(robots_module.urllib.request, "urlopen", refuse)
+    cache = robots_module.RobotsCache()
+    decision = cache.can_fetch("https://example.com/products")
+    assert decision.allowed is False
+    assert "unauthorised" in decision.rule
+
+
+def test_an_unavailable_robots_txt_allows_the_host(monkeypatch):
+    """RFC 9309: any other 4xx means the file is unavailable -> allow."""
+    import urllib.error
+
+    from app.ingestion import robots as robots_module
+
+    def missing(url, *args, **kwargs):
+        raise urllib.error.HTTPError(url, 404, "Not Found", None, None)
+
+    monkeypatch.setattr(robots_module.urllib.request, "urlopen", missing)
+    cache = robots_module.RobotsCache()
+    decision = cache.can_fetch("https://example.com/products")
+    assert decision.allowed is True
+    # An unavailable file is treated as an allow-all policy, so the rule
+    # reads as a normal allow rather than as a failure.
+    assert "unauthorised" not in decision.rule
+
+
+def test_the_fallback_rule_does_not_claim_an_allow_list():
+    """The rule string must describe the decision that was actually made."""
+    from app.ingestion import robots as robots_module
+
+    cache = robots_module.RobotsCache()
+    decision = cache.can_fetch("local://demo-catalogue/products")
+    assert "allow-listed" not in decision.rule

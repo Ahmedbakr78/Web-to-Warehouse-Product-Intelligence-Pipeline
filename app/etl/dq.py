@@ -729,7 +729,20 @@ def latest_report(session: Session, run_id: str | None = None) -> dict[str, Any]
         stmt = stmt.where(DqRuleResult.run_id == run_id)
     rows = list(session.execute(stmt.limit(50)).scalars())
     if not rows:
-        return {"run_id": run_id, "total": 0, "pass": 0, "warn": 0, "fail": 0, "score": 100.0, "rules": []}
+        # No rule has ever been evaluated, so there is no score. Reporting
+        # 100.0 here would assert a perfect quality posture for a warehouse
+        # nobody ever checked - which is exactly the kind of number a reader
+        # cannot trust.
+        return {
+            "run_id": run_id,
+            "total": 0,
+            "pass": 0,
+            "warn": 0,
+            "fail": 0,
+            "score": None,
+            "evaluated": False,
+            "rules": [],
+        }
     run = rows[0].run_id
     rows = [row for row in rows if row.run_id == run]
     total_weight = 0.0
@@ -744,7 +757,8 @@ def latest_report(session: Session, run_id: str | None = None) -> dict[str, Any]
         "pass": sum(1 for r in rows if r.status == "pass"),
         "warn": sum(1 for r in rows if r.status == "warn"),
         "fail": sum(1 for r in rows if r.status == "fail"),
-        "score": round((weighted / total_weight) * 100, 2) if total_weight else 100.0,
+        "score": round((weighted / total_weight) * 100, 2) if total_weight else None,
+        "evaluated": True,
         "evaluated_at": rows[0].evaluated_at,
         "rules": [
             {

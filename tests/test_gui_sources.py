@@ -379,6 +379,68 @@ def test_create_source_happy_path(client, admin_token, session, monkeypatch):
     assert any(item["code"] == "gui_created" and item["managed"] == "database" for item in listed)
 
 
+def test_a_mock_preset_cannot_be_onboarded_as_market_data(client, admin_token, session, monkeypatch):
+    """A known mock API keeps its classification, whatever the form sends.
+
+    The Add-source form offers one-click presets, two of which point at mock
+    APIs. If the request simply defaulted the trust level to "real", those
+    records would be written into the warehouse by the next automatic run and
+    the no-fake audit would pass them. The classification therefore comes from
+    the preset unless the operator states a different one explicitly.
+    """
+    _allow_robots(monkeypatch, allowed=True)
+    _public_dns(monkeypatch)
+    response = client.post(
+        "/api/v1/sources",
+        json={
+            "code": "gui_mock_store",
+            "name": "Mock Store",
+            "base_url": "https://dummyjson.com/products",
+            "terms_confirmed": True,
+            "mapping": {
+                "items_path": "products",
+                "id_field": "id",
+                "fields": {"name": "title", "price": "price"},
+                "pagination": {"style": "none"},
+            },
+        },
+        headers=auth(admin_token),
+    )
+    assert response.status_code == 201, response.text
+    assert response.json()["data_trust"] == "synthetic"
+
+    row = session.get(DimSource, "gui_mock_store")
+    assert row is not None
+    assert row.data_trust == "synthetic"
+    assert (row.config or {}).get("data_trust") == "synthetic"
+
+
+def test_an_explicit_trust_level_is_honoured(client, admin_token, session, monkeypatch):
+    """An operator can still state the classification themselves."""
+    _allow_robots(monkeypatch, allowed=True)
+    _public_dns(monkeypatch)
+    response = client.post(
+        "/api/v1/sources",
+        json={
+            "code": "gui_declared_sandbox",
+            "name": "Declared Sandbox",
+            "base_url": "https://shop.example.com/products.json",
+            "terms_confirmed": True,
+            "data_trust": "sandbox",
+            "mapping": {
+                "items_path": "products",
+                "id_field": "id",
+                "fields": {"name": "title", "price": "price"},
+                "pagination": {"style": "none"},
+            },
+        },
+        headers=auth(admin_token),
+    )
+    assert response.status_code == 201, response.text
+    assert response.json()["data_trust"] == "sandbox"
+    assert session.get(DimSource, "gui_declared_sandbox").data_trust == "sandbox"
+
+
 def test_create_source_requires_terms_and_robots(client, admin_token, monkeypatch):
     _allow_robots(monkeypatch, allowed=True)
     _public_dns(monkeypatch)

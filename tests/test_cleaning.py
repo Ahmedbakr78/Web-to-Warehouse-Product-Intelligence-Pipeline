@@ -232,6 +232,32 @@ def test_parse_rating_extracts_count():
     assert info.count == 1204
 
 
+@pytest.mark.parametrize(
+    ("count_text", "expected"),
+    [
+        ("4523", 4523),
+        ("1,234", 1234),
+        ("  89 ", 89),
+        ("12", 12),
+    ],
+)
+def test_parse_rating_accepts_a_bare_count_field(count_text, expected):
+    """API adapters fill ``rating_count_text`` with a bare integer.
+
+    The unit-word pattern (``"... ratings"``) is for counts scraped out of free
+    text and does not match a bare number, so the count used to be discarded
+    for every source that reports one - leaving the "best value" ranking with
+    no candidates at all.
+    """
+    assert parse_rating("4.5", count_text=count_text).count == expected
+
+
+def test_parse_rating_rejects_a_decimal_as_a_count():
+    """A stray decimal is a rating, never a vote count."""
+    assert parse_rating("4.5", count_text="4.2").count is None
+    assert parse_rating("4.5", count_text="N/A").count is None
+
+
 def test_parse_rating_missing():
     assert parse_rating(None).value is None
     assert parse_rating("").value is None

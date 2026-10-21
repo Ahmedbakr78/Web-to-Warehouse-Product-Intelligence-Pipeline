@@ -1020,6 +1020,12 @@ _RATING_RE = re.compile(
 )
 _RATING_BARE_RE = re.compile(r"(?<![\d.])(?P<value>\d+(?:[.,]\d+)?)(?![\d.])")
 _RATING_COUNT_RE = re.compile(r"([\d,.]+)\s*(?:ratings?|reviews?|votes?|customers?)\b", re.IGNORECASE)
+
+#: A count field that carries nothing but an integer: ``"4523"``, ``"1,234"``.
+#: API adapters fill ``rating_count_text`` with exactly this shape. A decimal
+#: point is deliberately excluded so a stray rating value is never mistaken
+#: for a vote count.
+_BARE_COUNT_RE = re.compile(r"[\d][\d,\s]*")
 _STAR_RE = re.compile(r"([\d.,]+)\s*(?:out of 5|out of five|\u2605|\*)", re.IGNORECASE)
 
 
@@ -1070,13 +1076,33 @@ def parse_rating(
 
     value = max(0.0, min(value, scale))
     scaled = round(value * target_scale / scale, 3) if scale else value
-    count = None
-    count_source = f"{raw} {count_text or ''}"
-    count_match = _RATING_COUNT_RE.search(count_source)
+    count = _extract_rating_count(raw, count_text)
+    return RatingInfo(value=scaled, raw_value=value, scale=scale, count=count, raw=rating_text)
+
+
+def _extract_rating_count(rating_text: str, count_text: str | None) -> int | None:
+    """Recover the number of ratings behind a rating value.
+
+    Two shapes have to be handled, and they come from different places:
+
+    * A **dedicated count field** - ``rating_count_text`` - which every API
+      adapter fills with a bare integer (``"4523"``). The unit-word pattern
+      would not match it and the count would be silently thrown away, which is
+      how the "best value" ranking ended up with no candidates at all.
+    * A count **scraped out of free text** - ``"4523 ratings"``, ``"12 votes"``
+      - which is what the unit-word pattern exists for.
+    """
+    if count_text:
+        stripped = normalise_unicode(count_text).strip()
+        if stripped and _BARE_COUNT_RE.fullmatch(stripped):
+            parsed = parse_number(stripped)
+            if parsed is not None:
+                return int(parsed)
+    count_match = _RATING_COUNT_RE.search(f"{rating_text} {count_text or ''}")
     if count_match:
         parsed_count = parse_number(count_match.group(1))
-        count = int(parsed_count) if parsed_count is not None else None
-    return RatingInfo(value=scaled, raw_value=value, scale=scale, count=count, raw=rating_text)
+        return int(parsed_count) if parsed_count is not None else None
+    return None
 
 
 def normalise_availability(value: str | None, *, in_stock_flag: bool | None = None) -> tuple[str, bool]:

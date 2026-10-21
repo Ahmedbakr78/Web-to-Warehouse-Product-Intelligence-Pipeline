@@ -66,7 +66,11 @@ export default function Quality() {
   const results = useApiQuery(['quality-results', resultsParams], () => endpoints.qualityResults(resultsParams))
 
   const report = latest.data ?? {}
-  const score = Number(report.score ?? 0)
+  // A score of 0 and a score that does not exist are different facts: the
+  // API returns null when no rule has ever been evaluated, and the screen
+  // must say so rather than show a number nobody measured.
+  const measured = report.score !== null && report.score !== undefined
+  const score = measured ? Number(report.score) : null
   const rulesList: any[] = report.rules ?? []
 
   const filteredResults = debouncedSearch
@@ -133,10 +137,10 @@ export default function Quality() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <StatTile
               label="Quality score"
-              value={score ? score.toFixed(2) : '—'}
+              value={score !== null ? score.toFixed(2) : '—'}
               hint={`Weighted across ${report.total ?? 0} rules`}
               icon={<ShieldCheck className="h-4 w-4" />}
-              tone={score >= 90 ? 'success' : score >= 75 ? 'warning' : 'danger'}
+              tone={score === null ? 'neutral' : score >= 90 ? 'success' : score >= 75 ? 'warning' : 'danger'}
             />
             <StatTile label="Rules passed" value={formatNumber(report.pass ?? 0)} hint="Within threshold" icon={<CheckCircle2 className="h-4 w-4" />} tone="success" />
             <StatTile label="Rules warned" value={formatNumber(report.warn ?? 0)} hint="Between 95% and threshold" icon={<ShieldQuestion className="h-4 w-4" />} tone="warning" />
@@ -162,10 +166,22 @@ export default function Quality() {
               ) : (
                 <>
                   <div className="mb-3 flex items-end gap-2">
-                    <span className="text-4xl font-semibold tabular-nums">{score.toFixed(1)}</span>
+                    <span className="text-4xl font-semibold tabular-nums">
+                      {score === null ? '—' : score.toFixed(1)}
+                    </span>
                     <span className="mb-1 text-sm text-subtle">/ 100</span>
                   </div>
-                  <ProgressBar value={score} tone={score >= 90 ? 'success' : score >= 75 ? 'warning' : 'danger'} />
+                  {score === null ? (
+                    <p className="text-xs text-muted">
+                      No rule has been evaluated for this warehouse yet. Run the pipeline to produce a
+                      verdict - a score is only shown once it has been measured.
+                    </p>
+                  ) : (
+                    <ProgressBar
+                      value={score}
+                      tone={score >= 90 ? 'success' : score >= 75 ? 'warning' : 'danger'}
+                    />
+                  )}
                   <p className="mt-3 text-xs leading-relaxed text-muted">
                     {scoringText}
                   </p>

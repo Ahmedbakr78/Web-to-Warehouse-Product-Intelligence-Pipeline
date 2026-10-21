@@ -308,6 +308,12 @@ def create_source(payload: SourceCreate, session: DbSession, _user: SourceManage
     mapping = payload.mapping
     from app.ingestion.sources.generic_json import preset_data_trust
 
+    # The trust level is resolved, never defaulted to "real". A feed that
+    # belongs to a known mock preset keeps that classification even when the
+    # form did not send one, so a demo API can never be laundered into the
+    # warehouse as market data.
+    trust = payload.data_trust or preset_data_trust(url)
+
     row = DimSource(
         source_code=payload.code,
         name=payload.name,
@@ -319,7 +325,7 @@ def create_source(payload: SourceCreate, session: DbSession, _user: SourceManage
         min_delay_seconds=max(payload.min_delay_seconds, float(verdict["crawl_delay"] or 0.0)),
         enabled=payload.enabled,
         terms_allowed=True,
-        data_trust=payload.data_trust,
+        data_trust=trust,
         config={
             "adapter": ADAPTER_NAME,
             "items_path": mapping.items_path,
@@ -329,7 +335,7 @@ def create_source(payload: SourceCreate, session: DbSession, _user: SourceManage
             "params": dict(mapping.params),
             **({"url_template": mapping.url_template} if mapping.url_template else {}),
             "currency": mapping.currency,
-            "data_trust": payload.data_trust or preset_data_trust(url),
+            "data_trust": trust,
         },
     )
     session.add(row)

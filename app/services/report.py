@@ -248,13 +248,19 @@ def _sources(session: Session) -> list[dict[str, Any]]:
 def _quality_score(session: Session) -> list[dict[str, Any]]:
     from app.etl.dq import latest_report
 
-    report = latest_report(session)
-    summary = report.get("summary", {}) if report else {}
+    # `latest_report` returns a flat payload (score / pass / warn / fail), not
+    # a nested "summary" object. Reading the wrong key left every tile empty.
+    report = latest_report(session) or {}
     tiles = [
-        {"label": "Quality score", "value": _num(summary.get("score"), 2), "tone": "success"},
-        {"label": "Rules passed", "value": summary.get("passed")},
-        {"label": "Warnings", "value": summary.get("warned"), "tone": "warning"},
-        {"label": "Failures", "value": summary.get("failed"), "tone": "danger"},
+        {
+            "label": "Quality score",
+            "value": _num(report.get("score"), 2),
+            "tone": "success",
+            "hint": None if report.get("evaluated") else "not evaluated yet",
+        },
+        {"label": "Rules passed", "value": report.get("pass")},
+        {"label": "Warnings", "value": report.get("warn"), "tone": "warning"},
+        {"label": "Failures", "value": report.get("fail"), "tone": "danger"},
     ]
     trend = [
         {"label": str(row.get("full_date"))[5:], "value": _num(row.get("score"), 2)}
@@ -344,13 +350,27 @@ def _rules(session: Session) -> list[dict[str, Any]]:
 
 
 def _failures(session: Session) -> list[dict[str, Any]]:
-    rows = [row for row in _latest_rule_results(session) if row.get("status") != "pass"]
+    evaluated = _latest_rule_results(session)
+    if not evaluated:
+        # Nothing was ever evaluated, so nothing passed. Saying "all 12 rules
+        # passed" would assert a verdict for rules that never ran.
+        return [
+            {
+                "type": "callout",
+                "title": "No evaluation yet",
+                "body": (
+                    "No data-quality rule has been evaluated for this warehouse. "
+                    "Run the pipeline to produce a verdict."
+                ),
+            }
+        ]
+    rows = [row for row in evaluated if row.get("status") != "pass"]
     if not rows:
         return [
             {
                 "type": "callout",
                 "title": "No outstanding quality issues",
-                "body": "All 12 rules passed on the most recent evaluation.",
+                "body": f"All {len(evaluated)} rules passed on the most recent evaluation.",
             }
         ]
     return [

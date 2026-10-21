@@ -586,14 +586,16 @@ class SourceCreate(BaseModel):
         description="The creator confirms the site's terms permit automated access",
     )
     enabled: bool = True
-    data_trust: str = Field(
-        default="real",
+    data_trust: str | None = Field(
+        default=None,
         pattern="^(real|sandbox|synthetic)$",
         description=(
             "How far the upstream records can be trusted as market data. "
             "'real' = genuine market data, 'sandbox' = a real endpoint that "
             "publishes a test corpus, 'synthetic' = generated locally. Only "
-            "'real' sources are collected by an automatic run."
+            "'real' sources are collected by an automatic run. Leave it unset "
+            "and the server classifies the feed from the preset it belongs to, "
+            "so a mock API cannot be onboarded as market data by accident."
         ),
     )
     mapping: SourceMappingConfig = Field(default_factory=SourceMappingConfig)

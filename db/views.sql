@@ -243,9 +243,11 @@ SELECT s.date_id,
        ROUND(CAST(MAX(s.price_usd) AS DECIMAL(24,6)), 4) AS max_price_usd,
        ROUND(CAST(AVG(s.rating) AS DECIMAL(24,6)), 4) AS avg_rating,
        -- Portable population variance (SQLite has no STDDEV, MySQL/PG differ in name).
-       ROUND(CAST(SQRT(CASE WHEN (AVG(s.price_usd) * AVG(s.price_usd) - AVG(s.price_usd * s.price_usd)) < 0
+       -- E[x^2] - (E[x])^2 is the variance; the reverse order is its negation and
+       -- clamps every category's deviation to zero.
+       ROUND(CAST(SQRT(CASE WHEN (AVG(s.price_usd * s.price_usd) - AVG(s.price_usd) * AVG(s.price_usd)) < 0
                                    THEN 0
-                                   ELSE (AVG(s.price_usd) * AVG(s.price_usd) - AVG(s.price_usd * s.price_usd))
+                                   ELSE (AVG(s.price_usd * s.price_usd) - AVG(s.price_usd) * AVG(s.price_usd))
                               END) AS DECIMAL(24,6)), 4) AS price_stddev,
        COUNT(DISTINCT p.product_id) AS distinct_products
 FROM fact_price_snapshot s
@@ -505,9 +507,9 @@ SELECT s.product_id,
        END AS range_pct,
        -- Portable population stddev (same derivation as vw_category_price_index:
        -- SQLite has no STDDEV, MySQL/PG differ in name).
-       ROUND(CAST(SQRT(CASE WHEN (AVG(s.price_usd) * AVG(s.price_usd) - AVG(s.price_usd * s.price_usd)) < 0
+       ROUND(CAST(SQRT(CASE WHEN (AVG(s.price_usd * s.price_usd) - AVG(s.price_usd) * AVG(s.price_usd)) < 0
                                    THEN 0
-                                   ELSE (AVG(s.price_usd) * AVG(s.price_usd) - AVG(s.price_usd * s.price_usd))
+                                   ELSE (AVG(s.price_usd * s.price_usd) - AVG(s.price_usd) * AVG(s.price_usd))
                               END) AS DECIMAL(24,6)), 4) AS price_stddev,
        SUM(CASE WHEN s.price_change_pct IS NOT NULL THEN 1 ELSE 0 END) AS changes_observed,
        MAX(s.captured_at) AS last_observation_at

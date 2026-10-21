@@ -1269,10 +1269,15 @@ def price_anomalies(session: Session, limit: int = 20, threshold_std: float = 2.
             JOIN (
                 SELECT category_name,
                        AVG(price_usd) AS mean_price,
-                       SQRT(CASE WHEN (AVG(price_usd) * AVG(price_usd) - AVG(price_usd * price_usd)) < 0
-                                 THEN 0
-                                 ELSE (AVG(price_usd) * AVG(price_usd) - AVG(price_usd * price_usd))
-                            END) AS std_price
+                       -- Portable population standard deviation.
+                       -- The variance is E[x^2] - (E[x])^2; computing it the other
+                       -- way round yields the *negative* variance for every real
+                       -- distribution, which clamps the deviation to zero and
+                       -- silently disables the whole detector.
+                       SQRT(CASE WHEN (AVG(price_usd * price_usd) - AVG(price_usd) * AVG(price_usd)) < 0
+                                  THEN 0
+                                  ELSE (AVG(price_usd * price_usd) - AVG(price_usd) * AVG(price_usd))
+                             END) AS std_price
                 FROM vw_product_current
                 WHERE is_active AND price_usd IS NOT NULL AND category_name IS NOT NULL
                 GROUP BY category_name

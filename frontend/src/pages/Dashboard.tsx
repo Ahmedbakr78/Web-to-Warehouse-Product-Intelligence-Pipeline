@@ -210,7 +210,11 @@ export default function Dashboard() {
         <StatTile
           label="Data quality score"
           value={qualityScore !== null ? `${qualityScore}` : '—'}
-          hint={`${quality.data?.pass ?? 0} pass · ${quality.data?.warn ?? 0} warn · ${quality.data?.fail ?? 0} fail`}
+          hint={
+            quality.data?.evaluated
+              ? `${quality.data.pass} pass · ${quality.data.warn} warn · ${quality.data.fail} fail`
+              : 'not evaluated yet'
+          }
           icon={<ShieldCheck className="h-4 w-4" />}
           tone={qualityScore === null ? 'neutral' : qualityScore >= 90 ? 'success' : qualityScore >= 75 ? 'warning' : 'danger'}
         />

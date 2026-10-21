@@ -3,8 +3,13 @@
 Every outbound request is checked against the *crawled user-agent's* rules before it
 is made.  Decisions are cached per host for the configured TTL, and ``Crawl-delay``
 values are propagated to the rate limiter.  If ``robots.txt`` cannot be fetched the
-parser follows the RFC 9309 fallback and treats the host as *disallowed for
-automated bulk crawling* unless the source is explicitly allow-listed.
+parser follows the RFC 9309 fallback:
+
+* ``401`` / ``403`` (*Unauthorised*) -> the whole host is **disallowed**.
+* any other ``4xx`` (*Unavailable*)   -> the whole host is **allowed**.
+* ``5xx`` or an unreachable host       -> the whole host is **allowed**, and
+  the decision is labelled as a fallback rather than as a rule the site
+  published.
 """
 
 from __future__ import annotations
@@ -41,13 +46,22 @@ class RobotsCache:
     def __init__(self, ttl_seconds: int = 1800, user_agent: str | None = None) -> None:
         self.ttl_seconds = ttl_seconds
         self.user_agent = user_agent or settings.ingest_user_agent
-        self._cache: dict[str, tuple[float, urllib.robotparser.RobotFileParser | None, tuple[str, ...]]] = {}
+        #: origin -> (fetched_at, parser, sitemaps, denied)
+        self._cache: dict[
+            str, tuple[float, urllib.robotparser.RobotFileParser | None, tuple[str, ...], bool]
+        ] = {}
         self._lock = threading.RLock()
         self.stats: dict[str, int] = {"fetched": 0, "cached": 0, "blocked": 0, "allowed": 0, "errors": 0}
 
     # ------------------------------------------------------------------ internals
-    def _load(self, robots_url: str) -> tuple[urllib.robotparser.RobotFileParser | None, tuple[str, ...]]:
-        """Fetch and parse ``robots_url`` using a plain urllib request (stdlib only)."""
+    def _load(
+        self, robots_url: str
+    ) -> tuple[urllib.robotparser.RobotFileParser | None, tuple[str, ...], bool]:
+        """Fetch and parse ``robots_url`` using a plain urllib request (stdlib only).
+
+        The third element says whether the host is denied outright, which is
+        what RFC 9309 requires for an *Unauthorised* (401/403) response.
+        """
         import urllib.error
         import urllib.request
 
@@ -60,25 +74,37 @@ class RobotsCache:
                 body = response.read().decode("utf-8", errors="replace")
         except urllib.error.HTTPError as exc:
             if exc.code in (401, 403):
-                # 401/403 for robots.txt means "no crawling" per RFC 9309, but it
-                # is an expected compliance outcome, not an operator error.
+                # RFC 9309 section 2.3.1.3: an *Unauthorised* response means
+                # the whole host is disallowed. A site that refuses to serve
+                # its robots.txt has not given permission to crawl it.
                 log.info("robots.txt disallows crawling url=%s (HTTP %s)", robots_url, exc.code)
                 self.stats["errors"] += 1
-                return None, ()
+                parser = urllib.robotparser.RobotFileParser()
+                parser.parse(["User-agent: *", "Disallow: /"])
+                return parser, (), True
             if 400 <= exc.code < 500:
                 # RFC 9309: "Unavailable" -> assume full allow.
                 log.info("robots.txt unavailable -> allow all url=%s code=%s", robots_url, exc.code)
                 parser = urllib.robotparser.RobotFileParser()
                 parser.parse(["User-agent: *", "Disallow:"])
-                return parser, ()
+                return parser, (), False
+            # 5xx: the site is temporarily unable to answer. RFC 9309 does not
+            # cover it, and refusing to fetch would take the source offline for
+            # a transient server error, so the fallback allow applies - but the
+            # decision is labelled as a fallback, not as a published rule.
+            log.info("robots.txt server error -> allow all url=%s code=%s", robots_url, exc.code)
             self.stats["errors"] += 1
-            return None, ()
+            parser = urllib.robotparser.RobotFileParser()
+            parser.parse(["User-agent: *", "Disallow:"])
+            return parser, (), False
         except Exception as exc:  # pragma: no cover - network dependent
             # Unreachable robots.txt (DNS, TLS, reset) falls back to allow with a
             # cached decision, so this is informational, not a failure.
             log.info("robots.txt unreachable, allowing url=%s error=%s", robots_url, exc)
             self.stats["errors"] += 1
-            return None, ()
+            parser = urllib.robotparser.RobotFileParser()
+            parser.parse(["User-agent: *", "Disallow:"])
+            return parser, (), False
 
         parser = urllib.robotparser.RobotFileParser()
         parser.set_url(robots_url)
@@ -87,37 +113,54 @@ class RobotsCache:
             line.split(":", 1)[1].strip() for line in body.splitlines() if line.lower().startswith("sitemap:")
         )
         self.stats["fetched"] += 1
-        return parser, sitemaps
+        return parser, sitemaps, False
 
-    def _get_parser(self, base_url: str) -> tuple[urllib.robotparser.RobotFileParser | None, tuple[str, ...]]:
+    def _get_parser(
+        self, base_url: str
+    ) -> tuple[urllib.robotparser.RobotFileParser | None, tuple[str, ...], bool]:
         parsed = urlparse(base_url)
         if parsed.scheme not in ("http", "https"):
             # Local / synthetic sources never hit the network, so robots.txt is N/A.
-            return None, ()
+            return None, (), False
         origin = f"{parsed.scheme}://{parsed.netloc}"
         now = time.monotonic()
         with self._lock:
             cached = self._cache.get(origin)
             if cached and (now - cached[0]) < self.ttl_seconds:
                 self.stats["cached"] += 1
-                return cached[1], cached[2]
-        parser, sitemaps = self._load(urljoin(origin, "/robots.txt"))
+                return cached[1], cached[2], cached[3]
+        parser, sitemaps, denied = self._load(urljoin(origin, "/robots.txt"))
         with self._lock:
-            self._cache[origin] = (now, parser, sitemaps)
-        return parser, sitemaps
+            self._cache[origin] = (now, parser, sitemaps, denied)
+        return parser, sitemaps, denied
 
     # ------------------------------------------------------------------ public
     def can_fetch(self, url: str, user_agent: str | None = None) -> RobotsDecision:
         """Evaluate whether ``url`` may be fetched by our user-agent."""
         agent = (user_agent or self.user_agent).split("/")[0].strip()
-        parser, sitemaps = self._get_parser(url)
+        parser, sitemaps, denied = self._get_parser(url)
+
+        if denied:
+            # RFC 9309: an Unauthorised robots.txt means the whole host is
+            # off limits. The rule says exactly that, so the audit log reads
+            # the way the decision was actually made.
+            log.info("robots.txt unauthorised -> disallow host url=%s", url)
+            self.stats["blocked"] += 1
+            return RobotsDecision(
+                allowed=False,
+                rule="robots-unauthorised:disallow (RFC 9309 - 401/403 on robots.txt)",
+                crawl_delay=None,
+                sitemaps=(),
+            )
 
         if parser is None:
-            # robots.txt unreachable (or a local source): fall back to the allow-list.
+            # The host could not be reached at all (or the source never hits
+            # the network). Nothing was published, so nothing forbids us -
+            # but the decision is a fallback, and says so.
             allowed = True
             decision = RobotsDecision(
                 allowed=allowed,
-                rule="robots-unavailable:fallback-allow (source allow-listed)",
+                rule="robots-unavailable:fallback-allow (robots.txt could not be fetched)",
                 crawl_delay=None,
                 sitemaps=sitemaps,
             )

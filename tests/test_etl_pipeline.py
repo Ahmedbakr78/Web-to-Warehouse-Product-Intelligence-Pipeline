@@ -217,6 +217,23 @@ def test_latest_report_returns_the_most_recent_run(db, pipeline_run):
     assert len(report["rules"]) == report["total"]
 
 
+def test_a_score_is_not_reported_when_no_rule_was_evaluated(db, clean_database):
+    """A warehouse nobody checked has no quality score - not a perfect one.
+
+    Reporting 100.0 for an unevaluated warehouse would assert a flawless
+    quality posture that no rule ever confirmed, and the dashboard would
+    render it as a green, perfect score.
+    """
+    from app.models.operations import DqRuleResult
+
+    db.execute(sa.delete(DqRuleResult))
+    db.commit()
+    report = latest_report(db)
+    assert report["total"] == 0
+    assert report["score"] is None
+    assert report["evaluated"] is False
+
+
 def test_broken_rule_does_not_abort_the_suite(db, pipeline_run):
     """Every rule runs inside a SAVEPOINT, so one failure cannot cascade."""
 

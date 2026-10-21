@@ -452,6 +452,12 @@ export type SourceForm = {
   currency: string
   rateLimit: string
   minDelay: string
+  /**
+   * How far the upstream records can be trusted as market data. The server
+   * resolves it from the preset when it is not stated, but stating it makes
+   * the classification the operator's decision rather than a default.
+   */
+  dataTrust: 'real' | 'sandbox' | 'synthetic'
 }
 
 /**
@@ -485,6 +491,7 @@ export function buildSourcePayload(form: SourceForm): Record<string, unknown> {
     min_delay_seconds: Number(form.minDelay) || 0,
     terms_confirmed: true,
     enabled: true,
+    data_trust: form.dataTrust,
     mapping: {
       items_path: form.itemsPath,
       id_field: form.idField,
@@ -532,6 +539,7 @@ function AddSourceModal({ onClose, onCreated }: { onClose: () => void; onCreated
   const [rateLimit, setRateLimit] = useState('30')
   const [minDelay, setMinDelay] = useState('1.0')
   const [terms, setTerms] = useState(false)
+  const [dataTrust, setDataTrust] = useState<'real' | 'sandbox' | 'synthetic'>('real')
   const [check, setCheck] = useState<any | null>(null)
   const [checking, setChecking] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -556,6 +564,8 @@ function AddSourceModal({ onClose, onCreated }: { onClose: () => void; onCreated
     setTotalPath(entry.pagination?.total_path ?? '')
     setExtraParams(entry.params ? JSON.stringify(entry.params) : '')
     setUrlTemplate(entry.url_template ?? '')
+    // A preset knows what it is: a mock API stays classified as one.
+    if (entry.data_trust) setDataTrust(entry.data_trust)
     if (!name) setName(entry.label ?? '')
     if (!codeTouched) setCode(slugify(entry.label ?? key))
     setCheck(null)
@@ -610,6 +620,7 @@ function AddSourceModal({ onClose, onCreated }: { onClose: () => void; onCreated
         currency,
         rateLimit,
         minDelay,
+        dataTrust,
       })
     } catch (error) {
       toast.error('Extra params are not valid JSON', (error as Error).message)
@@ -834,7 +845,7 @@ function AddSourceModal({ onClose, onCreated }: { onClose: () => void; onCreated
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div>
             <p className="stat-label mb-1.5">Rate limit (requests/minute)</p>
             <TextInput value={rateLimit} onChange={(event) => setRateLimit(event.target.value)} inputMode="numeric" />
@@ -843,7 +854,20 @@ function AddSourceModal({ onClose, onCreated }: { onClose: () => void; onCreated
             <p className="stat-label mb-1.5">Minimum delay (seconds)</p>
             <TextInput value={minDelay} onChange={(event) => setMinDelay(event.target.value)} inputMode="decimal" />
           </div>
+          <div>
+            <p className="stat-label mb-1.5">Data trust</p>
+            <Select value={dataTrust} onChange={(event) => setDataTrust(event.target.value as 'real' | 'sandbox' | 'synthetic')}>
+              <option value="real">Real market data</option>
+              <option value="sandbox">Sandbox / test corpus</option>
+              <option value="synthetic">Synthetic / mock API</option>
+            </Select>
+          </div>
         </div>
+        <p className="text-[11px] leading-relaxed text-subtle">
+          Only a source classified as real market data is collected by an automatic run. A sandbox or
+          synthetic feed has to be requested by name, and its rows are removed by
+          <code className="rounded bg-surface-3 px-1 font-mono">purge-untrusted</code>.
+        </p>
 
         <Toggle
           checked={terms}

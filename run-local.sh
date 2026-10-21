@@ -214,7 +214,9 @@ One command instead of the seven in the README:
   ${CYAN}./run-local.sh${NC}            start, seed and verify (idempotent, fast re-runs)
   ${CYAN}./run-local.sh --rebuild${NC}  rebuild the api/frontend images, then start
   ${CYAN}./run-local.sh --reset${NC}    drop the volumes first, so the run is from scratch
-  ${CYAN}./run-local.sh --no-seed${NC}  start the stack but skip the 120-day demo dataset
+  ${CYAN}./run-local.sh --seed${NC}    also load the SYNTHETIC 120-day demo dataset
+                            (generated products - not market data; never
+                             loaded unless you ask for it)
   ${CYAN}./run-local.sh --open${NC}     start and open the dashboard in the browser
   ${CYAN}./run-local.sh --stop${NC}     stop the stack, keeping the data
   ${CYAN}./run-local.sh --clean${NC}    stop the stack and delete the volumes
@@ -481,7 +483,10 @@ open_browser() {
 
 # ------------------------------------------------------------------ flags
 RESET=0
-SEED=1
+# The synthetic demo dataset is opt-in. Loading it by default would put
+# generated products into the same warehouse the dashboard presents as a
+# market picture, and nothing in the UI would say which rows are which.
+SEED=0
 REBUILD=0
 OPEN=0
 ACTION=up
@@ -499,6 +504,7 @@ for arg in "$@"; do
   case "$arg" in
     --reset)    RESET=1 ;;
     --no-seed)  SEED=0 ;;
+    --seed)     SEED=1 ;;
     --rebuild)  REBUILD=1 ;;
     --open)     OPEN=1 ;;
     --stop)     ACTION=stop ;;
@@ -580,8 +586,8 @@ port_conflict() { # port label compose-service
   fi
 }
 
-MODE_DESC="seed ${DEMO_DAYS} days"
-if [ "$SEED" -eq 0 ]; then MODE_DESC="no seed"; fi
+MODE_DESC="real sources only"
+if [ "$SEED" -eq 1 ]; then MODE_DESC="synthetic seed"; fi
 if [ "$RESET" -eq 1 ]; then MODE_DESC="${MODE_DESC}, reset"; fi
 if [ "$REBUILD" -eq 1 ]; then MODE_DESC="${MODE_DESC}, rebuild"; fi
 banner "$MODE_DESC"
@@ -708,13 +714,13 @@ PY
 )"
 
 if [ "$SEED" -eq 0 ]; then
-  phase_skip "Demo dataset (--no-seed)"
+  phase_skip "Synthetic demo dataset (opt-in with --seed)"
 elif [ "${PRODUCT_COUNT:-0}" -gt 0 ]; then
   phase_ok "Warehouse already holds ${PRODUCT_COUNT} products; seed skipped"
 else
-  info "Seeding the ${DEMO_DAYS}-day demo dataset"
+  info "Seeding the ${DEMO_DAYS}-day SYNTHETIC demo dataset (not market data)"
   "$PY" -m app.cli.main seed-demo --database postgres --days "$DEMO_DAYS"
-  phase_ok "Seeded"
+  phase_ok "Seeded (synthetic - purge with: python -m app.cli.main purge-untrusted)"
 fi
 
 phase "Running one pipeline run so the dashboard has live figures"

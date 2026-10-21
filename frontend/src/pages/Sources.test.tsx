@@ -34,6 +34,7 @@ function form(overrides: Partial<SourceForm> = {}): SourceForm {
     currency: 'usd',
     rateLimit: '30',
     minDelay: '1.0',
+    dataTrust: 'real',
     ...overrides,
   }
 }
@@ -66,5 +67,14 @@ describe('buildSourcePayload', () => {
   it('throws on invalid extra-params JSON instead of posting', () => {
     expect(() => buildSourcePayload(form({ extraParams: '{oops' }))).toThrow(/valid JSON/)
     expect(() => buildSourcePayload(form({ extraParams: '[1,2]' }))).toThrow(/valid JSON/)
+  })
+
+  it('states the trust level, so a feed is never silently trusted', () => {
+    // The classification travels with the request. Without it the server
+    // would have to guess, and a mock API could end up in the warehouse
+    // labelled as market data.
+    expect((buildSourcePayload(form()) as any).data_trust).toBe('real')
+    expect((buildSourcePayload(form({ dataTrust: 'synthetic' })) as any).data_trust).toBe('synthetic')
+    expect((buildSourcePayload(form({ dataTrust: 'sandbox' })) as any).data_trust).toBe('sandbox')
   })
 })

@@ -114,11 +114,11 @@ init-db: ## Create tables + views + reference data without Alembic (first-time b
 	$(PYBIN) -m app.cli.main init-db
 
 .PHONY: demo-postgres
-demo-postgres: ## Seed a realistic demo dataset into PostgreSQL
+demo-postgres: ## Seed the SYNTHETIC demo dataset into PostgreSQL (generated products, not market data)
 	$(PYBIN) -m app.cli.main seed-demo --database postgres --days 120
 
 .PHONY: demo-mysql
-demo-mysql: ## Seed a realistic demo dataset into MySQL
+demo-mysql: ## Seed the SYNTHETIC demo dataset into MySQL (generated products, not market data)
 	$(PYBIN) -m app.cli.main seed-demo --database mysql --days 120
 
 # ---------------------------------------------------------------- pipeline
@@ -331,7 +331,8 @@ check-migrations: ## Fail if a migration is missing for a model change
 verify-all: bootstrap run-pipeline test ## Bootstrap, run the pipeline and test
 
 .PHONY: everything
-everything: install env up-db db-wait bootstrap demo-postgres run-pipeline test frontend-install frontend-build ## Full end-to-end verification
+everything: install env up-db db-wait bootstrap run-pipeline test frontend-install frontend-build ## Full end-to-end verification (real sources only)
+everything-demo: everything demo-postgres ## ... and add the synthetic demo dataset afterwards (generated products, not market data)
 
 .PHONY: backup
 backup: ## Timestamped backup of postgres, mysql and local sqlite files

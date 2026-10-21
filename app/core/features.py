@@ -173,8 +173,8 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "summary": "Permitted public sources collected politely: robots.txt, rate limits, retries, cache.",
         "features": [
             {
-                "name": "9 bundled sources",
-                "detail": "6 JSON APIs, 2 BeautifulSoup/LXML HTML scrapers, 1 offline fixture",
+                "name": "34 bundled source adapters",
+                "detail": "31 JSON APIs, 2 BeautifulSoup/LXML HTML scrapers, 1 offline fixture",
             },
             {
                 "name": "Steam Store API",
@@ -270,7 +270,7 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "name": "Price parser",
                 "detail": "Ranges, was/pricing text, thousands separators, 18+ currency symbols",
             },
-            {"name": "Currency conversion", "detail": "Offline FX table to USD - no external dependency"},
+            {"name": "Currency conversion", "detail": "Live FX rates to USD from a free provider, with a static table as the fallback"},
             {"name": "Rating parser", "detail": "Stars, counts, 0-5 scaling"},
             {"name": "Availability normaliser", "detail": "in_stock / out_of_stock / pre_order / unknown"},
             {"name": "Brand extraction", "detail": "Cleaned and validated against the product name"},
@@ -351,7 +351,7 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "detail": "Slow HTTP never holds an open transaction idle during a run",
             },
             {"name": "Manual trigger API", "detail": "Async or sync, any source mix, any dialect"},
-            {"name": "CLI", "detail": "17 Typer commands: bootstrap, seed, verify, run, report..."},
+            {"name": "CLI", "detail": "16 Typer commands: bootstrap, seed, verify, run, report..."},
         ],
     },
     {
@@ -433,7 +433,7 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "key": "analytics",
         "title": "Analytics & SQL reporting",
         "icon": "bar-chart-3",
-        "summary": "23 views + 8 standalone analysis scripts, ported across dialects.",
+        "summary": "23 views + 15 standalone analysis scripts, ported across dialects.",
         "features": [
             {"name": "Headline KPIs", "detail": "Products, sources, price bands, ratings, stock mix"},
             {"name": "Price trends", "detail": "Category price index, volatility, std-dev"},
@@ -548,7 +548,7 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "key": "dashboard",
         "title": "Dashboard & user experience",
         "icon": "layout-dashboard",
-        "summary": "19 screens, 5 themes, 12 accents, PWA, command palette, phone tab bar.",
+        "summary": "23 screens, 5 themes, 12 accents, PWA, command palette, phone tab bar.",
         "features": [
             {
                 "name": "19 analytic screens",
@@ -1639,7 +1639,7 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             },
             {
                 "name": "Free forever stack",
-                "detail": "No paid APIs: offline FX, seeded demo, SQLite-runnable tests",
+                "detail": "No paid APIs: free key-less FX provider, SQLite-runnable tests",
             },
         ],
     },
@@ -1699,11 +1699,11 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "features": [
             {
                 "name": "Single canonical source loader",
-                "detail": "load_builtin_sources imports the package once — registry can never drift from disk (31 adapters)",
+                "detail": "load_builtin_sources imports the package once — registry can never drift from disk (34 adapters)",
             },
             {
                 "name": "Real-only production defaults",
-                "detail": "DAG + pipeline.default_sources default to dummyjson/fakestore/openlibrary; local_demo stays test/CI-only",
+                "detail": "DAG + pipeline.default_sources list real permitted sources only; mock APIs and local_demo stay test/CI-only",
             },
             {
                 "name": "Seed availability fix",
@@ -2111,7 +2111,7 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             },
             {
                 "name": "Real-Only Production Ingestion",
-                "detail": "Default pipeline runs strictly filter out synthetic local_demo test fixtures, guaranteeing 100% authentic public data",
+                "detail": "Default pipeline runs collect only sources classified as real market data, so a fresh run holds 100% observed rows",
             },
             {
                 "name": "DEPI Data Engineering Branding",
@@ -2451,7 +2451,7 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             },
             {
                 "name": "Full Public Permitted Sources Whitelist",
-                "detail": "34 adapters connecting exclusively to verified, automation-permitted public web endpoints with zero synthetic records",
+                "detail": "34 adapters, each classified real, sandbox or synthetic - only the 21 real ones are collected automatically",
             },
             {
                 "name": "Robots.txt & Rate Limit Enforcement",
@@ -2475,7 +2475,7 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             },
             {
                 "name": "Interactive OpenAPI 3.1 REST Documentation",
-                "detail": "FastAPI auto-generated interactive documentation exposing 194 endpoints and 216 HTTP operations",
+                "detail": "FastAPI auto-generated interactive documentation exposing 222 REST operations",
             },
             {
                 "name": "Automated Docker Compose Multi-Service Stack",
