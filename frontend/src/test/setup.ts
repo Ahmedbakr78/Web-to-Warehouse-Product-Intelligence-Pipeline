@@ -44,11 +44,12 @@ class NoopResizeObserver {
  * This assignment is deliberately direct rather than `vi.stubGlobal`: a file's
  * `vi.unstubAllGlobals()` restores whatever was in place when *it* stubbed, which
  * is this block, not the network. The block answers every request with an empty
- * JSON payload, so a late callback can never leave the process.
+ * list, which is the shape the rest of the suite already treats as the default
+ * for a list endpoint, so a late callback can never leave the process.
  */
 const NETWORK_BLOCK = () =>
   Promise.resolve(
-    new Response(JSON.stringify({ items: [], total: 0 }), {
+    new Response(JSON.stringify([]), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     }),
