@@ -36,11 +36,11 @@ TEAM: list[dict[str, Any]] = [
         "github_url": "https://github.com/01124758140",
         "role": "Ingestion & Compliance Lead",
         "weight": 15,
-        "component": "robots.txt + 35 sources + rate limiter",
+        "component": "robots.txt + 34 adapters + rate limiter",
         "lead": False,
         "functions": [
             "robots.txt gate (RFC 9309) in the transport layer",
-            "35 source adapters: APIs + BeautifulSoup/Scrapy HTML + synthetic",
+            "34 source adapters: APIs + BeautifulSoup/Scrapy HTML + synthetic",
             "Token-bucket rate limiting, sliding-window ceiling, circuit breaker",
             "Conditional GET (ETag/Last-Modified) revalidation",
             "Per-request HTTP audit log",
@@ -56,7 +56,7 @@ TEAM: list[dict[str, Any]] = [
         "lead": False,
         "functions": [
             "29-step product-name/category normalisation engine",
-            "18+ currency price parsing + offline FX to USD",
+            "18+ currency price parsing + live FX to USD",
             "4-signal fuzzy dedupe (fingerprint + blocking + similarity)",
             "Rating/availability vocabularies",
         ],
