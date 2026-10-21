@@ -310,8 +310,35 @@ fi
 
 # ------------------------------------------------------------- 9. compose
 step "Validating the Docker Compose stack definition"
-docker compose config --quiet && ok "compose file valid (6 services)" \
-  || warn "docker compose unavailable — skipping (needs Docker daemon)"
+if docker compose config --quiet; then
+  ok "compose file valid (6 services)"
+  # If the stack is already up, check it rather than only its definition: a
+  # service that is running but unhealthy is a real problem a config check
+  # cannot see.
+  running="$(docker compose ps --services --filter status=running 2>/dev/null | wc -l | tr -d ' ')"
+  if [ "$running" -gt 0 ]; then
+    info "the stack is running ($running services) - checking health"
+    unhealthy=""
+    for service in api frontend postgres mysql airflow airflow-scheduler; do
+      cid="$(docker compose ps -q "$service" 2>/dev/null)"
+      [ -n "$cid" ] || continue
+      state="$(docker inspect --format '{{.State.Status}}' "$cid" 2>/dev/null)"
+      health="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$cid" 2>/dev/null)"
+      printf '    %-20s %-10s %s\n' "$service" "$state" "$health"
+      if [ "$state" = "running" ] && [ "$health" = "unhealthy" ]; then
+        unhealthy="$unhealthy $service"
+      fi
+    done
+    if [ -n "$unhealthy" ]; then
+      die "unhealthy service(s):$unhealthy"
+    fi
+    ok "every running service is healthy"
+  else
+    info "the stack is not running - only the definition was checked"
+  fi
+else
+  warn "docker compose unavailable - skipping (needs Docker daemon)"
+fi
 
 # ---------------------------------------------------------------- summary
 printf '\n%s%sFULL APP TEST: PASS%s\n' "$GREEN" "$BOLD" "$NC"
