@@ -47,25 +47,52 @@ except Exception:  # pragma: no cover - generator must never crash on import
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs" / "assets"
 
+#: Slide facts that cannot be measured from the source tree alone. Keeping them
+#: in a committed file is what makes the slide reproducible: the generator reads
+#: this file, so a machine with a database and a machine without one produce
+#: byte-identical output.
+FACTS_FILE = OUT / "infographic-facts.json"
+
 
 def _measured_dq_score() -> str:
-    """The live data-quality score of the most recent evaluated run.
+    """The data-quality score shown on the slide.
 
-    The slide must never quote a score that the warehouse does not actually
-    hold, so the value is read from the persisted `dq_rule_result` rows. When
-    the warehouse is unreachable the card falls back to describing the
-    mechanism instead of inventing a number.
+    The score is a property of a *run*, not of the source tree, so it cannot be
+    measured statically. It is read from a small committed facts file instead
+    of a live database, because the slide is a committed artefact that CI
+    regenerates and byte-compares: a generator that reached into whatever
+    database happened to exist on the machine would render different bytes in
+    CI than the ones in the repository, and the check would always fail.
+
+    Refresh the value with ``make infographic-refresh`` after a real run.
     """
     try:
+        import json
+
+        facts = json.loads(FACTS_FILE.read_text(encoding="utf-8"))
+        score = facts.get("dq_score")
+        if isinstance(score, (int, float)):
+            return f"{float(score):.2f} measured"
+        if isinstance(score, str) and score.strip():
+            return score.strip()
+    except Exception:
+        pass
+    return "score persisted per run"
+
+
+def _refresh_dq_facts() -> str | None:
+    """Measure the score from the live warehouse and write it to the facts file.
+
+    Returns the measured score, or None when no warehouse holds a run.
+    """
+    try:
+        import json
+
         import sqlalchemy as sa
 
         from app.core.db import session_scope
 
         with session_scope() as session:
-            # The score the run itself persisted, computed with the severity
-            # weights the pipeline applies. Recomputing it here from the raw
-            # rule rows would quietly use a different formula (an unweighted
-            # average) and print a number the dashboard never shows.
             score = session.execute(
                 sa.text(
                     """
@@ -75,11 +102,20 @@ def _measured_dq_score() -> str:
                     """
                 )
             ).scalar()
-        if score is not None:
-            return f"{float(score):.2f} measured"
-    except Exception:
-        pass
-    return "score persisted per run"
+        if score is None:
+            return None
+        facts = {}
+        if FACTS_FILE.exists():
+            try:
+                facts = json.loads(FACTS_FILE.read_text(encoding="utf-8"))
+            except Exception:
+                facts = {}
+        facts["dq_score"] = round(float(score), 2)
+        FACTS_FILE.write_text(json.dumps(facts, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        return f"{float(score):.2f}"
+    except Exception as exc:  # noqa: BLE001 - a missing warehouse is not fatal
+        print(f"note: could not measure the data-quality score ({type(exc).__name__}); keeping the committed value")
+        return None
 
 
 def _measured_dashboard_screens() -> str:
@@ -577,9 +613,21 @@ def main(argv: list[str] | None = None) -> int:
 
     parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     parser.add_argument("--check", action="store_true", help="regenerate and fail if an SVG differs")
+    parser.add_argument(
+        "--refresh-facts",
+        action="store_true",
+        help="re-measure the data-quality score from the live warehouse and write it to the facts file",
+    )
     args = parser.parse_args(argv)
 
     OUT.mkdir(parents=True, exist_ok=True)
+    if args.refresh_facts:
+        measured = _refresh_dq_facts()
+        if measured is None:
+            print("note: no warehouse held a scored run; the committed value was kept")
+        else:
+            print(f"data-quality score refreshed: {measured}")
+
     rendered = {variant: build_svg(variant) for variant in ("light", "dark")}
     paths = {
         "light": OUT / "infographic.svg",

@@ -1,0 +1,4 @@
+{
+  "_comment": "Slide facts that cannot be measured from the source tree alone. The data-quality score is what the project's own verified pipeline run produced; refresh it with 'make infographic-refresh' after a real run, then commit the regenerated slide.",
+  "dq_score": 86.05
+}

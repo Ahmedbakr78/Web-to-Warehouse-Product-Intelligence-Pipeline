@@ -331,6 +331,10 @@ docs-check: docs-validate stats-check ## Validate diagrams and check documentati
 infographic: ## Generate the DEPI infographic (light+dark SVG/PNG/PDF + previews)
 	$(PYBIN) scripts/make_infographic.py
 
+.PHONY: infographic-refresh
+infographic-refresh: ## Re-measure the slide's live facts and regenerate the infographic
+	$(PYBIN) scripts/make_infographic.py --refresh-facts
+
 .PHONY: deck
 deck: ## Generate the 12-slide project presentation deck (HTML + PDF)
 	$(PYBIN) scripts/make_deck.py
