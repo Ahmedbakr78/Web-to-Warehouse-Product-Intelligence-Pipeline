@@ -16,7 +16,7 @@
   <img src="https://img.shields.io/badge/views-23-informational" alt="Views"/>
   <img src="https://img.shields.io/badge/REST%20operations-222-success" alt="REST operations"/>
   <img src="https://img.shields.io/badge/DQ%20rules-12-success" alt="Data quality rules"/>
-  <img src="https://img.shields.io/badge/unit%20tests-596%20passing-brightgreen" alt="Tests"/>
+  <img src="https://img.shields.io/badge/unit%20tests-625%20passing-brightgreen" alt="Tests"/>
   <img src="https://img.shields.io/badge/API%20smoke-104%2F104-brightgreen" alt="API smoke"/>
   <img src="https://img.shields.io/badge/ruff-0%20warnings-brightgreen" alt="ruff"/>
   <img src="https://img.shields.io/badge/CI-github%20actions-2088FF?logo=github-actions&logoColor=white" alt="CI"/>
@@ -35,7 +35,7 @@
 <p align="center">
   <b>222 REST operations</b> · <b>29 tables</b> · <b>23 analytical views</b> ·
   <b>12 DQ rules</b> · <b>34 registered sources</b> · <b>666 catalogued features</b> ·
-  <b>601 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
+  <b>625 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
 </p>
 
 <p align="center">
@@ -1561,7 +1561,7 @@ trigger a pipeline run is denied.
 | --- | --- | --- |
 | Lint and format | `make lint` | ruff: all checks pass, zero warnings |
 | Static types | `make typecheck` | mypy: no issues in 125 source files |
-| Unit tests | `make test` | pytest: 601 passed (SQLite warehouse, no services required) |
+| Unit tests | `make test` | pytest: 625 passed (SQLite warehouse, no services required) |
 | API regression | `.venv/bin/python scripts/api_smoke.py` | 104/104 checks, including auth, RBAC and 404 paths |
 | Frontend | `cd frontend && npm run lint && npm run typecheck && npm run build` | ESLint at zero warnings, clean tsc, production build |
 | Cross-dialect | `make verify-dialects` | identical model and DQ score on PostgreSQL and MySQL |
@@ -1768,7 +1768,7 @@ six-step guide with code is in docs/17.
 
 | Version | Theme | Highlights |
 | --- | --- | --- |
-| **v1.12.0** | Truthful metrics, silent reload & mobile parity | every dashboard tile scoped to the same window, five previously-dead preferences wired end to end, a new exact-number display mode, the mobile drawer lock and resize bugs fixed, three window indexes added, the FX test made hermetic — 612 features, 601 tests |
+| **v1.12.0** | Truthful metrics, silent reload & mobile parity | every dashboard tile scoped to the same window, five previously-dead preferences wired end to end, a new exact-number display mode, the mobile drawer lock and resize bugs fixed, three window indexes added, the FX test made hermetic — 612 features, 625 tests |
 | **v1.11.0** | Morning Briefing & intelligence layer | ranked action queue, `GET /intelligence/briefing`, account briefing defaults, the 10x demo warehouse, mobile/theme polish |
 | **v1.10.0** | Ingestion Max | TVMaze + Archive.org + DummyJSON recipes, the Scrapy engine, conditional GET, the team API, the source catalogue |
 | **v1.9.0** | Real-only defaults | trust-classified sources, theme memory, modern scrollbars, the Account surface, `run.sh` |

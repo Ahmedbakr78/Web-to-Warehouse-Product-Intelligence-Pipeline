@@ -114,7 +114,9 @@ def _refresh_dq_facts() -> str | None:
         FACTS_FILE.write_text(json.dumps(facts, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         return f"{float(score):.2f}"
     except Exception as exc:  # noqa: BLE001 - a missing warehouse is not fatal
-        print(f"note: could not measure the data-quality score ({type(exc).__name__}); keeping the committed value")
+        print(
+            f"note: could not measure the data-quality score ({type(exc).__name__}); keeping the committed value"
+        )
         return None
 
 
@@ -600,12 +602,42 @@ def _export_raster(svg: str, path: Any, fmt: str) -> bool:
         if fmt == "png":
             kwargs.update(output_width=W, output_height=H)
         render(**kwargs)
+        if fmt == "pdf":
+            _normalise_pdf_dates(path)
         return True
     except Exception as exc:  # cairosvg optional - the SVG is the master
         if path.exists():
             path.unlink()
         print(f"note: {fmt.upper()} export skipped ({type(exc).__name__}); SVG is the master copy")
         return False
+
+
+#: A fixed timestamp for the PDF metadata. Cairo writes the current time into
+#: /CreationDate, which would make the committed PDF differ on every
+#: regeneration and show up as noise in every diff.
+PDF_EPOCH = "D:20260101000000Z"
+
+
+def _normalise_pdf_dates(path: Any) -> None:
+    """Rewrite the PDF creation and modification dates to a fixed value."""
+    try:
+        data = path.read_bytes()
+    except Exception:
+        return
+    stamped = False
+    for key in (b"/CreationDate", b"/ModDate"):
+        index = data.find(key)
+        while index != -1:
+            start = index + len(key)
+            end = data.find(b"(", start)
+            close = data.find(b")", end) if end != -1 else -1
+            if end == -1 or close == -1:
+                break
+            data = data[:end] + b"(" + PDF_EPOCH.encode("ascii") + b")" + data[close + 1 :]
+            stamped = True
+            index = data.find(key, end + 1)
+    if stamped:
+        path.write_bytes(data)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -645,12 +677,28 @@ def main(argv: list[str] | None = None) -> int:
         print("infographic SVGs are up to date")
         return 0
 
+    # The SVG is the master. The raster and PDF exports are derived from it and
+    # carry a document identifier that changes on every export, so they are
+    # only rewritten when the master actually changed. Otherwise every run
+    # would leave a modified binary in the working tree.
+    changed = False
     for variant, path in paths.items():
-        path.write_text(rendered[variant], encoding="utf-8")
+        current = path.read_text(encoding="utf-8") if path.exists() else ""
+        if current != rendered[variant]:
+            path.write_text(rendered[variant], encoding="utf-8")
+            changed = True
     (OUT / "infographic.html").write_text(build_html("light"), encoding="utf-8")
     (OUT / "infographic-dark.html").write_text(build_html("dark"), encoding="utf-8")
 
     artefacts: list[str] = []
+    if not changed:
+        print("infographic unchanged - the committed slide is already current")
+        for name in ("infographic.png", "infographic-dark.png", "infographic.pdf"):
+            if (OUT / name).exists():
+                artefacts.append(name)
+        print("infographic written: docs/assets/infographic.svg + infographic-dark.svg")
+        print(f"size: {shutil.get_terminal_size().columns or 80}")
+        return 0
     if _export_raster(rendered["light"], OUT / "infographic.png", "png"):
         artefacts.append("infographic.png")
     if _export_raster(rendered["dark"], OUT / "infographic-dark.png", "png"):
