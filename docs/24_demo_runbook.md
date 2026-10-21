@@ -9,6 +9,22 @@ deck and the examiner Q&A; this document is the operational version.
 
 ## Before you start
 
+### The one command
+
+```bash
+./run.sh
+```
+
+Verifies the whole app against real data and then launches the six-service
+stack with a real pipeline run already loaded, then prints the links and the
+demo credentials. Use this when you want to walk in and present.
+
+```bash
+./run.sh --verify-only   # just the proof: live sources, real pipeline, no-fake audit, frontend
+./run.sh --no-verify     # just the stack
+./run.sh --status        # health of every service
+```
+
 ### The one rule that makes a demo reliable
 
 **Never demonstrate against live web sources.** Real HTTP responses change between

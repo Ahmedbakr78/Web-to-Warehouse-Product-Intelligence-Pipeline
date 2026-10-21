@@ -228,7 +228,10 @@ export function StatTile({
       <div className="min-w-0 flex-1">
         <p className="stat-label line-clamp-2 text-[10px] leading-tight sm:truncate sm:text-xs">{label}</p>
         <p className="stat-value mt-0.5 truncate text-xl sm:text-2xl">{value}</p>
-        {hint ? <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-subtle sm:truncate sm:text-xs">{hint}</p> : null}
+        {/* The hint wraps to two lines instead of being cut off: a truncated
+            hint ("5.7 snapshots per prod…") hides exactly the number the
+            tile exists to explain. */}
+        {hint ? <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-subtle sm:text-xs">{hint}</p> : null}
         {delta ? <div className="mt-1.5">{delta}</div> : null}
       </div>
     </Component>

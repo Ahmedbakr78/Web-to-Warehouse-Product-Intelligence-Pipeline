@@ -227,6 +227,42 @@ Run `python -m app.cli.main purge-untrusted` to remove every row a non-market so
 
 ## Quick start
 
+### One command - everything
+
+```bash
+git clone https://github.com/Ahmedbakr78/Web-to-Warehouse-Product-Intelligence-Pipeline.git
+cd Web-to-Warehouse-Product-Intelligence-Pipeline
+pip install -e ".[postgres,mysql,dev,scrapy]"   # or: make install
+
+./run.sh
+```
+
+That single command does the whole thing:
+
+1. **Verifies** the app against *real* data - ruff, the 619-test backend suite, a
+   registry guard proving the pipeline auto-select excludes every non-`real` and
+   every terms-blocked source, a live fetch from eight real upstreams
+   (Open Library, Gutendex, iTunes apps + ebooks, Steam, CheapShark, Open Food
+   Facts, TVMaze), a real nine-stage pipeline into a fresh warehouse, the
+   no-fake audit over every row, a self-test proving that audit *rejects*
+   synthetic data, the live API serving that warehouse, and the frontend
+   typecheck / lint / vitest / build.
+2. **Launches** the six-service stack, applies the migrations, bootstraps the
+   schema, runs one real pipeline so the dashboard opens with live figures, and
+   prints the links and the demo credentials.
+
+```bash
+./run.sh                 # verify + launch (above)
+./run.sh --verify-only   # verify only, no Docker needed
+./run.sh --no-verify     # launch only
+./run.sh --quick         # fast verify: subset of tests, no frontend build
+./run.sh --offline       # use the synthetic local_demo source (no network)
+./run.sh --status        # health of every service
+./run.sh --logs api      # follow one service's logs
+./run.sh --stop          # stop the stack, keep the data
+./run.sh --help          # every option
+```
+
 ### Option A - full stack in Docker (recommended)
 
 ```bash

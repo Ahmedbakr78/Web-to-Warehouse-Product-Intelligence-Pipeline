@@ -110,7 +110,7 @@ export default function Dashboard() {
   const observationCount = Number(latest.products ?? 0)
   const snapshotsPerProduct = trackedProducts > 0 ? observationCount / trackedProducts : 0
   const trackedHint = snapshotsPerProduct > 0
-    ? `${snapshotsPerProduct.toFixed(1)} snapshots per product`
+    ? `${snapshotsPerProduct.toFixed(1)} snapshots / product`
     : `${formatCompact(counts.dim_product ?? 0)} in the catalogue all-time`
 
   const trendData = (trend.data ?? []).map((row: any) => ({
@@ -197,7 +197,7 @@ export default function Dashboard() {
         <StatTile
           label="Observations"
           value={formatCompact(latest.products ?? 0)}
-          hint={`price snapshots · ${days} day window`}
+          hint={`price snapshots · ${days}d window`}
           icon={<Boxes className="h-4 w-4" />}
           tone="info"
         />
@@ -239,7 +239,7 @@ export default function Dashboard() {
         <StatTile
           label="Removed products"
           value={formatCompact(events.removed ?? 0)}
-          hint={`delisted or out of circulation`}
+          hint={`delisted upstream`}
           icon={<ArrowDownRight className="h-4 w-4" />}
           tone="danger"
         />
