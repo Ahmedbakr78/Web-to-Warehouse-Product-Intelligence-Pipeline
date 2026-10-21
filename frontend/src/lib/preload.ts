@@ -68,11 +68,15 @@ export function preloadScreens(): () => void {
     // page, a closed tab. Nothing is left to preload into, so stop here rather
     // than schedule work that will throw.
     if (typeof window === 'undefined') return
-    if ('requestIdleCallback' in window) {
-      const id = window.requestIdleCallback(callback, { timeout: 2500 })
+    const host = window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number
+      cancelIdleCallback?: (id: number) => void
+    }
+    if (typeof host.requestIdleCallback === 'function') {
+      const id = host.requestIdleCallback(callback, { timeout: 2500 })
       pending = { kind: 'idle', id }
     } else {
-      const id = window.setTimeout(callback, 600)
+      const id = host.setTimeout(callback, 600)
       pending = { kind: 'timeout', id }
     }
   }
