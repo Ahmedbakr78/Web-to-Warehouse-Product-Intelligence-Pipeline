@@ -97,6 +97,78 @@ interface BuilderState {
   pinned: string[]
 }
 
+/**
+ * The SQL each entity's preview is equivalent to.
+ *
+ * Every entry names the analytical view the preview itself reads and the
+ * columns the screen shows, so a statement copied out of the builder runs
+ * against the warehouse instead of failing on a table or column that does
+ * not exist. The sort list holds the columns the entity can be ordered by;
+ * the first one is its default.
+ */
+const ENTITY_SQL: Record<Entity, { from: string; columns: string; sort: string[]; where?: string }> = {
+  products: {
+    from: 'vw_product_current',
+    columns: 'canonical_name, brand, category_name, price_usd, currency, rating, availability, source_code, last_seen_at',
+    sort: ['last_seen_at', 'first_seen_at', 'canonical_name', 'price_usd', 'price_change_pct', 'rating', 'observation_count'],
+  },
+  'price-changes': {
+    from: 'vw_price_changes',
+    columns: 'product_id, canonical_name, previous_price_usd, new_price_usd, change_pct, direction, magnitude_band, detected_at',
+    sort: ['detected_at', 'change_pct', 'canonical_name', 'change_abs'],
+  },
+  runs: {
+    from: 'etl_run',
+    columns: 'run_id, status, trigger, started_at, finished_at, duration_ms, records_extracted, records_inserted, dq_score',
+    sort: ['started_at', 'duration_ms', 'records_extracted', 'dq_score'],
+  },
+  quality: {
+    from: 'dq_rule_result',
+    columns: 'run_id, rule_code, rule_name, dimension, severity, status, observed_value, pass_rate_pct, message, evaluated_at',
+    sort: ['evaluated_at', 'rule_code', 'severity', 'pass_rate_pct'],
+  },
+  catalog: {
+    from: 'vw_catalog_reconciliation',
+    columns: 'catalog_sku, catalog_name, scraped_name, catalog_price, scraped_price_usd, price_gap_pct, match_status, similarity_score',
+    sort: ['similarity_score', 'catalog_sku', 'price_gap_pct'],
+  },
+  new: {
+    from: 'vw_new_products',
+    columns: 'product_id, canonical_name, brand, category_name, source_code, price_usd, currency, first_seen_price_usd, rating, availability, first_seen_at',
+    sort: ['first_seen_at', 'canonical_name', 'first_seen_price_usd'],
+  },
+  removed: {
+    from: 'vw_removed_products',
+    columns: 'product_id, canonical_name, brand, category_name, source_code, last_known_price_usd, last_known_rating, days_missing, removed_date',
+    sort: ['removed_date', 'days_missing', 'canonical_name'],
+  },
+  movers: {
+    from: 'vw_top_movers',
+    columns: 'product_id, canonical_name, category_name, source_code, previous_price, new_price, change_pct, change_abs, direction, magnitude_band, full_date',
+    sort: ['change_abs', 'full_date', 'change_pct', 'canonical_name'],
+  },
+  sources: {
+    from: 'vw_source_coverage',
+    columns: 'source_code, source_name, kind, enabled, products_seen, observations, avg_price_usd, avg_rating, last_observation_at, success_rate_pct',
+    sort: ['observations', 'products_seen', 'source_code', 'success_rate_pct'],
+  },
+  categories: {
+    from: 'vw_category_price_index',
+    columns: 'full_date, category_name, distinct_products, observation_count, avg_price_usd, min_price_usd, max_price_usd, avg_rating',
+    sort: ['full_date', 'observation_count', 'category_name', 'avg_price_usd'],
+  },
+  brands: {
+    from: 'vw_brand_summary',
+    columns: 'brand, category_name, product_count, avg_price_usd, min_price_usd, max_price_usd, avg_rating, in_stock_observations, last_seen_at',
+    sort: ['product_count', 'brand', 'avg_price_usd'],
+  },
+  availability: {
+    from: 'vw_availability_summary',
+    columns: 'category_name, observations, in_stock_count, in_stock_pct, out_of_stock_count',
+    sort: ['observations', 'category_name', 'in_stock_pct'],
+  },
+}
+
 const DEFAULT_STATE: BuilderState = {
   entity: 'products',
   search: '',
@@ -595,6 +667,12 @@ export default function Builder() {
     return `NOW() - INTERVAL '${days} days'`
   }
 
+  /** The sort column, falling back to the entity's own default. */
+  function sortColumn(entity: Entity): string {
+    const spec = ENTITY_SQL[entity]
+    return spec.sort.includes(state.sortBy) ? state.sortBy : spec.sort[0]
+  }
+
   /** A case-insensitive LIKE that behaves the same on every dialect. */
   function likeContains(column: string, value: string): string {
     const needle = value.replace(/'/g, "''")
@@ -631,15 +709,16 @@ export default function Builder() {
       }
       if (state.observedWithinDays) wheres.push(`detected_at >= ${daysAgo(Number(state.observedWithinDays))}`)
       const whereClause = wheres.length ? `\nWHERE ${wheres.join('\n  AND ')}` : ''
-      return `SELECT product_id, canonical_name, previous_price_usd, new_price_usd, change_pct, direction, magnitude_band, detected_at\nFROM vw_price_changes${whereClause}\nORDER BY ${state.sortBy} ${state.sortDir.toUpperCase()}\nLIMIT ${state.pageSize};`
+      return `SELECT product_id, canonical_name, previous_price_usd, new_price_usd, change_pct, direction, magnitude_band, detected_at\nFROM vw_price_changes${whereClause}\nORDER BY ${sortColumn('price-changes')} ${state.sortDir.toUpperCase()}\nLIMIT ${state.pageSize};`
     }
-    if (state.entity === 'quality') {
-      return `SELECT run_id, rule_code, rule_name, dimension, severity, status, observed_value, pass_rate_pct, message, evaluated_at\nFROM dq_rule_result\nORDER BY ${state.sortBy} ${state.sortDir.toUpperCase()}\nLIMIT ${state.pageSize};`
-    }
-    if (state.entity === 'runs') {
-      return `SELECT run_id, status, trigger, started_at, finished_at, duration_ms, records_extracted, records_inserted, dq_score\nFROM etl_run\nORDER BY ${state.sortBy} ${state.sortDir.toUpperCase()}\nLIMIT ${state.pageSize};`
-    }
-    return `SELECT * FROM vw_product_current\nLIMIT ${state.pageSize};`
+
+    // Every other entity reads the same analytical view the preview reads,
+    // with the sort its own endpoint uses. A statement that names a column
+    // the view does not have would be rejected by the database, so the
+    // entity's own default is used whenever the current sort does not apply.
+    const spec = ENTITY_SQL[state.entity]
+    const whereClause = spec.where ? `\nWHERE ${spec.where}` : ''
+    return `SELECT ${spec.columns}\nFROM ${spec.from}${whereClause}\nORDER BY ${sortColumn(state.entity)} ${state.sortDir.toUpperCase()}\nLIMIT ${state.pageSize};`
   }
 
   /** Copy the equivalent SQL query to clipboard for Query Lab or external clients */

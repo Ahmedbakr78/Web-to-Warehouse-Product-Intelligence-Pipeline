@@ -48,10 +48,10 @@ CHECKS: list[tuple[str, str, int, bool, str]] = [
     ("GET", "/api/v1/stream/snapshot?days=1", 200, True, "realtime KPI snapshot"),
     ("GET", "/api/v1/forecast/backtest?limit=10", 200, True, "forecast model accuracy"),
     ("GET", "/api/v1/forecast/products/anomalies?limit=5", 200, True, "anomaly scan"),
-    ("GET", "/api/v1/forecast/1?horizon=7", 200, True, "product forecast"),
-    ("GET", "/api/v1/forecast/1/anomalies", 200, True, "product anomalies"),
-    ("GET", "/api/v1/forecast/1/predict-price", 200, True, "price recommendation"),
-    ("GET", "/api/v1/forecast/1/seasonality", 200, True, "weekly seasonality"),
+    ("GET", "/api/v1/forecast/{product_id}?horizon=7", 200, True, "product forecast"),
+    ("GET", "/api/v1/forecast/{product_id}/anomalies", 200, True, "product anomalies"),
+    ("GET", "/api/v1/forecast/{product_id}/predict-price", 200, True, "price recommendation"),
+    ("GET", "/api/v1/forecast/{product_id}/seasonality", 200, True, "weekly seasonality"),
     ("GET", "/api/v1/forecast/category/Electronics/elasticity", 200, True, "category elasticity"),
     ("GET", "/api/v1/reports/templates", 200, True, "report templates"),
     ("GET", "/api/v1/reports/executive_summary", 200, True, "report HTML preview"),
@@ -66,10 +66,10 @@ CHECKS: list[tuple[str, str, int, bool, str]] = [
     ("GET", "/api/v1/products/facets", 200, True, "facet counts"),
     ("GET", "/api/v1/products/categories", 200, True, "category tree"),
     ("GET", "/api/v1/products/search/suggest?q=sam", 200, True, "type-ahead"),
-    ("GET", "/api/v1/products/1", 200, True, "product detail"),
-    ("GET", "/api/v1/products/1/history?limit=20", 200, True, "price history"),
-    ("GET", "/api/v1/products/1/duplicates", 200, True, "duplicate candidates"),
-    ("GET", "/api/v1/products/1/catalog", 200, True, "catalog links"),
+    ("GET", "/api/v1/products/{product_id}", 200, True, "product detail"),
+    ("GET", "/api/v1/products/{product_id}/history?limit=20", 200, True, "price history"),
+    ("GET", "/api/v1/products/{product_id}/duplicates", 200, True, "duplicate candidates"),
+    ("GET", "/api/v1/products/{product_id}/catalog", 200, True, "catalog links"),
     ("GET", "/api/v1/products/999999", 404, True, "unknown product -> 404"),
     ("GET", "/api/v1/changes/price", 200, True, "price change feed"),
     ("GET", "/api/v1/changes/top-movers?limit=5", 200, True, "top movers"),
@@ -106,7 +106,7 @@ CHECKS: list[tuple[str, str, int, bool, str]] = [
     ("GET", "/api/v1/catalog/opportunities", 200, True, "pricing opportunities"),
     ("GET", "/api/v1/sources", 200, True, "source registry"),
     ("GET", "/api/v1/sources/robots", 200, True, "robots.txt cache"),
-    ("GET", "/api/v1/sources/local_demo/preview?limit=3", 200, True, "raw preview"),
+    ("GET", "/api/v1/sources/gutendex_books/preview?limit=3", 200, True, "raw preview from a real source"),
     ("GET", "/api/v1/queries/views", 200, True, "analytical views"),
     ("GET", "/api/v1/queries/tables", 200, True, "queryable tables"),
     ("GET", "/api/v1/queries/examples", 200, True, "starter queries"),
@@ -208,16 +208,49 @@ def login(base_url: str, email: str | None = None, password: str | None = None) 
     return response.json().get("access_token", "")
 
 
+def _resolve_product_id(base_url: str, headers: dict[str, str]) -> str:
+    """The id of a product that really exists in the warehouse.
+
+    Product ids are not stable across a purge or a rebuild, so the smoke test
+    asks the API for one instead of assuming that ``1`` is always there.
+    """
+    try:
+        response = httpx.get(
+            f"{base_url}/api/v1/products",
+            params={"page": 1, "page_size": 1},
+            headers=headers,
+            timeout=30.0,
+        )
+        if response.status_code != 200:
+            return ""
+        items = response.json().get("items") or []
+        if not items:
+            return ""
+        return str(items[0].get("product_id") or "")
+    except Exception:  # noqa: BLE001
+        return ""
+
+
 def run_checks(base_url: str, token: str, role_tokens: dict[str, str] | None = None) -> tuple[int, int, int]:
     role_tokens = role_tokens or {}
     headers = {"Authorization": f"Bearer {token}"} if token else {}
     passed = failed = skipped = 0
     failures: list[str] = []
 
+    # A product-scoped check needs a product that exists. Hard-coding id 1
+    # broke the moment the warehouse was purged and the ids shifted, so the
+    # id is resolved from the API once and substituted into the paths.
+    product_id = _resolve_product_id(base_url, headers)
+
     for check in CHECKS:
         method, path, expected, needs_auth, note = check[:5]
         no_auth = len(check) > 5 and check[5] is True
         role = check[6] if len(check) > 6 else "admin"
+        if "{product_id}" in path:
+            if not product_id:
+                skipped += 1
+                continue
+            path = path.replace("{product_id}", product_id)
         url = f"{base_url}{path}"
         request_headers = {} if no_auth else dict(headers)
         if role != "admin":

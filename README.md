@@ -34,8 +34,8 @@
 
 <p align="center">
   <b>222 REST operations</b> · <b>29 tables</b> · <b>23 analytical views</b> ·
-  <b>12 DQ rules</b> · <b>34 registered sources</b> · <b>658 catalogued features</b> ·
-  <b>596 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
+  <b>12 DQ rules</b> · <b>34 registered sources</b> · <b>666 catalogued features</b> ·
+  <b>601 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
 </p>
 
 <p align="center">
@@ -180,7 +180,7 @@ Everything is engineered like a production system, not a demo:
 12 data-quality rules across 6 dimensions, weighted score persisted per run
 34 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
 16 CLI commands  |  6 Docker Compose services  |  34 documents  |  88 Mermaid diagrams
-596 tests  |  104/104 API smoke checks  |  658 catalogued features
+601 tests  |  104/104 API smoke checks  |  666 catalogued features
 ```
 
 | Metric | Count |
@@ -197,10 +197,10 @@ Everything is engineered like a production system, not a demo:
 | Docker Compose services                  | 6 |
 | Numbered documents                       | 34 |
 | Mermaid diagrams                         | 88 |
-| Catalogued features (live API catalogue) | 658 |
-| Documented features (F-ID inventory)     | 604 |
+| Catalogued features (live API catalogue) | 666 |
+| Documented features (F-ID inventory)     | 612 |
 | Documented feature areas                 | 47 |
-| Collected test cases                     | 596 |
+| Collected test cases                     | 601 |
 | API smoke checks                         | 104 |
 
 <!-- END:STATS -->
@@ -1108,9 +1108,9 @@ pip-cli quality --database mysql   # the same rules against the second dialect
 ## Feature catalogue
 
 The exhaustive, file-referenced inventory lives in
-[docs/19_feature_list.md](docs/19_feature_list.md) — 604 features in forty-seven areas, each naming the file that
+[docs/19_feature_list.md](docs/19_feature_list.md) — 612 features in forty-eight areas, each naming the file that
 implements it. The runtime catalogue behind the **Features** screen is served by
-`GET /api/v1/meta/features` (658 entries across 42 user-facing groups) and is generated from
+`GET /api/v1/meta/features` (666 entries across 42 user-facing groups) and is generated from
 `app/core/features.py`, so the two numbers are measured on different axes — the inventory indexes
 the *engineering*, the catalogue indexes the *product* — and neither can drift from the code.
 
@@ -1425,7 +1425,7 @@ All configuration arrives through environment variables (`.env.example` document
 | **Sources** | registry cards with compliance metadata, robots.txt statistics, raw-versus-cleaned preview |
 | **Query Lab** | read-only SQL console over the 23 views, table inventory, starter examples, CSV export |
 | **Builder** | two modes: *filter & customise* (facets, columns, order, saved presets) and *group & aggregate* (11 entities, six measures, fifteen operators, bar chart, generated SQL, cURL copy, exports) |
-| **Features** | searchable, filterable catalogue of all 658 catalogued features in 42 groups, each with an icon and copy-to-clipboard |
+| **Features** | searchable, filterable catalogue of all 666 catalogued features in 42 groups, each with an icon and copy-to-clipboard |
 | **Alerts** | alert rules with thresholds and channels, notification feed, evaluate action |
 | **Webhooks** | outbound event subscriptions with HMAC-signed payloads, one-time secret reveal and rotation, test delivery, per-attempt delivery log |
 | **Account** | profile, preferences, appearance (theme, accent, density, motion, **silent reload**), password change, API keys, **personal activity feed**, **data export**, **account deletion** |
@@ -1504,16 +1504,46 @@ trigger a pipeline run is denied.
 | Layer | Command | Evidence in this repository |
 | --- | --- | --- |
 | Lint and format | `make lint` | ruff: all checks pass, zero warnings |
-| Static types | `make typecheck` | mypy: no issues in 83 source files |
-| Unit tests | `make test` | pytest: 426 passed (SQLite warehouse, no services required) |
+| Static types | `make typecheck` | mypy: no issues in 125 source files |
+| Unit tests | `make test` | pytest: 601 passed (SQLite warehouse, no services required) |
 | API regression | `.venv/bin/python scripts/api_smoke.py` | 104/104 checks, including auth, RBAC and 404 paths |
 | Frontend | `cd frontend && npm run lint && npm run typecheck && npm run build` | ESLint at zero warnings, clean tsc, production build |
 | Cross-dialect | `make verify-dialects` | identical model and DQ score on PostgreSQL and MySQL |
 | Orchestrated | `make airflow-test` | the DAG executes end-to-end for a fixed date |
+| Real-data proof | `./run.sh --verify-only` | live sources, a real pipeline, the live API, the frontend and compose |
+| No-fake audit | `.venv/bin/python scripts/audit_no_fakes.py --database <url>` | every row in every fact, staging and aggregate table traces to a real source |
 | Full gate | `make everything` | install, databases, bootstrap, demo data, pipeline run, tests, frontend build |
 
 The integration suite covers auth and RBAC, the read-only query guard, CSV export media type, saved
 views, alerts, notifications, settings and audit behaviour.
+
+### Proving the data is real
+
+`scripts/audit_no_fakes.py` is the check behind the "no fakes" claim. It opens its own connection to
+the warehouse it is given and walks every table that records where a row came from — `dim_product`,
+`fact_price_snapshot`, `chg_price_change`, `chg_product_event`, `fact_catalog_snapshot`,
+`stg_raw_observation` and `agg_category_daily` — then asks `dim_source` for the trust level of each
+upstream. A row is only accepted when its source is classified `real`.
+
+Three things make the check strict rather than decorative:
+
+- a row whose source is **not registered** in `dim_source` cannot be attributed to anything, so it is
+  reported rather than accepted;
+- a **cross-source rollup** carries no single upstream, so the audit joins it back to the snapshots
+  that built it and checks those instead;
+- a row in the reserved `SYN-` namespace is always flagged, whatever its source claims.
+
+The verification run also proves the audit has teeth: it seeds a throwaway warehouse with the
+synthetic demo dataset, **fails if the audit accepts it**, then purges the synthetic rows and
+requires the audit to pass. A check that never fails proves nothing.
+
+```bash
+# audit any warehouse (exit code 1 the moment a non-real row is found)
+.venv/bin/python scripts/audit_no_fakes.py --database "sqlite:///./var/pipeline.sqlite3"
+
+# see what the app would remove, without removing it
+.venv/bin/python -m app.cli.main purge-untrusted --dry-run
+```
 
 ---
 
@@ -1602,7 +1632,7 @@ natively on GitHub; every structural number is tied to a runnable command.
 | 16 | User Manual | sign-in, every screen, filters, exports, alerts, admin, troubleshooting, FAQ |
 | 17 | Technical Documentation | module map, key algorithms, every configuration variable |
 | 18 | Presentation Outline | defence deck, Q&A preparation, demo script |
-| 19 | Feature Inventory | 604 features in forty-seven areas with file references |
+| 19 | Feature Inventory | 612 features in forty-eight areas with file references |
 | 20 | Feedback and Improvements | feedback template, 32 prioritised improvements, self-assessment |
 | 21 | **Architecture Deep Dive** | design drivers, decisions with rejected alternatives, request lifecycle, layering, known limitations |
 | 22 | **Data Dictionary** | every table, column, type and meaning; controlled vocabularies; view catalogue; dialect portability |
@@ -1682,7 +1712,7 @@ six-step guide with code is in docs/17.
 
 | Version | Theme | Highlights |
 | --- | --- | --- |
-| **v1.12.0** | Truthful metrics, silent reload & mobile parity | every dashboard tile scoped to the same window, five previously-dead preferences wired end to end, a new exact-number display mode, the mobile drawer lock and resize bugs fixed, three window indexes added, the FX test made hermetic — 604 features, 596 tests |
+| **v1.12.0** | Truthful metrics, silent reload & mobile parity | every dashboard tile scoped to the same window, five previously-dead preferences wired end to end, a new exact-number display mode, the mobile drawer lock and resize bugs fixed, three window indexes added, the FX test made hermetic — 612 features, 601 tests |
 | **v1.11.0** | Morning Briefing & intelligence layer | ranked action queue, `GET /intelligence/briefing`, account briefing defaults, the 10x demo warehouse, mobile/theme polish |
 | **v1.10.0** | Ingestion Max | TVMaze + Archive.org + DummyJSON recipes, the Scrapy engine, conditional GET, the team API, the source catalogue |
 | **v1.9.0** | Real-only defaults | trust-classified sources, theme memory, modern scrollbars, the Account surface, `run.sh` |

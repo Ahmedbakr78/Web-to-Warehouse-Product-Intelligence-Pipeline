@@ -1107,5 +1107,13 @@ the desktop one. The synthetic demo path stays quarantined from production.
 | F-602 | Regional settings are validated | The API rejects a malformed timezone, locale tag or currency code instead of storing it | `app/api/schemas.py` |
 | F-603 | Builder hands off to the query lab | The current filters, sort and page size become a ready-to-run statement in the query lab | `frontend/src/pages/Builder.tsx` |
 | F-604 | Hand-off is a one-shot | The statement is taken from the URL once and the parameter is dropped, so a reload never re-applies it | `frontend/src/pages/QueryLab.tsx` |
+| F-605 | Standalone no-fake audit | A script walks every table that records an upstream and proves each row traces back to a real, permitted source | `scripts/audit_no_fakes.py` |
+| F-606 | The audit opens its own connection | It connects to the URL it is given, so it can be pointed at a copy, a production warehouse or a file the app is not using | `scripts/audit_no_fakes.py` |
+| F-607 | Unregistered sources are not trusted | A row whose source is missing from the dimension table cannot be verified, so it is reported rather than accepted | `scripts/audit_no_fakes.py` |
+| F-608 | Rollups are audited at their inputs | A cross-source aggregate carries no single upstream, so the audit joins it back to the snapshots that built it | `scripts/audit_no_fakes.py` |
+| F-609 | The synthetic namespace is reported | A row written under the reserved synthetic prefix is always flagged, whatever the source says | `scripts/audit_no_fakes.py` |
+| F-610 | The audit is proved, not assumed | The verification run seeds a throwaway synthetic warehouse and fails if the audit accepts it | `run-full-app.sh` |
+| F-611 | The app can purge what the audit finds | A dry run lists the untrusted sources and the rows they wrote; the real run removes them | `app/etl/purge.py` |
+| F-612 | Purge keeps a product with any real observation | A product that also has a trusted observation is re-pointed rather than deleted | `app/etl/purge.py` |
 
-**Revised total: 604 features across 47 areas** (F-001 to F-604).
+**Revised total: 612 features across 48 areas** (F-001 to F-612).

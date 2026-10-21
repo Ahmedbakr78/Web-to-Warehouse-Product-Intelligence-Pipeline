@@ -2717,6 +2717,38 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "name": "Hand-off is a one-shot",
                 "detail": "The statement is taken from the URL once and the parameter is dropped, so a reload never re-applies it",
             },
+            {
+                "name": "Standalone no-fake audit",
+                "detail": "A script walks every table that records an upstream and proves each row traces back to a real, permitted source",
+            },
+            {
+                "name": "The audit opens its own connection",
+                "detail": "It connects to the URL it is given, so it can be pointed at a copy, a production warehouse or a file the app is not using",
+            },
+            {
+                "name": "Unregistered sources are not trusted",
+                "detail": "A row whose source is missing from the dimension table cannot be verified, so it is reported rather than accepted",
+            },
+            {
+                "name": "Rollups are audited at their inputs",
+                "detail": "A cross-source aggregate carries no single upstream, so the audit joins it back to the snapshots that built it",
+            },
+            {
+                "name": "The synthetic namespace is reported",
+                "detail": "A row written under the reserved synthetic prefix is always flagged, whatever the source says",
+            },
+            {
+                "name": "The audit is proved, not assumed",
+                "detail": "The verification run seeds a throwaway synthetic warehouse and fails if the audit accepts it",
+            },
+            {
+                "name": "The app can purge what the audit finds",
+                "detail": "A dry run lists the untrusted sources and the rows they wrote; the real run removes them",
+            },
+            {
+                "name": "Purge keeps a product with any real observation",
+                "detail": "A product that also has a trusted observation is re-pointed rather than deleted",
+            },
         ],
     },
 ]

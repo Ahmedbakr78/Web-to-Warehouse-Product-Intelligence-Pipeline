@@ -96,14 +96,15 @@ def _rollup_inputs(
 
 
 def audit(database_url: str, *, allow_sandbox: bool = False) -> dict:
-    """Return a report of every non-real row found in the warehouse."""
-    os.environ["DATABASE_URL"] = database_url
-    os.environ.setdefault("ACTIVE_DATABASE", database_url.split("://", 1)[0])
+    """Return a report of every non-real row found in the warehouse.
 
-    from app.core.db import dispose_all, get_engine
-
+    The audit opens its own connection to the URL it is given rather than the
+    application's cached engine, so it can be pointed at any database - a
+    throwaway copy, a production warehouse, or a file that is not the one the
+    app is currently using.
+    """
     accepted = {"real", "sandbox"} if allow_sandbox else {"real"}
-    engine = get_engine()
+    engine = sa.create_engine(database_url, future=True)
     findings: list[dict] = []
     per_table: dict[str, dict] = {}
 
@@ -180,7 +181,7 @@ def audit(database_url: str, *, allow_sandbox: bool = False) -> dict:
             if table in tables:
                 total_rows += int(conn.execute(sa.text(f'SELECT COUNT(*) FROM "{table}"')).scalar() or 0)
 
-    dispose_all()
+    engine.dispose()
     return {
         "database": database_url,
         "accepted_trust": sorted(accepted),
