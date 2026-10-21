@@ -332,12 +332,35 @@ def stats_block(stats: dict[str, int]) -> str:
     return "\n".join(lines)
 
 
-def sync_readme(stats: dict[str, int]) -> int:
+#: Figures that legitimately move whenever work is done, and that therefore
+#: must not make the documentation gate fail. The number of tests changes with
+#: every new test case; pinning it in the README would mean every commit that
+#: adds a test also has to edit the prose, and a stale count in a badge is a
+#: much smaller problem than a gate that cries wolf.
+VOLATILE_FIGURES: tuple[str, ...] = ("test_cases", "test_functions")
+
+
+def _volatile_normalised(block: str) -> str:
+    """The block with the volatile figures masked, so they cannot mask drift."""
+    import re
+
+    for key in VOLATILE_FIGURES:
+        block = re.sub(rf"\| {key} \| \d+ \|", f"| {key} | - |", block)
+    # The one-line summary carries the test count too.
+    block = re.sub(r"\d+ tests\s+\|", "<n> tests  |", block)
+    return block
+
+
+def sync_readme(stats: dict[str, int], *, check: bool = False) -> int:
     """Replace the generated block in README.md between the markers.
 
     The surrounding blank lines are normalised on both sides so that running this
     twice in a row is a no-op. Without that, every invocation would append
     another blank line and CI would report the file as modified forever.
+
+    With ``check=True`` nothing is written: the block is compared and a
+    difference is reported. The comparison ignores the volatile figures, so a
+    commit that only adds a test does not have to touch the prose.
     """
     readme = ROOT / "README.md"
     text = readme.read_text(encoding="utf-8")
@@ -356,6 +379,25 @@ def sync_readme(stats: dict[str, int]) -> int:
     # either side, whatever the original spacing was.
     updated = f"{head.rstrip()}\n\n{stats_block(stats)}\n\n{tail.lstrip()}"
 
+    if check:
+        if _volatile_normalised(updated) == _volatile_normalised(text):
+            print(f"{readme.name} is up to date (volatile figures ignored).")
+            return 0
+        print(
+            f"error: the generated statistics block in {readme.name} is stale.\n"
+            f"Run `make stats-sync` and commit the result.",
+            file=sys.stderr,
+        )
+        import difflib
+
+        for line in list(
+            difflib.unified_diff(
+                text.splitlines(), updated.splitlines(), "committed", "measured", lineterm=""
+            )
+        )[:40]:
+            print(line, file=sys.stderr)
+        return 1
+
     if updated == text:
         print(f"{readme.name} is already up to date.")
         return 0
@@ -373,6 +415,11 @@ def main() -> int:
         action="store_true",
         help="rewrite the generated statistics block in README.md",
     )
+    parser.add_argument(
+        "--check-readme",
+        action="store_true",
+        help="fail if the generated statistics block in README.md is stale",
+    )
     args = parser.parse_args()
 
     stats = gather()
@@ -383,6 +430,8 @@ def main() -> int:
 
     if args.sync_readme:
         return sync_readme(stats)
+    if args.check_readme:
+        return sync_readme(stats, check=True)
 
     width = max(len(label) for label in LABELS.values())
     print("| Metric | Count |")

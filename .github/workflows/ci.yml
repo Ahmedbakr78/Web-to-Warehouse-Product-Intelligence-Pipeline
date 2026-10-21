@@ -310,11 +310,9 @@ jobs:
       - name: Compare against the figures recorded in the docs
         run: python3 scripts/check_stats.py docs/stats.json
 
+      # The block is compared, not rewritten: a difference fails the job so
+      # the docs get corrected. The volatile figures - the test count above all -
+      # are excluded, because pinning them would mean every commit that adds a
+      # test also has to edit the prose.
       - name: Verify the generated block in README.md is current
-        run: |
-          python3 scripts/project_stats.py --sync-readme
-          if ! git diff --quiet -- README.md; then
-            echo "::error::The generated statistics block in README.md is stale."
-            git --no-pager diff -- README.md
-            exit 1
-          fi
+        run: python3 scripts/project_stats.py --check-readme
