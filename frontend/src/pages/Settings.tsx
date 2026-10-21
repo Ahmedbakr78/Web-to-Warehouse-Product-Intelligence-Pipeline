@@ -33,6 +33,7 @@ import { endpoints } from '@/lib/api'
 import { queryKeys, useApiQuery } from '@/hooks/useApi'
 import { useAuth } from '@/hooks/useAuth'
 import { formatDateTime, formatDuration, formatNumber, formatPrice, formatRelative, titleCase } from '@/lib/format'
+import { toArray } from '@/lib/payload'
 
 type Setting = {
   key: string
@@ -96,7 +97,7 @@ export default function Settings() {
 
   const groups = useMemo(() => {
     const map = new Map<string, Setting[]>()
-    for (const row of settings.data ?? []) {
+    for (const row of toArray(settings.data)) {
       const bucket = map.get(row.category) ?? []
       bucket.push(row)
       map.set(row.category, bucket)
@@ -406,7 +407,7 @@ export default function Settings() {
               />
             </div>
             <DataTable
-              rows={qualityRules.data ?? []}
+              rows={toArray(qualityRules.data)}
               columns={ruleColumns}
               rowKey={(row) => row.code}
               loading={qualityRules.isFetching}
@@ -437,7 +438,7 @@ export default function Settings() {
               />
             </div>
             <DataTable
-              rows={sources.data ?? []}
+              rows={toArray(sources.data)}
               columns={sourceColumns}
               rowKey={(row) => row.source_code}
               loading={sources.isFetching}

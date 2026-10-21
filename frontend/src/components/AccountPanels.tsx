@@ -45,6 +45,7 @@ import { useApiQuery } from '@/hooks/useApi'
 import { useAuth } from '@/hooks/useAuth'
 import { downloadJson, formatDateTime, formatRelative } from '@/lib/format'
 import { localStore } from '@/lib/session'
+import { toArray } from '@/lib/payload'
 import {
   ACCENT_KEYS,
   DENSITIES,
@@ -141,7 +142,7 @@ export function AlertsPanel() {
     onError: (error: Error) => toast.error('Could not evaluate the rules', error.message),
   })
 
-  const rows = (alerts.data ?? []) as any[]
+  const rows = (toArray(alerts.data)) as any[]
   const active = rows.filter((row) => row.is_active)
 
   return (

@@ -48,6 +48,7 @@ import { useJob } from '@/lib/stream'
 import { useQueryClient } from '@tanstack/react-query'
 import { formatDate, formatNumber, formatPrice, downloadCsv, toCsv } from '@/lib/format'
 import { cn } from '@/lib/cn'
+import { toArray } from '@/lib/payload'
 
 const HORIZONS = [
   { id: '7', label: '7 days' },
@@ -551,7 +552,7 @@ function ProductProjection({
   }
 
   const forecastPoints = ((forecast.data?.points ?? []) as ForecastPoint[]) ?? []
-  const historyRows = ((history.data ?? []) as any[]).map((row) => ({
+  const historyRows = ((toArray(history.data)) as any[]).map((row) => ({
     date: String(row.full_date ?? row.date ?? ''),
     value: row.price_usd ?? row.new_price_usd ?? null,
   }))

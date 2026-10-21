@@ -29,6 +29,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useDefaultPageSize } from '@/hooks/usePreferences'
 import { formatCompact, formatDateTime, formatNumber, formatPrice, formatRelative, statusTone, titleCase } from '@/lib/format'
+import { toArray } from '@/lib/payload'
 
 export default function Catalog() {
   const [tab, setTab] = useState('reconciliation')
@@ -106,7 +107,7 @@ export default function Catalog() {
 
   const totals = summary.data?.totals ?? {}
   const matchRate = Number(totals.total ?? 0) > 0 ? (Number(totals.matched ?? 0) / Number(totals.total)) * 100 : 0
-  const opportunityRows = opportunities.data ?? []
+  const opportunityRows = toArray(opportunities.data)
 
   return (
     <div className="space-y-4">

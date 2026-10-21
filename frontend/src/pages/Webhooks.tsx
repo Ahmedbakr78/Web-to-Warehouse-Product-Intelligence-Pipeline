@@ -44,6 +44,7 @@ import {
 import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { formatDateTime, formatNumber } from '@/lib/format'
+import { toArray } from '@/lib/payload'
 
 type Webhook = {
   webhook_id: number
@@ -104,7 +105,7 @@ export default function Webhooks() {
     { enabled: Boolean(deliveriesFor) },
   )
 
-  const totals = (hooks.data ?? []).reduce(
+  const totals = (toArray(hooks.data)).reduce(
     (acc, hook) => {
       acc.success += hook.success_count
       acc.failure += hook.failure_count
@@ -296,7 +297,7 @@ export default function Webhooks() {
   return (
     <div className="space-y-5">
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <StatTile label="Subscriptions" value={formatNumber((hooks.data ?? []).length)} icon={<WebhookIcon className="h-4 w-4" />} />
+        <StatTile label="Subscriptions" value={formatNumber((toArray(hooks.data)).length)} icon={<WebhookIcon className="h-4 w-4" />} />
         <StatTile label="Active" value={formatNumber(totals.active)} icon={<CheckCircle2 className="h-4 w-4" />} tone="success" />
         <StatTile label="Deliveries sent" value={formatNumber(totals.success)} icon={<Send className="h-4 w-4" />} />
         <StatTile label="Failed deliveries"
@@ -325,7 +326,7 @@ export default function Webhooks() {
             message={(hooks.error as Error)?.message}
             onRetry={() => void hooks.refetch()}
           />
-        ) : (hooks.data ?? []).length === 0 ? (
+        ) : (toArray(hooks.data)).length === 0 ? (
           <EmptyState
             icon={<WebhookIcon className="h-6 w-6" />}
             title="No webhooks yet"
@@ -333,7 +334,7 @@ export default function Webhooks() {
             action={<Button icon={<Plus className="h-4 w-4" />} onClick={() => setCreating(true)}>Create the first webhook</Button>}
           />
         ) : (
-          <DataTable columns={columns} rows={hooks.data ?? []} rowKey={(row) => String(row.webhook_id)} />
+          <DataTable columns={columns} rows={toArray(hooks.data)} rowKey={(row) => String(row.webhook_id)} />
         )}
       </Card>
 

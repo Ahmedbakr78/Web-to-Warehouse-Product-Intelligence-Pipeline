@@ -26,6 +26,7 @@ import { useApiQuery } from '@/hooks/useApi'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useDefaultPageSize } from '@/hooks/usePreferences'
 import { downloadJson, formatCompact, formatDate, formatNumber, formatPrice, formatRelative, statusTone, titleCase } from '@/lib/format'
+import { toArray } from '@/lib/payload'
 
 const RANGES = [
   { id: '7', label: '7d' },
@@ -90,7 +91,7 @@ export default function Changes() {
   const removed = useApiQuery(['removed-products', windowDays], () => endpoints.removedProducts(windowDays, 100))
   const categoryChanges = useApiQuery(['category-changes', windowDays], () => endpoints.categoryChanges(windowDays, 100))
 
-  const timelineData = (timeline.data ?? []).map((row: any) => ({ ...row, date: formatDate(row.full_date) }))
+  const timelineData = (toArray(timeline.data)).map((row: any) => ({ ...row, date: formatDate(row.full_date) }))
 
   /** The detection rules, described from the definitions the API publishes. */
   const detectionSteps = (() => {
@@ -171,9 +172,9 @@ export default function Changes() {
                 window_days: windowDays,
                 summary: summary.data,
                 price_changes: (priceChanges.data as any)?.items ?? [],
-                new_products: newProducts.data ?? [],
-                removed_products: removed.data ?? [],
-                category_changes: categoryChanges.data ?? [],
+                new_products: toArray(newProducts.data),
+                removed_products: toArray(removed.data),
+                category_changes: toArray(categoryChanges.data),
               })
             }
           >
@@ -339,7 +340,7 @@ export default function Changes() {
       {tab === 'new' ? (
         <Card padded={false}>
           <DataTable
-            rows={searchFilter(newProducts.data ?? [])}
+            rows={searchFilter(toArray(newProducts.data))}
             rowKey={(row: any) => String(row.product_id)}
             loading={newProducts.isFetching}
             emptyMessage="No new products discovered in this window"
@@ -358,7 +359,7 @@ export default function Changes() {
       {tab === 'removed' ? (
         <Card padded={false}>
           <DataTable
-            rows={searchFilter(removed.data ?? [])}
+            rows={searchFilter(toArray(removed.data))}
             rowKey={(row: any) => String(row.product_id)}
             loading={removed.isFetching}
             emptyMessage="No products have been removed in this window"
@@ -381,7 +382,7 @@ export default function Changes() {
               <CardHeader title="Category recategorisations" subtitle="Products whose upstream category changed" icon={<Tag className="h-4 w-4" />} />
             </div>
             <DataTable
-              rows={searchFilter(categoryChanges.data ?? [])}
+              rows={searchFilter(toArray(categoryChanges.data))}
               rowKey={(row: any) => String(row.event_id)}
               loading={categoryChanges.isFetching}
               emptyMessage="No recategorisations detected"
@@ -400,7 +401,7 @@ export default function Changes() {
               <CardHeader title="Assortment drift" subtitle="Products added, removed and recategorised per category" icon={<Layers className="h-4 w-4" />} />
             </div>
             <DataTable
-              rows={drift.data ?? []}
+              rows={toArray(drift.data)}
               rowKey={(row: any) => row.category_name}
               loading={drift.isFetching}
               maxHeight={420}
@@ -435,7 +436,7 @@ export default function Changes() {
             <CardHeader title="Top movers this window" subtitle="Largest absolute percentage moves" icon={<Activity className="h-4 w-4" />} />
           </div>
           <DataTable
-            rows={movers.data ?? []}
+            rows={toArray(movers.data)}
             rowKey={(row: any, index) => `${row.product_id}-${index}`}
             loading={movers.isFetching}
             maxHeight={320}

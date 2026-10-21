@@ -33,6 +33,7 @@ import { endpoints } from '@/lib/api'
 import { queryKeys, useApiQuery } from '@/hooks/useApi'
 import { useAuth } from '@/hooks/useAuth'
 import { formatDateTime, formatNumber, formatRelative, titleCase } from '@/lib/format'
+import { toArray } from '@/lib/payload'
 
 type AlertRule = {
   alert_id: number
@@ -143,7 +144,7 @@ export default function Alerts() {
   )
   const unread = useApiQuery<{ total?: number }>(['notifications', 'alerts-unread'], () => endpoints.notifications(1, true))
 
-  const rows = rules.data ?? []
+  const rows = toArray(rules.data)
   const notifications = feed.data?.items ?? []
 
   const matchesByRule = useMemo(() => {

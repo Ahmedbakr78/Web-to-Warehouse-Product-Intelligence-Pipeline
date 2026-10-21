@@ -34,6 +34,7 @@ import {
 } from '@/components/ui'
 import { cn } from '@/lib/cn'
 import { endpoints } from '@/lib/api'
+import { toArray } from '@/lib/payload'
 import { useApiQuery } from '@/hooks/useApi'
 import { useAuth } from '@/hooks/useAuth'
 import { useProfilePreferences } from '@/hooks/usePreferences'
@@ -113,13 +114,13 @@ export default function Dashboard() {
     ? `${snapshotsPerProduct.toFixed(1)} snapshots / product`
     : `${formatCompact(counts.dim_product ?? 0)} in the catalogue all-time`
 
-  const trendData = (trend.data ?? []).map((row: any) => ({
+  const trendData = (toArray(trend.data)).map((row: any) => ({
     ...row,
     date: formatDate(row.full_date),
     avg_price_usd: row.avg_price_usd ? Number(row.avg_price_usd) : null,
   }))
 
-  const priceChangeData = (priceTrend.data ?? []).map((row: any) => ({
+  const priceChangeData = (toArray(priceTrend.data)).map((row: any) => ({
     ...row,
     date: formatDate(row.full_date),
   }))
@@ -133,7 +134,7 @@ export default function Dashboard() {
   ]
 
   function exportCsv() {
-    const rows = movers.data ?? []
+    const rows = toArray(movers.data)
     const header = ['product', 'category', 'previous_price', 'new_price', 'change_pct', 'direction', 'source', 'date']
     const body = rows.map((row: any) => [
       row.canonical_name,
@@ -153,7 +154,7 @@ export default function Dashboard() {
       exported_at: new Date().toISOString(),
       window_days: windowDays,
       kpi: kpi.data,
-      top_movers: movers.data ?? [],
+      top_movers: toArray(movers.data),
       change_summary: changeSummary.data,
       quality: quality.data,
     })
@@ -415,7 +416,7 @@ export default function Dashboard() {
           />
         </div>
         <DataTable
-          rows={movers.data ?? []}
+          rows={toArray(movers.data)}
           rowKey={(row: any, index) => `${row.product_id}-${index}`}
           emptyMessage="No significant price movement detected in this window"
           columns={[

@@ -76,6 +76,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { ALL_NAV_ITEMS } from '@/lib/nav'
 import { localStore } from '@/lib/session'
 import { formatDateTime, formatRelative, initials, titleCase, downloadCsv, downloadJson, toCsv } from '@/lib/format'
+import { toArray } from '@/lib/payload'
 import SecurityPanel from '@/components/SecurityPanel'
 import { AlertsPanel, PrivacyPanel } from '@/components/AccountPanels'
 
@@ -458,7 +459,7 @@ export default function Account() {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatTile label="Sign-ins" value={user.login_count} hint={user.last_login_at ? `Last ${formatRelative(user.last_login_at)}` : 'First session'} icon={<UserCircle className="h-4 w-4" />} />
         <StatTile label="Member since" value={user.created_at ? new Date(user.created_at).getFullYear() : '—'} hint={formatDateTime(user.created_at)} tone="info" />
-        <StatTile label="API keys" value={apiKeys.data?.filter((key: any) => key.is_active).length ?? 0} hint="Active machine credentials" tone="neutral" />
+        <StatTile label="API keys" value={toArray(apiKeys.data).filter((key: any) => key.is_active).length ?? 0} hint="Active machine credentials" tone="neutral" />
         <StatTile label="Default page size" value={rowsPerPage} hint="Used by every paginated table" tone="success" />
       </div>
 

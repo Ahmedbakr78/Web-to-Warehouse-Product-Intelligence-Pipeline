@@ -48,6 +48,7 @@ import { useApiQuery } from '@/hooks/useApi'
 import { useAuth } from '@/hooks/useAuth'
 import { useDefaultPageSize } from '@/hooks/usePreferences'
 import { formatCompact, formatDateTime, formatDuration, formatNumber, formatRelative, statusTone, titleCase } from '@/lib/format'
+import { toArray } from '@/lib/payload'
 
 const STATUS_FILTERS = [
   { id: '', label: 'All' },
@@ -108,8 +109,8 @@ export default function Pipeline() {
     return counts
   }, [runs.data])
 
-  const sourceHealth = sourceStatus.data ?? []
-  const enabledSources = (sourceRegistry.data ?? []).filter((source: any) => source.enabled)
+  const sourceHealth = toArray(sourceStatus.data)
+  const enabledSources = (toArray(sourceRegistry.data)).filter((source: any) => source.enabled)
 
   return (
     <div className="space-y-4">

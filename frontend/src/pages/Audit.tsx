@@ -40,6 +40,7 @@ import {
   useToast,
 } from '@/components/ui'
 import { endpoints } from '@/lib/api'
+import { toArray } from '@/lib/payload'
 import { useApiQuery } from '@/hooks/useApi'
 import { useDefaultPageSize } from '@/hooks/usePreferences'
 import {
@@ -139,10 +140,10 @@ export default function Audit() {
 
   const auditRows = auditLog.data?.items ?? []
   const auditTotal = Number(auditLog.data?.total ?? 0)
-  const httpRows = useMemo(() => httpLog.data ?? [], [httpLog.data])
+  const httpRows = useMemo(() => toArray(httpLog.data), [httpLog.data])
 
   const summary = useMemo(
-    () => [...(actions.data ?? [])].sort((left, right) => Number(right.count ?? 0) - Number(left.count ?? 0)),
+    () => [...(toArray(actions.data))].sort((left, right) => Number(right.count ?? 0) - Number(left.count ?? 0)),
     [actions.data],
   )
 

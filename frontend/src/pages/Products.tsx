@@ -27,6 +27,7 @@ import { useApiQuery } from '@/hooks/useApi'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useDefaultPageSize } from '@/hooks/usePreferences'
 import { localStore } from '@/lib/session'
+import { toArray } from '@/lib/payload'
 import {
   downloadCsv,
   downloadJson,
@@ -642,20 +643,20 @@ export default function Products() {
         ) : (
           <DataTable
             rows={[
-              { attr: 'Product', values: (comparison.data ?? []).map((row: any) => row.canonical_name) },
-              { attr: 'Brand', values: (comparison.data ?? []).map((row: any) => row.brand ?? '—') },
-              { attr: 'Category', values: (comparison.data ?? []).map((row: any) => row.category_name ?? '—') },
-              { attr: 'Price (USD)', values: (comparison.data ?? []).map((row: any) => (row.price_usd !== null && row.price_usd !== undefined ? formatPrice(row.price_usd, row.currency ?? 'USD') : '—')) },
-              { attr: 'Rating', values: (comparison.data ?? []).map((row: any) => (row.rating !== null && row.rating !== undefined ? Number(row.rating).toFixed(1) : '—')) },
-              { attr: 'Availability', values: (comparison.data ?? []).map((row: any) => row.availability ?? '—') },
-              { attr: 'Change %', values: (comparison.data ?? []).map((row: any) => (row.price_change_pct !== null && row.price_change_pct !== undefined ? `${Number(row.price_change_pct).toFixed(1)}%` : '—')) },
-              { attr: 'Source', values: (comparison.data ?? []).map((row: any) => row.source_code ?? '—') },
-              { attr: 'Last seen', values: (comparison.data ?? []).map((row: any) => (row.last_seen_at ? formatRelative(row.last_seen_at) : '—')) },
+              { attr: 'Product', values: (toArray(comparison.data)).map((row: any) => row.canonical_name) },
+              { attr: 'Brand', values: (toArray(comparison.data)).map((row: any) => row.brand ?? '—') },
+              { attr: 'Category', values: (toArray(comparison.data)).map((row: any) => row.category_name ?? '—') },
+              { attr: 'Price (USD)', values: (toArray(comparison.data)).map((row: any) => (row.price_usd !== null && row.price_usd !== undefined ? formatPrice(row.price_usd, row.currency ?? 'USD') : '—')) },
+              { attr: 'Rating', values: (toArray(comparison.data)).map((row: any) => (row.rating !== null && row.rating !== undefined ? Number(row.rating).toFixed(1) : '—')) },
+              { attr: 'Availability', values: (toArray(comparison.data)).map((row: any) => row.availability ?? '—') },
+              { attr: 'Change %', values: (toArray(comparison.data)).map((row: any) => (row.price_change_pct !== null && row.price_change_pct !== undefined ? `${Number(row.price_change_pct).toFixed(1)}%` : '—')) },
+              { attr: 'Source', values: (toArray(comparison.data)).map((row: any) => row.source_code ?? '—') },
+              { attr: 'Last seen', values: (toArray(comparison.data)).map((row: any) => (row.last_seen_at ? formatRelative(row.last_seen_at) : '—')) },
             ]}
             rowKey={(row: any) => row.attr}
             columns={[
               { key: 'attr', header: '', render: (row: any) => <span className="font-medium">{row.attr}</span> },
-              ...((comparison.data ?? []).map((row: any, index: number) => ({
+              ...((toArray(comparison.data)).map((row: any, index: number) => ({
                 key: `p${index}`,
                 header: String(row.canonical_name ?? `#${row.product_id}`).slice(0, 24),
                 render: (attrRow: any) => <span className="block max-w-[12rem] truncate">{attrRow.values[index]}</span>,

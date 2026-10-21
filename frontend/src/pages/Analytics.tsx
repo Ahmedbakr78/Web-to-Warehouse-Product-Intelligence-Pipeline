@@ -22,6 +22,7 @@ import { cn } from '@/lib/cn'
 import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { downloadCsv, downloadJson, toCsv, formatCompact, formatDate, formatNumber, formatPrice } from '@/lib/format'
+import { toArray } from '@/lib/payload'
 
 const RANGES = [
   { id: '14', label: '14d' },
@@ -94,12 +95,12 @@ export default function Analytics() {
   const weekday = useApiQuery(['analytics-weekday', windowDays], () => endpoints.weekdayPattern(windowDays))
 
   const categoryNames = useMemo(
-    () => (categories.data ?? []).slice(0, 12).map((row: any) => ({ id: row.category_name, label: row.category_name, count: row.observations })),
+    () => (toArray(categories.data)).slice(0, 12).map((row: any) => ({ id: row.category_name, label: row.category_name, count: row.observations })),
     [categories.data],
   )
 
   const indexSeries = useMemo(() => {
-    const rows = index.data ?? []
+    const rows = toArray(index.data)
     const byCategory = new Map<string, any[]>()
     rows.forEach((row: any) => {
       const key = row.category_name ?? 'Unknown'
@@ -153,7 +154,7 @@ export default function Analytics() {
 
   function exportCategories() {
     const header = ['category', 'observations', 'avg_price', 'min_price', 'max_price', 'avg_rating', 'new_products', 'price_changes']
-    const body = (categories.data ?? []).map((row: any) => [
+    const body = (toArray(categories.data)).map((row: any) => [
       row.category_name, row.observations, row.avg_price, row.min_price, row.max_price, row.avg_rating,
       row.new_products, row.price_changes,
     ])
@@ -164,9 +165,9 @@ export default function Analytics() {
     downloadJson('category-analysis.json', {
       exported_at: new Date().toISOString(),
       window_days: windowDays,
-      categories: categories.data ?? [],
-      brands: brands.data ?? [],
-      availability: availability.data ?? [],
+      categories: toArray(categories.data),
+      brands: toArray(brands.data),
+      availability: toArray(availability.data),
     })
   }
 
@@ -174,13 +175,13 @@ export default function Analytics() {
     return <ErrorState message={(categories.error as Error)?.message} onRetry={() => categories.refetch()} />
   }
 
-  const totalObservations = (categories.data ?? []).reduce((sum, row) => sum + Number(row.observations ?? 0), 0)
-  const totalNew = (categories.data ?? []).reduce((sum, row) => sum + Number(row.new_products ?? 0), 0)
-  const totalChanges = (categories.data ?? []).reduce((sum, row) => sum + Number(row.price_changes ?? 0), 0)
-  const avgPriceValues = (categories.data ?? []).map((row) => Number(row.avg_price ?? 0)).filter((value) => value > 0)
+  const totalObservations = (toArray(categories.data)).reduce((sum, row) => sum + Number(row.observations ?? 0), 0)
+  const totalNew = (toArray(categories.data)).reduce((sum, row) => sum + Number(row.new_products ?? 0), 0)
+  const totalChanges = (toArray(categories.data)).reduce((sum, row) => sum + Number(row.price_changes ?? 0), 0)
+  const avgPriceValues = (toArray(categories.data)).map((row) => Number(row.avg_price ?? 0)).filter((value) => value > 0)
   const avgPrice = avgPriceValues.length ? avgPriceValues.reduce((a, b) => a + b, 0) / avgPriceValues.length : 0
 
-  const availabilityData = (availability.data ?? []).slice(0, 10).map((row: any) => ({
+  const availabilityData = (toArray(availability.data)).slice(0, 10).map((row: any) => ({
     name: row.category_name,
     inStock: Number(row.in_stock_count ?? 0),
     outOfStock: Number(row.out_of_stock_count ?? 0),
@@ -229,7 +230,7 @@ export default function Analytics() {
           action={
             <Select value={selectedCategory} onChange={(event) => setSelectedCategory(event.target.value)} aria-label="Category filter" className="h-8 w-48 py-0 text-xs">
               <option value="">All top categories</option>
-              {(categories.data ?? []).map((row: any) => (
+              {(toArray(categories.data)).map((row: any) => (
                 <option key={row.category_name} value={row.category_name}>
                   {row.category_name}
                 </option>
@@ -255,9 +256,9 @@ export default function Analytics() {
         <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
           <Card>
             <CardHeader title="Average price by category" subtitle="Top 12 categories" icon={<Wallet className="h-4 w-4" />} />
-            {(categories.data ?? []).length ? (
+            {(toArray(categories.data)).length ? (
               <BarSeries
-                data={(categories.data ?? []).slice(0, 12).map((row: any) => ({ name: row.category_name, avg: Number(row.avg_price ?? 0) }))}
+                data={(toArray(categories.data)).slice(0, 12).map((row: any) => ({ name: row.category_name, avg: Number(row.avg_price ?? 0) }))}
                 xKey="name"
                 bars={[{ key: 'avg', label: 'Average price', color: 'var(--chart-1)' }]}
                 horizontal
@@ -275,7 +276,7 @@ export default function Analytics() {
               <CardHeader title="Category breakdown" subtitle="Observations, pricing and movement" icon={<Tags className="h-4 w-4" />} />
             </div>
             <DataTable
-              rows={categories.data ?? []}
+              rows={toArray(categories.data)}
               rowKey={(row: any) => row.category_name}
               loading={categories.isFetching}
               maxHeight={420}
@@ -314,7 +315,7 @@ export default function Analytics() {
               />
             </div>
             <DataTable
-              rows={brands.data ?? []}
+              rows={toArray(brands.data)}
               rowKey={(row: any, index) => `${row.brand}-${row.category_name ?? index}`}
               loading={brands.isFetching}
               maxHeight={460}
@@ -342,9 +343,9 @@ export default function Analytics() {
             </Card>
             <Card>
               <CardHeader title="Observation heatmap" subtitle="Daily observation density" icon={<Activity className="h-4 w-4" />} />
-              {(trend.data ?? []).length ? (
+              {(toArray(trend.data)).length ? (
                 <HeatmapStrip
-                  data={(trend.data ?? []).slice(-60).map((row: any) => ({ label: String(row.full_date), value: Number(row.observations ?? 0) }))}
+                  data={(toArray(trend.data)).slice(-60).map((row: any) => ({ label: String(row.full_date), value: Number(row.observations ?? 0) }))}
                   valueKey="value"
                   height={80}
                 />
@@ -363,7 +364,7 @@ export default function Analytics() {
               <CardHeader title="Price volatility" subtitle="Widest price range relative to average (min 3 observations)" icon={<Activity className="h-4 w-4" />} />
             </div>
             <DataTable
-              rows={volatility.data ?? []}
+              rows={toArray(volatility.data)}
               rowKey={(row: any) => `${row.product_id}-${row.source_code}`}
               loading={volatility.isFetching}
               maxHeight={380}
@@ -384,7 +385,7 @@ export default function Analytics() {
               <CardHeader title="Discount leaders" subtitle="Deepest cuts off list price right now" icon={<Wallet className="h-4 w-4" />} />
             </div>
             <DataTable
-              rows={discounts.data ?? []}
+              rows={toArray(discounts.data)}
               rowKey={(row: any) => `${row.product_id}-${row.source_code}`}
               loading={discounts.isFetching}
               maxHeight={380}
@@ -403,7 +404,7 @@ export default function Analytics() {
               <CardHeader title="Top rated" subtitle="Best ratings, damped by vote count" icon={<Star className="h-4 w-4" />} />
             </div>
             <DataTable
-              rows={topRated.data ?? []}
+              rows={toArray(topRated.data)}
               rowKey={(row: any) => `${row.product_id}-${row.source_code}`}
               loading={topRated.isFetching}
               maxHeight={380}
@@ -423,9 +424,9 @@ export default function Analytics() {
         <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
           <Card>
             <CardHeader title="Price bands" subtitle="Live catalogue across USD price bands" icon={<Wallet className="h-4 w-4" />} />
-            {(buckets.data ?? []).length ? (
+            {(toArray(buckets.data)).length ? (
               <DonutChart
-                data={(buckets.data ?? []).map((row: any) => ({ name: BUCKET_LABELS[row.bucket] ?? row.bucket, value: Number(row.listings ?? 0) }))}
+                data={(toArray(buckets.data)).map((row: any) => ({ name: BUCKET_LABELS[row.bucket] ?? row.bucket, value: Number(row.listings ?? 0) }))}
                 height={280}
                 centerLabel="listings"
               />
@@ -438,9 +439,9 @@ export default function Analytics() {
 
           <Card>
             <CardHeader title="Category movers" subtitle={`Biggest average moves over ${days} days`} icon={<TrendingUp className="h-4 w-4" />} />
-            {(movers.data ?? []).length ? (
+            {(toArray(movers.data)).length ? (
               <BarSeries
-                data={(movers.data ?? []).slice(0, 10).map((row: any) => ({ name: row.category_name ?? 'Uncategorised', move: Number(row.avg_abs_change_pct ?? 0) }))}
+                data={(toArray(movers.data)).slice(0, 10).map((row: any) => ({ name: row.category_name ?? 'Uncategorised', move: Number(row.avg_abs_change_pct ?? 0) }))}
                 xKey="name"
                 bars={[{ key: 'move', label: 'Avg abs move %', color: 'var(--chart-4)' }]}
                 horizontal
@@ -459,7 +460,7 @@ export default function Analytics() {
               <CardHeader title="Cross-source price spread" subtitle="Same product, several stores — ranked by disagreement" icon={<Scale className="h-4 w-4" />} />
             </div>
             <DataTable
-              rows={spread.data ?? []}
+              rows={toArray(spread.data)}
               rowKey={(row: any, index) => `${row.canonical_name}-${index}`}
               loading={spread.isFetching}
               maxHeight={360}
@@ -476,9 +477,9 @@ export default function Analytics() {
 
           <Card className="xl:col-span-2">
             <CardHeader title="Lifecycle timeline" subtitle={`Arrivals, removals and price changes per day over ${days} days`} icon={<Activity className="h-4 w-4" />} />
-            {(lifecycle.data ?? []).length ? (
+            {(toArray(lifecycle.data)).length ? (
               <AreaTrend
-                data={(lifecycle.data ?? []).map((row: any) => ({ ...row, date: formatDate(row.full_date) }))}
+                data={(toArray(lifecycle.data)).map((row: any) => ({ ...row, date: formatDate(row.full_date) }))}
                 xKey="date"
                 series={[
                   { key: 'new_products', label: 'New' },
@@ -499,7 +500,7 @@ export default function Analytics() {
               <CardHeader title="Price anomalies" subtitle="Listings ≥2 stddev from their category rate" icon={<Activity className="h-4 w-4" />} />
             </div>
             <DataTable
-              rows={anomalies.data ?? []}
+              rows={toArray(anomalies.data)}
               rowKey={(row: any) => `${row.product_id}-${row.source_code}`}
               loading={anomalies.isFetching}
               maxHeight={340}
@@ -517,9 +518,9 @@ export default function Analytics() {
 
           <Card>
             <CardHeader title="Source overlap" subtitle="Shared products between source pairs" icon={<Layers className="h-4 w-4" />} />
-            {(overlap.data ?? []).length ? (
+            {(toArray(overlap.data)).length ? (
               <BarSeries
-                data={(overlap.data ?? []).slice(0, 10).map((row: any) => ({ name: `${row.source_a} × ${row.source_b}`, shared: Number(row.shared_products ?? 0) }))}
+                data={(toArray(overlap.data)).slice(0, 10).map((row: any) => ({ name: `${row.source_a} × ${row.source_b}`, shared: Number(row.shared_products ?? 0) }))}
                 xKey="name"
                 bars={[{ key: 'shared', label: 'Shared products', color: 'var(--chart-2)' }]}
                 horizontal
@@ -534,9 +535,9 @@ export default function Analytics() {
 
           <Card>
             <CardHeader title="Inventory risk" subtitle="Stock pressure plus rising prices" icon={<Boxes className="h-4 w-4" />} />
-            {(risk.data ?? []).length ? (
+            {(toArray(risk.data)).length ? (
               <BarSeries
-                data={(risk.data ?? []).slice(0, 10).map((row: any) => ({ name: row.category_name ?? 'Uncategorised', oos: Number(row.out_of_stock_count ?? 0) }))}
+                data={(toArray(risk.data)).slice(0, 10).map((row: any) => ({ name: row.category_name ?? 'Uncategorised', oos: Number(row.out_of_stock_count ?? 0) }))}
                 xKey="name"
                 bars={[{ key: 'oos', label: 'Out of stock', color: 'var(--chart-5)' }]}
                 horizontal
@@ -555,7 +556,7 @@ export default function Analytics() {
               <CardHeader title="Data freshness" subtitle="Last sighting and stale share per source (7-day window)" icon={<Activity className="h-4 w-4" />} />
             </div>
             <DataTable
-              rows={freshness.data ?? []}
+              rows={toArray(freshness.data)}
               rowKey={(row: any) => row.source_code}
               loading={freshness.isFetching}
               maxHeight={340}
@@ -574,7 +575,7 @@ export default function Analytics() {
               <CardHeader title="Best value" subtitle="Top-rated listings ranked by rating per dollar (≥4.0 / 5, ≥10 votes)" icon={<Star className="h-4 w-4" />} />
             </div>
             <DataTable
-              rows={value.data ?? []}
+              rows={toArray(value.data)}
               rowKey={(row: any) => `${row.product_id}-${row.source_code}`}
               loading={value.isFetching}
               maxHeight={340}
@@ -591,9 +592,9 @@ export default function Analytics() {
 
           <Card>
             <CardHeader title="Brand momentum" subtitle={`Winners and losers over ${days} days`} icon={<TrendingUp className="h-4 w-4" />} />
-            {(momentum.data ?? []).length ? (
+            {(toArray(momentum.data)).length ? (
               <BarSeries
-                data={(momentum.data ?? []).slice(0, 10).map((row: any) => ({ name: row.brand ?? 'Unknown', momentum: Number(row.avg_change_pct ?? 0) }))}
+                data={(toArray(momentum.data)).slice(0, 10).map((row: any) => ({ name: row.brand ?? 'Unknown', momentum: Number(row.avg_change_pct ?? 0) }))}
                 xKey="name"
                 bars={[{ key: 'momentum', label: 'Avg change %', color: 'var(--chart-1)' }]}
                 horizontal
@@ -608,9 +609,9 @@ export default function Analytics() {
 
           <Card>
             <CardHeader title="Weekday pattern" subtitle={`Which days move prices over ${days} days`} icon={<Activity className="h-4 w-4" />} />
-            {(weekday.data ?? []).length ? (
+            {(toArray(weekday.data)).length ? (
               <BarSeries
-                data={(weekday.data ?? []).map((row: any) => ({ name: String(row.day_name).slice(0, 3), changes: Number(row.changes ?? 0) }))}
+                data={(toArray(weekday.data)).map((row: any) => ({ name: String(row.day_name).slice(0, 3), changes: Number(row.changes ?? 0) }))}
                 xKey="name"
                 bars={[{ key: 'changes', label: 'Price changes', color: 'var(--chart-3)' }]}
                 height={280}
@@ -624,9 +625,9 @@ export default function Analytics() {
 
           <Card className="xl:col-span-2">
             <CardHeader title="Currency exposure" subtitle="Where FX normalisation matters: listings by original currency" icon={<Wallet className="h-4 w-4" />} />
-            {(currency.data ?? []).length ? (
+            {(toArray(currency.data)).length ? (
               <DonutChart
-                data={(currency.data ?? []).map((row: any) => ({ name: row.currency ?? 'Unknown', value: Number(row.listings ?? 0) }))}
+                data={(toArray(currency.data)).map((row: any) => ({ name: row.currency ?? 'Unknown', value: Number(row.listings ?? 0) }))}
                 height={260}
                 centerLabel="listings"
               />
@@ -694,7 +695,7 @@ export default function Analytics() {
             <CardHeader title="Source x category coverage" subtitle="How many products each source contributes per category" icon={<Layers className="h-4 w-4" />} />
           </div>
           <DataTable
-            rows={matrix.data ?? []}
+            rows={toArray(matrix.data)}
             rowKey={(row: any, index) => `${row.source_code}-${row.category_id ?? index}`}
             loading={matrix.isFetching}
             columns={[
@@ -708,7 +709,7 @@ export default function Analytics() {
       ) : null}
 
       <AreaTrend
-        data={(trend.data ?? []).map((row: any) => ({ ...row, date: formatDate(row.full_date) }))}
+        data={(toArray(trend.data)).map((row: any) => ({ ...row, date: formatDate(row.full_date) }))}
         xKey="date"
         series={[
           { key: 'avg_price_usd', label: 'Average price' },

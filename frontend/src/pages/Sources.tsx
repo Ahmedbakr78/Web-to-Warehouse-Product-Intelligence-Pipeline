@@ -47,6 +47,7 @@ import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { useAuth } from '@/hooks/useAuth'
 import { formatDateTime, formatDuration, formatNumber, formatPrice, formatRelative, statusTone, titleCase, truncate } from '@/lib/format'
+import { toArray } from '@/lib/payload'
 
 const KIND_TONE: Record<string, Tone> = { api: 'info', scrape: 'warning', synthetic: 'neutral' }
 /** How far a source's records can be trusted as market data. */
@@ -934,8 +935,8 @@ export default function Sources() {
   const robots = useApiQuery(['sources-robots'], endpoints.sourceRobots, { staleTime: 60_000 })
 
   const merged = useMemo(() => {
-    const definitions = new Map<string, any>((registry.data ?? []).map((row: any) => [row.code, row]))
-    return (status.data ?? []).map((row: any) => ({ ...row, registry: definitions.get(row.source_code) ?? null }))
+    const definitions = new Map<string, any>((toArray(registry.data)).map((row: any) => [row.code, row]))
+    return (toArray(status.data)).map((row: any) => ({ ...row, registry: definitions.get(row.source_code) ?? null }))
   }, [status.data, registry.data])
 
   const totals = useMemo(() => {
@@ -949,7 +950,7 @@ export default function Sources() {
     const log = robots.data?.log ?? {}
     const hasLog = Number(log.total ?? 0) > 0
     return {
-      registered: (registry.data ?? []).length,
+      registered: (toArray(registry.data)).length,
       enabled: rows.filter((row: any) => row.enabled && row.terms_allowed !== false).length,
       records: rows.reduce((sum: number, row: any) => sum + Number(row.total_records ?? 0), 0),
       success: rates.length ? rates.reduce((sum, value) => sum + value, 0) / rates.length : null,
@@ -963,7 +964,7 @@ export default function Sources() {
   /** How the registered sources break down by how far their records can be trusted. */
   const trustBreakdown = useMemo(() => {
     const levels: Record<string, number> = { real: 0, sandbox: 0, synthetic: 0 }
-    for (const row of (registry.data ?? []) as any[]) {
+    for (const row of (toArray(registry.data)) as any[]) {
       const level = String(row.data_trust ?? 'real')
       levels[level] = (levels[level] ?? 0) + 1
     }
@@ -1142,7 +1143,7 @@ export default function Sources() {
   const allowed = Number((hasLog ? verdictLog.allowed : stats.allowed) ?? 0)
   const blocked = Number((hasLog ? verdictLog.blocked : stats.blocked) ?? 0)
   const decided = hasLog ? Number(verdictLog.total ?? 0) : allowed + blocked
-  const respectsRobots = Boolean(registry.data?.length) && (registry.data ?? []).every((row: any) => row.robots_respected !== false)
+  const respectsRobots = Boolean(registry.data?.length) && (toArray(registry.data)).every((row: any) => row.robots_respected !== false)
 
   const effectiveCounters: Record<string, number> = {
     fetched: Math.max(Number(stats.fetched ?? 0), Number(verdictLog.fetched ?? 0)),
@@ -1201,7 +1202,7 @@ export default function Sources() {
               },
               {
                 label: 'Sources allowed by terms',
-                value: `${(registry.data ?? []).filter((row: any) => row.terms_allowed).length} / ${totals.registered}`,
+                value: `${(toArray(registry.data)).filter((row: any) => row.terms_allowed).length} / ${totals.registered}`,
               },
               {
                 label: 'Sources publishing market data',

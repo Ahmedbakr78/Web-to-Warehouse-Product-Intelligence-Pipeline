@@ -20,6 +20,7 @@ import { cn } from '@/lib/cn'
 import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { downloadCsv, formatCompact, formatNumber, formatPrice, truncate } from '@/lib/format'
+import { toArray } from '@/lib/payload'
 
 const TREE_GRID =
   'grid grid-cols-[minmax(0,1fr)_4.5rem_5.5rem] gap-2 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_5rem_4.5rem_5.5rem]'
@@ -61,7 +62,7 @@ export default function Categories() {
   }
 
   function exportCsv() {
-    const rows = breakdown.data ?? []
+    const rows = toArray(breakdown.data)
     const header = ['category', 'observations', 'avg_price', 'min_price', 'max_price', 'avg_rating', 'new_products', 'price_changes']
     const body = rows.map((row: any) => [
       row.category_name ?? '',
@@ -80,7 +81,7 @@ export default function Categories() {
   }
 
   const stats = useMemo(() => {
-    const rows = tree.data ?? []
+    const rows = toArray(tree.data)
     const priced = rows.filter((row: any) => row.avg_price_usd !== null && row.avg_price_usd !== undefined)
     return {
       count: rows.length,
@@ -95,21 +96,21 @@ export default function Categories() {
   }, [tree.data])
 
   const visibleTree = useMemo(() => {
-    const rows = tree.data ?? []
+    const rows = toArray(tree.data)
     const needle = search.trim().toLowerCase()
     if (!needle) return rows
     return rows.filter((row: any) => `${row.name ?? ''} ${row.path ?? ''}`.toLowerCase().includes(needle))
   }, [tree.data, search])
 
   const sortedBreakdown = useMemo(() => {
-    const rows = [...(breakdown.data ?? [])]
+    const rows = [...(toArray(breakdown.data))]
     rows.sort((a: any, b: any) => compare(a?.[sortBy], b?.[sortBy], sortDir))
     return rows
   }, [breakdown.data, sortBy, sortDir])
 
   const topByPrice = useMemo(
     () =>
-      (breakdown.data ?? [])
+      (toArray(breakdown.data))
         .filter((row: any) => Number(row.avg_price ?? 0) > 0)
         .slice()
         .sort((a: any, b: any) => Number(b.avg_price) - Number(a.avg_price))

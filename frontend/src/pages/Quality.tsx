@@ -24,6 +24,7 @@ import { endpoints } from '@/lib/api'
 import { useApiQuery } from '@/hooks/useApi'
 import { useDebounce } from '@/hooks/useDebounce'
 import { formatDateTime, formatNumber, formatRelative, statusTone, titleCase } from '@/lib/format'
+import { toArray } from '@/lib/payload'
 
 const RANGES = [
   { id: '30', label: '30d' },
@@ -304,7 +305,7 @@ export default function Quality() {
             />
           </div>
           <DataTable
-            rows={rules.data ?? []}
+            rows={toArray(rules.data)}
             rowKey={(row: any) => row.code}
             loading={rules.isLoading}
             emptyMessage="No rules registered"
