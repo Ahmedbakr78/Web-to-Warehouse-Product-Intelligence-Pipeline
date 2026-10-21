@@ -4,7 +4,7 @@
   "analytical_views": 23,
   "api_smoke_checks": 104,
   "catalogued_features": 666,
-  "cli_commands": 16,
+  "cli_commands": 17,
   "compose_services": 6,
   "data_quality_rules": 12,
   "documentation_documents": 34,
@@ -16,6 +16,6 @@
   "pipeline_stages": 9,
   "rest_route_decorators": 222,
   "rest_routers": 24,
-  "test_cases": 615,
-  "test_functions": 500
+  "test_cases": 619,
+  "test_functions": 504
 }

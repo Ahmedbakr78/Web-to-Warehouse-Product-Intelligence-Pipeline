@@ -441,6 +441,52 @@ def test_an_explicit_trust_level_is_honoured(client, admin_token, session, monke
     assert session.get(DimSource, "gui_declared_sandbox").data_trust == "sandbox"
 
 
+def test_a_source_keeps_its_trust_level_when_it_is_edited(client, admin_token, session, monkeypatch):
+    """Editing a source must not silently promote it to real market data."""
+    _allow_robots(monkeypatch, allowed=True)
+    _public_dns(monkeypatch)
+    created = client.post(
+        "/api/v1/sources",
+        json={
+            "code": "gui_trust_kept",
+            "name": "Trust Kept",
+            "base_url": "https://shop.example.com/products.json",
+            "terms_confirmed": True,
+            "data_trust": "sandbox",
+            "mapping": {
+                "items_path": "products",
+                "id_field": "id",
+                "fields": {"name": "title", "price": "price"},
+                "pagination": {"style": "none"},
+            },
+        },
+        headers=auth(admin_token),
+    )
+    assert created.status_code == 201, created.text
+    assert session.get(DimSource, "gui_trust_kept").data_trust == "sandbox"
+
+    # A rename must not change the classification.
+    updated = client.patch(
+        "/api/v1/sources/gui_trust_kept",
+        json={"name": "Trust Kept Renamed"},
+        headers=auth(admin_token),
+    )
+    assert updated.status_code == 200, updated.text
+    assert session.get(DimSource, "gui_trust_kept").data_trust == "sandbox"
+
+
+def test_the_preview_reports_the_trust_level(client, admin_token, session, monkeypatch):
+    """A preview of a generated feed has to say that it is generated."""
+    response = client.get(
+        "/api/v1/sources/local_demo/preview?limit=2",
+        headers=auth(admin_token),
+    )
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["data_trust"] == "synthetic"
+    assert payload["is_synthetic"] is True
+
+
 def test_create_source_requires_terms_and_robots(client, admin_token, monkeypatch):
     _allow_robots(monkeypatch, allowed=True)
     _public_dns(monkeypatch)

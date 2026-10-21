@@ -179,8 +179,8 @@ Everything is engineered like a production system, not a demo:
 29 physical tables  |  23 analytical views  |  222 REST route decorators in 24 routers
 12 data-quality rules across 6 dimensions, weighted score persisted per run
 34 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
-16 CLI commands  |  6 Docker Compose services  |  34 documents  |  88 Mermaid diagrams
-615 tests  |  104/104 API smoke checks  |  666 catalogued features
+17 CLI commands  |  6 Docker Compose services  |  34 documents  |  88 Mermaid diagrams
+619 tests  |  104/104 API smoke checks  |  666 catalogued features
 ```
 
 | Metric | Count |
@@ -192,7 +192,7 @@ Everything is engineered like a production system, not a demo:
 | Data-quality rules                       | 12 |
 | Ingestion sources                        | 34 |
 | Airflow task callables                   | 33 |
-| CLI commands                             | 16 |
+| CLI commands                             | 17 |
 | Pipeline stages                          | 9 |
 | Docker Compose services                  | 6 |
 | Numbered documents                       | 34 |
@@ -200,7 +200,7 @@ Everything is engineered like a production system, not a demo:
 | Catalogued features (live API catalogue) | 666 |
 | Documented features (F-ID inventory)     | 612 |
 | Documented feature areas                 | 47 |
-| Collected test cases                     | 615 |
+| Collected test cases                     | 619 |
 | API smoke checks                         | 104 |
 
 <!-- END:STATS -->
@@ -1038,7 +1038,7 @@ decision that permitted it**, so compliance is a query rather than a claim:
 SELECT robots_rule, COUNT(*) FROM ingestion_http_log GROUP BY robots_rule;
 --   robots.txt:allow                                       | 2152
 --   cache                                                  |  471
---   robots-unavailable:fallback-allow (source allow-listed) |  390
+--   robots-unavailable:fallback-allow (robots.txt could not be fetched) |  390
 --   robots.txt:disallow                                    |   93
 --   revalidated                                            |   51
 ```
@@ -1052,6 +1052,22 @@ the rows it wrote and reports exactly what was removed:
 ```bash
 pip-cli purge-untrusted --dry-run    # report without deleting
 pip-cli purge-untrusted              # delete and report
+```
+
+The **internal catalogue** is the retailer's own product list rather than
+market data, so a generated one is a placeholder rather than a fabricated
+observation. It is marked as one, shown as one on the Catalog screen, and
+removable with one command:
+
+```bash
+pip-cli purge-demo-catalog           # remove the generated placeholder SKUs
+```
+
+Two more commands keep the numbers honest:
+
+```bash
+pip-cli refresh-fx                   # re-fetch the live USD conversion rates
+make audit                           # prove every row traces back to a real source
 ```
 
 ### Verifying a deployed instance

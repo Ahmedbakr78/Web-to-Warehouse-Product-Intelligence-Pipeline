@@ -117,6 +117,22 @@ init-db: ## Create tables + views + reference data without Alembic (first-time b
 demo-postgres: ## Seed the SYNTHETIC demo dataset into PostgreSQL (generated products, not market data)
 	$(PYBIN) -m app.cli.main seed-demo --database postgres --days 120
 
+.PHONY: purge-untrusted
+purge-untrusted: ## Delete every warehouse row a non-market source wrote
+	$(PYBIN) -m app.cli.main purge-untrusted
+
+.PHONY: purge-demo-catalog
+purge-demo-catalog: ## Remove the generated placeholder catalogue
+	$(PYBIN) -m app.cli.main purge-demo-catalog
+
+.PHONY: refresh-fx
+refresh-fx: ## Refresh the live USD conversion rates
+	$(PYBIN) -m app.cli.main refresh-fx
+
+.PHONY: audit
+audit: ## Prove every warehouse row traces back to a real, permitted source
+	$(PYBIN) scripts/audit_no_fakes.py --database "$$($(PYBIN) -c 'from app.core.config import settings; print(settings.database_url)')"
+
 .PHONY: demo-mysql
 demo-mysql: ## Seed the SYNTHETIC demo dataset into MySQL (generated products, not market data)
 	$(PYBIN) -m app.cli.main seed-demo --database mysql --days 120

@@ -145,9 +145,7 @@ def audit(database_url: str, *, allow_sandbox: bool = False) -> dict:
             if table not in tables:
                 continue
             rows = conn.execute(
-                sa.text(
-                    f"SELECT source_code, COUNT(*) FROM {_quote(engine, table)} GROUP BY source_code"
-                )
+                sa.text(f"SELECT source_code, COUNT(*) FROM {_quote(engine, table)} GROUP BY source_code")
             ).all()
             counts = dict(rows)
             per_table[table] = counts
@@ -192,9 +190,7 @@ def audit(database_url: str, *, allow_sandbox: bool = False) -> dict:
             count = conn.execute(
                 sa.text(
                     f"SELECT COUNT(*) FROM {_quote(engine, table)} WHERE source_code LIKE :prefix"
-                ).bindparams(
-                    prefix=f"{SYNTHETIC_PREFIX}%"
-                )
+                ).bindparams(prefix=f"{SYNTHETIC_PREFIX}%")
             ).scalar()
             if count:
                 findings.append(
@@ -213,10 +209,7 @@ def audit(database_url: str, *, allow_sandbox: bool = False) -> dict:
             # command that removes it - and it does not make the *market* data
             # suspect. A reader is told, not left to guess.
             count = int(
-                conn.execute(
-                    sa.text(f"SELECT COUNT(*) FROM {_quote(engine, CATALOG_TABLE)}")
-                ).scalar()
-                or 0
+                conn.execute(sa.text(f"SELECT COUNT(*) FROM {_quote(engine, CATALOG_TABLE)}")).scalar() or 0
             )
             if count:
                 notes.append(
@@ -229,10 +222,7 @@ def audit(database_url: str, *, allow_sandbox: bool = False) -> dict:
         for table in ("dim_product", "fact_price_snapshot"):
             if table in tables:
                 total_rows += int(
-                    conn.execute(
-                        sa.text(f"SELECT COUNT(*) FROM {_quote(engine, table)}")
-                    ).scalar()
-                    or 0
+                    conn.execute(sa.text(f"SELECT COUNT(*) FROM {_quote(engine, table)}")).scalar() or 0
                 )
 
     engine.dispose()

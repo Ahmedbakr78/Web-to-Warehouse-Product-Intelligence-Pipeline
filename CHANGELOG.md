@@ -4,18 +4,171 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.12.1] - 2026-10-21
 
-### Fixed
+The theme of this release: **nothing in the product is a stub any more.** Three
+analytical surfaces were structurally empty, two test families passed on an
+empty list, and a live exchange rate could fail the whole suite.
 
-- **DQ007 crashed on SQLite with `AttributeError: 'str' object has no attribute
-  'tzinfo'`** — raw SQL returns DATETIME columns as text on SQLite (no native
-  type), and the freshness rule called `.tzinfo` on it; the suite masked the
-  crash as a failed rule. Timestamps are now parsed with `fromisoformat`
-  (naive to UTC), with an honest `warn` verdict if unparseable. Covered by
-  `test_dq007_freshness_handles_sqlite_text_timestamps`.
-- **Crawler contact is now real** — `INGEST_USER_AGENT` uses
-  `ahmedbakr78102@gmail.com` instead of the placeholder address.
+### Fixed — analytics that could never return a row
+
+Three analytical surfaces were structurally empty on any real warehouse. They
+rendered a panel, returned `[]`, and looked like "no findings" rather than
+"broken".
+
+- **The portable variance was inverted.** The expression was
+  `(E[x])² - E[x²]` — the *negative* of the variance — so every category's
+  standard deviation clamped to zero. With the deviation pinned at zero, the
+  z-score denominator was zero, so the anomaly detector could never fire and
+  the category price index and price volatility views published a deviation of
+  exactly `0.0000` for all 1,599 categories and 8,774 category-days. The
+  variance is `E[x²] - (E[x])²`. Fixed in `app/analytics/service.py`,
+  `db/views.sql` (both views) and the query-lab example.
+- **Vote counts were discarded before they reached the warehouse.** The rating
+  count is delivered as a dedicated field (`rating_count_text`), and every API
+  adapter fills it with a bare integer (`"4523"`). The parser only matched a
+  count written with a unit word (`"4523 reviews"`), so the count was silently
+  dropped for every source that reports one. A dedicated count field is now
+  read as an integer, with the unit-word pattern kept for counts scraped out of
+  free text.
+- **"Best value" excluded every candidate.** The ranking required
+  `rating_count >= 10`, but no upstream publishes a vote count for the
+  majority of the catalogue, so the panel was empty by construction. A listing
+  whose vote count is unknown is no longer disqualified - it simply cannot be
+  proven popular, so it ranks on rating and loses to an equally rated listing
+  with a known, larger vote count.
+
+### Fixed — tests that passed on nothing
+
+- **The anomaly ranking test passed on an empty list.** `assert scores ==
+  sorted(scores, reverse=True)` is true of `[]`, so the detector could be
+  completely disabled and the test stayed green. The regression now asserts
+  that the deviation itself is non-zero.
+- **The cross-source overlap tests passed on an empty list too.** The seeded
+  corpus samples each source independently, so no two sources share a product
+  and the overlap panels are legitimately empty. A new test injects a product
+  listed by two sources at two different prices and requires the analytics to
+  find it, so the grouping is proven rather than assumed.
+
+### Fixed — data provenance
+
+- **Every snapshot could claim a future timestamp.** The demo seeder anchored
+  its history to the *local* calendar day, which is up to a full timezone
+  offset ahead of UTC, so the newest snapshot could be hours in the future.
+  The anchor is now UTC and the newest day is clamped to the current instant.
+- **The freshness rule could report a negative age.** Under the same clock
+  skew, a future-dated snapshot produced a negative number of hours. It is
+  now treated as zero hours old.
+- **The `dq_failure` alert read the wrong run.** It took the most recent run
+  whether or not that run carried a data-quality verdict, so an unscored run
+  silently masked the previous verdict. It now reads the most recent *scored*
+  run.
+- **Report tiles read the wrong keys.** Four of the six headline tiles in the
+  generated report read `avg_price`, `dq_score`, `chg_price_change` and
+  `new_products` from the top level of the KPI payload, where they live under
+  `latest`, `quality`, `changes` and `events`. The tiles were empty.
+
+### Fixed — performance and scaling
+
+- **No index on the timestamps every windowed query filters on.** The dashboard
+  filtered on `captured_at` and `detected_at`, and neither column carried an
+  index, so the planner sequential-scanned the whole fact table on every load.
+  Three indexes (`ix_fact_price_captured_product`, `ix_chg_event_detected`,
+  `ix_chg_price_detected`) remove the scan and scale the window queries to a
+  half-million-row warehouse.
+- **The KPI payload counted rows in fifteen tables the dashboard never shows.**
+  Counting them was 70 % of the query budget. The KPI endpoint now counts only
+  what it publishes; the full set stays available on the health and pipeline
+  totals endpoints. The dashboard query went from ~290 ms to ~150 ms.
+
+### Fixed — the test suite depended on the market
+
+- **A test asserted a live exchange rate.** `test_convert_to_usd_uses_reference_table`
+  expected `1.0865`, a number that only the frozen reference table holds; the
+  live provider returned `1.1217` and the failure cascaded through the rest
+  of the suite. FX rates are now pinned in tests and live in production
+  (`FX_LIVE_RATES`), so the suite is hermetic.
+
+### Fixed — a source could be laundered into market data
+
+- **The Add-source form defaulted the trust level to `real`.** The schema
+  default won over the preset's own classification, so onboarding DummyJSON
+  from the one-click preset wrote a source the pipeline then collected
+  automatically, and the no-fake audit passed it. The trust level is now
+  *resolved*, never defaulted: the preset's classification is used unless the
+  operator states a different one, the form states it explicitly, and the
+  classification survives an edit.
+- **A `robots.txt` that answered 401/403 was treated as permission.** RFC 9309
+  calls an unauthorised response a disallow-all. The code allowed the host and
+  the rule string claimed an allow-list that does not exist. A 401/403 now
+  disallows the whole host, and the rule strings describe the decision that
+  was actually made. The policy lives in one place,
+  `app/ingestion/compliance.py`, with a test that keeps the code and the
+  documented guarantees in step.
+- **An explicit `--sources` list bypassed the terms gate.** A source whose
+  site terms forbid polling could still be named on the command line, while
+  the Sources screen said it was "excluded from every run". It is now refused
+  however it was selected.
+- **The launcher seeded a synthetic dataset into the production warehouse.**
+  `run-local.sh` loaded 120 days of generated products by default, and
+  `make everything` did the same, so the dashboard served invented prices next
+  to observed ones with nothing to say which was which. The synthetic dataset
+  is now opt-in (`./run-local.sh --seed`, `make everything-demo`), and
+  `make everything` collects from the permitted public sources only.
+- **The API smoke test injected generated rows.** It triggered a pipeline run
+  with `sources: ["local_demo"]` against the live warehouse. It now runs
+  against a real permitted source.
+- **A quality score of 100.0 was reported for a warehouse nobody checked.**
+  With no rule results the API answered `score: 100.0`, which the dashboard
+  rendered as a perfect green score and the data-quality report described as
+  "all 12 rules passed". The score is now `null` with `evaluated: false`, the
+  screen says "not evaluated yet", and the report says no evaluation has run.
+- **The data-quality report's tiles were empty.** It read a nested `summary`
+  object that the report payload does not have, so every tile rendered blank.
+
+### Added
+
+- **Source trust classification.** Every registered source declares `real`,
+  `sandbox` or `synthetic`. A pipeline run without parameters only ever
+  collects `real` sources; anything below must be named explicitly. The
+  classification is persisted in `dim_source` and shown on the Sources screen.
+- **Untrusted-row purge.** `pip-cli purge-untrusted` removes the rows a
+  non-market source wrote and reports exactly what it removed, with a
+  `--dry-run` mode that changes nothing. It also re-points a product whose
+  first sighting came from a purged source at the trusted source it was
+  really observed at.
+- **A generated catalogue is identifiable and removable.** The internal
+  catalogue is the *retailer's* own product list, so a seeded one is a
+  placeholder rather than fabricated market data. Every seeded row now
+  carries a marker, the Catalog screen says "Demo catalogue" and how many
+  SKUs are placeholders, and `pip-cli purge-demo-catalog` removes them
+  without touching an imported row.
+- **The audit runs against MySQL.** It quoted identifiers with double quotes,
+  which MySQL rejects, so the cross-dialect proof only worked on PostgreSQL.
+  The no-fake audit now runs on both targets, and it reports a generated
+  catalogue as a note with the command that removes it.
+- **The documentation's figures are checked, not just claimed.**
+  `scripts/check_stats.py` now also reads the prose in `README.md` and
+  `docs/*.md` and fails on a figure that no longer matches the code, so the
+  snapshot and the sentences that quote it cannot drift apart.
+- **Window indexes migration.** Alembic revision `0005_window_indexes` builds
+  the three window indexes concurrently on PostgreSQL, so a large table is not
+  locked during the build.
+- **Migrations work on MySQL.** `CREATE INDEX IF NOT EXISTS` is PostgreSQL-only,
+  so the MySQL target was stuck two revisions behind and could not be
+  brought up to date. The index helpers are now catalogue-aware.
+
+### Verified
+
+- The backend and frontend test suites pass, `ruff` and `mypy` are clean, and
+  `eslint` runs at zero warnings. The current counts are in
+  [`docs/stats.json`](docs/stats.json) and are re-measured by `make stats`.
+- Both warehouses hold **zero** non-`real` rows. Prove it for your own
+  database with `make audit`: it walks every table that records an upstream
+  and exits non-zero the moment a row cannot be traced back to a source
+  classified as real market data.
+- Every dashboard screen renders real figures with **zero** console errors and
+  **zero** failed requests, at desktop and phone widths.
 
 ## [1.12.0] - 2026-10-21
 
@@ -24,6 +177,14 @@ something, and the phone behaves like the desktop.**
 
 ### Fixed — metrics that were quietly wrong
 
+- **DQ007 crashed on SQLite with `AttributeError: 'str' object has no attribute
+  'tzinfo'`** — raw SQL returns DATETIME columns as text on SQLite (no native
+  type), and the freshness rule called `.tzinfo` on it; the suite masked the
+  crash as a failed rule. Timestamps are now parsed with `fromisoformat`
+  (naive → UTC), with an honest `warn` verdict if unparseable. Covered by
+  `test_dq007_freshness_handles_sqlite_text_timestamps`.
+- **Crawler contact is now real** — `INGEST_USER_AGENT` uses
+  `ahmedbakr78102@gmail.com` instead of the placeholder address.
 - **Dashboard mixed lifetime and windowed counts.** The "canonical products"
   tile showed the all-time catalogue size while every neighbouring tile was
   scoped to the selected 7/30/90/180-day range, so switching the range changed

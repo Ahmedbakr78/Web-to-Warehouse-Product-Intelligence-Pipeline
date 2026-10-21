@@ -158,9 +158,7 @@ def summary(session: DbSession, _user: ReadUser, run_id: str | None = None) -> d
     from app.etl.catalog_purge import demo_catalog_rows
 
     catalogue_rows = len(demo_catalog_rows(session))
-    catalogue_total = int(
-        session.execute(sa.text("SELECT COUNT(*) FROM catalog_product")).scalar() or 0
-    )
+    catalogue_total = int(session.execute(sa.text("SELECT COUNT(*) FROM catalog_product")).scalar() or 0)
     return {
         "totals": dict(totals),
         "by_strategy": [dict(row) for row in by_strategy],

@@ -53,6 +53,7 @@ def demo_catalog_rows(session: Session) -> list[str]:
         "Umbrella Ltd",
         "Hooli Logistics",
         "Main Distributor",
+        "Main",
     }
     found: list[str] = []
     for sku, attributes, supplier in rows:

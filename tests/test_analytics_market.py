@@ -133,7 +133,11 @@ def test_source_spread_finds_a_genuinely_overlapping_product(db):
 
     pairs = source_overlap(db)
     pair = next(
-        (row for row in pairs if {row["source_a"], row["source_b"]} == {"gutendex_books", "openlibrary_books"}),
+        (
+            row
+            for row in pairs
+            if {row["source_a"], row["source_b"]} == {"gutendex_books", "openlibrary_books"}
+        ),
         None,
     )
     assert pair is not None, "the source overlap did not report the shared product"

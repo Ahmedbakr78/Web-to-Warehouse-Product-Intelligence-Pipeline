@@ -129,3 +129,57 @@ def test_builder_schema_includes_runs_and_alerts(client, admin_token):
     result = client.post("/api/v1/builder/query", headers=auth(admin_token), json=payload)
     assert result.status_code == 200, result.text
     assert "runs" in result.json()["columns"]
+
+
+def test_the_demo_catalogue_is_identifiable_and_removable(session):
+    """A generated catalogue must be findable and removable in one step.
+
+    The catalogue is the *retailer's* own product list, so a generated one is a
+    placeholder rather than fabricated market data. It still has to be
+    identifiable, and one command has to remove it without touching a real
+    imported row.
+    """
+    from app.etl.catalog_purge import ORIGIN_VALUE, demo_catalog_rows, purge_demo_catalog
+    from app.models.catalog import CatalogProduct
+
+    session.add(
+        CatalogProduct(
+            sku="PLACEHOLDER-1",
+            name="Generated Widget",
+            brand="Example",
+            category="Electronics",
+            supplier="Acme Imports",
+            cost_price=10,
+            list_price=20,
+            currency="USD",
+            qty_on_hand=1,
+            status="active",
+            attributes={"catalog_origin": ORIGIN_VALUE},
+        )
+    )
+    session.add(
+        CatalogProduct(
+            sku="REAL-1",
+            name="An Imported Product",
+            brand="Real Brand",
+            category="Electronics",
+            supplier="A Real Supplier Ltd",
+            cost_price=10,
+            list_price=20,
+            currency="USD",
+            qty_on_hand=1,
+            status="active",
+            attributes={"catalog_origin": "import"},
+        )
+    )
+    session.commit()
+
+    found = demo_catalog_rows(session)
+    assert "PLACEHOLDER-1" in found
+    assert "REAL-1" not in found
+
+    report = purge_demo_catalog("sqlite")
+    assert report["removed"] >= 1
+    assert session.get(CatalogProduct, "PLACEHOLDER-1") is None
+    # The imported row survives.
+    assert session.get(CatalogProduct, "REAL-1") is not None
