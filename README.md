@@ -1571,7 +1571,7 @@ app/
   core/           settings, engines, logging, error envelope
   etl/            pipeline, loader, DQ framework, catalog reconcile, seed
   ingestion/      base contract, robots, rate limiter, HTTP client, cleaning, dedupe
-    sources/      35 adapters (JSON APIs, BeautifulSoup scrapers, synthetic)
+    sources/      34 adapters (JSON APIs, BeautifulSoup scrapers, synthetic)
   models/         SQLAlchemy models: dimensions, facts, operations, app
 dags/             Airflow DAG: product_intelligence_pipeline
 db/
