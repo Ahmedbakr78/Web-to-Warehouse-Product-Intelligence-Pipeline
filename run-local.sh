@@ -555,7 +555,7 @@ case "$ACTION" in
     step "Stopping the stack (data is kept)"
     $COMPOSE down
     ok "Stopped. Volumes and database contents are intact."
-    printf '\n    Start again any time with %s./run-local.sh%s\n' "$CYAN" "$NC"
+    printf '\n    Start again any time with %s./run.sh%s\n' "$CYAN" "$NC"
     exit 0
     ;;
   clean)
