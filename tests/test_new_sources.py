@@ -6,7 +6,13 @@ from __future__ import annotations
 import pytest
 
 from app.etl.pipeline import Pipeline, PipelineConfig
-from app.ingestion.base import RawProduct, get_source, list_sources, transform_product
+from app.ingestion.base import (
+    DATA_TRUST_REAL,
+    RawProduct,
+    get_source,
+    list_sources,
+    transform_product,
+)
 
 
 def test_new_sources_are_registered_with_compliance_metadata():
@@ -20,16 +26,40 @@ def test_new_sources_are_registered_with_compliance_metadata():
 
 
 def test_prod_auto_select_is_real_only(database):
-    """A bare pipeline run never mixes the synthetic source into prod data.
+    """A bare pipeline run only ever collects genuine market data.
+
+    Every registered source is classified by ``data_trust``. A source that
+    publishes a demo catalogue, a mock API or locally generated rows is never
+    picked up automatically - a run without parameters must not mix fabricated
+    rows into production data. Such sources stay reachable by explicit code
+    selection.
 
     Takes the session ``database`` fixture so the schema exists before the
     auto-select opens its session: otherwise this module (alphabetically
     first) would cache a pre-bootstrap engine and poison later tests.
     """
-    codes = Pipeline(PipelineConfig(database=database))._source_codes()
+    codes = set(Pipeline(PipelineConfig(database=database))._source_codes())
     assert "local_demo" not in codes
-    assert {"dummyjson_products", "books_to_scrape", "openlibrary_books"} <= set(codes)
-    assert {"tvmaze_shows", "archive_texts", "dummyjson_recipes"} <= set(codes)
+
+    untrusted = {
+        source["code"]
+        for source in list_sources()
+        if source.get("enabled")
+        and source.get("terms_allowed", True)
+        and source.get("data_trust") != DATA_TRUST_REAL
+    }
+    assert untrusted, "expected at least one non-real source to guard against"
+    assert not (codes & untrusted), f"auto-select leaked untrusted sources: {codes & untrusted}"
+
+    trusted = {
+        source["code"]
+        for source in list_sources()
+        if source.get("enabled")
+        and source.get("terms_allowed", True)
+        and source.get("data_trust") == DATA_TRUST_REAL
+    }
+    assert trusted <= codes, f"auto-select dropped real sources: {trusted - codes}"
+    assert {"openlibrary_books", "tvmaze_shows", "archive_texts"} <= codes
 
 
 def test_tvmaze_mapping_is_valid():

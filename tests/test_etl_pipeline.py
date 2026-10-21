@@ -13,6 +13,19 @@ from app.models import CORE_TABLES
 pytestmark = pytest.mark.integration
 
 
+@pytest.fixture()
+def pipeline_run(db):
+    """A completed pipeline run for the tests that read its output.
+
+    The suite gives every test its own copy of the seeded warehouse, so a test
+    that inspects what the pipeline produced has to produce it itself rather
+    than rely on a run an earlier test happened to leave behind.
+    """
+    result = Pipeline(PipelineConfig(sources=["local_demo"], limit_per_source=25)).run()
+    assert result.status in {"success", "partial"}, result.error
+    return result
+
+
 # --------------------------------------------------------------------------------------
 # Schema
 # --------------------------------------------------------------------------------------
@@ -175,8 +188,8 @@ def test_dq007_freshness_handles_sqlite_text_timestamps(db):
     assert outcome.status in {"pass", "warn", "fail"}
 
 
-def test_quality_evaluation_persists_one_row_per_rule(db):
-    run = db.execute(sa.text("SELECT run_id FROM etl_run ORDER BY started_at DESC LIMIT 1")).scalar()
+def test_quality_evaluation_persists_one_row_per_rule(db, pipeline_run):
+    run = pipeline_run.run_id
     report = evaluate_quality(db, run)
     assert len(report.outcomes) == 12
     stored = db.execute(
@@ -191,21 +204,20 @@ def test_quality_evaluation_persists_one_row_per_rule(db):
     assert rerun == 12
 
 
-def test_quality_score_is_bounded(db):
-    run = db.execute(sa.text("SELECT run_id FROM etl_run ORDER BY started_at DESC LIMIT 1")).scalar()
-    report = evaluate_quality(db, run)
+def test_quality_score_is_bounded(db, pipeline_run):
+    report = evaluate_quality(db, pipeline_run.run_id)
     assert 0.0 <= report.score <= 100.0
     assert report.passed + report.warned + report.failed == 12
 
 
-def test_latest_report_returns_the_most_recent_run(db):
+def test_latest_report_returns_the_most_recent_run(db, pipeline_run):
     report = latest_report(db)
     assert report["total"] > 0
     assert report["score"] >= 0
     assert len(report["rules"]) == report["total"]
 
 
-def test_broken_rule_does_not_abort_the_suite(db):
+def test_broken_rule_does_not_abort_the_suite(db, pipeline_run):
     """Every rule runs inside a SAVEPOINT, so one failure cannot cascade."""
 
     def explode(session, context):  # pragma: no cover - deliberately broken
@@ -219,8 +231,7 @@ def test_broken_rule_does_not_abort_the_suite(db):
         description="deliberately broken",
         evaluator=explode,
     )
-    run = db.execute(sa.text("SELECT run_id FROM etl_run ORDER BY started_at DESC LIMIT 1")).scalar()
-    outcome = broken.run(db, {"run_id": run})
+    outcome = broken.run(db, {"run_id": pipeline_run.run_id})
     assert outcome.status == "fail"
     assert "rule evaluation error" in outcome.message
 
@@ -235,7 +246,7 @@ def test_kpi_summary_shape(db):
     assert kpi["counts"]["fact_price_snapshot"] > 0
 
 
-def test_analytics_helpers_return_rows(db):
+def test_analytics_helpers_return_rows(db, pipeline_run):
     assert analytics.daily_trend(db, days=365)
     assert analytics.price_change_timeline(db, days=365)
     assert analytics.category_breakdown(db)

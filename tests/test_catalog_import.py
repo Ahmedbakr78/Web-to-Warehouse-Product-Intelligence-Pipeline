@@ -97,6 +97,12 @@ def test_import_rejects_non_csv_and_viewer_is_refused(client, admin_token, viewe
 
 
 def test_export_round_trips_imported_rows(client, admin_token, viewer_token):
+    imported = client.post(
+        "/api/v1/catalog/import",
+        headers=auth(admin_token),
+        files={"file": ("catalog.csv", VALID_CSV, "text/csv")},
+    )
+    assert imported.status_code == 200, imported.text
     for token in (admin_token, viewer_token):
         response = client.get("/api/v1/catalog/export.csv", headers=auth(token))
         assert response.status_code == 200, response.text[:200]
