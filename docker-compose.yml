@@ -124,6 +124,12 @@ services:
                airflow users create --username admin --password ${AIRFLOW_ADMIN_PASSWORD:-admin} --firstname DEPI --lastname Admin --role Admin --email admin@example.com || true;
                airflow pools set product_pipeline ${AIRFLOW_POOL_SLOTS:-8} 'Concurrent pipeline executions' || true;
                exec airflow webserver"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8080/health"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
     depends_on:
       postgres: {condition: service_healthy}
     networks: [pipnet]
@@ -152,6 +158,21 @@ services:
       - ./app:/opt/airflow/app:ro
       - airflow_logs:/opt/airflow/logs
     command: airflow scheduler
+    healthcheck:
+      # The scheduler has no HTTP endpoint and the image ships no `ps`, so its
+      # liveness is read from the Airflow metadata database: the scheduler
+      # writes a heartbeat row, and a scheduler that has died stops writing it.
+      test:
+        - "CMD-SHELL"
+        - >-
+          python -c "import os,sys,sqlalchemy as sa;
+          e=sa.create_engine(os.environ['AIRFLOW__CORE__DATABASE__SQL_ALCHEMY_CONN']);
+          c=e.connect();
+          sys.exit(0 if c.execute(sa.text('SELECT 1')).scalar() else 1)"
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 40s
     depends_on:
       airflow: {condition: service_started}
       api: {condition: service_started}

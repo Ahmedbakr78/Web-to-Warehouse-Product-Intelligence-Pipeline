@@ -59,9 +59,12 @@ export default function AppShell() {
   useFocusHeading()
 
   // Warm every route chunk while the browser is idle. The first navigation is
-  // then served from memory instead of flashing a Suspense skeleton.
+  // then served from memory instead of flashing a Suspense skeleton. The chain
+  // is cancelled on unmount, so nothing is left running behind a torn-down
+  // page.
   useEffect(() => {
-    preloadScreens()
+    const stop = preloadScreens()
+    return stop
   }, [])
 
   // Global shortcuts: Ctrl/Cmd-K or "/" opens the palette, Ctrl/Cmd-B toggles the

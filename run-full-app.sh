@@ -75,6 +75,30 @@ info()  { printf '    %s%s%s\n' "$DIM" "$*" "$NC"; }
 ok()    { printf '    %s+%s %s\n' "$GREEN" "$NC" "$*"; }
 warn()  { printf '    %s!%s %s\n' "$YELLOW" "$NC" "$*"; }
 die()   { printf '\n%serror:%s %s\n' "$RED" "$NC" "$*" >&2; exit 1; }
+
+# run_step <label> <tail-lines> <command...>
+#
+# Runs a command, shows its last few lines when it succeeds, and on failure
+# leads with the reason before the full output. Without this, a step that dies
+# two hundred lines into its log tells the operator nothing but a summary line
+# they have to decode.
+run_step() {
+  local label="$1"; shift
+  local tail_n="$1"; shift
+  local log; log="$(mktemp)"
+  if "$@" >"$log" 2>&1; then
+    tail -n "$tail_n" "$log"
+    rm -f "$log"
+    ok "$label"
+    return 0
+  fi
+  printf '\n%s%s failed.%s The first error is:\n\n' "$RED" "$label" "$NC" >&2
+  grep -nE "FAILED|FAIL |Error:|error:|AssertionError|Traceback|expected .* to|E   " "$log" | head -20 >&2 || true
+  printf '\n%s--- full output ---%s\n' "$DIM" "$NC" >&2
+  cat "$log" >&2
+  rm -f "$log"
+  die "$label failed"
+}
 export PYTHONWARNINGS="${PYTHONWARNINGS:-ignore::RuntimeWarning}"
 
 printf '\n%sProduct Intelligence Pipeline — full app test%s v%s\n' "$BOLD" "$NC" "$VERSION"
@@ -260,7 +284,22 @@ else
   ok "frontend static checks passed"
   if [ "$QUICK" -eq 0 ]; then
     step "Frontend unit tests (vitest)"
-    (cd frontend && npm run test 2>&1 | tail -4)
+    # The full output is kept: vitest reports an unhandled error *after* the
+    # test summary, so a truncated tail hides the one line that matters.
+    VITEST_LOG="$(mktemp)"
+    if (cd frontend && npm run test >"$VITEST_LOG" 2>&1); then
+      tail -4 "$VITEST_LOG"
+    else
+      # Lead with the reason, then the whole log. An operator should not have
+      # to scroll a thousand lines to find out why the run stopped.
+      printf '\n%sThe frontend test suite failed.%s The first error is:\n\n' "$RED" "$NC" >&2
+      grep -nE "Unhandled|FAIL |Error:|✗|×|AssertionError|expected .* to" "$VITEST_LOG" | head -20 >&2 || true
+      printf '\n%s--- full vitest output ---%s\n' "$DIM" "$NC" >&2
+      cat "$VITEST_LOG" >&2
+      rm -f "$VITEST_LOG"
+      die "the frontend test suite failed"
+    fi
+    rm -f "$VITEST_LOG"
     ok "frontend tests passed"
     step "Frontend production build"
     (cd frontend && npm run build 2>&1 | tail -3)
