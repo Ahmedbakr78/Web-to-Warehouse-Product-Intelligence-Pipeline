@@ -114,8 +114,7 @@ ok "venv + imports OK ($("$PY" --version 2>&1))"
 
 # ------------------------------------------------------------- 2. static checks
 step "Linting the backend (ruff)"
-"$PY" -m ruff check app tests scripts dags
-ok "ruff clean"
+run_step "ruff (backend lint)" 2 "$PY" -m ruff check app tests scripts dags
 
 # ------------------------------------------------------------- 3. registry guard
 step "Proving prod auto-select is real-only (no synthetic or blocked source)"
@@ -151,13 +150,15 @@ ok "registry guard passed"
 # ------------------------------------------------------------- 4. backend tests
 if [ "$QUICK" -eq 1 ]; then
   step "Backend tests (quick subset)"
-  "$PY" -m pytest tests/test_ingestion.py tests/test_etl_pipeline.py tests/test_cleaning.py tests/test_dedupe.py --tb=short -q 2>&1 | tail -3
+  run_step "backend tests (quick subset)" 3 \
+    "$PY" -m pytest tests/test_ingestion.py tests/test_etl_pipeline.py tests/test_cleaning.py tests/test_dedupe.py --tb=short -q
 else
   step "Backend tests (full suite, SQLite)"
   # One run, not two: every test gets its own copy of the seeded warehouse, so
   # the suite no longer depends on the order the files are collected in.
-  PIP_TEST_DATABASE_URL="${PIP_TEST_DATABASE_URL:-sqlite:///$SQLITE_DB-tests}" \
-    "$PY" -m pytest tests/ --tb=short -q 2>&1 | tail -3
+  run_step "backend tests (full suite, SQLite)" 3 \
+    env PIP_TEST_DATABASE_URL="${PIP_TEST_DATABASE_URL:-sqlite:///$SQLITE_DB-tests}" \
+    "$PY" -m pytest tests/ --tb=short -q
 fi
 ok "backend tests passed"
 
@@ -279,9 +280,8 @@ if [ "$NO_FRONTEND" -eq 1 ]; then
   info "frontend steps skipped (--no-frontend)"
 else
   step "Frontend typecheck + lint"
-  (cd frontend && npm run typecheck 2>&1 | tail -2)
-  (cd frontend && npm run lint 2>&1 | tail -2)
-  ok "frontend static checks passed"
+  (cd frontend && run_step "frontend typecheck" 2 npm run typecheck)
+  (cd frontend && run_step "frontend lint" 2 npm run lint)
   if [ "$QUICK" -eq 0 ]; then
     step "Frontend unit tests (vitest)"
     # The full output is kept: vitest reports an unhandled error *after* the
@@ -302,8 +302,7 @@ else
     rm -f "$VITEST_LOG"
     ok "frontend tests passed"
     step "Frontend production build"
-    (cd frontend && npm run build 2>&1 | tail -3)
-    ok "frontend build passed"
+    (cd frontend && run_step "frontend production build" 3 npm run build)
   else
     info "vitest + build skipped (--quick)"
   fi
