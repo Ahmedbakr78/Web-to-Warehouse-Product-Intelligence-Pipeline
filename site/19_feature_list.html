@@ -4156,8 +4156,56 @@
 <td>The statement is taken from the URL once and the parameter is dropped, so a reload never re-applies it</td>
 <td><code>frontend/src/pages/QueryLab.tsx</code></td>
 </tr>
+<tr>
+<th>F-605</th>
+<td>Standalone no-fake audit</td>
+<td>A script walks every table that records an upstream and proves each row traces back to a real, permitted source</td>
+<td><code>scripts/audit_no_fakes.py</code></td>
+</tr>
+<tr>
+<th>F-606</th>
+<td>The audit opens its own connection</td>
+<td>It connects to the URL it is given, so it can be pointed at a copy, a production warehouse or a file the app is not using</td>
+<td><code>scripts/audit_no_fakes.py</code></td>
+</tr>
+<tr>
+<th>F-607</th>
+<td>Unregistered sources are not trusted</td>
+<td>A row whose source is missing from the dimension table cannot be verified, so it is reported rather than accepted</td>
+<td><code>scripts/audit_no_fakes.py</code></td>
+</tr>
+<tr>
+<th>F-608</th>
+<td>Rollups are audited at their inputs</td>
+<td>A cross-source aggregate carries no single upstream, so the audit joins it back to the snapshots that built it</td>
+<td><code>scripts/audit_no_fakes.py</code></td>
+</tr>
+<tr>
+<th>F-609</th>
+<td>The synthetic namespace is reported</td>
+<td>A row written under the reserved synthetic prefix is always flagged, whatever the source says</td>
+<td><code>scripts/audit_no_fakes.py</code></td>
+</tr>
+<tr>
+<th>F-610</th>
+<td>The audit is proved, not assumed</td>
+<td>The verification run seeds a throwaway synthetic warehouse and fails if the audit accepts it</td>
+<td><code>run-full-app.sh</code></td>
+</tr>
+<tr>
+<th>F-611</th>
+<td>The app can purge what the audit finds</td>
+<td>A dry run lists the untrusted sources and the rows they wrote; the real run removes them</td>
+<td><code>app/etl/purge.py</code></td>
+</tr>
+<tr>
+<th>F-612</th>
+<td>Purge keeps a product with any real observation</td>
+<td>A product that also has a trusted observation is re-pointed rather than deleted</td>
+<td><code>app/etl/purge.py</code></td>
+</tr>
 </tbody></table></div>
-<p><strong>Revised total: 604 features across 47 areas</strong> (F-001 to F-604).</p>
+<p><strong>Revised total: 612 features across 48 areas</strong> (F-001 to F-612).</p>
     </article>
     <div class="doc-foot">
       <span><a href="18_presentation_outline.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Presentation Outline</a></span>

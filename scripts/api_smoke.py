@@ -294,7 +294,11 @@ def run_checks(base_url: str, token: str, role_tokens: dict[str, str] | None = N
         elif method == "PATCH" and path.endswith("/users/me"):
             payload = {"theme": "system", "rows_per_page": 25}
         elif method == "POST":
-            payload = {"sources": ["local_demo"], "limit_per_source": 2, "trigger": "smoke_test"}
+            # A real source, and as few records as possible. The smoke test
+            # runs against the live warehouse, so it must not write generated
+            # rows into it - a synthetic source would put fabricated products
+            # next to genuinely observed ones.
+            payload = {"sources": ["gutendex_books"], "limit_per_source": 2, "trigger": "smoke_test"}
 
         if needs_auth and not token:
             skipped += 1
