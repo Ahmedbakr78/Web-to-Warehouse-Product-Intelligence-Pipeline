@@ -34,8 +34,7 @@ class CoinCapAssetsSource(ProductSource):
     min_delay_seconds: ClassVar[float] = 1.5
     supports_paging: ClassVar[bool] = True
     description: ClassVar[str] = (
-        "Crypto market ranked by market cap: live USD price, 24h change, "
-        "volume and rank for each asset."
+        "Crypto market ranked by market cap: live USD price, 24h change, volume and rank for each asset."
     )
 
     def fetch(self, limit: int | None = None) -> Iterator[RawProduct]:
@@ -96,8 +95,7 @@ class CoinCapAssetsSource(ProductSource):
             image_url=None,
             brand=None,
             description=(
-                f"Rank #{rank} by market cap."
-                + (f" {change_text}." if change_text else "")
+                f"Rank #{rank} by market cap." + (f" {change_text}." if change_text else "")
                 if rank is not None
                 else change_text
             ),

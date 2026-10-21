@@ -71,7 +71,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { to: '/forecast', label: 'Forecast', icon: Brain, description: 'Price projections, anomalies and pricing advice', badge: 'new' },
       { to: '/reports', label: 'Reports', icon: FileText, description: 'Build, preview and export PDF/CSV reports', badge: 'new' },
-      { to: '/query', label: 'Query lab', icon: Terminal, description: 'Read-only SQL over 23 views', permission: 'query' },
+      { to: '/query', label: 'Query lab', icon: Terminal, description: 'Read-only SQL over the analytical views', permission: 'query' },
       { to: '/builder', label: 'Builder', icon: Sparkles, description: 'Compose, aggregate and save custom views', badge: 'beta' },
       { to: '/features', label: 'Features', icon: ListChecks, description: 'Everything the platform ships', badge: 'new' },
     ],

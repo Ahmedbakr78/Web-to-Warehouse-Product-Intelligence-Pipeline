@@ -66,11 +66,7 @@ def untrusted_source_codes(session: Session) -> dict[str, str]:
             level = levels[row.source_code]
         else:
             config = row.config or {}
-            level = str(
-                config.get("data_trust")
-                or preset_data_trust(row.base_url)
-                or DATA_TRUST_REAL
-            )
+            level = str(config.get("data_trust") or preset_data_trust(row.base_url) or DATA_TRUST_REAL)
         levels[row.source_code] = level
         if (row.data_trust or "") != level:
             row.data_trust = level
@@ -99,6 +95,7 @@ def purge_untrusted(database: str | None = None, *, dry_run: bool = False) -> di
         "sources": {},
         "deleted": {},
         "products_removed": 0,
+        "products_repointed": 0,
         "runs_removed": 0,
     }
     with session_scope(database) as session:
@@ -124,11 +121,14 @@ def purge_untrusted(database: str | None = None, *, dry_run: bool = False) -> di
             columns = _table_columns(session, table)
             if "source_code" not in columns:
                 continue
-            count = session.execute(
-                sa.select(sa.func.count()).select_from(sa.text(table)).where(
-                    sa.column("source_code").in_(codes)
-                )
-            ).scalar() or 0
+            count = (
+                session.execute(
+                    sa.select(sa.func.count())
+                    .select_from(sa.text(table))
+                    .where(sa.column("source_code").in_(codes))
+                ).scalar()
+                or 0
+            )
             if count:
                 counts[table] = count
         product_ids = _products_without_observations(session, codes)
@@ -150,11 +150,26 @@ def purge_untrusted(database: str | None = None, *, dry_run: bool = False) -> di
             )
         if product_ids:
             _delete_products(session, product_ids)
+        report["products_repointed"] = _repair_product_sources(session, codes)
         if run_ids:
-            dq_columns = _table_columns(session, "dq_rule_result")
-            if "run_id" in dq_columns:
+            # Every table that points at a run has to go first: the run row is
+            # the parent of all of them, and a leftover child blocks the
+            # delete. `fact_catalog_snapshot` is the one that is easy to miss
+            # because its `source_code` is often NULL.
+            for table in (
+                "fact_price_snapshot",
+                "chg_price_change",
+                "chg_product_event",
+                "fact_catalog_snapshot",
+                "dq_rule_result",
+                "ingestion_http_log",
+                "stg_raw_observation",
+            ):
+                columns = _table_columns(session, table)
+                if "run_id" not in columns:
+                    continue
                 session.execute(
-                    sa.text("DELETE FROM dq_rule_result WHERE run_id IN :ids").bindparams(
+                    sa.text(f"DELETE FROM {table} WHERE run_id IN :ids").bindparams(
                         sa.bindparam("ids", expanding=True)
                     ),
                     {"ids": run_ids},
@@ -171,9 +186,7 @@ def purge_untrusted(database: str | None = None, *, dry_run: bool = False) -> di
         # Sources screen does not claim records that no longer exist.
         from app.models.dimensions import DimSource
 
-        for row in session.execute(
-            sa.select(DimSource).where(DimSource.source_code.in_(codes))
-        ).scalars():
+        for row in session.execute(sa.select(DimSource).where(DimSource.source_code.in_(codes))).scalars():
             row.enabled = False
             row.total_records = 0
             row.success_rate_pct = 0.0
@@ -187,7 +200,7 @@ def _products_without_observations(session: Session, codes: list[str]) -> list[i
     """Product ids whose every observation came from an untrusted source."""
     from app.models.dimensions import DimProduct
 
-    trusted_observed = (
+    trusted_observed: sa.Select[Any] = (
         sa.select(sa.column("product_id"))
         .select_from(sa.text("fact_price_snapshot"))
         .distinct()
@@ -199,6 +212,36 @@ def _products_without_observations(session: Session, codes: list[str]) -> list[i
         .where(~sa.column("product_id").in_(trusted_observed))
     )
     return list(session.execute(statement).scalars())
+
+
+def _repair_product_sources(session: Session, codes: list[str]) -> int:
+    """Re-point surviving products at a source they really came from.
+
+    A product keeps the source that first produced it. When that source is
+    untrusted but the product was later seen by a trusted one, the product
+    survives the purge - yet its ``dim_product.source_code`` would still name
+    the source that was just removed. The column is repaired to the trusted
+    source the product was actually observed at, so the dashboard never
+    attributes a row to a feed that no longer holds data.
+    """
+    if not codes:
+        return 0
+    from app.models.dimensions import DimProduct
+
+    statement = sa.select(DimProduct).where(DimProduct.source_code.in_(codes))
+    repaired = 0
+    for product in session.execute(statement).scalars():
+        replacement = session.execute(
+            sa.select(sa.column("source_code"))
+            .select_from(sa.text("fact_price_snapshot"))
+            .where(sa.column("product_id") == product.product_id)
+            .where(sa.column("source_code").not_in(codes))
+            .limit(1)
+        ).scalar()
+        if replacement:
+            product.source_code = replacement
+            repaired += 1
+    return repaired
 
 
 def _delete_products(session: Session, product_ids: list[int]) -> None:
@@ -231,7 +274,7 @@ def _runs_without_references(session: Session, codes: list[str]) -> list[str]:
     no observations at all (a failed or rejected run) is *real* operational
     history and is kept.
     """
-    trusted_any = (
+    trusted_any: sa.Select[Any] = (
         sa.select(sa.column("run_id"))
         .select_from(sa.text("fact_price_snapshot"))
         .distinct()

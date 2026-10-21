@@ -53,6 +53,11 @@ export default function Quality() {
   const rules = useApiQuery(['quality-rules'], endpoints.qualityRules, { staleTime: 600_000 })
   const trend = useApiQuery(['quality-trend', range], () => endpoints.qualityTrend(Number(range)))
   const summary = useApiQuery(['quality-summary'], endpoints.qualitySummary)
+  // The weights are served by the API so the explanation can never drift from
+  // the formula the score is actually computed with.
+  const scoring = useApiQuery(['quality-scoring-model'], endpoints.qualityScoringModel, {
+    staleTime: 600_000,
+  })
 
   const resultsParams = useMemo(
     () => ({ page: 1, page_size: 100, dimension: dimension || undefined, status: status || undefined }),
@@ -74,6 +79,30 @@ export default function Quality() {
     acc[item.status] = (acc[item.status] ?? 0) + item.count
     return acc
   }, {})
+
+  /** The scoring model, described from the numbers the API publishes. */
+  const scoringText = (() => {
+    const model = scoring.data as
+      | {
+          severity_weights?: Record<string, number>
+          outcome_factors?: Record<string, number>
+          blocking_severity?: string
+        }
+      | undefined
+    const weights = model?.severity_weights
+    const factors = model?.outcome_factors
+    if (!weights || !factors) {
+      return 'The score weighs every rule by severity and by outcome. A critical failure blocks the run; an error is recorded and surfaced without failing the pipeline.'
+    }
+    const weightText = Object.entries(weights)
+      .sort((a, b) => b[1] - a[1])
+      .map(([severity, weight]) => `${severity} ${weight}`)
+      .join(', ')
+    const factorText = Object.entries(factors)
+      .map(([outcome, factor]) => `${outcome} ${factor}`)
+      .join(', ')
+    return `The score weights every rule by severity (${weightText}) and by outcome (${factorText}). A ${model?.blocking_severity ?? 'critical'} failure blocks the run; an error is recorded and surfaced without failing the pipeline.`
+  })()
 
   if (latest.isError) {
     return <ErrorState title="Could not load the quality report" message={(latest.error as Error)?.message} onRetry={() => latest.refetch()} />
@@ -138,9 +167,7 @@ export default function Quality() {
                   </div>
                   <ProgressBar value={score} tone={score >= 90 ? 'success' : score >= 75 ? 'warning' : 'danger'} />
                   <p className="mt-3 text-xs leading-relaxed text-muted">
-                    The score weights every rule by severity (critical 1.0, error 1.5, warn 2.0) and by outcome (pass 1.0,
-                    warn 0.75, fail 0.0). A <strong>critical</strong> failure blocks the run; an error is recorded and
-                    surfaced without failing the pipeline.
+                    {scoringText}
                   </p>
                 </>
               )}

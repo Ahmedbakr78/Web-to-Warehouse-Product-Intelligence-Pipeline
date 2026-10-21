@@ -36,9 +36,7 @@ class BitstampTickersSource(ProductSource):
     rate_limit_per_minute: ClassVar[int] = 20
     min_delay_seconds: ClassVar[float] = 1.5
     supports_paging: ClassVar[bool] = False
-    description: ClassVar[str] = (
-        "USD spot tickers: last trade with 24h high/low/open, vwap and volume."
-    )
+    description: ClassVar[str] = "USD spot tickers: last trade with 24h high/low/open, vwap and volume."
 
     def fetch(self, limit: int | None = None) -> Iterator[RawProduct]:
         limit = limit or settings.max_products_per_source

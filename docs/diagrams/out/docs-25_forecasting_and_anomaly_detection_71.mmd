@@ -1,12 +1,9 @@
 
-flowchart TD
-  change[price change] --> mad{MAD detector}
-  change --> sigma{3 sigma detector}
-  change --> iqr{IQR fence detector}
-  mad --> votes[votes]
-  sigma --> votes
-  iqr --> votes
-  votes --> flagged{majority flags?}
-  flagged -->|yes| severity[severity from z-score]
-  flagged -->|no| quiet[recorded, not alerted]
-  severity --> alert[notification]
+flowchart LR
+  views[(vw_price_history)] --> clean[median clean, dedupe]
+  clean --> series[daily series, gaps zero-filled]
+  series --> fit{damped Holt-Winters fit}
+  fit --> points[projection points + bands]
+  fit --> holdout[holdout tail]
+  holdout --> metrics[MAPE, MAE, RMSE]
+  metrics --> grade[accuracy grade]

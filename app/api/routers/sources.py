@@ -123,14 +123,16 @@ def audit_compliance(session: DbSession, _user: WriteUser) -> dict[str, Any]:
             continue
         try:
             verdict = _robots_verdict(base_url)
-            results.append({
-                "code": src.get("code"),
-                "name": src.get("name"),
-                "url": base_url,
-                "allowed": verdict["allowed"],
-                "rule": verdict["rule"],
-                "crawl_delay": verdict["crawl_delay"],
-            })
+            results.append(
+                {
+                    "code": src.get("code"),
+                    "name": src.get("name"),
+                    "url": base_url,
+                    "allowed": verdict["allowed"],
+                    "rule": verdict["rule"],
+                    "crawl_delay": verdict["crawl_delay"],
+                }
+            )
             log_entry = IngestionHttpLog(
                 run_id=run_id,
                 source_code=src.get("code"),
@@ -144,13 +146,15 @@ def audit_compliance(session: DbSession, _user: WriteUser) -> dict[str, Any]:
             )
             session.add(log_entry)
         except Exception as exc:  # noqa: BLE001
-            results.append({
-                "code": src.get("code"),
-                "name": src.get("name"),
-                "url": base_url,
-                "allowed": False,
-                "error": str(exc),
-            })
+            results.append(
+                {
+                    "code": src.get("code"),
+                    "name": src.get("name"),
+                    "url": base_url,
+                    "allowed": False,
+                    "error": str(exc),
+                }
+            )
 
     session.flush()
     return {

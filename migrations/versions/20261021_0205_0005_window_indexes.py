@@ -29,6 +29,8 @@ from collections.abc import Sequence
 
 from alembic import op
 
+from app.core.db import create_index_if_missing, drop_index_if_present
+
 # revision identifiers, used by Alembic.
 revision: str = "0005_window_indexes"
 down_revision: str | Sequence[str] | None = "0004_remove_scrollbars"
@@ -56,14 +58,15 @@ def upgrade() -> None:
         # autocommit block below is the only way to use it from Alembic.
         with op.get_context().autocommit_block():
             for name, table, columns in _INDEXES:
-                column_list = ", ".join('"%s"' % column for column in columns)
+                column_list = ", ".join(f'"{column}"' for column in columns)
                 op.execute(
-                    'CREATE INDEX CONCURRENTLY IF NOT EXISTS "%s" ON "%s" (%s)'
-                    % (name, table, column_list)
+                    f'CREATE INDEX CONCURRENTLY IF NOT EXISTS "{name}" ON "{table}" ({column_list})'
                 )
         return
+    connection = op.get_bind()
     for name, table, columns in _INDEXES:
-        op.create_index(name, table, list(columns), unique=False, if_not_exists=True)
+        # MySQL rejects `CREATE INDEX IF NOT EXISTS`, so the catalogue decides.
+        create_index_if_missing(connection, name, table, list(columns))
 
 
 def downgrade() -> None:
@@ -73,5 +76,6 @@ def downgrade() -> None:
             for name, _, _ in _INDEXES:
                 op.execute(f'DROP INDEX CONCURRENTLY IF EXISTS "{name}"')
         return
+    connection = op.get_bind()
     for name, _, _ in _INDEXES:
-        op.drop_index(name, if_exists=True)
+        drop_index_if_present(connection, name)

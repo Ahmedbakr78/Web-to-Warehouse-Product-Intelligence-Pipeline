@@ -76,7 +76,7 @@
       <h1>Releases</h1>
       <p>Versioning, tagging, release history and the changelog contract</p>
     </div>
-    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#versioning">Versioning</a></li><li class="lvl-2"><a href="#release-flow">Release flow</a></li><li class="lvl-2"><a href="#github-about-box-paste-ready">GitHub About box (paste-ready)</a></li><li class="lvl-2"><a href="#history">History</a></li></ol></details>
+    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#versioning">Versioning</a></li><li class="lvl-2"><a href="#release-flow">Release flow</a></li><li class="lvl-2"><a href="#github-about-box-paste-ready">GitHub About box (paste-ready)</a></li><li class="lvl-2"><a href="#pre-flight-checklist">Pre-flight checklist</a></li><li class="lvl-2"><a href="#what-a-release-note-must-contain">What a release note must contain</a></li><li class="lvl-2"><a href="#history">History</a></li><li class="lvl-2"><a href="#related">Related</a></li></ol></details>
     <article class="doc-body">
 <p>How this project ships: one version number in exactly one place, a changelog entry per release, an annotated tag, and a GitHub release with notes. The flow is designed so a release can never be half-done.</p>
 <h2 id="versioning">Versioning</h2>
@@ -116,18 +116,145 @@ git push origin main v1.11.0
 gh release create v1.11.0 --title &quot;v1.11.0&quot; --notes-file CHANGELOG.md</code></pre>
 <h2 id="github-about-box-paste-ready">GitHub About box (paste-ready)</h2>
 <p><strong>Description:</strong></p>
-<blockquote><p>End-to-end product intelligence pipeline: permitted web/API ingestion (34 sources), cleaning, duplicate detection, PostgreSQL/MySQL warehouse with price history, SQL analytics, Airflow orchestration, FastAPI (216 ops) + React dashboard. DEPI Data Engineering capstone.</p></blockquote>
+<blockquote><p>End-to-end product intelligence pipeline: permitted web/API ingestion (35 sources), compliance-first cleaning, fuzzy duplicate detection, PostgreSQL and MySQL warehouse with price history, SQL analytics, Airflow orchestration, FastAPI (219 ops) and a React 19 dashboard. Every row is provably observed market data. DEPI Data Engineering capstone.</p></blockquote>
 <p><strong>Topics:</strong></p>
 <pre class="code" data-lang=""><code>web-scraping  beautifulsoup  scrapy  etl  data-engineering  airflow  postgresql
 fastapi  python  data-quality  deduplication  price-tracking  data-warehouse
-docker  plotly  streamlit  rest-api  depi  data-pipeline  sql-analytics</code></pre>
+docker  plotly  streamlit  rest-api  depi  data-pipeline  sql-analytics
+data-lineage  provenance  robots-txt  rate-limiting  analytics-engineering
+product-intelligence  kimball  react  typescript  airflow-dag  etl-pipeline
+observability  alerting  openapi  clickhouse  duckdb  pandas  numpy</code></pre>
 <p><strong>Website:</strong> link <code>website/index.html</code> (or the Pages URL once enabled).</p>
 <p><strong>Visibility:</strong> Repo, then Settings, then General, then Danger Zone, then Change visibility, Make private (or <code>gh repo edit &lt;repo&gt; --visibility private --accept-visibility-change-consequences</code>).</p>
+<hr>
+<h2 id="pre-flight-checklist">Pre-flight checklist</h2>
+<p>A release is not done because the code works. It is done because every claim attached to it is true and verifiable. Before tagging:</p>
+<div class='table-scroll'><table><thead><tr>
+<th>#</th>
+<th>Check</th>
+<th>Command</th>
+<th>Passes when</th>
+</tr></thead><tbody>
+<tr>
+<th>1</th>
+<td>Version is propagated</td>
+<td><code>.venv/bin/python scripts/sync_version.py --check</code></td>
+<td><code>VERSION</code>, <code>pyproject.toml</code>, <code>frontend/package.json</code> and the API all agree</td>
+</tr>
+<tr>
+<th>2</th>
+<td>Structural figures match the code</td>
+<td><code>.venv/bin/python scripts/check_stats.py docs/stats.json</code></td>
+<td>"No drift: all N pinned figures match"</td>
+</tr>
+<tr>
+<th>3</th>
+<td>README figures regenerated</td>
+<td><code>.venv/bin/python scripts/project_stats.py --sync-readme</code></td>
+<td>the stats block changes with the code</td>
+</tr>
+<tr>
+<th>4</th>
+<td>Backend tests</td>
+<td><code>.venv/bin/python -m pytest</code></td>
+<td>every test passes</td>
+</tr>
+<tr>
+<th>5</th>
+<td>Backend lint</td>
+<td><code>.venv/bin/python -m ruff check app/ tests/ scripts/</code></td>
+<td>no findings</td>
+</tr>
+<tr>
+<th>6</th>
+<td>Frontend lint, types, tests</td>
+<td><code>npm run lint &amp;&amp; npm run typecheck &amp;&amp; npm run test</code> (in <code>frontend/</code>)</td>
+<td>zero warnings, zero errors, all tests green</td>
+</tr>
+<tr>
+<th>7</th>
+<td>Frontend production build</td>
+<td><code>npm run build</code> (in <code>frontend/</code>)</td>
+<td>the bundle builds with <code>tsc -b</code></td>
+</tr>
+<tr>
+<th>8</th>
+<td>The warehouse is clean</td>
+<td><code>pip-cli purge-untrusted --dry-run</code></td>
+<td>nothing to remove</td>
+</tr>
+<tr>
+<th>9</th>
+<td>The pipeline really runs</td>
+<td><code>pip-cli run-pipeline</code></td>
+<td>the run succeeds against live sources</td>
+</tr>
+<tr>
+<th>10</th>
+<td>The API really answers</td>
+<td><code>.venv/bin/python scripts/api_smoke.py</code></td>
+<td>104/104 checks pass</td>
+</tr>
+<tr>
+<th>11</th>
+<td>The docs site builds</td>
+<td><code>make site &amp;&amp; .venv/bin/python scripts/check_links.py site</code></td>
+<td>every internal link resolves</td>
+</tr>
+<tr>
+<th>12</th>
+<td>The infographic is current</td>
+<td><code>make infographic</code></td>
+<td>the assets are regenerated from the live stats</td>
+</tr>
+</tbody></table></div>
+<p>Steps 8 to 12 are the ones that catch the failures a unit test cannot: a source that started returning garbage, a table that grew without an index, a documentation page that stopped existing.</p>
+<hr>
+<h2 id="what-a-release-note-must-contain">What a release note must contain</h2>
+<pre class="mermaid">flowchart LR
+    U[&quot;Unreleased&lt;br/&gt;in CHANGELOG.md&quot;] --&gt; V[&quot;VERSION bumped&lt;br/&gt;+ sync_version.py&quot;]
+    V --&gt; S[&quot;Stats re-measured&lt;br/&gt;check_stats --write&quot;]
+    S --&gt; C[&quot;CHANGELOG entry&lt;br/&gt;promoted from Unreleased&quot;]
+    C --&gt; T[&quot;Tag: git tag -a vX.Y.Z&quot;]
+    T --&gt; G[&quot;GitHub release&lt;br/&gt;gh release create&quot;]
+    G --&gt; P[&quot;Paste the About box&lt;br/&gt;+ confirm topics&quot;]</pre>
+<p>A release note is written for a reader who has not seen the project. It says what changed, what it means, and how to verify it — not which files moved.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Section</th>
+<th>What goes in it</th>
+</tr></thead><tbody>
+<tr>
+<th>Theme</th>
+<td>One line. The single idea the release is about.</td>
+</tr>
+<tr>
+<th>Added</th>
+<td>New capability, with the endpoint or screen that proves it.</td>
+</tr>
+<tr>
+<th>Fixed</th>
+<td>The bug, <strong>the cause</strong>, and what now prevents it recurring.</td>
+</tr>
+<tr>
+<th>Changed</th>
+<td>Behaviour that is different, with the migration note.</td>
+</tr>
+<tr>
+<th>Verified</th>
+<td>The commands that were run and their results.</td>
+</tr>
+</tbody></table></div>
+<p>The last section is what distinguishes a release note from a wish list. It should quote real output — <code>594 passed</code>, <code>104/104</code>, <code>No drift: all 15 pinned figures match</code> — not intentions.</p>
+<hr>
 <h2 id="history">History</h2>
 <div class='table-scroll'><table><thead><tr>
 <th>Version</th>
 <th>Theme</th>
 </tr></thead><tbody>
+<tr>
+<th>1.12.0</th>
+<td>Truthful metrics, silent reload &amp; mobile parity; window indexes; hermetic test suite</td>
+</tr>
 <tr>
 <th>1.11.0</th>
 <td>Morning Briefing, 10x demo warehouse, account briefing defaults, mobile/theme polish</td>
@@ -146,6 +273,29 @@ docker  plotly  streamlit  rest-api  depi  data-pipeline  sql-analytics</code></
 </tr>
 </tbody></table></div>
 <p>Full detail per version: <code>CHANGELOG.md</code>.</p>
+<hr>
+<h2 id="related">Related</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Document</th>
+<th>Covers</th>
+</tr></thead><tbody>
+<tr>
+<td><a href="33_data_trust_and_compliance.html">33 — Data Trust &amp; Compliance</a></td>
+<td>Why a release cannot quietly introduce fabricated rows</td>
+</tr>
+<tr>
+<td><a href="24_demo_runbook.html">24 — Demo Runbook</a></td>
+<td>What to show, and what to do when a source is down</td>
+</tr>
+<tr>
+<td><a href="15_testing_strategy.html">15 — Testing Strategy</a></td>
+<td>The full test matrix and the quality gates</td>
+</tr>
+<tr>
+<td><a href="31_releases.html">31 — Releases</a></td>
+<td>This document</td>
+</tr>
+</tbody></table></div>
     </article>
     <div class="doc-foot">
       <span><a href="30_access_control_and_rate_limiting.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Access Control & Limits</a></span>

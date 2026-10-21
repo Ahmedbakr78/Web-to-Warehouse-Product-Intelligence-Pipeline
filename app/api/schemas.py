@@ -218,9 +218,8 @@ class UserUpdate(BaseModel):
     full_name: str | None = None
     job_title: str | None = None
     department: str | None = None
-    timezone: str | None = None
-    locale: str | None = None
-    # Five palettes: three light/dark variants plus system and a high-contrast mode.
+    timezone: str | None = Field(default=None, max_length=64)
+    locale: str | None = Field(default=None, max_length=16)
     theme: Literal["system", "light", "dark", "midnight", "high-contrast"] | None = None
     accent: str | None = Field(default=None, max_length=32)
     density: Literal["compact", "comfortable", "spacious"] | None = None
@@ -231,7 +230,7 @@ class UserUpdate(BaseModel):
     # Root font size, independent of density.
     font_scale: Literal["xs", "sm", "md", "lg", "xl"] | None = None
     rows_per_page: int | None = Field(default=None, ge=5, le=500)
-    default_currency: str | None = None
+    default_currency: str | None = Field(default=None, max_length=8)
     price_change_alert_pct: float | None = Field(default=None, ge=0, le=100)
     avatar_color: str | None = None
     preferences: dict[str, Any] | None = None
@@ -242,6 +241,46 @@ class UserUpdate(BaseModel):
         if value is None or value in ACCENT_PRESETS:
             return value
         raise ValueError(f"accent must be one of: {', '.join(sorted(ACCENT_PRESETS))}")
+
+    @field_validator("timezone")
+    @classmethod
+    def _known_timezone(cls, value: str | None) -> str | None:
+        """Accept an IANA zone name (Region/City) or UTC."""
+        if value is None:
+            return value
+        zone = value.strip()
+        if not zone or len(zone) > 64:
+            raise ValueError("timezone must be a short IANA zone name")
+        if zone.upper() == "UTC":
+            return "UTC"
+        parts = zone.split("/")
+        if len(parts) not in (2, 3) or not all(part.replace("_", "").isalnum() for part in parts):
+            raise ValueError("timezone must look like 'Region/City' or 'UTC'")
+        return zone
+
+    @field_validator("locale")
+    @classmethod
+    def _known_locale(cls, value: str | None) -> str | None:
+        """Accept a BCP-47 style tag such as `en`, `en-GB` or `ar`."""
+        if value is None:
+            return value
+        tag = value.strip()
+        if not tag or len(tag) > 16:
+            raise ValueError("locale must be a short language tag")
+        if not all(part.replace("-", "").isalnum() for part in tag.split("-")):
+            raise ValueError("locale must look like 'en' or 'en-GB'")
+        return tag
+
+    @field_validator("default_currency")
+    @classmethod
+    def _known_currency(cls, value: str | None) -> str | None:
+        """Accept a three-letter ISO 4217 code."""
+        if value is None:
+            return value
+        code = value.strip().upper()
+        if len(code) != 3 or not code.isalpha():
+            raise ValueError("default_currency must be a three-letter ISO 4217 code")
+        return code
 
 
 class UserDeleteRequest(BaseModel):

@@ -1,11 +1,11 @@
 
 graph TB
     subgraph Client["Browser / PWA"]
-        DASH["React 19 dashboard<br/>24 screens, light & dark"]
+        DASH["React 19 dashboard<br/>23 screens, light & dark"]
         PAL["Command palette<br/>Ctrl/Cmd-K"]
     end
     subgraph Edge["FastAPI application"]
-        ROUTES["24 routers<br/>219 operations"]
+        ROUTES["24 routers<br/>222 operations"]
         AUTH["Security layer<br/>Argon2id · JWT · API keys · RBAC"]
         GUARD["Guards<br/>error envelope · GZip · timing · rate limit"]
         BUILDER["Builder DSL<br/>whitelist to parameterised SELECT"]

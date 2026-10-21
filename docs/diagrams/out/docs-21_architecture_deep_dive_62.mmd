@@ -1,32 +1,41 @@
 
-sequenceDiagram
-    autonumber
-    participant SRC as Source adapter
-    participant HC as HTTP client
-    participant RB as robots cache
-    participant RL as Rate limiter
-    participant CB as Circuit breaker
-    participant NET as The web
-    participant LOG as ingestion_http_log
-
-    SRC->>HC: get(url)
-    HC->>CB: is host open?
-    alt breaker open
-        CB-->>HC: SkipRequest(reason=circuit_open)
-        HC->>LOG: record, no network call
-        HC-->>SRC: SkipRequest
-    else breaker closed
-        HC->>RB: is_allowed(host, path)
-        RB-->>HC: allow / disallow + crawl_delay
-        HC->>LOG: record robots decision
-        alt disallowed
-            HC-->>SRC: ComplianceError
-        else allowed
-            HC->>RL: acquire()
-            RL-->>HC: delay honoured
-            HC->>NET: request
-            NET-->>HC: response
-            HC->>LOG: status, latency, bytes, retries
-            HC-->>SRC: FetchResult
-        end
+flowchart TB
+    subgraph EXT["Outside the system"]
+        WEB["Public web sources"]
+        HUMAN["Analysts and admins"]
     end
+
+    subgraph EDGE["Edge"]
+        MWS["Middleware<br/>CORS · gzip · timing · error envelope"]
+    end
+
+    subgraph API["Interface — app/api"]
+        RT["16 routers, 113 operations"]
+        SEC["Security dependency<br/>JWT · API key · RBAC · audit"]
+    end
+
+    subgraph DOMAIN["Domain logic — app/etl, app/analytics"]
+        PIPE["Pipeline orchestrator<br/>9 stages"]
+        DQ["Data-quality framework"]
+        REC["Catalog reconciliation"]
+        AN["Analytics service"]
+    end
+
+    subgraph PORT["Ports — app/ingestion"]
+        HTTP["HTTP client<br/>robots · rate limit · breaker · cache · audit"]
+        SRC["Source adapters"]
+    end
+
+    subgraph DATA["Data plane — app/models"]
+        WH[("25 tables · 20 views")]
+    end
+
+    WEB --> HTTP
+    HUMAN --> MWS
+    MWS --> RT
+    SEC -.enforces on.-> RT
+    RT --> PIPE & DQ & REC & AN
+    PIPE --> HTTP & WH
+    SRC --> HTTP
+    AN --> WH
+    WH -.raw rows only.-> PIPE

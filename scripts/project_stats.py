@@ -133,8 +133,20 @@ def dq_rules() -> int:
 
 
 def sources() -> int:
-    directory = APP / "ingestion" / "sources"
-    return len([p for p in directory.glob("*.py") if p.stem != "__init__"])
+    """How many ingestion adapters are actually registered.
+
+    Counted from the registry rather than from the folder: the folder also
+    holds the generic JSON adapter, which is the *mechanism* behind a
+    dashboard-defined source rather than a source of its own.
+    """
+    try:
+        sys.path.insert(0, str(ROOT))
+        from app.ingestion.base import all_source_codes
+
+        return len(all_source_codes())
+    except Exception:
+        directory = APP / "ingestion" / "sources"
+        return len([p for p in directory.glob("*.py") if p.stem != "__init__"])
 
 
 def airflow_tasks() -> int:
@@ -190,11 +202,36 @@ def mermaid_diagrams() -> int:
 
 
 def features() -> int:
+    """The live feature catalogue the API serves.
+
+    Read from the code, not from a document: ``GET /meta/features`` is what a
+    user actually sees in the dashboard, so the published number has to be the
+    one the running application returns.
+    """
+    try:
+        sys.path.insert(0, str(ROOT))
+        from app.core.features import feature_catalogue
+
+        return int(feature_catalogue()["total_features"])
+    except Exception:
+        return -1
+
+
+def documented_features() -> int:
+    """The F-ID inventory in ``docs/19_feature_list.md`` (the engineering index)."""
     path = ROOT / "docs" / "19_feature_list.md"
     if not path.is_file():
         return -1
     ids = {int(x) for x in re.findall(r"^\|\s*F-(\d+)", path.read_text(encoding="utf-8"), re.M)}
     return max(ids) if ids else -1
+
+
+def feature_areas() -> int:
+    """How many areas the documented inventory is organised into."""
+    path = ROOT / "docs" / "19_feature_list.md"
+    if not path.is_file():
+        return -1
+    return len(re.findall(r"^## \d+\. ", path.read_text(encoding="utf-8"), re.M))
 
 
 COLLECTORS = {
@@ -211,6 +248,8 @@ COLLECTORS = {
     "documentation_documents": documentation_documents,
     "mermaid_diagrams": mermaid_diagrams,
     "catalogued_features": features,
+    "documented_features": documented_features,
+    "feature_areas": feature_areas,
     "test_functions": test_functions,
     "test_cases": test_cases,
     "api_smoke_checks": smoke_checks,
@@ -241,7 +280,9 @@ LABELS = {
     "compose_services": "Docker Compose services",
     "documentation_documents": "Numbered documents",
     "mermaid_diagrams": "Mermaid diagrams",
-    "catalogued_features": "Catalogued features",
+    "catalogued_features": "Catalogued features (live API catalogue)",
+    "documented_features": "Documented features (F-ID inventory)",
+    "feature_areas": "Documented feature areas",
     "test_functions": "Test functions",
     "test_cases": "Collected test cases",
     "api_smoke_checks": "API smoke checks",

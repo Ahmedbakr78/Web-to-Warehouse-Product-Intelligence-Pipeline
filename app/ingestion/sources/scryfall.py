@@ -38,8 +38,7 @@ class ScryfallCardsSource(ProductSource):
     min_delay_seconds: ClassVar[float] = 1.0
     supports_paging: ClassVar[bool] = True
     description: ClassVar[str] = (
-        "Magic paper cards with real retail USD and foil prices, set name, "
-        "rarity and type line."
+        "Magic paper cards with real retail USD and foil prices, set name, rarity and type line."
     )
 
     def fetch(self, limit: int | None = None) -> Iterator[RawProduct]:

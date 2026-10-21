@@ -114,22 +114,32 @@ export default function Reports() {
   const [template, setTemplate] = useState('executive_summary')
   const [days, setDays] = useState(30)
   const [sections, setSections] = useState<string[]>([])
+  // The "product" template is about one product, so the product is part of the
+  // request rather than a filter applied afterwards.
+  const [productId, setProductId] = useState<number | null>(null)
 
   const templates = useApiQuery(['report-templates'], endpoints.reportTemplates, { staleTime: 600_000 })
   const current = (templates.data?.templates ?? []).find((item: any) => item.key === template)
+  const requiresProduct = Boolean(current?.requires_product)
+  const productOptions = useApiQuery(
+    ['report-products'],
+    () => endpoints.products({ page: 1, page_size: 100 }),
+    { enabled: requiresProduct, staleTime: 300_000 },
+  )
+  const reportParams = {
+    days,
+    sections: sections.length ? sections.join(',') : undefined,
+    product_id: requiresProduct ? productId ?? undefined : undefined,
+  }
   const report = useApiQuery(
-    ['report', template, days],
-    () => endpoints.reportData(template, { days, sections: sections.length ? sections.join(',') : undefined }),
-    { enabled: Boolean(template) },
+    ['report', template, days, productId],
+    () => endpoints.reportData(template, reportParams),
+    { enabled: Boolean(template) && (!requiresProduct || productId !== null) },
   )
 
   const pdf = useMutation({
     mutationFn: () =>
-      downloadBinary(
-        `/reports/${template}/pdf`,
-        { days, sections: sections.length ? sections.join(',') : undefined },
-        `${template}-report.pdf`,
-      ),
+      downloadBinary(`/reports/${template}/pdf`, reportParams, `${template}-report.pdf`),
     onSuccess: () => toast.success('PDF downloaded'),
     onError: (error) => toast.error('Could not render that PDF', (error as Error).message),
   })
@@ -173,6 +183,7 @@ export default function Reports() {
     const token = tokenStore.get()
     if (token) params.set('token', token ?? '')
     if (sections.length) params.set('sections', sections.join(','))
+    if (requiresProduct && productId !== null) params.set('product_id', String(productId))
     window.open(`${API_BASE}/reports/${template}?${params.toString()}`, '_blank', 'noopener')
   }
 
@@ -245,6 +256,28 @@ export default function Reports() {
             </Button>
           </div>
         </div>
+
+        {requiresProduct ? (
+          <div className="mt-3">
+            <p className="stat-label mb-1.5">Product</p>
+            <Select
+              value={productId === null ? '' : String(productId)}
+              onChange={(event) => setProductId(event.target.value ? Number(event.target.value) : null)}
+            >
+              <option value="">Select a product…</option>
+              {(productOptions.data?.items ?? []).map((item: any) => (
+                <option key={item.product_id} value={item.product_id}>
+                  {item.canonical_name}
+                </option>
+              ))}
+            </Select>
+            {productId === null ? (
+              <p className="mt-1.5 text-[11px] text-subtle">
+                The product report is built for one product - pick one to load the report.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
 
         {current?.subtitle ? <p className="mt-3 text-xs text-muted">{current.subtitle}</p> : null}
 
@@ -347,7 +380,7 @@ export default function Reports() {
         />
         <ol className="grid gap-3 text-xs text-muted sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { title: '1. Query', body: 'The template runs against the 23 analytical views, never the raw tables.' },
+            { title: '1. Query', body: 'The template runs against the analytical views, never the raw tables.' },
             { title: '2. Assemble', body: 'Results become typed blocks: heading, tiles, table, bars, callout.' },
             { title: '3. Render', body: 'The screen, the HTML preview, the CSV and the PDF consume those same blocks.' },
             { title: '4. Export', body: 'A large PDF is queued as a job so WeasyPrint never blocks a request.' },

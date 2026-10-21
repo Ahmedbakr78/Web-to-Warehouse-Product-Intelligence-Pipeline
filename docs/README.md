@@ -41,6 +41,7 @@ command cited beside it.
 | 29 | [Two-Factor Authentication & Sessions](29_two_factor_and_sessions.md) | TOTP enrolment, encrypted secrets, single-use recovery codes, per-device revocation |
 | 30 | [Access Control, API Keys & Rate Limiting](30_access_control_and_rate_limiting.md) | Roles and rights, scoped API keys enforced twice, sliding-window limits with honest headers |
 | 32 | [Morning Briefing & Demo Scale](32_briefing_and_demo_scale.md) | Ranked action queue, endpoint contract, cache/noise policy, and the idempotent 10x demo expansion |
+| 33 | [Data Trust & Compliance](33_data_trust_and_compliance.md) | The three trust levels, auto-selection rules, the purge sweep, robots.txt enforcement and the request-level audit trail |
 
 ---
 
@@ -98,10 +99,12 @@ If you are reviewing this for the first time:
    and why each decision was made.
 3. **[25–30](25_forecasting_and_anomaly_detection.md)** — the newer subsystems:
    forecasting, jobs and realtime, reporting, migrations, two-factor, access control.
-4. **[14 API Documentation](14_api_documentation.md)** and
+4. **[33 Data Trust & Compliance](33_data_trust_and_compliance.md)** — how the
+   warehouse guarantees that every row was really observed.
+5. **[14 API Documentation](14_api_documentation.md)** and
    **[16 User Manual](16_user_manual.md)** — the two views most reviewers want.
-5. **[15 Testing Strategy](15_testing_strategy.md)** — what is verified, and how.
-6. **[24 Demo Runbook](24_demo_runbook.md)** — if you are seeing it live.
+6. **[15 Testing Strategy](15_testing_strategy.md)** — what is verified, and how.
+7. **[24 Demo Runbook](24_demo_runbook.md)** — if you are seeing it live.
 
 ---
 

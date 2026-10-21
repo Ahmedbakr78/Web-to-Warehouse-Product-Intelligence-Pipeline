@@ -13,7 +13,7 @@ import {
   Check,
   Copy,
   Fingerprint,
-
+  KeyRound,
   Laptop,
   LogOut,
   RefreshCw,
@@ -56,6 +56,8 @@ export default function SecurityPanel() {
   const [recoveryCodes, setRecoveryCodes] = useState<string[] | null>(null)
   const [disableOpen, setDisableOpen] = useState(false)
   const [disableCode, setDisableCode] = useState('')
+  const [codesOpen, setCodesOpen] = useState(false)
+  const [codesCode, setCodesCode] = useState('')
 
   const setup = useMutation({
     mutationFn: endpoints.twoFactorSetup,
@@ -88,6 +90,18 @@ export default function SecurityPanel() {
       toast.success('Two-factor authentication disabled')
     },
     onError: (error) => toast.error('Could not disable it', (error as Error).message),
+  })
+
+  const regenerateCodes = useMutation({
+    mutationFn: () => endpoints.twoFactorCodes(codesCode),
+    onSuccess: (payload) => {
+      setCodesOpen(false)
+      setCodesCode('')
+      setRecoveryCodes(payload.recovery_codes ?? [])
+      void queryClient.invalidateQueries({ queryKey: ['two-factor-status'] })
+      toast.success('New recovery codes issued', 'The previous set no longer works')
+    },
+    onError: (error) => toast.error('Could not issue new codes', (error as Error).message),
   })
 
   const revoke = useMutation({
@@ -150,7 +164,12 @@ export default function SecurityPanel() {
                       </span>
                     ),
                   },
-                  { label: 'Method', value: 'TOTP · SHA-1 · 30 s step' },
+                  {
+                    label: 'Method',
+                    value: status.data?.method
+                      ? `${status.data.method} · ${status.data.algorithm ?? 'SHA-1'} · ${status.data.period ?? 30} s step · ${status.data.digits ?? 6} digits`
+                      : '—',
+                  },
                 ]}
               />
               {(status.data?.recovery_codes_remaining ?? 0) <= 2 ? (
@@ -162,7 +181,28 @@ export default function SecurityPanel() {
                   </span>
                 </p>
               ) : null}
+              {(recoveryCodes ?? []).length ? (
+                <div className="rounded-lg border border-line bg-surface-2 p-3">
+                  <p className="mb-2 text-[11px] font-semibold text-ink">New recovery codes</p>
+                  <p className="mb-2 text-[11px] text-subtle">
+                    Shown once. Each code works once, in place of your authenticator.
+                  </p>
+                  <ul className="grid grid-cols-2 gap-1 font-mono text-[11px] text-muted">
+                    {(recoveryCodes ?? []).map((code) => (
+                      <li key={code}>{code}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
               <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="secondary"
+                  icon={<KeyRound className="h-4 w-4" />}
+                  loading={regenerateCodes.isPending}
+                  onClick={() => setCodesOpen(true)}
+                >
+                  Generate new recovery codes
+                </Button>
                 <Button variant="danger" icon={<ShieldQuestion className="h-4 w-4" />} onClick={() => setDisableOpen(true)}>
                   Turn off
                 </Button>
@@ -403,6 +443,37 @@ export default function SecurityPanel() {
       </Modal>
 
       {/* ----------------------------------------------------- disable modal */}
+      <Modal
+        open={codesOpen}
+        onClose={() => setCodesOpen(false)}
+        title="Generate new recovery codes"
+        description="Confirm with a current code. The previous set stops working immediately."
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setCodesOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              loading={regenerateCodes.isPending}
+              disabled={codesCode.length !== 6}
+              onClick={() => regenerateCodes.mutate()}
+            >
+              Issue new codes
+            </Button>
+          </>
+        }
+      >
+        <TextInput
+          value={codesCode}
+          onChange={(event) => setCodesCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          placeholder="000000"
+          className="font-mono text-lg tracking-[0.3em]"
+        />
+      </Modal>
+
       <Modal
         open={disableOpen}
         onClose={() => setDisableOpen(false)}

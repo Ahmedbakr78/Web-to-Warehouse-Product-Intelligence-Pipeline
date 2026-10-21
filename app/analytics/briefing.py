@@ -90,14 +90,7 @@ def _drop_insights(movers: list[dict[str, Any]], limit: int) -> list[dict[str, A
             continue
         change = _num(row.get("change_pct"))
         previous, new = _num(row.get("previous_price")), _num(row.get("new_price"))
-        if (
-            change is None
-            or abs(change) > 65
-            or previous is None
-            or new is None
-            or previous <= 0
-            or new <= 0
-        ):
+        if change is None or abs(change) > 65 or previous is None or new is None or previous <= 0 or new <= 0:
             continue
         seen.add(row.get("product_id"))
         items.append(
@@ -131,14 +124,7 @@ def _rise_insights(movers: list[dict[str, Any]], limit: int) -> list[dict[str, A
             continue
         change = _num(row.get("change_pct"))
         previous, new = _num(row.get("previous_price")), _num(row.get("new_price"))
-        if (
-            change is None
-            or abs(change) > 65
-            or previous is None
-            or new is None
-            or previous <= 0
-            or new <= 0
-        ):
+        if change is None or abs(change) > 65 or previous is None or new is None or previous <= 0 or new <= 0:
             continue
         seen.add(row.get("product_id"))
         items.append(

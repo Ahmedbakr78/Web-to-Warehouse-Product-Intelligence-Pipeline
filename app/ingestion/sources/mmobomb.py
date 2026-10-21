@@ -81,5 +81,9 @@ class MMOBombGamesSource(ProductSource):
             image_url=item.get("thumbnail"),
             brand=str(publisher) if publisher else None,
             description=str(item.get("short_description") or "")[:600] or None,
-            payload={"platform": platform, "developer": item.get("developer"), "release_date": item.get("release_date")},
+            payload={
+                "platform": platform,
+                "developer": item.get("developer"),
+                "release_date": item.get("release_date"),
+            },
         )

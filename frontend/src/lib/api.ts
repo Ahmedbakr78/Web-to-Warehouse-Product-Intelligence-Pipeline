@@ -290,6 +290,8 @@ export const endpoints = {
   priceTrend: (days = 90) => api.get<any[]>('/analytics/price-trend', { days }),
   categories: (limit = 20) => api.get<any[]>('/analytics/categories', { limit }),
   brands: (limit = 20) => api.get<any[]>('/analytics/brands', { limit }),
+  brandComparison: (limit = 5, freshnessDays = 30) =>
+    api.get<any>('/analytics/brand-comparison', { limit, freshness_days: freshnessDays }),
   availability: () => api.get<any[]>('/analytics/availability'),
   sourceCoverage: () => api.get<any[]>('/analytics/sources'),
   categoryIndex: (days = 60, category?: string) => api.get<any[]>('/analytics/category-index', { days, category }),
@@ -350,6 +352,8 @@ export const endpoints = {
   qualityResults: (params: Record<string, QueryValue>) => api.get<any>('/quality/results', params),
   qualityTrend: (days = 90) => api.get<any[]>('/quality/trend', { days }),
   qualitySummary: () => api.get<any>('/quality/summary'),
+  qualityScoringModel: () => api.get<any>('/quality/scoring-model'),
+  changeDetectionRules: () => api.get<any>('/changes/detection-rules'),
 
   catalogProducts: (params: Record<string, QueryValue>) => api.get<any>('/catalog/products', params),
   catalogReconciliation: (params: Record<string, QueryValue>) => api.get<any>('/catalog/reconciliation', params),

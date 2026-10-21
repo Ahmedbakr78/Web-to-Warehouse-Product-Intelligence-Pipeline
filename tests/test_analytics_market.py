@@ -52,7 +52,9 @@ def test_source_spread_ranks_multi_source_products(client, viewer_token):
 
 
 def test_category_movers_rank_by_magnitude(client, viewer_token):
-    rows = client.get("/api/v1/analytics/category-movers?days=120&limit=20", headers=auth(viewer_token)).json()
+    rows = client.get(
+        "/api/v1/analytics/category-movers?days=120&limit=20", headers=auth(viewer_token)
+    ).json()
     assert isinstance(rows, list) and rows
     magnitudes = [row["avg_abs_change_pct"] for row in rows]
     assert magnitudes == sorted(magnitudes, reverse=True)
@@ -180,7 +182,14 @@ def test_weekday_pattern_orders_monday_first(client, viewer_token):
     assert names == sorted(names, key=order.index)
     assert sum(row["changes"] for row in rows) > 0
     for row in rows:
-        assert set(row) >= {"day_name", "is_weekend", "changes", "increases", "decreases", "avg_abs_change_pct"}
+        assert set(row) >= {
+            "day_name",
+            "is_weekend",
+            "changes",
+            "increases",
+            "decreases",
+            "avg_abs_change_pct",
+        }
 
 
 def test_market_endpoints_reject_anonymous_callers(client):

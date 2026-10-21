@@ -76,7 +76,9 @@ def test_snippet_lifecycle(client, admin_token):
     history = client.get("/api/v1/queries/history?limit=5", headers=headers).json()
     entry_id = history[0]["history_id"]
 
-    saved = client.post(f"/api/v1/queries/history/{entry_id}/save", headers=headers, json={"name": "pytest one"})
+    saved = client.post(
+        f"/api/v1/queries/history/{entry_id}/save", headers=headers, json={"name": "pytest one"}
+    )
     assert saved.status_code == 200
     assert saved.json()["is_saved"] is True
     assert saved.json()["name"] == "pytest one"

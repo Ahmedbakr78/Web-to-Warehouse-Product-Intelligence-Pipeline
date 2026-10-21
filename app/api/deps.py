@@ -75,7 +75,7 @@ class Pagination:
     def __init__(
         self,
         page: Annotated[int, Query(ge=1, le=10_000, description="1-based page number")] = 1,
-        page_size: Annotated[int, Query(ge=1, le=200, description="Rows per page")] = 25,
+        page_size: Annotated[int, Query(ge=1, le=500, description="Rows per page")] = 25,
         sort_by: Annotated[
             str | None, Query(description="Field to sort by; comma-separated for multi-level sort")
         ] = None,
@@ -301,7 +301,7 @@ def request_meta(request: Request) -> dict[str, str]:
     """Values stored in the audit log."""
     return {
         "ip_address": client_ip(request),
-        "user_agent": request.headers.get("user-agent", "")[:255],
+        "user_agent": request.headers.get("user-agent", "")[:512],
     }
 
 

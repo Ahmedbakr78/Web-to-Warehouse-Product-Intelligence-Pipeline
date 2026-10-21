@@ -79,9 +79,7 @@ class KrakenTickersSource(ProductSource):
         pairs = sorted(
             name
             for name, meta in result.items()
-            if isinstance(meta, dict)
-            and meta.get("quote") in USD_QUOTES
-            and meta.get("status") == "online"
+            if isinstance(meta, dict) and meta.get("quote") in USD_QUOTES and meta.get("status") == "online"
         )
         return pairs or None
 

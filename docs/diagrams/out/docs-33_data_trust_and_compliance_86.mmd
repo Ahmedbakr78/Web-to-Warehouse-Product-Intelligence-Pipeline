@@ -1,0 +1,17 @@
+
+flowchart TB
+    subgraph L0["Declared by the source class"]
+        direction LR
+        R["real<br/><i>observed market records</i>"]
+        S["sandbox<br/><i>published test corpus</i>"]
+        Y["synthetic<br/><i>generated in-process</i>"]
+    end
+
+    L0 -->|"auto-selected"| AUTO["Bare pipeline run"]
+    L0 -->|"explicit code only"| EXPLICIT["run-pipeline --sources …"]
+
+    AUTO --> W1["Warehouse"]
+    EXPLICIT --> W1
+
+    PURGE["Purge sweep<br/><i>app/etl/purge.py</i>"] -->|"removes non-real rows"| W1
+    W1 --> AUDIT["ingestion_http_log<br/><i>robots decision per request</i>"]

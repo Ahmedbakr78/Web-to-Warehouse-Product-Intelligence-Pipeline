@@ -277,7 +277,13 @@ PRESETS: dict[str, dict[str, Any]] = {
             "url": "trackViewUrl",
         },
         "pagination": {"style": "none"},
-        "params": {"term": "photo editor", "media": "software", "entity": "software", "country": "US", "limit": "200"},
+        "params": {
+            "term": "photo editor",
+            "media": "software",
+            "entity": "software",
+            "country": "US",
+            "limit": "200",
+        },
     },
     "gutendex": {
         "data_trust": "real",
@@ -437,7 +443,13 @@ PRESETS: dict[str, dict[str, Any]] = {
             "url": "trackViewUrl",
         },
         "pagination": {"style": "none"},
-        "params": {"term": "python programming", "media": "ebook", "entity": "ebook", "country": "US", "limit": "200"},
+        "params": {
+            "term": "python programming",
+            "media": "ebook",
+            "entity": "ebook",
+            "country": "US",
+            "limit": "200",
+        },
     },
     "restful_objects": {
         "data_trust": "synthetic",
@@ -504,8 +516,7 @@ class GenericJsonSource(ProductSource):
             "enabled": bool(definition.get("enabled", True)),
             "terms_allowed": bool(definition.get("terms_allowed", False)),
             "data_trust": str(
-                config.get("data_trust")
-                or preset_data_trust(str(definition.get("base_url") or ""))
+                config.get("data_trust") or preset_data_trust(str(definition.get("base_url") or ""))
             ),
         }
         if not values["name"]:

@@ -55,6 +55,10 @@ _DASHBOARD_ENUMS: dict[str, tuple[str, ...]] = {
     "default_range": ("7d", "30d", "90d", "180d", "365d"),
 }
 
+#: Notification switches. Each one is a boolean, so anything that is not one is
+#: dropped rather than stored as a truthy string the client cannot read.
+_NOTIFICATION_KEYS = ("price_drop", "dq_failure", "new_product")
+
 
 def _normalise_preferences(preferences: dict[str, Any]) -> dict[str, Any]:
     """Clamp known preferences to their allowed values.
@@ -76,16 +80,33 @@ def _normalise_preferences(preferences: dict[str, Any]) -> dict[str, Any]:
         else:
             cleaned.pop(key, None)
 
-    dashboard = cleaned.get("dashboard")
-    if isinstance(dashboard, dict):
-        nested = dict(dashboard)
-        for key, allowed in _DASHBOARD_ENUMS.items():
-            if key not in nested or nested[key] is None:
+    for nested_key, enums in (("dashboard", _DASHBOARD_ENUMS),):
+        nested = cleaned.get(nested_key)
+        if not isinstance(nested, dict):
+            continue
+        merged = dict(nested)
+        for key, allowed in enums.items():
+            if key not in merged or merged[key] is None:
                 continue
-            value = str(nested[key]).strip().lower()
+            value = str(merged[key]).strip().lower()
             if value not in allowed:
-                nested.pop(key, None)
-        cleaned["dashboard"] = nested
+                merged.pop(key, None)
+        cleaned[nested_key] = merged
+
+    notifications = cleaned.get("notifications")
+    if isinstance(notifications, dict):
+        switches = dict(notifications)
+        for key in _NOTIFICATION_KEYS:
+            if key not in switches:
+                continue
+            if isinstance(switches[key], bool):
+                continue
+            value = str(switches[key]).strip().lower()
+            if value in {"true", "false"}:
+                switches[key] = value == "true"
+            else:
+                switches.pop(key, None)
+        cleaned["notifications"] = switches
     return cleaned
 
 

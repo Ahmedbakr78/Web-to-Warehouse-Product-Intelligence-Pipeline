@@ -1,15 +1,14 @@
 
 stateDiagram-v2
-    [*] --> Idle: source registered
-    Idle --> Probing: run selected
-    Probing --> Healthy: robots allowed and records returned
-    Probing --> Failing: exception or no records
-    Healthy --> Degraded: extraction succeeded but some pages were skipped
-    Healthy --> Failing: exception during extraction
-    Degraded --> Healthy: next run completes without errors
-    Failing --> Retrying: consecutive_failures below 3
-    Failing --> Disabled: three consecutive failures
-    Retrying --> Healthy: successful run
-    Retrying --> Disabled: still failing
-    Disabled --> Idle: operator re-enables the source
-    Disabled --> [*]: terms withdrawn
+    [*] --> pending: Pipeline created
+    pending --> running: etl_run row written
+    running --> running: sources processed one by one
+    running --> partial: at least one source failed
+    running --> failed: source error with strict mode<br/>or pipeline_fail_fast
+    running --> failed: critical DQ rule failed
+    running --> success: all sources ok and no blocking rule
+    partial --> running: re-run of the failing source
+    success --> [*]
+    partial --> [*]
+    failed --> [*]
+    failed --> running: manual retry creates a new run_id

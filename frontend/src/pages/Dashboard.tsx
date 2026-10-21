@@ -278,13 +278,14 @@ export default function Dashboard() {
                 height={280}
               />
             ) : (
+              /* Price and observation counts live on different scales, so the
+                 count gets its own right-hand axis; sharing one would flatten
+                 the price line into the baseline. */
               <AreaTrend
                 data={trendData}
                 xKey="date"
-                series={[
-                  { key: 'avg_price_usd', label: 'Average price (USD)' },
-                  { key: 'observations', label: 'Observations' },
-                ]}
+                series={[{ key: 'avg_price_usd', label: 'Average price (USD)' }]}
+                secondary={{ key: 'observations', label: 'Observations' }}
                 height={280}
                 formatY="currency"
               />
@@ -520,7 +521,7 @@ export default function Dashboard() {
                 ['Recurring', changeSummary.data.recurring, 'info'],
                 ['Recategorised', changeSummary.data.category_changes, 'warning'],
                 ['Total events', changeSummary.data.total_events, 'neutral'],
-                ['Avg |change|', formatPercent(priceTrend.data?.[0]?.avg_abs_change_pct ?? null), 'brand'],
+                ['Avg |change|', formatPercent(changeSummary.data?.window?.avg_abs_change_pct ?? null), 'brand'],
               ].map(([label, value, tone]) => (
                 <div key={label as string} className="rounded-lg border border-line bg-surface-2 px-3 py-2">
                   <p className="text-[10px] uppercase tracking-wide text-subtle">{label}</p>

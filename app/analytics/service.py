@@ -313,9 +313,7 @@ def brand_leaderboard(session: Session, limit: int = 20) -> list[dict[str, Any]]
     )
 
 
-def brand_comparison(
-    session: Session, limit: int = 5, freshness_days: int = 30
-) -> dict[str, Any]:
+def brand_comparison(session: Session, limit: int = 5, freshness_days: int = 30) -> dict[str, Any]:
     """Compare the leading brands on measurable, data-derived axes.
 
     Every score is a normalisation of a number the warehouse already holds:
@@ -356,7 +354,9 @@ def brand_comparison(
     if not rows:
         return {"brands": [], "axes": BRAND_COMPARISON_AXES, "freshness_days": freshness_days}
 
-    max_price = max((float(row["avg_price_usd"]) for row in rows if row["avg_price_usd"] is not None), default=0.0)
+    max_price = max(
+        (float(row["avg_price_usd"]) for row in rows if row["avg_price_usd"] is not None), default=0.0
+    )
     max_coverage = max((int(row["product_count"] or 0) for row in rows), default=0)
     now = dt.datetime.now(dt.timezone.utc)
     window = max(1, int(freshness_days))
@@ -387,9 +387,7 @@ def brand_comparison(
                     "coverage": _normalise(row["product_count"], max_coverage),
                     "availability": _ratio(in_stock, observations),
                     "freshness": (
-                        None
-                        if age_days is None
-                        else round(max(0.0, 100.0 - (age_days / window) * 100.0), 2)
+                        None if age_days is None else round(max(0.0, 100.0 - (age_days / window) * 100.0), 2)
                     ),
                 },
             }
@@ -803,9 +801,7 @@ def query_explain(session: Session, view_name: str) -> list[dict[str, Any]]:
         return []
 
 
-def price_volatility(
-    session: Session, limit: int = 20, min_observations: int = 3
-) -> list[dict[str, Any]]:
+def price_volatility(session: Session, limit: int = 20, min_observations: int = 3) -> list[dict[str, Any]]:
     """Most volatile products: widest price range relative to their average."""
     return _rows(
         session,
@@ -1253,9 +1249,7 @@ def lifecycle_timeline(session: Session, days: int = 90) -> list[dict[str, Any]]
     return [by_date[key] for key in sorted(by_date)]
 
 
-def price_anomalies(
-    session: Session, limit: int = 20, threshold_std: float = 2.0
-) -> list[dict[str, Any]]:
+def price_anomalies(session: Session, limit: int = 20, threshold_std: float = 2.0) -> list[dict[str, Any]]:
     """Live listings priced far from their own category's going rate.
 
     The z-score is computed against the category mean/stddev derived inline,

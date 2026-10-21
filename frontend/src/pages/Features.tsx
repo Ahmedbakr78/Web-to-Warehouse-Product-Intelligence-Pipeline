@@ -166,7 +166,9 @@ export default function Features() {
         <StatTile
           label="Warehouse objects"
           value={
-            meta?.tables ? `${meta.tables} + ${meta.views ?? 20}` : '—'
+            meta?.tables
+              ? `${meta.tables}${meta.views ? ` + ${meta.views}` : ''}`
+              : '—'
           }
           hint="Tables + analytical views"
           tone="neutral"

@@ -65,7 +65,8 @@ class RestfulObjectsSource(ProductSource):
         name = item.get("name")
         if not name:
             return None
-        details = item.get("data") if isinstance(item.get("data"), dict) else {}
+        raw_details = item.get("data")
+        details: dict[str, Any] = raw_details if isinstance(raw_details, dict) else {}
         price = self._price(details.get("price"))
         color = details.get("color") or details.get("Color")
         capacity = details.get("capacity") or details.get("Capacity")

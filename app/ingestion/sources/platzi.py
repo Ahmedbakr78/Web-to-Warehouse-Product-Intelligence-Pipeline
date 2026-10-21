@@ -94,5 +94,8 @@ class PlatziProductsSource(ProductSource):
             url=f"https://api.escuelajs.co/api/v1/products/{item.get('id')}",
             image_url=str(image_url) if image_url else None,
             description=str(item.get("description") or "") or None,
-            payload={"slug": item.get("slug"), "category_id": category.get("id") if isinstance(category, dict) else None},
+            payload={
+                "slug": item.get("slug"),
+                "category_id": category.get("id") if isinstance(category, dict) else None,
+            },
         )

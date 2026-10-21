@@ -1,11 +1,11 @@
 
 flowchart TB
     subgraph Lead["Ahmed (78102) — 28%, owns every layer"]
-        API["FastAPI platform<br/>23 routers · 216 ops · auth/RBAC"]
+        API["FastAPI platform<br/>24 routers · 219 ops · auth/RBAC"]
         ETL["9-stage ETL<br/>CLI = API = Airflow"]
         INT["Integration transport<br/>in-process with REST fallback"]
         CAT["Catalogues as code<br/>features + team APIs"]
-        DOCS["31 docs + diagrams<br/>README/website alignment"]
+        DOCS["34 docs + 88 diagrams<br/>README/website alignment"]
         REL["Releases + quality gates<br/>versions, tags, CI"]
         API --> ETL --> INT
         CAT --> DOCS --> REL

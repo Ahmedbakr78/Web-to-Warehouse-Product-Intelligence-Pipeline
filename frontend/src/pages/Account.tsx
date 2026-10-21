@@ -4,20 +4,15 @@ import {
   Activity,
   Bell,
   Check,
-  CircleDollarSign,
   Copy,
-  Database,
   Download,
   ExternalLink,
   Eye,
   EyeOff,
   FileDown,
-  FileText,
-  FlaskConical,
   Globe,
   KeyRound,
   Keyboard,
-  LayoutDashboard,
   LogOut,
   Monitor,
   Moon,
@@ -30,14 +25,12 @@ import {
   Settings2,
   Shield,
   ShieldCheck,
-  ShoppingCart,
   Sparkles,
   Star,
   Sun,
   Trash2,
   TriangleAlert,
   UserCircle,
-  Wrench,
   X,
 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -91,6 +84,34 @@ const AVATAR_COLORS = [
   '#7c3aed', '#db2777', '#334155', '#65a30d', '#b45309', '#be123c',
 ]
 
+/** Timezones offered for the account's regional settings. */
+const TIMEZONES = [
+  'UTC',
+  'Africa/Cairo',
+  'Africa/Lagos',
+  'Africa/Nairobi',
+  'Europe/London',
+  'Europe/Berlin',
+  'Europe/Paris',
+  'Asia/Dubai',
+  'Asia/Karachi',
+  'Asia/Kolkata',
+  'Asia/Singapore',
+  'Asia/Tokyo',
+  'Australia/Sydney',
+  'America/New_York',
+  'America/Chicago',
+  'America/Sao_Paulo',
+  'America/Los_Angeles',
+]
+
+/** Currencies the dashboard can display first. */
+const CURRENCIES = [
+  'USD', 'EUR', 'GBP', 'EGP', 'SAR', 'AED', 'QAR', 'INR', 'JPY', 'CNY',
+  'CAD', 'AUD', 'CHF', 'SEK', 'NOK', 'DKK', 'PLN', 'TRY', 'ZAR', 'NGN',
+  'KES', 'MAD', 'BRL', 'MXN', 'SGD', 'KRW', 'THB',
+]
+
 /** Representative colours used by the theme picker swatches. */
 const THEME_SWATCH: Record<ThemeMode, { bg: string; surface: string; text: string; muted: string }> = {
   light: { bg: '#f6f7fb', surface: '#ffffff', text: '#0f172a', muted: '#64748b' },
@@ -98,6 +119,19 @@ const THEME_SWATCH: Record<ThemeMode, { bg: string; surface: string; text: strin
   midnight: { bg: '#010409', surface: '#070d1a', text: '#dbe7ff', muted: '#93a6c8' },
   'high-contrast': { bg: '#ffffff', surface: '#ffffff', text: '#000000', muted: '#334155' },
   system: { bg: '#f6f7fb', surface: '#ffffff', text: '#0f172a', muted: '#64748b' },
+}
+
+/** The live catalogue the API serves from `GET /meta/features`. */
+type FeatureCatalogue = {
+  total_features: number
+  total_groups: number
+  groups: {
+    key: string
+    title: string
+    summary: string
+    feature_count: number
+    features: { name: string; detail?: string }[]
+  }[]
 }
 
 export default function Account() {
@@ -146,6 +180,18 @@ export default function Account() {
   const [defaultRange, setDefaultRange] = useState<string>(() => ((user?.preferences?.dashboard as any)?.default_range as string) ?? '30d')
   const [numberFormat, setNumberFormat] = useState<string>(() => (user?.preferences?.number_format as string) ?? 'compact')
   const [copyCodeOnClick, setCopyCodeOnClick] = useState<boolean>(() => Boolean(user?.preferences?.copy_code_on_click ?? true))
+  const [timezone, setTimezone] = useState<string>(() => user?.timezone ?? 'UTC')
+  const [locale, setLocale] = useState<string>(() => user?.locale ?? 'en')
+  const [defaultCurrency, setDefaultCurrency] = useState<string>(() => user?.default_currency ?? 'USD')
+  const [notifyPriceDrop, setNotifyPriceDrop] = useState<boolean>(
+    () => Boolean((user?.preferences?.notifications as any)?.price_drop ?? true),
+  )
+  const [notifyDqFailure, setNotifyDqFailure] = useState<boolean>(
+    () => Boolean((user?.preferences?.notifications as any)?.dq_failure ?? true),
+  )
+  const [notifyNewProduct, setNotifyNewProduct] = useState<boolean>(
+    () => Boolean((user?.preferences?.notifications as any)?.new_product ?? false),
+  )
 
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -175,6 +221,11 @@ export default function Account() {
     () => endpoints.sessions(localStorage.getItem('pip.session') ?? undefined),
     { staleTime: 30_000 },
   )
+  // The catalogue is served by the API, so it always matches the running build.
+  const featureQuery = useApiQuery(['meta-features', 'account'], endpoints.metaFeatures, {
+    staleTime: 900_000,
+  })
+  const featureCatalogue = featureQuery.data as FeatureCatalogue | undefined
 
   const exportData = useMutation({
     mutationFn: () => endpoints.exportMyData(),
@@ -234,6 +285,9 @@ export default function Account() {
         rows_per_page: rowsPerPage,
         price_change_alert_pct: alertPct,
         avatar_color: avatarColor,
+        timezone,
+        locale,
+        default_currency: defaultCurrency,
         preferences: {
           ...user?.preferences,
           start_page: startPage,
@@ -244,6 +298,12 @@ export default function Account() {
           auto_refresh: autoRefresh,
           default_export_format: defaultExportFormat,
           number_format: numberFormat,
+          notifications: {
+            ...((user?.preferences as any)?.notifications ?? {}),
+            price_drop: notifyPriceDrop,
+            dq_failure: notifyDqFailure,
+            new_product: notifyNewProduct,
+          },
           dashboard: {
             ...((user?.preferences as any)?.dashboard ?? {}),
             chart_type: defaultChartType,
@@ -422,6 +482,7 @@ export default function Account() {
       />
 
       {tab === 'profile' ? (
+        <>
         <div className="grid grid-cols-1 gap-3 xl:grid-cols-3">
           <Card className="xl:col-span-2">
             <CardHeader title="Personal details" subtitle="Stored in the warehouse and used across the API" icon={<UserCircle className="h-4 w-4" />} />
@@ -506,6 +567,49 @@ export default function Account() {
             </div>
           </Card>
         </div>
+
+        {/* --------------------------------------------------------- Feature list */}
+        <Card>
+          <CardHeader
+            title="Platform feature catalogue"
+            subtitle={
+              featureCatalogue
+                ? `Everything this application can do — ${featureCatalogue.total_features} live features across ${featureCatalogue.total_groups} groups`
+                : 'Everything this application can do'
+            }
+            icon={<Sparkles className="h-5 w-4" />}
+          />
+          {featureCatalogue ? (
+            <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 xl:grid-cols-3 text-xs">
+              {featureCatalogue.groups.map((group) => (
+                <div key={group.key} className="rounded-lg border border-line bg-surface-2 p-3">
+                  <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold text-ink">
+                    <Sparkles className="h-3.5 w-3.5 shrink-0 text-brand-500" aria-hidden />
+                    {group.title}
+                  </p>
+                  <ul className="space-y-1">
+                    {group.features.map((feature) => (
+                      <li key={feature.name} className="flex items-start gap-1.5 text-[11px] text-muted">
+                        <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-brand-500" aria-hidden />
+                        {feature.name}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              title="Feature catalogue unavailable"
+              message="The catalogue is served by the API and could not be loaded."
+              icon={<Sparkles className="h-6 w-6" />}
+            />
+          )}
+          <p className="mt-4 text-[11px] text-subtle">
+            Full live inventory: <code className="rounded bg-surface-3 px-1 font-mono">GET /api/v1/meta</code> · Features: <code className="rounded bg-surface-3 px-1 font-mono">GET /api/v1/meta/features</code>
+          </p>
+        </Card>
+        </>
       ) : null}
 
       {tab === 'appearance' ? (
@@ -1155,222 +1259,103 @@ export default function Account() {
           </Card>
         </div>
 
-        {/* --------------------------------------------------------- Feature list */}
-        <Card>
-          <CardHeader
-            title="Platform feature catalogue"
-            subtitle="Everything this application can do — 604 live features across 40 groups"
-            icon={<Sparkles className="h-4 w-4" />}
-          />
-          <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 xl:grid-cols-3 text-xs">
-            {[
-              {
-                group: 'Dashboard & Analytics',
-                icon: LayoutDashboard,
-                features: [
-                  'Real-time KPI cards (products, prices, changes, quality)',
-                  'Interactive 7d / 30d / 90d / 180d time windows',
-                  'Market price & coverage area trend chart',
-                  'Availability mix donut chart',
-                  'Price change bar chart (increases vs decreases)',
-                  'Average rating trend line',
-                  'Top price movers leaderboard',
-                  'Change summary (new / removed / recurring / recategorised)',
-                  'Pipeline health card with latest run stats',
-                  'Export dashboard snapshot to CSV or JSON',
-                ],
-              },
-              {
-                group: 'Products',
-                icon: ShoppingCart,
-                features: [
-                  'Full canonical product catalogue (5 000+ products)',
-                  'Search, filter, sort, paginate any column',
-                  'Product detail page with full history',
-                  'Price history sparkline per product',
-                  'Source attribution and deduplication info',
-                  'Availability and rating tracking',
-                  'Category assignment and drift detection',
-                  'Watchlist — pin products for fast access',
-                  'Bulk export (CSV / JSON)',
-                  'Direct link to product URL at source',
-                ],
-              },
-              {
-                group: 'Price Changes',
-                icon: CircleDollarSign,
-                features: [
-                  'Full price change feed with magnitude bands',
-                  'Increase / decrease / neutral direction badges',
-                  'Percentage and absolute change columns',
-                  'Change detected date and source',
-                  'Filter by band: micro / minor / moderate / major / extreme',
-                  'Price change alert rules per product or category',
-                  'Historical change export',
-                  'Category drift detection (products recategorised)',
-                ],
-              },
-              {
-                group: 'Analytics & Forecasting',
-                icon: FlaskConical,
-                features: [
-                  'KPI aggregation engine (avg, min, max, count)',
-                  '12-rule data quality framework with scoring',
-                  'Price forecast with confidence intervals',
-                  'Anomaly detection on price series',
-                  'Elasticity analysis per category',
-                  'Price recommendation engine',
-                  'Category leaderboards and rankings',
-                  'SQL report runner with saved queries',
-                  'Custom view builder with GROUP BY / FILTER / SORT',
-                  'Scheduled recurring analytics reports',
-                ],
-              },
-              {
-                group: 'Pipeline & Ingestion',
-                icon: Wrench,
-                features: [
-                  '35+ real permitted data sources (no fakes)',
-                  'robots.txt compliance with ETag revalidation',
-                  'Rate limiting and politeness cache (30 min TTL)',
-                  '9-stage ETL pipeline (extract, stage, transform, resolve, load, detect, aggregate, reconcile, quality)',
-                  'Manual pipeline trigger from UI',
-                  'Airflow DAG orchestration',
-                  'Run history with per-stage timing',
-                  'Source health monitoring',
-                  'Deduplication via fuzzy matching',
-                  'PostgreSQL + MySQL dual-database support',
-                ],
-              },
-              {
-                group: 'Database & Schema',
-                icon: Database,
-                features: [
-                  '28+ warehouse tables, 23 analytical views',
-                  'Historical price snapshot table (33 000+ rows)',
-                  'Dimension tables: product, category, source, currency, date',
-                  'Fact tables: price snapshot, change log, quality result',
-                  'Catalog reconciliation against internal SKUs',
-                  'Read-only SQL console (QueryLab)',
-                  'Saved query library',
-                  'Custom view builder (no SQL required)',
-                  'CSV / JSON / NDJSON dataset exports',
-                  'Full audit log of all mutations',
-                ],
-              },
-              {
-                group: 'Account & Security',
-                icon: UserCircle,
-                features: [
-                  'Profile: name, job title, department, avatar colour',
-                  'Argon2id password hashing',
-                  'JWT access (12 h) + refresh (30 d) tokens',
-                  '2FA (TOTP) support',
-                  'Brute-force protection (5 fails, then a 15 min lock)',
-                  'Session management (active devices list)',
-                  'API key management (create / rotate / revoke / edit scopes)',
-                  'Per-key rate limiting and expiry',
-                  'GDPR data export and account deletion',
-                  'Role-based permissions (admin / analyst / viewer)',
-                ],
-              },
-              {
-                group: 'Appearance & UX',
-                icon: Palette,
-                features: [
-                  '5 themes: Light, Dark, Midnight, High-contrast, System',
-                  '12 accent colours',
-                  '3 density modes: Compact / Comfortable / Spacious',
-                  '5 font-size scales (XS to XL)',
-                  '3 motion modes: Full / Reduced / None (silent reload)',
-                  'LTR / RTL reading direction',
-                  'Cross-tab appearance sync',
-                  'Pre-paint flash prevention (no theme flicker)',
-                  'Fully accessible (WCAG AA)',
-                  'PWA-ready (installable, offline shell)',
-                ],
-              },
-              {
-                group: 'Notifications & Webhooks',
-                icon: Bell,
-                features: [
-                  'In-app notification bell with unread count',
-                  'Price change alert rules (threshold per product)',
-                  'Signed outbound webhooks for pipeline and data events',
-                  'Daily briefing digest',
-                  'Server-Sent Events (SSE) for live run updates',
-                  'WebSocket live KPI stream',
-                  'Background job queue with progress + cancellation',
-                  'Job live log streaming',
-                ],
-              },
-              {
-                group: 'Reports & Exports',
-                icon: FileText,
-                features: [
-                  'Executive summary report (HTML / PDF)',
-                  'Price report with top movers',
-                  'Data quality report with rule details',
-                  'Catalog reconciliation report',
-                  'Per-product detailed report',
-                  'Scheduled report delivery',
-                  'Bulk CSV / JSON / NDJSON exports',
-                  'Export with custom column selection',
-                  'API access to all reports',
-                ],
-              },
-              {
-                group: 'API & Integration',
-                icon: Globe,
-                features: [
-                  'OpenAPI 3.1 spec at /openapi.json',
-                  '173 documented API operations',
-                  '18 domain modules (products, analytics, pipeline, forecast, quality, catalog, queries, builder, exports, reports, webhooks, jobs, stream, users, settings, audit, system, auth)',
-                  'Bearer token auth (API key or JWT)',
-                  'Per-key scope control and rate limiting',
-                  'Machine-readable /api/v1/meta inventory',
-                  'Feature catalogue at /api/v1/meta/features',
-                  'Team credits at /api/v1/meta/team',
-                  'Health and readiness probes',
-                ],
-              },
-              {
-                group: 'DevOps & Deployment',
-                icon: Settings2,
-                features: [
-                  '6-service Docker Compose stack',
-                  'PostgreSQL 16 + MySQL 8.4 databases',
-                  'Airflow 2.10 scheduler',
-                  'Nginx-served React 19 frontend',
-                  'CI/CD with ruff lint + pytest + vitest',
-                  'One-command deployment: ./run.sh',
-                  'Automated schema migration and seed',
-                  'Health checks on every container',
-                  'Volume persistence across restarts',
-                  'robots.txt compliance audit log',
-                ],
-              },
-            ].map(({ group, icon: GroupIcon, features }) => (
-              <div key={group} className="rounded-lg border border-line bg-surface-2 p-3">
-                <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold text-ink">
-                  <GroupIcon className="h-3.5 w-3.5 shrink-0 text-brand-500" aria-hidden />
-                  {group}
-                </p>
-                <ul className="space-y-1">
-                  {features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-1.5 text-[11px] text-muted">
-                      <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-brand-500" aria-hidden />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
+        {/* ------------------------------------------------ Notifications & locale */}
+        <div className="mt-3 grid grid-cols-1 gap-3 xl:grid-cols-2">
+          <Card>
+            <CardHeader
+              title="Notifications"
+              subtitle="Which events reach the in-app notification centre"
+              icon={<Bell className="h-4 w-4" />}
+            />
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-ink">Price drop alerts</p>
+                  <p className="text-xs text-muted">
+                    Notify when a watched product falls by more than the alert threshold.
+                  </p>
+                </div>
+                <Toggle checked={notifyPriceDrop} onChange={setNotifyPriceDrop} />
               </div>
-            ))}
-          </div>
-          <p className="mt-4 text-[11px] text-subtle">
-            Full live inventory: <code className="rounded bg-surface-3 px-1 font-mono">GET /api/v1/meta</code> · Features: <code className="rounded bg-surface-3 px-1 font-mono">GET /api/v1/meta/features</code>
-          </p>
-        </Card>
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-ink">Data-quality failures</p>
+                  <p className="text-xs text-muted">
+                    Notify when a run finishes with a failed or warning rule.
+                  </p>
+                </div>
+                <Toggle checked={notifyDqFailure} onChange={setNotifyDqFailure} />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-ink">New product sightings</p>
+                  <p className="text-xs text-muted">
+                    Notify the first time a product appears in the catalogue.
+                  </p>
+                </div>
+                <Toggle checked={notifyNewProduct} onChange={setNotifyNewProduct} />
+              </div>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <Button variant="secondary" icon={<Save className="h-4 w-4" />} loading={saveProfile.isPending} onClick={() => saveProfile.mutate()}>
+                Save notifications
+              </Button>
+            </div>
+          </Card>
+
+          <Card>
+            <CardHeader
+              title="Region & formatting"
+              subtitle="How dates, numbers and currency are presented"
+              icon={<Globe className="h-4 w-4" />}
+            />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div>
+                <p className="stat-label mb-1.5">Timezone</p>
+                <Select value={timezone} onChange={(event) => setTimezone(event.target.value)}>
+                  {TIMEZONES.map((zone) => (
+                    <option key={zone} value={zone}>
+                      {zone}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <p className="stat-label mb-1.5">Locale</p>
+                <Select value={locale} onChange={(event) => setLocale(event.target.value)}>
+                  <option value="en">English (en)</option>
+                  <option value="en-GB">English, UK (en-GB)</option>
+                  <option value="ar">العربية (ar)</option>
+                  <option value="fr">Français (fr)</option>
+                  <option value="de">Deutsch (de)</option>
+                  <option value="es">Español (es)</option>
+                </Select>
+              </div>
+              <div>
+                <p className="stat-label mb-1.5">Preferred currency</p>
+                <Select value={defaultCurrency} onChange={(event) => setDefaultCurrency(event.target.value)}>
+                  {CURRENCIES.map((code) => (
+                    <option key={code} value={code}>
+                      {code}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            </div>
+            <p className="mt-3 text-[11px] leading-relaxed text-subtle">
+              Every price in the warehouse is stored in USD with the rate and its source recorded
+              alongside it. The currency chosen here is the one the dashboard displays first, so a
+              non-US reader never has to convert a number by hand.
+            </p>
+            <div className="mt-4 flex justify-end">
+              <Button variant="secondary" icon={<Save className="h-4 w-4" />} loading={saveProfile.isPending} onClick={() => saveProfile.mutate()}>
+                Save region
+              </Button>
+            </div>
+          </Card>
+        </div>
+
+
       </>
     ) : null}
 

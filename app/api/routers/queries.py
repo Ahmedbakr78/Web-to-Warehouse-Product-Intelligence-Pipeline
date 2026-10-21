@@ -62,7 +62,13 @@ def _bounded(statement: str, limit: int) -> tuple[str, dict[str, Any]]:
 
 
 def _record(
-    session: DbSession, user: CurrentUser, sql: str, limit: int, row_count: int, duration: float, truncated: bool
+    session: DbSession,
+    user: CurrentUser,
+    sql: str,
+    limit: int,
+    row_count: int,
+    duration: float,
+    truncated: bool,
 ) -> None:
     from app.models.app_users import AppQueryHistory
 
@@ -163,7 +169,9 @@ def history(
 
 
 @router.post("/history/{history_id}/save", response_model=QueryHistoryRead, summary="Pin as a named snippet")
-def save_snippet(history_id: int, payload: QueryHistorySave, session: DbSession, user: CurrentUser) -> QueryHistoryRead:
+def save_snippet(
+    history_id: int, payload: QueryHistorySave, session: DbSession, user: CurrentUser
+) -> QueryHistoryRead:
     from app.models.app_users import AppQueryHistory
 
     row = session.get(AppQueryHistory, history_id)
@@ -197,7 +205,9 @@ def clear_history(session: DbSession, user: CurrentUser) -> Message:
         )
     )
     session.flush()
-    return Message(message=f"Cleared {result.rowcount or 0} unsaved querie(s); snippets kept")
+    # `Result` has no rowcount of its own; the ORM's delete result carries it.
+    deleted = getattr(result, "rowcount", 0) or 0
+    return Message(message=f"Cleared {deleted} unsaved querie(s); snippets kept")
 
 
 @router.get("/views", summary="Analytical views available for querying")

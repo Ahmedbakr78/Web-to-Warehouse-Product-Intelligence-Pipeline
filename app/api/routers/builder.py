@@ -518,7 +518,9 @@ def _build_sql(query: BuilderQuery) -> tuple[str, dict[str, Any], dict[str, Any]
             order_parts = [f"{default_column} {default_direction.upper()}"]
     order_clause = f" ORDER BY {', '.join(order_parts)}" if order_parts else ""
 
-    sql = f"SELECT {projection} FROM {entity['view']}{where_clause}{group_clause}{having_clause}{order_clause}"
+    sql = (
+        f"SELECT {projection} FROM {entity['view']}{where_clause}{group_clause}{having_clause}{order_clause}"
+    )
     return sql, params, {"projection": projection}
 
 

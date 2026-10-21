@@ -3,13 +3,18 @@
 ## Purpose
 
 This document is the complete feature inventory of the Web-to-Warehouse Product Intelligence
-Pipeline: 575 features grouped into forty-seven areas, each with a one-line description and a reference
+Pipeline: 604 features grouped into forty-seven areas, each with a one-line description and a reference
 to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an
 endpoint, a CLI command or a documented design decision. Nothing here is aspirational.
 
+This inventory is the *engineering* index: it names the file behind every capability. The dashboard's
+own Feature Catalogue is served by `GET /api/v1/meta/features` and groups the same platform into a
+smaller number of user-facing areas, so the two numbers are measured on different axes and are
+reported separately by `python3 scripts/project_stats.py`.
+
 **Scale of the system, measured:** 35 ingestion sources · 29 physical tables · 23 analytical views ·
-12 data-quality rules across 6 dimensions · 219 REST route decorators in 24 routers · 9 pipeline stages ·
-33 Airflow task callables · 6 Docker Compose services · 33 numbered documents · 83 Mermaid diagrams ·
+12 data-quality rules across 6 dimensions · 222 REST route decorators in 24 routers · 9 pipeline stages ·
+33 Airflow task callables · 6 Docker Compose services · 34 numbered documents · 88 Mermaid diagrams ·
 594 automated tests · 104 end-to-end API smoke checks.
 
 Regenerate the numbers above with `python3 scripts/project_stats.py`.
@@ -36,7 +41,7 @@ Platform increments: [v1.1 (8)](#14-dashboard-v11-additions-8) ·
 [v1.2 (8)](#15-platform-v12-additions-8) · [v1.3 (37)](#16-platform-v13-additions-37) ·
 [v1.4 (40)](#17-platform-v14-additions-40) ·
 [v1.10 lead & repo (5)](#46-v110-lead--repo-max-team-api-source-catalog-releases-5) ·
-[v1.12 truthfulness (25)](#47-v112-truthfulness-max-honest-metrics-silent-reload--mobile-parity-25)
+[v1.12 truthfulness (48)](#47-v112-truthfulness-max-honest-metrics-silent-reload--mobile-parity-48)
 
 ---
 
@@ -1040,7 +1045,7 @@ the feature catalogue, a full 34-adapter source catalog, and a release playbook.
 
 **Revised total: 550 features across 46 areas** (F-001 to F-550).
 
-## 47. v1.12 truthfulness Max: honest metrics, silent reload & mobile parity (25)
+## 47. v1.12 truthfulness Max: honest metrics, silent reload & mobile parity (48)
 
 Everything the dashboard shows is now scoped, labelled and true; every account
 preference actually changes the app; and the mobile shell behaves exactly like
@@ -1073,5 +1078,34 @@ the desktop one. The synthetic demo path stays quarantined from production.
 | F-573 | Freshness rule never negative | Clock skew cannot make the data-quality freshness rule report a negative age | `app/etl/dq.py` |
 | F-574 | Alerts read the scored run | A run without a data-quality verdict no longer masks the previous one | `app/services/alerts.py` |
 | F-575 | Real-data guarantee | Synthetic sources, demo URLs and seeded strategies are excluded from every production run | `app/etl/pipeline.py` |
+| F-576 | Per-source trust classification | Every registered source declares real, sandbox or synthetic, and the classification is persisted in `dim_source` | `app/ingestion/base.py` |
+| F-577 | Real-only auto-selection | A pipeline run without parameters only collects genuine market data, so fabricated rows can never enter production | `app/etl/pipeline.py` |
+| F-578 | Explicit selection still allowed | A demo or sandbox source stays reachable by naming it, for tests and deliberate demos | `app/etl/pipeline.py` |
+| F-579 | Terms-blocked sources stay out | A source whose terms forbid crawling is never auto-selected, even when it is otherwise trusted | `app/ingestion/base.py` |
+| F-580 | Untrusted-row purge | A CLI command removes the rows an untrusted source wrote, with a dry-run mode that changes nothing | `app/etl/purge.py` |
+| F-581 | Purge keeps real history | A product every observation of which came from a trusted source is never touched | `app/etl/purge.py` |
+| F-582 | Run-history provenance | A run that only ever touched untrusted feeds is removed; a failed run with no observations is kept as real operational history | `app/etl/purge.py` |
+| F-583 | Live exchange rates in production | `price_usd` is derived from a current provider rate, not from a frozen hand-written table | `app/ingestion/fx.py` |
+| F-584 | Two rate providers with fallback | A second provider takes over when the first is unreachable, and the fallback table is the last resort | `app/ingestion/fx.py` |
+| F-585 | Rate provenance is recorded | Each currency row stores its source and as-of date, so a number can always be traced back to its origin | `app/etl/bootstrap.py` |
+| F-586 | Pinned rates in tests | The suite runs on the static reference table, so a market move can never fail a test | `tests/conftest.py` |
+| F-587 | Live-source smoke test | The verification script fetches live records from every permitted endpoint and fails if a source returns nothing | `run-full-app.sh` |
+| F-588 | Real pipeline run | The verification script runs the nine-stage pipeline into an empty database seeded with nothing but the schema | `run-full-app.sh` |
+| F-589 | Zero-synthetic assertion | After the run the warehouse is checked row by row: every source that appears is trusted, and no synthetic namespace row exists | `run-full-app.sh` |
+| F-590 | Live API over the real warehouse | The API is started against the freshly collected data and its products, coverage and KPI responses are read back | `run-full-app.sh` |
+| F-591 | Order-independent test suite | Every test starts from the same seeded warehouse, so a result never depends on the order the files are collected in | `tests/conftest.py` |
+| F-592 | Fast warehouse restore | The seeded rows are captured once and written back between tests, which keeps the suite fast and deterministic | `tests/conftest.py` |
+| F-593 | Isolation without a background race | The background job worker is disabled for the suite, so it can never race the per-test restore | `tests/conftest.py` |
+| F-594 | Self-contained integration tests | A test that reads what the pipeline produced runs the pipeline itself instead of trusting an earlier test | `tests/test_etl_pipeline.py` |
+| F-595 | Complete account preferences | Every account starts with the full preference set the dashboard understands, so the API never returns a partial one | `app/etl/seed.py` |
+| F-596 | Preference values are clamped | A preference outside its allowed set is dropped at the API boundary and never stored as a typo | `app/api/routers/users.py` |
+| F-597 | Full-app verification in one command | A single script proves the whole platform: lint, tests, live sources, a real pipeline, a live API, the frontend and the compose stack | `run-full-app.sh` |
+| F-598 | Bounded real-data volume | The verification run collects a configurable number of live records per source, so it stays fast and honest | `run-full-app.sh` |
+| F-599 | Notification switches in the account | Price-drop, data-quality and new-product notifications are toggled per user and stored on the profile | `frontend/src/pages/Account.tsx` |
+| F-600 | Notification switches are clamped | The API drops a switch that is not a boolean, so the dashboard never receives an unreadable value | `app/api/routers/users.py` |
+| F-601 | Regional settings | Timezone, locale and preferred currency are set once and travel with the account | `frontend/src/pages/Account.tsx` |
+| F-602 | Regional settings are validated | The API rejects a malformed timezone, locale tag or currency code instead of storing it | `app/api/schemas.py` |
+| F-603 | Builder hands off to the query lab | The current filters, sort and page size become a ready-to-run statement in the query lab | `frontend/src/pages/Builder.tsx` |
+| F-604 | Hand-off is a one-shot | The statement is taken from the URL once and the parameter is dropped, so a reload never re-applies it | `frontend/src/pages/QueryLab.tsx` |
 
-**Revised total: 575 features across 47 areas** (F-001 to F-575).
+**Revised total: 604 features across 47 areas** (F-001 to F-604).

@@ -89,6 +89,7 @@ export function AreaTrend({
   currency,
   formatY = 'number',
   showLegend = true,
+  secondary,
 }: {
   data: Record<string, any>[]
   xKey: string
@@ -97,6 +98,15 @@ export function AreaTrend({
   currency?: string
   formatY?: 'number' | 'currency' | 'percent'
   showLegend?: boolean
+  /**
+   * An optional second series plotted on its own right-hand axis.
+   *
+   * Price (dollars, tens) and observation counts (tens of thousands) live on
+   * completely different scales. Sharing one axis flattens the price line into
+   * the baseline and makes the chart unreadable, so the second series gets its
+   * own scale and the tooltip keeps the real value for each.
+   */
+  secondary?: { key: string; label: string; color?: string; formatY?: 'number' | 'currency' | 'percent' }
 }) {
   const formatValue = useMemo(() => {
     if (formatY === 'currency') return (value: number) => `${currency ?? '$'}${formatCompact(value)}`
@@ -104,11 +114,20 @@ export function AreaTrend({
     return (value: number) => formatCompact(value)
   }, [formatY, currency])
 
+  const formatSecondary = useMemo(() => {
+    const mode = secondary?.formatY ?? 'number'
+    if (mode === 'currency') return (value: number) => `${currency ?? '$'}${formatCompact(value)}`
+    if (mode === 'percent') return (value: number) => `${Number(value ?? 0).toFixed(1)}%`
+    return (value: number) => formatCompact(value)
+  }, [secondary?.formatY, currency])
+
+  const allSeries = secondary ? [...series, secondary] : series
+
   return (
     <ResponsiveContainer width="100%" height={height}>
       <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -12 }}>
         <defs>
-          {series.map((item, index) => (
+          {allSeries.map((item, index) => (
             <linearGradient key={item.key} id={`grad-${item.key}`} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={item.color ?? SERIES[index % SERIES.length]} stopOpacity={0.28} />
               <stop offset="100%" stopColor={item.color ?? SERIES[index % SERIES.length]} stopOpacity={0.02} />
@@ -117,14 +136,35 @@ export function AreaTrend({
         </defs>
         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={GRID_COLOR} />
         <XAxis {...axisProps(data, xKey)} />
-        <YAxis tick={AXIS_STYLE} tickLine={false} axisLine={false} tickFormatter={formatValue} width={52} />
-        <Tooltip content={<ChartTooltip formatter={(value) => formatValue(value)} />} cursor={{ stroke: GRID_COLOR }} />
-        {showLegend && series.length > 1 ? (
+        <YAxis yAxisId="left" tick={AXIS_STYLE} tickLine={false} axisLine={false} tickFormatter={formatValue} width={52} />
+        {secondary ? (
+          <YAxis
+            yAxisId="right"
+            orientation="right"
+            tick={AXIS_STYLE}
+            tickLine={false}
+            axisLine={false}
+            tickFormatter={formatSecondary}
+            width={52}
+          />
+        ) : null}
+        <Tooltip
+          content={
+            <ChartTooltip
+              formatter={(value, name) =>
+                name === secondary?.label ? formatSecondary(value) : formatValue(value)
+              }
+            />
+          }
+          cursor={{ stroke: GRID_COLOR }}
+        />
+        {showLegend && allSeries.length > 1 ? (
           <Legend wrapperStyle={{ fontSize: 11, color: 'var(--text-muted)' }} iconType="circle" iconSize={7} />
         ) : null}
         {series.map((item, index) => (
           <Area
             key={item.key}
+            yAxisId="left"
             type="monotone"
             dataKey={item.key}
             name={item.label}
@@ -137,6 +177,23 @@ export function AreaTrend({
             isAnimationActive={false}
           />
         ))}
+        {secondary ? (
+          <Area
+            key={secondary.key}
+            yAxisId="right"
+            type="monotone"
+            dataKey={secondary.key}
+            name={secondary.label}
+            stroke={secondary.color ?? SERIES[series.length % SERIES.length]}
+            strokeWidth={2}
+            strokeDasharray="4 3"
+            fill={`url(#grad-${secondary.key})`}
+            dot={false}
+            activeDot={{ r: 3.5 }}
+            connectNulls
+            isAnimationActive={false}
+          />
+        ) : null}
       </AreaChart>
     </ResponsiveContainer>
   )

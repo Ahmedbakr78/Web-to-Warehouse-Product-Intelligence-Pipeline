@@ -116,6 +116,11 @@ NAV: list[tuple[str, str, str]] = [
         "Morning Briefing & Demo Scale",
         "Ranked action queue, endpoint contract, cache/noise policy, and the idempotent 10x demo expansion",
     ),
+    (
+        "33_data_trust_and_compliance.md",
+        "Data Trust & Compliance",
+        "The three trust levels, auto-selection rules, the purge sweep, robots.txt enforcement and the audit trail",
+    ),
 ]
 
 #: Documents grouped for the sidebar; keys render as section headers.
@@ -1026,9 +1031,7 @@ def doc_page(fname: str, title: str, blurb: str) -> tuple[str, dict]:
         '<path d="m9 18 6-6-6-6"/></svg>'
     )
     prev_link = (
-        f'<a href="{order[idx - 1][:-3].lower()}.html">{chevron_left}{NAV[idx - 1][1]}</a>'
-        if idx > 0
-        else ""
+        f'<a href="{order[idx - 1][:-3].lower()}.html">{chevron_left}{NAV[idx - 1][1]}</a>' if idx > 0 else ""
     )
     next_link = (
         f'<a href="{order[idx + 1][:-3].lower()}.html">{NAV[idx + 1][1]}{chevron_right}</a>'

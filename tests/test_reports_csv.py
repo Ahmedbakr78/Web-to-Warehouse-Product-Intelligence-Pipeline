@@ -81,7 +81,13 @@ def test_setting_write_preserves_type_and_sets_metadata(client, admin_token):
     created = client.put(
         "/api/v1/settings/pytest.demo",
         headers=headers,
-        json={"value": "42", "value_type": "number", "category": "pytest", "description": "demo", "is_public": True},
+        json={
+            "value": "42",
+            "value_type": "number",
+            "category": "pytest",
+            "description": "demo",
+            "is_public": True,
+        },
     )
     assert created.status_code == 200
     assert created.json()["value_type"] == "number"

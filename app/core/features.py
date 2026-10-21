@@ -1929,27 +1929,90 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "icon": "panels-top-left",
         "summary": "Responsive layout, instant navigation and a complete theme system that never flashes or animates routes.",
         "features": [
-            {"name": "Fixed desktop sidebar", "detail": "Persistent navigation with a collapse-to-rail mode and remembered state"},
-            {"name": "Mobile drawer navigation", "detail": "Full-height drawer with backdrop dismissal and safe-area-aware sizing"},
-            {"name": "Mobile bottom tab bar", "detail": "Five primary destinations plus a More sheet on small screens"},
-            {"name": "Global scrollbar hiding", "detail": "Clean chrome on every scroll container while wheel, touch and keyboard scrolling remain intact"},
-            {"name": "Silent route preloading", "detail": "Lazy chunks are fetched during idle time so navigation shows content, not spinners"},
-            {"name": "120ms motion policy", "detail": "One global transition budget for hovers and state changes; no page transitions or smooth scroll"},
-            {"name": "Motion none mode", "detail": "A persisted preference removes decorative animation and functional spinners render statically"},
-            {"name": "Five theme palettes", "detail": "Light, dark, midnight, high-contrast and system-following modes"},
-            {"name": "Ten accent presets", "detail": "Brand colour tokens update charts, links, focus rings and badges together"},
-            {"name": "Three density presets", "detail": "Comfortable, compact and ultra-compact spacing for tables and cards"},
-            {"name": "Four text-size presets", "detail": "Font scaling independent of density for accessibility and large displays"},
-            {"name": "RTL layout support", "detail": "CSS logical properties mirror the entire interface without a second stylesheet"},
-            {"name": "Visible focus rings", "detail": "Every interactive element exposes a consistent keyboard focus indicator"},
-            {"name": "Skip-to-content link", "detail": "Keyboard users jump straight past the navigation shell"},
-            {"name": "Responsive KPI grids", "detail": "Two columns on phones, three on tablets and six on wide dashboards"},
-            {"name": "Compact mobile stat tiles", "detail": "Smaller typography and padding keep six KPIs readable in a phone viewport"},
-            {"name": "Command palette", "detail": "Search every screen and action from the header with Ctrl/Cmd-K"},
-            {"name": "Keyboard shortcut sheet", "detail": "Documented shortcuts for navigation, dialogs and the command palette"},
-            {"name": "Toast notifications", "detail": "Non-blocking success and error feedback with consistent placement"},
-            {"name": "Route-level code splitting", "detail": "Each screen ships its own chunk so the initial dashboard load stays light"},
-            {"name": "Pre-paint theme application", "detail": "Theme, accent, density and direction apply before first paint, eliminating flashes"},
+            {
+                "name": "Fixed desktop sidebar",
+                "detail": "Persistent navigation with a collapse-to-rail mode and remembered state",
+            },
+            {
+                "name": "Mobile drawer navigation",
+                "detail": "Full-height drawer with backdrop dismissal and safe-area-aware sizing",
+            },
+            {
+                "name": "Mobile bottom tab bar",
+                "detail": "Five primary destinations plus a More sheet on small screens",
+            },
+            {
+                "name": "Global scrollbar hiding",
+                "detail": "Clean chrome on every scroll container while wheel, touch and keyboard scrolling remain intact",
+            },
+            {
+                "name": "Silent route preloading",
+                "detail": "Lazy chunks are fetched during idle time so navigation shows content, not spinners",
+            },
+            {
+                "name": "120ms motion policy",
+                "detail": "One global transition budget for hovers and state changes; no page transitions or smooth scroll",
+            },
+            {
+                "name": "Motion none mode",
+                "detail": "A persisted preference removes decorative animation and functional spinners render statically",
+            },
+            {
+                "name": "Five theme palettes",
+                "detail": "Light, dark, midnight, high-contrast and system-following modes",
+            },
+            {
+                "name": "Ten accent presets",
+                "detail": "Brand colour tokens update charts, links, focus rings and badges together",
+            },
+            {
+                "name": "Three density presets",
+                "detail": "Comfortable, compact and ultra-compact spacing for tables and cards",
+            },
+            {
+                "name": "Four text-size presets",
+                "detail": "Font scaling independent of density for accessibility and large displays",
+            },
+            {
+                "name": "RTL layout support",
+                "detail": "CSS logical properties mirror the entire interface without a second stylesheet",
+            },
+            {
+                "name": "Visible focus rings",
+                "detail": "Every interactive element exposes a consistent keyboard focus indicator",
+            },
+            {
+                "name": "Skip-to-content link",
+                "detail": "Keyboard users jump straight past the navigation shell",
+            },
+            {
+                "name": "Responsive KPI grids",
+                "detail": "Two columns on phones, three on tablets and six on wide dashboards",
+            },
+            {
+                "name": "Compact mobile stat tiles",
+                "detail": "Smaller typography and padding keep six KPIs readable in a phone viewport",
+            },
+            {
+                "name": "Command palette",
+                "detail": "Search every screen and action from the header with Ctrl/Cmd-K",
+            },
+            {
+                "name": "Keyboard shortcut sheet",
+                "detail": "Documented shortcuts for navigation, dialogs and the command palette",
+            },
+            {
+                "name": "Toast notifications",
+                "detail": "Non-blocking success and error feedback with consistent placement",
+            },
+            {
+                "name": "Route-level code splitting",
+                "detail": "Each screen ships its own chunk so the initial dashboard load stays light",
+            },
+            {
+                "name": "Pre-paint theme application",
+                "detail": "Theme, accent, density and direction apply before first paint, eliminating flashes",
+            },
         ],
     },
     {
@@ -2430,31 +2493,230 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
         "icon": "shield-check",
         "summary": "Every headline number states exactly what it counts, every preference actually changes the app, and the mobile shell behaves like the desktop one.",
         "features": [
-            {"name": "Consistent metric windows", "detail": "Every dashboard tile is scoped to the selected range instead of mixing lifetime and windowed counts"},
-            {"name": "Products vs observations", "detail": "Distinct canonical products and raw price snapshots are two separate, explicitly labelled tiles"},
-            {"name": "Observations-per-product ratio", "detail": "The hint explains the relationship between the two counts instead of repeating one of them"},
-            {"name": "Exact-number display mode", "detail": "Account -> Preferences switches every count from compact (33.6k) to exact (33,600)"},
-            {"name": "Silent reload", "detail": "Data refreshes in place with no skeleton shimmer, spinner sweep, transition or layout shift"},
-            {"name": "Silent reload follows the profile", "detail": "The preference is stored server-side and restored on every device the user signs in from"},
-            {"name": "Account preference validation", "detail": "The API clamps every known preference to its allowed value set, so a hand-written request can never break the client"},
-            {"name": "Wired auto-refresh", "detail": "The account cadence setting now drives a real refresh interval on the dashboard"},
-            {"name": "Wired default chart type", "detail": "Area, line or bar for the market trend, chosen in the account screen"},
-            {"name": "Wired default time range", "detail": "The dashboard opens on the range the user configured"},
-            {"name": "Wired default export format", "detail": "The preferred download format is offered first on every export control"},
-            {"name": "Wired copy-code-on-click", "detail": "Generated SQL, serialised filters and JSON cells copy on a single click"},
-            {"name": "Scroll restoration that works", "detail": "Back and forward restore the exact scroll offset of the real scrolling container"},
-            {"name": "Drawer scroll lock", "detail": "The content behind an open mobile drawer can no longer be scrolled by wheel or touch"},
-            {"name": "Drawer closes on resize", "detail": "Rotating a tablet or resizing past the breakpoint dismisses the drawer and releases the lock"},
-            {"name": "Single sidebar width source", "detail": "The rail, the content gutter and the Tailwind spacing utilities share one set of tokens"},
-            {"name": "Accent-aware soft tints", "detail": "Chips, badges and active rows are tinted from the live accent colour instead of a fixed indigo"},
-            {"name": "Dark brand ramp", "detail": "Every brand shade stays legible in dark, midnight and high-contrast palettes"},
-            {"name": "Complete icon coverage", "detail": "Every icon name the API can emit resolves to a real glyph, guarded by a parity test"},
-            {"name": "Builder filter chips", "detail": "Every active filter is listed as a removable chip with a one-click clear-all"},
-            {"name": "Twelve builder presets", "detail": "Drops, hikes, delistings, catalog mismatches, DQ failures and stale stock in one click"},
-            {"name": "Warehouse timestamp sanity", "detail": "Seeded and imported batches can never claim an observation from the future"},
-            {"name": "Freshness rule never negative", "detail": "Clock skew cannot make the data-quality freshness rule report a negative age"},
-            {"name": "Alerts read the scored run", "detail": "A run without a data-quality verdict no longer masks the previous one"},
-            {"name": "Real-data guarantee", "detail": "Synthetic sources, demo URLs and seeded strategies are excluded from every production run"},
+            {
+                "name": "Consistent metric windows",
+                "detail": "Every dashboard tile is scoped to the selected range instead of mixing lifetime and windowed counts",
+            },
+            {
+                "name": "Products vs observations",
+                "detail": "Distinct canonical products and raw price snapshots are two separate, explicitly labelled tiles",
+            },
+            {
+                "name": "Observations-per-product ratio",
+                "detail": "The hint explains the relationship between the two counts instead of repeating one of them",
+            },
+            {
+                "name": "Exact-number display mode",
+                "detail": "Account -> Preferences switches every count from compact (33.6k) to exact (33,600)",
+            },
+            {
+                "name": "Silent reload",
+                "detail": "Data refreshes in place with no skeleton shimmer, spinner sweep, transition or layout shift",
+            },
+            {
+                "name": "Silent reload follows the profile",
+                "detail": "The preference is stored server-side and restored on every device the user signs in from",
+            },
+            {
+                "name": "Account preference validation",
+                "detail": "The API clamps every known preference to its allowed value set, so a hand-written request can never break the client",
+            },
+            {
+                "name": "Wired auto-refresh",
+                "detail": "The account cadence setting now drives a real refresh interval on the dashboard",
+            },
+            {
+                "name": "Wired default chart type",
+                "detail": "Area, line or bar for the market trend, chosen in the account screen",
+            },
+            {
+                "name": "Wired default time range",
+                "detail": "The dashboard opens on the range the user configured",
+            },
+            {
+                "name": "Wired default export format",
+                "detail": "The preferred download format is offered first on every export control",
+            },
+            {
+                "name": "Wired copy-code-on-click",
+                "detail": "Generated SQL, serialised filters and JSON cells copy on a single click",
+            },
+            {
+                "name": "Scroll restoration that works",
+                "detail": "Back and forward restore the exact scroll offset of the real scrolling container",
+            },
+            {
+                "name": "Drawer scroll lock",
+                "detail": "The content behind an open mobile drawer can no longer be scrolled by wheel or touch",
+            },
+            {
+                "name": "Drawer closes on resize",
+                "detail": "Rotating a tablet or resizing past the breakpoint dismisses the drawer and releases the lock",
+            },
+            {
+                "name": "Single sidebar width source",
+                "detail": "The rail, the content gutter and the Tailwind spacing utilities share one set of tokens",
+            },
+            {
+                "name": "Accent-aware soft tints",
+                "detail": "Chips, badges and active rows are tinted from the live accent colour instead of a fixed indigo",
+            },
+            {
+                "name": "Dark brand ramp",
+                "detail": "Every brand shade stays legible in dark, midnight and high-contrast palettes",
+            },
+            {
+                "name": "Complete icon coverage",
+                "detail": "Every icon name the API can emit resolves to a real glyph, guarded by a parity test",
+            },
+            {
+                "name": "Builder filter chips",
+                "detail": "Every active filter is listed as a removable chip with a one-click clear-all",
+            },
+            {
+                "name": "Twelve builder presets",
+                "detail": "Drops, hikes, delistings, catalog mismatches, DQ failures and stale stock in one click",
+            },
+            {
+                "name": "Warehouse timestamp sanity",
+                "detail": "Seeded and imported batches can never claim an observation from the future",
+            },
+            {
+                "name": "Freshness rule never negative",
+                "detail": "Clock skew cannot make the data-quality freshness rule report a negative age",
+            },
+            {
+                "name": "Alerts read the scored run",
+                "detail": "A run without a data-quality verdict no longer masks the previous one",
+            },
+            {
+                "name": "Real-data guarantee",
+                "detail": "Synthetic sources, demo URLs and seeded strategies are excluded from every production run",
+            },
+        ],
+    },
+    {
+        "key": "data_trust_verification",
+        "title": "Data trust, live FX & verifiable realism",
+        "icon": "badge-check",
+        "summary": "Every source declares how trustworthy its data is, exchange rates are live in production and pinned in tests, and the whole platform is verified against real permitted endpoints rather than fixtures.",
+        "features": [
+            {
+                "name": "Per-source trust classification",
+                "detail": "Every registered source declares real, sandbox or synthetic, and the classification is persisted in dim_source",
+            },
+            {
+                "name": "Real-only auto-selection",
+                "detail": "A pipeline run without parameters only collects genuine market data, so fabricated rows can never enter production",
+            },
+            {
+                "name": "Explicit selection still allowed",
+                "detail": "A demo or sandbox source stays reachable by naming it, for tests and deliberate demos",
+            },
+            {
+                "name": "Terms-blocked sources stay out",
+                "detail": "A source whose terms forbid crawling is never auto-selected, even when it is otherwise trusted",
+            },
+            {
+                "name": "Untrusted-row purge",
+                "detail": "A CLI command removes the rows an untrusted source wrote, with a dry-run mode that changes nothing",
+            },
+            {
+                "name": "Purge keeps real history",
+                "detail": "A product every observation of which came from a trusted source is never touched",
+            },
+            {
+                "name": "Run-history provenance",
+                "detail": "A run that only ever touched untrusted feeds is removed; a failed run with no observations is kept as real operational history",
+            },
+            {
+                "name": "Live exchange rates in production",
+                "detail": "price_usd is derived from a current provider rate, not from a frozen hand-written table",
+            },
+            {
+                "name": "Two rate providers with fallback",
+                "detail": "A second provider takes over when the first is unreachable, and the fallback table is the last resort",
+            },
+            {
+                "name": "Rate provenance is recorded",
+                "detail": "Each currency row stores its source and as-of date, so a number can always be traced back to its origin",
+            },
+            {
+                "name": "Pinned rates in tests",
+                "detail": "The suite runs on the static reference table, so a market move can never fail a test",
+            },
+            {
+                "name": "Live-source smoke test",
+                "detail": "The verification script fetches live records from every permitted endpoint and fails if a source returns nothing",
+            },
+            {
+                "name": "Real pipeline run",
+                "detail": "The verification script runs the nine-stage pipeline into an empty database seeded with nothing but the schema",
+            },
+            {
+                "name": "Zero-synthetic assertion",
+                "detail": "After the run the warehouse is checked row by row: every source that appears is trusted, and no synthetic namespace row exists",
+            },
+            {
+                "name": "Live API over the real warehouse",
+                "detail": "The API is started against the freshly collected data and its products, coverage and KPI responses are read back",
+            },
+            {
+                "name": "Order-independent test suite",
+                "detail": "Every test starts from the same seeded warehouse, so a result never depends on the order the files are collected in",
+            },
+            {
+                "name": "Fast warehouse restore",
+                "detail": "The seeded rows are captured once and written back between tests, which keeps the suite fast and deterministic",
+            },
+            {
+                "name": "Isolation without a background race",
+                "detail": "The background job worker is disabled for the suite, so it can never race the per-test restore",
+            },
+            {
+                "name": "Self-contained integration tests",
+                "detail": "A test that reads what the pipeline produced runs the pipeline itself instead of trusting an earlier test",
+            },
+            {
+                "name": "Complete account preferences",
+                "detail": "Every account starts with the full preference set the dashboard understands, so the API never returns a partial one",
+            },
+            {
+                "name": "Preference values are clamped",
+                "detail": "A preference outside its allowed set is dropped at the API boundary and never stored as a typo",
+            },
+            {
+                "name": "Full-app verification in one command",
+                "detail": "A single script proves the whole platform: lint, tests, live sources, a real pipeline, a live API, the frontend and the compose stack",
+            },
+            {
+                "name": "Bounded real-data volume",
+                "detail": "The verification run collects a configurable number of live records per source, so it stays fast and honest",
+            },
+            {
+                "name": "Notification switches in the account",
+                "detail": "Price-drop, data-quality and new-product notifications are toggled per user and stored on the profile",
+            },
+            {
+                "name": "Notification switches are clamped",
+                "detail": "The API drops a switch that is not a boolean, so the dashboard never receives an unreadable value",
+            },
+            {
+                "name": "Regional settings",
+                "detail": "Timezone, locale and preferred currency are set once and travel with the account",
+            },
+            {
+                "name": "Regional settings are validated",
+                "detail": "The API rejects a malformed timezone, locale tag or currency code instead of storing it",
+            },
+            {
+                "name": "Builder hands off to the query lab",
+                "detail": "The current filters, sort and page size become a ready-to-run statement in the query lab",
+            },
+            {
+                "name": "Hand-off is a one-shot",
+                "detail": "The statement is taken from the URL once and the parameter is dropped, so a reload never re-applies it",
+            },
         ],
     },
 ]

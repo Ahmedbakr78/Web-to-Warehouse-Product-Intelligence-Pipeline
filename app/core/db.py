@@ -225,6 +225,65 @@ def dispose_all() -> None:
     _FACTORIES.clear()
 
 
+# --------------------------------------------------------------------------------------
+# DDL helpers shared with the Alembic migrations
+# --------------------------------------------------------------------------------------
+def index_exists(connection: Any, name: str) -> bool:
+    """True when an index with this name exists in the connected database.
+
+    MySQL has no ``CREATE INDEX IF NOT EXISTS``, so every dialect-agnostic
+    migration has to ask the catalogue first.
+    """
+    import sqlalchemy as sa
+
+    inspector = sa.inspect(connection)
+    for table in inspector.get_table_names():
+        for index in inspector.get_indexes(table):
+            if index.get("name") == name:
+                return True
+    return False
+
+
+def create_index_if_missing(connection: Any, name: str, table: str, columns: list[str]) -> bool:
+    """Create an index unless it is already there. Returns True when created."""
+    if index_exists(connection, name):
+        return False
+    import sqlalchemy as sa
+
+    metadata = sa.MetaData()
+    reflected = sa.Table(table, metadata, autoload_with=connection)
+    sa.Index(name, *[reflected.c[column] for column in columns]).create(connection)
+    return True
+
+
+def drop_index_if_present(connection: Any, name: str) -> bool:
+    """Drop an index when it exists. Returns True when dropped."""
+    if not index_exists(connection, name):
+        return False
+    import sqlalchemy as sa
+
+    metadata = sa.MetaData()
+    reflected = sa.Table(name, metadata, autoload_with=connection)
+    sa.Index(name).drop(connection)
+    del reflected
+    return True
+
+
+def column_exists(connection: Any, table: str, column: str) -> bool:
+    """True when the table already has this column.
+
+    A deployment that ran the application's own additive schema sync before
+    the migration reached this revision already has the column, so the
+    migration has to be able to say "nothing to do".
+    """
+    import sqlalchemy as sa
+
+    inspector = sa.inspect(connection)
+    if table not in inspector.get_table_names():
+        return False
+    return any(item["name"] == column for item in inspector.get_columns(table))
+
+
 def iter_targets() -> Iterator[tuple[str, bool]]:
     """Yield ``(target, configured)`` for every supported database target."""
     yield "postgres", bool(settings.database_url)
@@ -239,6 +298,10 @@ __all__ = [
     "session_scope",
     "read_session",
     "ping",
+    "index_exists",
+    "create_index_if_missing",
+    "drop_index_if_present",
+    "column_exists",
     "dispose_all",
     "iter_targets",
 ]

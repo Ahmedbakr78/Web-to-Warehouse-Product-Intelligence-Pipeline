@@ -1,0 +1,125 @@
+
+erDiagram
+    APP_API_KEY ||--o{ APP_USER : "user_id"
+    APP_SAVED_VIEW ||--o{ APP_USER : "user_id"
+    APP_ALERT_RULE ||--o{ APP_USER : "user_id"
+    APP_NOTIFICATION ||--o{ APP_USER : "user_id"
+    APP_NOTIFICATION ||--o{ APP_ALERT_RULE : "alert_id"
+    APP_AUDIT_LOG ||--o{ APP_USER : "user_id"
+    APP_USER {
+        int user_id PK
+        string email UK
+        string(512) full_name 
+        string(255) hashed_password 
+        string(128) role 
+        string(128) job_title 
+        string(128) department 
+        string(128) avatar_color 
+        string(128) timezone 
+        string(128) locale 
+        string(128) theme 
+        string(128) accent 
+        string(128) density 
+        bool is_active 
+        bool is_verified 
+        int rows_per_page 
+        string(128) default_currency 
+        float price_change_alert_pct 
+        bool email_alerts_enabled 
+        bool weekly_digest_enabled 
+        int login_count 
+        datetime last_login_at 
+        string(128) last_login_ip 
+        datetime password_changed_at 
+        bool two_factor_enabled 
+        int failed_login_count 
+        datetime locked_until 
+        json preferences 
+        datetime created_at 
+        datetime updated_at 
+    }
+    APP_API_KEY {
+        int key_id PK
+        int user_id FK
+        string(128) name 
+        string(128) prefix 
+        string(255) hashed_key 
+        json scopes 
+        bool is_active 
+        datetime expires_at 
+        datetime last_used_at 
+        int usage_count 
+        int rate_limit_per_minute 
+        datetime created_at 
+        datetime updated_at 
+    }
+    APP_SAVED_VIEW {
+        int view_id PK
+        int user_id FK
+        string(512) name 
+        string(128) entity 
+        string(512) description 
+        json filters 
+        string(128) sort_by 
+        string(128) sort_dir 
+        json visible_columns 
+        bool is_shared 
+        bool is_favorite 
+        bool is_default 
+        int use_count 
+        datetime created_at 
+        datetime updated_at 
+    }
+    APP_ALERT_RULE {
+        int alert_id PK
+        int user_id FK
+        string(512) name 
+        string(128) metric 
+        string(128) operator 
+        float threshold 
+        string(512) category 
+        string(128) source_code 
+        bool is_active 
+        string(128) channel 
+        datetime last_triggered_at 
+        int trigger_count 
+        datetime created_at 
+        datetime updated_at 
+    }
+    APP_NOTIFICATION {
+        int notification_id PK
+        int user_id FK
+        int alert_id FK
+        string(128) level 
+        string(512) title 
+        text body 
+        string(128) entity_type 
+        string(128) entity_id 
+        string(512) action_url 
+        bool is_read 
+        datetime created_at 
+    }
+    APP_AUDIT_LOG {
+        int audit_id PK
+        int user_id FK
+        string(512) user_email 
+        string(128) action 
+        string(128) entity_type 
+        string(128) entity_id 
+        string(128) status 
+        string(128) ip_address 
+        string(128) user_agent 
+        int duration_ms 
+        json details 
+        datetime created_at 
+    }
+    APP_SETTING {
+        string(128) key PK
+        text value 
+        string(128) value_type 
+        string(128) category 
+        string(512) description 
+        bool is_public 
+        string(512) updated_by 
+        datetime updated_at 
+    }

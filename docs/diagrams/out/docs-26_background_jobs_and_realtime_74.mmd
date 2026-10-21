@@ -1,0 +1,15 @@
+
+sequenceDiagram
+    participant Job as Job worker
+    participant Broker as In-process broker
+    participant DB as app_job_events
+    participant SSE as SSE response
+    participant UI as Browser
+    Job->>Broker: publish(job topic)
+    Broker-->>SSE: immediate frame (same worker)
+    Job->>DB: persist progress event
+    loop every poll interval
+        SSE->>DB: read events newer than the last id
+    end
+    DB-->>SSE: frames from any worker
+    SSE-->>UI: text/event-stream

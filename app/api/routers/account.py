@@ -71,7 +71,7 @@ def _audit(session, user, action: str, request: Request, **details: Any) -> None
             entity_type="app_user",
             entity_id=str(user.user_id),
             ip_address=request.headers.get("x-forwarded-for", "").split(",")[0].strip()[:64],
-            user_agent=request.headers.get("user-agent", "")[:255],
+            user_agent=request.headers.get("user-agent", "")[:512],
             details=details or None,
         )
     )
@@ -91,7 +91,7 @@ def _require_password(user, password: str) -> None:
 @router.get("/2fa/status", summary="Is two-factor authentication enrolled?")
 def two_factor_status(user: CurrentUser) -> dict[str, Any]:
     from app.core.db import session_scope
-    from app.services.twofactor import guard_state
+    from app.services.twofactor import DIGITS, PERIOD, guard_state
 
     with session_scope() as check:
         guard = guard_state(check, user)
@@ -101,6 +101,12 @@ def two_factor_status(user: CurrentUser) -> dict[str, Any]:
         "recovery_codes_remaining": len(user.recovery_codes or []),
         "attempts_remaining": max(0, 3 - guard.failures),
         "locked": guard.locked,
+        # The parameters are published so the account screen can describe the
+        # second factor instead of quoting a hard-coded description of it.
+        "method": "TOTP",
+        "algorithm": "SHA-1",
+        "digits": DIGITS,
+        "period": PERIOD,
     }
 
 

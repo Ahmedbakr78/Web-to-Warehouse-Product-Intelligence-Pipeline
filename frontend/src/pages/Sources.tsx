@@ -49,6 +49,13 @@ import { useAuth } from '@/hooks/useAuth'
 import { formatDateTime, formatDuration, formatNumber, formatPrice, formatRelative, statusTone, titleCase, truncate } from '@/lib/format'
 
 const KIND_TONE: Record<string, Tone> = { api: 'info', scrape: 'warning', synthetic: 'neutral' }
+/** How far a source's records can be trusted as market data. */
+const TRUST_TONE: Record<string, Tone> = { real: 'success', sandbox: 'warning', synthetic: 'danger' }
+const TRUST_HINT: Record<string, string> = {
+  real: 'Publishes genuine market data - collected by automatic runs.',
+  sandbox: 'A real endpoint that publishes a test corpus - opt-in only.',
+  synthetic: 'Generated locally or by a mock API - never market data.',
+}
 const SYNC_TONE: Record<string, Tone> = {
   healthy: 'success',
   failing: 'danger',
@@ -109,6 +116,13 @@ function SourceCard({
         </div>
         <div className="flex shrink-0 flex-wrap justify-end gap-1">
           <Badge tone={KIND_TONE[String(row.kind)] ?? 'neutral'}>{titleCase(row.kind)}</Badge>
+          {row.data_trust && row.data_trust !== 'real' ? (
+            <span title={TRUST_HINT[String(row.data_trust)]}>
+              <Badge tone={TRUST_TONE[String(row.data_trust)] ?? 'neutral'}>
+                {titleCase(row.data_trust)}
+              </Badge>
+            </span>
+          ) : null}
           {!row.terms_allowed ? (
             <Badge tone="danger">blocked</Badge>
           ) : (
@@ -130,6 +144,13 @@ function SourceCard({
         ) : (
           <Badge tone="neutral">bundled</Badge>
         )}
+        {row.data_trust && row.data_trust !== 'real' ? (
+          <span title={TRUST_HINT[String(row.data_trust)]}>
+            <Badge tone={TRUST_TONE[String(row.data_trust)] ?? 'neutral'}>
+              {titleCase(row.data_trust)} data
+            </Badge>
+          </span>
+        ) : null}
         {row.terms_allowed ? (
           <Badge tone="success">terms allowed</Badge>
         ) : (
@@ -915,6 +936,16 @@ export default function Sources() {
     }
   }, [merged, registry.data, robots.data])
 
+  /** How the registered sources break down by how far their records can be trusted. */
+  const trustBreakdown = useMemo(() => {
+    const levels: Record<string, number> = { real: 0, sandbox: 0, synthetic: 0 }
+    for (const row of (registry.data ?? []) as any[]) {
+      const level = String(row.data_trust ?? 'real')
+      levels[level] = (levels[level] ?? 0) + 1
+    }
+    return levels
+  }, [registry.data])
+
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: ['sources'] })
     void queryClient.invalidateQueries({ queryKey: ['pipeline-source-status'] })
@@ -1148,10 +1179,37 @@ export default function Sources() {
                 label: 'Sources allowed by terms',
                 value: `${(registry.data ?? []).filter((row: any) => row.terms_allowed).length} / ${totals.registered}`,
               },
+              {
+                label: 'Sources publishing market data',
+                value: `${trustBreakdown.real} / ${totals.registered}`,
+              },
             ]}
           />
 
           <div className="lg:col-span-2">
+            {/* The trust breakdown: which of the registered sources publish
+                genuine market data, and which are opt-in test corpora. */}
+            <div className="mb-3 rounded-xl border border-line bg-surface-2 p-3">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs font-semibold text-ink">Data trust</p>
+                <p className="text-[11px] text-subtle">
+                  Only sources that publish market data join an automatic run.
+                </p>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {(['real', 'sandbox', 'synthetic'] as const).map((level) => (
+                  <div key={level} className="rounded-lg border border-line bg-surface px-3 py-2">
+                    <p className="stat-label">{titleCase(level)}</p>
+                    <p className="mt-0.5 text-lg font-semibold tabular-nums text-ink">
+                      {formatNumber(trustBreakdown[level] ?? 0)}
+                    </p>
+                    <p className="mt-0.5 text-[10px] leading-tight text-subtle">
+                      {TRUST_HINT[level]}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
               {COUNTERS.map((counter) => (
                 <div key={counter.label} className="rounded-lg border border-line bg-surface-2 px-3 py-2">

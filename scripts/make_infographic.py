@@ -13,6 +13,7 @@ never invented. Run it with:  make infographic
 from __future__ import annotations
 
 import html
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -61,17 +62,16 @@ def _measured_dq_score() -> str:
         from app.core.db import session_scope
 
         with session_scope() as session:
+            # The score the run itself persisted, computed with the severity
+            # weights the pipeline applies. Recomputing it here from the raw
+            # rule rows would quietly use a different formula (an unweighted
+            # average) and print a number the dashboard never shows.
             score = session.execute(
                 sa.text(
                     """
-                    SELECT ROUND(AVG(CASE status WHEN 'pass' THEN 1.0
-                                              WHEN 'warn' THEN 0.75
-                                              ELSE 0.0 END) * 100, 2)
-                    FROM dq_rule_result
-                    WHERE run_id = (
-                        SELECT run_id FROM dq_rule_result
-                        GROUP BY run_id ORDER BY MAX(evaluated_at) DESC LIMIT 1
-                    )
+                    SELECT dq_score FROM etl_run
+                    WHERE dq_score IS NOT NULL
+                    ORDER BY started_at DESC LIMIT 1
                     """
                 )
             ).scalar()
@@ -80,6 +80,23 @@ def _measured_dq_score() -> str:
     except Exception:
         pass
     return "score persisted per run"
+
+
+def _measured_dashboard_screens() -> str:
+    """The number of dashboard screens, counted from the router.
+
+    Hard-coding "21 screens" would let the slide drift away from the app the
+    moment a route is added, which is exactly the kind of stale number this
+    generator exists to prevent.
+    """
+    try:
+        source = (ROOT / "frontend" / "src" / "App.tsx").read_text(encoding="utf-8")
+        routes = set(re.findall(r'path="([^"]*)"', source))
+        # The catch-all 404 route is a fallback, not a screen.
+        routes.discard("*")
+        return str(len(routes))
+    except Exception:
+        return "24"
 
 
 def _measured_stats() -> dict[str, str]:
@@ -97,6 +114,7 @@ def _measured_stats() -> dict[str, str]:
         "data_quality_rules": "12",
         "documentation_documents": "30",
         "mermaid_diagrams": "80",
+        "rest_routers": "24",
         "dq_score": _measured_dq_score(),
     }
     try:
@@ -109,6 +127,7 @@ def _measured_stats() -> dict[str, str]:
     except Exception:
         pass
     return fallback
+
 
 W, H = 2560, 1440
 SVG_NS = "http://www.w3.org/2000/svg"
@@ -161,16 +180,31 @@ def roadmap(measured: dict[str, str]) -> list:
             "box",
             ["permitted web sources", "retailer catalog"],
         ),
-        ("Problem", "Manual collection is slow and inconsistent", "alert", ["stale spreadsheets", "no history"]),
+        (
+            "Problem",
+            "Manual collection is slow and inconsistent",
+            "alert",
+            ["stale spreadsheets", "no history"],
+        ),
         ("Solution", "Compliance-first ETL pipeline", "gauge", ["robots.txt aware", "deduplicated"]),
-        ("Architecture", "Airflow orchestrates 9 stages", "flow", ["ingest, clean, load", "detect, reconcile"]),
+        (
+            "Architecture",
+            "Airflow orchestrates 9 stages",
+            "flow",
+            ["ingest, clean, load", "detect, reconcile"],
+        ),
         (
             "Warehouse",
             tables_views,
             "db",
             ["Alembic-managed schema", "PostgreSQL and MySQL twins"],
         ),
-        ("Data Quality", "12 rules across 6 dimensions", "shield", ["score persisted per run", measured["dq_score"]]),
+        (
+            "Data Quality",
+            "12 rules across 6 dimensions",
+            "shield",
+            ["score persisted per run", measured["dq_score"]],
+        ),
         (
             "Forecasting",
             "Prices, anomalies, advice",
@@ -179,13 +213,13 @@ def roadmap(measured: dict[str, str]) -> list:
         ),
         (
             "Operations",
-            f"{measured['rest_route_decorators']} REST operations, 23 routers",
+            f"{measured['rest_route_decorators']} REST operations, {measured['rest_routers']} routers",
             "api",
             ["JWT, TOTP and scoped keys", "leased jobs and SSE"],
         ),
         (
             "Dashboard",
-            "21 screens, 5 themes, 4 report formats",
+            f"{_measured_dashboard_screens()} screens, 5 themes, 4 report formats",
             "screen",
             ["command palette, installable PWA", "HTML, JSON, CSV and PDF"],
         ),
@@ -193,9 +227,13 @@ def roadmap(measured: dict[str, str]) -> list:
             "Evidence",
             f"{measured['test_cases']} tests, 104 smoke checks, CI green",
             "cloud",
-            ["mypy and Ruff clean", f"{measured['documentation_documents']} documents, {measured['mermaid_diagrams']} diagrams"],
+            [
+                "mypy and Ruff clean",
+                f"{measured['documentation_documents']} documents, {measured['mermaid_diagrams']} diagrams",
+            ],
         ),
     ]
+
 
 TECH_BADGES = [
     "Python 3.12",
@@ -220,6 +258,7 @@ TECH_BADGES = [
 
 TIMELINE = ["Plan", "Design", "Build", "Test", "Deploy", "Maintain"]
 
+
 def outcomes(measured: dict[str, str]) -> list:
     return [
         "Working pipeline",
@@ -228,11 +267,12 @@ def outcomes(measured: dict[str, str]) -> list:
         f"REST API, {measured['rest_route_decorators']} operations",
         f"{measured['test_cases']} automated tests",
         "104 API smoke checks",
-        "React dashboard, 21 screens",
+        f"React dashboard, {_measured_dashboard_screens()} screens",
         "Alembic-managed schema",
         f"{measured['documentation_documents']} documents, {measured['mermaid_diagrams']} diagrams",
         "PDF and CSV reports",
     ]
+
 
 ICON_PATHS = {
     "box": "M4 8l8-4 8 4-8 4-8-4zm0 0v8l8 4 8-4V8",

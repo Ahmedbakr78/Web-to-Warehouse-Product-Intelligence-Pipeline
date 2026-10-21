@@ -35,8 +35,7 @@ class PokemonTcgCardsSource(ProductSource):
     min_delay_seconds: ClassVar[float] = 1.5
     supports_paging: ClassVar[bool] = True
     description: ClassVar[str] = (
-        "Pokemon cards with TCGplayer market prices, Cardmarket trends, "
-        "set name, rarity and types."
+        "Pokemon cards with TCGplayer market prices, Cardmarket trends, set name, rarity and types."
     )
 
     def fetch(self, limit: int | None = None) -> Iterator[RawProduct]:

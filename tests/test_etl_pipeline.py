@@ -251,6 +251,8 @@ def test_analytics_helpers_return_rows(db, pipeline_run):
     assert analytics.price_change_timeline(db, days=365)
     assert analytics.category_breakdown(db)
     assert analytics.brand_leaderboard(db)
+
+
 def test_new_leader_helpers_return_rows(db):
     volatility = analytics.price_volatility(db)
     assert volatility

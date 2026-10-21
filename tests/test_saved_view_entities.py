@@ -140,16 +140,26 @@ def test_private_views_are_invisible_to_other_users(client, admin_token, viewer_
     assert client.get(f"/api/v1/saved-views/{view_id}", headers=viewer_headers).status_code == 404
     assert client.post(f"/api/v1/saved-views/{view_id}/use", headers=viewer_headers).status_code == 404
     assert client.post(f"/api/v1/saved-views/{view_id}/favorite", headers=viewer_headers).status_code == 404
-    assert client.patch(f"/api/v1/saved-views/{view_id}", headers=viewer_headers, json={"name": "x"}).status_code in (403, 404)
+    assert client.patch(
+        f"/api/v1/saved-views/{view_id}", headers=viewer_headers, json={"name": "x"}
+    ).status_code in (403, 404)
     assert client.delete(f"/api/v1/saved-views/{view_id}", headers=viewer_headers).status_code in (403, 404)
 
     # Sharing opens read + use, but never mutation.
-    assert client.patch(f"/api/v1/saved-views/{view_id}", headers=admin_headers, json={"is_shared": True}).status_code == 200
+    assert (
+        client.patch(
+            f"/api/v1/saved-views/{view_id}", headers=admin_headers, json={"is_shared": True}
+        ).status_code
+        == 200
+    )
     assert client.get(f"/api/v1/saved-views/{view_id}", headers=viewer_headers).status_code == 200
     used = client.post(f"/api/v1/saved-views/{view_id}/use", headers=viewer_headers)
     assert used.status_code == 200
     assert used.json()["use_count"] >= 1
-    assert client.patch(f"/api/v1/saved-views/{view_id}", headers=viewer_headers, json={"name": "x"}).status_code == 403
+    assert (
+        client.patch(f"/api/v1/saved-views/{view_id}", headers=viewer_headers, json={"name": "x"}).status_code
+        == 403
+    )
 
     assert client.delete(f"/api/v1/saved-views/{view_id}", headers=admin_headers).status_code == 200
 

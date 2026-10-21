@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="The three trust levels, auto-selection rules, the purge sweep, robots.txt enforcement and the audit trail">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Data Trust &amp; Compliance — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="The three trust levels, auto-selection rules, the purge sweep, robots.txt enforcement and the audit trail">
+<title>Data Trust &amp; Compliance — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.png" type="image/png">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="28-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, 173 operations, worked examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, measured counts, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="Every feature with the file that implements it">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+<a href="24_demo_runbook.html" title="Screen-by-screen live demo script and failure playbook">Demo Runbook</a>
+<a href="25_forecasting_and_anomaly_detection.html" title="Damped Holt-Winters, measured accuracy, three detectors, pricing advice">Forecasting &amp; Anomalies</a>
+<a href="26_background_jobs_and_realtime.html" title="Leases, retries, cancellation, SSE and the cross-worker problem">Background Jobs &amp; Realtime</a>
+<a href="27_reporting_and_document_generation.html" title="Typed blocks rendered to HTML, JSON, CSV and PDF from one definition">Reporting &amp; Documents</a>
+<a href="28_schema_and_migrations.html" title="Alembic, drift detection, views, Airflow isolation">Schema &amp; Migrations</a>
+<a href="29_two_factor_and_sessions.html" title="TOTP enrolment, recovery codes, per-device revocation">Two-Factor &amp; Sessions</a>
+<a href="30_access_control_and_rate_limiting.html" title="Roles, rights, API-key scopes, sliding-window rate limiting">Access Control &amp; Limits</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>Data Trust &amp; Compliance</h1>
+      <p>The three trust levels, auto-selection rules, the purge sweep, robots.txt enforcement and the audit trail</p>
+    </div>
+    <details class="toc"><summary>On this page</summary><ol><li class="lvl-2"><a href="#purpose">Purpose</a></li><li class="lvl-2"><a href="#the-three-trust-levels">The three trust levels</a></li><li class="lvl-3"><a href="#why-sandbox-is-not-real">Why sandbox is not real</a></li><li class="lvl-2"><a href="#selection-how-a-run-decides-what-to-collect">Selection: how a run decides what to collect</a></li><li class="lvl-3"><a href="#the-guarantee-stated-precisely">The guarantee, stated precisely</a></li><li class="lvl-2"><a href="#the-purge-sweep">The purge sweep</a></li><li class="lvl-3"><a href="#what-the-purge-reports">What the purge reports</a></li><li class="lvl-2"><a href="#compliance-robotstxt-terms-and-rate-limits">Compliance: robots.txt, terms and rate limits</a></li><li class="lvl-3"><a href="#robotstxt">robots.txt</a></li><li class="lvl-3"><a href="#rate-limiting">Rate limiting</a></li><li class="lvl-3"><a href="#honest-identity">Honest identity</a></li><li class="lvl-2"><a href="#what-the-audit-trail-looks-like">What the audit trail looks like</a></li><li class="lvl-2"><a href="#proving-it-on-a-live-warehouse">Proving it on a live warehouse</a></li><li class="lvl-2"><a href="#where-the-trust-level-is-visible-in-the-product">Where the trust level is visible in the product</a></li><li class="lvl-2"><a href="#design-rationale">Design rationale</a></li><li class="lvl-2"><a href="#related-documents">Related documents</a></li></ol></details>
+    <article class="doc-body">
+<blockquote><p><strong>The single most important property of this warehouse.</strong> Every row in <code>fact_price_snapshot</code> is an observation of a <em>real</em> upstream that permits automated access. Nothing is invented, nothing is seeded, and nothing is generated inside the process. This document explains how that guarantee is designed, enforced, and proven.</p></blockquote>
+<hr>
+<h2 id="purpose">Purpose</h2>
+<p>A product-intelligence warehouse is only useful if the numbers in it were <em>observed</em>. A pipeline that quietly mixes a mock storefront's invented catalogue into the same tables as Open Library's real records produces a report that looks authoritative and is entirely fictional. That failure mode is invisible in every downstream number: averages, medians, price-change counts and rankings are all perfectly well-formed and all wrong.</p>
+<p>This project therefore treats <strong>provenance</strong> as a first-class property, not a detail. Three mechanisms work together:</p>
+<ul>
+<li class="depth-0"><strong>Declaration</strong> — every source declares how much its records can be trusted</li>
+</ul>
+<p>(<code>data_trust</code>), and whether its terms permit automated use at all (<code>terms_allowed</code>).</p>
+<ul>
+<li class="depth-0"><strong>Selection</strong> — a pipeline run that is not told explicitly what to collect</li>
+</ul>
+<p>only ever selects <code>real</code> sources. Lower-trust sources must be named by code.</p>
+<ul>
+<li class="depth-0"><strong>Proof</strong> — every request is logged with the robots.txt decision that</li>
+</ul>
+<p>allowed it, and the warehouse can be swept at any time to delete and report anything that came from below <code>real</code>.</p>
+<p>The result is a warehouse whose contents can be audited from the SQL up.</p>
+<hr>
+<h2 id="the-three-trust-levels">The three trust levels</h2>
+<pre class="mermaid">flowchart TB
+    subgraph L0[&quot;Declared by the source class&quot;]
+        direction LR
+        R[&quot;real&lt;br/&gt;&lt;i&gt;observed market records&lt;/i&gt;&quot;]
+        S[&quot;sandbox&lt;br/&gt;&lt;i&gt;published test corpus&lt;/i&gt;&quot;]
+        Y[&quot;synthetic&lt;br/&gt;&lt;i&gt;generated in-process&lt;/i&gt;&quot;]
+    end
+
+    L0 --&gt;|&quot;auto-selected&quot;| AUTO[&quot;Bare pipeline run&quot;]
+    L0 --&gt;|&quot;explicit code only&quot;| EXPLICIT[&quot;run-pipeline --sources …&quot;]
+
+    AUTO --&gt; W1[&quot;Warehouse&quot;]
+    EXPLICIT --&gt; W1
+
+    PURGE[&quot;Purge sweep&lt;br/&gt;&lt;i&gt;app/etl/purge.py&lt;/i&gt;&quot;] --&gt;|&quot;removes non-real rows&quot;| W1
+    W1 --&gt; AUDIT[&quot;ingestion_http_log&lt;br/&gt;&lt;i&gt;robots decision per request&lt;/i&gt;&quot;]</pre>
+<div class='table-scroll'><table><thead><tr>
+<th>Level</th>
+<th>Meaning</th>
+<th>In production?</th>
+<th>Auto-selected?</th>
+</tr></thead><tbody>
+<tr>
+<th><code>real</code></th>
+<td>Genuine market records observed from a live upstream that permits automated access</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr>
+<th><code>sandbox</code></th>
+<td>A real, reachable HTTP service that exists to be scraped or tested against; its records are a published test corpus rather than observed market data (<code>books.toscrape.com</code> is a fictional bookshop)</td>
+<td>No — useful for exercising the transport layer, never market data</td>
+<td>No</td>
+</tr>
+<tr>
+<th><code>synthetic</code></th>
+<td>No upstream at all; the records are generated inside this process (the offline demo catalogue)</td>
+<td>No</td>
+<td>No</td>
+</tr>
+</tbody></table></div>
+<p>The levels are defined once, in <code>app/ingestion/base.py</code>, and every source class inherits one of them:</p>
+<pre class="code" data-lang="python"><code>DATA_TRUST_REAL = &quot;real&quot;
+DATA_TRUST_SANDBOX = &quot;sandbox&quot;
+DATA_TRUST_SYNTHETIC = &quot;synthetic&quot;
+
+#: Trust levels that may be selected automatically by a pipeline run. Anything
+#: below this must be requested explicitly by code, never by omission.
+AUTO_SELECTABLE_TRUST = frozenset({DATA_TRUST_REAL})</code></pre>
+<h3 id="why-sandbox-is-not-real">Why <code>sandbox</code> is not <code>real</code></h3>
+<p><code>books.toscrape.com</code> and <code>scrapeme.live</code> are the canonical targets for learning BeautifulSoup and Scrapy. They are deliberately published, they permit scraping, and their robots.txt is either absent or permissive — which makes them <em>perfect for proving the transport layer works</em>. But their inventory is a fictional shop. Treating them as market data would mean the dashboard's "average price" was the average price of a test corpus.</p>
+<p>They remain fully usable, in exactly one way: by naming them.</p>
+<pre class="code" data-lang="bash"><code># Explicit, auditable, opt-in.
+pip-cli run-pipeline --sources books_to_scrape</code></pre>
+<hr>
+<h2 id="selection-how-a-run-decides-what-to-collect">Selection: how a run decides what to collect</h2>
+<p><code>Pipeline._source_codes()</code> is the only place that decides the source set, and the rule is a single <code>if</code>:</p>
+<pre class="code" data-lang="python"><code>codes = [
+    source[&quot;code&quot;]
+    for source in list_sources()
+    if source.get(&quot;enabled&quot;)
+    and source.get(&quot;terms_allowed&quot;, True)
+    and source.get(&quot;data_trust&quot;) in AUTO_SELECTABLE_TRUST
+]</code></pre>
+<p>Three conditions must all hold:</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Condition</th>
+<th>Guards against</th>
+</tr></thead><tbody>
+<tr>
+<th><code>enabled</code></th>
+<td>A source that was deliberately switched off is never silently re-enabled.</td>
+</tr>
+<tr>
+<th><code>terms_allowed</code></th>
+<td>A source whose terms forbid automated access is never contacted, even by a scheduled run.</td>
+</tr>
+<tr>
+<th><code>data_trust in {"real"}</code></th>
+<td>A mock API's invented catalogue never enters the warehouse by omission.</td>
+</tr>
+</tbody></table></div>
+<p>An explicit <code>--sources</code> list bypasses the filter <strong>on purpose</strong>: an operator asking for a specific code has made the decision deliberately, and the audit log records what was actually fetched either way.</p>
+<h3 id="the-guarantee-stated-precisely">The guarantee, stated precisely</h3>
+<blockquote><p><strong>A bare <code>run-pipeline</code> — and therefore the scheduled Airflow DAG — can never write a row that was not observed from a live, permitted upstream.</strong></p></blockquote>
+<p>This is enforced by a test, not by convention:</p>
+<pre class="code" data-lang="python"><code>def test_prod_auto_select_is_real_only(database):
+    codes = set(Pipeline(PipelineConfig(database=database))._source_codes())
+    assert &quot;local_demo&quot; not in codes
+
+    untrusted = {
+        source[&quot;code&quot;]
+        for source in list_sources()
+        if source.get(&quot;enabled&quot;)
+        and source.get(&quot;terms_allowed&quot;, True)
+        and source.get(&quot;data_trust&quot;) != DATA_TRUST_REAL
+    }
+    assert untrusted, &quot;expected at least one non-real source to guard against&quot;
+    assert not (codes &amp; untrusted), f&quot;auto-select leaked untrusted sources: {codes &amp; untrusted}&quot;</code></pre>
+<hr>
+<h2 id="the-purge-sweep">The purge sweep</h2>
+<p>Classification alone is a promise; the purge sweep is the receipt. When a source's trust level is lowered — because it was mis-classified, or because its upstream changed — the rows it wrote are already in the warehouse. The purge module deletes them and reports exactly what it removed.</p>
+<pre class="code" data-lang="bash"><code>pip-cli purge-untrusted          # delete and report</code></pre>
+<p>Deletion order respects the foreign keys: staging and facts first, then the products that no longer have any observation, then the runs that no longer reference anything. The <code>dim_source</code> row of every purged source is <strong>kept</strong> — it is the record of <em>why</em> the data was removed — but the source is disabled so no future automatic run picks it up.</p>
+<pre class="mermaid">flowchart LR
+    A[&quot;Detect sources below&lt;br/&gt;data_trust = real&quot;] --&gt; B[&quot;Delete source-scoped rows&lt;br/&gt;staging, facts, changes&quot;]
+    B --&gt; C[&quot;Delete products with&lt;br/&gt;no remaining observation&quot;]
+    C --&gt; D[&quot;Delete runs with&lt;br/&gt;no remaining reference&quot;]
+    D --&gt; E[&quot;Disable the source&lt;br/&gt;keep its dim_source row&quot;]
+    E --&gt; F[&quot;Report:&lt;br/&gt;rows removed per table&quot;]</pre>
+<h3 id="what-the-purge-reports">What the purge reports</h3>
+<p>The operation is auditable, not silent. Every sweep returns the number of rows removed per table and the list of sources affected, so a change in warehouse size is always explainable:</p>
+<pre class="code" data-lang="text"><code>Untrusted sources - removed
+  dummyjson_products   synthetic
+  fakestore_products   synthetic
+  platzi_products      synthetic
+
+Rows removed
+  stg_raw_observation      48,404
+  ingestion_http_log       10,843
+  fact_price_snapshot      11,076
+  chg_price_change              0
+  chg_product_event          2,764
+  dim_product              1,214
+  etl_run                     31</code></pre>
+<p>Run it with <code>--dry-run</code> first to see the report without deleting anything.</p>
+<hr>
+<h2 id="compliance-robotstxt-terms-and-rate-limits">Compliance: robots.txt, terms and rate limits</h2>
+<p>Trust answers <em>whether the data is real</em>. Compliance answers <em>whether we are allowed to fetch it, and how fast</em>. They are independent, and both are enforced below the source layer, in the transport.</p>
+<pre class="mermaid">flowchart TB
+    SRC[&quot;Source adapter&quot;] --&gt; REQ[&quot;CompliantHttpClient.get()&quot;]
+    REQ --&gt; R{&quot;robots.txt&lt;br/&gt;allows this path?&quot;}
+    R --&gt;|no| REFUSE[&quot;ComplianceError&lt;br/&gt;request never leaves the process&quot;]
+    R --&gt;|yes| RL{&quot;Rate limiter&lt;br/&gt;budget available?&quot;}
+    RL --&gt;|no| WAIT[&quot;Wait&lt;br/&gt;sliding-window ceiling&quot;]
+    RL --&gt;|yes| NET[&quot;HTTP request&quot;]
+    NET --&gt; LOG[&quot;ingestion_http_log&lt;br/&gt;status, latency, bytes,&lt;br/&gt;robots rule, cached?, retries&quot;]
+    NET --&gt; CACHE{&quot;Response&lt;br/&gt;cached?&quot;}
+    CACHE --&gt;|hit| LOG
+    CACHE --&gt;|miss| LOG</pre>
+<h3 id="robotstxt">robots.txt</h3>
+<p>Parsed with the standard library, cached per host, and consulted <strong>before</strong> every request. The decision — not just the outcome — is written to <code>ingestion_http_log.robots_rule</code>, so the warehouse can prove it stayed inside the rules.</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Situation</th>
+<th>Behaviour</th>
+<th>RFC 9309 reference</th>
+</tr></thead><tbody>
+<tr>
+<td><code>robots.txt</code> unreachable (4xx)</td>
+<td>Allow</td>
+<td>"Unavailable" means allow all</td>
+</tr>
+<tr>
+<td><code>robots.txt</code> unreachable (5xx / network)</td>
+<td>Allow, but the failure is logged</td>
+<td>"Unavailable" means allow all, with the error recorded</td>
+</tr>
+<tr>
+<td><code>robots.txt</code> returns 401 / 403</td>
+<td>Disallow the whole host</td>
+<td>"Unauthorised" means disallow all</td>
+</tr>
+<tr>
+<th>Path is disallowed</th>
+<td><code>ComplianceError</code> — the request is never made</td>
+<td>Per-rule matching</td>
+</tr>
+</tbody></table></div>
+<p>The live run in this repository demonstrates it working: during a real collection run the pipeline logged</p>
+<pre class="code" data-lang="text"><code>robots.txt blocked url=https://api.coingecko.com/api/v3/coins/markets?… agent=ProductIntelligenceBot</code></pre>
+<p>and continued with the remaining 19 sources. A blocked source produces a warning, not a failed run.</p>
+<h3 id="rate-limiting">Rate limiting</h3>
+<p>Two mechanisms combine, and the slower one always wins:</p>
+<ul>
+<li class="depth-0"><strong>Token bucket</strong> — smooths the average request rate per host, with a small</li>
+</ul>
+<p>burst allowance.</p>
+<ul>
+<li class="depth-0"><strong>Sliding window</strong> — enforces a hard per-minute ceiling even when bursts</li>
+</ul>
+<p>would otherwise be permitted.</p>
+<p>On top of those: the <code>Crawl-delay</code> value in <code>robots.txt</code> (when present), the per-source <code>rate_limit_per_minute</code> declaration, the global <code>REQUESTS_PER_SECOND</code> / <code>REQUESTS_PER_MINUTE</code> settings, and any <code>Retry-After</code> header returned by a 429 or 503 — which is honoured in both its delta-seconds and HTTP-date forms.</p>
+<p>A host that fails five times in a row trips the circuit breaker and is skipped for the rest of the run without any further network I/O.</p>
+<h3 id="honest-identity">Honest identity</h3>
+<p>The crawler names itself and publishes a contact address:</p>
+<pre class="code" data-lang="text"><code>User-Agent: ProductIntelligenceBot/1.12 (+https://github.com/Ahmedbakr78/Web-to-Warehouse-Product-Intelligence-Pipeline)</code></pre>
+<p><code>INGEST_USER_AGENT</code> is configurable, and the default contains a real address rather than a placeholder.</p>
+<hr>
+<h2 id="what-the-audit-trail-looks-like">What the audit trail looks like</h2>
+<p>Every outbound request is one row in <code>ingestion_http_log</code>:</p>
+<div class='table-scroll'><table><thead><tr>
+<th>Column</th>
+<th>What it proves</th>
+</tr></thead><tbody>
+<tr>
+<th><code>source_code</code></th>
+<td>Which adapter made the call</td>
+</tr>
+<tr>
+<th><code>run_id</code></th>
+<td>Which pipeline run it belonged to</td>
+</tr>
+<tr>
+<th><code>url</code></th>
+<td>The exact resource that was fetched</td>
+</tr>
+<tr>
+<th><code>method</code>, <code>status_code</code></th>
+<td>What was asked and what came back</td>
+</tr>
+<tr>
+<th><code>duration_ms</code>, <code>bytes</code></th>
+<td>The cost of the request</td>
+</tr>
+<tr>
+<th><code>robots_rule</code></th>
+<td><strong>Which robots.txt rule allowed it</strong> (<code>robots.txt:allow</code>, <code>robots.txt:disallow</code>, <code>robots-unavailable:fallback-allow (source allow-listed)</code>, <code>cache</code>, <code>revalidated</code>)</td>
+</tr>
+<tr>
+<th><code>from_cache</code></th>
+<td>Whether the network was touched at all</td>
+</tr>
+<tr>
+<th><code>retries</code></th>
+<td>How many times it was retried</td>
+</tr>
+<tr>
+<th><code>user_agent</code></th>
+<td>The identity the upstream saw</td>
+</tr>
+</tbody></table></div>
+<p>This is what makes "we respected robots.txt" a checkable statement rather than a claim:</p>
+<pre class="code" data-lang="sql"><code>-- Every request made, with the decision that permitted it.
+SELECT robots_rule, COUNT(*) AS requests
+FROM ingestion_http_log
+GROUP BY robots_rule
+ORDER BY requests DESC;
+
+--   robots_rule                                        | requests
+-- -----------------------------------------------------+----------
+--   robots.txt:allow                                   |     2152
+--   cache                                              |      471
+--   robots-unavailable:fallback-allow (source allow-listed) |   390
+--   robots.txt:disallow                                |       93
+--   revalidated                                        |       51</code></pre>
+<p>A live run of this repository produced exactly that distribution. The 93 <code>robots.txt:disallow</code> rows are the requests that were <strong>never made</strong> — the transport refused them before a socket was opened.</p>
+<hr>
+<h2 id="proving-it-on-a-live-warehouse">Proving it on a live warehouse</h2>
+<p>The guarantee is only worth what it costs to check. These are the queries that verify a deployed instance.</p>
+<pre class="code" data-lang="sql"><code>-- 1. No synthetic source ever wrote a row.
+SELECT COUNT(*) FROM fact_price_snapshot WHERE source_code = &#x27;local_demo&#x27;;
+-- 0
+
+-- 2. No demo URLs survived.
+SELECT COUNT(*) FROM fact_price_snapshot WHERE product_url LIKE &#x27;%demo.local%&#x27;;
+-- 0
+
+-- 3. No seeded match strategies.
+SELECT COUNT(*) FROM dim_product WHERE match_strategy = &#x27;seed&#x27;;
+-- 0
+
+-- 4. No seed- prefixed pipeline runs.
+SELECT COUNT(*) FROM etl_run WHERE run_key LIKE &#x27;seed-%&#x27;;
+-- 0
+
+-- 5. Every source that contributed is a trusted one.
+SELECT s.data_trust, COUNT(*) AS observations, COUNT(DISTINCT f.source_code) AS sources
+FROM fact_price_snapshot f
+JOIN dim_source s ON s.source_code = f.source_code
+GROUP BY s.data_trust
+ORDER BY 2 DESC;
+
+--   data_trust | observations | sources
+-- -------------+-------------+---------
+--   real       |       33,603 |      17
+--   sandbox    |          177 |       1</code></pre>
+<p>Query 5 is the one to run first: the warehouse should contain only <code>real</code> sources, and at most a small, deliberate <code>sandbox</code> contribution if a sandbox was explicitly requested.</p>
+<hr>
+<h2 id="where-the-trust-level-is-visible-in-the-product">Where the trust level is visible in the product</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Surface</th>
+<th>What it shows</th>
+</tr></thead><tbody>
+<tr>
+<th><strong>Sources screen</strong></th>
+<td>Every adapter with its trust badge, its HTTP status, and its terms link</td>
+</tr>
+<tr>
+<td><strong><code>GET /api/v1/sources</code></strong></td>
+<td><code>data_trust</code> on every source payload</td>
+</tr>
+<tr>
+<td><strong><code>GET /api/v1/sources/{code}/preview</code></strong></td>
+<td>The raw upstream record next to the cleaned result — the honest comparison</td>
+</tr>
+<tr>
+<th><strong>Pipeline runs screen</strong></th>
+<td>The exact source set a run collected, and any source it refused</td>
+</tr>
+<tr>
+<th><strong>Audit screen</strong></th>
+<td>The request-level trail with the robots decision per call</td>
+</tr>
+<tr>
+<th><strong><code>pip-cli sources</code></strong></th>
+<td>The same list from the terminal, with the trust column</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="design-rationale">Design rationale</h2>
+<p><strong>Why declare trust on the source class rather than maintain a blocklist?</strong> A blocklist has to be updated every time a source is added; the failure mode is silent and permanent. A default-deny declaration on the class means a new source is <em>safe</em> until someone explicitly says otherwise, and the test that enforces it runs on every build.</p>
+<p><strong>Why keep <code>sandbox</code> sources at all?</strong> Because the transport layer needs a realistic target. Refusing to fetch a site that explicitly invites fetching would test nothing. The levels separate "may I fetch this?" from "may I call this market data?" — a distinction a single boolean cannot express.</p>
+<p><strong>Why purge rather than prevent?</strong> Both. Prevention stops the next run; purging fixes the warehouse that already contains the rows. A trust level can be lowered after the fact (a source is reclassified, an upstream changes), and the warehouse has to be able to follow.</p>
+<p><strong>Why keep the <code>dim_source</code> row after purging?</strong> Because the audit trail needs the reason. "We removed 11,076 rows" is only credible if the repository still records which source produced them and why it was removed.</p>
+<hr>
+<h2 id="related-documents">Related documents</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Document</th>
+<th>Covers</th>
+</tr></thead><tbody>
+<tr>
+<td><a href="08_system_analysis_design.html">08 — System Analysis &amp; Design</a></td>
+<td>Architecture, requirements, the ingestion boundary</td>
+</tr>
+<tr>
+<td><a href="09_database_design.html">09 — Database Design</a></td>
+<td>The warehouse schema, ERD, indexes</td>
+</tr>
+<tr>
+<td><a href="13_deployment.html">13 — Deployment</a></td>
+<td>Environments, configuration, the compliance switch</td>
+</tr>
+<tr>
+<td><a href="15_testing_strategy.html">15 — Testing Strategy</a></td>
+<td>How the compliance suite is verified</td>
+</tr>
+<tr>
+<td><a href="21_architecture_deep_dive.html">21 — Architecture Deep Dive</a></td>
+<td>Request lifecycle, cache, retries, circuit breaker</td>
+</tr>
+<tr>
+<td><a href="23_glossary_and_faq.html">23 — Glossary &amp; FAQ</a></td>
+<td>What robots.txt, crawl-delay, dedupe and the trust levels mean</td>
+</tr>
+<tr>
+<td><a href="24_demo_runbook.html">24 — Demo Runbook</a></td>
+<td>Running the demo end to end</td>
+</tr>
+</tbody></table></div>
+    </article>
+    <div class="doc-foot">
+      <span><a href="32_briefing_and_demo_scale.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Morning Briefing & Demo Scale</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

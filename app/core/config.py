@@ -149,7 +149,7 @@ class Settings(BaseSettings):
     dedupe_similarity_threshold: float = 0.90
     dedupe_blocking_key_length: int = 4
     dedupe_candidate_limit: int = 25
-    max_products_per_source: int = 400
+    max_products_per_source: int = 2000
 
     # ---------------------------------------------------------------- runtime
     cache_dir: Path = VAR_DIR / "http-cache"

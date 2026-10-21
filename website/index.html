@@ -4,9 +4,9 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Web-to-Warehouse Product Intelligence Pipeline</title>
-<meta name="description" content="A compliance-first product intelligence platform: 34 permitted web sources, deduplication, a 29-table Kimball star warehouse on PostgreSQL and MySQL, 12 data-quality rules, Airflow orchestration, a 216-operation FastAPI and a React 19 analytics dashboard." />
+<meta name="description" content="A compliance-first product intelligence platform: 35 permitted web sources, deduplication, a 29-table Kimball star warehouse on PostgreSQL and MySQL, 12 data-quality rules, Airflow orchestration, a 222-operation FastAPI and a React 19 analytics dashboard." />
 <meta property="og:title" content="Web-to-Warehouse Product Intelligence Pipeline" />
-<meta property="og:description" content="Compliant scraping from 34 sources to a dimensional warehouse, with change detection, data quality and a full analytics stack." />
+<meta property="og:description" content="Compliant scraping from 35 sources to a dimensional warehouse, with change detection, data quality and a full analytics stack." />
 <meta property="og:type" content="website" />
 <meta name="color-scheme" content="light dark" />
 <link rel="icon" type="image/png" href="favicon.png" />
@@ -51,21 +51,28 @@
   html[data-theme="dark"] a { color:var(--brand-300) }
   a:hover { text-decoration:underline }
   code, .mono { font-family:ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace }
+  code, .mono { overflow-wrap:anywhere }
 
   /* nav */
   header.nav { position:sticky; top:0; z-index:50; background:color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter:blur(10px); border-bottom:1px solid var(--border) }
   .nav-in { display:flex; align-items:center; gap:16px; height:60px }
-  .brand { display:flex; align-items:center; gap:10px; font-weight:700; color:var(--text); min-width:0 }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:700; color:var(--text); min-width:0; flex:none }
   .brand svg { width:30px; height:30px; flex:none }
   .brand small { display:block; font-weight:500; font-size:11px; color:var(--subtle); line-height:1 }
-  .nav-links { display:none; gap:4px; margin-left:auto; align-items:center }
-  @media (min-width:900px){ .nav-links{display:flex} }
-  .nav-links a { color:var(--muted); font-size:13.5px; font-weight:500; padding:6px 10px; border-radius:8px }
+  .nav-links { display:none; gap:3px; margin-left:auto; align-items:center; flex-wrap:nowrap; overflow-x:auto }
+  @media (min-width:1180px){ .nav-links{display:flex} }
+  .nav-links a { color:var(--muted); font-size:13px; font-weight:500; padding:6px 7px; border-radius:8px; white-space:nowrap }
   .nav-links a:hover { background:var(--surface-3); color:var(--text); text-decoration:none }
   .spacer { margin-left:auto }
-  @media (min-width:900px){ .spacer{margin-left:12px} }
+  @media (min-width:1180px){ .spacer{margin-left:12px} }
   .icon-btn { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:9px; border:1px solid var(--border); background:var(--surface); color:var(--muted); cursor:pointer }
   .icon-btn:hover { background:var(--surface-3); color:var(--text) }
+
+  /* subnav: the section index, always one tap away */
+  .subnav { border-top:1px solid var(--border); background:var(--surface-2) }
+  .subnav-in { display:flex; gap:6px; overflow-x:auto; max-width:1180px; margin:0 auto; padding:9px 20px }
+  .subnav a { flex:none; font-size:12px; font-weight:600; color:var(--muted); padding:5px 11px; border-radius:999px; border:1px solid var(--border); background:var(--surface); white-space:nowrap }
+  .subnav a:hover { color:var(--text); border-color:var(--border-strong); text-decoration:none }
 
   /* hero */
   .hero { padding:72px 0 56px; text-align:center;
@@ -92,7 +99,7 @@
   .stat b { display:block; font-size:1.85rem; line-height:1.1; font-variant-numeric:tabular-nums; letter-spacing:-.02em }
   .stat span { font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--subtle); font-weight:600 }
 
-  section { padding:52px 0 }
+  section { padding:52px 0; scroll-margin-top:110px }
   .sec-head { max-width:66ch; margin-bottom:26px }
   .sec-head h2 { margin:0; font-size:clamp(1.4rem,2.8vw,1.9rem); letter-spacing:-.02em; line-height:1.2 }
   .sec-head p { margin:8px 0 0; color:var(--muted) }
@@ -118,6 +125,7 @@
   .grid { display:grid; gap:12px; grid-template-columns:1fr }
   @media (min-width:680px){ .grid{grid-template-columns:repeat(2,1fr)} }
   @media (min-width:1024px){ .grid.three{grid-template-columns:repeat(3,1fr)} }
+  .grid > *, .cols > *, .journey > *, .dlist > *, .cmds > * { min-width:0 }
   .card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px; box-shadow:var(--shadow) }
   .card h3 { margin:12px 0 6px; font-size:15px }
   .card p { margin:0; font-size:13px; color:var(--muted); line-height:1.55 }
@@ -134,7 +142,7 @@
   .badge b { color:var(--text); font-weight:700 }
 
   /* table */
-  .table-wrap { overflow:auto; border:1px solid var(--border); border-radius:14px; background:var(--surface); box-shadow:var(--shadow) }
+  .table-wrap { overflow:auto; max-width:100%; border:1px solid var(--border); border-radius:14px; background:var(--surface); box-shadow:var(--shadow) }
   table { width:100%; border-collapse:collapse; min-width:640px }
   th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--subtle); padding:12px 14px; border-bottom:1px solid var(--border); background:var(--surface-3); white-space:nowrap }
   td { padding:12px 14px; font-size:13px; border-bottom:1px solid var(--border); vertical-align:top }
@@ -145,6 +153,75 @@
   pre { margin:0; padding:14px; border-radius:12px; background:var(--surface-3); overflow:auto; font-size:12px; line-height:1.6; color:var(--muted) }
   .cols { display:grid; gap:12px; grid-template-columns:1fr }
   @media (min-width:900px){ .cols{grid-template-columns:1fr 1fr} }
+
+  /* journey: the ten steps of one product */
+  .journey { display:grid; gap:10px; grid-template-columns:1fr }
+  @media (min-width:620px){ .journey{grid-template-columns:repeat(2,1fr)} }
+  @media (min-width:900px){ .journey{grid-template-columns:repeat(3,1fr)} }
+  @media (min-width:1180px){ .journey{grid-template-columns:repeat(5,1fr)} }
+  .jstep { position:relative; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; box-shadow:var(--shadow); overflow:hidden }
+  .jstep::before { content:''; position:absolute; inset:0 0 auto 0; height:3px; background:linear-gradient(90deg, var(--brand-500), var(--info)) }
+  .jstep .n { display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:9px; background:var(--brand-600); color:#fff; font-size:11.5px; font-weight:700 }
+  .jstep h3 { margin:10px 0 5px; font-size:13.5px }
+  .jstep p { margin:0; font-size:12px; color:var(--muted); line-height:1.5 }
+  .ref { display:block; margin-top:9px; font-size:11px; color:var(--subtle); line-height:1.45; overflow-wrap:anywhere }
+
+  /* topic cards */
+  .topic { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:18px; box-shadow:var(--shadow) }
+  .topic h3 { margin:10px 0 6px; font-size:14.5px }
+  .topic p { margin:0; font-size:12.5px; color:var(--muted); line-height:1.55 }
+
+  /* inline SVG diagrams */
+  .svg-scroll { overflow-x:auto; border:1px solid var(--border); border-radius:14px; background:var(--surface-2); padding:14px }
+  .svg-scroll svg { display:block; width:100%; min-width:700px; height:auto }
+  .sv-box { fill:var(--surface-3); stroke:var(--border-strong); stroke-width:1.5 }
+  .sv-box-a { fill:var(--brand-100); stroke:var(--brand-400) }
+  .sv-t { fill:var(--text); font-size:12.5px; font-weight:700 }
+  .sv-s { fill:var(--muted); font-size:10px; font-weight:500 }
+  .sv-l { fill:var(--subtle); font-size:9.5px; font-weight:700; letter-spacing:.12em }
+  .sv-line { stroke:var(--brand-400); stroke-width:1.8; fill:none }
+  .sv-dash { stroke:var(--border-strong); stroke-width:1.4; fill:none; stroke-dasharray:5 4 }
+  .sv-arrow { fill:var(--brand-400); stroke:none }
+  .sv-cap { font-size:11px; color:var(--muted); margin:10px 0 0; line-height:1.5 }
+
+  /* trust levels */
+  .level { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:18px; box-shadow:var(--shadow) }
+  .level .n { float:right; font-size:1.6rem; font-weight:800; line-height:1; font-variant-numeric:tabular-nums; letter-spacing:-.02em }
+  .level .tag { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase }
+  .level h3 { margin:10px 0 6px; font-size:15px }
+  .level p { margin:0; font-size:12.5px; color:var(--muted); line-height:1.55 }
+  .level.real { border-left:4px solid var(--success) }
+  .level.real .tag { color:var(--success) }
+  .level.sandbox { border-left:4px solid var(--warning) }
+  .level.sandbox .tag { color:var(--warning) }
+  .level.synthetic { border-left:4px solid var(--subtle) }
+  .level.synthetic .tag { color:var(--subtle) }
+
+  /* deliverable checklist */
+  .dlist { display:grid; gap:10px; grid-template-columns:1fr }
+  @media (min-width:900px){ .dlist{grid-template-columns:repeat(2,1fr)} }
+  .drow { display:flex; gap:12px; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px 16px; box-shadow:var(--shadow) }
+  .drow .tick { flex:none; width:24px; height:24px; border-radius:8px; background:var(--success-soft); color:var(--success); display:inline-flex; align-items:center; justify-content:center }
+  .drow .tick svg { width:14px; height:14px }
+  .drow .body { min-width:0 }
+  .drow h3 { margin:0 0 4px; font-size:13.5px }
+  .drow p { margin:0; font-size:12px; color:var(--muted); line-height:1.5 }
+
+  /* command list */
+  .cmds { display:grid; gap:8px }
+  .cmd { display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 10px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:11px 14px; box-shadow:var(--shadow) }
+  .cmd code { flex:none; font-size:12px; font-weight:600; color:var(--brand-700); background:var(--brand-100); padding:3px 8px; border-radius:7px; white-space:nowrap }
+  html[data-theme="dark"] .cmd code { color:var(--brand-300) }
+  .cmd span { flex:1 1 240px; font-size:12.5px; color:var(--muted); line-height:1.5; min-width:0 }
+
+  /* version strip */
+  .verline { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px; margin-top:20px; font-size:12px; color:var(--subtle) }
+  .verline .pill { background:var(--surface); border:1px solid var(--border) }
+
+  /* compact data tables */
+  .tight td { padding:9px 13px; font-size:12.5px }
+  .tight th { padding:10px 13px }
+  .nw { white-space:nowrap }
 
   footer { border-top:1px solid var(--border); padding:30px 0 40px; color:var(--subtle); font-size:13px }
   .foot-in { display:flex; gap:14px; flex-wrap:wrap; align-items:center; justify-content:space-between }
@@ -160,11 +237,15 @@
     <nav class="nav-links">
       <a href="#pipeline">Pipeline</a>
       <a href="#sources">Sources</a>
+      <a href="#trust">Data trust</a>
       <a href="#warehouse">Warehouse</a>
       <a href="#quality">Quality</a>
       <a href="#api">API</a>
       <a href="#dashboard">Dashboard</a>
       <a href="#team">Team</a>
+      <a href="#releases">Releases</a>
+      <a href="#about">About</a>
+      <a href="#publish">Topics</a>
       <a href="#faq">FAQ</a>
       <a href="#quickstart">Quick start</a>
     </nav>
@@ -172,6 +253,32 @@
     <button class="icon-btn" id="theme" aria-label="Toggle colour theme" title="Toggle light / dark / system">
       <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="17" height="17"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
     </button>
+  </div>
+  <div class="subnav">
+    <nav class="subnav-in" aria-label="Section index">
+      <a href="#pipeline">Pipeline</a>
+      <a href="#journey">Data journey</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#sources">Sources</a>
+      <a href="#trust">Trust</a>
+      <a href="#schema">Schema</a>
+      <a href="#warehouse">Warehouse</a>
+      <a href="#quality">Quality</a>
+      <a href="#api">API</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#topics">DEPI topics</a>
+      <a href="#operations">Operations</a>
+      <a href="#deliverables">Deliverables</a>
+      <a href="#testing">Testing</a>
+      <a href="#team">Team</a>
+      <a href="#stack">Stack</a>
+      <a href="#quickstart">Quick start</a>
+      <a href="#features">Features</a>
+      <a href="#faq">FAQ</a>
+      <a href="#releases">Releases</a>
+      <a href="#about">About</a>
+      <a href="#publish">Publish</a>
+    </nav>
   </div>
 </header>
 
@@ -196,12 +303,19 @@
     <div class="stats">
       <div class="stat"><b>29</b><span>Warehouse tables</span></div>
       <div class="stat"><b>23</b><span>Analytical views</span></div>
-      <div class="stat"><b>216</b><span>REST operations</span></div>
-      <div class="stat"><b>583</b><span>Automated tests</span></div>
-      <div class="stat"><b>34</b><span>Ingestion sources</span></div>
-      <div class="stat"><b>550</b><span>Catalogued features</span></div>
+      <div class="stat"><b>222</b><span>REST operations</span></div>
+      <div class="stat"><b>596</span></div>
+      <div class="stat"><b>35</b><span>Ingestion sources</span></div>
+      <div class="stat"><b>652</b><span>Catalogued features</span></div>
       <div class="stat"><b>12</b><span>Data-quality rules</span></div>
-      <div class="stat"><b>v1.10</b><span>Current release</span></div>
+      <div class="stat"><b>v1.12</b><span>Current release</span></div>
+    </div>
+
+    <div class="verline">
+      <span class="pill">v1.12.0</span>
+      <span>Last updated 21 October 2026 — the version number lives in one file, <code class="mono">VERSION</code></span>
+      <span class="pill">MIT licensed</span>
+      <span class="pill">DEPI · Data Engineering</span>
     </div>
   </div>
 </div>
@@ -228,22 +342,253 @@
   </div>
 </section>
 
+<section id="journey">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">The data journey</span>
+      <h2>One product, ten steps, from a URL to a chart</h2>
+      <p>Every step below is a real function in <code class="mono">app/etl/pipeline.py</code>,
+         <code class="mono">app/etl/loader.py</code> and <code class="mono">app/ingestion/</code>. The same
+         code path runs from the CLI, from a REST trigger and from the Airflow DAG — there is no
+         separate "demo" path.</p>
+    </div>
+    <div class="journey">
+      <div class="jstep">
+        <span class="n">1</span>
+        <h3>Robots decision</h3>
+        <p>The transport asks the per-host robots cache <em>before</em> a socket is opened. A
+           disallowed path raises <code class="mono">ComplianceError</code> and the attempt is still
+           logged, with the rule that blocked it.</p>
+        <span class="ref">app/ingestion/http_client.py · app/ingestion/robots.py</span>
+      </div>
+      <div class="jstep">
+        <span class="n">2</span>
+        <h3>Raw payload</h3>
+        <p>Every adapter is a generator. It yields <code class="mono">RawProduct</code> objects that
+           carry the upstream values exactly as published, with a SHA-256 content hash and the fetch
+           timestamp.</p>
+        <span class="ref">app/ingestion/base.py · app/ingestion/sources/</span>
+      </div>
+      <div class="jstep">
+        <span class="n">3</span>
+        <h3>Staging</h3>
+        <p>Rows land in <code class="mono">stg_raw_observation</code> with the payload hash, the HTTP
+           status, a validity flag and a reject reason — so a half-failed run stays inspectable.</p>
+        <span class="ref">app/etl/loader.py · stage()</span>
+      </div>
+      <div class="jstep">
+        <span class="n">4</span>
+        <h3>Cleaning</h3>
+        <p>The 29-step cleaner strips promo prefixes and suffixes, normalises the name and brand,
+           resolves 111 category synonyms into a hierarchy path, parses locale-aware prices, applies
+           the FX rate, rescales the rating to 0–5 and maps availability onto five values.</p>
+        <span class="ref">app/ingestion/cleaning.py · transform_product()</span>
+      </div>
+      <div class="jstep">
+        <span class="n">5</span>
+        <h3>Dedupe</h3>
+        <p>A three-stage cascade: fingerprint exact, then normalised-name equality, then a blended
+           fuzzy score over four signals — Jaro-Winkler, token-set, trigram and digit signature —
+           above the 0.90 threshold. A blocking key keeps the candidate set small.</p>
+        <span class="ref">app/ingestion/dedupe.py · DedupeEngine.find_match()</span>
+      </div>
+      <div class="jstep">
+        <span class="n">6</span>
+        <h3>Load</h3>
+        <p><code class="mono">dim_product</code> merges on natural keys;
+           <code class="mono">fact_price_snapshot</code> appends one row per product per source per
+           run, storing the FX rate actually used so history can never be silently restated.</p>
+        <span class="ref">app/etl/loader.py · upsert_product() / insert_snapshot()</span>
+      </div>
+      <div class="jstep">
+        <span class="n">7</span>
+        <h3>Change detection</h3>
+        <p>The previous snapshot is pre-loaded in one ordered query, then the difference is written:
+           absolute and percentage move with a magnitude band to
+           <code class="mono">chg_price_change</code>, and <code class="mono">new</code>,
+           <code class="mono">recurring</code>, <code class="mono">removed</code> and
+           <code class="mono">category_changed</code> events to <code class="mono">chg_product_event</code>.</p>
+        <span class="ref">app/etl/loader.py · preload_latest() / detect_removed()</span>
+      </div>
+      <div class="jstep">
+        <span class="n">8</span>
+        <h3>DQ gate</h3>
+        <p>Twelve rules across six dimensions evaluate the run. Each verdict — observed value,
+           expectation, pass rate and a readable message — is stored against
+           <code class="mono">(run_id, rule_code)</code> and the run gets a severity-weighted 0–100
+           score. Only <code class="mono">critical</code> failures can block it.</p>
+        <span class="ref">app/etl/dq.py · dq_rule_result</span>
+      </div>
+      <div class="jstep">
+        <span class="n">9</span>
+        <h3>API</h3>
+        <p>The 23 analytical views are exposed over 24 routers with a consistent error envelope,
+           pagination, facets, GZip compression, request-timing headers, rate limiting, JWT rotation,
+           API keys and three-role RBAC.</p>
+        <span class="ref">app/api/ · GET /api/v1/meta</span>
+      </div>
+      <div class="jstep">
+        <span class="n">10</span>
+        <h3>Dashboard</h3>
+        <p>The React 19 single-page app reads those endpoints with TanStack Query and renders 23
+           screens — 21 in the sidebar, plus product detail and sign-in: Dashboard, Briefing,
+           Analytics, Changes, Products, Categories, Catalog match, Runs, Data quality, Sources,
+           Forecast, Reports, Query lab, Builder, Features, Alerts, Webhooks, Account, Settings,
+           Users and Audit.</p>
+        <span class="ref">frontend/src/ · frontend/src/lib/nav.ts</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="architecture">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Architecture</span>
+      <h2>Two paths through one system</h2>
+      <p>The read path and the write path meet in a single place: the SQLAlchemy 2.0 model set that
+         targets PostgreSQL 16 and MySQL 8.4 with identical DDL. Both diagrams are hand-written SVG
+         — no image, no script, no external dependency.</p>
+    </div>
+
+    <div class="card">
+      <h3>Request path — a browser asking a question</h3>
+      <div class="svg-scroll">
+        <svg viewBox="0 0 900 200" role="img" aria-label="Request path: the browser calls the Nginx container, which proxies /api to FastAPI; FastAPI reads through SQLAlchemy into PostgreSQL 16, with MySQL 8.4 kept in dialect parity.">
+          <text class="sv-l" x="16" y="22">READ PATH</text>
+
+          <rect class="sv-box-a" x="16" y="66" width="140" height="62" rx="12"/>
+          <text class="sv-t" x="86" y="93" text-anchor="middle">Browser</text>
+          <text class="sv-s" x="86" y="111" text-anchor="middle">React 19 SPA</text>
+
+          <rect class="sv-box" x="196" y="66" width="140" height="62" rx="12"/>
+          <text class="sv-t" x="266" y="93" text-anchor="middle">Nginx</text>
+          <text class="sv-s" x="266" y="111" text-anchor="middle">static + /api proxy</text>
+
+          <rect class="sv-box" x="376" y="66" width="150" height="62" rx="12"/>
+          <text class="sv-t" x="451" y="93" text-anchor="middle">FastAPI</text>
+          <text class="sv-s" x="451" y="111" text-anchor="middle">222 operations · JWT · RBAC</text>
+
+          <rect class="sv-box" x="566" y="66" width="150" height="62" rx="12"/>
+          <text class="sv-t" x="641" y="93" text-anchor="middle">SQLAlchemy 2.0</text>
+          <text class="sv-s" x="641" y="111" text-anchor="middle">29 mapped tables</text>
+
+          <rect class="sv-box-a" x="776" y="34" width="110" height="56" rx="12"/>
+          <text class="sv-t" x="831" y="59" text-anchor="middle">PostgreSQL 16</text>
+          <text class="sv-s" x="831" y="77" text-anchor="middle">primary</text>
+
+          <rect class="sv-box" x="776" y="106" width="110" height="56" rx="12"/>
+          <text class="sv-t" x="831" y="131" text-anchor="middle">MySQL 8.4</text>
+          <text class="sv-s" x="831" y="149" text-anchor="middle">parity target</text>
+
+          <path class="sv-line" d="M156 97 H188"/>
+          <path class="sv-arrow" d="M196 97 L186 92 L186 102 Z"/>
+          <path class="sv-line" d="M336 97 H368"/>
+          <path class="sv-arrow" d="M376 97 L366 92 L366 102 Z"/>
+          <path class="sv-line" d="M526 97 H558"/>
+          <path class="sv-arrow" d="M566 97 L556 92 L556 102 Z"/>
+          <path class="sv-line" d="M716 97 H744"/>
+          <path class="sv-line" d="M752 62 V134"/>
+          <path class="sv-line" d="M752 62 H768"/>
+          <path class="sv-line" d="M752 134 H768"/>
+          <path class="sv-arrow" d="M776 62 L766 57 L766 67 Z"/>
+          <path class="sv-arrow" d="M776 134 L766 129 L766 139 Z"/>
+        </svg>
+      </div>
+      <p class="sv-cap">Nginx serves the built SPA and proxies <code class="mono">/api/</code> to the
+         FastAPI container, so the browser only ever talks to one origin. FastAPI resolves every
+         query through the SQLAlchemy 2.0 session and the ORM model set; the same statements are
+         emitted for PostgreSQL and for MySQL.</p>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <h3>Pipeline path — a scheduler filling the warehouse</h3>
+      <div class="svg-scroll">
+        <svg viewBox="0 0 900 250" role="img" aria-label="Pipeline path: the Airflow DAG triggers the nine-stage ETL, which writes 29 tables and 23 views; the REST API and the React dashboard read them; below, 34 registered adapters feed the compliant transport, which writes the HTTP audit log.">
+          <text class="sv-l" x="16" y="18">WRITE PATH</text>
+
+          <rect class="sv-box-a" x="16" y="30" width="150" height="84" rx="12"/>
+          <text class="sv-t" x="91" y="58" text-anchor="middle">Airflow 2.10</text>
+          <text class="sv-s" x="91" y="76" text-anchor="middle">DAG</text>
+          <text class="sv-s" x="91" y="94" text-anchor="middle">33 task callables</text>
+
+          <rect class="sv-box" x="196" y="30" width="216" height="84" rx="12"/>
+          <text class="sv-t" x="304" y="54" text-anchor="middle">9-stage ETL pipeline</text>
+          <text class="sv-s" x="304" y="72" text-anchor="middle">extract · stage · transform</text>
+          <text class="sv-s" x="304" y="88" text-anchor="middle">resolve · load · detect</text>
+          <text class="sv-s" x="304" y="104" text-anchor="middle">aggregate · reconcile · quality</text>
+
+          <rect class="sv-box-a" x="442" y="30" width="150" height="84" rx="12"/>
+          <text class="sv-t" x="517" y="58" text-anchor="middle">Warehouse</text>
+          <text class="sv-s" x="517" y="76" text-anchor="middle">29 tables · 23 views</text>
+          <text class="sv-s" x="517" y="94" text-anchor="middle">PostgreSQL 16 + MySQL 8.4</text>
+
+          <rect class="sv-box" x="622" y="30" width="130" height="84" rx="12"/>
+          <text class="sv-t" x="687" y="58" text-anchor="middle">REST API</text>
+          <text class="sv-s" x="687" y="76" text-anchor="middle">24 routers</text>
+          <text class="sv-s" x="687" y="94" text-anchor="middle">OpenAPI 3.1</text>
+
+          <rect class="sv-box" x="782" y="30" width="102" height="84" rx="12"/>
+          <text class="sv-t" x="833" y="58" text-anchor="middle">React 19</text>
+          <text class="sv-s" x="833" y="76" text-anchor="middle">23 screens</text>
+          <text class="sv-s" x="833" y="94" text-anchor="middle">TanStack Query</text>
+
+          <path class="sv-line" d="M166 72 H188"/>
+          <path class="sv-arrow" d="M196 72 L186 67 L186 77 Z"/>
+          <path class="sv-line" d="M412 72 H434"/>
+          <path class="sv-arrow" d="M442 72 L432 67 L432 77 Z"/>
+          <path class="sv-line" d="M592 72 H614"/>
+          <path class="sv-arrow" d="M622 72 L612 67 L612 77 Z"/>
+          <path class="sv-line" d="M752 72 H774"/>
+          <path class="sv-arrow" d="M782 72 L772 67 L772 77 Z"/>
+
+          <rect class="sv-box" x="16" y="168" width="150" height="66" rx="12"/>
+          <text class="sv-t" x="91" y="194" text-anchor="middle">34 adapters</text>
+          <text class="sv-s" x="91" y="212" text-anchor="middle">20 auto-selected</text>
+
+          <rect class="sv-box" x="196" y="168" width="196" height="66" rx="12"/>
+          <text class="sv-t" x="294" y="194" text-anchor="middle">Compliant transport</text>
+          <text class="sv-s" x="294" y="212" text-anchor="middle">robots.txt · rate limit · retry · cache</text>
+
+          <rect class="sv-box" x="422" y="168" width="170" height="66" rx="12"/>
+          <text class="sv-t" x="507" y="194" text-anchor="middle">ingestion_http_log</text>
+          <text class="sv-s" x="507" y="212" text-anchor="middle">one row per request</text>
+
+          <path class="sv-line" d="M166 201 H188"/>
+          <path class="sv-arrow" d="M196 201 L186 196 L186 206 Z"/>
+          <path class="sv-line" d="M392 201 H414"/>
+          <path class="sv-arrow" d="M422 201 L412 196 L412 206 Z"/>
+          <path class="sv-dash" d="M294 168 V122"/>
+          <path class="sv-arrow" d="M294 114 L289 124 L299 124 Z"/>
+          <path class="sv-dash" d="M507 168 V122"/>
+          <path class="sv-arrow" d="M507 114 L502 124 L512 124 Z"/>
+        </svg>
+      </div>
+      <p class="sv-cap">The DAG in <code class="mono">dags/product_intelligence_pipeline.py</code>
+         schedules the run, guards the source set, fires the same nine stages the CLI runs, and
+         branches to skip notification when nothing changed. Every outbound call is written to
+         <code class="mono">ingestion_http_log</code> — including the ones robots.txt refused.</p>
+    </div>
+  </div>
+</section>
+
 <section id="sources">
   <div class="wrap">
     <div class="sec-head">
       <span class="kicker">Ingestion</span>
-      <h2>34 sources, one compliance gate</h2>
+      <h2>35 source modules, 34 registered adapters, one compliance gate</h2>
       <p>Every adapter — JSON APIs, two HTML scrapers and one offline fallback — passes the same
-         robots.txt check, rate limiter, circuit breaker and audit log. Verified live: 27 return
-         records, 5 are honestly empty, 1 refused by its own terms, 1 synthetic fallback.</p>
+         robots.txt check, rate limiter, circuit breaker and audit log. Each one also declares how
+         much its records can be trusted as market data, so a bare pipeline run can never mix a mock
+         storefront's invented catalogue into the warehouse.</p>
     </div>
     <div class="grid three">
       <div class="card">
         <h3>Retail &amp; grocery</h3>
         <ul class="ticks">
-          <li>DummyJSON products + recipes, Platzi, Makeup, CheapShark, Steam</li>
-          <li>Predic8, Open Food Facts Prices, FreeAPI, RESTful Objects</li>
+          <li>Open Food Facts Prices, CheapShark, Steam</li>
           <li>ScrapeMe.live sandbox (WooCommerce practice shop)</li>
+          <li>DummyJSON, Platzi, Makeup, Predic8, FreeAPI, RESTful Objects</li>
         </ul>
       </div>
       <div class="card">
@@ -259,7 +604,7 @@
         <ul class="ticks">
           <li>TVMaze shows, iTunes apps &amp; ebooks, MMOBomb</li>
           <li>Pokemon TCG, Scryfall, YGOPRODeck, Switch catalogue, coffee menus</li>
-          <li>CocktailDB, MealDB, Kraken tickers</li>
+          <li>CocktailDB, MealDB, Kraken &amp; Bitstamp tickers</li>
         </ul>
       </div>
     </div>
@@ -270,6 +615,283 @@
       degrades a run to <code class="mono">partial</code>, never to failure. Full table in the README
       source catalog.</p>
     </div>
+  </div>
+</section>
+
+<section id="trust">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Provenance</span>
+      <h2>Every row is provably observed, not generated</h2>
+      <p>A warehouse that mixes a mock API's invented catalogue with Open Library's real records
+         produces a report that looks authoritative and is entirely fictional. Three independent
+         mechanisms make that impossible here — and all three are checkable from SQL.</p>
+    </div>
+    <div class="grid three">
+      <div class="card">
+        <h3>1 · Declaration</h3>
+        <p>Every source class declares a trust level, and the default is the strict one:</p>
+        <ul class="ticks">
+          <li><code class="mono">real</code> — observed market records</li>
+          <li><code class="mono">sandbox</code> — a published test corpus</li>
+          <li><code class="mono">synthetic</code> — generated in-process</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>2 · Selection</h3>
+        <p>A run that is not told explicitly what to collect only ever selects
+           <code class="mono">real</code> sources. Anything below must be named by code
+           (<code class="mono">--sources books_to_scrape</code>), and the scheduled Airflow DAG
+           inherits the same rule.</p>
+        <ul class="ticks">
+          <li>Enforced by a test, not by convention</li>
+          <li>New sources are safe until declared otherwise</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>3 · Proof</h3>
+        <p>Every request is logged with the robots.txt decision that permitted it, and a purge sweep
+           removes and reports anything below <code class="mono">real</code>.</p>
+        <ul class="ticks">
+          <li>2,152 allowed · 93 refused before the socket opened</li>
+          <li><code class="mono">purge-untrusted --dry-run</code> to audit</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <p style="margin:0 0 8px"><b>Verify any deployed instance in four queries:</b></p>
+      <pre class="mono" style="margin:0;white-space:pre-wrap;font-size:12px">SELECT COUNT(*) FROM fact_price_snapshot WHERE source_code = 'local_demo';      -- 0
+SELECT COUNT(*) FROM fact_price_snapshot WHERE product_url LIKE '%demo.local%'; -- 0
+SELECT COUNT(*) FROM dim_product WHERE match_strategy = 'seed';              -- 0
+SELECT COUNT(*) FROM etl_run WHERE run_key LIKE 'seed-%';                   -- 0</pre>
+    </div>
+
+    <h3 style="margin:30px 0 12px;font-size:15px">The three trust levels, as the registry reports them</h3>
+    <div class="grid three">
+      <div class="level real">
+        <span class="n">21</span>
+        <span class="tag">real</span>
+        <h3>Observed market records</h3>
+        <p>Genuine records from a live upstream that permits automated access. These are the only
+           sources a bare <code class="mono">run-pipeline</code> — and therefore the scheduled Airflow
+           DAG — is allowed to select. Twenty of the twenty-one are also terms-allow-listed, so
+           twenty are auto-selectable today; <code class="mono">stooq_quotes</code> is real but its
+           terms forbid automated use, so it never is. With the two sandbox and the eleven
+           synthetic adapters, the registry holds 34 of the 35 source modules — the 35th is the
+           generic-JSON adapter behind GUI-added sources.</p>
+        <span class="ref">Open Library · Gutendex · Google Books · Steam · iTunes · TVMaze ·
+           CheapShark · Open Food Facts · Scryfall · Pok&eacute;mon TCG · YGOPRODeck · MMOBomb ·
+           MealDB · CocktailDB · Kraken · Bitstamp · CoinCap · CoinGecko · Archive.org texts</span>
+      </div>
+      <div class="level sandbox">
+        <span class="n">2</span>
+        <span class="tag">sandbox</span>
+        <h3>Published test corpora</h3>
+        <p>Real, reachable services that exist to be scraped: a fictional bookshop and a WooCommerce
+           practice shop. Their robots.txt is permissive, which makes them perfect for proving the
+           transport layer works — but their inventory is a test corpus, not market data. They stay
+           usable in exactly one way: by naming them on the command line.</p>
+        <span class="ref">books_to_scrape (books.toscrape.com) · scrapeme_products (scrapeme.live)</span>
+      </div>
+      <div class="level synthetic">
+        <span class="n">11</span>
+        <span class="tag">synthetic</span>
+        <h3>Generated in-process</h3>
+        <p>Mock APIs and a deterministic offline catalogue. They are excluded from automatic
+           selection by construction, and the guard is enforced by a test rather than by
+           convention. Use them to exercise the plumbing — never to publish a number as market
+           truth.</p>
+        <span class="ref">DummyJSON products &amp; recipes · FakeStore · FreeAPI · Makeup · Platzi ·
+           Predic8 · RESTful Objects · SampleAPIs coffee &amp; Switch · local_demo</span>
+      </div>
+    </div>
+
+    <div class="cols" style="margin-top:12px">
+      <div class="card">
+        <h3>robots.txt is enforced below the source layer</h3>
+        <p>The gate lives in the transport, not in the adapter, so a new source inherits it for
+           free. Every decision — not just the outcome — is written to
+           <code class="mono">ingestion_http_log.robots_rule</code>, and the RFC 9309 fallbacks are
+           implemented exactly:</p>
+        <div class="table-wrap" style="margin-top:12px"><table class="tight">
+          <tr><th>robots.txt state</th><th>Behaviour</th></tr>
+          <tr><td><code class="mono">4xx</code></td><td>Allow all — RFC 9309 “unavailable” fallback</td></tr>
+          <tr><td><code class="mono">401</code> / <code class="mono">403</code></td><td>Disallow the whole host</td></tr>
+          <tr><td><code class="mono">5xx</code> / network error</td><td>Allow, and log the failure</td></tr>
+          <tr><td>Path disallowed</td><td><code class="mono">ComplianceError</code> — the request is never made</td></tr>
+        </table></div>
+      </div>
+      <div class="card">
+        <h3>Rate limiting, in two layers</h3>
+        <ul class="ticks">
+          <li><b>Token bucket</b> — smooths the average request rate per host, with a small burst
+              allowance.</li>
+          <li><b>Sliding window</b> — a hard per-minute ceiling even when bursts are permitted; the
+              slower of the two always wins.</li>
+          <li>Plus the <code class="mono">Crawl-delay</code> from robots.txt, the per-source
+              <code class="mono">rate_limit_per_minute</code> declaration, the global
+              <code class="mono">REQUESTS_PER_SECOND</code> (1.0) and
+              <code class="mono">REQUESTS_PER_MINUTE</code> (30) settings, and any
+              <code class="mono">Retry-After</code> header — honoured in both its delta-seconds and
+              HTTP-date forms.</li>
+          <li>Five consecutive failures against a host trip the <b>circuit breaker</b>: zero further
+              network I/O for the rest of the run, and the skip is logged.</li>
+          <li>The crawler identifies itself honestly —
+              <code class="mono">ProductIntelligenceBot/1.12</code> with a real contact address.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <h3>The audit trail: one row per outbound request</h3>
+      <div class="cols">
+        <div>
+          <p>This is what turns “we respected robots.txt” into a checkable statement rather than a
+             claim. Each column in <code class="mono">ingestion_http_log</code> proves one thing:</p>
+          <ul class="ticks">
+            <li><code class="mono">source_code</code>, <code class="mono">run_id</code>,
+                <code class="mono">url</code> — which adapter asked for what, in which run</li>
+            <li><code class="mono">method</code>, <code class="mono">status_code</code>,
+                <code class="mono">duration_ms</code>, <code class="mono">bytes</code> — what it cost</li>
+            <li><code class="mono">robots_rule</code> — <b>which rule allowed it</b>:
+                <code class="mono">robots.txt:allow</code>,
+                <code class="mono">robots.txt:disallow</code>,
+                <code class="mono">robots-unavailable:fallback-allow</code>,
+                <code class="mono">cache</code>, <code class="mono">revalidated</code></li>
+            <li><code class="mono">from_cache</code>, <code class="mono">retries</code>,
+                <code class="mono">user_agent</code> — whether the network was touched at all</li>
+          </ul>
+        </div>
+        <div>
+          <p>The live run recorded in
+             <code class="mono">docs/33_data_trust_and_compliance.md</code> produced exactly this
+             distribution:</p>
+          <div class="table-wrap"><table class="tight">
+            <tr><th>robots_rule</th><th>Requests</th></tr>
+            <tr><td><code class="mono">robots.txt:allow</code></td><td>2,152</td></tr>
+            <tr><td><code class="mono">cache</code></td><td>471</td></tr>
+            <tr><td><code class="mono">robots-unavailable:fallback-allow</code></td><td>390</td></tr>
+            <tr><td><code class="mono">robots.txt:disallow</code></td><td>93</td></tr>
+            <tr><td><code class="mono">revalidated</code></td><td>51</td></tr>
+          </table></div>
+          <p style="margin:10px 0 0;font-size:12px;color:var(--muted)">The 93 disallow rows are
+             requests that were <b>never made</b>: the transport refused them before a socket was
+             opened, and the source degraded to a warning, never to a failed run.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <h3>The purge sweep — classification is a promise, the purge is the receipt</h3>
+      <p>When a source's trust level is lowered, the rows it already wrote are still in the
+         warehouse. <code class="mono">purge-untrusted</code> removes them and reports exactly what
+         it removed, in foreign-key order: source-scoped rows (staging, facts, changes) first, then
+         the products that no longer have any observation, then the runs that no longer reference
+         anything. The <code class="mono">dim_source</code> row is <b>kept</b> — it is the record of
+         why the data was removed — but the source is disabled, so no future automatic run picks it
+         up.</p>
+      <pre style="margin-top:12px">python -m app.cli.main purge-untrusted --dry-run   # report only
+python -m app.cli.main purge-untrusted           # delete and report
+
+# A recorded sweep, as printed by the command:
+#   Untrusted sources - removed
+#     dummyjson_products   synthetic
+#     fakestore_products   synthetic
+#     platzi_products      synthetic
+#
+#   Rows removed
+#     stg_raw_observation      48,404
+#     ingestion_http_log       10,843
+#     fact_price_snapshot      11,076
+#     chg_price_change              0
+#     chg_product_event          2,764
+#     dim_product              1,214
+#     etl_run                     31</pre>
+    </div>
+  </div>
+</section>
+
+<section id="schema">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Warehouse schema</span>
+      <h2>29 tables, 23 views, one model — on two engines</h2>
+      <p>The model set lives in <code class="mono">app/models/</code>; the analytical layer is
+         <code class="mono">db/views.sql</code>. Every fact declares its grain, because a table
+         with an undeclared grain cannot be aggregated safely. The same DDL is emitted for
+         PostgreSQL 16 and MySQL 8.4 — <code class="mono">make verify-dialects</code> proves there is
+         no structural drift.</p>
+    </div>
+
+    <h3 style="margin:0 0 10px;font-size:14px">Dimensions, facts and change feeds</h3>
+    <div class="table-wrap"><table class="tight">
+      <tr><th>Table</th><th>Grain</th><th>Purpose</th></tr>
+      <tr><td><span class="mono">dim_source</span></td><td>one row per source</td><td>The ingestion registry: kind, robots and terms URLs, licence note, run counters, rolling success rate and average duration</td></tr>
+      <tr><td><span class="mono">dim_category</span></td><td>one row per category node</td><td>Self-referencing taxonomy with a hierarchy path, a level counter and live product counts</td></tr>
+      <tr><td><span class="mono">dim_date</span></td><td>one row per calendar day</td><td><code class="mono">YYYYMMDD</code> surrogate key, pre-populated 400 days back and 2 forward, idempotently</td></tr>
+      <tr><td><span class="mono">dim_currency</span></td><td>one row per ISO currency</td><td>Code, name, symbol, the USD rate applied, the rate source and its as-of date</td></tr>
+      <tr><td><span class="mono">dim_product</span></td><td>one row per canonical product</td><td>The deduplicated identity: fingerprint, match strategy and score, first and last seen, current price and rating</td></tr>
+      <tr><td><span class="mono">fact_price_snapshot</span></td><td>one row per product &times; source &times; run</td><td>Every price observation — native price, the FX rate used, the derived USD price and the change against the previous snapshot</td></tr>
+      <tr><td><span class="mono">fact_catalog_snapshot</span></td><td>one row per catalogue SKU &times; run</td><td>Our list price against the matched market price, with the absolute and percentage gap and the match evidence</td></tr>
+      <tr><td><span class="mono">agg_category_daily</span></td><td>one row per date &times; category &times; source</td><td>The pre-aggregated category/day rollup the dashboard reads at interactive speed</td></tr>
+      <tr><td><span class="mono">chg_price_change</span></td><td>one row per product &times; run with a change</td><td>The price-change ledger: absolute and percentage move, direction, magnitude band and significance</td></tr>
+      <tr><td><span class="mono">chg_product_event</span></td><td>one row per product &times; run with an event</td><td>The lifecycle ledger: <span class="mono">new</span>, <span class="mono">recurring</span>, <span class="mono">removed</span> and <span class="mono">category_changed</span></td></tr>
+    </table></div>
+
+    <h3 style="margin:26px 0 10px;font-size:14px">Operational, catalogue and application tables</h3>
+    <div class="table-wrap"><table class="tight">
+      <tr><th>Table</th><th>Grain</th><th>Purpose</th></tr>
+      <tr><td><span class="mono">etl_run</span></td><td>one row per run</td><td>The run record: status, duration, per-stage timings, counters, warnings and the DQ score</td></tr>
+      <tr><td><span class="mono">dq_rule_result</span></td><td>one row per run &times; rule</td><td>Every quality verdict: observed value, expectation, pass rate, message and evidence</td></tr>
+      <tr><td><span class="mono">ingestion_http_log</span></td><td>one row per outbound request</td><td>The crawler evidence: status, latency, bytes, the robots rule that allowed it, cache flag and retries</td></tr>
+      <tr><td><span class="mono">stg_raw_observation</span></td><td>one row per raw record &times; run</td><td>The landing zone, including rejected rows and their reject reason</td></tr>
+      <tr><td><span class="mono">sync_state</span></td><td>one row per source</td><td>The incremental checkpoint: last run, last success, failure streak, cursor and status</td></tr>
+      <tr><td><span class="mono">catalog_product</span></td><td>one row per SKU</td><td>The retailer's own catalogue: cost, list price, supplier, stock and status</td></tr>
+      <tr><td><span class="mono">app_user</span></td><td>one row per account</td><td>Dashboard accounts with role, preferences, theme, accent, density and the password hash</td></tr>
+      <tr><td><span class="mono">app_api_key</span></td><td>one row per key</td><td>Scoped machine credentials: prefix, SHA-256 hash, expiry, usage count and revocation</td></tr>
+      <tr><td><span class="mono">app_saved_view</span></td><td>one row per saved view</td><td>Per-user or shared filter presets with favourites and usage counters</td></tr>
+      <tr><td><span class="mono">app_query_history</span></td><td>one row per saved query</td><td>The Query Lab and Builder history, with the generated SQL</td></tr>
+      <tr><td><span class="mono">app_alert_rule</span></td><td>one row per rule</td><td>Threshold rules over five metrics, evaluated into notifications</td></tr>
+      <tr><td><span class="mono">app_notification</span></td><td>one row per notification</td><td>The in-app message feed with its read state</td></tr>
+      <tr><td><span class="mono">app_audit_log</span></td><td>one row per mutating action</td><td>Login, logout, failed login, password change, user management, pipeline trigger and settings writes</td></tr>
+      <tr><td><span class="mono">app_setting</span></td><td>one row per setting</td><td>Global key/value application settings, grouped and admin-writable</td></tr>
+      <tr><td><span class="mono">app_webhook</span></td><td>one row per subscription</td><td>Outbound event subscriptions with a signing secret and a target URL</td></tr>
+      <tr><td><span class="mono">app_webhook_delivery</span></td><td>one row per delivery attempt</td><td>The signed delivery log: status, response code and attempt count</td></tr>
+      <tr><td><span class="mono">app_job</span></td><td>one row per background job</td><td>Queued work: kind, state, progress and the result payload</td></tr>
+      <tr><td><span class="mono">app_job_event</span></td><td>one row per job transition</td><td>The job history: queued, started, finished or failed</td></tr>
+      <tr><td><span class="mono">app_session</span></td><td>one row per session</td><td>Server-side sessions with device, last-seen and revocation</td></tr>
+    </table></div>
+
+    <h3 style="margin:26px 0 10px;font-size:14px">The 23 analytical views — the only read surface</h3>
+    <p style="margin:0 0 10px;color:var(--muted);font-size:13px">The API and the Query Lab read
+       the warehouse through these views and nothing else, so query logic lives in one place
+       instead of being scattered across endpoints.</p>
+    <div class="table-wrap"><table class="tight">
+      <tr><th>View</th><th>Answers</th></tr>
+      <tr><td><span class="mono">vw_product_current</span></td><td>What is every product's latest state?</td></tr>
+      <tr><td><span class="mono">vw_product_index</span></td><td>The normalised, deduplicated search index with category and brand</td></tr>
+      <tr><td><span class="mono">vw_price_history</span></td><td>The full price series per product, ready to chart</td></tr>
+      <tr><td><span class="mono">vw_price_movements</span></td><td>Snapshots that changed price, over a rolling window</td></tr>
+      <tr><td><span class="mono">vw_price_changes</span></td><td>Every detected change, joined to product and source context</td></tr>
+      <tr><td><span class="mono">vw_product_events</span></td><td>The lifecycle feed with product context</td></tr>
+      <tr><td><span class="mono">vw_new_products</span></td><td>First sightings inside a window</td></tr>
+      <tr><td><span class="mono">vw_removed_products</span></td><td>Products that stopped appearing at a source</td></tr>
+      <tr><td><span class="mono">vw_category_changes</span></td><td>Taxonomy drift between runs</td></tr>
+      <tr><td><span class="mono">vw_category_price_index</span></td><td>Price level per category, with a portable standard deviation</td></tr>
+      <tr><td><span class="mono">vw_category_tree</span></td><td>The hierarchy with live counts, for the taxonomy explorer</td></tr>
+      <tr><td><span class="mono">vw_brand_summary</span></td><td>Brand-level counts, price range, rating and share of category</td></tr>
+      <tr><td><span class="mono">vw_source_coverage</span></td><td>Per-source volume, freshness and reliability</td></tr>
+      <tr><td><span class="mono">vw_quality_latest</span></td><td>The most recent quality verdict per rule</td></tr>
+      <tr><td><span class="mono">vw_pipeline_health</span></td><td>Recent runs with duration and status — one row per dashboard card</td></tr>
+      <tr><td><span class="mono">vw_catalog_reconciliation</span></td><td>Catalogue SKUs against their matched market prices</td></tr>
+      <tr><td><span class="mono">vw_top_movers</span></td><td>The largest price movements in a window</td></tr>
+      <tr><td><span class="mono">vw_availability_summary</span></td><td>The stock-state distribution per category</td></tr>
+      <tr><td><span class="mono">vw_daily_kpis</span></td><td>The headline metrics per day</td></tr>
+      <tr><td><span class="mono">vw_http_audit</span></td><td>The crawler evidence with the robots decision per request</td></tr>
+      <tr><td><span class="mono">vw_price_volatility</span></td><td>Price range and a portable standard deviation per product and source</td></tr>
+      <tr><td><span class="mono">vw_discount_leaders</span></td><td>Current products with the deepest list-price discounts</td></tr>
+      <tr><td><span class="mono">vw_rating_leaders</span></td><td>Best-rated products, with a vote-damped score</td></tr>
+    </table></div>
   </div>
 </section>
 
@@ -341,7 +963,7 @@
   <div class="wrap">
     <div class="sec-head">
       <span class="kicker">API</span>
-      <h2>216 documented operations, two query surfaces</h2>
+      <h2>222 documented operations, two query surfaces</h2>
       <p>FastAPI with OpenAPI 3.1, consistent error envelopes, pagination, facets, GZip, request timing
          headers, rate limiting, JWT rotation, API keys and three-role RBAC.</p>
     </div>
@@ -361,7 +983,7 @@ curl -X POST http://localhost:8000/api/v1/queries/execute \
       </div>
       <div class="card">
         <h3>Aggregate builder</h3>
-        <p>Compose group-by, six aggregate functions and fifteen operators over 11 entities. Identifiers
+        <p>Compose group-by, six aggregate functions and fifteen operators over 13 entities. Identifiers
            come from a server-side whitelist and values are bind parameters, so injection is impossible.</p>
         <pre style="margin-top:12px">curl -X POST http://localhost:8000/api/v1/builder/query \
   -H "Authorization: Bearer $TOKEN" \
@@ -379,7 +1001,7 @@ curl -X POST http://localhost:8000/api/v1/queries/execute \
   <div class="wrap">
     <div class="sec-head">
       <span class="kicker">Dashboard</span>
-      <h2>21 screens, light and dark, from 320&nbsp;px up</h2>
+      <h2>23 screens, light and dark, from 320&nbsp;px up</h2>
       <p>React 19, TypeScript, Vite, Tailwind, TanStack Query and Recharts. A command palette
          (<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>K</kbd>), a collapsible sidebar that becomes an off-canvas
          drawer, six accent colours, three densities, reduced-motion support and a PWA install prompt.</p>
@@ -409,6 +1031,416 @@ curl -X POST http://localhost:8000/api/v1/queries/execute \
   </div>
 </section>
 
+<section id="topics">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Curriculum mapping</span>
+      <h2>DEPI Data Engineering topics, and where each one is satisfied</h2>
+      <p>Twelve track topics, each mapped to the code that satisfies it. Nothing here is a claim
+         about intent — every row names a file you can open.</p>
+    </div>
+    <div class="grid three">
+      <div class="topic">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="9"/></svg></span>
+        <h3>Data ingestion &amp; APIs</h3>
+        <p>One <code class="mono">ProductSource</code> contract with a single abstract
+           <code class="mono">fetch(limit)</code> generator, a <code class="mono">@register_source</code>
+           registry and 34 registered adapters: JSON APIs, an Open Food Facts price feed, a Google
+           Books key, crypto tickers and a card-catalogue API. The registry is served as data at
+           <code class="mono">GET /api/v1/sources</code>.</p>
+        <span class="ref">app/ingestion/base.py · app/ingestion/sources/ · app/api/routers/sources.py</span>
+      </div>
+      <div class="topic">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 20V9"/></svg></span>
+        <h3>Web scraping</h3>
+        <p>A BeautifulSoup + lxml listing-then-detail crawler that reads breadcrumbs, prices, stock
+           counts, star ratings, UPCs and images, a Scrapy spider engine running the same
+           compliance contract, and a WooCommerce sandbox scraper with sale pairs and stock flags.
+           Both engines are proved on the same published shop.</p>
+        <span class="ref">app/ingestion/sources/books_to_scrape.py · app/ingestion/scrapy_spider.py · app/ingestion/sources/scrapeme.py</span>
+      </div>
+      <div class="topic">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5"/><path d="M3 12c0 1.7 4 3 9 3s9-1.3 9-3"/></svg></span>
+        <h3>Data modelling &amp; a dimensional warehouse</h3>
+        <p>A Kimball star: five conformed dimensions, three facts, two change feeds, a landing
+           zone and an operational core — 29 tables in 9 logical groups, defined once in SQLAlchemy
+           2.0 and emitted with identical DDL for PostgreSQL 16 and MySQL 8.4. Every fact declares
+           its grain; every dimension is in third normal form.</p>
+        <span class="ref">app/models/ · app/etl/bootstrap.py · migrations/ · docs/09_database_design.md</span>
+      </div>
+      <div class="topic">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="18" cy="17" r="3"/></svg></span>
+        <h3>ETL / ELT orchestration</h3>
+        <p>Nine instrumented stages — extract, stage, transform, resolve, load, detect, aggregate,
+           reconcile, quality — each timed with row counts, each idempotent. It is ETL, not ELT:
+           cleaning happens in Python before anything is written. The same orchestrator is invoked
+           by the CLI, the REST API and Airflow.</p>
+        <span class="ref">app/etl/pipeline.py · app/etl/loader.py · app/ingestion/cleaning.py</span>
+      </div>
+      <div class="topic">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.4 8.4 8 9 4.6-.6 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg></span>
+        <h3>Data quality</h3>
+        <p>Twelve declarative rules across six dimensions — completeness, validity, uniqueness,
+           consistency, accuracy and timeliness — each isolated in a savepoint, each persisted with
+           its observed value, expectation and message, and combined into a severity-weighted 0–100
+           score. Only a <code class="mono">critical</code> failure can block a run.</p>
+        <span class="ref">app/etl/dq.py · app/models/operations.py (dq_rule_result) · app/api/routers/quality.py</span>
+      </div>
+      <div class="topic">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg></span>
+        <h3>SQL analytics</h3>
+        <p>23 portable analytical views in <code class="mono">db/views.sql</code> — the only read
+           surface the API and the Query Lab use — a service layer that composes KPI, trend,
+           mover, brand, availability and drift answers, and 15 standalone analysis scripts
+           covering price changes, volatility, catalogue gaps, concentration and stock-out risk.</p>
+        <span class="ref">db/views.sql · db/analysis/01–15 · app/analytics/service.py · scripts/run_analysis.py</span>
+      </div>
+      <div class="topic">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 3-4 3 3 4-6"/></svg></span>
+        <h3>Data visualisation</h3>
+        <p>23 routed React 19 screens — 21 of them in the sidebar, plus the product detail page and
+           the sign-in page — with Recharts, a command palette, an off-canvas drawer, six accent
+           colours, three densities, reduced-motion support and an installable PWA. The Morning
+           Briefing composes the analytics services into a ranked action queue.</p>
+        <span class="ref">frontend/src/pages/ · frontend/src/lib/nav.ts · app/analytics/briefing.py</span>
+      </div>
+      <div class="topic">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/><circle cx="18" cy="17" r="3"/></svg></span>
+        <h3>REST API services</h3>
+        <p>24 routers and 222 operations under OpenAPI 3.1, with a consistent error envelope,
+           pagination and facets, GZip, request-timing headers, JWT access and refresh rotation,
+           scoped API keys, a read-only SQL console and a whitelisted aggregate builder over 13
+           entities, 15 operators and 6 aggregate functions.</p>
+        <span class="ref">app/api/ · app/api/routers/queries.py · app/api/routers/builder.py</span>
+      </div>
+      <div class="topic">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16v13H4z"/><path d="M9 7V4h6v3"/><path d="M9 12h6"/></svg></span>
+        <h3>Docker &amp; CI/CD</h3>
+        <p>A six-service Compose stack on one bridge network — PostgreSQL, MySQL, the API, the
+           Airflow webserver, the Airflow scheduler and the Nginx-served frontend — with health
+           gating and read-only source mounts. GitHub Actions runs six jobs: backend, dialect
+           parity, API smoke, frontend, documentation and a statistics-drift gate.</p>
+        <span class="ref">docker-compose.yml · docker/ · frontend/Dockerfile · .github/workflows/ci.yml</span>
+      </div>
+      <div class="topic">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+        <h3>Airflow orchestration</h3>
+        <p>33 task callables in one DAG: database and source-compliance guards, the pipeline run,
+           change detection, the quality gate, aggregates, catalogue reconciliation, a branch that
+           skips notification when nothing changed, and a report artefact. Two retries with
+           exponential back-off, a 45-minute execution timeout and <code class="mono">max_active_runs=1</code>.</p>
+        <span class="ref">dags/product_intelligence_pipeline.py · docs/13_deployment.md</span>
+      </div>
+      <div class="topic">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>
+        <h3>Security &amp; access control</h3>
+        <p>Argon2id password hashing, a server-side password-strength gate, account lockout after
+           five failures, HS256 access and refresh tokens with type-confusion rejection, SHA-256
+           API keys with a server pepper, three roles and ten rights, a per-request audit trail and
+           secret redaction in every log line.</p>
+        <span class="ref">app/api/security.py · app/api/deps.py · app/models/app_users.py · docs/29_two_factor_and_sessions.md · docs/30_access_control_and_rate_limiting.md</span>
+      </div>
+      <div class="topic">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg></span>
+        <h3>Testing &amp; documentation</h3>
+        <p>594 collected backend test cases in 26 files, 51 frontend tests in 8 files, and 104
+           end-to-end API smoke checks — all runnable against SQLite with no services. The
+           documentation set is 34 numbered documents plus the README, a changelog and this site,
+           with a CI gate that fails the build when a quoted number drifts from reality.</p>
+        <span class="ref">tests/ · frontend/src/**/*.test.tsx · scripts/api_smoke.py · docs/ · scripts/check_stats.py</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="operations">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Run it &amp; operate it</span>
+      <h2>Every command the repository actually ships</h2>
+      <p>These are the real targets in <code class="mono">Makefile</code> and the real commands in
+         <code class="mono">app/cli/main.py</code>. <code class="mono">make help</code> lists them all;
+         <code class="mono">pip-cli</code> is the installed entry point for the same CLI.</p>
+    </div>
+
+    <h3 style="margin:0 0 10px;font-size:14px">First run</h3>
+    <div class="cmds">
+      <div class="cmd"><code>make install</code><span>Create <code class="mono">.venv</code> and install the PostgreSQL, MySQL, dev and Scrapy extras</span></div>
+      <div class="cmd"><code>make env</code><span>Copy <code class="mono">.env.example</code> to <code class="mono">.env</code> if it is missing</span></div>
+      <div class="cmd"><code>make up-db</code><span>Start only PostgreSQL and MySQL, the two required warehouse targets</span></div>
+      <div class="cmd"><code>make db-wait</code><span>Block until both engines report healthy</span></div>
+      <div class="cmd"><code>make bootstrap</code><span>Create the 29 tables, apply the 23 views, seed reference data and users (PostgreSQL)</span></div>
+      <div class="cmd"><code>make bootstrap-mysql</code><span>The same bootstrap against MySQL — the cross-dialect proof</span></div>
+      <div class="cmd"><code>make demo-postgres</code><span>Seed a realistic 120-day demo dataset, so the dashboard opens with something to show</span></div>
+      <div class="cmd"><code>make run-pipeline</code><span>Execute one full ingestion &rarr; quality &rarr; analytics run against the active database</span></div>
+      <div class="cmd"><code>make serve</code><span>Run FastAPI on <code class="mono">:8000</code> with reload; interactive docs at <code class="mono">/docs</code></span></div>
+      <div class="cmd"><code>make frontend-install</code><span>Install the dashboard's npm dependencies</span></div>
+      <div class="cmd"><code>make frontend-dev</code><span>Start the Vite dev server on <code class="mono">:5173</code></span></div>
+      <div class="cmd"><code>./run.sh</code><span>The one file: verify with real data, then launch the six-service Docker stack and load live data</span></div>
+    </div>
+
+    <h3 style="margin:26px 0 10px;font-size:14px">Everyday operations</h3>
+    <div class="cmds">
+      <div class="cmd"><code>make run-pipeline-mysql</code><span>Run the pipeline against the MySQL twin of the same schema</span></div>
+      <div class="cmd"><code>make run-all-sources</code><span>Run every registered source once, including the ones a bare run would never select</span></div>
+      <div class="cmd"><code>make verify-dialects</code><span>Compare row counts and the quality score between PostgreSQL and MySQL, and report any drift</span></div>
+      <div class="cmd"><code>make sources</code><span>List the registry with each source's trust level, terms URL and rate limit</span></div>
+      <div class="cmd"><code>make analytics</code><span>Print the SQL analytics report to the terminal</span></div>
+      <div class="cmd"><code>make analysis</code><span>Run the 15 SQL analysis scripts in <code class="mono">db/analysis</code> (ANALYSIS=05 runs one)</span></div>
+      <div class="cmd"><code>make up</code><span>Bring up the whole stack with <code class="mono">docker compose up -d --build</code></span></div>
+      <div class="cmd"><code>make ps</code> / <code>make logs</code><span>Service status, and a tail of every service log</span></div>
+      <div class="cmd"><code>make down</code> / <code>make clean</code><span>Stop the stack keeping the volumes, or stop it and delete them (destructive)</span></div>
+      <div class="cmd"><code>make everything</code><span>Install, start the databases, bootstrap, seed, run the pipeline, test and build the frontend — end to end</span></div>
+    </div>
+
+    <h3 style="margin:26px 0 10px;font-size:14px">Trust, currency and the CLI</h3>
+    <div class="cmds">
+      <div class="cmd"><code>python -m app.cli.main purge-untrusted</code><span>Delete every row written by a source below <code class="mono">real</code> and report what was removed; <code class="mono">--dry-run</code> reports without deleting</span></div>
+      <div class="cmd"><code>python -m app.cli.main refresh-fx</code><span>Refresh the USD conversion rates from the live provider into <code class="mono">dim_currency</code>, with the rate source and its as-of date</span></div>
+      <div class="cmd"><code>python -m app.cli.main quality</code><span>Re-evaluate the twelve rules against the most recent run, without running a pipeline</span></div>
+      <div class="cmd"><code>python -m app.cli.main sources list</code><span>The registry from the terminal, with the trust column</span></div>
+      <div class="cmd"><code>python -m app.cli.main status</code><span>Row counts per table and the last run's status</span></div>
+      <div class="cmd"><code>python -m app.cli.main verify</code><span>The cross-dialect verification behind <code class="mono">make verify-dialects</code></span></div>
+      <div class="cmd"><code>python -m app.cli.main bootstrap</code> / <code>migrate</code><span>Create the schema, or apply Alembic migrations to a revision (<code class="mono">head</code> by default)</span></div>
+      <div class="cmd"><code>python -m app.cli.main check-schema</code><span>Compare the physical schema with the ORM and report anything missing</span></div>
+    </div>
+
+    <h3 style="margin:26px 0 10px;font-size:14px">Quality, tests and orchestration</h3>
+    <div class="cmds">
+      <div class="cmd"><code>make test</code><span>Run the backend suite with pytest</span></div>
+      <div class="cmd"><code>make lint</code><span><code class="mono">ruff check</code> and <code class="mono">ruff format --check</code> over app, tests, scripts and dags</span></div>
+      <div class="cmd"><code>make typecheck</code><span>Static type check with mypy</span></div>
+      <div class="cmd"><code>make frontend-lint</code><span>ESLint with <code class="mono">--max-warnings 0</code>, then <code class="mono">tsc --noEmit</code></span></div>
+      <div class="cmd"><code>make frontend-test</code><span>The dashboard's vitest suite</span></div>
+      <div class="cmd"><code>make check</code><span>lint + typecheck + test, with no services required — fast enough to run on every save</span></div>
+      <div class="cmd"><code>make airflow-init</code><span>Initialise the Airflow metadata database and the admin user</span></div>
+      <div class="cmd"><code>make airflow-test</code><span>Run the product-intelligence DAG once for a fixed date, without a scheduler</span></div>
+      <div class="cmd"><code>./run-full-app.sh</code><span>Full real-data verification: lint, both test suites, live permitted sources, a real nine-stage run, the frontend build, the API smoke suite and a Compose config check</span></div>
+      <div class="cmd"><code>./run-full-app.sh --offline</code> / <code>--quick</code> / <code>--no-frontend</code><span>The same verification against the synthetic source, as a fast smoke, or without the frontend steps</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="deliverables">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Expected deliverable</span>
+      <h2>Every item on the brief, and the file that satisfies it</h2>
+      <p>The brief's deliverable list, as recorded in
+         <code class="mono">docs/01_project_proposal.md</code> §5 and the RACI matrix in
+         <code class="mono">docs/03_roles_and_responsibilities.md</code>. Each row is complete
+         today and can be opened and read.</p>
+    </div>
+    <div class="dlist">
+      <div class="drow">
+        <span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span>
+        <div class="body">
+          <h3>D1 · Scraper / API ingestion module</h3>
+          <p>Eleven modules and a 34-adapter source registry: the source contract, the compliant
+             HTTP client, the robots parser, the rate limiter, the dedupe engine, the cleaning
+             engine and the Scrapy spider, plus one module per upstream family.</p>
+          <span class="ref">app/ingestion/ · app/ingestion/base.py · app/ingestion/http_client.py · app/ingestion/robots.py · app/ingestion/ratelimit.py · app/ingestion/sources/</span>
+        </div>
+      </div>
+      <div class="drow">
+        <span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span>
+        <div class="body">
+          <h3>D2 · Database schema</h3>
+          <p>29 tables in 9 logical groups, defined once in SQLAlchemy 2.0 and emitted with
+             identical DDL for PostgreSQL 16 and MySQL 8.4, with Alembic migrations, portable
+             JSON columns, exact <code class="mono">NUMERIC(18,4)</code> money and a
+             <code class="mono">UTCDateTime</code> type layer.</p>
+          <span class="ref">app/models/ · app/etl/bootstrap.py · migrations/versions/ · docs/09_database_design.md</span>
+        </div>
+      </div>
+      <div class="drow">
+        <span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span>
+        <div class="body">
+          <h3>D3 · Historical product-price table</h3>
+          <p><code class="mono">fact_price_snapshot</code> — one row per product, per source, per
+             run, append-only, with the native price, the FX rate that was used and the derived
+             USD price, plus the full trajectory as a view.</p>
+          <span class="ref">app/models/facts.py (FactPriceSnapshot) · db/views.sql (vw_price_history) · docs/22_data_dictionary.md</span>
+        </div>
+      </div>
+      <div class="drow">
+        <span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span>
+        <div class="body">
+          <h3>D4 · ETL pipeline</h3>
+          <p>Nine instrumented, idempotent stages with per-stage timings and row counts, a
+             29-step cleaner, fuzzy deduplication at a 0.90 threshold, change detection and
+             category-day aggregates — invoked identically by the CLI, the REST API and Airflow.</p>
+          <span class="ref">app/etl/pipeline.py · app/etl/loader.py · app/ingestion/cleaning.py · app/ingestion/dedupe.py</span>
+        </div>
+      </div>
+      <div class="drow">
+        <span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span>
+        <div class="body">
+          <h3>D5 · Airflow DAG</h3>
+          <p>33 task callables: health and source-compliance guards, the pipeline run, change
+             detection, the quality gate, aggregates, catalogue reconciliation, a branch that skips
+             notification when nothing changed, and a JSON report artefact — with retries, a
+             45-minute timeout and <code class="mono">max_active_runs=1</code>.</p>
+          <span class="ref">dags/product_intelligence_pipeline.py · Makefile (airflow-init, airflow-test)</span>
+        </div>
+      </div>
+      <div class="drow">
+        <span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span>
+        <div class="body">
+          <h3>D6 · Data-quality checks</h3>
+          <p>Twelve declarative rules across six dimensions, each isolated in a savepoint, each
+             persisted with its observed value and expectation, combined into a severity-weighted
+             0–100 score that only a <code class="mono">critical</code> failure can fail.</p>
+          <span class="ref">app/etl/dq.py · app/models/operations.py (DqRuleResult) · app/api/routers/quality.py · docs/15_testing_strategy.md</span>
+        </div>
+      </div>
+      <div class="drow">
+        <span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span>
+        <div class="body">
+          <h3>D7 · SQL analysis</h3>
+          <p>23 portable analytical views, a service layer of KPI, trend, mover, brand,
+             availability, drift and compliance answers, and 15 standalone analysis scripts for
+             price changes, volatility, catalogue gaps, concentration and stock-out risk.</p>
+          <span class="ref">db/views.sql · db/analysis/ · app/analytics/service.py · scripts/run_analysis.py</span>
+        </div>
+      </div>
+      <div class="drow">
+        <span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span>
+        <div class="body">
+          <h3>D8 · Visualisation</h3>
+          <p>23 routed React 19 screens with Recharts, a command palette, faceted search, saved
+             views, exports, a Morning Briefing action queue, five themes and an installable PWA —
+             reading the warehouse through the analytical layer only.</p>
+          <span class="ref">frontend/src/pages/ · frontend/src/components/ · frontend/src/lib/nav.ts</span>
+        </div>
+      </div>
+      <div class="drow">
+        <span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span>
+        <div class="body">
+          <h3>D9 · Documentation</h3>
+          <p>34 numbered documents, a full README, a Keep-a-Changelog changelog, a glossary
+             and FAQ with runnable SQL, and this dependency-free site — with a CI job that fails
+             the build when a quoted figure drifts from the code.</p>
+          <span class="ref">docs/00–33 · README.md · CHANGELOG.md · docs/23_glossary_and_faq.md · scripts/check_stats.py · website/index.html</span>
+        </div>
+      </div>
+      <div class="drow">
+        <span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span>
+        <div class="body">
+          <h3>D10 · REST API</h3>
+          <p>24 routers and 222 documented operations under OpenAPI 3.1, with a consistent error
+             envelope, pagination, facets, GZip, request timing, rate limiting, JWT rotation, API
+             keys, three-role RBAC, a read-only SQL console and a whitelisted aggregate builder.</p>
+          <span class="ref">app/api/ · app/api/main.py · app/api/routers/ · docs/14_api_documentation.md</span>
+        </div>
+      </div>
+      <div class="drow">
+        <span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span>
+        <div class="body">
+          <h3>D11 · Cross-dialect verification</h3>
+          <p>The same model loads on both engines and the comparison is automated: structural row
+             counts and the quality score are compared and any drift is reported — locally and as
+             a CI job that bootstraps and runs the pipeline on PostgreSQL and MySQL in turn.</p>
+          <span class="ref">app/cli/main.py (verify) · Makefile (verify-dialects) · .github/workflows/ci.yml (PostgreSQL + MySQL parity)</span>
+        </div>
+      </div>
+      <div class="drow">
+        <span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span>
+        <div class="body">
+          <h3>D12 · API smoke test</h3>
+          <p>104 assertions across every router, including the 401 and 403 paths and the
+             viewer/analyst/admin boundaries, run against a bootstrapped instance on port 8099 in
+             CI as well as on demand from the terminal.</p>
+          <span class="ref">scripts/api_smoke.py · .github/workflows/ci.yml (REST API smoke test)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="testing">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Testing &amp; quality</span>
+      <h2>What is actually verified, and by what</h2>
+      <p>The suite runs against SQLite and needs no running service, which is what makes
+         <code class="mono">make check</code> fast enough to run on every save. Every count below
+         is measured, not asserted.</p>
+    </div>
+
+    <div class="grid three">
+      <div class="card">
+        <h3>Backend — 594 cases in 26 files</h3>
+        <p>482 test functions, 594 collected cases. The largest modules:</p>
+        <ul class="ticks">
+          <li><code class="mono">test_new_features.py</code> — 77 · builders, alerts, exports</li>
+          <li><code class="mono">test_api.py</code> — 74 · every endpoint's behaviour</li>
+          <li><code class="mono">test_ingestion.py</code> — 68 · adapters, robots, validation</li>
+          <li><code class="mono">test_integrations.py</code> — 56 · webhooks, backfill, reports</li>
+          <li><code class="mono">test_cleaning.py</code> — 28 · the 29 normalisation steps</li>
+          <li><code class="mono">test_etl_pipeline.py</code> — 24 · stage sequencing, idempotency</li>
+          <li><code class="mono">test_security.py</code> — 22 · hashing, tokens, lockout, RBAC</li>
+          <li><code class="mono">test_dedupe.py</code> — 15 · the similarity signals</li>
+          <li><code class="mono">test_ratelimit.py</code> — 12 · bucket, window, breaker</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Frontend — 51 tests in 8 files</h3>
+        <p>Vitest, with strict TypeScript and ESLint at <code class="mono">--max-warnings 0</code>
+           wired into every build:</p>
+        <ul class="ticks">
+          <li><code class="mono">screens.test.tsx</code> — 23 · every screen mounts and settles</li>
+          <li><code class="mono">Navigation.test.tsx</code> — 11 · the sidebar and its guards</li>
+          <li><code class="mono">theme.test.ts</code> — 5 · the theme contract</li>
+          <li><code class="mono">nav-icons.test.ts</code> — 3 · icon parity with the API</li>
+          <li><code class="mono">theme.render.test.tsx</code> — 3 · pre-paint rendering</li>
+          <li><code class="mono">Sources.test.tsx</code> — 3 · the sources screen</li>
+          <li><code class="mono">AppShell.test.tsx</code> — 2 · the shell and the drawer</li>
+          <li><code class="mono">Dashboard.test.tsx</code> — 1 · the dashboard's own assertions</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>End to end — 104 smoke checks</h3>
+        <p><code class="mono">scripts/api_smoke.py</code> drives a running instance over HTTP,
+           asserting status codes, shapes and role boundaries:</p>
+        <ul class="ticks">
+          <li>Every router is exercised, not just the happy paths</li>
+          <li>401 without a token and 403 for an insufficient role are asserted</li>
+          <li>The runner logs in as the analyst and the viewer as well as the admin</li>
+          <li>CI runs it against a bootstrapped PostgreSQL on port 8099</li>
+          <li>It is runnable by hand: <code class="mono">python scripts/api_smoke.py --port 8099</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <h3>The CI pipeline — six jobs, every push and pull request</h3>
+      <div class="table-wrap" style="margin-top:12px"><table class="tight">
+        <tr><th>Job</th><th>What it proves</th></tr>
+        <tr><td><b>Backend</b></td><td><code class="mono">ruff check</code>, <code class="mono">ruff format --check</code>, <code class="mono">mypy</code> (informational) and the full pytest suite with a coverage XML artefact</td></tr>
+        <tr><td><b>PostgreSQL + MySQL parity</b></td><td>Both engines are bootstrapped, the pipeline is run on each, and <code class="mono">verify</code> reports any structural drift</td></tr>
+        <tr><td><b>REST API smoke test</b></td><td>104 checks against a live API, including the system libraries WeasyPrint needs for the PDF endpoints</td></tr>
+        <tr><td><b>Frontend</b></td><td>ESLint, <code class="mono">tsc --noEmit</code>, vitest and a production build, with the bundle uploaded as an artefact</td></tr>
+        <tr><td><b>Documentation</b></td><td>Every Mermaid diagram is rendered, the extracted sources are verified to be committed, the infographic is checked for staleness, the site is built and its links are validated</td></tr>
+        <tr><td><b>Project statistics</b></td><td>Every structural figure is re-measured and compared with the documented ones — a drift fails the build instead of rotting quietly</td></tr>
+      </table></div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <h3>The static gates</h3>
+      <ul class="ticks">
+        <li><b>ruff</b> — rules E, F, W, I, UP, B, C4 and SIM, with a 110-character line limit</li>
+        <li><b>mypy</b> — static types over the application package</li>
+        <li><b>ESLint</b> — <code class="mono">--max-warnings 0</code>, so a warning is a failure</li>
+        <li><b>tsc</b> — strict TypeScript compile as part of every build</li>
+        <li><b>pre-commit</b> — ruff plus whitespace checks and the statistics-drift gate</li>
+        <li><b>check_stats.py</b> — compares the documented figures with the code and reports any
+            difference, so a number nobody can reproduce is a number nobody should trust</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
 <section id="team">
   <div class="wrap">
     <div class="sec-head">
@@ -421,11 +1453,11 @@ curl -X POST http://localhost:8000/api/v1/queries/execute \
       <div class="card">
         <h3>Ahmed (78102) — 28%</h3>
         <p>Team Lead + Backend/API + Documentation + 9 ETL Stages Owner. FastAPI platform, 9-stage ETL,
-           integration transport, catalogues as code, 31 docs, releases, quality gates, every review.</p>
+           integration transport, catalogues as code, 34 docs, releases, quality gates, every review.</p>
       </div>
       <div class="card">
         <h3>Ahmed Abd alla — 15%</h3>
-        <p>Ingestion &amp; Compliance Lead. robots.txt gate, 34 adapters, rate limiting, conditional GET, audit log.</p>
+        <p>Ingestion &amp; Compliance Lead. robots.txt gate, 35 adapters, rate limiting, conditional GET, audit log.</p>
       </div>
       <div class="card">
         <h3>Ahmed Medhat — 14%</h3>
@@ -437,7 +1469,7 @@ curl -X POST http://localhost:8000/api/v1/queries/execute \
       </div>
       <div class="card">
         <h3>legecy007 — 15%</h3>
-        <p>Frontend / Dashboard Lead. React 19, 21 screens, PWA, four themes, mobile-first.</p>
+        <p>Frontend / Dashboard Lead. React 19, 23 screens, PWA, five themes, mobile-first.</p>
       </div>
       <div class="card">
         <h3>Mennatullah Ahmed — 14%</h3>
@@ -516,19 +1548,23 @@ make frontend-dev  # dashboard on :5173</pre>
   <div class="wrap">
     <div class="sec-head">
       <span class="kicker">Feature catalogue</span>
-      <h2>575 features, 47 areas — same source as the app</h2>
-      <p style="color:var(--muted);max-width:62ch">The dashboard's Features screen, <code>GET /api/v1/meta/features</code> and this page all read <code>app/core/features.py</code>. Latest: TVMaze + Internet Archive + DummyJSON recipes (34 adapters), a Scrapy engine beside BeautifulSoup, conditional-GET revalidation, real-only pipeline defaults, a 12-tab Account, lossless theme memory, modern scrollbars, one-command <code>./run.sh</code> verification and a team API.</p>
+      <h2>652 features, 42 areas — same source as the app</h2>
+      <p style="color:var(--muted);max-width:62ch">The dashboard's Features screen, <code>GET /api/v1/meta/features</code> and this page all read <code>app/core/features.py</code>, so none of the three can drift. The live catalogue holds 658 entries in 42 groups; the reviewed inventory in <code>docs/19_feature_list.md</code> numbers 604 of them across 48 sections as a readable document. Latest: TVMaze + Internet Archive + DummyJSON recipes (35 registered adapters), a Scrapy engine beside BeautifulSoup, conditional-GET revalidation, real-only pipeline defaults, a 12-tab Account, lossless theme memory, modern scrollbars, one-command <code>./run.sh</code> verification and a team API.</p>
     </div>
     <div class="badges">
-      <span class="badge">Builder Max <b>32</b></span>
-      <span class="badge">Account Max <b>24</b></span>
-      <span class="badge">Catalog import <b>new</b></span>
-      <span class="badge">Design &amp; mobile Max <b>25</b></span>
-      <span class="badge">Platform Max <b>20</b></span>
-      <span class="badge">Forecasting <b>16</b></span>
-      <span class="badge">Jobs <b>11</b></span>
-      <span class="badge">Realtime <b>10</b></span>
-      <span class="badge">Reports <b>14</b></span>
+      <span class="badge">Query &amp; aggregate builder Max <b>43</b></span>
+      <span class="badge">Dashboard &amp; UX <b>31</b></span>
+      <span class="badge">v1.12 truthfulness Max <b>25</b></span>
+      <span class="badge">Design, mobile &amp; motion Max <b>24</b></span>
+      <span class="badge">Account self-service Max <b>24</b></span>
+      <span class="badge">v1.9 polish <b>24</b></span>
+      <span class="badge">Forecasting &amp; anomaly detection <b>16</b></span>
+      <span class="badge">Reports &amp; document generation <b>15</b></span>
+      <span class="badge">Two-factor &amp; session control <b>13</b></span>
+      <span class="badge">Schema &amp; migrations <b>11</b></span>
+      <span class="badge">Background job queue <b>11</b></span>
+      <span class="badge">Realtime streaming <b>10</b></span>
+      <span class="badge">Engineering quality gates <b>11</b></span>
     </div>
   </div>
 </section>
@@ -565,6 +1601,72 @@ make frontend-dev  # dashboard on :5173</pre>
            <code class="mono">EXPLAIN</code> over the 23 analytical views; writes and multi-statements
            are rejected before execution, rows are capped.</p>
       </div>
+      <div class="card">
+        <h3>Which sources does an automatic run collect?</h3>
+        <p>Twenty of the thirty-four registered adapters. A run that is not told what to collect
+           selects only sources that are <b>enabled</b>, <b>terms-allow-listed</b> and declared
+           <code class="mono">real</code>. <code class="mono">stooq_quotes</code> is real but its terms
+           forbid automated use, so it is never contacted; the eleven synthetic and two sandbox
+           sources must be named by code.</p>
+      </div>
+      <div class="card">
+        <h3>What happens if robots.txt forbids a URL?</h3>
+        <p>The request is never made. The transport raises
+           <code class="mono">ComplianceError</code> before a socket is opened, and the attempt is
+           still written to <code class="mono">ingestion_http_log</code> with
+           <code class="mono">robots.txt:disallow</code> and no status code. The source degrades to
+           a warning and the run finishes as <code class="mono">partial</code>.</p>
+      </div>
+      <div class="card">
+        <h3>How are duplicate products detected?</h3>
+        <p>In three stages: an exact fingerprint match, then normalised-name equality, then a
+           blended fuzzy score over four signals — Jaro-Winkler, token-set, trigram and digit
+           signature. Above the 0.90 threshold the products merge, the survivor is the one with
+           more observations, and the decision is persisted as
+           <code class="mono">match_strategy</code> and <code class="mono">match_score</code> so it
+           stays auditable.</p>
+      </div>
+      <div class="card">
+        <h3>Is the FX rate live?</h3>
+        <p>Yes. Before every run the rates are refreshed from a key-less provider
+           (<code class="mono">open.er-api.com</code>, with
+           <code class="mono">frankfurter.dev</code> as the fallback) and written to
+           <code class="mono">dim_currency</code> with their source and as-of date. If the
+           providers are unreachable the last known table is used and the run continues. Every
+           snapshot stores the rate it used, so history cannot be silently restated later.</p>
+      </div>
+      <div class="card">
+        <h3>Can I run it without Docker?</h3>
+        <p>Yes. <code class="mono">make install &amp;&amp; make serve</code> plus
+           <code class="mono">make frontend-dev</code> runs the API on :8000 and the dashboard on
+           :5173 straight from the host; SQLite is enough for the test suite. Docker is the
+           six-service option, not a requirement.</p>
+      </div>
+      <div class="card">
+        <h3>How do I remove rows that came from a mock API?</h3>
+        <p><code class="mono">python -m app.cli.main purge-untrusted</code>. Run it with
+           <code class="mono">--dry-run</code> first to see the report. It deletes staging, fact
+           and change rows for every source below <code class="mono">real</code>, then the products
+           left without an observation, then the runs left without a reference — and it reports
+           the rows removed per table.</p>
+      </div>
+      <div class="card">
+        <h3>How do I add a new source?</h3>
+        <p>Six steps, and you write no HTTP, robots, retry or rate-limit code: subclass
+           <code class="mono">ProductSource</code>, declare the compliance metadata as class
+           variables, implement <code class="mono">fetch(limit)</code> as a generator, decorate with
+           <code class="mono">@register_source</code>, add a seed row to
+           <code class="mono">dim_source</code>, and add a test. The gate lives in the transport,
+           so the new adapter inherits the whole compliance layer for free.</p>
+      </div>
+      <div class="card">
+        <h3>Why two databases?</h3>
+        <p>Because the brief requires it, and because it is a genuine portability test rather than
+           a formality. The same model must load identically on PostgreSQL 16 and MySQL 8.4, which
+           constrains the schema: no <code class="mono">JSONB</code>, no
+           <code class="mono">DISTINCT ON</code>, portable boolean and timestamp handling.
+           <code class="mono">make verify-dialects</code> proves there is no structural drift.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -577,12 +1679,20 @@ make frontend-dev  # dashboard on :5173</pre>
       <p>Semantic versions, Keep-a-Changelog, annotated tags and GitHub releases. Full playbook in
          <code class="mono">docs/31_releases.md</code>.</p>
     </div>
-    <div class="table-wrap"><table>
-      <tr><th>Version</th><th>Theme</th></tr>
-      <tr><td><span class="pill">v1.11.0</span></td><td>Morning Briefing, 10x demo warehouse (25k products / 500k+ observations), mobile &amp; theme polish</td></tr>
-      <tr><td><span class="pill">v1.10.0</span></td><td>Ingestion Max (TVMaze, Archive.org, recipes), Scrapy engine, conditional GET, team API</td></tr>
-      <tr><td><span class="pill">v1.9.0</span></td><td>Real-only defaults, theme memory, modern scrollbars, Account Max, run.sh</td></tr>
-      <tr><td><span class="pill">v1.8.0</span></td><td>Query power Max (HAVING, OR logic, saved-view lifecycle, query history)</td></tr>
+    <div class="table-wrap"><table class="tight">
+      <tr><th>Version</th><th>Date</th><th>Highlights</th></tr>
+      <tr><td><span class="pill">v1.12.0</span></td><td class="nw">2026-10-21</td><td>Truthful metrics, silent reload &amp; mobile parity — every dashboard tile scoped to the same window, five previously-dead preferences wired end to end, a new exact-number display mode, the mobile drawer lock and resize bugs fixed, three window indexes added, the FX test made hermetic</td></tr>
+      <tr><td><span class="pill">v1.11.0</span></td><td class="nw">2026-10-20</td><td>Morning Briefing &amp; the 10x demo warehouse — the <code class="mono">/briefing</code> action queue, <code class="mono">expand-demo</code> taking the demo to 25,076 products and 550k+ observations, briefing defaults on the profile, mobile and theme polish</td></tr>
+      <tr><td><span class="pill">v1.10.0</span></td><td class="nw">2026-10-15</td><td>Ingestion Max — TVMaze, Archive.org texts and DummyJSON recipes (34 adapters), a Scrapy engine beside BeautifulSoup, conditional-GET revalidation, real-only pipeline defaults, theme memory, one-command <code class="mono">./run.sh</code>, the team API</td></tr>
+      <tr><td><span class="pill">v1.9.0</span></td><td class="nw">2026-10-15</td><td>Real-only defaults, lossless theme memory, modern scrollbars, the Account Max screens, the source registry drift fix and the <code class="mono">run.sh</code> verification script</td></tr>
+      <tr><td><span class="pill">v1.8.0</span></td><td class="nw">2026-10-08</td><td>Query power Max — <code class="mono">HAVING</code> over grouping columns and aggregate aliases, per-request AND/OR filter logic, server-side enforcement of the groupable flag, a strict alias shape, deterministic ordering, saved-view lifecycle, query history</td></tr>
+      <tr><td><span class="pill">v1.7.0</span></td><td class="nw">2026-10-06</td><td>Add sources from the GUI — endpoint presets, a live compliance pre-check (SSRF guard, robots verdict, JSON shape sniff), dot-path field mapping with three pagination styles, and admin-only mutations</td></tr>
+      <tr><td><span class="pill">v1.6.1</span></td><td class="nw">2026-10-06</td><td>The pre-paint script resolves the brand variables so a non-default accent no longer flashes, the legacy motion value is migrated, the mobile drawer swipe works from any child, and live job progress streams from the event buffer</td></tr>
+      <tr><td><span class="pill">v1.4.0</span></td><td class="nw">2026-10-05</td><td>Run comparison, universal dataset export over 12 datasets, signed outbound webhooks with ten pipeline events and a delivery log, and historical backfill</td></tr>
+      <tr><td><span class="pill">v1.3.0</span></td><td class="nw">2026-10-05</td><td>The feature catalogue as code, the aggregate builder over 11 entities, account data export and self-deletion, the personal activity feed, and this landing page</td></tr>
+      <tr><td><span class="pill">v1.2.0</span></td><td class="nw">2026-10-04</td><td>Account controls — avatar colour, start-page preference and a motion override applied before first paint — plus builder column reordering, copy-as-API-request and preview export</td></tr>
+      <tr><td><span class="pill">v1.1.0</span></td><td class="nw">2026-10-04</td><td>Command palette, JSON exports beside the CSV ones, an installable PWA, and zero-warning quality gates mirrored in CI</td></tr>
+      <tr><td><span class="pill">v1.0.0</span></td><td class="nw">2026-10-03</td><td>The first release — five compliant sources, the 29-step cleaner, the warehouse, the API and the dashboard</td></tr>
     </table></div>
   </div>
 </section>
@@ -594,12 +1704,60 @@ make frontend-dev  # dashboard on :5173</pre>
       <h2>Compliance-first, warehouse-grade, free forever</h2>
     </div>
     <div class="card">
-      <p style="margin:0;color:var(--muted)">A retailer needs the market picture every morning. This pipeline replaces manual copy-paste with robots-gated ingestion from 34 sources, 29-step cleaning, fuzzy dedupe, a 29-table Kimball star on PostgreSQL + MySQL, 12 DQ rules, Airflow orchestration, forecasting, webhooks, backfill and a 21-screen React dashboard — no paid APIs, SQLite-runnable tests, one-command verification.</p>
+      <p style="margin:0;color:var(--muted)">A retailer needs the market picture every morning. This pipeline replaces manual copy-paste with robots-gated ingestion from 34 registered sources, 29-step cleaning, fuzzy dedupe, a 29-table Kimball star on PostgreSQL + MySQL, 12 DQ rules, Airflow orchestration, forecasting, webhooks, backfill and a 23-screen React dashboard — no paid APIs, SQLite-runnable tests, one-command verification.</p>
       <div class="badges" style="margin-top:14px">
         <span class="badge">Topics <b>etl · airflow · fastapi · react · postgres · mysql · data-quality · scraping · warehouse · dashboard</b></span>
-        <span class="badge">Releases <b>v1.9.0 to v1.11.0</b></span>
+        <span class="badge">Releases <b>v1.9.0 to v1.12.0</b></span>
         <span class="badge">License <b>MIT</b></span>
         <span class="badge">Track <b>DEPI Data Engineering</b></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="publish">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Repository setup</span>
+      <h2>Topics, About and release notes — ready to paste</h2>
+      <p>Everything below is the exact text the repository's About box, topic list and release
+         description use. Copy it, paste it, and the repository reads like the platform it
+         describes. The same text lives in <code class="mono">README.md</code> and
+         <code class="mono">docs/31_releases.md</code>, so the site, the repository and the
+         documentation never drift apart.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>Repository topics</h3>
+        <p>Twenty topics cover the whole stack. GitHub accepts up to twenty, and every one of them
+           is something the project genuinely uses rather than a keyword.</p>
+        <pre style="margin-top:12px">web-scraping, beautifulsoup, scrapy, etl, data-engineering,
+airflow, postgresql, mysql, fastapi, python, data-quality,
+deduplication, price-tracking, data-warehouse, docker,
+plotly, streamlit, rest-api, depi, data-pipeline</pre>
+      </div>
+      <div class="card">
+        <h3>About — one paragraph</h3>
+        <p>The short description shown at the top of the repository.</p>
+        <pre style="margin-top:12px">End-to-end product intelligence pipeline: permitted web/API
+ingestion, cleaning, duplicate detection, PostgreSQL warehouse
+with price history, SQL analytics, Airflow orchestration,
+FastAPI and a React dashboard. DEPI Data Engineering capstone.</pre>
+      </div>
+      <div class="card">
+        <h3>Release description</h3>
+        <p>What <code class="mono">gh release create</code> publishes for the current tag.</p>
+        <pre style="margin-top:12px">v1.12.0 — Truthful metrics, silent reload and mobile parity.
+
+Every headline number now states exactly what it counts, and
+all dashboard tiles are scoped to the same window. Auto-refresh,
+chart type, time range, export format and copy-code-on-click
+are wired end to end, with a new exact-number display mode.
+Silent reload swaps data in place with no shimmer or layout
+shift, and it follows the user across devices. The mobile
+drawer locks the content behind it and restores scroll offsets
+on back/forward. Three new indexes took the dashboard query
+from ~290 ms to ~150 ms.</pre>
       </div>
     </div>
   </div>
@@ -608,7 +1766,7 @@ make frontend-dev  # dashboard on :5173</pre>
 <footer>
   <div class="wrap foot-in">
     <span>Web-to-Warehouse Product Intelligence Pipeline · built for a retailer's morning market picture.</span>
-    <span>MIT licensed · DEPI Data Engineering · 575 features · 29 tables · 23 views · 216 API ops · 34 sources</span>
+    <span>MIT licensed · DEPI Data Engineering · 652 features · 29 tables · 23 views · 222 API ops · 35 sources</span>
   </div>
 </footer>
 

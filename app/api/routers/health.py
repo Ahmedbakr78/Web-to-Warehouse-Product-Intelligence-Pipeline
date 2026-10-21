@@ -125,9 +125,9 @@ def meta() -> dict[str, Any]:
         "operations": operation_count(),
         "sources": len(list_sources()),
         "limits": {
-            "max_page_size": 200,
+            "max_page_size": 500,
             "default_page_size": 25,
-            "max_query_rows": 5000,
+            "max_query_rows": 25_000,
             "pipeline_limit_per_source": settings.max_products_per_source,
             "dedupe_threshold": settings.dedupe_similarity_threshold,
         },

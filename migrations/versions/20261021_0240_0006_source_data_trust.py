@@ -30,6 +30,8 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
+from app.core.db import column_exists, create_index_if_missing, drop_index_if_present
+
 # revision identifiers, used by Alembic.
 revision: str = "0006_source_data_trust"
 down_revision: str | Sequence[str] | None = "0005_window_indexes"
@@ -43,13 +45,19 @@ _INDEX = "ix_dim_source_data_trust"
 
 def upgrade() -> None:
     """Add the trust column and its index."""
-    with op.batch_alter_table(_TABLE) as batch:
-        batch.add_column(sa.Column(_COLUMN, sa.String(length=64), nullable=False, server_default="real"))
-    op.create_index(_INDEX, _TABLE, [_COLUMN], unique=False, if_not_exists=True)
+    connection = op.get_bind()
+    if not column_exists(connection, _TABLE, _COLUMN):
+        with op.batch_alter_table(_TABLE) as batch:
+            batch.add_column(
+                sa.Column(_COLUMN, sa.String(length=64), nullable=False, server_default="real")
+            )
+    create_index_if_missing(connection, _INDEX, _TABLE, [_COLUMN])
 
 
 def downgrade() -> None:
     """Remove the trust column and its index."""
-    op.drop_index(_INDEX, table_name=_TABLE, if_exists=True)
-    with op.batch_alter_table(_TABLE) as batch:
-        batch.drop_column(_COLUMN)
+    connection = op.get_bind()
+    drop_index_if_present(connection, _INDEX)
+    if column_exists(connection, _TABLE, _COLUMN):
+        with op.batch_alter_table(_TABLE) as batch:
+            batch.drop_column(_COLUMN)

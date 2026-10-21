@@ -514,7 +514,9 @@ def seed_history(
     today = dt.datetime.now(dt.timezone.utc).date()
     now_utc = dt.datetime.now(dt.timezone.utc)
 
-    def _run_timestamp(day: dt.date, hour: int, minute: int, *, offset: dt.timedelta = dt.timedelta()) -> dt.datetime:
+    def _run_timestamp(
+        day: dt.date, hour: int, minute: int, *, offset: dt.timedelta = dt.timedelta()
+    ) -> dt.datetime:
         """Build a UTC timestamp for ``day`` that never lands in the future.
 
         Historical days are used verbatim; the newest day is clamped to *now* so

@@ -31,9 +31,15 @@ def price_changes(
     source: str | None = None,
     significant_only: Annotated[bool, Query()] = False,
     min_abs_change_pct: Annotated[float | None, Query(ge=0)] = None,
+    observed_within_days: Annotated[
+        int | None, Query(ge=0, le=3650, description="Only changes detected within N days")
+    ] = None,
 ) -> Page[PriceChangeRead]:
     where = ["pc.full_date >= :since"]
     params: dict[str, Any] = {"since": dt.date.today() - dt.timedelta(days=days)}
+    if observed_within_days is not None:
+        where.append("pc.detected_at >= :seen_since")
+        params["seen_since"] = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=observed_within_days)
     if direction:
         where.append("pc.direction = :direction")
         params["direction"] = direction
@@ -218,9 +224,7 @@ def detection_rules(_user: ReadUser) -> dict[str, Any]:
             },
             {
                 "type": "removed",
-                "description": (
-                    "A product missing for more than the staleness window emits 'removed'."
-                ),
+                "description": ("A product missing for more than the staleness window emits 'removed'."),
             },
             {
                 "type": "category_changed",

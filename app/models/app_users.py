@@ -242,7 +242,11 @@ class AppAuditLog(Base):
     entity_id: Mapped[str | None] = mapped_column(ShortStr)
     status: Mapped[str] = mapped_column(ShortStr, default="success")
     ip_address: Mapped[str | None] = mapped_column(ShortStr)
-    user_agent: Mapped[str | None] = mapped_column(ShortStr)
+    #: A browser user-agent string is routinely longer than 128 characters
+    #: (Chrome, Safari and Edge all exceed it), so the column has to be wide
+    #: enough to hold one. A too-narrow column made sign-in fail outright on
+    #: mobile, because the audit row of a *successful* login overflowed it.
+    user_agent: Mapped[str | None] = mapped_column(MediumStr)
     duration_ms: Mapped[int | None] = mapped_column(sa.Integer)
     details: Mapped[dict | None] = mapped_column(JSONType, default=dict)
     created_at: Mapped[dt.datetime] = mapped_column(UTCDateTime(), default=utcnow, nullable=False, index=True)

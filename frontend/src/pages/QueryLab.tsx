@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   CheckCircle2,
@@ -318,6 +319,7 @@ function loadStored(key: string, fallback: string): string {
 
 export default function QueryLab() {
   const queryClient = useQueryClient()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [sql, setSql] = useState(() => loadStored(SQL_KEY, DEFAULT_SQL))
   const [limit, setLimit] = useState(() => {
     const raw = loadStored(LIMIT_KEY, '200')
@@ -330,6 +332,18 @@ export default function QueryLab() {
   const editorRef = useRef<HTMLTextAreaElement | null>(null)
   const highlightRef = useRef<HTMLPreElement | null>(null)
   const gutterRef = useRef<HTMLDivElement | null>(null)
+
+  // A hand-off from another screen arrives as ?sql=... The statement is taken
+  // once, then the parameter is dropped so a reload does not re-apply it over
+  // whatever the user edited in the meantime.
+  useEffect(() => {
+    const incoming = searchParams.get('sql')
+    if (!incoming) return
+    setSql(incoming)
+    const next = new URLSearchParams(searchParams)
+    next.delete('sql')
+    setSearchParams(next, { replace: true })
+  }, [searchParams, setSearchParams])
 
   const views = useApiQuery(['query-views'], endpoints.views)
   const tables = useApiQuery(['query-tables'], endpoints.queryTables)

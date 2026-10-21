@@ -88,16 +88,47 @@ def find_strays(version: str) -> list[str]:
     return offenders
 
 
+def is_pyproject_synced(version: str) -> bool:
+    text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    match = PYPROJECT_RE.search(text)
+    return bool(match) and match.group(0).endswith(f'"{version}"')
+
+
+def is_package_json_synced(version: str) -> bool:
+    payload = json.loads((ROOT / "frontend" / "package.json").read_text(encoding="utf-8"))
+    return payload.get("version") == version
+
+
 def main() -> int:
+    check_only = "--check" in sys.argv[1:]
     version = canonical()
     changed = []
-    if sync_pyproject(version):
-        changed.append("pyproject.toml")
-    if sync_package_json(version):
-        changed.append("frontend/package.json")
+    if check_only:
+        out_of_sync = [
+            path
+            for path, synced in (
+                ("pyproject.toml", is_pyproject_synced(version)),
+                ("frontend/package.json", is_package_json_synced(version)),
+            )
+            if not synced
+        ]
+        if out_of_sync:
+            print("check only: these files are out of sync:", file=sys.stderr)
+            for path in out_of_sync:
+                print(f"  - {path}", file=sys.stderr)
+            print("run: python scripts/sync_version.py", file=sys.stderr)
+            return 1
+    else:
+        if sync_pyproject(version):
+            changed.append("pyproject.toml")
+        if sync_package_json(version):
+            changed.append("frontend/package.json")
 
     print(f"canonical version: {version}")
-    print("updated: " + (", ".join(changed) if changed else "nothing (already in sync)"))
+    if check_only:
+        print("check only: pyproject.toml and frontend/package.json are in sync")
+    else:
+        print("updated: " + (", ".join(changed) if changed else "nothing (already in sync)"))
 
     strays = find_strays(version)
     if strays:

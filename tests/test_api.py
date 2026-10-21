@@ -626,6 +626,52 @@ def test_profile_preferences_are_merged_not_replaced(client, admin_token):
     assert preferences["default_export_format"] == "csv"
 
 
+def test_profile_notification_switches_are_stored_and_clamped(client, admin_token):
+    """The notification switches round-trip, and a junk value is dropped."""
+    saved = client.patch(
+        "/api/v1/users/me",
+        json={
+            "preferences": {"notifications": {"price_drop": True, "dq_failure": False, "new_product": True}}
+        },
+        headers=auth(admin_token),
+    )
+    assert saved.status_code == 200, saved.text
+    notifications = saved.json()["preferences"]["notifications"]
+    assert notifications == {"price_drop": True, "dq_failure": False, "new_product": True}
+
+    clamped = client.patch(
+        "/api/v1/users/me",
+        json={"preferences": {"notifications": {"price_drop": "banana", "dq_failure": "false"}}},
+        headers=auth(admin_token),
+    )
+    assert clamped.status_code == 200, clamped.text
+    switches = clamped.json()["preferences"]["notifications"]
+    assert "price_drop" not in switches, "an unreadable switch must be dropped, not stored"
+    assert switches["dq_failure"] is False
+
+
+def test_profile_region_fields_are_validated(client, admin_token):
+    """Timezone, locale and currency are checked at the API boundary."""
+    accepted = client.patch(
+        "/api/v1/users/me",
+        json={"timezone": "Africa/Cairo", "locale": "en-GB", "default_currency": "eur"},
+        headers=auth(admin_token),
+    )
+    assert accepted.status_code == 200, accepted.text
+    body = accepted.json()
+    assert body["timezone"] == "Africa/Cairo"
+    assert body["locale"] == "en-GB"
+    assert body["default_currency"] == "EUR"
+
+    for payload in (
+        {"timezone": "not a zone"},
+        {"locale": "e n"},
+        {"default_currency": "DOLLARS"},
+    ):
+        refused = client.patch("/api/v1/users/me", json=payload, headers=auth(admin_token))
+        assert refused.status_code == 422, f"{payload} should be rejected: {refused.text}"
+
+
 def test_unknown_profile_preference_values_are_dropped(client, admin_token):
     """An out-of-range preference is removed, never stored as a typo.
 

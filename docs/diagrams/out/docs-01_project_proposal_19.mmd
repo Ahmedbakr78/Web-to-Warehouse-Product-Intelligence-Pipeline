@@ -1,19 +1,20 @@
 
-flowchart TB
-    subgraph HI["High power - high interest"]
-        A1["Data platform lead"]
-        A2["Retail buying / merchandising"]
-        A3["Academic supervisor"]
+flowchart LR
+    subgraph OUT["Out of scope"]
+        O1["Bypass auth / paywall / CAPTCHA"]
+        O2["Personal data"]
+        O3["Streaming ingestion"]
+        O4["ML forecasting"]
+        O5["Multi-tenant isolation"]
     end
-    subgraph HI2["High power - low interest"]
-        B1["System administrator"]
-        B2["Compliance officer"]
-        B3["Upstream source owners"]
+    subgraph IN["In scope - delivered"]
+        I1["5 compliant sources"]
+        I2["Cleaning and currency normalisation"]
+        I3["Fuzzy deduplication"]
+        I4["23 tables and 20 views"]
+        I5["12 DQ rules"]
+        I6["Airflow orchestration"]
+        I7["113 REST operations"]
+        I8["CLI and Docker Compose"]
     end
-    subgraph LI["Low power - high interest"]
-        C1["Pricing analyst"]
-        C2["Category manager"]
-    end
-    subgraph LI2["Low power - low interest"]
-        D1["External data consumers"]
-    end
+    OUT -.->|"explicitly refused"| IN

@@ -1,10 +1,18 @@
 
-flowchart TD
-  start[POST /account/2fa/setup] --> secret[server returns secret + otpauth URI]
-  secret --> scan[user scans QR or types the secret]
-  scan --> code[user enters the current code]
-  code --> verify{server verifies it}
-  verify -->|wrong| retry[stay enrolled-nothing: nothing was enabled]
-  verify -->|right| activate[POST /account/2fa/activate]
-  activate --> store[encrypted secret stored]
-  store --> codes[eight single-use recovery codes returned once]
+sequenceDiagram
+    participant U as User
+    participant API
+    participant DB as app_users
+    U->>API: POST /auth/login (email, password[, totp_code | recovery_code])
+    API->>DB: verify Argon2id hash
+    alt password wrong
+        API-->>U: 401 invalid email or password
+    else 2FA enabled, no code supplied
+        API-->>U: 401 invalid verification code
+        U->>API: POST /auth/login again, with the code
+    else 2FA enabled, code supplied
+        API->>API: verify TOTP (±1 step), else redeem a recovery code
+        API-->>U: tokens + session handle
+    else 2FA not enabled
+        API-->>U: tokens + session handle
+    end

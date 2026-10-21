@@ -62,6 +62,12 @@ export default function Changes() {
   const timeline = useApiQuery(['price-change-timeline', windowDays], () => endpoints.priceTrend(windowDays))
   const movers = useApiQuery(['top-movers', 12], () => endpoints.topMovers(12))
   const drift = useApiQuery(['category-drift', windowDays], () => endpoints.categoryDrift(windowDays))
+  // The detection rules (significance threshold, magnitude bands, lifecycle
+  // event meanings) are served by the API, so this screen cannot describe a
+  // rule the pipeline does not apply.
+  const detection = useApiQuery(['change-detection-rules'], endpoints.changeDetectionRules, {
+    staleTime: 600_000,
+  })
 
   const priceParams = useMemo(
     () => ({
@@ -85,6 +91,43 @@ export default function Changes() {
   const categoryChanges = useApiQuery(['category-changes', windowDays], () => endpoints.categoryChanges(windowDays, 100))
 
   const timelineData = (timeline.data ?? []).map((row: any) => ({ ...row, date: formatDate(row.full_date) }))
+
+  /** The detection rules, described from the definitions the API publishes. */
+  const detectionSteps = (() => {
+    const rules = detection.data as
+      | {
+          comparison?: string
+          significant_change_pct?: number
+          magnitude_bands?: { name: string; min_pct: number; max_pct: number | null }[]
+          lifecycle_events?: { type: string; description: string }[]
+          views?: string[]
+        }
+      | undefined
+    if (!rules) {
+      return ['The detection rules are served by the API and could not be loaded.']
+    }
+    const threshold = rules.significant_change_pct
+    const bands = (rules.magnitude_bands ?? [])
+      .map((band) => {
+        const upper = band.max_pct === null ? 'and above' : `to ${band.max_pct}%`
+        return `${band.name} (${band.min_pct}% ${upper})`
+      })
+      .join(', ')
+    const steps: string[] = [
+      rules.comparison ?? 'Each run compares the newest snapshot of every product against the previous one.',
+      threshold === undefined
+        ? 'A non-zero difference becomes a chg_price_change row with direction and a magnitude band.'
+        : `A non-zero difference becomes a chg_price_change row with direction, magnitude band and a significance flag (|Δ| ≥ ${threshold}%).`,
+    ]
+    if (bands) steps.push(`Magnitude bands: ${bands}.`)
+    for (const event of rules.lifecycle_events ?? []) {
+      steps.push(event.description)
+    }
+    if (rules.views?.length) {
+      steps.push(`The SQL views ${rules.views.join(', ')} expose all of it to this screen.`)
+    }
+    return steps
+  })()
 
   function onSort(key: string) {
     if (sortBy === key) setSortDir((current) => (current === 'asc' ? 'desc' : 'asc'))
@@ -406,13 +449,7 @@ export default function Changes() {
         <Card>
           <CardHeader title="How changes are detected" subtitle="Pipeline logic" icon={<Activity className="h-4 w-4" />} />
           <ol className="space-y-2 text-xs text-muted">
-            {[
-              'Each run compares the newest snapshot of every product against the previous one (same product, same source).',
-              'A non-zero difference becomes a chg_price_change row with direction, magnitude band and a significance flag (|Δ| ≥ 2%).',
-              'A product seen for the first time emits a "new" lifecycle event; a product missing for more than the staleness window emits "removed".',
-              'A product whose dim_product.category_id changes emits "category_changed" with the old and new category.',
-              'The SQL views vw_price_changes, vw_new_products, vw_removed_products and vw_category_changes expose all of it to this screen.',
-            ].map((step, index) => (
+            {detectionSteps.map((step, index) => (
               <li key={index} className="flex gap-2">
                 <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full brand-soft text-[10px] font-semibold text-brand-700 dark:text-brand-300">
                   {index + 1}

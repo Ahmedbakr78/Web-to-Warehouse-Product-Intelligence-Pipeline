@@ -30,6 +30,18 @@ const RANGES = [
   { id: '180', label: '180d' },
 ]
 
+/** The axes the API compares brands on, in the order it reports them. */
+const RADAR_AXIS_ORDER = ['price_level', 'rating', 'coverage', 'availability', 'freshness']
+
+/** Human labels for the comparison axes. */
+const RADAR_AXIS_LABELS: Record<string, string> = {
+  price_level: 'Price level',
+  rating: 'Rating',
+  coverage: 'Coverage',
+  availability: 'Availability',
+  freshness: 'Freshness',
+}
+
 const BUCKET_LABELS: Record<string, string> = {
   under_10: 'Under $10',
   from_10_to_50: '$10 – $50',
@@ -47,8 +59,17 @@ export default function Analytics() {
   const [selectedCategory, setSelectedCategory] = useState<string>('')
   const [brandLimit, setBrandLimit] = useState('15')
 
+  const metaQuery = useApiQuery(['meta'], endpoints.meta, { staleTime: 900_000 })
+  const meta = metaQuery.data as { views?: number } | undefined
   const categories = useApiQuery(['analytics-categories'], () => endpoints.categories(20), { staleTime: 300_000 })
   const brands = useApiQuery(['analytics-brands', brandLimit], () => endpoints.brands(Number(brandLimit)), { staleTime: 300_000 })
+  // The comparison scores are computed by the API from the warehouse, so the
+  // chart shows measured values rather than client-side estimates.
+  const brandComparison = useApiQuery(
+    ['analytics-brand-comparison'],
+    () => endpoints.brandComparison(5, 30),
+    { staleTime: 300_000 },
+  )
   const availability = useApiQuery(['analytics-availability'], endpoints.availability, { staleTime: 300_000 })
   const index = useApiQuery(
     ['analytics-index', windowDays, selectedCategory],
@@ -104,28 +125,31 @@ export default function Analytics() {
   }, [index.data, selectedCategory])
 
   const radarData = useMemo(() => {
-    const topBrands = (brands.data ?? []).slice(0, 5)
-    const axes = ['Price level', 'Rating', 'Coverage', 'Availability', 'Freshness']
-    return axes.map((axis, indexPosition) => {
-      const point: Record<string, any> = { axis }
-      topBrands.forEach((brand: any) => {
-        const prices = (categories.data ?? []).map((row: any) => Number(row.avg_price ?? 0)).filter(Boolean)
-        const maxPrice = Math.max(1, ...prices)
-        const maxCoverage = Math.max(1, ...topBrands.map((item: any) => Number(item.product_count ?? 0)))
-        const axisScore: Record<string, number> = {
-          'Price level': (Number(brand.avg_price_usd ?? 0) / maxPrice) * 100,
-          Rating: (Number(brand.avg_rating ?? 0) / 5) * 100,
-          Coverage: (Number(brand.product_count ?? 0) / maxCoverage) * 100,
-          Availability: Number(brand.in_stock_observations ?? 0) > 0
-            ? Math.min(100, (Number(brand.in_stock_observations) / Math.max(1, Number(brand.product_count))) * 100)
-            : 40,
-          Freshness: brand.last_seen_at ? Math.min(100, Math.max(30, 100 - (Date.now() - new Date(brand.last_seen_at).getTime()) / 86_400_000)) : 30,
-        }
-        point[brand.brand ?? `brand${indexPosition}`] = Math.round(axisScore[axis] ?? 0)
+    const comparison = brandComparison.data as {
+      axes?: string[]
+      brands?: { brand: string; scores?: Record<string, number | null> }[]
+    } | undefined
+    const axes = comparison?.axes ?? RADAR_AXIS_ORDER
+    const rows = comparison?.brands ?? []
+    return axes.map((axis) => {
+      const point: Record<string, any> = { axis: RADAR_AXIS_LABELS[axis] ?? axis }
+      rows.forEach((brand, index) => {
+        const score = brand.scores?.[axis]
+        // A missing measurement stays missing: the chart shows a gap rather
+        // than a zero that would read as "measured and terrible".
+        point[brand.brand || `brand${index}`] = score === null || score === undefined ? null : Math.round(score)
       })
       return point
     })
-  }, [brands.data, categories.data])
+  }, [brandComparison.data])
+
+  const radarSeries = useMemo(() => {
+    const comparison = brandComparison.data as { brands?: { brand: string }[] } | undefined
+    return (comparison?.brands ?? []).map((brand, index) => ({
+      key: brand.brand || `brand${index}`,
+      label: brand.brand || `Brand ${index + 1}`,
+    }))
+  }, [brandComparison.data])
 
   function exportCategories() {
     const header = ['category', 'observations', 'avg_price', 'min_price', 'max_price', 'avg_rating', 'new_products', 'price_changes']
@@ -310,12 +334,8 @@ export default function Analytics() {
           <div className="space-y-3">
             <Card>
               <CardHeader title="Brand comparison" subtitle="Normalised 0-100 scores" icon={<Star className="h-4 w-4" />} />
-              {(brands.data ?? []).length >= 3 ? (
-                <RadarCompare
-                  data={radarData}
-                  series={(brands.data ?? []).slice(0, 5).map((brand: any) => ({ key: brand.brand, label: brand.brand }))}
-                  height={280}
-                />
+              {radarSeries.length >= 3 ? (
+                <RadarCompare data={radarData} series={radarSeries} height={280} />
               ) : (
                 <EmptyState kind="products" title="Not enough brands to compare" />
               )}
@@ -699,7 +719,8 @@ export default function Analytics() {
       />
 
       <p className="text-[11px] text-subtle">
-        Every figure on this screen is produced by a SQL query over the 23 analytical views in{' '}
+        Every figure on this screen is produced by a SQL query over the{' '}
+        {meta?.views ? `${meta.views} analytical views` : 'analytical views'} in{' '}
         <code className="rounded bg-surface-3 px-1">db/views.sql</code>.{' '}
         <Link to="/query" className="link">
           Inspect the queries

@@ -246,17 +246,15 @@ def purge_untrusted_cmd(
     if not report["sources"]:
         _status_line("Nothing to purge - every source in the warehouse is trusted")
         return
-    rows = [
-        [table, str(count)]
-        for table, count in report["deleted"].items()
-    ]
+    rows = [[table, str(count)] for table, count in report["deleted"].items()]
     rows.append(["dim_product", str(report["products_removed"])])
+    rows.append(["dim_product re-pointed", str(report.get("products_repointed", 0))])
     rows.append(["etl_run", str(report["runs_removed"])])
     _kv_table(
         "Untrusted sources" + (" (dry run)" if dry_run else " - removed"),
-        {code: trust for code, trust in report["sources"].items()},
+        dict(report["sources"]),
     )
-    _kv_table("Rows removed", {table: count for table, count in rows})
+    _kv_table("Rows removed", dict(rows))
     if not dry_run:
         _status_line("Purge complete")
 
@@ -357,7 +355,7 @@ def verify(
 ) -> None:
     """Compare row counts and data-quality posture across database targets."""
     from app.core.db import ping, session_scope
-    from app.etl.bootstrap import table_report
+    from app.etl.bootstrap import schema_inventory, table_report
     from app.etl.dq import latest_report
 
     targets = [item.strip().lower() for item in databases.split(",") if item.strip()]
@@ -419,17 +417,40 @@ def verify(
 
     reachable = {name: payload for name, payload in reports.items() if "error" not in payload}
     if len(reachable) > 1:
-        drift = []
+        # The *shape* has to match: the same tables and the same analytical
+        # views on every target. That is what "one schema, two dialects" means.
+        inventories = {target: schema_inventory(target) for target in reachable}
+        shape_problems: list[str] = []
+        reference = next(iter(inventories.values()))
+        for target, inventory in inventories.items():
+            for kind in ("tables", "views"):
+                missing = sorted(set(reference[kind]) - set(inventory[kind]))
+                extra = sorted(set(inventory[kind]) - set(reference[kind]))
+                if missing or extra:
+                    shape_problems.append(
+                        f"{target} {kind}: missing {missing or 'none'}, extra {extra or 'none'}"
+                    )
+        if shape_problems:
+            console.print("[err]schema drift detected[/]")
+            for item in shape_problems:
+                console.print(f"    - {item}")
+        else:
+            _status_line(
+                f"Identical schema on every target - {len(reference['tables'])} tables and "
+                f"{len(reference['views'])} analytical views, portable across dialects"
+            )
+
+        # Row counts are allowed to differ: two targets are collected at
+        # different times, so they hold different volumes of the same model.
+        volumes = []
         for name in structural:
             values = {target: payload["counts"].get(name) for target, payload in reachable.items()}
             if len(set(values.values())) > 1:
-                drift.append(f"{name}: {values}")
-        if drift:
-            console.print("[err]structural drift detected[/]")
-            for item in drift:
+                volumes.append(f"{name}: {values}")
+        if volumes:
+            console.print("[warn]row counts differ between targets (same schema, different volume)[/]")
+            for item in volumes:
                 console.print(f"    - {item}")
-        else:
-            _status_line("Structural tables are identical on every target - the warehouse model is portable")
         scores = {payload["dq_score"] for payload in reachable.values()}
         if len(scores) == 1:
             _status_line(f"Identical data-quality score across targets ({scores.pop()})")

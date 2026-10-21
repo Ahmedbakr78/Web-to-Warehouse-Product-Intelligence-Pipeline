@@ -184,8 +184,12 @@ class CircuitBreaker:
             self._failures[key] = count
             if count >= self.failure_threshold:
                 self._opened_at[key] = time.monotonic()
-                log.warning("circuit opened for host %s after %d failures; cooling down %.0fs",
-                            key, count, self.reset_seconds)
+                log.warning(
+                    "circuit opened for host %s after %d failures; cooling down %.0fs",
+                    key,
+                    count,
+                    self.reset_seconds,
+                )
 
     def is_open(self, key: str) -> bool:
         with self._lock:

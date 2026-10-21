@@ -41,7 +41,7 @@ import pytest  # noqa: E402
 import sqlalchemy as sa  # noqa: E402
 
 from app.core.db import dispose_all, get_engine, session_scope  # noqa: E402
-from app.etl.bootstrap import bootstrap, drop_views  # noqa: E402
+from app.etl.bootstrap import bootstrap  # noqa: E402
 from app.etl.seed import run_full_seed  # noqa: E402
 from app.models import Base  # noqa: E402
 

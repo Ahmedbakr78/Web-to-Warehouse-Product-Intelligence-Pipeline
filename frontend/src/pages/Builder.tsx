@@ -83,6 +83,8 @@ interface BuilderState {
   minChangePct: string
   maxChangePct: string
   newSinceDays: string
+  /** Only rows observed within this many days. */
+  observedWithinDays: string
   significantOnly: boolean
   activeOnly: boolean
   sortBy: string
@@ -109,6 +111,7 @@ const DEFAULT_STATE: BuilderState = {
   minChangePct: '',
   maxChangePct: '',
   newSinceDays: '',
+  observedWithinDays: '',
   significantOnly: false,
   activeOnly: true,
   sortBy: 'last_seen_at',
@@ -228,7 +231,7 @@ const ENTITY_HINTS: Record<Entity, string> = {
   catalog: 'Compare the internal catalog against scraped market prices.',
   new: 'First-sighting events with source attribution — use New Since (days) to set the window.',
   removed: 'Absent-from-source detection with grace window and last known price.',
-  movers: 'Largest absolute and relative movements, banded flash_sale to minor.',
+  movers: 'Largest absolute and relative movements, banded by magnitude.',
   sources: 'Coverage matrix: products, observations and success rate per permitted source.',
   categories: 'Category leaderboard: observations, average price and rating per category.',
   brands: 'Brand leaderboard: product counts, average price and rating per brand.',
@@ -372,6 +375,10 @@ export default function Builder() {
   }, [state])
 
   const facets = useApiQuery(['facets'], endpoints.facets, { staleTime: 300_000 })
+  // The generated SQL has to run against the *active* database, and the two
+  // dialects spell a date window differently.
+  const metaQuery = useApiQuery(['meta'], endpoints.meta, { staleTime: 900_000 })
+  const dialect = (metaQuery.data as { dialect?: string } | undefined)?.dialect ?? 'postgresql'
   const savedViews = useApiQuery(['saved-views'], () => endpoints.savedViews(), { staleTime: 300_000 })
 
   const productParams = useMemo(() => {
@@ -396,6 +403,7 @@ export default function Builder() {
       min_change_pct: state.minChangePct || undefined,
       max_change_pct: state.maxChangePct || undefined,
       new_since_days: state.newSinceDays || undefined,
+      observed_within_days: state.observedWithinDays || undefined,
       is_active: state.activeOnly || undefined,
     }
   }, [state, debouncedSearch])
@@ -580,9 +588,21 @@ export default function Builder() {
     )
   }
 
-  /** Copy the equivalent SQL query to clipboard for Query Lab or external clients */
-  function copySqlQuery() {
-    let sql = ''
+  /** A date window in the syntax the active dialect understands. */
+  function daysAgo(days: number): string {
+    if (dialect === 'mysql') return `DATE_SUB(NOW(), INTERVAL ${days} DAY)`
+    if (dialect === 'sqlite') return `datetime('now', '-${days} days')`
+    return `NOW() - INTERVAL '${days} days'`
+  }
+
+  /** A case-insensitive LIKE that behaves the same on every dialect. */
+  function likeContains(column: string, value: string): string {
+    const needle = value.replace(/'/g, "''")
+    return `LOWER(${column}) LIKE LOWER('%${needle}%')`
+  }
+
+  /** The SQL that matches the current filters, sort and page size. */
+  function builderSql(): string {
     if (state.entity === 'products' || state.entity === 'new') {
       const wheres: string[] = []
       if (state.activeOnly) wheres.push('is_active = TRUE')
@@ -590,22 +610,50 @@ export default function Builder() {
       if (state.brand) wheres.push(`brand = '${state.brand.replace(/'/g, "''")}'`)
       if (state.source) wheres.push(`source_code = '${state.source.replace(/'/g, "''")}'`)
       if (state.availability) wheres.push(`availability = '${state.availability.replace(/'/g, "''")}'`)
-      if (state.minPrice) wheres.push(`current_price >= ${Number(state.minPrice) || 0}`)
-      if (state.maxPrice) wheres.push(`current_price <= ${Number(state.maxPrice) || 999999}`)
+      if (state.minPrice) wheres.push(`price_usd >= ${Number(state.minPrice) || 0}`)
+      if (state.maxPrice) wheres.push(`price_usd <= ${Number(state.maxPrice) || 999999}`)
       if (state.minRating) wheres.push(`rating >= ${Number(state.minRating) || 0}`)
-      if (state.search) wheres.push(`(canonical_name ILIKE '%${state.search.replace(/'/g, "''")}%' OR brand ILIKE '%${state.search.replace(/'/g, "''")}%')`)
-      if (state.newSinceDays) wheres.push(`first_seen_at >= NOW() - INTERVAL '${Number(state.newSinceDays)} days'`)
+      if (state.search) {
+        wheres.push(`(${likeContains('canonical_name', state.search)} OR ${likeContains('brand', state.search)})`)
+      }
+      if (state.newSinceDays) wheres.push(`first_seen_at >= ${daysAgo(Number(state.newSinceDays))}`)
+      if (state.observedWithinDays) wheres.push(`last_seen_at >= ${daysAgo(Number(state.observedWithinDays))}`)
       const whereClause = wheres.length ? `\nWHERE ${wheres.join('\n  AND ')}` : ''
-      sql = `SELECT canonical_name, brand, category_name, current_price, currency, rating, availability, source_code, last_seen_at\nFROM dim_product${whereClause}\nORDER BY ${state.sortBy} ${state.sortDir.toUpperCase()}\nLIMIT ${state.pageSize};`
-    } else if (state.entity === 'price-changes') {
-      sql = `SELECT product_id, previous_price, new_price, price_change_pct, change_direction, detected_at\nFROM fact_price_change\nORDER BY ${state.sortBy} ${state.sortDir.toUpperCase()}\nLIMIT ${state.pageSize};`
-    } else {
-      sql = `SELECT * FROM ${state.entity === 'quality' ? 'fact_quality_result' : state.entity === 'runs' ? 'etl_run_log' : 'dim_product'}\nLIMIT ${state.pageSize};`
+      // `vw_product_current` is the view the preview itself reads, so the
+      // copied statement returns exactly the columns on screen.
+      return `SELECT canonical_name, brand, category_name, price_usd, currency, rating, availability, source_code, last_seen_at\nFROM vw_product_current${whereClause}\nORDER BY ${state.sortBy} ${state.sortDir.toUpperCase()}\nLIMIT ${state.pageSize};`
     }
+    if (state.entity === 'price-changes') {
+      const wheres: string[] = []
+      if (state.significantOnly) wheres.push('is_significant = TRUE')
+      if (state.search) {
+        wheres.push(`(${likeContains('canonical_name', state.search)} OR ${likeContains('brand', state.search)})`)
+      }
+      if (state.observedWithinDays) wheres.push(`detected_at >= ${daysAgo(Number(state.observedWithinDays))}`)
+      const whereClause = wheres.length ? `\nWHERE ${wheres.join('\n  AND ')}` : ''
+      return `SELECT product_id, canonical_name, previous_price_usd, new_price_usd, change_pct, direction, magnitude_band, detected_at\nFROM vw_price_changes${whereClause}\nORDER BY ${state.sortBy} ${state.sortDir.toUpperCase()}\nLIMIT ${state.pageSize};`
+    }
+    if (state.entity === 'quality') {
+      return `SELECT run_id, rule_code, rule_name, dimension, severity, status, observed_value, pass_rate_pct, message, evaluated_at\nFROM dq_rule_result\nORDER BY ${state.sortBy} ${state.sortDir.toUpperCase()}\nLIMIT ${state.pageSize};`
+    }
+    if (state.entity === 'runs') {
+      return `SELECT run_id, status, trigger, started_at, finished_at, duration_ms, records_extracted, records_inserted, dq_score\nFROM etl_run\nORDER BY ${state.sortBy} ${state.sortDir.toUpperCase()}\nLIMIT ${state.pageSize};`
+    }
+    return `SELECT * FROM vw_product_current\nLIMIT ${state.pageSize};`
+  }
+
+  /** Copy the equivalent SQL query to clipboard for Query Lab or external clients */
+  function copySqlQuery() {
+    const sql = builderSql()
     navigator.clipboard?.writeText(sql).then(
       () => toast.success('SQL query copied', 'Ready to paste into Query Lab or PostgreSQL / MySQL console.'),
       () => toast.error('Clipboard unavailable', sql),
     )
+  }
+
+  /** Hand the current composition to the Query Lab, ready to run. */
+  function openInQueryLab() {
+    navigate(`/query?sql=${encodeURIComponent(builderSql())}`)
   }
 
   function applyPreset(preset: typeof BUILDER_PRESETS[0]) {
@@ -689,7 +737,21 @@ export default function Builder() {
           <ChipGroup
             options={(Object.keys(ENTITY_COLUMNS) as Entity[]).map((entity) => ({ id: entity, label: titleCase(entity) }))}
             value={state.entity}
-            onChange={(entity) => patch({ entity: entity as Entity })}
+            onChange={(entity) => {
+              const next = entity as Entity
+              // Each entity has its own columns. Keeping the previous
+              // selection would leave the new table with no columns at all
+              // (and an empty table is what the DataTable cannot render), so
+              // the selection is carried over where it still applies and
+              // completed from the entity's own set where it does not.
+              const available = ENTITY_COLUMNS[next].map((column) => column.key)
+              const kept = state.columns.filter((key) => available.includes(key))
+              patch({
+                entity: next,
+                columns: kept.length ? kept : available,
+                pinned: state.pinned.filter((key) => available.includes(key)),
+              })
+            }}
           />
           <span className="ml-auto flex items-center gap-2 text-xs text-subtle">
             <Filter className="h-3.5 w-3.5" aria-hidden />
@@ -802,6 +864,15 @@ export default function Builder() {
                 <TextInput placeholder="min" value={state.minPrice} onChange={(event) => patch({ minPrice: event.target.value })} inputMode="decimal" />
                 <TextInput placeholder="max" value={state.maxPrice} onChange={(event) => patch({ maxPrice: event.target.value })} inputMode="decimal" />
               </div>
+            </div>
+            <div>
+              <p className="stat-label mb-1.5">Observed within (days)</p>
+              <TextInput
+                placeholder="e.g. 7"
+                value={state.observedWithinDays}
+                onChange={(event) => patch({ observedWithinDays: event.target.value })}
+                inputMode="numeric"
+              />
             </div>
             <div>
               <p className="stat-label mb-1.5">Min rating</p>
@@ -1012,6 +1083,9 @@ export default function Builder() {
             </Button>
             <Button size="sm" variant="ghost" icon={<Terminal className="h-4 w-4" />} onClick={copySqlQuery}>
               Copy SQL
+            </Button>
+            <Button size="sm" variant="ghost" icon={<Terminal className="h-4 w-4" />} onClick={openInQueryLab}>
+              Run in query lab
             </Button>
             <Button size="sm" variant="ghost" icon={<Link2 className="h-4 w-4" />} onClick={copyShareLink}>
               Share link
@@ -1338,6 +1412,7 @@ function sanitizeBuilderState(candidate: any): BuilderState | null {
     minChangePct: text(candidate.min_change_pct),
     maxChangePct: text(candidate.max_change_pct),
     newSinceDays: text(candidate.new_since_days),
+    observedWithinDays: text(candidate.observed_within_days),
     significantOnly: flag(candidate.significant_only),
     activeOnly: candidate.active_only === undefined ? true : flag(candidate.active_only),
     sortBy: typeof candidate.sort_by === 'string' && sortValues.has(candidate.sort_by) ? candidate.sort_by : 'last_seen_at',
@@ -1484,7 +1559,12 @@ function buildColumns(entity: Entity, visible: string[], pinned: string[] = []):
       out_of_stock: { key: 'out_of_stock', header: 'Out of stock', align: 'right', hideBelow: 'sm', render: (row: any) => formatNumber(row.out_of_stock_count ?? 0) },
     },
   }
-  return Object.entries(all[entity])
+  const selected = Object.entries(all[entity])
     .filter(([key]) => has(key))
     .map(([, column]) => (isPinned(column.key) ? { ...column, pinned: true } : column))
+  if (selected.length) return selected
+  // A table with no columns cannot render. Falling back to the entity's own
+  // first columns keeps the screen usable even if a stored view names
+  // columns that this entity does not have.
+  return Object.values(all[entity]).slice(0, 4)
 }

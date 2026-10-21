@@ -68,7 +68,9 @@ class SteamStoreSource(ProductSource):
     base_url: ClassVar[str] = "https://store.steampowered.com/api/appdetails"
     reviews_url: ClassVar[str] = "https://store.steampowered.com/appreviews/{appid}"
     terms_url: ClassVar[str] = "https://partner.steamgames.com/doc/webapi#conditions"
-    license_note: ClassVar[str] = "Steam storefront data © Valve - keyless public endpoints, conservative budget."
+    license_note: ClassVar[str] = (
+        "Steam storefront data © Valve - keyless public endpoints, conservative budget."
+    )
     default_currency: ClassVar[str] = "USD"
     rate_limit_per_minute: ClassVar[int] = 20
     min_delay_seconds: ClassVar[float] = 1.5

@@ -9,11 +9,32 @@ import { Button, IconButton } from '@/components/ui'
 import { useTheme } from '@/lib/theme'
 import { localStore } from '@/lib/session'
 
-const FEATURES = [
-  { icon: Database, title: '23 analytical views', copy: 'Kimball star schema over PostgreSQL and MySQL' },
-  { icon: ShieldCheck, title: '12 DQ rules', copy: 'Completeness, validity, uniqueness, accuracy, timeliness' },
-  { icon: Zap, title: 'Change detection', copy: 'Price changes, new arrivals, removals, recategorisations' },
-]
+type FeatureTile = { icon: typeof Database; title: string; copy: string }
+
+/** The tiles are built from what the running API reports about itself. */
+function featureTiles(meta: any, ruleCount: number | null): FeatureTile[] {
+  const views = Number(meta?.views ?? 0)
+  const tables = Number(meta?.tables ?? 0)
+  return [
+    {
+      icon: Database,
+      title: views ? `${views} analytical views` : 'Kimball star schema',
+      copy: tables
+        ? `${tables} warehouse tables over PostgreSQL and MySQL`
+        : 'Kimball star schema over PostgreSQL and MySQL',
+    },
+    {
+      icon: ShieldCheck,
+      title: ruleCount ? `${ruleCount} DQ rules` : 'Data-quality rules',
+      copy: 'Completeness, validity, uniqueness, accuracy, timeliness',
+    },
+    {
+      icon: Zap,
+      title: 'Change detection',
+      copy: 'Price changes, new arrivals, removals, recategorisations',
+    },
+  ]
+}
 
 export default function LoginPage() {
   const { authenticated, login, register, ready } = useAuth()
@@ -36,6 +57,7 @@ export default function LoginPage() {
 
   const { data: meta } = useQuery({ queryKey: ['meta'], queryFn: endpoints.meta, retry: 0 })
   const { data: demo } = useQuery({ queryKey: ['demo-accounts'], queryFn: endpoints.demoAccounts, retry: 0 })
+  const { data: rules } = useQuery({ queryKey: ['quality-rules'], queryFn: endpoints.qualityRules, retry: 0 })
 
   useEffect(() => {
     document.title = 'Sign in · Product Intelligence Pipeline'
@@ -107,7 +129,7 @@ export default function LoginPage() {
         </div>
 
         <div className="relative grid gap-3">
-          {FEATURES.map((feature) => (
+          {featureTiles(meta, rules?.length ?? null).map((feature) => (
             <div key={feature.title} className="flex items-start gap-3 rounded-xl border border-line bg-surface/70 p-3.5">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg brand-soft text-brand-700 dark:text-brand-300">
                 <feature.icon className="h-4 w-4" aria-hidden />

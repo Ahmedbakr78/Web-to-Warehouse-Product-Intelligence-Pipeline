@@ -40,6 +40,7 @@ PROVIDERS: tuple[tuple[str, str, str], ...] = (
     ("frankfurter.dev", "https://api.frankfurter.dev/v1/latest?base=USD", "frankfurter"),
 )
 
+
 #: When false the module never touches the network and always serves the
 #: static reference table. The test suite sets this so a run is hermetic: a
 #: live exchange rate moves every day, and a test that asserts a specific rate
@@ -170,6 +171,7 @@ def current_rates() -> dict[str, float]:
     if _cache:
         return _cache
     return dict(STATIC_FX_RATES)
+
 
 def rate_metadata() -> dict[str, Any]:
     """Where the rate table came from and how old it is."""

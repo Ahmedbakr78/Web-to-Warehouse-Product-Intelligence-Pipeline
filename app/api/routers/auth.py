@@ -112,7 +112,7 @@ def _audit(
             action=action,
             status=status,
             ip_address=client_ip(request)[:64],
-            user_agent=request.headers.get("user-agent", "")[:255],
+            user_agent=request.headers.get("user-agent", "")[:512],
             details=details or None,
         )
     )

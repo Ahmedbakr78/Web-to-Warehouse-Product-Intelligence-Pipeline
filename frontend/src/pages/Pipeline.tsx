@@ -96,6 +96,9 @@ export default function Pipeline() {
 
   const runRows = runs.data?.items ?? []
   const totals = stages.data?.totals ?? {}
+  // The descriptions are served by the API, keyed by stage name, so a stage
+  // can never be described by the wrong entry.
+  const stageDescriptions = (stages.data?.descriptions ?? {}) as Record<string, string>
 
   const statusCounts = useMemo(() => {
     const counts: Record<string, number> = {}
@@ -359,10 +362,12 @@ export default function Pipeline() {
           <Card className="xl:col-span-2">
             <CardHeader title="Stage catalogue" subtitle="What each pipeline stage is responsible for" icon={<ListTree className="h-4 w-4" />} />
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {(stages.data?.stages ?? []).map((stage: string, index: number) => (
+              {(stages.data?.stages ?? []).map((stage: string) => (
                 <div key={stage} className="rounded-lg border border-line bg-surface-2 px-3 py-2">
                   <p className="font-mono text-xs font-medium">{stage}</p>
-                  <p className="mt-0.5 text-[11px] text-subtle">{STAGE_DESCRIPTIONS[index] ?? ''}</p>
+                  <p className="mt-0.5 text-[11px] text-subtle">
+                    {stageDescriptions[stage] ?? 'No description published for this stage.'}
+                  </p>
                 </div>
               ))}
             </div>
@@ -550,18 +555,6 @@ export default function Pipeline() {
     </div>
   )
 }
-
-const STAGE_DESCRIPTIONS = [
-  'robots.txt-gated HTTP fetch of APIs and permitted pages',
-  'raw payloads land in the staging zone unchanged',
-  'clean names and categories, normalise price and currency',
-  'exact, blocking and fuzzy matching against existing products',
-  'upsert dimensions, append immutable price snapshots',
-  'compare with the previous snapshot and emit change events',
-  'match the internal catalog and compute the price gap',
-  'evaluate 12 rules across 6 quality dimensions',
-  'refresh the pre-aggregated category/day rollup',
-]
 
 /* ------------------------------------------------------------------ run comparison */
 type RunSummary = {

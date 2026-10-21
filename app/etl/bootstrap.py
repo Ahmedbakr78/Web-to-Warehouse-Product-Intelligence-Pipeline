@@ -170,6 +170,22 @@ def table_report(database: str | None = None) -> list[dict[str, Any]]:
     return report
 
 
+def schema_inventory(database: str | None = None) -> dict[str, list[str]]:
+    """Every table and view a target actually has.
+
+    Two targets holding different amounts of data is normal - they were
+    collected at different times and from different numbers of sources. What
+    must match is the *shape*: the same tables and the same analytical views.
+    This inventory is what proves the model is portable.
+    """
+    engine = get_engine(database)
+    inspector = sa.inspect(engine)
+    return {
+        "tables": sorted(inspector.get_table_names()),
+        "views": sorted(inspector.get_view_names()),
+    }
+
+
 # --------------------------------------------------------------------------------------
 # Reference data
 # --------------------------------------------------------------------------------------
@@ -502,6 +518,7 @@ __all__ = [
     "seed_dim_currency",
     "ensure_date_range",
     "sync_dim_source",
+    "schema_inventory",
     "sync_registry_sources",
     "bootstrap",
     "apply_views",

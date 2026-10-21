@@ -556,8 +556,18 @@ KRAKEN_PAIRS = {
 KRAKEN_TICKERS = {
     "error": [],
     "result": {
-        "XXBTZUSD": {"c": ["82846.0", "1.2"], "h": ["84340.0", "84340.0"], "l": ["82823.0", "82823.0"], "o": "84100.0"},
-        "XETHZUSD": {"c": ["3100.5", "3.0"], "h": ["3200.0", "3200.0"], "l": ["3050.0", "3050.0"], "o": "3150.0"},
+        "XXBTZUSD": {
+            "c": ["82846.0", "1.2"],
+            "h": ["84340.0", "84340.0"],
+            "l": ["82823.0", "82823.0"],
+            "o": "84100.0",
+        },
+        "XETHZUSD": {
+            "c": ["3100.5", "3.0"],
+            "h": ["3200.0", "3200.0"],
+            "l": ["3050.0", "3050.0"],
+            "o": "3150.0",
+        },
     },
 }
 
@@ -1057,7 +1067,10 @@ def test_pokemontcg_falls_back_across_price_bands():
     from app.ingestion.sources.pokemontcg import PokemonTcgCardsSource
 
     source = PokemonTcgCardsSource()
-    reverse_only = {**POKEMON_ITEM, "tcgplayer": {"prices": {"reverseHolofoil": {"market": 3.0, "high": 6.0}}}}
+    reverse_only = {
+        **POKEMON_ITEM,
+        "tcgplayer": {"prices": {"reverseHolofoil": {"market": 3.0, "high": 6.0}}},
+    }
     raw = source._to_raw(reverse_only)
     assert raw is not None and raw.price_text == "3.0"
     assert raw.payload["price_kind"] == "reverseHolofoil"
@@ -1300,7 +1313,11 @@ def test_itunes_ebooks_dedupes_tracks_across_terms():
 # --------------------------------------------------------------------------------------
 # RESTful-API.dev objects
 # --------------------------------------------------------------------------------------
-RESTFUL_ITEM = {"id": "1", "name": "Google Pixel 6 Pro", "data": {"color": "Cloudy White", "capacity": "128 GB", "price": 899.99, "brand": "Google"}}
+RESTFUL_ITEM = {
+    "id": "1",
+    "name": "Google Pixel 6 Pro",
+    "data": {"color": "Cloudy White", "capacity": "128 GB", "price": 899.99, "brand": "Google"},
+}
 
 
 def test_restful_objects_maps_sparse_prices():

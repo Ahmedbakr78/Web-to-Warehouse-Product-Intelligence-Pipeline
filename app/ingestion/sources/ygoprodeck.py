@@ -115,8 +115,11 @@ class YGOProDeckCardsSource(ProductSource):
         if isinstance(prices, list) and prices:
             first = prices[0] if isinstance(prices[0], dict) else {}
             for key in ("tcgplayer_price", "cardmarket_price", "ebay_price"):
+                raw = first.get(key)
+                if raw is None:
+                    continue
                 try:
-                    amount = float(first.get(key))
+                    amount = float(raw)
                 except (TypeError, ValueError):
                     continue
                 if amount > 0:
@@ -124,8 +127,11 @@ class YGOProDeckCardsSource(ProductSource):
         for card_set in item.get("card_sets") or []:
             if not isinstance(card_set, dict):
                 continue
+            raw = card_set.get("set_price")
+            if raw is None:
+                continue
             try:
-                amount = float(card_set.get("set_price"))
+                amount = float(raw)
             except (TypeError, ValueError):
                 continue
             if amount > 0:
