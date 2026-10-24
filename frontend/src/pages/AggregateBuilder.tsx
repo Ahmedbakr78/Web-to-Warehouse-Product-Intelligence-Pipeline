@@ -246,6 +246,17 @@ export default function AggregateBuilder() {
     )
   }
 
+  function applyTemplate(tmpl: (typeof AGG_TEMPLATES)[number]) {
+    setEntity(tmpl.entity)
+    setGroupBy(tmpl.groupBy)
+    setAggregates(tmpl.aggregates.map((agg) => ({ ...agg })))
+    setFilters([])
+    setSortColumn(tmpl.sortColumn)
+    setSortDir(tmpl.sortDir)
+    setLimit(25)
+    toast.success('Template applied', tmpl.label)
+  }
+
   if (schemaQuery.isLoading) return <LoadingState label="Loading builder schema…" rows={4} />
   if (schemaQuery.isError) return <ErrorState message={(schemaQuery.error as Error)?.message} onRetry={() => schemaQuery.refetch()} />
 
@@ -277,6 +288,29 @@ export default function AggregateBuilder() {
               Reset
             </Button>
           </div>
+        </div>
+      </Card>
+
+      {/* ------------------------------------------------------------- quick templates */}
+      <Card>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line pb-2.5">
+          <CardHeader
+            title="Instant analytical templates"
+            subtitle="Pre-configured aggregation queries across price, rating, inventory and coverage"
+            icon={<Zap className="h-4 w-4" />}
+          />
+        </div>
+        <div className="flex flex-wrap gap-2 pt-3">
+          {AGG_TEMPLATES.map((tmpl) => (
+            <button
+              key={tmpl.label}
+              onClick={() => applyTemplate(tmpl)}
+              className="flex items-center gap-1.5 rounded-lg border border-line bg-surface-2 px-3 py-1.5 text-xs font-medium text-ink transition hover:border-brand-500 hover:bg-surface-3"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-brand-500" />
+              {tmpl.label}
+            </button>
+          ))}
         </div>
       </Card>
 

@@ -2577,8 +2577,28 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
                 "detail": "Every active filter is listed as a removable chip with a one-click clear-all",
             },
             {
-                "name": "Twelve builder presets",
-                "detail": "Drops, hikes, delistings, catalog mismatches, DQ failures and stale stock in one click",
+                "name": "16 builder presets",
+                "detail": "Drops, hikes, delistings, catalog mismatches, DQ failures, stale stock, high rating deals, critical breaches, freebies and in-stock leaders in one click",
+            },
+            {
+                "name": "Instant analytical aggregation templates",
+                "detail": "Pre-configured group-by queries across average price, coverage by source, ratings, price change bands, and DQ dimensions",
+            },
+            {
+                "name": "Role profile presets in Account",
+                "detail": "One-click switching between Developer, Analyst, Executive, and default workspace configurations",
+            },
+            {
+                "name": "Diagnostics snapshot & cache purge",
+                "detail": "Export JSON system diagnostic report and purge in-memory TanStack query cache",
+            },
+            {
+                "name": "Zero-scrollbar frameless UI",
+                "detail": "Hidden scrollbars across all devices while retaining 100% scrollability via wheel, trackpad, and touch",
+            },
+            {
+                "name": "Edge-docked mobile slidebar",
+                "detail": "Native mobile drawer layout with touch swipe gestures, accessible Tab trapping, and backdrop dismiss",
             },
             {
                 "name": "Warehouse timestamp sanity",

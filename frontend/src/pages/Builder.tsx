@@ -398,6 +398,30 @@ const BUILDER_PRESETS: { name: string; icon: LucideIcon; entity: Entity; patch: 
     entity: 'products',
     patch: { newSinceDays: '90', sortBy: 'last_seen_at', sortDir: 'asc' },
   },
+  {
+    name: 'High Drops & Top Rated',
+    icon: Flame,
+    entity: 'products',
+    patch: { minRating: '4.0', maxPrice: '100', sortBy: 'price_change_pct', sortDir: 'asc' },
+  },
+  {
+    name: 'Critical Severity Breaches',
+    icon: TriangleAlert,
+    entity: 'quality',
+    patch: { availability: 'critical', sortBy: 'severity', sortDir: 'desc' },
+  },
+  {
+    name: 'Zero-Cost Free Resources',
+    icon: BadgeDollarSign,
+    entity: 'products',
+    patch: { maxPrice: '0', inStock: 'true', sortBy: 'last_seen_at', sortDir: 'desc' },
+  },
+  {
+    name: 'High In-Stock Categories',
+    icon: CheckCheck,
+    entity: 'availability',
+    patch: { sortBy: 'in_stock_pct', sortDir: 'desc' },
+  },
 ]
 
 export default function Builder() {
