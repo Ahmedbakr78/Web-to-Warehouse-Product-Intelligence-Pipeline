@@ -277,11 +277,9 @@
   html,
   body {
     height: 100%;
+    overflow-x: hidden;
   }
 
-  /* Scrollbars are hidden app-wide. Navigation stays scrollable with the wheel,
-     trackpad, touch and keyboard, but there is no visible bar and no reserved
-     gutter, so the layout never shifts between a short and a long page. */
   html {
     scrollbar-gutter: auto;
     -webkit-text-size-adjust: 100%;
@@ -296,13 +294,9 @@
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'tnum';
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    /* Kill the iOS URL-bar viewport jitter: 100dvh tracks the real visible area. */
     min-height: 100dvh;
   }
 
-  /* Motion policy: only short, functional transitions - no decorative animation,
-     and crucially NO global smooth scrolling (that is what made navigation and
-     hash restores feel like the page was drifting). */
   * {
     animation-duration: 0.12s;
     animation-timing-function: cubic-bezier(0.2, 0, 0.2, 1);
@@ -311,7 +305,6 @@
     scroll-behavior: auto;
   }
 
-  /* Opt-in smooth scrolling, used only where a jump is intentional. */
   [data-smooth-scroll] {
     scroll-behavior: smooth;
   }
@@ -327,8 +320,6 @@
     }
   }
 
-  /* Account -> Appearance motion control. `full` honours the OS, `reduced` and
-     `none` force everything instant regardless of the operating system. */
   html[data-motion='reduced'] *,
   html[data-motion='reduced'] *::before,
   html[data-motion='reduced'] *::after,
@@ -342,18 +333,6 @@
     scroll-behavior: auto !important;
   }
 
-  /* `full` must not defeat an OS-level reduce preference. */
-  @media (prefers-reduced-motion: reduce) {
-    html[data-motion='full'] *,
-    html[data-motion='full'] *::before,
-    html[data-motion='full'] *::after {
-      animation-duration: 0.001ms !important;
-      transition-duration: 0.001ms !important;
-    }
-  }
-
-  /* `none` additionally kills spinners and progress indicators, which are the only
-     genuinely animated elements in the app. */
   html[data-motion='none'] .animate-spin {
     animation: none !important;
   }
@@ -369,14 +348,22 @@
     color: var(--brand-900);
   }
 
-  /* --------------------------- deleted / hidden scrollbars ------------------------------
-     Zero-scrollbar modern clean aesthetic across the full application (Firefox + WebKit + Blink).
-     Wheel, trackpad, touch swipe, keyboard arrows, and programmatic scroll keep working 100%. */
-  * {
+  /* Scrollbars are deleted / hidden app-wide across all browsers and devices.
+     Navigation, tables and lists remain 100% scrollable with wheel, trackpad,
+     touch swipe and keys, with zero visible tracks, zero thumbs and zero jitter. */
+  html,
+  body,
+  #root,
+  *,
+  *::before,
+  *::after {
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
   }
 
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  #root::-webkit-scrollbar,
   *::-webkit-scrollbar {
     display: none !important;
     width: 0 !important;

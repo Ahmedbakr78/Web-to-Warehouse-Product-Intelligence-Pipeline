@@ -452,7 +452,7 @@ export function NavDrawer({ open, onClose, ref }: { open: boolean; onClose: () =
       tabIndex={-1}
     >
       <div className="absolute inset-0 bg-[var(--overlay)] backdrop-blur-sm" onClick={onClose} aria-hidden />
-      <aside className="relative m-3 flex h-[calc(100dvh-1.5rem)] w-[19rem] max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded-2xl border border-line bg-[var(--sidebar-bg)] pb-[env(safe-area-inset-bottom)] shadow-2xl">
+      <aside className="relative flex h-[100dvh] w-[19rem] max-w-[85vw] flex-col overflow-hidden border-r border-line bg-[var(--sidebar-bg)] pb-[env(safe-area-inset-bottom)] shadow-2xl sm:m-3 sm:h-[calc(100dvh-1.5rem)] sm:rounded-2xl sm:border">
         <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-line px-4">
           <div className="flex min-w-0 items-center gap-2.5">
             <img src="/logo.png" alt="Product Intelligence logo" className="h-8 w-8 rounded-lg" />
