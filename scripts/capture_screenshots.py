@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
+
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
