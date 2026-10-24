@@ -1,49 +1,48 @@
 
-graph TB
-    subgraph Client["Browser / PWA"]
-        DASH["React 19 dashboard<br/>23 screens, light & dark"]
-        PAL["Command palette<br/>Ctrl/Cmd-K"]
+flowchart LR
+    subgraph Warehouse["Warehouse Tables"]
+        WH[("Staged & Loaded<br/>Warehouse Data")]
     end
-    subgraph Edge["FastAPI application"]
-        ROUTES["24 routers<br/>222 operations"]
-        AUTH["Security layer<br/>Argon2id · JWT · API keys · RBAC"]
-        GUARD["Guards<br/>error envelope · GZip · timing · rate limit"]
-        BUILDER["Builder DSL<br/>whitelist to parameterised SELECT"]
-        QLAB["Query lab<br/>SELECT / WITH / EXPLAIN only"]
-    end
-    subgraph Domain["Domain services"]
-        ING["Ingestion<br/>robots · rate limit · cache"]
-        ETL["ETL pipeline<br/>9 stages"]
-        DQ["Data quality<br/>12 rules / 6 dimensions"]
-        AN["Analytics<br/>23 views + reports"]
-        REC["Catalog reconciler"]
-    end
-    subgraph Store["Warehouse"]
-        PG[("PostgreSQL 16<br/>29 tables · 23 views")]
-        MY[("MySQL 8.4<br/>same schema")]
-    end
-    subgraph Sources["Permitted sources"]
-        S1["JSON APIs"]
-        S2["HTML scrape<br/>BeautifulSoup + lxml"]
-        S3["Offline fixture"]
-    end
-    AF["Apache Airflow 2.10<br/>14 tasks, daily 03:00"]
 
-    DASH --> ROUTES
-    PAL --> ROUTES
-    ROUTES --> AUTH --> GUARD
-    ROUTES --> BUILDER
-    ROUTES --> QLAB
-    ROUTES --> AN
-    ROUTES --> DQ
-    ROUTES --> REC
-    ETL --> ING --> Sources
-    ETL --> DQ
-    ETL --> REC
-    ETL --> Store
-    AN --> Store
-    DQ --> Store
-    REC --> Store
-    AN -.SQL.-> QLAB
-    AF -->|"REST transport"| ROUTES
-    AF --> ETL
+    subgraph Rules["Automated 12-Rule Quality Gatekeeper"]
+        direction TB
+        subgraph Dim1["Completeness (Weight 20%)"]
+            R1["R1: Product Name Not Null"]
+            R2["R2: Price Is Positive & Finite"]
+        end
+        subgraph Dim2["Uniqueness (Weight 20%)"]
+            R3["R3: Unique Source Product IDs"]
+            R4["R4: No Duplicate Daily Snapshots"]
+        end
+        subgraph Dim3["Validity (Weight 15%)"]
+            R5["R5: Standard ISO Currency Codes"]
+            R6["R6: Ratings Scaled in [0.0, 5.0]"]
+        end
+        subgraph Dim4["Consistency (Weight 15%)"]
+            R7["R7: Currency FX Rate In Bounds"]
+            R8["R8: Price Change Mathematical Parity"]
+        end
+        subgraph Dim5["Integrity (Weight 15%)"]
+            R9["R9: Category Foreign Key Integrity"]
+            R10["R10: Date Dimension Conformance"]
+        end
+        subgraph Dim6["Timeliness (Weight 15%)"]
+            R11["R11: Snapshot Freshness < 24 Hours"]
+            R12["R12: ETL Ingestion Latency Ceiling"]
+        end
+    end
+
+    subgraph Scoring["Quality Scoring & Audit"]
+        ScoreEngine["Weighted Composite Scorer<br/>(Target >= 95% Pass Threshold)"]
+        AuditLog[("dq_rule_result<br/>(Verdicts, Defect Rows, Score)")]
+        AlertGate{"Score >= 95%?"}
+        Pass["Pipeline Approved & KPIs Live"]
+        Warning["Severity Alert Dispatched<br/>(Slack / Webhook / Dashboard)"]
+    end
+
+    WH --> R1 & R2 & R3 & R4 & R5 & R6 & R7 & R8 & R9 & R10 & R11 & R12
+    R1 & R2 & R3 & R4 & R5 & R6 & R7 & R8 & R9 & R10 & R11 & R12 --> ScoreEngine
+    ScoreEngine --> AuditLog
+    AuditLog --> AlertGate
+    AlertGate -- "Pass" --> Pass
+    AlertGate -- "Warning / Defect" --> Warning

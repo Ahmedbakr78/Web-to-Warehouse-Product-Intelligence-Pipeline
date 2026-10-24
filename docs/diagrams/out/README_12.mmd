@@ -1,32 +1,19 @@
 
-sequenceDiagram
-    autonumber
-    participant SRC as Source adapter
-    participant HC as HTTP client (the only egress point)
-    participant CB as Circuit breaker
-    participant RB as robots cache
-    participant RL as Rate limiter
-    participant NET as The web
-    participant LOG as ingestion_http_log
+stateDiagram-v2
+    [*] --> Discovered: Ingested from Permitted Source
+    Discovered --> Fingerprinted: Deterministic SHA-256 Fingerprint
+    Fingerprinted --> Deduplicated: Entity Resolution (Similarity >= 0.90)
+    
+    state Deduplicated {
+        [*] --> NewProduct: First Sighting
+        NewProduct --> ActiveTracking: dim_product Insert (v1)
+        ActiveTracking --> UnchangedObservation: Price Identical
+        ActiveTracking --> PriceChanged: Abs/Pct Price Shift
+        PriceChanged --> ActiveTracking: Append fact_price_snapshot
+        ActiveTracking --> AvailabilityShift: Stock Status Toggle
+        AvailabilityShift --> ActiveTracking: Update Availability Dimension
+    }
 
-    SRC->>HC: get(url)
-    HC->>CB: is this host open?
-    alt breaker open after 5 failures
-        CB-->>HC: skip — zero network I/O
-        HC->>LOG: record circuit_open
-        HC-->>SRC: SkipRequest
-    else closed
-        HC->>RB: allowed(host, path)?
-        RB-->>HC: decision + crawl_delay
-        HC->>LOG: record robots decision
-        alt disallowed by robots.txt
-            HC-->>SRC: ComplianceError — nothing fetched
-        else allowed
-            HC->>RL: acquire delay
-            RL-->>HC: slowest of global, budget and Crawl-delay
-            HC->>NET: the actual request
-            NET-->>HC: response
-            HC->>LOG: status, latency, bytes, retries
-            HC-->>SRC: FetchResult
-        end
-    end
+    ActiveTracking --> CatalogReconciled: Matched to Retailer SKU
+    CatalogReconciled --> CategoryRollup: agg_category_daily Rollup
+    CategoryRollup --> [*]: Queryable in Analytical Views

@@ -1,14 +1,34 @@
 
-flowchart LR
-    subgraph Run["One etl_run, nine stages"]
-        direction LR
-        S1["1 retrieve"] --> S2["2 validate"] --> S3["3 clean"] --> S4["4 stage"]
-        S4 --> S5["5 load dims"] --> S6["6 load facts"] --> S7["7 dedupe"]
-        S7 --> S8["8 detect"] --> S9["9 quality"]
+flowchart TD
+    subgraph Ingestion["Permitted Web & API Ingestion"]
+        Ext["Scraped / API Products<br/>(17+ Live Permitted Sources)"]
+        Clean["29-Step Normaliser<br/>& Currency FX Converter"]
+        Ext --> Clean
     end
-    S1 -.records_extracted.-> RC[("etl_run counters")]
-    S4 -.records_rejected.-> RC
-    S6 -.records_inserted.-> RC
-    S7 -.duplicates_merged.-> RC
-    S8 -.price_changes.-> RC
-    S9 -.dq_score.-> RC
+
+    subgraph InternalCatalog["Retailer Internal Systems"]
+        InternalDB[("Internal Product Catalog<br/>catalog_product (SKUs, List Price, Cost)")]
+    end
+
+    subgraph Matcher["Reconciliation & Gap Engine"]
+        DirectSKU{"Exact SKU / EAN<br/>Match?"}
+        FuzzyToken{"Token Similarity<br/>>= 0.85 Threshold?"}
+        BrandGate{"Brand & Category<br/>Compatible?"}
+        GapCalc["Price Gap Analysis Engine<br/>Delta = (Ext_Price - Int_Price) / Int_Price"]
+    end
+
+    subgraph Warehouse["Warehouse Core (PostgreSQL + MySQL)"]
+        MatchFact[("fact_catalog_snapshot<br/>• match_score<br/>• price_gap_pct<br/>• match_status")]
+        PriceGaps[("v_catalog_price_gaps<br/>• Underpriced Alerts<br/>• Margin Opportunities")]
+    end
+
+    Clean --> DirectSKU
+    InternalDB --> DirectSKU
+    DirectSKU -- "Yes (Score 1.0)" --> GapCalc
+    DirectSKU -- "No" --> FuzzyToken
+    FuzzyToken -- "Yes" --> BrandGate
+    BrandGate -- "Valid Match" --> GapCalc
+    BrandGate -- "No Match" --> Unmatched["Unmatched / Competitor-Only SKU"]
+    FuzzyToken -- "No Match" --> Unmatched
+    GapCalc --> MatchFact
+    MatchFact --> PriceGaps

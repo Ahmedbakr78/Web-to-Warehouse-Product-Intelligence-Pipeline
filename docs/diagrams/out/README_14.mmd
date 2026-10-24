@@ -1,84 +1,36 @@
 
-classDiagram
-    class ProductSource {
-        <<abstract>>
-        +code: str
-        +name: str
-        +kind: str
-        +base_url: str
-        +terms_allowed: bool
-        +rate_limit_per_minute: int
-        +fetch(limit) Iterator~RawProduct~
-        +health_check() dict
-        +close() None
-    }
-    class RawProduct {
-        +source_code: str
-        +source_product_id: str
-        +name: str
-        +price_text: str
-        +currency_hint: str
-        +rating_text: str
-        +availability_text: str
-        +url: str
-        +payload: dict
-        +content_hash: str
-    }
-    class NormalizedProduct {
-        +canonical_name: str
-        +normalized_name: str
-        +fingerprint: str
-        +blocking_key: str
-        +category: str
-        +price_usd: float
-        +rating: float
-        +availability: str
-        +quality_flags: list
-        +is_valid: bool
-        +reject_reason: str
-        +flag(code)
-    }
-    class CompliantHttpClient {
-        +requests_per_second: float
-        +requests_per_minute: int
-        +get(url) Response
-        +request(method, url) Response
-    }
-    class RobotsCache {
-        +can_fetch(url) Decision
-        +stats() dict
-    }
-    class CatalogReconciler {
-        +run(persist) list
-        +match_one(row, candidates, prices)
-    }
-    class WarehouseLoader {
-        +stage(records) int
-        +upsert_product(record, match) tuple
-        +insert_snapshot(...) int
-        +detect_removed(...) int
-        +refresh_category_daily(...) int
-    }
-    class DedupeEngine {
-        +fingerprint(name, brand) str
-        +similarity(a, b) float
-        +match(record, candidates) Match
-    }
-    class Pipeline {
-        +run() PipelineResult
-    }
+sequenceDiagram
+    autonumber
+    actor Client as User / Dashboard / Airflow
+    participant Proxy as Reverse Proxy (Nginx)
+    participant RateLimit as Token-Bucket Rate Limiter
+    participant Auth as Auth & RBAC Middleware
+    participant Guard as Read-Only SQL Guard
+    participant API as FastAPI 0.142 (24 Routers)
+    participant DB as Warehouse (PG / MySQL)
 
-    ProductSource <|-- BooksToScrape : kind = scrape
-    ProductSource <|-- DummyJsonProducts : kind = api
-    ProductSource <|-- FakesStoreProducts : kind = api
-    ProductSource <|-- OpenLibraryBooks : kind = api
-    ProductSource <|-- LocalDemoSource : offline
-    ProductSource --> CompliantHttpClient : polite I/O
-    CompliantHttpClient --> RobotsCache : consults
-    ProductSource ..> RawProduct : yields
-    RawProduct ..> NormalizedProduct : transform_product
-    Pipeline --> ProductSource : fetch
-    Pipeline --> WarehouseLoader : stage + load
-    Pipeline --> DedupeEngine : resolve identity
-    Pipeline --> CatalogReconciler : reconcile
-    NormalizedProduct --> DedupeEngine
+    Client->>Proxy: HTTPS Request (Authorization: Bearer <JWT> | X-API-Key)
+    Proxy->>RateLimit: Check Sliding Window Rate Limit
+    alt Rate Limit Exceeded
+        RateLimit-->>Client: 429 Too Many Requests (Retry-After: N)
+    else Under Limit
+        RateLimit->>Auth: Validate Credentials
+        Auth->>Auth: Verify JWT Signature / Hash API Key / TOTP 2FA
+        alt Invalid Auth
+            Auth-->>Client: 401 Unauthorized
+        else Authenticated
+            Auth->>Auth: Check Role Rights (admin / analyst / viewer)
+            alt Insufficient Role
+                Auth-->>Client: 403 Forbidden
+            else Authorized
+                opt Query Lab Custom SQL Endpoint
+                    Auth->>Guard: Inspect SQL AST (Read-Only Safety)
+                    Guard->>Guard: Reject DDL, DML, DROP, INSERT, ALTER
+                end
+                Auth->>API: Route to Endpoint Handler
+                API->>DB: Execute Parameterized Warehouse Query
+                DB-->>API: Query Results / Cursor Stream
+                API-->>Client: 200 OK (Clean JSON / RFC 4180 CSV / PDF)
+            end
+        end
+    end

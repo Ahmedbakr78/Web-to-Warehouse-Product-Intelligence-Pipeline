@@ -1,0 +1,8 @@
+
+flowchart LR
+    SRC["Source adapter<br/><i>declares data_trust</i>"] --> SEL{"Auto-select?<br/>trust == real?"}
+    SEL -->|yes| WH["Warehouse<br/><i>observed rows only</i>"]
+    SEL -->|no| EX["Explicit --sources<br/><i>audited request</i>"] --> WH
+    WH --> AUD["ingestion_http_log<br/><i>robots decision per request</i>"]
+    WH --> PURGE["Purge sweep<br/><i>removes + reports</i>"]
+    PURGE --> WH
