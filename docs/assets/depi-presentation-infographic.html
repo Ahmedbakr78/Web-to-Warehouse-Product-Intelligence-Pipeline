@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=2560, initial-scale=1"/>
+<title>DEPI Data Engineering — Web-to-Warehouse Product Intelligence Pipeline</title>
+<style>
+  :root {
+    --bg-gradient: linear-gradient(135deg, #090e17 0%, #0d1527 50%, #080c16 100%);
+    --card-bg: rgba(15, 23, 42, 0.78);
+    --card-border: rgba(56, 189, 248, 0.22);
+    --card-border-subtle: rgba(148, 163, 184, 0.12);
+    --primary: #38bdf8;
+    --primary-glow: rgba(56, 189, 248, 0.25);
+    --purple: #a855f7;
+    --purple-glow: rgba(168, 85, 247, 0.25);
+    --cyan: #06b6d4;
+    --emerald: #10b981;
+    --amber: #f59e0b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 2560px;
+    height: 1440px;
+    overflow: hidden;
+    background: var(--bg-gradient);
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 48px 64px 44px;
+    position: relative;
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(56, 189, 248, 0.08) 1.5px, transparent 1.5px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+  .header-brand {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--card-border-subtle);
+    padding-bottom: 24px;
+    position: relative;
+    z-index: 2;
+  }
+  .brand-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .depi-logo {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #0ea5e9, #6366f1);
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    font-weight: 900;
+    font-size: 24px;
+    color: #fff;
+    box-shadow: 0 0 30px var(--primary-glow);
+    letter-spacing: -1px;
+  }
+  .title-group h1 {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(90deg, #ffffff, #93c5fd);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .title-group p {
+    font-size: 16px;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-top: 4px;
+  }
+  .track-badge {
+    background: rgba(14, 165, 233, 0.12);
+    border: 1px solid rgba(14, 165, 233, 0.35);
+    padding: 10px 22px;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .track-badge span.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 10px #10b981;
+  }
+  .track-badge span.label {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+  .track-badge strong {
+    font-size: 18px;
+    color: #38bdf8;
+    font-weight: 800;
+  }
+  .main-grid {
+    display: grid;
+    grid-template-columns: 460px 1fr 480px;
+    gap: 28px;
+    margin-top: 24px;
+    margin-bottom: 24px;
+    height: 980px;
+    position: relative;
+    z-index: 2;
+  }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border-subtle);
+    border-radius: 20px;
+    padding: 26px 28px;
+    backdrop-filter: blur(16px);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    position: relative;
+  }
+  .card.highlight {
+    border-color: var(--card-border);
+    box-shadow: 0 10px 40px rgba(14, 165, 233, 0.12);
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(56, 189, 248, 0.15);
+    color: var(--primary);
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+  }
+  .card-title {
+    font-size: 18px;
+    font-weight: 750;
+    letter-spacing: -0.2px;
+    color: var(--text-main);
+  }
+  .section-subtitle {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: -12px;
+    margin-bottom: 16px;
+  }
+  .problem-box {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+  .problem-box h4 {
+    color: #f87171;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .problem-box p {
+    font-size: 13px;
+    color: #cbd5e1;
+    line-height: 1.5;
+  }
+  .solution-box {
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+  .solution-box h4 {
+    color: #34d399;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .solution-box p {
+    font-size: 13px;
+    color: #cbd5e1;
+    line-height: 1.5;
+  }
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: auto;
+  }
+  .metric-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--card-border-subtle);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .metric-val {
+    font-size: 26px;
+    font-weight: 800;
+    color: #38bdf8;
+    line-height: 1;
+  }
+  .metric-lbl {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    font-weight: 500;
+  }
+  .etl-pipeline-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stage-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 100px;
+    align-items: center;
+    gap: 14px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--card-border-subtle);
+    border-radius: 12px;
+    padding: 12px 18px;
+  }
+  .stage-tag {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #38bdf8;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .stage-tag span.badge-num {
+    background: rgba(56, 189, 248, 0.2);
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+  }
+  .stage-desc {
+    font-size: 13px;
+    color: #cbd5e1;
+  }
+  .stage-meta {
+    font-size: 11px;
+    font-weight: 600;
+    color: #10b981;
+    text-align: right;
+  }
+  .arch-diagram-card {
+    background: rgba(2, 6, 23, 0.6);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 14px;
+  }
+  .arch-diagram-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--primary);
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .arch-columns {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  .arch-box {
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+  }
+  .arch-box h5 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin-bottom: 4px;
+  }
+  .arch-box p {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+  .feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+  }
+  .feature-bullet {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #38bdf8;
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+  .feature-item h5 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #f1f5f9;
+  }
+  .feature-item p {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .team-cell {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--card-border-subtle);
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+  .team-cell strong {
+    font-size: 11px;
+    color: #e2e8f0;
+    display: block;
+  }
+  .team-cell span {
+    font-size: 10px;
+    color: var(--primary);
+  }
+  .footer-row {
+    border-top: 1px solid var(--card-border-subtle);
+    padding-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+  }
+  .tech-pills {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .tech-pill {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #cbd5e1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tech-pill.brand {
+    border-color: rgba(56, 189, 248, 0.4);
+    color: #38bdf8;
+  }
+  .copyright-note {
+    font-size: 13px;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+  <!-- STEP 0: MANDATORY DEPI PRESENTATION HEADER -->
+  <header class="header-brand">
+    <div class="brand-left">
+      <div class="depi-logo">DEPI</div>
+      <div class="title-group">
+        <h1>Web-to-Warehouse Product Intelligence Pipeline</h1>
+        <p>Digital Egypt Pioneers Initiative (DEPI) · Graduation Capstone Project 2026</p>
+      </div>
+    </div>
+    <div class="track-badge">
+      <span class="dot"></span>
+      <span class="label">Track:</span>
+      <strong>Data Engineering</strong>
+    </div>
+  </header>
+
+  <!-- MAIN ROADMAP GRID (16:9 LANDSCAPE EXECUTIVE ROADMAP) -->
+  <main class="main-grid">
+
+    <!-- COLUMN 1: PROBLEM, SOLUTION & WAREHOUSE METRICS -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">⚡</div>
+        <h2 class="card-title">Business Need & Solution</h2>
+      </div>
+      <p class="section-subtitle">Retail Competitive Intelligence Automation</p>
+
+      <div class="problem-box">
+        <h4>⚠️ Problem Statement</h4>
+        <p>Retailers struggle with slow, manual competitor product tracking resulting in inconsistent records, missing currency standards, duplicate listings, and zero price snapshot history.</p>
+      </div>
+
+      <div class="solution-box">
+        <h4>✨ Proposed Solution</h4>
+        <p>Automated, compliance-first ETL pipeline that harvests structured product feeds, resolves duplicates, models historical price changes into a Kimball star warehouse, and orchestrates with Airflow.</p>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-item">
+          <div class="metric-val">14,918</div>
+          <div class="metric-lbl">Canonical Products (Real)</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-val">86,788</div>
+          <div class="metric-lbl">Historical Price Snapshots</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-val">100%</div>
+          <div class="metric-lbl">Robots.txt & Terms Compliant</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-val">12 / 12</div>
+          <div class="metric-lbl">Automated DQ Rules</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMN 2: 9-STAGE PIPELINE & SYSTEM ARCHITECTURE -->
+    <div class="card highlight">
+      <div class="card-header">
+        <div class="card-icon">🔄</div>
+        <h2 class="card-title">9-Stage ETL Pipeline & Architecture</h2>
+      </div>
+      <p class="section-subtitle">Robots-Gated Extraction to Kimball Star-Schema Analytics</p>
+
+      <div class="etl-pipeline-flow">
+        <div class="stage-row">
+          <div class="stage-tag"><span class="badge-num">1</span> Extract</div>
+          <div class="stage-desc">Scrape 34+ permitted sources with BeautifulSoup/Scrapy, respecting robots.txt & ETag</div>
+          <div class="stage-meta">Polite Cache</div>
+        </div>
+        <div class="stage-row">
+          <div class="stage-tag"><span class="badge-num">2</span> Cleanse</div>
+          <div class="stage-desc">29 cleaning rules: strip promotional noise, title-case, normalize ISO currencies & units</div>
+          <div class="stage-meta">Zero Nulls</div>
+        </div>
+        <div class="stage-row">
+          <div class="stage-tag"><span class="badge-num">3</span> Resolve</div>
+          <div class="stage-desc">Fuzzy entity matching & token fingerprinting to merge duplicate cross-source products</div>
+          <div class="stage-meta">Deduplication</div>
+        </div>
+        <div class="stage-row">
+          <div class="stage-tag"><span class="badge-num">4</span> Model</div>
+          <div class="stage-desc">Load into PostgreSQL & MySQL Kimball warehouse: dim_product, fact_price_snapshot</div>
+          <div class="stage-meta">SCD Type 2</div>
+        </div>
+        <div class="stage-row">
+          <div class="stage-tag"><span class="badge-num">5</span> Detect</div>
+          <div class="stage-desc">SQL diff engine flags price hikes, drops, category drift, new arrivals, and delistings</div>
+          <div class="stage-meta">Lifecycle Audit</div>
+        </div>
+        <div class="stage-row">
+          <div class="stage-tag"><span class="badge-num">6</span> Quality</div>
+          <div class="stage-desc">12-rule validation framework checks nulls, negative prices, freshness, anomaly Z-scores</div>
+          <div class="stage-meta">Score: 86.05%</div>
+        </div>
+      </div>
+
+      <div class="arch-diagram-card">
+        <div class="arch-diagram-title">System Architecture Flow</div>
+        <div class="arch-columns">
+          <div class="arch-box">
+            <h5>1. Ingestion Layer</h5>
+            <p>34+ APIs, Scrapy, BeautifulSoup, Rate Limiter</p>
+          </div>
+          <div class="arch-box">
+            <h5>2. Storage Layer</h5>
+            <p>PostgreSQL 16 & MySQL 8.4 Dual Warehouse</p>
+          </div>
+          <div class="arch-box">
+            <h5>3. Orchestrator</h5>
+            <p>Apache Airflow 2.10 DAGs & Scheduled Runs</p>
+          </div>
+          <div class="arch-box">
+            <h5>4. Serving & UI</h5>
+            <p>FastAPI (222 ops) & React 19 Analytics UI</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMN 3: CORE CAPABILITIES, TEAM & OUTCOMES -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">🚀</div>
+        <h2 class="card-title">Key Features & Deliverables</h2>
+      </div>
+      <p class="section-subtitle">Delivering Actionable Market Intelligence</p>
+
+      <div class="feature-item">
+        <div class="feature-bullet"></div>
+        <div>
+          <h5>Catalog Reconciliation</h5>
+          <p>Automatic Levenshtein matching between internal retailer SKUs and external scraped products.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <div class="feature-bullet"></div>
+        <div>
+          <h5>Price Forecast & Elasticity</h5>
+          <p>Rolling volatility, confidence intervals, outlier detection, and price recommendations.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <div class="feature-bullet"></div>
+        <div>
+          <h5>222 REST API Operations</h5>
+          <p>OpenAPI 3.1 endpoints for products, price changes, quality scorecard, query lab & exports.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <div class="feature-bullet"></div>
+        <div>
+          <h5>Modern Executive React 19 UI</h5>
+          <p>Silent reloads, frameless scrollbars, light/dark themes, and mobile-responsive viewport.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <div class="feature-bullet"></div>
+        <div>
+          <h5>GNU AGPL-3.0 Licensed</h5>
+          <p>Strong copyleft, network SaaS protection clause, patent grant, and reciprocal attribution.</p>
+        </div>
+      </div>
+
+      <div style="margin-top: auto; padding-top: 14px;">
+        <h5 style="font-size: 12px; text-transform: uppercase; color: var(--primary); font-weight: 700; letter-spacing: 1px;">DEPI Project Team</h5>
+        <div class="team-grid">
+          <div class="team-cell"><strong>Ahmed Abobakr</strong><span>Lead / API (28%)</span></div>
+          <div class="team-cell"><strong>Ahmed Abdalla</strong><span>Ingestion (15%)</span></div>
+          <div class="team-cell"><strong>Ahmed Medhat</strong><span>ETL / Clean (14%)</span></div>
+          <div class="team-cell"><strong>Eng. Alaa Nasser</strong><span>DB & DQ (14%)</span></div>
+          <div class="team-cell"><strong>legecy007</strong><span>Frontend (15%)</span></div>
+          <div class="team-cell"><strong>Mennatullah A.</strong><span>DevOps (14%)</span></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER: MODERN TECH STACK BADGES & COPYRIGHT -->
+  <footer class="footer-row">
+    <div class="tech-pills">
+      <span class="tech-pill brand">Python 3.12</span>
+      <span class="tech-pill brand">FastAPI</span>
+      <span class="tech-pill brand">PostgreSQL 16</span>
+      <span class="tech-pill brand">MySQL 8.4</span>
+      <span class="tech-pill brand">Apache Airflow 2.10</span>
+      <span class="tech-pill">Docker & Compose</span>
+      <span class="tech-pill">React 19 + TypeScript</span>
+      <span class="tech-pill">BeautifulSoup4</span>
+      <span class="tech-pill">SQLAlchemy 2.0</span>
+      <span class="tech-pill">Tailwind CSS</span>
+      <span class="tech-pill">GNU AGPL-3.0</span>
+    </div>
+    <div class="copyright-note">
+      © 2026 DEPI Data Engineering Team · Production-Grade Graduation Project
+    </div>
+  </footer>
+
+</body>
+</html>
