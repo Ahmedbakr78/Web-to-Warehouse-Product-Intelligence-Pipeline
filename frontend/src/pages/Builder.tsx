@@ -586,7 +586,10 @@ export default function Builder() {
   const filterChips = activeFilterChips(state)
   // Some entities return a bare array (analytics, movers, sources) while the
   // paged ones return {items, total}: normalise so previews never render empty.
-  const rows = Array.isArray(preview.data) ? preview.data : ((preview.data as any)?.items ?? [])
+  const rows = useMemo(
+    () => (Array.isArray(preview.data) ? preview.data : ((preview.data as any)?.items ?? [])),
+    [preview.data],
+  )
   const columns = ENTITY_COLUMNS[state.entity]
 
   const previewMetrics = useMemo(() => {
@@ -613,9 +616,9 @@ export default function Builder() {
       const changes = rows
         .map((r: any) => Number(r.change_pct))
         .filter((c: number) => !isNaN(c))
-      const drops = changes.filter((c) => c < 0).length
-      const rises = changes.filter((c) => c > 0).length
-      const avgChange = changes.length ? changes.reduce((a, b) => a + b, 0) / changes.length : 0
+      const drops = changes.filter((c: number) => c < 0).length
+      const rises = changes.filter((c: number) => c > 0).length
+      const avgChange = changes.length ? changes.reduce((a: number, b: number) => a + b, 0) / changes.length : 0
       return {
         type: 'changes' as const,
         drops,
@@ -1291,6 +1294,51 @@ export default function Builder() {
             ) : null}
           </div>
         </div>
+        {previewMetrics ? (
+          <div className="flex flex-wrap items-center gap-2 border-y border-line/60 bg-surface-2/60 px-4 py-2.5 text-xs sm:px-5">
+            <span className="font-semibold text-ink flex items-center gap-1.5">
+              <Sparkles className="h-3.5 w-3.5 text-brand-500" />
+              Live preview metrics ({previewMetrics.count} sample rows):
+            </span>
+            {previewMetrics.type === 'products' ? (
+              <>
+                <span className="rounded-md bg-surface-1 px-2 py-0.5 border border-line text-muted">
+                  Avg price: <strong className="text-ink">{formatPrice(previewMetrics.avgPrice)}</strong>
+                </span>
+                <span className="rounded-md bg-surface-1 px-2 py-0.5 border border-line text-muted">
+                  Range: <strong className="text-ink">{formatPrice(previewMetrics.minPrice)} – {formatPrice(previewMetrics.maxPrice)}</strong>
+                </span>
+                <span className="rounded-md bg-surface-1 px-2 py-0.5 border border-line text-muted">
+                  In-stock rate: <strong className="text-ink">{previewMetrics.inStockPct}%</strong>
+                </span>
+              </>
+            ) : previewMetrics.type === 'changes' ? (
+              <>
+                <span className="rounded-md bg-surface-1 px-2 py-0.5 border border-line text-muted">
+                  Avg shift: <strong className="text-ink">{previewMetrics.avgChange > 0 ? `+${previewMetrics.avgChange.toFixed(1)}%` : `${previewMetrics.avgChange.toFixed(1)}%`}</strong>
+                </span>
+                <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-medium">
+                  Drops: {previewMetrics.drops}
+                </span>
+                <span className="rounded-md bg-rose-500/10 px-2 py-0.5 border border-rose-500/20 text-rose-600 dark:text-rose-400 font-medium">
+                  Rises: {previewMetrics.rises}
+                </span>
+              </>
+            ) : previewMetrics.type === 'quality' ? (
+              <>
+                <span className="rounded-md bg-surface-1 px-2 py-0.5 border border-line text-muted">
+                  Pass rate: <strong className="text-ink">{previewMetrics.passRate}%</strong>
+                </span>
+                <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-medium">
+                  Passing: {previewMetrics.passes}
+                </span>
+                <span className="rounded-md bg-rose-500/10 px-2 py-0.5 border border-rose-500/20 text-rose-600 dark:text-rose-400 font-medium">
+                  Failing: {previewMetrics.fails}
+                </span>
+              </>
+            ) : null}
+          </div>
+        ) : null}
         {preview.isError ? (
           <div className="p-4">
             <ErrorState message={(preview.error as Error)?.message} onRetry={() => preview.refetch()} />
