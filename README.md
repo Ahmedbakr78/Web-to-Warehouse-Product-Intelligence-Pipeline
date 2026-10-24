@@ -2189,14 +2189,15 @@ The team itself is served as structured data — `GET /api/v1/meta/team` reads
 `app/core/team.py`, the same single-source-of-truth pattern as the feature
 catalogue — so this table can never drift from the shipped record.
 
-| # | Member | GitHub | Role | Weight |
-|---|--------|--------|------|-------|
-| 1 | Ahmed (78102) | [@Ahmedbakr78](https://github.com/Ahmedbakr78) | Team Lead + Backend/API + Documentation + 9 ETL Stages Owner | 28% |
-| 2 | Ahmed Abd alla | [@01124758140](https://github.com/01124758140) | Ingestion & Compliance Lead | 15% |
-| 3 | Ahmed Medhat | [@AhmedMedhatFarouk](https://github.com/AhmedMedhatFarouk) | ETL & Cleaning Lead | 14% |
-| 4 | Eng. Alaa Nasser | [@AlaaNasser-tech](https://github.com/AlaaNasser-tech) | Database & Data Quality Lead | 14% |
-| 5 | legecy007 | [@legecy007](https://github.com/legecy007) | Frontend / Dashboard Lead | 15% |
-| 6 | Mennatullah Ahmed | [@mennatullahahmed01-debug](https://github.com/mennatullahahmed01-debug) | DevOps & Orchestration Lead | 14% |
+| # | العضو (Member) | GitHub | الدور (Role) | الوزن (Weight) | المكون الأساسي (Main Component) |
+|---|---|---|---|:---:|---|
+| **1** | **Ahmed (78102)** | [@Ahmedbakr78](https://github.com/Ahmedbakr78) | Team Lead + Backend/API + Documentation + 9 ETL Stages Owner | **28%** | FastAPI + 37 Docs + 9 ETL Stages + Dual-Warehouse Integration |
+| **2** | **Ahmed Abd alla** | [@01124758140](https://github.com/01124758140) | Ingestion & Compliance Lead | **15%** | robots.txt + 34 adapters + token-bucket rate limiter |
+| **3** | **Ahmed Medhat** | [@AhmedMedhatFarouk](https://github.com/AhmedMedhatFarouk) | ETL & Cleaning Lead | **14%** | 29-step cleaner + Deduplication engine + ETL support |
+| **4** | **Eng. Alaa Nasser** | [@AlaaNasser-tech](https://github.com/AlaaNasser-tech) | Database & Data Quality Lead | **14%** | 29 tables + 23 views + 12 automated DQ rules |
+| **5** | **legecy007** | [@legecy007](https://github.com/legecy007) | Frontend / Dashboard Lead | **15%** | React 19 + 23 screens + PWA + Light/Dark/Midnight themes |
+| **6** | **Mennatullah Ahmed** | [@mennatullahahmed01-debug](https://github.com/mennatullahahmed01-debug) | DevOps & Orchestration Lead | **14%** | Airflow 2.10 DAG + Docker Compose stack + CI/CD pipelines |
+| — | **Total Project Allocation** | — | **DEPI Data Engineering Track** | **100%** | Full End-to-End Production Pipeline |
 
 ### Lead functions — Ahmed (78102), the biggest scope
 
