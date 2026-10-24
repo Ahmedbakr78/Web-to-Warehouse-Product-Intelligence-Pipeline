@@ -249,8 +249,23 @@ class WarehouseLoader:
         else:
             self.stats.products_updated += 1
 
-        previous_category_id = product.category_id
         new_category_id = category.category_id if category else None
+
+        # Categories are tracked per source. Two sources filing the same merged
+        # product under different shelves (Open Library "History", Gutendex
+        # "Courtship") is a cross-source disagreement, not a recategorisation;
+        # comparing against the product's single category_id would log a fake
+        # change on every run and let source order decide the category.
+        extra = dict(product.extra or {})
+        source_categories = dict(extra.get("source_categories") or {})
+        previous_for_source = source_categories.get(record.source_code)
+        category_source = extra.get("category_source")
+        if category_source is None and (
+            product.category_id is None or product.category_id == new_category_id
+        ):
+            category_source = record.source_code
+        if new_category_id is not None:
+            source_categories[record.source_code] = new_category_id
 
         product.source_code = record.source_code
         product.source_product_id = record.source_product_id
@@ -258,7 +273,11 @@ class WarehouseLoader:
         product.normalized_name = record.normalized_name
         product.display_name = record.canonical_name
         product.brand = record.brand or product.brand
-        product.category_id = new_category_id if new_category_id is not None else product.category_id
+        # Only the source that first categorised the product moves its category.
+        if new_category_id is not None and (
+            product.category_id is None or record.source_code == category_source
+        ):
+            product.category_id = new_category_id
         product.product_url = record.product_url or product.product_url
         product.image_url = record.image_url or product.image_url
         product.description = record.description or product.description
@@ -271,7 +290,9 @@ class WarehouseLoader:
         product.first_seen_at = product.first_seen_at or now
         product.last_seen_at = now
         product.extra = {
-            **(product.extra or {}),
+            **extra,
+            "source_categories": source_categories,
+            "category_source": category_source,
             "quality_flags": record.quality_flags[:10],
             "raw_name": record.raw_name,
             "blocking_key": record.blocking_key,
@@ -280,7 +301,12 @@ class WarehouseLoader:
         self.session.flush()
         self._product_cache[product.product_id] = product
 
-        if not created and new_category_id is not None and previous_category_id != new_category_id:
+        if (
+            not created
+            and new_category_id is not None
+            and previous_for_source is not None
+            and previous_for_source != new_category_id
+        ):
             self.session.add(
                 ChgProductEvent(
                     product_id=product.product_id,
@@ -289,9 +315,9 @@ class WarehouseLoader:
                     date_id=self.resolve_date_id(),
                     event_type="category_changed",
                     severity="warning",
-                    old_value=str(previous_category_id),
+                    old_value=str(previous_for_source),
                     new_value=record.category,
-                    old_category_id=previous_category_id,
+                    old_category_id=previous_for_source,
                     new_category_id=new_category_id,
                     detected_at=self.captured_at,
                 )
