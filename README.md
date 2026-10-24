@@ -2090,4 +2090,6 @@ Full playbook: [docs/31_releases.md](docs/31_releases.md).
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+GNU Affero General Public License v3.0 (AGPL-3.0) — see [LICENSE](LICENSE).
+
+This high-power copyleft license guarantees complete user freedom, strong SaaS network protection, patent retaliation defense, and preserves contributor attribution across all deployments.
