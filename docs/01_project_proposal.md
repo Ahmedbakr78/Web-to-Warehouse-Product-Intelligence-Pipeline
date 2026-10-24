@@ -286,7 +286,7 @@ commercial infrastructure was purchased.
 | --- | --- | --- | --- |
 | Development workstation | One-off / provided | — | Local development only |
 | PostgreSQL 16 + MySQL 8.4 containers | Runtime | 0 | Open source, Docker Compose |
-| Python / Node open-source stack | Runtime | 0 | All components MIT/Apache/BSD |
+| Python / Node open-source stack | Runtime | 0 | All components GNU AGPL-3.0/Apache/BSD |
 | Source APIs (DummyJSON, FakeStore, Open Library) | Runtime | 0 | Free, no key, documented terms |
 | books.toscrape.com sandbox | Runtime | 0 | Site published for scraping practice |
 | Cloud hosting (optional production target) | Recurring | 0 – 25 USD / month | Small managed PostgreSQL instance is sufficient at the measured volumes |

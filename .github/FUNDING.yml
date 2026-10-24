@@ -7,7 +7,7 @@
 # Why the file exists at all: GitHub only shows the "Sponsor" button when a
 # FUNDING.yml names a platform, and an absent file is indistinguishable from an
 # oversight. Declaring "no funding" is a deliberate statement — the project is
-# MIT licensed, costs nothing to run, and has no paid dependencies.
+# GNU AGPL-3.0 licensed, costs nothing to run, and has no paid dependencies.
 #
 # If sponsorship is ever wanted, add a platform here, for example:
 #

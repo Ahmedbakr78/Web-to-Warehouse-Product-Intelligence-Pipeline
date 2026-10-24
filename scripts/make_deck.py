@@ -228,7 +228,7 @@ def build_html(stats: dict) -> str:
       public web sources into a dimensional warehouse with full price history, duplicate
       resolution, catalog reconciliation and a measured data-quality posture.</p>
       <p><span class="badge">DEPI &middot; Data Engineering</span>
-         <span class="badge">MIT licensed</span>
+         <span class="badge">GNU AGPL-3.0 licensed</span>
          <span class="badge">Private repository</span></p>
     </section>
     """
