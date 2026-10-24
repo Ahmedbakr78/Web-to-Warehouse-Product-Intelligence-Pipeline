@@ -4,6 +4,7 @@
   "version": "1.12.1",
   "type": "module",
   "description": "React dashboard for the Web-to-Warehouse Product Intelligence Pipeline",
+  "license": "AGPL-3.0-or-later",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

@@ -551,7 +551,7 @@ now wired end to end, and two new ones were added:
   not serve private repositories on the free plan, so a Pages workflow could never deploy here, while
   a static directory works anywhere. Build with `make site`, preview with `make site-serve`.
 - **`.github/FUNDING.yml`** — declares *no* funding platform, so an absent "Sponsor" button is a
-  deliberate statement rather than an oversight: MIT licensed, nothing to pay for, no paid
+  deliberate statement rather than an oversight: GNU AGPL-3.0 licensed, nothing to pay for, no paid
   dependencies. The comments show how to add a platform if that ever changes.
 - **`SECURITY.md`** — a threat model with a control table for each trust boundary (web to ingestion,
   user to API, API to warehouse), what is implemented today, and how to verify each claim yourself.
@@ -731,7 +731,7 @@ infographic: SVG valid (2560x1440) + PNG rendered (2560x1440)
   and an uploaded build artifact.
 - API integration test suite (`tests/test_api.py`): 39 checks covering auth, RBAC, the read-only
   query guard, CSV export media type, saved views, alerts, notifications and audit behaviour.
-- MIT `LICENSE` file and `CHANGELOG.md`.
+- GNU AGPL-3.0 `LICENSE` file and `CHANGELOG.md`.
 
 ### Changed
 
