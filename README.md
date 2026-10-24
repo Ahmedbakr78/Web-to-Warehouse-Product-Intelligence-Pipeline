@@ -34,7 +34,7 @@
 
 <p align="center">
   <b>222 REST operations</b> · <b>29 tables</b> · <b>23 analytical views</b> ·
-  <b>12 DQ rules</b> · <b>34 registered sources</b> · <b>666 catalogued features</b> ·
+  <b>12 DQ rules</b> · <b>34 registered sources</b> · <b>700 catalogued features</b> ·
   <b>625 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
 </p>
 
