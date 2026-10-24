@@ -346,8 +346,8 @@ flowchart LR
 | `scripts/check_stats.py` | Fails when a figure quoted in the README or the docs no longer matches `docs/stats.json` |
 | `make stats-update` | Re-measures and rewrites the snapshot, so the update is one command |
 
-That is why the README badge says `666 catalogued features` and the
-dashboard says `629 entries in 42 groups`: they are measured by two
+That is why the README badge says `700 catalogued features` and the
+dashboard says `700 entries in 43 groups`: they are measured by two
 different collectors on two different axes, and both are labelled.
 
 ---

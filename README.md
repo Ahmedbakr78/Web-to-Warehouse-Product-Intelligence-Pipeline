@@ -266,8 +266,8 @@ seeds a throwaway synthetic warehouse and fails if the audit accepts it.
 29 physical tables  |  23 analytical views  |  222 REST route decorators in 24 routers
 12 data-quality rules across 6 dimensions, weighted score persisted per run
 34 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
-17 CLI commands  |  6 Docker Compose services  |  37 documents  |  104 Mermaid diagrams
-625 tests  |  104/104 API smoke checks  |  666 catalogued features
+17 CLI commands  |  6 Docker Compose services  |  37 documents  |  108 Mermaid diagrams
+625 tests  |  104/104 API smoke checks  |  700 catalogued features
 ```
 
 | Metric | Count |
@@ -283,8 +283,8 @@ seeds a throwaway synthetic warehouse and fails if the audit accepts it.
 | Pipeline stages                          | 9 |
 | Docker Compose services                  | 6 |
 | Numbered documents                       | 37 |
-| Mermaid diagrams                         | 104 |
-| Catalogued features (live API catalogue) | 666 |
+| Mermaid diagrams                         | 108 |
+| Catalogued features (live API catalogue) | 700 |
 | Documented features (F-ID inventory)     | 612 |
 | Documented feature areas                 | 47 |
 | Collected test cases                     | 625 |
@@ -1439,7 +1439,7 @@ pip-cli quality --database mysql   # the same rules against the second dialect
 The exhaustive, file-referenced inventory lives in
 [docs/19_feature_list.md](docs/19_feature_list.md) — 612 features in forty-eight areas, each naming the file that
 implements it. The runtime catalogue behind the **Features** screen is served by
-`GET /api/v1/meta/features` (666 entries across 42 user-facing groups) and is generated from
+`GET /api/v1/meta/features` (700 entries across 43 user-facing groups) and is generated from
 `app/core/features.py`, so the two numbers are measured on different axes — the inventory indexes
 the *engineering*, the catalogue indexes the *product* — and neither can drift from the code.
 
@@ -1754,7 +1754,7 @@ All configuration arrives through environment variables (`.env.example` document
 | **Sources** | registry cards with compliance metadata, robots.txt statistics, raw-versus-cleaned preview |
 | **Query Lab** | read-only SQL console over the 23 views, table inventory, starter examples, CSV export |
 | **Builder** | two modes: *filter & customise* (facets, columns, order, saved presets) and *group & aggregate* (13 entities, six measures, fifteen operators, bar chart, generated SQL, cURL copy, exports) |
-| **Features** | searchable, filterable catalogue of all 666 catalogued features in 42 groups, each with an icon and copy-to-clipboard |
+| **Features** | searchable, filterable catalogue of all 700 catalogued features in 43 groups, each with an icon and copy-to-clipboard |
 | **Alerts** | alert rules with thresholds and channels, notification feed, evaluate action |
 | **Webhooks** | outbound event subscriptions with HMAC-signed payloads, one-time secret reveal and rotation, test delivery, per-attempt delivery log |
 | **Account** | profile, preferences, appearance (theme, accent, density, motion, **silent reload**), password change, API keys, **personal activity feed**, **data export**, **account deletion** |

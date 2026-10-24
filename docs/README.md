@@ -175,10 +175,10 @@ named alongside.
 | Version | 1.12.1 |
 | Physical tables / analytical views | 29 / 23, identical on PostgreSQL 16 and MySQL 8.4 |
 | REST operations / routers | 222 / 24 |
-| Feature inventory / runtime catalogue | 612 rows in 47 areas (`docs/19`) / 666 features in 42 groups (`GET /meta/features`) |
+| Feature inventory / runtime catalogue | 612 rows in 47 areas (`docs/19`) / 700 features in 43 groups (`GET /meta/features`) |
 | Data-quality rules / dimensions | 12 / 6, verdicts persisted per run |
 | Ingestion sources | 34 registered adapters: 31 JSON APIs, 2 HTML scrapers, 1 offline synthetic — 21 of them classified as real market data |
-| Documentation documents / diagrams | 38 / 104 Mermaid, all rendering to SVG |
+| Documentation documents / diagrams | 38 / 108 Mermaid, all rendering to SVG |
 | API regression suite | 625 pytest cases, 104 smoke checks |
 | Demo accounts | `admin@example.com` / `Admin@12345`, `analyst@example.com` / `Analyst@12345`, `viewer@example.com` / `Viewer@12345` |
 
