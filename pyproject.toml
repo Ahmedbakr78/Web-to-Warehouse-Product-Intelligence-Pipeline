@@ -4,7 +4,7 @@ version = "1.12.1"
 description = "Web-to-Warehouse Product Intelligence Pipeline: compliant scraping, standardization, deduplication, and analytical loading of product data."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
+license = { text = "AGPL-3.0-or-later" }
 authors = [{ name = "Ahmed Abobakr", email = "ahmedbakr78102@gmail.com" }]
 keywords = ["etl", "scraping", "airflow", "data-warehouse", "fastapi", "data-quality"]
 

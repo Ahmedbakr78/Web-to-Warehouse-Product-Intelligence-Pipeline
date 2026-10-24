@@ -20,7 +20,7 @@
   <img src="https://img.shields.io/badge/API%20smoke-104%2F104-brightgreen" alt="API smoke"/>
   <img src="https://img.shields.io/badge/ruff-0%20warnings-brightgreen" alt="ruff"/>
   <img src="https://img.shields.io/badge/CI-github%20actions-2088FF?logo=github-actions&logoColor=white" alt="CI"/>
-  <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT"/>
+  <img src="https://img.shields.io/badge/license-AGPL--3.0-blue" alt="AGPL-3.0"/>
 </p>
 
 <p align="center">

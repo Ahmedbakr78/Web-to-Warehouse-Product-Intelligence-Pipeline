@@ -185,8 +185,11 @@ def create_app() -> FastAPI:
         docs_url="/docs",
         redoc_url="/redoc",
         openapi_url="/openapi.json",
-        contact={"name": "Ahmed Abobakr"},
-        license_info={"name": "MIT"},
+        contact={"name": "Ahmed Abobakr", "email": "ahmedbakr78102@gmail.com"},
+        license_info={
+            "name": "GNU Affero General Public License v3.0 (AGPL-3.0)",
+            "url": "https://www.gnu.org/licenses/agpl-3.0.html",
+        },
     )
 
     # ------------------------------------------------------------------ middleware
