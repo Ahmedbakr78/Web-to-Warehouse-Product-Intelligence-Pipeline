@@ -32,7 +32,8 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip wheel
-          pip install -e ".[postgres,mysql,dev]"
+          # Same extras as `make install`, so a broken pin fails CI, not a fresh clone.
+          pip install -e ".[postgres,mysql,dev,scrapy]"
 
       - name: Ruff lint
         run: ruff check app tests scripts dags
