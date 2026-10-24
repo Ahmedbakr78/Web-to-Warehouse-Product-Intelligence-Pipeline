@@ -1401,6 +1401,50 @@ export default function Account() {
               </Button>
             </div>
           </Card>
+
+          <Card className="xl:col-span-2">
+            <CardHeader
+              title="Cache, diagnostics & performance engine"
+              subtitle="Live state synchronization and client telemetry"
+              icon={<Sparkles className="h-4 w-4" />}
+            />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="flex flex-col justify-between rounded-lg border border-line bg-surface-2 p-3.5">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold text-ink">Silent Reload Engine</p>
+                    <Badge tone={silentReload ? 'success' : 'neutral'} dot={silentReload}>
+                      {silentReload ? 'Silent Active' : 'Animated'}
+                    </Badge>
+                  </div>
+                  <p className="mt-1 text-[11px] leading-relaxed text-muted">
+                    In-place atomic swaps eliminate skeleton shimmers, layout shifts, and disorienting transitions on data refresh.
+                  </p>
+                </div>
+                <div className="mt-3 flex items-center justify-between border-t border-line/60 pt-2 text-[11px]">
+                  <span className="text-subtle">Background animation duration</span>
+                  <code className="font-mono text-ink">0.01ms (Instant)</code>
+                </div>
+              </div>
+
+              <div className="flex flex-col justify-between rounded-lg border border-line bg-surface-2 p-3.5">
+                <div>
+                  <p className="text-xs font-semibold text-ink">Client State & Diagnostics</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-muted">
+                    Purge in-memory TanStack query cache or export a complete JSON snapshot of client session, viewport, and connection.
+                  </p>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <Button size="sm" variant="secondary" icon={<RefreshCw className="h-3.5 w-3.5" />} onClick={purgeCache}>
+                    Purge Query Cache
+                  </Button>
+                  <Button size="sm" variant="secondary" icon={<Download className="h-3.5 w-3.5" />} onClick={exportDiagnostics}>
+                    Download Diagnostics JSON
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </Card>
         </div>
 
         {/* ------------------------------------------------ Notifications & locale */}
