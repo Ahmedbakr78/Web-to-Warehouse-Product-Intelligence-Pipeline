@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Activity,
+  BarChart3,
   Bell,
+  Briefcase,
   Check,
+  Code2,
   Copy,
   Download,
   ExternalLink,
@@ -20,6 +23,7 @@ import {
   Pencil,
   Plus,
   RefreshCw,
+  RotateCcw,
   RotateCw,
   Save,
   Settings2,
@@ -32,6 +36,7 @@ import {
   TriangleAlert,
   UserCircle,
   X,
+  Zap,
 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
@@ -246,6 +251,85 @@ export default function Account() {
     },
     onError: (error: Error) => toast.error('Could not delete the account', error.message),
   })
+
+  const applyPreset = (preset: 'developer' | 'analyst' | 'executive' | 'default') => {
+    if (preset === 'developer') {
+      applyDensityOption('compact')
+      applyThemeOption('midnight')
+      applySilentOption(true)
+      setCopyCodeOnClick(true)
+      setStartPage('/query-lab')
+      setRowsPerPage(50)
+      setDefaultExportFormat('json')
+      toast.success('Developer preset loaded', 'Compact density, midnight theme, SQL copy enabled.')
+    } else if (preset === 'analyst') {
+      applyDensityOption('comfortable')
+      applyThemeOption('dark')
+      setStartPage('/')
+      setRowsPerPage(100)
+      setDefaultExportFormat('csv')
+      setDefaultChartType('area')
+      setDefaultRange('30d')
+      toast.success('Analyst preset loaded', 'Comfortable density, 100 rows/page, area charts, CSV export.')
+    } else if (preset === 'executive') {
+      applyDensityOption('spacious')
+      applyThemeOption('light')
+      setStartPage('/briefing')
+      setRowsPerPage(25)
+      setBriefingSize('10')
+      toast.success('Executive preset loaded', 'Spacious density, light mode, morning briefing priority.')
+    } else {
+      applyDensityOption('comfortable')
+      applyThemeOption('system')
+      applyAccentOption('indigo')
+      applySilentOption(true)
+      setCopyCodeOnClick(true)
+      setStartPage('/')
+      setRowsPerPage(25)
+      setAlertPct(5)
+      setAutoRefresh('off')
+      setDefaultExportFormat('csv')
+      setDefaultChartType('area')
+      setDefaultRange('30d')
+      toast.info('Preferences reset to default values')
+    }
+  }
+
+  const purgeCache = () => {
+    queryClient.clear()
+    void queryClient.invalidateQueries()
+    toast.success('Client cache purged', 'Fresh query state synced from warehouse.')
+  }
+
+  const exportDiagnostics = () => {
+    const diag = {
+      timestamp: new Date().toISOString(),
+      user: {
+        id: user?.user_id,
+        email: user?.email,
+        role: user?.role,
+        permissions: user?.permissions,
+      },
+      preferences: user?.preferences,
+      appearance: {
+        theme: mode,
+        isDark,
+        density,
+        accent,
+        motion,
+        direction,
+        fontScale,
+        silentReload,
+      },
+      client: {
+        viewport: `${typeof window !== 'undefined' ? window.innerWidth : 0}x${typeof window !== 'undefined' ? window.innerHeight : 0}`,
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+        language: typeof navigator !== 'undefined' ? navigator.language : 'en',
+      },
+    }
+    downloadJson(`pip-diagnostics-${user?.email ?? 'user'}.json`, diag)
+    toast.success('Diagnostics downloaded', 'JSON diagnostics snapshot generated.')
+  }
 
   useEffect(() => {
     if (!user) return
@@ -1098,6 +1182,65 @@ export default function Account() {
 
       {tab === 'prefs' ? (
         <>
+        {/* ------------------------------------------------ Role-based quick presets */}
+        <Card className="mb-3">
+          <CardHeader
+            title="Instant role profiles & quick presets"
+            subtitle="Switch workspace layout, density, export defaults and landing route in one click"
+            icon={<Zap className="h-4 w-4" />}
+          />
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+            <button
+              onClick={() => applyPreset('developer')}
+              className="flex flex-col items-start gap-1 rounded-xl border border-line bg-surface-2 p-3 text-left transition hover:border-brand-500 hover:shadow-card"
+            >
+              <span className="flex items-center gap-1.5 font-semibold text-xs text-ink">
+                <Code2 className="h-4 w-4 text-brand-500" />
+                Developer Profile
+              </span>
+              <span className="text-[11px] text-muted">
+                Compact density, midnight theme, SQL auto-copy, /query-lab start, JSON default.
+              </span>
+            </button>
+            <button
+              onClick={() => applyPreset('analyst')}
+              className="flex flex-col items-start gap-1 rounded-xl border border-line bg-surface-2 p-3 text-left transition hover:border-brand-500 hover:shadow-card"
+            >
+              <span className="flex items-center gap-1.5 font-semibold text-xs text-ink">
+                <BarChart3 className="h-4 w-4 text-info" />
+                Analyst Profile
+              </span>
+              <span className="text-[11px] text-muted">
+                Comfortable density, dark mode, 100 rows/page, area charts, 30d range, CSV export.
+              </span>
+            </button>
+            <button
+              onClick={() => applyPreset('executive')}
+              className="flex flex-col items-start gap-1 rounded-xl border border-line bg-surface-2 p-3 text-left transition hover:border-brand-500 hover:shadow-card"
+            >
+              <span className="flex items-center gap-1.5 font-semibold text-xs text-ink">
+                <Briefcase className="h-4 w-4 text-warning" />
+                Executive Profile
+              </span>
+              <span className="text-[11px] text-muted">
+                Spacious layout, light mode, morning briefing landing, large typography.
+              </span>
+            </button>
+            <button
+              onClick={() => applyPreset('default')}
+              className="flex flex-col items-start gap-1 rounded-xl border border-line bg-surface-2 p-3 text-left transition hover:border-line-strong hover:shadow-card"
+            >
+              <span className="flex items-center gap-1.5 font-semibold text-xs text-ink">
+                <RotateCcw className="h-4 w-4 text-subtle" />
+                Reset Defaults
+              </span>
+              <span className="text-[11px] text-muted">
+                Restore balanced factory defaults, silent background reload and standard tables.
+              </span>
+            </button>
+          </div>
+        </Card>
+
         <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
           <Card>
             <CardHeader title="Workspace defaults" subtitle="Applied instantly to every table and landing route" icon={<Settings2 className="h-4 w-4" />} />
