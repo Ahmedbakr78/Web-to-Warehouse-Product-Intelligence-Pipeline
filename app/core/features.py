@@ -2774,6 +2774,130 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             },
         ],
     },
+    {
+        "key": "enterprise_analytics_power",
+        "title": "Enterprise Power Suite: Advanced Diagnostics, Presets & Extreme Reliability",
+        "icon": "zap",
+        "summary": "Full enterprise self-service controls: instant role-based quick presets, diagnostic package bundler, real-only trust guard, and silent background reload.",
+        "features": [
+            {
+                "name": "Role Quick-Action Profiles",
+                "detail": "Switch entire workspace to Developer, Analyst, Executive, or Default preset in one click with instant theme and density realignment",
+            },
+            {
+                "name": "Live Warehouse Query Profiler",
+                "detail": "Sub-millisecond execution plan analysis with index usage breakdown and cost estimation",
+            },
+            {
+                "name": "Diagnostic Snapshot Bundler",
+                "detail": "One-click JSON diagnostic package exporting user session, browser capabilities, viewport, and query state",
+            },
+            {
+                "name": "Client-Side State Purge Engine",
+                "detail": "Wipe query caches and force immediate analytical resync without page refresh",
+            },
+            {
+                "name": "Silent Data Hydration Engine",
+                "detail": "Zero-shimmer, zero-layout-shift background telemetry and metric updates",
+            },
+            {
+                "name": "Dynamic Viewport Scrollbar Suppression",
+                "detail": "Complete cross-platform native scrollbar masking while preserving high-precision touch/mouse scrolling",
+            },
+            {
+                "name": "Safe-Area Edge Clamping",
+                "detail": "Multi-device responsive boundary adaptation for mobile notches, dynamic islands, and home indicator bars",
+            },
+            {
+                "name": "High-Precision Currency Multi-Formatter",
+                "detail": "Auto-detection of USD, EUR, GBP, EGP, JPY with localized currency symbol and decimal formatting",
+            },
+            {
+                "name": "Competitor Price Undercutting Detector",
+                "detail": "Automated identification of competitor SKUs priced below retailer acquisition cost",
+            },
+            {
+                "name": "High-Volatility Category Radar",
+                "detail": "Real-time standard deviation metric pinpointing rapidly shifting market categories",
+            },
+            {
+                "name": "Stale Stock Liquidation Index",
+                "detail": "Flagging competitor products nearing discontinuation or persistent deep discounts",
+            },
+            {
+                "name": "Catalog Margin Maximizer View",
+                "detail": "SQL-driven recommendation engine for strategic retailer price increases",
+            },
+            {
+                "name": "Cross-Dialect Type Integrity Checker",
+                "detail": "Automated verification of PostgreSQL and MySQL column type mapping consistency",
+            },
+            {
+                "name": "RFC-9309 Compliance Guard",
+                "detail": "Pre-flight compliance validator guaranteeing polite crawling with exponential backoff",
+            },
+            {
+                "name": "Real-Only Trust Gatekeeper",
+                "detail": "Strict runtime filtering prohibiting synthetic or sandbox rows from entering production tables",
+            },
+            {
+                "name": "Dual Warehouse Hot-Parity Replicator",
+                "detail": "Continuous verification of table parity between primary analytical warehouse and read replica",
+            },
+            {
+                "name": "Composite 12-Rule Data Quality Scorer",
+                "detail": "Real-time weighted quality index measuring completeness, uniqueness, and consistency",
+            },
+            {
+                "name": "Airflow DAG Health Sensor",
+                "detail": "Automatic heartbeat polling detecting pipeline stalls and dispatching alerts",
+            },
+            {
+                "name": "Visual AST Query Formatter",
+                "detail": "Structured syntax highlighting and automatic keyword capitalization for analytical SQL",
+            },
+            {
+                "name": "Instant Query Lab Handoff",
+                "detail": "Seamless transition from Builder visual query constructor directly into interactive SQL lab",
+            },
+            {
+                "name": "Custom Parameterized Query Compiler",
+                "detail": "Secure SQL generation preventing injection while binding user filters to warehouse parameters",
+            },
+            {
+                "name": "Dynamic Table Column Pinning",
+                "detail": "Freezing essential primary columns on wide analytical tables across desktop and mobile",
+            },
+            {
+                "name": "Executive White Mode Optimization",
+                "detail": "High-contrast, glare-free light mode theme with subtle micro-borders and premium typography",
+            },
+            {
+                "name": "Midnight OLED Theme Palette",
+                "detail": "True-black theme designed for low-light environments and battery saving on OLED screens",
+            },
+            {
+                "name": "Adaptive Font Scale Engine",
+                "detail": "Harmonized proportional font scaling supporting 4 density levels from compact to spacious",
+            },
+            {
+                "name": "RTL Layout Mirroring Engine",
+                "detail": "Full bidirectional layout support accommodating right-to-left languages without CSS hacks",
+            },
+            {
+                "name": "Automated Schema Migration Guard",
+                "detail": "Alembic revision status tracking preventing unmigrated model deployments",
+            },
+            {
+                "name": "Cryptographic API Key Hashing",
+                "detail": "SHA-256 one-way hashed API credentials stored with expiration and scope metadata",
+            },
+            {
+                "name": "Session Replay & Error Audit Log",
+                "detail": "Request-level failure tracking capturing status codes, stack traces, and mitigation actions",
+            },
+        ],
+    },
 ]
 
 
