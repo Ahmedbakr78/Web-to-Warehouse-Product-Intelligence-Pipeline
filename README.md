@@ -72,7 +72,15 @@
   <a href="CHANGELOG.md">Changelog</a>
 </p>
 
-<!-- Variable life-cylinder: extract, clean, load, analyse, serve, repeat -->
+<p align="center">
+  <a href="docs/assets/depi-presentation-infographic.png">
+    <img src="docs/assets/depi-presentation-infographic.png" alt="DEPI Data Engineering Presentation Infographic & Pipeline Architecture Roadmap" width="100%" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);" />
+  </a>
+</p>
+
+<p align="center">
+  <sub><b>Official 16:9 Presentation Infographic & Roadmap</b> — Available in <a href="docs/assets/depi-presentation-infographic.png">Ultra-HD PNG (2560x1440)</a> · <a href="docs/assets/depi-presentation-infographic.pdf">Vector PDF</a> · <a href="docs/assets/depi-presentation-infographic.html">Interactive HTML Presentation</a></sub>
+</p>
 
 ---
 
@@ -151,7 +159,36 @@ Everything is engineered like a production system, not a demo:
 - rate limits, circuit breakers and response caching protect the sources;
 - every outbound request is written to an audit table with its robots decision;
 - the schema loads identically on PostgreSQL and MySQL, and a command proves there is no drift;
-- quality is measured rather than assumed, and the verdicts are persisted per run.
+
+---
+
+## DEPI Capstone Scope & Problem Statement
+
+### Problem Statement
+A retailer wants to continuously collect product information from permitted public web sources and combine it with its internal product catalog. Manual collection is slow, produces inconsistent records, and lacks historical price tracking or quality guarantees.
+
+### Project Objective
+Create an automated data pipeline that extracts product information from public APIs and permitted websites, standardises it, detects duplicate entities, reconciles external data against the retailer's internal catalog, loads the results into a Kimball-style analytical data warehouse (PostgreSQL & MySQL), and exposes analytical insights through an orchestrated workflow, SQL views, a REST API, and an interactive dashboard.
+
+### Scope & Implementation Compliance Matrix
+
+| # | Capstone Requirement | Shipped Implementation | Repository Reference |
+|---|---|---|---|
+| **1** | **Scrape permitted product info** | BeautifulSoup4, Scrapy engine, and HTTP client modules | [`app/ingestion/adapters/`](file:///home/ahmed/Downloads/Depi_Ahmed_Abobakr_Project/app/ingestion/adapters/) |
+| **2** | **Respect robots.txt, rate limits, terms** | RFC 9309 parser, token bucket rate limiter, sliding window cap | [`app/ingestion/compliance.py`](file:///home/ahmed/Downloads/Depi_Ahmed_Abobakr_Project/app/ingestion/compliance.py) |
+| **3** | **Extract 6 core fields** | Name, Category, Price, Rating, Availability, Product URL | [`app/models/dimensions.py`](file:///home/ahmed/Downloads/Depi_Ahmed_Abobakr_Project/app/models/dimensions.py) |
+| **4** | **Clean names and categories** | 29-step regex cleaner, taxonomy normaliser, category hierarchy | [`app/etl/cleaner.py`](file:///home/ahmed/Downloads/Depi_Ahmed_Abobakr_Project/app/etl/cleaner.py) |
+| **5** | **Normalize currencies & prices** | 18+ currency parser, live FX rates to USD, VAT normalization | [`app/etl/currency.py`](file:///home/ahmed/Downloads/Depi_Ahmed_Abobakr_Project/app/etl/currency.py) |
+| **6** | **Detect duplicate products** | Deterministic fingerprinting + 4-signal fuzzy deduplication (0.90) | [`app/etl/deduplicator.py`](file:///home/ahmed/Downloads/Depi_Ahmed_Abobakr_Project/app/etl/deduplicator.py) |
+| **7** | **Compare with internal catalog** | SKU reconciliation, confidence-scored match, price gap analysis | [`app/etl/catalog_matcher.py`](file:///home/ahmed/Downloads/Depi_Ahmed_Abobakr_Project/app/etl/catalog_matcher.py) |
+| **8** | **Load PostgreSQL / MySQL** | Dual-warehouse parity: 29 tables, SCD-2 dimensions, Alembic migrations | [`app/core/db.py`](file:///home/ahmed/Downloads/Depi_Ahmed_Abobakr_Project/app/core/db.py) |
+| **9** | **Store price snapshots** | Append-only `fact_price_snapshot` with SCD Type 2 tracking | [`app/models/facts.py`](file:///home/ahmed/Downloads/Depi_Ahmed_Abobakr_Project/app/models/facts.py) |
+| **10** | **SQL Analysis (4 change dimensions)** | Price changes, New products, Removed products, Category changes | [`app/sql/views.py`](file:///home/ahmed/Downloads/Depi_Ahmed_Abobakr_Project/app/sql/views.py) (23 Views) |
+| **11** | **Airflow DAG Orchestration** | Production DAG with 33 tasks, branching, retry policies, sensor sync | [`airflow/dags/`](file:///home/ahmed/Downloads/Depi_Ahmed_Abobakr_Project/airflow/dags/) |
+| **12** | **Data-Quality Checks** | 12 automated DQ rules across 6 dimensions with weighted scoring | [`app/quality/rules.py`](file:///home/ahmed/Downloads/Depi_Ahmed_Abobakr_Project/app/quality/rules.py) |
+| **13** | **Interactive Visualization** | React 19 dashboard, Tailwind CSS, 23 screens, ReCharts | [`frontend/src/`](file:///home/ahmed/Downloads/Depi_Ahmed_Abobakr_Project/frontend/src/) |
+| **14** | **Documentation Suite** | 37 numbered docs, 104 Mermaid diagrams, data dictionary, deck | [`docs/`](file:///home/ahmed/Downloads/Depi_Ahmed_Abobakr_Project/docs/) |
+| **15** | **Optional Extension: REST API** | FastAPI 0.142, 24 routers, 222 endpoints, OpenAPI 3.1 docs | [`app/api/`](file:///home/ahmed/Downloads/Depi_Ahmed_Abobakr_Project/app/api/) |
 
 ---
 
@@ -733,6 +770,159 @@ flowchart TB
     DEV["Developer / examiner browser"] --> WEB
     DEV --> APIC
     DEV --> WEBAF
+```
+
+### Retailer Internal Catalog Reconciliation Architecture
+
+```mermaid
+flowchart TD
+    subgraph Ingestion["Permitted Web & API Ingestion"]
+        Ext["Scraped / API Products<br/>(17+ Live Permitted Sources)"]
+        Clean["29-Step Normaliser<br/>& Currency FX Converter"]
+        Ext --> Clean
+    end
+
+    subgraph InternalCatalog["Retailer Internal Systems"]
+        InternalDB[("Internal Product Catalog<br/>catalog_product (SKUs, List Price, Cost)")]
+    end
+
+    subgraph Matcher["Reconciliation & Gap Engine"]
+        DirectSKU{"Exact SKU / EAN<br/>Match?"}
+        FuzzyToken{"Token Similarity<br/>>= 0.85 Threshold?"}
+        BrandGate{"Brand & Category<br/>Compatible?"}
+        GapCalc["Price Gap Analysis Engine<br/>Delta = (Ext_Price - Int_Price) / Int_Price"]
+    end
+
+    subgraph Warehouse["Warehouse Core (PostgreSQL + MySQL)"]
+        MatchFact[("fact_catalog_snapshot<br/>• match_score<br/>• price_gap_pct<br/>• match_status")]
+        PriceGaps[("v_catalog_price_gaps<br/>• Underpriced Alerts<br/>• Margin Opportunities")]
+    end
+
+    Clean --> DirectSKU
+    InternalDB --> DirectSKU
+    DirectSKU -- "Yes (Score 1.0)" --> GapCalc
+    DirectSKU -- "No" --> FuzzyToken
+    FuzzyToken -- "Yes" --> BrandGate
+    BrandGate -- "Valid Match" --> GapCalc
+    BrandGate -- "No Match" --> Unmatched["Unmatched / Competitor-Only SKU"]
+    FuzzyToken -- "No Match" --> Unmatched
+    GapCalc --> MatchFact
+    MatchFact --> PriceGaps
+```
+
+### SCD Type 2 Dimensional Lifecycle & Snapshot Evolution
+
+```mermaid
+stateDiagram-v2
+    [*] --> Discovered: Ingested from Permitted Source
+    Discovered --> Fingerprinted: Deterministic SHA-256 Fingerprint
+    Fingerprinted --> Deduplicated: Entity Resolution (Similarity >= 0.90)
+    
+    state Deduplicated {
+        [*] --> NewProduct: First Sighting
+        NewProduct --> ActiveTracking: dim_product Insert (v1)
+        ActiveTracking --> UnchangedObservation: Price Identical
+        ActiveTracking --> PriceChanged: Abs/Pct Price Shift
+        PriceChanged --> ActiveTracking: Append fact_price_snapshot
+        ActiveTracking --> AvailabilityShift: Stock Status Toggle
+        AvailabilityShift --> ActiveTracking: Update Availability Dimension
+    }
+
+    ActiveTracking --> CatalogReconciled: Matched to Retailer SKU
+    CatalogReconciled --> CategoryRollup: agg_category_daily Rollup
+    CategoryRollup --> [*]: Queryable in Analytical Views
+```
+
+### 12-Rule Data Quality Verification Gatekeeper
+
+```mermaid
+flowchart LR
+    subgraph Warehouse["Warehouse Tables"]
+        WH[("Staged & Loaded<br/>Warehouse Data")]
+    end
+
+    subgraph Rules["Automated 12-Rule Quality Gatekeeper"]
+        direction TB
+        subgraph Dim1["Completeness (Weight 20%)"]
+            R1["R1: Product Name Not Null"]
+            R2["R2: Price Is Positive & Finite"]
+        end
+        subgraph Dim2["Uniqueness (Weight 20%)"]
+            R3["R3: Unique Source Product IDs"]
+            R4["R4: No Duplicate Daily Snapshots"]
+        end
+        subgraph Dim3["Validity (Weight 15%)"]
+            R5["R5: Standard ISO Currency Codes"]
+            R6["R6: Ratings Scaled in [0.0, 5.0]"]
+        end
+        subgraph Dim4["Consistency (Weight 15%)"]
+            R7["R7: Currency FX Rate In Bounds"]
+            R8["R8: Price Change Mathematical Parity"]
+        end
+        subgraph Dim5["Integrity (Weight 15%)"]
+            R9["R9: Category Foreign Key Integrity"]
+            R10["R10: Date Dimension Conformance"]
+        end
+        subgraph Dim6["Timeliness (Weight 15%)"]
+            R11["R11: Snapshot Freshness < 24 Hours"]
+            R12["R12: ETL Ingestion Latency Ceiling"]
+        end
+    end
+
+    subgraph Scoring["Quality Scoring & Audit"]
+        ScoreEngine["Weighted Composite Scorer<br/>(Target >= 95% Pass Threshold)"]
+        AuditLog[("dq_rule_result<br/>(Verdicts, Defect Rows, Score)")]
+        AlertGate{"Score >= 95%?"}
+        Pass["Pipeline Approved & KPIs Live"]
+        Warning["Severity Alert Dispatched<br/>(Slack / Webhook / Dashboard)"]
+    end
+
+    WH --> R1 & R2 & R3 & R4 & R5 & R6 & R7 & R8 & R9 & R10 & R11 & R12
+    R1 & R2 & R3 & R4 & R5 & R6 & R7 & R8 & R9 & R10 & R11 & R12 --> ScoreEngine
+    ScoreEngine --> AuditLog
+    AuditLog --> AlertGate
+    AlertGate -- "Pass" --> Pass
+    AlertGate -- "Warning / Defect" --> Warning
+```
+
+### End-to-End Security, RBAC & API Defense Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Client as User / Dashboard / Airflow
+    participant Proxy as Reverse Proxy (Nginx)
+    participant RateLimit as Token-Bucket Rate Limiter
+    participant Auth as Auth & RBAC Middleware
+    participant Guard as Read-Only SQL Guard
+    participant API as FastAPI 0.142 (24 Routers)
+    participant DB as Warehouse (PG / MySQL)
+
+    Client->>Proxy: HTTPS Request (Authorization: Bearer <JWT> | X-API-Key)
+    Proxy->>RateLimit: Check Sliding Window Rate Limit
+    alt Rate Limit Exceeded
+        RateLimit-->>Client: 429 Too Many Requests (Retry-After: N)
+    else Under Limit
+        RateLimit->>Auth: Validate Credentials
+        Auth->>Auth: Verify JWT Signature / Hash API Key / TOTP 2FA
+        alt Invalid Auth
+            Auth-->>Client: 401 Unauthorized
+        else Authenticated
+            Auth->>Auth: Check Role Rights (admin / analyst / viewer)
+            alt Insufficient Role
+                Auth-->>Client: 403 Forbidden
+            else Authorized
+                opt Query Lab Custom SQL Endpoint
+                    Auth->>Guard: Inspect SQL AST (Read-Only Safety)
+                    Guard->>Guard: Reject DDL, DML, DROP, INSERT, ALTER
+                end
+                Auth->>API: Route to Endpoint Handler
+                API->>DB: Execute Parameterized Warehouse Query
+                DB-->>API: Query Results / Cursor Stream
+                API-->>Client: 200 OK (Clean JSON / RFC 4180 CSV / PDF)
+            end
+        end
+    end
 ```
 
 ---
