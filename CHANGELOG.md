@@ -4,6 +4,24 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Fake category changes on every run.** When two sources file the same
+  merged product under different shelves (Open Library "History", Gutendex
+  "Courtship" for *Pride and Prejudice*), the loader logged a
+  `category_changed` event each time the other source wrote, and the
+  product's category flipped with source order. Categories are now tracked
+  per source in `dim_product.extra`: an event fires only when one source
+  changes its own category, and only the source that first categorised a
+  product moves it. Regression tests in `tests/test_category_events.py`.
+- **`make install` failed on a fresh clone.** The `scrapy` extra pinned
+  `scrapy-rotating-proxies>=0.13`, a version that does not exist (latest is
+  0.6.2). Nothing imported it, and proxy rotation contradicts the polite
+  crawling policy, so the pin is removed. CI now installs the `scrapy` extra
+  so a broken pin fails the build instead of a new machine.
+
 ## [1.12.1] - 2026-10-21
 
 The theme of this release: **nothing in the product is a stub any more.** Three

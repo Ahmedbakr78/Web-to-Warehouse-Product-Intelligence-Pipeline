@@ -148,7 +148,7 @@ Structural figures are exact and re-verifiable:
 | --- | --- |
 | 29 tables, 23 views | `make bootstrap`, or `make stats` |
 | 222 REST operations in 24 routers | `http://localhost:8000/docs`, or `make stats` |
-| 625 tests pass | `make test` |
+| 627 tests pass | `make test` |
 | 104 API smoke checks pass | `.venv/bin/python scripts/api_smoke.py` |
 | ruff and mypy clean | `make lint` and `make typecheck` |
 | No schema drift | `make db-check` |
@@ -179,7 +179,7 @@ named alongside.
 | Data-quality rules / dimensions | 12 / 6, verdicts persisted per run |
 | Ingestion sources | 34 registered adapters: 31 JSON APIs, 2 HTML scrapers, 1 offline synthetic — 21 of them classified as real market data |
 | Documentation documents / diagrams | 38 / 108 Mermaid, all rendering to SVG |
-| API regression suite | 625 pytest cases, 104 smoke checks |
+| API regression suite | 627 pytest cases, 104 smoke checks |
 | Demo accounts | `admin@example.com` / `Admin@12345`, `analyst@example.com` / `Analyst@12345`, `viewer@example.com` / `Viewer@12345` |
 
 ---

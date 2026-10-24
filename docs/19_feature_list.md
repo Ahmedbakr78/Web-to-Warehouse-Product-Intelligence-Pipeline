@@ -15,7 +15,7 @@ reported separately by `python3 scripts/project_stats.py`.
 **Scale of the system, measured:** 34 ingestion sources · 29 physical tables · 23 analytical views ·
 12 data-quality rules across 6 dimensions · 222 REST route decorators in 24 routers · 9 pipeline stages ·
 33 Airflow task callables · 6 Docker Compose services · 34 numbered documents · 100+ Mermaid diagrams ·
-625 automated tests · 104 end-to-end API smoke checks.
+627 automated tests · 104 end-to-end API smoke checks.
 
 Regenerate the numbers above with `python3 scripts/project_stats.py`.
 

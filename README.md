@@ -267,7 +267,7 @@ seeds a throwaway synthetic warehouse and fails if the audit accepts it.
 12 data-quality rules across 6 dimensions, weighted score persisted per run
 34 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
 17 CLI commands  |  6 Docker Compose services  |  37 documents  |  108 Mermaid diagrams
-625 tests  |  104/104 API smoke checks  |  700 catalogued features
+627 tests  |  104/104 API smoke checks  |  700 catalogued features
 ```
 
 | Metric | Count |
@@ -287,7 +287,7 @@ seeds a throwaway synthetic warehouse and fails if the audit accepts it.
 | Catalogued features (live API catalogue) | 700 |
 | Documented features (F-ID inventory)     | 612 |
 | Documented feature areas                 | 47 |
-| Collected test cases                     | 625 |
+| Collected test cases                     | 627 |
 | API smoke checks                         | 104 |
 
 <!-- END:STATS -->
@@ -1834,7 +1834,7 @@ trigger a pipeline run is denied.
 | --- | --- | --- |
 | Lint and format | `make lint` | ruff: all checks pass, zero warnings |
 | Static types | `make typecheck` | mypy: no issues in 125 source files |
-| Unit tests | `make test` | pytest: 625 passed (SQLite warehouse, no services required) |
+| Unit tests | `make test` | pytest: 627 passed (SQLite warehouse, no services required) |
 | API regression | `.venv/bin/python scripts/api_smoke.py` | 104/104 checks, including auth, RBAC and 404 paths |
 | Frontend | `cd frontend && npm run lint && npm run typecheck && npm run build` | ESLint at zero warnings, clean tsc, production build |
 | Cross-dialect | `make verify-dialects` | identical model and DQ score on PostgreSQL and MySQL |
@@ -1946,7 +1946,7 @@ scripts/
   run_analysis.py         runs the standalone SQL analyses
   make_infographic.py     generates the roadmap infographic
   diagrams.py            extract, validate and render all Mermaid diagrams
-tests/            pytest unit + integration suite (625 tests)
+tests/            pytest unit + integration suite (627 tests)
 website/          single-file project landing page (index.html) with light/dark themes
 .github/
   workflows/ci.yml        ruff, mypy, pytest, eslint, tsc, vite build
@@ -2211,7 +2211,7 @@ ownership, and every merge in the repository passes his review.
   build when prose and code disagree.
 - **Release management** — semantic versioning, Keep-a-Changelog, annotated
   tags, GitHub releases; see [docs/31_releases.md](docs/31_releases.md).
-- **Quality gates** — ruff, mypy, pytest (625 tests), API smoke (104 checks),
+- **Quality gates** — ruff, mypy, pytest (627 tests), API smoke (104 checks),
   cross-dialect parity, frontend typecheck/lint/vitest/build.
 
 Full file-level responsibility map: [CONTRIBUTORS.md](CONTRIBUTORS.md) · RACI matrix:

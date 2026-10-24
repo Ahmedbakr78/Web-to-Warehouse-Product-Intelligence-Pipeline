@@ -81,7 +81,7 @@
 <h2 id="purpose">Purpose</h2>
 <p>This document is the complete feature inventory of the Web-to-Warehouse Product Intelligence Pipeline: 612 features grouped into forty-seven areas, each with a one-line description and a reference to the file that implements it. Every entry corresponds to shipped behaviour — a function, a table, an endpoint, a CLI command or a documented design decision. Nothing here is aspirational.</p>
 <p>This inventory is the <em>engineering</em> index: it names the file behind every capability. The dashboard's own Feature Catalogue is served by <code>GET /api/v1/meta/features</code> and groups the same platform into a smaller number of user-facing areas, so the two numbers are measured on different axes and are reported separately by <code>python3 scripts/project_stats.py</code>.</p>
-<p><strong>Scale of the system, measured:</strong> 34 ingestion sources · 29 physical tables · 23 analytical views · 12 data-quality rules across 6 dimensions · 222 REST route decorators in 24 routers · 9 pipeline stages · 33 Airflow task callables · 6 Docker Compose services · 34 numbered documents · 100+ Mermaid diagrams · 625 automated tests · 104 end-to-end API smoke checks.</p>
+<p><strong>Scale of the system, measured:</strong> 34 ingestion sources · 29 physical tables · 23 analytical views · 12 data-quality rules across 6 dimensions · 222 REST route decorators in 24 routers · 9 pipeline stages · 33 Airflow task callables · 6 Docker Compose services · 34 numbered documents · 100+ Mermaid diagrams · 627 automated tests · 104 end-to-end API smoke checks.</p>
 <p>Regenerate the numbers above with <code>python3 scripts/project_stats.py</code>.</p>
 <hr>
 <h2 id="how-the-feature-areas-fit-together">How the feature areas fit together</h2>
