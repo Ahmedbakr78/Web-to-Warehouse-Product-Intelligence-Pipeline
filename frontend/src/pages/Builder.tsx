@@ -422,6 +422,42 @@ const BUILDER_PRESETS: { name: string; icon: LucideIcon; entity: Entity; patch: 
     entity: 'availability',
     patch: { sortBy: 'in_stock_pct', sortDir: 'desc' },
   },
+  {
+    name: 'Competitor Undercutting (≥ 20%)',
+    icon: Flame,
+    entity: 'catalog',
+    patch: { significantOnly: true, sortBy: 'price_difference', sortDir: 'asc' },
+  },
+  {
+    name: 'Liquidation Candidates (≤ $15)',
+    icon: BadgeDollarSign,
+    entity: 'products',
+    patch: { maxPrice: '15', inStock: 'true', sortBy: 'price', sortDir: 'asc' },
+  },
+  {
+    name: 'Unmatched Competitor SKUs',
+    icon: Package,
+    entity: 'catalog',
+    patch: { sortBy: 'similarity_score', sortDir: 'asc' },
+  },
+  {
+    name: 'Margin Maximizer (+25% Gap)',
+    icon: Gem,
+    entity: 'catalog',
+    patch: { significantOnly: true, sortBy: 'price_difference', sortDir: 'desc' },
+  },
+  {
+    name: 'Fresh Market Sighting (24h)',
+    icon: Sparkles,
+    entity: 'new',
+    patch: { newSinceDays: '1', activeOnly: true, sortBy: 'first_seen_at', sortDir: 'desc' },
+  },
+  {
+    name: 'High-Volatility Categories',
+    icon: TrendingUp,
+    entity: 'categories',
+    patch: { sortBy: 'price_change_count', sortDir: 'desc' },
+  },
 ]
 
 export default function Builder() {
@@ -552,6 +588,55 @@ export default function Builder() {
   // paged ones return {items, total}: normalise so previews never render empty.
   const rows = Array.isArray(preview.data) ? preview.data : ((preview.data as any)?.items ?? [])
   const columns = ENTITY_COLUMNS[state.entity]
+
+  const previewMetrics = useMemo(() => {
+    if (!rows.length) return null
+    if (state.entity === 'products' || state.entity === 'new') {
+      const prices = rows
+        .map((r: any) => Number(r.price_usd ?? r.first_seen_price_usd ?? r.price))
+        .filter((p: number) => !isNaN(p) && p > 0)
+      const inStock = rows.filter((r: any) => String(r.availability ?? '').toLowerCase().includes('in_stock')).length
+      const avgPrice = prices.length ? prices.reduce((a: number, b: number) => a + b, 0) / prices.length : 0
+      const minPrice = prices.length ? Math.min(...prices) : 0
+      const maxPrice = prices.length ? Math.max(...prices) : 0
+      const inStockPct = rows.length ? Math.round((inStock / rows.length) * 100) : 0
+      return {
+        type: 'products' as const,
+        avgPrice,
+        minPrice,
+        maxPrice,
+        inStockPct,
+        count: rows.length,
+      }
+    }
+    if (state.entity === 'price-changes' || state.entity === 'movers') {
+      const changes = rows
+        .map((r: any) => Number(r.change_pct))
+        .filter((c: number) => !isNaN(c))
+      const drops = changes.filter((c) => c < 0).length
+      const rises = changes.filter((c) => c > 0).length
+      const avgChange = changes.length ? changes.reduce((a, b) => a + b, 0) / changes.length : 0
+      return {
+        type: 'changes' as const,
+        drops,
+        rises,
+        avgChange,
+        count: rows.length,
+      }
+    }
+    if (state.entity === 'quality') {
+      const passes = rows.filter((r: any) => String(r.status ?? '').toLowerCase() === 'pass').length
+      const passRate = rows.length ? Math.round((passes / rows.length) * 100) : 0
+      return {
+        type: 'quality' as const,
+        passes,
+        fails: rows.length - passes,
+        passRate,
+        count: rows.length,
+      }
+    }
+    return null
+  }, [rows, state.entity])
 
   function patch(changes: Partial<BuilderState>) {
     setState((current) => ({ ...current, ...changes }))
