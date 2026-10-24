@@ -72,16 +72,6 @@
   <a href="CHANGELOG.md">Changelog</a>
 </p>
 
-<p align="center">
-  <a href="docs/assets/depi-presentation-infographic.png">
-    <img src="docs/assets/depi-presentation-infographic.png" alt="DEPI Data Engineering Presentation Infographic & Pipeline Architecture Roadmap" width="100%" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);" />
-  </a>
-</p>
-
-<p align="center">
-  <sub><b>Official 16:9 Presentation Infographic & Roadmap</b> — Available in <a href="docs/assets/depi-presentation-infographic.png">Ultra-HD PNG (2560x1440)</a> · <a href="docs/assets/depi-presentation-infographic.pdf">Vector PDF</a> · <a href="docs/assets/depi-presentation-infographic.html">Interactive HTML Presentation</a></sub>
-</p>
-
 ---
 
 ## Table of contents
