@@ -7,7 +7,7 @@
  */
 
 import { useMemo, useState } from 'react'
-import { BarChart3, Copy, Download, FileJson, Layers, Play, Plus, RotateCcw, Terminal, Trash2 } from 'lucide-react'
+import { BarChart3, Copy, Download, FileJson, Layers, Play, Plus, RotateCcw, Sparkles, Terminal, Trash2, Zap } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 
 import { useDebounce } from '@/hooks/useDebounce'
@@ -88,6 +88,63 @@ function renderCell(value: unknown) {
   if (typeof value === 'number') return <span className="font-medium tabular-nums">{formatNumber(value, 2)}</span>
   return <span className="block max-w-[18rem] truncate">{String(value)}</span>
 }
+
+const AGG_TEMPLATES = [
+  {
+    label: 'Avg price by category',
+    entity: 'products',
+    groupBy: 'category_name',
+    aggregates: [
+      { id: 101, function: 'avg', column: 'price_usd', alias: 'avg_price_usd' },
+      { id: 102, function: 'count', column: '', alias: 'product_count' },
+    ],
+    sortColumn: 'avg_price_usd',
+    sortDir: 'desc' as const,
+  },
+  {
+    label: 'Coverage by source',
+    entity: 'products',
+    groupBy: 'source_code',
+    aggregates: [
+      { id: 103, function: 'count', column: '', alias: 'total_items' },
+      { id: 104, function: 'avg', column: 'price_usd', alias: 'avg_price' },
+    ],
+    sortColumn: 'total_items',
+    sortDir: 'desc' as const,
+  },
+  {
+    label: 'Avg rating by category',
+    entity: 'products',
+    groupBy: 'category_name',
+    aggregates: [
+      { id: 105, function: 'avg', column: 'rating', alias: 'avg_rating' },
+      { id: 106, function: 'count', column: '', alias: 'rated_items' },
+    ],
+    sortColumn: 'avg_rating',
+    sortDir: 'desc' as const,
+  },
+  {
+    label: 'Price changes by magnitude',
+    entity: 'price-changes',
+    groupBy: 'magnitude_band',
+    aggregates: [
+      { id: 107, function: 'count', column: '', alias: 'change_count' },
+      { id: 108, function: 'avg', column: 'change_pct', alias: 'avg_change_pct' },
+    ],
+    sortColumn: 'change_count',
+    sortDir: 'desc' as const,
+  },
+  {
+    label: 'DQ evaluations by dimension',
+    entity: 'quality',
+    groupBy: 'dimension',
+    aggregates: [
+      { id: 109, function: 'count', column: '', alias: 'eval_count' },
+    ],
+    sortColumn: 'eval_count',
+    sortDir: 'desc' as const,
+  },
+]
 
 export default function AggregateBuilder() {
   const toast = useToast()
