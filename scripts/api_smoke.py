@@ -280,13 +280,13 @@ def run_checks(base_url: str, token: str, role_tokens: dict[str, str] | None = N
             )
         elif method == "POST" and path.endswith("/saved-views"):
             payload = {
-                "name": f"smoke-test-view-{int(time.time())}",
+                "name": f"smoke-test-view-{time.time_ns()}",
                 "entity": "products",
                 "filters": {"in_stock": True},
             }
         elif method == "POST" and path.endswith("/alerts"):
             payload = {
-                "name": f"smoke-alert-{int(time.time())}",
+                "name": f"smoke-alert-{time.time_ns()}",
                 "metric": "price_change_pct",
                 "operator": "lt",
                 "threshold": -15,
