@@ -17,8 +17,16 @@ depend on live data) with this exact procedure so every shot matches:
 5. Name files `<screen>-light.png` / `<screen>-dark.png` (e.g.
    `dashboard-light.png`), keep them under 500 KB each.
 
-No captures are committed yet — the folder is wired and waiting. Until then,
-the interactive equivalents are one command away:
+The following captures are committed at 1440×900:
+- `dashboard-dark.png` — Live overview, KPI cards, price change activity, quality health
+- `analytics-dark.png` — Multi-dimensional analytics, category trends, market volatility
+- `changes-dark.png` — SCD Type 2 price changes, new & removed products, category drift
+- `products-dark.png` — Star-schema canonical product catalogue, filters, facets
+- `pipeline-dark.png` — 9-stage ETL pipeline execution monitor & run history
+- `quality-dark.png` — 12-rule data quality gatekeeper scorecards & trend
+- `sources-dark.png` — 34 registered public web sources, rate limits & robots.txt compliance
+- `airflow-graph.png` — Apache Airflow DAG graph execution view (33 tasks)
+- `airflow-grid.png` — Apache Airflow DAG grid run status view
 
 ```bash
 ./run.sh --open   # dashboard at http://localhost:5173
