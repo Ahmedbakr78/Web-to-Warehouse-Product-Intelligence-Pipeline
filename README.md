@@ -16,7 +16,7 @@
   <img src="https://img.shields.io/badge/views-23-informational" alt="Views"/>
   <img src="https://img.shields.io/badge/REST%20operations-222-success" alt="REST operations"/>
   <img src="https://img.shields.io/badge/DQ%20rules-12-success" alt="Data quality rules"/>
-  <img src="https://img.shields.io/badge/unit%20tests-625%20passing-brightgreen" alt="Tests"/>
+  <img src="https://img.shields.io/badge/unit%20tests-627%20passing-brightgreen" alt="Tests"/>
   <img src="https://img.shields.io/badge/API%20smoke-104%2F104-brightgreen" alt="API smoke"/>
   <img src="https://img.shields.io/badge/ruff-0%20warnings-brightgreen" alt="ruff"/>
   <img src="https://img.shields.io/badge/CI-github%20actions-2088FF?logo=github-actions&logoColor=white" alt="CI"/>
@@ -35,7 +35,7 @@
 <p align="center">
   <b>222 REST operations</b> · <b>29 tables</b> · <b>23 analytical views</b> ·
   <b>12 DQ rules</b> · <b>34 registered sources</b> · <b>700 catalogued features</b> ·
-  <b>625 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
+  <b>627 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
 </p>
 
 <p align="center">
