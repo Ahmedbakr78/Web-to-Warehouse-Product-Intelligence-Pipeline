@@ -1,117 +1,55 @@
 #!/usr/bin/env python3
-"""Capture high-resolution screenshots of the dashboard and Airflow UI for docs."""
+"""Capture high-resolution dark mode screenshots of dashboard screens and Airflow UI."""
 
 from __future__ import annotations
 
-import asyncio
-import base64
-import json
-import subprocess
+import time
 from pathlib import Path
-
-import httpx
-import websockets
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
 
 ROOT = Path(__file__).resolve().parents[1]
 SCREENSHOTS_DIR = ROOT / "docs" / "screenshots"
 SCREENSHOTS_DIR.mkdir(parents=True, exist_ok=True)
 
-CHROME_BIN = "/usr/bin/google-chrome"
-CDP_PORT = 9222
 
+def main():
+    options = Options()
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--window-size=1440,900")
 
-async def get_token() -> str:
-    async with httpx.AsyncClient() as client:
-        res = await client.post(
-            "http://localhost:8000/api/v1/auth/login",
-            json={"email": "admin@example.com", "password": "Admin@12345"},
-            timeout=10,
-        )
-        data = res.json()
-        return data.get("access_token", "")
-
-
-class CDPClient:
-    def __init__(self, ws_url: str):
-        self.ws_url = ws_url
-        self.ws: websockets.WebSocketClientProtocol | None = None
-        self._msg_id = 0
-
-    async def connect(self):
-        self.ws = await websockets.connect(self.ws_url, max_size=50 * 1024 * 1024)
-
-    async def send(self, method: str, params: dict | None = None) -> dict:
-        self._msg_id += 1
-        msg = {"id": self._msg_id, "method": method, "params": params or {}}
-        await self.ws.send(json.dumps(msg))
-        while True:
-            resp_raw = await self.ws.recv()
-            resp = json.loads(resp_raw)
-            if resp.get("id") == self._msg_id:
-                return resp
-
-    async def close(self):
-        if self.ws:
-            await self.ws.close()
-
-
-async def capture_page(cdp: CDPClient, url: str, output_path: Path, wait_sec: float = 2.5):
-    print(f"Navigating to {url}...")
-    await cdp.send("Page.navigate", {"url": url})
-    await asyncio.sleep(wait_sec)
-    res = await cdp.send("Page.captureScreenshot", {"format": "png"})
-    b64_data = res.get("result", {}).get("data", "")
-    if b64_data:
-        output_path.write_bytes(base64.b64decode(b64_data))
-        print(f"Saved: {output_path} ({len(b64_data)} bytes base64)")
-    else:
-        print(f"Failed to capture screenshot for {url}: {res}")
-
-
-async def main():
-    token = await get_token()
-    if not token:
-        print("Error: Could not retrieve auth token from API")
-        return 1
-
-    chrome_cmd = [
-        CHROME_BIN,
-        "--headless=new",
-        f"--remote-debugging-port={CDP_PORT}",
-        "--no-sandbox",
-        "--disable-gpu",
-        "--disable-dev-shm-usage",
-        "--window-size=1440,900",
-    ]
-    proc = subprocess.Popen(chrome_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    print("Launched headless Chrome on port", CDP_PORT)
-    await asyncio.sleep(1.5)
+    driver = webdriver.Chrome(options=options)
+    driver.set_window_size(1440, 900)
 
     try:
-        async with httpx.AsyncClient() as client:
-            pages = (await client.get(f"http://127.0.0.1:{CDP_PORT}/json", timeout=5)).json()
-            ws_url = pages[0]["webSocketDebuggerUrl"]
+        print("Navigating to login page...")
+        driver.get("http://localhost:5173/login")
+        time.sleep(2)
 
-        cdp = CDPClient(ws_url)
-        await cdp.connect()
+        # Login to Dashboard
+        email_input = driver.find_element(By.CSS_SELECTOR, "input[type='email']")
+        password_input = driver.find_element(By.CSS_SELECTOR, "input[type='password']")
+        email_input.clear()
+        email_input.send_keys("admin@example.com")
+        password_input.clear()
+        password_input.send_keys("Admin@12345")
 
-        # Set device metrics to 1440x900
-        await cdp.send("Page.enable")
-        await cdp.send(
-            "Emulation.setDeviceMetricsOverride",
-            {"width": 1440, "height": 900, "deviceScaleFactor": 1, "mobile": False},
-        )
+        submit_btn = driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
+        submit_btn.click()
+        print("Logged in, waiting for dashboard...")
+        time.sleep(3)
 
-        # Inject auth token and dark mode into localStorage
-        await cdp.send("Page.navigate", {"url": "http://localhost:5173/login"})
-        await asyncio.sleep(1.5)
-        inject_script = (
-            f"localStorage.setItem('pip.token', '{token}'); "
+        # Ensure dark theme is applied
+        driver.execute_script(
             "localStorage.setItem('pip.theme', 'dark'); "
             "document.documentElement.dataset.theme = 'dark'; "
             "document.documentElement.classList.add('dark');"
         )
-        await cdp.send("Runtime.evaluate", {"expression": inject_script})
+        time.sleep(1)
 
         screens = [
             ("http://localhost:5173/", SCREENSHOTS_DIR / "dashboard-dark.png"),
@@ -124,41 +62,54 @@ async def main():
         ]
 
         for url, path in screens:
-            await capture_page(cdp, url, path, wait_sec=2.5)
+            print(f"Capturing {url} -> {path.name}...")
+            driver.get(url)
+            driver.execute_script(
+                "document.documentElement.dataset.theme = 'dark'; "
+                "document.documentElement.classList.add('dark');"
+            )
+            time.sleep(3)
+            driver.save_screenshot(str(path))
+            print(f"Saved: {path.name} ({path.stat().st_size} bytes)")
 
-        # Now capture Airflow UI
-        print("Logging into Airflow UI...")
-        await cdp.send("Page.navigate", {"url": "http://localhost:8080/login/"})
-        await asyncio.sleep(2.0)
-        airflow_login_script = (
-            "document.querySelector('input[name=username]').value = 'admin'; "
-            "document.querySelector('input[name=password]').value = 'admin'; "
-            "document.querySelector('form').submit();"
-        )
-        await cdp.send("Runtime.evaluate", {"expression": airflow_login_script})
-        await asyncio.sleep(3.0)
+        # Log into Airflow UI
+        print("Navigating to Airflow UI...")
+        driver.get("http://localhost:8080/login/")
+        time.sleep(2)
 
-        await capture_page(
-            cdp,
-            "http://localhost:8080/dags/product_intelligence_pipeline/graph",
-            SCREENSHOTS_DIR / "airflow-graph.png",
-            wait_sec=3.5,
-        )
-        await capture_page(
-            cdp,
-            "http://localhost:8080/dags/product_intelligence_pipeline/grid",
-            SCREENSHOTS_DIR / "airflow-grid.png",
-            wait_sec=3.5,
-        )
+        try:
+            af_user = driver.find_element(By.CSS_SELECTOR, "input[name='username']")
+            af_pass = driver.find_element(By.CSS_SELECTOR, "input[name='password']")
+            af_user.clear()
+            af_user.send_keys("admin")
+            af_pass.clear()
+            af_pass.send_keys("admin")
+            driver.find_element(By.CSS_SELECTOR, "form").submit()
+            time.sleep(3)
+        except Exception as e:
+            print(f"Airflow login form not found or already logged in: {e}")
 
-        await cdp.close()
+        # Graph view
+        print("Capturing Airflow Graph view...")
+        driver.get("http://localhost:8080/dags/product_intelligence_pipeline/graph")
+        time.sleep(4)
+        graph_path = SCREENSHOTS_DIR / "airflow-graph.png"
+        driver.save_screenshot(str(graph_path))
+        print(f"Saved: {graph_path.name} ({graph_path.stat().st_size} bytes)")
+
+        # Grid view
+        print("Capturing Airflow Grid view...")
+        driver.get("http://localhost:8080/dags/product_intelligence_pipeline/grid")
+        time.sleep(4)
+        grid_path = SCREENSHOTS_DIR / "airflow-grid.png"
+        driver.save_screenshot(str(grid_path))
+        print(f"Saved: {grid_path.name} ({grid_path.stat().st_size} bytes)")
+
     finally:
-        proc.terminate()
-        proc.wait()
+        driver.quit()
 
-    print("Finished capturing all screenshots successfully!")
-    return 0
+    print("All screenshots captured successfully!")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
