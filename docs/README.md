@@ -150,7 +150,7 @@ Structural figures are exact and re-verifiable:
 | --- | --- |
 | 29 tables, 23 views | `make bootstrap`, or `make stats` |
 | 222 REST operations in 24 routers | `http://localhost:8000/docs`, or `make stats` |
-| 627 tests pass | `make test` |
+| 632 tests pass | `make test` |
 | 104 API smoke checks pass | `.venv/bin/python scripts/api_smoke.py` |
 | ruff and mypy clean | `make lint` and `make typecheck` |
 | No schema drift | `make db-check` |
@@ -177,7 +177,7 @@ named alongside.
 | Version | 1.12.1 |
 | Physical tables / analytical views | 29 / 23, identical on PostgreSQL 16 and MySQL 8.4 |
 | REST operations / routers | 222 / 24 |
-| Feature inventory / runtime catalogue | 612 rows in 47 areas (`docs/19`) / 750 features in 45 groups (`GET /meta/features`) |
+| Feature inventory / runtime catalogue | 612 rows in 47 areas (`docs/19`) / 767 features in 46 groups (`GET /meta/features`) |
 | Data-quality rules / dimensions | 12 / 6, verdicts persisted per run |
 | Ingestion sources | 34 registered adapters: 31 JSON APIs, 2 HTML scrapers, 1 offline synthetic — 21 of them classified as real market data |
 | Documentation documents / diagrams | 38 / 116 Mermaid, all rendering to SVG |

@@ -11,6 +11,9 @@ import {
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
   type SelectHTMLAttributes,
+  type ChangeEvent,
+  Children,
+  isValidElement,
   createContext,
   useCallback,
   useContext,
@@ -245,11 +248,180 @@ export function TextInput({ className, ...props }: InputHTMLAttributes<HTMLInput
   return <input {...props} className={cn('input', className)} />
 }
 
-export function Select({ className, children, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
+export function Select({
+  className,
+  children,
+  value,
+  onChange,
+  disabled,
+  ...props
+}: SelectHTMLAttributes<HTMLSelectElement>) {
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const nativeSelectRef = useRef<HTMLSelectElement>(null)
+  const [openUpwards, setOpenUpwards] = useState(false)
+
+  // Extract option items from children
+  const options = useMemo(() => {
+    const list: Array<{ value: string; label: ReactNode; disabled?: boolean }> = []
+    const extract = (nodes: ReactNode) => {
+      Children.forEach(nodes, (child) => {
+        if (!child) return
+        if (isValidElement(child)) {
+          if (child.type === 'option') {
+            const val = (child.props as any).value !== undefined ? String((child.props as any).value) : ''
+            const lbl = (child.props as any).children ?? (child.props as any).label ?? val
+            list.push({ value: val, label: lbl, disabled: Boolean((child.props as any).disabled) })
+          } else if ((child.props as any) && (child.props as any).children) {
+            extract((child.props as any).children)
+          }
+        }
+      })
+    }
+    extract(children)
+    return list
+  }, [children])
+
+  // Determine current display label
+  const selectedOption = options.find((opt) => String(opt.value) === String(value ?? ''))
+  const displayLabel = selectedOption?.label ?? (options.length > 0 ? options[0].label : value) ?? 'Select…'
+
+  // Handle outside clicks and window escape
+  useEffect(() => {
+    if (!open) return
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClickOutside, true)
+    document.addEventListener('touchstart', handleClickOutside, true)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside, true)
+      document.removeEventListener('touchstart', handleClickOutside, true)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open])
+
+  // Calculate opening direction
+  const handleToggle = () => {
+    if (disabled) return
+    if (!open && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect()
+      if (rect.bottom + 260 > window.innerHeight && rect.top > 260) {
+        setOpenUpwards(true)
+      } else {
+        setOpenUpwards(false)
+      }
+    }
+    setOpen((prev) => !prev)
+  }
+
+  const handleSelect = (selectedVal: string) => {
+    setOpen(false)
+    if (nativeSelectRef.current) {
+      nativeSelectRef.current.value = selectedVal
+      nativeSelectRef.current.dispatchEvent(new Event('change', { bubbles: true }))
+    }
+    if (onChange) {
+      const syntheticEvent = {
+        target: { value: selectedVal, name: props.name },
+        currentTarget: { value: selectedVal, name: props.name },
+        preventDefault: () => {},
+        stopPropagation: () => {},
+      } as unknown as ChangeEvent<HTMLSelectElement>
+      onChange(syntheticEvent)
+    }
+  }
+
+  // If no options could be extracted, fallback cleanly to native select
+  if (options.length === 0) {
+    return (
+      <select {...props} value={value} onChange={onChange} disabled={disabled} className={cn('input rounded-xl', className)}>
+        {children}
+      </select>
+    )
+  }
+
   return (
-    <select {...props} className={cn('input', className)}>
-      {children}
-    </select>
+    <div ref={containerRef} className="relative inline-block text-left" style={{ minWidth: 'fit-content' }}>
+      <button
+        type="button"
+        disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={props['aria-label'] || (typeof displayLabel === 'string' ? displayLabel : 'Select option')}
+        onClick={handleToggle}
+        className={cn(
+          'flex items-center justify-between gap-2 rounded-xl border border-line bg-surface-2 px-3 py-1.5 text-xs font-medium text-ink transition-all duration-150',
+          'hover:border-line-strong hover:bg-surface-3 focus:outline-none focus:ring-2 focus:ring-brand-500/30 shadow-xs cursor-pointer select-none',
+          open && 'border-brand-500 ring-2 ring-brand-500/20 bg-surface-3',
+          disabled && 'opacity-50 cursor-not-allowed',
+          className
+        )}
+      >
+        <span className="truncate">{displayLabel}</span>
+        <ChevronDown
+          className={cn(
+            'h-3.5 w-3.5 shrink-0 text-subtle transition-transform duration-200',
+            open && 'rotate-180 text-brand-500'
+          )}
+        />
+      </button>
+
+      {/* Visually hidden native select to guarantee form compatibility & test coverage */}
+      <select
+        ref={nativeSelectRef}
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        className="sr-only pointer-events-none absolute h-0 w-0 opacity-0"
+        tabIndex={-1}
+        aria-hidden="true"
+        {...props}
+      >
+        {children}
+      </select>
+
+      {open && (
+        <div
+          role="listbox"
+          tabIndex={-1}
+          className={cn(
+            'absolute z-50 min-w-full w-max max-w-xs sm:max-w-sm max-h-64 overflow-y-auto overflow-x-hidden rounded-2xl border border-line bg-surface/95 backdrop-blur-xl shadow-2xl p-1.5 space-y-0.5',
+            openUpwards ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+          )}
+        >
+          {options.map((option) => {
+            const isSelected = String(option.value) === String(value ?? '')
+            return (
+              <button
+                type="button"
+                role="option"
+                aria-selected={isSelected}
+                key={option.value}
+                disabled={option.disabled}
+                onClick={() => handleSelect(option.value)}
+                className={cn(
+                  'flex items-center justify-between w-full px-3 py-2 rounded-xl text-xs font-medium text-left transition-colors cursor-pointer',
+                  isSelected
+                    ? 'bg-brand-500/15 text-brand-500 font-semibold shadow-xs'
+                    : 'text-muted hover:text-ink hover:bg-surface-3/80',
+                  option.disabled && 'opacity-40 pointer-events-none'
+                )}
+              >
+                <span className="truncate mr-2">{option.label}</span>
+                {isSelected && <Check className="h-3.5 w-3.5 shrink-0 text-brand-500" />}
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -1018,22 +1190,34 @@ export function ChipGroup({
 }) {
   return (
     <div className={cn('flex flex-wrap gap-1.5', className)}>
-      {options.map((option) => (
-        <button
-          key={option.id}
-          onClick={() => onChange(option.id)}
-          aria-pressed={value === option.id}
-          className={cn(
-            'rounded-full border px-2.5 py-1 text-xs font-medium',
-            value === option.id
-              ? 'border-brand-500 bg-brand-600 text-white'
-              : 'border-line bg-surface text-muted hover:border-line-strong hover:text-ink',
-          )}
-        >
-          {option.label}
-          {typeof option.count === 'number' ? <span className="ml-1 tabular-nums opacity-75">{option.count}</span> : null}
-        </button>
-      ))}
+      {options.map((option) => {
+        const isSelected = value === option.id
+        return (
+          <button
+            key={option.id}
+            onClick={() => onChange(option.id)}
+            aria-pressed={isSelected}
+            className={cn(
+              'group inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-all duration-150 cursor-pointer select-none',
+              isSelected
+                ? 'border-brand-500 bg-brand-600 text-white shadow-sm ring-2 ring-brand-500/30'
+                : 'border-line bg-surface-2/80 text-muted hover:border-line-strong hover:text-ink hover:bg-surface-3',
+            )}
+          >
+            <span>{option.label}</span>
+            {typeof option.count === 'number' ? (
+              <span
+                className={cn(
+                  'rounded-full px-1.5 py-0.2 text-[10px] font-semibold tabular-nums',
+                  isSelected ? 'bg-white/20 text-white' : 'bg-surface-3 text-subtle group-hover:text-muted',
+                )}
+              >
+                {option.count}
+              </span>
+            ) : null}
+          </button>
+        )
+      })}
     </div>
   )
 }

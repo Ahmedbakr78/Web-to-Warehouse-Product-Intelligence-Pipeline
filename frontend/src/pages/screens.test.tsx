@@ -26,6 +26,7 @@ import Audit from '@/pages/Audit'
 import Builder from '@/pages/Builder'
 import Catalog from '@/pages/Catalog'
 import Categories from '@/pages/Categories'
+import Compare from '@/pages/Compare'
 import Changes from '@/pages/Changes'
 import Dashboard from '@/pages/Dashboard'
 import Features from '@/pages/Features'
@@ -65,6 +66,7 @@ const PAGES: Array<[string, () => ReactElement]> = [
   ['Dashboard', () => <Dashboard />],
   ['Products', () => <Products />],
   ['Product detail', () => <ProductDetail />],
+  ['Compare', () => <Compare />],
   ['Changes', () => <Changes />],
   ['Categories', () => <Categories />],
   ['Catalog', () => <Catalog />],

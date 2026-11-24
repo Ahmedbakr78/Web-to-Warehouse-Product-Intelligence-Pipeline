@@ -3114,6 +3114,82 @@ FEATURE_GROUPS: list[dict[str, Any]] = [
             },
         ],
     },
+    {
+        "key": "compare_power",
+        "title": "Comparison & sharing power tools",
+        "icon": "git-compare-arrows",
+        "summary": "Compare up to four products side by side, highlight the winners, and share the result with a link or a Markdown table.",
+        "features": [
+            {
+                "name": "Side-by-side comparison workspace",
+                "detail": "Up to four products compared in parallel columns on the /compare screen",
+            },
+            {
+                "name": "Four-product comparison limit",
+                "detail": "A bounded selection keeps the view readable on desktop and mobile",
+            },
+            {
+                "name": "Debounced product picker",
+                "detail": "Live search as you type, with already-selected products excluded from the results",
+            },
+            {
+                "name": "Best-price highlight",
+                "detail": "The lowest normalised USD price in the comparison is marked as the winner",
+            },
+            {
+                "name": "Top-rated highlight",
+                "detail": "The highest rating in the comparison is marked, including the vote count where available",
+            },
+            {
+                "name": "Availability comparison",
+                "detail": "In-stock, out-of-stock and other states shown side by side with consistent tones",
+            },
+            {
+                "name": "Price trend sparklines",
+                "detail": "Each comparison column carries a mini price history from the existing snapshot endpoint",
+            },
+            {
+                "name": "Shareable comparison links",
+                "detail": "Selected ids live in the URL query string, so a comparison can be bookmarked or sent to a colleague",
+            },
+            {
+                "name": "Deep-link restore",
+                "detail": "Opening a shared ?ids= link rebuilds the comparison without any server-side state",
+            },
+            {
+                "name": "Silent selection updates",
+                "detail": "The URL is replaced rather than pushed, so the back button stays useful and the page never reloads",
+            },
+            {
+                "name": "Copy comparison as Markdown",
+                "detail": "A portable Markdown table of the compared products, ready to paste into chat or documentation",
+            },
+            {
+                "name": "Clipboard fallback",
+                "detail": "Copy works with the async clipboard and falls back to a hidden textarea on insecure contexts",
+            },
+            {
+                "name": "Recent screens in the command palette",
+                "detail": "Visited screens are remembered locally and offered as jump-back results when the palette opens",
+            },
+            {
+                "name": "Copy page link action",
+                "detail": "A palette action copies the current screen URL for sharing",
+            },
+            {
+                "name": "Clear recent pages action",
+                "detail": "The jump-back history can be reset from the command palette at any time",
+            },
+            {
+                "name": "Cross-tab recent history",
+                "detail": "A storage listener keeps the recent-pages list in sync when another tab navigates",
+            },
+            {
+                "name": "Keyboard-driven comparison",
+                "detail": "Product search, add, remove and share are all reachable without a pointer",
+            },
+        ],
+    },
 ]
 
 

@@ -34,8 +34,8 @@
 
 <p align="center">
   <b>222 REST operations</b> · <b>29 tables</b> · <b>23 analytical views</b> ·
-  <b>12 DQ rules</b> · <b>34 registered sources</b> · <b>750 catalogued features</b> ·
-  <b>627 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
+  <b>12 DQ rules</b> · <b>34 registered sources</b> · <b>767 catalogued features</b> ·
+  <b>632 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
 </p>
 
 <p align="center">
@@ -267,7 +267,7 @@ seeds a throwaway synthetic warehouse and fails if the audit accepts it.
 12 data-quality rules across 6 dimensions, weighted score persisted per run
 34 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
 17 CLI commands  |  6 Docker Compose services  |  37 documents  |  108 Mermaid diagrams
-627 tests  |  104/104 API smoke checks  |  750 catalogued features
+632 tests  |  104/104 API smoke checks  |  767 catalogued features
 ```
 
 | Metric | Count |
@@ -1891,7 +1891,7 @@ All configuration arrives through environment variables (`.env.example` document
 | **Sources** | registry cards with compliance metadata, robots.txt statistics, raw-versus-cleaned preview |
 | **Query Lab** | read-only SQL console over the 23 views, table inventory, starter examples, CSV export |
 | **Builder** | two modes: *filter & customise* (facets, columns, order, saved presets) and *group & aggregate* (13 entities, six measures, fifteen operators, bar chart, generated SQL, cURL copy, exports) |
-| **Features** | searchable, filterable catalogue of all 750 catalogued features in 45 groups, each with an icon and copy-to-clipboard |
+| **Features** | searchable, filterable catalogue of all 767 catalogued features in 46 groups, each with an icon and copy-to-clipboard |
 | **Alerts** | alert rules with thresholds and channels, notification feed, evaluate action |
 | **Webhooks** | outbound event subscriptions with HMAC-signed payloads, one-time secret reveal and rotation, test delivery, per-attempt delivery log |
 | **Account** | profile, preferences, appearance (theme, accent, density, motion, **silent reload**), password change, API keys, **personal activity feed**, **data export**, **account deletion** |
@@ -2083,7 +2083,7 @@ scripts/
   run_analysis.py         runs the standalone SQL analyses
   make_infographic.py     generates the roadmap infographic
   diagrams.py            extract, validate and render all Mermaid diagrams
-tests/            pytest unit + integration suite (627 tests)
+tests/            pytest unit + integration suite (632 tests)
 website/          single-file project landing page (index.html) with light/dark themes
 .github/
   workflows/ci.yml        ruff, mypy, pytest, eslint, tsc, vite build
@@ -2350,7 +2350,7 @@ ownership, and every merge in the repository passes his review.
   build when prose and code disagree.
 - **Release management** — semantic versioning, Keep-a-Changelog, annotated
   tags, GitHub releases; see [docs/31_releases.md](docs/31_releases.md).
-- **Quality gates** — ruff, mypy, pytest (627 tests), API smoke (104 checks),
+- **Quality gates** — ruff, mypy, pytest (632 tests), API smoke (104 checks),
   cross-dialect parity, frontend typecheck/lint/vitest/build.
 
 Full file-level responsibility map: [CONTRIBUTORS.md](CONTRIBUTORS.md) · RACI matrix:

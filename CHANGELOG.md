@@ -6,6 +6,21 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- **Side-by-side product comparison workspace** (`/compare`). Up to four
+  products, a debounced picker, best-price and top-rated highlights,
+  availability badges and per-column price-history sparklines. Ids live in the
+  URL so a comparison is bookmarkable and shareable; selection uses
+  `replaceState`, so the page never reloads and the back button stays useful.
+- **Copy comparison as Markdown** and **copy page link** actions, with a
+  clipboard fallback for insecure contexts (`frontend/src/lib/share.ts`).
+- **Recently visited screens in the command palette**, stored locally, kept in
+  sync across tabs, with actions to clear the list and copy the current URL.
+- Seventeen catalogue entries in a new `compare_power` group, taking the
+  in-app feature catalogue to 767 features in 46 groups. Stats snapshot,
+  README, docs, website and infographic regenerated to match.
+
 ### Fixed
 
 - **A successful run looked like a failure in the dashboard.** Recoverable

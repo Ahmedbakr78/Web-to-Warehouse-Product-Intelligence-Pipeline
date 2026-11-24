@@ -16,8 +16,6 @@ Crucially:
 from __future__ import annotations
 
 import datetime as dt
-import hashlib
-import math
 import os
 import random
 import sys
@@ -25,12 +23,11 @@ from pathlib import Path
 from typing import Any
 
 import sqlalchemy as sa
-from sqlalchemy.orm import Session
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from app.core.logging import get_logger
+from app.core.logging import get_logger  # noqa: E402
 
 logger = get_logger("populate_real_history")
 
@@ -52,9 +49,9 @@ DQ_RULES = [
 
 
 def populate_database(db_url: str, days: int = 30) -> None:
-    print(f"\n=======================================================")
+    print("\n=======================================================")
     print(f"Connecting to database: {db_url}")
-    print(f"=======================================================")
+    print("=======================================================")
     engine = sa.create_engine(db_url, future=True)
     is_mysql = "mysql" in db_url.lower()
 

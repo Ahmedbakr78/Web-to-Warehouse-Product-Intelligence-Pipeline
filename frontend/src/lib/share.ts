@@ -49,6 +49,29 @@ export async function copyText(text: string): Promise<boolean> {
   }
 }
 
+/**
+ * The cheapest and top-rated product ids in a comparison.
+ *
+ * Missing values are ignored rather than treated as zero: `Number(null)` is 0,
+ * which would otherwise make a product without a price win "Best price".
+ */
+export function comparisonWinners(
+  products: Array<Record<string, any>>,
+): { cheapestId: number | null; topRatedId: number | null } {
+  const priced = products
+    .filter((product) => product.price_usd !== null && product.price_usd !== undefined)
+    .map((product) => ({ id: Number(product.product_id), value: Number(product.price_usd) }))
+    .filter((item) => Number.isFinite(item.value))
+  const rated = products
+    .filter((product) => product.rating !== null && product.rating !== undefined)
+    .map((product) => ({ id: Number(product.product_id), value: Number(product.rating) }))
+    .filter((item) => Number.isFinite(item.value))
+  return {
+    cheapestId: priced.length ? priced.reduce((a, b) => (a.value <= b.value ? a : b)).id : null,
+    topRatedId: rated.length ? rated.reduce((a, b) => (a.value >= b.value ? a : b)).id : null,
+  }
+}
+
 /** A compact Markdown table of the compared products (safe for chat and docs). */
 export function comparisonMarkdown(
   rows: Array<Record<string, string | number | null | undefined>>,

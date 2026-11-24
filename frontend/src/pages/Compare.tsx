@@ -14,7 +14,7 @@ import { ArrowLeft, ClipboardCopy, ExternalLink, Link2, Plus, Search, Trash2, X 
 
 import { Badge, Button, Card, EmptyState, IconButton, LoadingState, Sparkline, useToast } from '@/components/ui'
 import { DEFAULT_OPTIONS } from '@/hooks/useApi'
-import { copyText, compareUrl, comparisonMarkdown, COMPARE_LIMIT, parseCompareIds } from '@/lib/share'
+import { comparisonWinners, copyText, compareUrl, comparisonMarkdown, COMPARE_LIMIT, parseCompareIds } from '@/lib/share'
 import { endpoints, searchProducts } from '@/lib/api'
 import { formatAvailability, formatDate, formatPrice, formatRelative } from '@/lib/format'
 import { cn } from '@/lib/cn'
@@ -68,7 +68,7 @@ function CompareColumn({
       <div className="flex flex-wrap gap-1.5">
         {product.category_name ? <Badge tone="brand">{product.category_name}</Badge> : null}
         {product.brand ? <Badge tone="neutral">{product.brand}</Badge> : null}
-        <Badge tone={availability.tone}>{availability.label}</Badge>
+        {product.availability ? <Badge tone={availability.tone}>{availability.label}</Badge> : null}
         {id === cheapestId ? <Badge tone="success">Best price</Badge> : null}
         {id === topRatedId ? <Badge tone="info">Top rated</Badge> : null}
       </div>
@@ -153,14 +153,7 @@ export default function Compare() {
   const loaded = products
     .map((result) => result.data as Product | undefined)
     .filter((product): product is Product => Boolean(product))
-  const prices = loaded
-    .map((product) => ({ id: Number(product.product_id), price: Number(product.price_usd) }))
-    .filter((item) => Number.isFinite(item.price))
-  const ratings = loaded
-    .map((product) => ({ id: Number(product.product_id), rating: Number(product.rating) }))
-    .filter((item) => Number.isFinite(item.rating))
-  const cheapestId = prices.length ? prices.reduce((a, b) => (a.price <= b.price ? a : b)).id : null
-  const topRatedId = ratings.length ? ratings.reduce((a, b) => (a.rating >= b.rating ? a : b)).id : null
+  const { cheapestId, topRatedId } = comparisonWinners(loaded)
 
   const loading = products.some((result) => result.isLoading) || histories.some((result) => result.isLoading)
 
