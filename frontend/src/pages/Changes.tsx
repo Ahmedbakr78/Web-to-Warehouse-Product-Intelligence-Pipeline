@@ -151,8 +151,8 @@ export default function Changes() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Segmented options={RANGES} value={days} onChange={setDays} size="sm" />
-        <div className="flex flex-wrap items-center gap-2">
-          <SearchInput value={search} onChange={(value) => { setSearch(value); setPage(1) }} placeholder="Filter results…" className="w-56" />
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <SearchInput value={search} onChange={(value) => { setSearch(value); setPage(1) }} placeholder="Filter results…" className="w-full sm:w-56" />
           <Select value={direction} onChange={(event) => { setDirection(event.target.value); setPage(1) }} aria-label="Direction" className="w-32">
             <option value="">All directions</option>
             <option value="increase">Increases</option>

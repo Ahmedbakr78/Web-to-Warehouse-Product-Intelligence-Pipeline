@@ -25,6 +25,7 @@ import {
 } from 'react'
 import { Activity, AlertCircle, BarChart3, Bell, CalendarRange, Check, ChevronDown, ChevronLeft, ChevronRight, Database, FileText, Globe, Inbox, KeyRound, Loader2, Minus, Package, RotateCcw, Search, Settings2, ShieldCheck, Tag, TrendingDown, TrendingUp, Users, Webhook, X } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { formatCompact } from '@/lib/format'
 import { useProfilePreferences } from '@/hooks/usePreferences'
 
 /* =====================================================================================
@@ -260,6 +261,7 @@ export function Select({
   const containerRef = useRef<HTMLDivElement>(null)
   const nativeSelectRef = useRef<HTMLSelectElement>(null)
   const [openUpwards, setOpenUpwards] = useState(false)
+  const [alignRight, setAlignRight] = useState(false)
 
   // Extract option items from children
   const options = useMemo(() => {
@@ -307,15 +309,22 @@ export function Select({
     }
   }, [open])
 
-  // Calculate opening direction
+  // Calculate opening direction and horizontal alignment
   const handleToggle = () => {
     if (disabled) return
     if (!open && containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect()
-      if (rect.bottom + 260 > window.innerHeight && rect.top > 260) {
+      // Open upwards if not enough space below
+      if (rect.bottom + 280 > window.innerHeight && rect.top > 280) {
         setOpenUpwards(true)
       } else {
         setOpenUpwards(false)
+      }
+      // Align right if in the right half of viewport or near right edge
+      if (rect.right > window.innerWidth - 80 || rect.left > window.innerWidth / 2) {
+        setAlignRight(true)
+      } else {
+        setAlignRight(false)
       }
     }
     setOpen((prev) => !prev)
@@ -392,8 +401,11 @@ export function Select({
           role="listbox"
           tabIndex={-1}
           className={cn(
-            'absolute z-50 min-w-full w-max max-w-xs sm:max-w-sm max-h-64 overflow-y-auto overflow-x-hidden rounded-2xl border border-line bg-surface/95 backdrop-blur-xl shadow-2xl p-1.5 space-y-0.5',
-            openUpwards ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+            'absolute z-50 min-w-full w-max max-w-[calc(100vw-2rem)] sm:max-w-xs max-h-72 sm:max-h-80',
+            'overflow-y-auto overscroll-contain rounded-2xl border border-line bg-surface/95 backdrop-blur-xl shadow-2xl p-1.5 space-y-0.5',
+            'scrollbar-thin scrollbar-thumb-line-strong hover:scrollbar-thumb-muted',
+            openUpwards ? 'bottom-full mb-1.5' : 'top-full mt-1.5',
+            alignRight ? 'right-0 origin-top-right' : 'left-0 origin-top-left'
           )}
         >
           {options.map((option) => {
@@ -409,13 +421,13 @@ export function Select({
                 className={cn(
                   'flex items-center justify-between w-full px-3 py-2 rounded-xl text-xs font-medium text-left transition-colors cursor-pointer',
                   isSelected
-                    ? 'bg-brand-500/15 text-brand-500 font-semibold shadow-xs'
+                    ? 'bg-brand-500/15 text-brand-600 dark:text-brand-400 font-semibold shadow-xs'
                     : 'text-muted hover:text-ink hover:bg-surface-3/80',
                   option.disabled && 'opacity-40 pointer-events-none'
                 )}
               >
-                <span className="truncate mr-2">{option.label}</span>
-                {isSelected && <Check className="h-3.5 w-3.5 shrink-0 text-brand-500" />}
+                <span className="truncate mr-2 flex-1">{option.label}</span>
+                {isSelected && <Check className="h-3.5 w-3.5 shrink-0 text-brand-600 dark:text-brand-400 ml-1.5" />}
               </button>
             )
           })}
@@ -532,7 +544,7 @@ export function Tabs({
   className?: string
 }) {
   return (
-    <div className={cn('flex gap-1 overflow-x-auto border-b border-line no-scrollbar sm:flex-wrap sm:overflow-visible', className)} role="tablist">
+    <div className={cn('flex gap-1 overflow-x-auto border-b border-line no-scrollbar sm:flex-wrap sm:overflow-visible overscroll-x-contain pb-0.5', className)} role="tablist">
       {tabs.map((tab) => (
         <button
           key={tab.id}
@@ -540,14 +552,21 @@ export function Tabs({
           aria-selected={active === tab.id}
           onClick={() => onChange(tab.id)}
           className={cn(
-            'relative flex shrink-0 items-center gap-2 whitespace-nowrap px-3 py-2 text-sm font-medium',
-            active === tab.id ? 'text-brand-700 dark:text-brand-300' : 'text-muted hover:text-ink',
+            'relative flex shrink-0 items-center gap-2 whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors',
+            active === tab.id ? 'text-brand-700 dark:text-brand-300 font-semibold' : 'text-muted hover:text-ink',
           )}
         >
           {tab.icon}
-          {tab.label}
+          <span>{tab.label}</span>
           {typeof tab.count === 'number' ? (
-            <span className="rounded-full bg-surface-3 px-1.5 py-0.5 text-[10px] font-semibold text-muted">{tab.count}</span>
+            <span
+              className={cn(
+                'rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums',
+                active === tab.id ? 'bg-brand-500/20 text-brand-600 dark:text-brand-300' : 'bg-surface-3 text-subtle'
+              )}
+            >
+              {tab.count >= 1000 ? formatCompact(tab.count) : tab.count}
+            </span>
           ) : null}
           {active === tab.id ? <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-brand-600" /> : null}
         </button>
@@ -705,16 +724,16 @@ export function DataTable<T>({
                 : undefined
             }
             className={cn(
-              'rounded-xl border border-line bg-surface-2 p-3',
-              onRowClick && 'cursor-pointer active:bg-surface-3',
+              'rounded-2xl border border-line/80 bg-surface-2/90 backdrop-blur-xs p-3.5 shadow-xs transition-all',
+              onRowClick && 'cursor-pointer active:scale-[0.99] active:bg-surface-3',
             )}
           >
             <div className="mb-2 font-medium text-ink">{primary.render(row, index)}</div>
-            <dl className="space-y-1">
+            <dl className="space-y-1.5">
               {cards.slice(1).map((column) => (
                 <div key={column.key} className="flex items-baseline justify-between gap-3">
-                  <dt className="shrink-0 text-[11px] text-subtle">{column.header}</dt>
-                  <dd className="min-w-0 truncate text-right text-xs text-muted">{column.render(row, index)}</dd>
+                  <dt className="shrink-0 text-[11px] font-medium text-subtle">{column.header}</dt>
+                  <dd className="min-w-0 truncate text-right text-xs text-muted font-normal">{column.render(row, index)}</dd>
                 </div>
               ))}
             </dl>
@@ -813,18 +832,18 @@ export function Pagination({
       </p>
       <div className="flex items-center gap-2">
         {onPageSize ? (
-          <select
-            value={pageSize}
+          <Select
+            value={String(pageSize)}
             onChange={(event) => onPageSize(Number(event.target.value))}
             aria-label="Rows per page"
-            className="input h-8 w-20 py-0 text-xs"
+            className="h-8 w-24 py-0 text-xs"
           >
             {[10, 25, 50, 100, 200].map((size) => (
               <option key={size} value={size}>
                 {size} / page
               </option>
             ))}
-          </select>
+          </Select>
         ) : null}
         <div className="flex items-center gap-1">
           <IconButton label="Previous page" icon={<ChevronLeft className="h-4 w-4" />} disabled={page <= 1} onClick={() => onPage(page - 1)} />
@@ -1204,7 +1223,7 @@ export function ChipGroup({
                 : 'border-line bg-surface-2/80 text-muted hover:border-line-strong hover:text-ink hover:bg-surface-3',
             )}
           >
-            <span>{option.label}</span>
+            <span className="truncate max-w-[130px] sm:max-w-none">{option.label}</span>
             {typeof option.count === 'number' ? (
               <span
                 className={cn(
@@ -1212,7 +1231,7 @@ export function ChipGroup({
                   isSelected ? 'bg-white/20 text-white' : 'bg-surface-3 text-subtle group-hover:text-muted',
                 )}
               >
-                {option.count}
+                {option.count >= 1000 ? formatCompact(option.count) : option.count}
               </span>
             ) : null}
           </button>

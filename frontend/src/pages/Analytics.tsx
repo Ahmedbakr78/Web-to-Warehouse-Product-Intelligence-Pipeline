@@ -228,7 +228,7 @@ export default function Analytics() {
           subtitle={`Average USD price per day over ${days} days`}
           icon={<TrendingUp className="h-4 w-4" />}
           action={
-            <Select value={selectedCategory} onChange={(event) => setSelectedCategory(event.target.value)} aria-label="Category filter" className="h-8 w-48 py-0 text-xs">
+            <Select value={selectedCategory} onChange={(event) => setSelectedCategory(event.target.value)} aria-label="Category filter" className="h-8 w-36 sm:w-48 py-0 text-xs">
               <option value="">All top categories</option>
               {(toArray(categories.data)).map((row: any) => (
                 <option key={row.category_name} value={row.category_name}>

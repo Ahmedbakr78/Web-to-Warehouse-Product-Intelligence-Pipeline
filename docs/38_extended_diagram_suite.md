@@ -87,7 +87,7 @@ timeline
       Ingestion and compliance : Cleaning and dedupe : Warehouse and views
       REST API : React dashboard : Airflow DAGs
     section Harden
-      12 DQ rules : 632 backend tests : 65 frontend tests : CI/CD
+      12 DQ rules : 632 backend tests : 67 frontend tests : CI/CD
     section Ship
       v1.12.1 release : 36 documents : Infographic : Demo video
 ```

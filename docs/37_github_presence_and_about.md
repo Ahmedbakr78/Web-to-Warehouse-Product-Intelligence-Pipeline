@@ -71,7 +71,7 @@ every control changes behaviour, and the documentation matches the code.
 - Full verification no longer fails when an upstream tightens its robots.txt.
 
 ## Verified
-- 632 backend tests, 65 frontend tests, ruff, mypy, typecheck, lint, production build.
+- 632 backend tests, 67 frontend tests, ruff, mypy, typecheck, lint, production build.
 - Live real-source pipeline: no-fake audit CLEAN, every row traced to a permitted source.
 ```
 
