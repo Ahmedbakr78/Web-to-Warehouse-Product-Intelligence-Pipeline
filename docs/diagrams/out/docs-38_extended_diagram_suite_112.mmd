@@ -1,0 +1,18 @@
+
+C4Container
+    title Container Diagram — runtime building blocks
+    Person(user, "Analyst", "Uses the platform")
+
+    Container(web, "React 19 dashboard", "TypeScript / Vite", "21 screens, light + dark themes, mobile drawer")
+    Container(api, "FastAPI service", "Python", "222 REST operations, JWT + API keys, OpenAPI docs")
+    Container(etl, "ETL pipeline", "Python", "Extract, stage, clean, resolve, load, detect, aggregate, quality")
+    Container(ingest, "Ingestion adapters", "BeautifulSoup / Scrapy / httpx", "34 registered sources, compliance gate")
+    ContainerDb(db, "Analytical warehouse", "PostgreSQL / MySQL / SQLite", "29 tables, 23 views, price snapshots")
+    Container(airflow, "Airflow DAG", "Python", "Scheduled, backfill and DQ-monitor DAGs")
+
+    Rel(user, web, "HTTPS")
+    Rel(web, api, "REST / JSON")
+    Rel(api, db, "SQLAlchemy")
+    Rel(airflow, etl, "Triggers")
+    Rel(etl, ingest, "Uses")
+    Rel(etl, db, "Writes snapshots and events")

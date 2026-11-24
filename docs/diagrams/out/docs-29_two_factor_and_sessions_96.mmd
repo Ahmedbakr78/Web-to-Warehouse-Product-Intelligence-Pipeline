@@ -1,0 +1,8 @@
+
+flowchart LR
+  tab[Account › Devices & 2FA] --> status[status: enabled, codes left, attempts]
+  tab --> enroll[set up: QR, secret, confirm code]
+  tab --> codes[save recovery codes once]
+  tab --> devices[device table: this device marked]
+  devices --> revoke[revoke one]
+  devices --> others[sign out everywhere else]

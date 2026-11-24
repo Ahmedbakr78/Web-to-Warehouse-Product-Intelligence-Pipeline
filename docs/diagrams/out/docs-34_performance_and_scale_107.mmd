@@ -1,0 +1,14 @@
+
+flowchart TB
+    subgraph LIM["The limiter decides how fast"]
+        A["Token bucket<br/>smooths the average rate"] --> C["Both must be satisfied"]
+        B["Sliding window<br/>hard per-minute ceiling"] --> C
+        D["robots.txt<br/>Crawl-delay"] --> C
+        E["Retry-After<br/>on 429 / 503"] --> C
+    end
+    C --> F["Request leaves"]
+    F --> G["Response cached<br/>TTL by URL hash"]
+    G --> H{"Cached?"}
+    H -->|yes| I["Served with zero network I/O"]
+    H -->|no| J["Upstream"]
+    J --> K["Logged with the robots decision"]

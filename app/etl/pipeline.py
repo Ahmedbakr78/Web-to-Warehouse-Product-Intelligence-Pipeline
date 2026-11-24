@@ -71,6 +71,29 @@ STAGE_DESCRIPTIONS: dict[str, str] = {
 }
 
 
+def headline_error_message(
+    status: str,
+    blocking: list[str],
+    sources_failed: list[str],
+    warnings: list[str],
+) -> str | None:
+    """The run's headline failure, kept separate from its recoverable warnings.
+
+    A successful run can still collect warnings - one timed-out ticker, an
+    upstream that tightened its robots.txt, a single bad row. Those belong in
+    ``EtlRun.warnings`` and on the Sources screen, not in ``error_message``:
+    the dashboard reads the latter to decide whether to paint the run red. A
+    message here must mean the run actually failed or was downgraded.
+    """
+    if blocking:
+        return "; ".join(str(item) for item in blocking)[:4000]
+    if status == "partial" and sources_failed:
+        prefixes = tuple(f"{code}:" for code in sources_failed)
+        relevant = [str(item) for item in warnings if str(item).startswith(prefixes)]
+        return "; ".join(relevant)[:4000] or None
+    return None
+
+
 @dataclass
 class PipelineConfig:
     """Everything the pipeline needs to know for one run."""
@@ -541,7 +564,16 @@ class Pipeline:
         run_row.status = "failed" if blocking else ("partial" if result.sources_failed else "success")
         if result.sources_failed and run_row.status == "success":
             run_row.status = "partial"
-        run_row.error_message = "; ".join(result.warnings)[:4000] if result.warnings else None
+        # `error_message` is the headline *failure* of the run, not a dumping
+        # ground for every recoverable source warning. A single timed-out
+        # ticker or a flaky upstream is a warning: it stays in run_row.warnings
+        # (and on the Sources screen) without painting a successful run red in
+        # the dashboard's Pipeline health card. Only a genuinely failed or
+        # partial run carries an error message, and only from the failures
+        # that actually caused that status.
+        run_row.error_message = headline_error_message(
+            run_row.status, blocking, result.sources_failed, result.warnings
+        )
 
         result.status = run_row.status
         result.counters = stats.as_dict()

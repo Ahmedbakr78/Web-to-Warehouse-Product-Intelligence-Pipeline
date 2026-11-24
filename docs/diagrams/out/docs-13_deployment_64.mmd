@@ -1,0 +1,15 @@
+
+flowchart LR
+    A["Push / pull request"] --> B["Install dependencies<br/>make install"]
+    B --> C["Lint and format<br/>make lint"]
+    C --> D["Type check<br/>make typecheck"]
+    D --> E["Unit tests<br/>make test"]
+    E --> F["Start PostgreSQL and MySQL services"]
+    F --> G["Bootstrap both targets<br/>make bootstrap / bootstrap-mysql"]
+    G --> H["Seed and run the pipeline<br/>make demo-postgres / run-pipeline"]
+    H --> I["Cross-dialect verification<br/>make verify-dialects"]
+    I --> J["API smoke test<br/>scripts/api_smoke.py"]
+    J --> K["Build the dashboard<br/>make frontend-build"]
+    K --> L{"All green?"}
+    L -->|"yes"| M["Tag release v1.0.0 and build images"]
+    L -->|"no"| N["Fail with the stage name in the log"]

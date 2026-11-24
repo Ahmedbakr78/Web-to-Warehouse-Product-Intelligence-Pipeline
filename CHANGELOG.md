@@ -8,6 +8,25 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- **A successful run looked like a failure in the dashboard.** Recoverable
+  source warnings (one timed-out Bitstamp ticker, an intermittent DNS error)
+  were copied into `EtlRun.error_message`, which the Pipeline health card first
+  paints in warning colours — a green "success" run still showed an orange
+  `ConnectError`. `error_message` is now the headline failure only: blocking
+  DQ rules for failed runs, failed-source messages for partial runs, `None`
+  otherwise. All warnings remain in `EtlRun.warnings` and on the Sources screen.
+  Extracted as the pure `headline_error_message()` helper with five regression
+  tests in `tests/test_run_error_message.py`.
+- **Full verification failed when an upstream tightened its robots.txt.**
+  The live-source smoke in `run-full-app.sh` treated *every* configured source
+  as mandatory, so iTunes and CheapShark blocking our crawler (the compliance
+  layer working correctly) stopped the run before the app was ever launched.
+  Sources that return no records after retries — or raise — are now recorded
+  as compliant skips, and the step asserts that at least `SMOKE_MIN` (default
+  3) real sources answered, so the network proof stays meaningful without being
+  hostage to a third party. The default `REAL_SOURCES` set now lists only
+  live-verified healthy sources; every source remains registered in the
+  catalogue, nothing was removed. `run.sh` help text kept in sync.
 - **Fake category changes on every run.** When two sources file the same
   merged product under different shelves (Open Library "History", Gutendex
   "Courtship" for *Pride and Prejudice*), the loader logged a

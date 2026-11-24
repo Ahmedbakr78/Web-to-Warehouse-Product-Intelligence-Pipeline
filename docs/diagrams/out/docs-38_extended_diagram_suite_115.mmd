@@ -1,0 +1,30 @@
+
+mindmap
+  root((Product Intelligence))
+    Ingestion
+      robots.txt gate
+      rate limiter
+      34 sources
+      BeautifulSoup + Scrapy
+    Transform
+      name and category cleaning
+      currency and price normalisation
+      rating and availability parsing
+      fuzzy dedupe
+    Warehouse
+      dim_product
+      fact_price_snapshot
+      change events
+      23 analytical views
+    Quality
+      12 enforced rules
+      no-fake audit
+      schema drift checks
+    Serving
+      222 REST operations
+      React dashboard
+      exports and webhooks
+    Orchestration
+      Airflow DAG
+      backfill DAG
+      DQ monitor DAG

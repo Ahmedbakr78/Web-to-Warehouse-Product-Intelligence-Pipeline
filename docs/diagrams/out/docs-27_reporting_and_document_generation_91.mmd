@@ -1,0 +1,8 @@
+
+flowchart TD
+  pick[Choose template] --> window[Choose window] --> sections[Toggle sections]
+  sections --> fetch[GET /reports/template/data]
+  fetch --> render[Render blocks]
+  render --> pdf[Download PDF]
+  render --> csv[Download CSV]
+  render --> html[Open HTML in a new tab]

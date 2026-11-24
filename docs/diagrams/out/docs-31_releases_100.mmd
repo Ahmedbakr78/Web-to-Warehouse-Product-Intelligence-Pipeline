@@ -1,0 +1,8 @@
+
+flowchart LR
+    U["Unreleased<br/>in CHANGELOG.md"] --> V["VERSION bumped<br/>+ sync_version.py"]
+    V --> S["Stats re-measured<br/>check_stats --write"]
+    S --> C["CHANGELOG entry<br/>promoted from Unreleased"]
+    C --> T["Tag: git tag -a vX.Y.Z"]
+    T --> G["GitHub release<br/>gh release create"]
+    G --> P["Paste the About box<br/>+ confirm topics"]

@@ -1,0 +1,17 @@
+
+sequenceDiagram
+    participant OPS as DevOps lane
+    participant ING as Ingestion lane
+    participant CLN as ETL lane
+    participant DB as Data lane
+    participant FE as Frontend lane
+    participant LEAD as Lead
+
+    OPS->>ING: a source is added to the registry
+    ING->>ING: declare its trust level and terms
+    ING->>CLN: hand over the raw payload shape
+    CLN->>DB: hand over the cleaned record shape
+    DB->>FE: the view the screen will read
+    FE->>FE: build the screen against the real endpoint
+    FE->>LEAD: the pull request
+    LEAD->>LEAD: review, then the CI gates decide

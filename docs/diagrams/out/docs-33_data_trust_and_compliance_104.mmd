@@ -1,0 +1,7 @@
+
+flowchart LR
+    A["Detect sources below<br/>data_trust = real"] --> B["Delete source-scoped rows<br/>staging, facts, changes"]
+    B --> C["Delete products with<br/>no remaining observation"]
+    C --> D["Delete runs with<br/>no remaining reference"]
+    D --> E["Disable the source<br/>keep its dim_source row"]
+    E --> F["Report:<br/>rows removed per table"]

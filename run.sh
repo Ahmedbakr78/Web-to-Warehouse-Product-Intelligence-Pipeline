@@ -18,8 +18,9 @@
 #   1. VERIFY (real, no fakes): ruff, the backend suite, a registry guard that
 #      proves the pipeline auto-select excludes every non-`real` and every
 #      terms-blocked source, a LIVE fetch from eight real permitted upstreams
-#      (Open Library, Gutendex, iTunes apps + ebooks, Steam, CheapShark, Open
-#      Food Facts, TVMaze), a real 9-stage pipeline run into a fresh SQLite
+#      (Open Library, Gutendex, Open Food Facts, TVMaze, Internet Archive,
+#      CocktailDB, MealDB, Scryfall, Pokemon TCG, YGOProDeck, Kraken, Steam),
+#      a real 9-stage pipeline run into a fresh SQLite
 #      warehouse, the no-fake audit over every row plus a self-test proving the
 #      audit rejects synthetic data, the live API serving that warehouse, and
 #      the frontend typecheck / lint / vitest / build.
@@ -32,6 +33,14 @@
 #   run-local.sh     (Docker stack launcher with data)
 #
 set -euo pipefail
+
+# Ensure user-installed node / npm in ~/.local/node/bin or ~/.local/bin are in PATH
+for candidate in "$HOME/.local/node/bin" "$HOME/.local/bin" /usr/local/bin; do
+  if [ -d "$candidate" ] && [[ ":$PATH:" != *":$candidate:"* ]]; then
+    PATH="$candidate:$PATH"
+  fi
+done
+export PATH
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 cd "$SCRIPT_DIR"

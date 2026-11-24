@@ -156,7 +156,7 @@ export default function AppShell() {
         onTouchStart={overlay ? edgeSwipe.onTouchStart : undefined}
         onTouchEnd={overlay ? edgeSwipe.onTouchEnd : undefined}
       >
-        <header className="sticky top-0 z-30 flex min-h-14 shrink-0 items-center gap-1.5 border-b border-line bg-[var(--surface)]/95 px-2.5 pt-[env(safe-area-inset-top)] backdrop-blur sm:gap-2 sm:px-4">
+        <header className="sticky top-2 z-30 mx-2.5 my-2 flex min-h-14 shrink-0 items-center gap-1.5 rounded-2xl border border-line bg-[var(--surface)]/95 px-2.5 shadow-sm backdrop-blur sm:mx-4 sm:gap-2 sm:px-4">
           <IconButton
             label="Open menu"
             icon={<Menu className="h-5 w-5" />}

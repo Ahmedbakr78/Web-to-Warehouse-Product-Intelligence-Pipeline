@@ -1,0 +1,12 @@
+
+flowchart TB
+    SRC["Source adapter"] --> REQ["CompliantHttpClient.get()"]
+    REQ --> R{"robots.txt<br/>allows this path?"}
+    R -->|no| REFUSE["ComplianceError<br/>request never leaves the process"]
+    R -->|yes| RL{"Rate limiter<br/>budget available?"}
+    RL -->|no| WAIT["Wait<br/>sliding-window ceiling"]
+    RL -->|yes| NET["HTTP request"]
+    NET --> LOG["ingestion_http_log<br/>status, latency, bytes,<br/>robots rule, cached?, retries"]
+    NET --> CACHE{"Response<br/>cached?"}
+    CACHE -->|hit| LOG
+    CACHE -->|miss| LOG

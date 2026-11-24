@@ -102,9 +102,9 @@ function SourceCard({
   busy: boolean
 }) {
   const registry = row.registry ?? {}
-  const rate = row.success_rate_pct === null || row.success_rate_pct === undefined ? null : Number(row.success_rate_pct)
-  const failures = Number(row.consecutive_failures ?? 0)
   const neverRan = Number(row.total_runs ?? 0) === 0
+  const rate = neverRan || row.success_rate_pct === null || row.success_rate_pct === undefined ? null : Number(row.success_rate_pct)
+  const failures = Number(row.consecutive_failures ?? 0)
 
   return (
     <Card className="flex flex-col gap-3">
@@ -942,6 +942,7 @@ export default function Sources() {
   const totals = useMemo(() => {
     const rows = merged
     const rates = rows
+      .filter((row: any) => Number(row.total_runs ?? 0) > 0)
       .map((row: any) => row.success_rate_pct)
       .filter((value: unknown) => value !== null && value !== undefined)
       .map(Number)
@@ -1025,7 +1026,7 @@ export default function Sources() {
       width: '9rem',
       render: (row) => {
         const neverRan = Number(row.total_runs ?? 0) === 0
-        const hasRate = row.success_rate_pct !== null && row.success_rate_pct !== undefined
+        const hasRate = !neverRan && row.success_rate_pct !== null && row.success_rate_pct !== undefined
         return (
           <span className="block min-w-[7rem]">
             <span className="mb-1 flex items-center justify-between gap-2 text-[11px]">

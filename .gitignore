@@ -19,6 +19,9 @@ coverage.xml
 # ---------- Databases / local data ----------
 *.sqlite3
 *.db
+*.db-shm
+*.db-wal
+tunnel-url.txt
 data/
 var/
 logs/

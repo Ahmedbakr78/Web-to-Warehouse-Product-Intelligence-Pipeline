@@ -1,0 +1,40 @@
+
+flowchart LR
+    subgraph SRC["Existing services, reused unchanged"]
+        S1["movers"]
+        S2["volatility"]
+        S3["catalog gaps"]
+        S4["stockouts"]
+        S5["anomalies"]
+        S6["data quality"]
+        S7["freshness"]
+        S8["best value"]
+    end
+    subgraph BRIEF["Briefing composer"]
+        B1["One definition of a price drop<br/>and of a stale source"]
+        B2["Opportunity section"]
+        B3["Risk section"]
+        B4["Category signals"]
+        B5["Freshness"]
+        B6["Best value"]
+    end
+    subgraph OUT["What the user gets"]
+        O1["Headline counters"]
+        O2["One ranked action queue,<br/>severity ordered"]
+        O3["A link to the screen<br/>that proves each item"]
+    end
+    S1 --> B2
+    S2 --> B3
+    S3 --> B2
+    S4 --> B3
+    S5 --> B3
+    S6 --> B3
+    S7 --> B5
+    S8 --> B6
+    B1 --> B2
+    B1 --> B3
+    B2 --> O2
+    B3 --> O2
+    B5 --> O1
+    B6 --> O1
+    O2 --> O3

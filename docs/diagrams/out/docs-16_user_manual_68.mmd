@@ -1,0 +1,14 @@
+
+flowchart TD
+    A["Sign in"] --> B["Dashboard"]
+    B --> C["KPI cards<br/>products, changes, new and removed,<br/>DQ score, catalog"]
+    B --> D["Charts<br/>observation volume, price timeline,<br/>category mix, brand leaderboard"]
+    C --> E["Latest run strip"]
+    E --> F["Run detail<br/>stage timings, counters, warnings"]
+    D --> G["Click a category bar"]
+    G --> H["Products, pre-filtered"]
+    H --> I["Product detail<br/>price history, catalog twin,<br/>raw observations"]
+    I --> J["Add a watch, raise an alert,<br/>export the history"]
+    F --> K["Quality<br/>rule outcomes per run"]
+    J --> L["Saved views, alerts, exports"]
+    L --> B

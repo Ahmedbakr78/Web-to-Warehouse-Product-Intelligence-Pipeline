@@ -155,7 +155,7 @@ export function PhoneTabBar({ onMore }: { onMore?: () => void }) {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-30 flex border-t border-line bg-[var(--surface)]/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden"
+      className="fixed inset-x-3 bottom-2.5 z-30 flex items-center justify-around rounded-2xl border border-line bg-[var(--surface)]/95 px-1 py-1 shadow-lg backdrop-blur sm:hidden"
       aria-label="Primary"
     >
       {tabs.map((tab) => (
@@ -452,7 +452,7 @@ export function NavDrawer({ open, onClose, ref }: { open: boolean; onClose: () =
       tabIndex={-1}
     >
       <div className="absolute inset-0 bg-[var(--overlay)] backdrop-blur-sm" onClick={onClose} aria-hidden />
-      <aside className="relative flex h-[100dvh] w-[19rem] max-w-[85vw] flex-col overflow-hidden border-r border-line bg-[var(--sidebar-bg)] pb-[env(safe-area-inset-bottom)] shadow-2xl sm:m-3 sm:h-[calc(100dvh-1.5rem)] sm:rounded-2xl sm:border">
+      <aside className="relative m-2.5 flex h-[calc(100dvh-1.25rem)] w-[19rem] max-w-[85vw] flex-col overflow-hidden rounded-2xl border border-line bg-[var(--sidebar-bg)] pb-[env(safe-area-inset-bottom)] shadow-2xl sm:m-3 sm:h-[calc(100dvh-1.5rem)]">
         <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-line px-4">
           <div className="flex min-w-0 items-center gap-2.5">
             <img src="/logo.png" alt="Product Intelligence logo" className="h-8 w-8 rounded-lg" />

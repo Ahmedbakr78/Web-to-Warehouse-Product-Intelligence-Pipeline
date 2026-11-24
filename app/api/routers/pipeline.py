@@ -351,9 +351,12 @@ def sources_status(session: DbSession, _user: OptionalUser) -> list[dict[str, An
         item["supports_paging"] = registered.get(row["source_code"], {}).get("supports_paging", False)
         # A source that has never run has no sync_state row, so the COALESCE
         # above yields 'unknown'. 'idle' is the honest label: registered and
-        # ready, simply not exercised yet.
-        if (item.get("total_runs") or 0) == 0 and item.get("sync_status") == "unknown":
-            item["sync_status"] = "idle"
+        # ready, simply not exercised yet. Its success rate is not 0% (which would
+        # indicate a failure) - it has simply never run, so None is the accurate value.
+        if (item.get("total_runs") or 0) == 0:
+            if item.get("sync_status") == "unknown":
+                item["sync_status"] = "idle"
+            item["success_rate_pct"] = None
         payload.append(item)
 
     # Registered sources that have never run have no `dim_source` row at all.

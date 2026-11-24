@@ -1,0 +1,16 @@
+
+gitGraph
+    commit id: "initial"
+    branch develop
+    checkout develop
+    commit id: "ingestion"
+    branch feature/dq-rules
+    checkout feature/dq-rules
+    commit id: "12-rules"
+    commit id: "regression-tests"
+    checkout develop
+    merge feature/dq-rules
+    commit id: "dashboard-themes"
+    checkout main
+    merge develop
+    commit id: "release" tag: "v1.12.1"

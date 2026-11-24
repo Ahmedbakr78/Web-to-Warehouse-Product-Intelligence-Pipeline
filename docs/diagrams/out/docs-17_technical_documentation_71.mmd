@@ -1,0 +1,9 @@
+
+flowchart TB
+    L4["Presentation<br/>CLI, Airflow, REST API, dashboard"]
+    L3["Application<br/>pipeline orchestration, analytics service, routers"]
+    L2["Domain<br/>cleaning, dedupe, DQ rules, change detection"]
+    L1["Infrastructure<br/>database, HTTP client, robots, rate limiter, cache"]
+    L4 --> L3 --> L2 --> L1
+    L4 -.->|"may not be imported by"| L2
+    L2 -.->|"no I/O allowed"| L1

@@ -99,6 +99,8 @@ flowchart LR
 | 34 | [Performance & Scale](34_performance_and_scale.md) | Measured latencies, table sizes, the index strategy, capacity planning and the honest limits |
 | 35 | [GitHub Presence](35_github_presence.md) | The repository description, topics, About box, social preview, branching strategy and release packaging |
 | 36 | [Decision Log](36_decision_log.md) | Every engineering decision from v1.9 to v1.12, with the context, the consequence and the rejected alternatives |
+| 37 | [GitHub Presence & About Kit](37_github_presence_and_about.md) | Full About text, website, topics, release notes, badges, exact `gh` commands and a no-deletion safety note |
+| 38 | [Extended Diagram Suite](38_extended_diagram_suite.md) | Eight additional Mermaid types: C4 context/container, journey, timeline, mindmap, pie, GitGraph and requirement traceability |
 
 ---
 
@@ -178,7 +180,7 @@ named alongside.
 | Feature inventory / runtime catalogue | 612 rows in 47 areas (`docs/19`) / 700 features in 43 groups (`GET /meta/features`) |
 | Data-quality rules / dimensions | 12 / 6, verdicts persisted per run |
 | Ingestion sources | 34 registered adapters: 31 JSON APIs, 2 HTML scrapers, 1 offline synthetic — 21 of them classified as real market data |
-| Documentation documents / diagrams | 38 / 108 Mermaid, all rendering to SVG |
+| Documentation documents / diagrams | 38 / 116 Mermaid, all rendering to SVG |
 | API regression suite | 627 pytest cases, 104 smoke checks |
 | Demo accounts | `admin@example.com` / `Admin@12345`, `analyst@example.com` / `Analyst@12345`, `viewer@example.com` / `Viewer@12345` |
 
@@ -202,6 +204,10 @@ If you are reviewing this for the first time:
    **[16 User Manual](16_user_manual.md)** — the two views most reviewers want.
 7. **[15 Testing Strategy](15_testing_strategy.md)** — what is verified, and how.
 8. **[24 Demo Runbook](24_demo_runbook.md)** — if you are seeing it live.
+9. **[37 GitHub Presence](37_github_presence_and_about.md)** — the exact About text,
+   topics and release notes for the repository, with commands that never delete anything.
+10. **[38 Extended Diagram Suite](38_extended_diagram_suite.md)** — the design from
+    eight more angles, including C4 context and requirement traceability.
 
 ---
 

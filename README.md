@@ -915,6 +915,143 @@ sequenceDiagram
     end
 ```
 
+### Complete Apache Airflow DAG Orchestration Architecture (9 stages + gates)
+
+```mermaid
+flowchart TD
+    subgraph S1["Phase 1: Pre-flight Sensors & Compliance Gate"]
+        T1["health_check_sensor<br/>Ping PG & MySQL"] --> T2["robots_compliance_check<br/>RFC 9309 Cache & Headers"]
+        T2 --> T3{"Storage Guard<br/>DB Healthy?"}
+    end
+
+    subgraph S2["Phase 2: Parallel Permitted Ingestion Fan-Out"]
+        T3 -- "Yes" --> B1["ingest_openlibrary"]
+        T3 -- "Yes" --> B2["ingest_steam_store"]
+        T3 -- "Yes" --> B3["ingest_cheapshark"]
+        T3 -- "Yes" --> B4["ingest_openfoodfacts"]
+        T3 -- "Yes" --> B5["ingest_itunes_apps"]
+        T3 -- "Yes" --> B6["ingest_itunes_ebooks"]
+        T3 -- "Yes" --> B7["ingest_scryfall"]
+        T3 -- "Yes" --> B8["ingest_tvmaze"]
+        T3 -- "Yes" --> B9["ingest_ygoprodeck"]
+        T3 -- "Yes" --> B10["ingest_other_real_sources<br/>(Kraken, Archive, Meals, Drinks)"]
+    end
+
+    subgraph S3["Phase 3: Staging & 29-Step Cleaning Pipeline"]
+        B1 & B2 & B3 & B4 & B5 & B6 & B7 & B8 & B9 & B10 --> T4["stage_raw_records<br/>stg_raw_observation"]
+        T4 --> T5["clean_and_normalise<br/>29 Regex Rules + FX to USD"]
+    end
+
+    subgraph S4["Phase 4: Identity Resolution & Warehouse Loading"]
+        T5 --> T6["dedupe_and_resolve<br/>4-Signal Fuzzy (>= 0.90)"]
+        T6 --> T7["load_dimensions_scd2<br/>dim_product, dim_category"]
+        T7 --> T8["load_fact_snapshots<br/>fact_price_snapshot"]
+    end
+
+    subgraph S5["Phase 5: Change Data Capture & Catalog Matcher"]
+        T8 --> T9["detect_price_changes<br/>Magnitude Bands + Direction"]
+        T8 --> T10["detect_lifecycle_events<br/>New / Removed / Recategorised"]
+        T8 --> T11["reconcile_internal_catalog<br/>catalog_product Comparison"]
+    end
+
+    subgraph S6["Phase 6: Quality Gate & Analytical Rollup"]
+        T9 & T10 & T11 --> T12["evaluate_dq_rules<br/>12 Automated Rules / 6 Dims"]
+        T12 --> T13["build_agg_category_daily<br/>Daily Metric Rollups"]
+    end
+
+    subgraph S7["Phase 7: Decision Branching, Alerts & Publication"]
+        T13 --> T14{"Significant<br/>Changes Found?"}
+        T14 -- "Yes" --> T15["dispatch_webhook_alerts<br/>HMAC-SHA256 Signed"]
+        T14 -- "Yes" --> T16["send_inapp_notifications"]
+        T14 -- "No" --> T17["skip_notification"]
+        T15 & T16 & T17 --> T18["publish_daily_executive_report<br/>PDF / HTML / JSON Synthesis"]
+        T18 --> T19(("Pipeline Complete<br/>Warehouse Live & Audited"))
+    end
+```
+
+### 29-Step Text & Taxonomy Normalization Pipeline Architecture
+
+```mermaid
+flowchart LR
+    subgraph Pass1["Pass 1: HTML & Control Sanitisation"]
+        P1["Strip Raw HTML & Scripts"] --> P2["Remove ASCII 0-31 Control Chars"]
+        P2 --> P3["Unicode Normalisation (NFKC)"]
+        P3 --> P4["Decode HTML Entities (&amp; -> &)"]
+    end
+
+    subgraph Pass2["Pass 2: Marketing Noise & Promo Stripping"]
+        P4 --> P5["Strip Promotional Prefixes<br/>('Hot Sale!', 'New!', 'Save 20%')"]
+        P5 --> P6["Strip Discount Suffixes<br/>('- 50% Off', 'Special Offer')"]
+        P6 --> P7["Remove Warranty & Shipping Noise"]
+        P7 --> P8["Normalise Whitespace & Casing"]
+    end
+
+    subgraph Pass3["Pass 3: Multi-Currency & Price Standardisation"]
+        P8 --> P9["Parse 18+ Currency Symbols/ISOs<br/>($, €, £, ¥, EGP, AED, CAD, ...)"]
+        P9 --> P10["Parse European Commas & Decimals"]
+        P10 --> P11["Multiply by Live/Offline FX Table"]
+        P11 --> P12["Store price_usd + fx_rate_to_usd"]
+    end
+
+    subgraph Pass4["Pass 4: Taxonomy & Fingerprinting"]
+        P12 --> P13["Map to 4-Level Category Hierarchy"]
+        P13 --> P14["Generate Slug & Level Path"]
+        P14 --> P15["Extract Brand & Model Token"]
+        P15 --> P16["Generate SHA-256 Fingerprint<br/>for Blocking Index"]
+    end
+```
+
+### 4-Signal Entity Resolution & Deduplication Engine
+
+```mermaid
+flowchart TD
+    subgraph CandidatePool["Candidate Blocking & Filtering (O(N) Complexity)"]
+        Raw["Incoming Normalized Product"] --> KeyGen["Generate Blocking Key:<br/>brand_prefix + first_token + digit_signature"]
+        KeyGen --> Bucket["Query Candidate Bucket from dim_product<br/>(Avoids N^2 Cross-Product)"]
+    end
+
+    subgraph MultiSignal["4-Signal Parallel Similarity Scoring"]
+        Bucket --> S1["Signal 1: Jaro-Winkler String Distance<br/>Weight: 0.35 | Prefers Prefix Alignment"]
+        Bucket --> S2["Signal 2: Token-Set Dice Similarity<br/>Weight: 0.30 | Handles Word Reordering"]
+        Bucket --> S3["Signal 3: Character Trigram Overlap<br/>Weight: 0.20 | Robust to Minor Typos"]
+        Bucket --> S4["Signal 4: Digit Signature & Model Match<br/>Weight: 0.15 | Enforces Part Numbers"]
+    end
+
+    subgraph Aggregation["Weighted Confidence Composite & Decision Gate"]
+        S1 & S2 & S3 & S4 --> Composite["Composite Score = 0.35*JW + 0.30*TS + 0.20*TRI + 0.15*DIG"]
+        Composite --> Gate{"Composite Score<br/>>= 0.90 Threshold?"}
+        Gate -- ">= 0.90 (Match)" --> Merge["Merge under Canonical product_id<br/>• Append Snapshot<br/>• Record Match Decision & Score"]
+        Gate -- "< 0.90 (Distinct)" --> New["Create New dim_product Row<br/>• Assign New Surrogate Key<br/>• Store Fingerprint for Future Runs"]
+    end
+```
+
+### Dual-Warehouse Parity Architecture (PostgreSQL 16 & MySQL 8.4)
+
+```mermaid
+flowchart TB
+    subgraph SingleSource["Single Source of Truth (Code)"]
+        ORM["SQLAlchemy 2.0 Core Models<br/>(app/models/dimensions.py, facts.py, app.py)"]
+        Alembic["Alembic Versioned Migrations<br/>(alembic/versions/*.py)"]
+        ORM --> Alembic
+    end
+
+    subgraph DialectParity["Dialect Abstraction & Compilation Layer"]
+        Alembic --> PG_Comp["PostgreSQL 16 Engine<br/>• JSONB Columns<br/>• TIMESTAMPTZ Types<br/>• Native Search Indexes"]
+        Alembic --> MY_Comp["MySQL 8.4 Engine<br/>• JSON Columns<br/>• DATETIME(6) Types<br/>• B-Tree Prefix Indexes"]
+    end
+
+    subgraph WarehouseInstances["Running Warehouse Storage"]
+        PG_Comp --> PG_DB[("PostgreSQL 16 Warehouse<br/>• 29 Tables<br/>• 23 Analytical Views<br/>• Primary Analytical Target")]
+        MY_Comp --> MY_DB[("MySQL 8.4 Warehouse<br/>• 29 Tables<br/>• 23 Analytical Views<br/>• Secondary Verification Target")]
+    end
+
+    subgraph Verification["Cross-Dialect Verification Gate"]
+        PG_DB --> GateKeeper["scripts/verify_dialects.py & test_dialects.py"]
+        MY_DB --> GateKeeper
+        GateKeeper --> Verdict["Verified: Identical Schemas, Identical DQ Scores, Zero Drift"]
+    end
+```
+
 ---
 
 ## The pipeline, end-to-end
@@ -1998,7 +2135,7 @@ Three conventions run through the whole codebase, so once you know them you can 
 
 ## Documentation
 
-All thirty-seven documents live in [docs/](docs/README.md). Every diagram is Mermaid and renders
+All thirty-eight documents live in [docs/](docs/README.md). Every diagram is Mermaid and renders
 natively on GitHub; every structural number is tied to a runnable command.
 
 Not sure which one to open? **[docs/README.md](docs/README.md) has a question-to-document
@@ -2042,10 +2179,12 @@ map** - find the question, follow the arrow.
 | 34 | **Performance & Scale** | measured latencies, table sizes, the index strategy, capacity planning and the honest limits |
 | 35 | **GitHub Presence** | the repository description, topics, About box, social preview, branching strategy and release packaging |
 | 36 | **Decision Log** | every engineering decision from v1.9 to v1.12, with the context, the consequence and the rejected alternatives |
+| 37 | **GitHub Presence & About Kit** | the full About description, website, topics, release notes, badges, exact commands and a no-deletion safety note |
+| 38 | **Extended Diagram Suite** | eight additional Mermaid diagram types — C4 context/container, journey, timeline, mindmap, pie, GitGraph and requirement traceability |
 
 ### The documentation website
 
-All thirty documents are also published as a browsable site, with client-side search, a dark mode
+All thirty-eight documents are also published as a browsable site, with client-side search, a dark mode
 that follows the system preference, and all 100+ Mermaid diagrams rendered to SVG:
 
 ```bash
