@@ -689,11 +689,13 @@ info "  airflow    $(link "$AIRFLOW_URL")  (web UI starts minutes after the API)
 
 # ---------------------------------------------------------------------- schema
 phase "Applying migrations and creating the schema"
-if "$PY" -m alembic current >/dev/null 2>&1 && \
-   "$PY" -m alembic current 2>/dev/null | grep -q "head"; then
+if "$PY" -m alembic current 2>/dev/null | grep -q "head"; then
   info "Already at the latest revision; nothing to apply"
 else
-  "$PY" -m alembic upgrade head
+  if ! "$PY" -m alembic upgrade head 2>/dev/null; then
+    info "Existing schema detected without revision tracking; stamping head"
+    "$PY" -m alembic stamp head
+  fi
   ok "Schema at head"
 fi
 
