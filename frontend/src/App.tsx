@@ -8,6 +8,7 @@ import LoginPage from './pages/Login'
 
 /* Route-level code splitting keeps the first paint small. */
 const Dashboard = lazy(() => import('./pages/Dashboard'))
+const Compare = lazy(() => import('./pages/Compare'))
 const Briefing = lazy(() => import('./pages/Briefing'))
 const Analytics = lazy(() => import('./pages/Analytics'))
 const Changes = lazy(() => import('./pages/Changes'))
@@ -113,6 +114,14 @@ export default function App() {
             element={
               <Suspense fallback={<LoadingState label="Loading dashboard…" />}>
                 <Dashboard />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/compare"
+            element={
+              <Suspense fallback={<LoadingState label="Loading comparison…" />}>
+                <Compare />
               </Suspense>
             }
           />

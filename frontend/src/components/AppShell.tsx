@@ -15,6 +15,7 @@ import {
   ChevronDown,
   Command,
   CornerDownLeft,
+  History,
   Keyboard,
   LogOut,
   Menu,
@@ -38,7 +39,9 @@ import { initials, formatRelative, titleCase, formatPrice } from '@/lib/format'
 import { useAuth } from '@/hooks/useAuth'
 import { NavDrawer, PhoneTabBar, Sidebar, useEdgeSwipeOpen, usePhoneLayout, useRailState } from './Navigation'
 import { useFocusHeading, useScrollRestoration } from '@/hooks/useScrollRestoration'
+import { useRecentPages } from '@/hooks/useRecentPages'
 import { preloadScreens } from '@/lib/preload'
+import { copyText } from '@/lib/share'
 
 export default function AppShell() {
   const location = useLocation()
@@ -48,6 +51,7 @@ export default function AppShell() {
 
   const { collapsed, toggleRail, overlay, drawerOpen, setDrawerOpen, closeDrawer, drawerRef, onTouchStart, onTouchEnd } =
     useRailState()
+  const { recent, record: recordPage, clear: clearRecent } = useRecentPages()
   const isPhone = usePhoneLayout()
   // Swipe inward from the screen edge to open the drawer; only armed while the
   // drawer is closed on an overlay layout, so content gestures never collide.
@@ -128,6 +132,12 @@ export default function AppShell() {
   useEffect(() => {
     document.title = page.title ? `${page.title} · Product Intelligence Pipeline` : 'Product Intelligence Pipeline'
   }, [page.title])
+
+  // Remember where the operator has been so the command palette can offer an
+  // instant "jump back" list instead of only the full navigation tree.
+  useEffect(() => {
+    recordPage(location.pathname, page.title || 'Product Intelligence')
+  }, [location.pathname, page.title, recordPage])
 
   return (
     <div
@@ -232,6 +242,8 @@ export default function AppShell() {
         onToggleSidebar={overlay ? () => setDrawerOpen((value) => !value) : toggleRail}
         toggleSidebarLabel={overlay ? 'Open navigation' : collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         onShowShortcuts={() => setShortcutsOpen(true)}
+        recent={recent}
+        onClearRecent={clearRecent}
       />
 
       <ShortcutsDialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
@@ -299,6 +311,7 @@ function ShortcutsDialog({ open, onClose }: { open: boolean; onClose: () => void
    ===================================================================================== */
 type PaletteResult =
   | { kind: 'nav'; to: string; label: string; description: string; icon: React.ComponentType<{ className?: string }> }
+  | { kind: 'recent'; to: string; label: string; description: string; icon: React.ComponentType<{ className?: string }> }
   | { kind: 'product'; id: number; label: string; description: string; price: string }
   | { kind: 'action'; label: string; description: string; run: () => void }
 
@@ -309,6 +322,8 @@ function CommandPalette({
   onToggleSidebar,
   toggleSidebarLabel,
   onShowShortcuts,
+  recent,
+  onClearRecent,
 }: {
   open: boolean
   onClose: () => void
@@ -316,6 +331,8 @@ function CommandPalette({
   onToggleSidebar: () => void
   toggleSidebarLabel: string
   onShowShortcuts: () => void
+  recent: Array<{ to: string; label: string }>
+  onClearRecent: () => void
 }) {
   const [query, setQuery] = useState('')
   const [cursor, setCursor] = useState(0)
@@ -387,9 +404,28 @@ function CommandPalette({
         },
         {
           kind: 'action' as const,
+          label: 'Copy link to this page',
+          description: 'Share the current screen',
+          run: () => {
+            void copyText(window.location.href).then((ok) => {
+              if (ok) onClose()
+            })
+          },
+        },
+        {
+          kind: 'action' as const,
           label: 'Keyboard shortcuts',
           description: 'Every shortcut on one screen',
           run: onShowShortcuts,
+        },
+        {
+          kind: 'action' as const,
+          label: 'Clear recent pages',
+          description: 'Reset the jump-back list',
+          run: () => {
+            onClearRecent()
+            onClose()
+          },
         },
         {
           kind: 'action' as const,
@@ -400,14 +436,26 @@ function CommandPalette({
       ] satisfies PaletteResult[]
     ).filter((action) => !term || action.label.toLowerCase().includes(term))
 
-  return [...productResults, ...nav, ...actions].slice(0, 12)
-  }, [query, products, onToggleTheme, onToggleSidebar, toggleSidebarLabel, onShowShortcuts, logout])
+    // With an empty query the jump-back list comes first: it is the fastest
+    // path back to whatever the operator was doing before the search.
+    const recentResults: PaletteResult[] = term
+      ? []
+      : recent.map((item) => ({
+          kind: 'recent' as const,
+          to: item.to,
+          label: item.label,
+          description: 'Recently visited',
+          icon: History,
+        }))
+
+    return [...productResults, ...recentResults, ...nav, ...actions].slice(0, 12)
+  }, [query, products, onToggleTheme, onToggleSidebar, toggleSidebarLabel, onShowShortcuts, logout, recent, onClearRecent, onClose])
 
   useEffect(() => setCursor(0), [results.length])
 
   function choose(result: PaletteResult) {
     onClose()
-    if (result.kind === 'nav') navigate(result.to)
+    if (result.kind === 'nav' || result.kind === 'recent') navigate(result.to)
     if (result.kind === 'product') navigate(`/products/${result.id}`)
     if (result.kind === 'action') result.run()
   }
@@ -447,10 +495,14 @@ function CommandPalette({
             results.map((result, index) => {
               const isActive = index === cursor
               const Icon =
-                result.kind === 'nav' ? result.icon : result.kind === 'product' ? Package : Command
+                result.kind === 'nav' || result.kind === 'recent'
+                  ? result.icon
+                  : result.kind === 'product'
+                    ? Package
+                    : Command
               return (
                 <button
-                  key={result.kind === 'product' ? `p${result.id}` : result.label}
+                  key={result.kind === 'product' ? `p${result.id}` : `${result.kind}-${result.label}`}
                   onClick={() => choose(result)}
                   onMouseEnter={() => setCursor(index)}
                   className={cn(

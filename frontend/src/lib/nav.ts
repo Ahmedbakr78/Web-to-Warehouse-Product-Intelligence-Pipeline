@@ -7,6 +7,7 @@ import {
   Boxes,
   Building2,
   Gauge,
+  GitCompareArrows,
   LayoutDashboard,
   ListChecks,
   Filter,
@@ -69,6 +70,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     title: 'Explore',
     items: [
+      { to: '/compare', label: 'Compare', icon: GitCompareArrows, description: 'Side-by-side product comparison with shareable links', badge: 'new' },
       { to: '/forecast', label: 'Forecast', icon: Brain, description: 'Price projections, anomalies and pricing advice', badge: 'new' },
       { to: '/reports', label: 'Reports', icon: FileText, description: 'Build, preview and export PDF/CSV reports', badge: 'new' },
       { to: '/query', label: 'Query lab', icon: Terminal, description: 'Read-only SQL over the analytical views', permission: 'query' },
@@ -99,6 +101,7 @@ export const ALL_NAV_ITEMS = NAV_GROUPS.flatMap((group) => group.items)
 
 export const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   '/': { title: 'Dashboard', subtitle: 'Live overview of the product intelligence pipeline' },
+  '/compare': { title: 'Product comparison', subtitle: 'Compare up to four products side by side' },
   '/briefing': { title: 'Morning briefing', subtitle: 'Prioritized insights, risks and the action queue' },
   '/analytics': { title: 'Analytics', subtitle: 'Price, category and brand intelligence from SQL' },
   '/changes': { title: 'Change feed', subtitle: 'Price changes, new arrivals, removals and recategorisations' },

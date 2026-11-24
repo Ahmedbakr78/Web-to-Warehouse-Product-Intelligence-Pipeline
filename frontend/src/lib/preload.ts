@@ -16,6 +16,7 @@
 
 const SCREEN_LOADERS: Array<() => Promise<unknown>> = [
   () => import('@/pages/Dashboard'),
+  () => import('@/pages/Compare'),
   () => import('@/pages/Briefing'),
   () => import('@/pages/Analytics'),
   () => import('@/pages/Changes'),
