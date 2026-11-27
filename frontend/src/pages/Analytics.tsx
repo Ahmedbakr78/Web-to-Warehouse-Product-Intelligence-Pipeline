@@ -203,7 +203,7 @@ export default function Analytics() {
             { id: 'sources', label: 'Source matrix', icon: <Layers className="h-4 w-4" /> },
           ]}
         />
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Segmented options={RANGES} value={days} onChange={setDays} size="sm" />
           <Button size="sm" variant="secondary" icon={<Download className="h-4 w-4" />} onClick={exportCategories}>
             Export

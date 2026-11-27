@@ -61,12 +61,12 @@ NAV: list[tuple[str, str, str]] = [
     ("06_literature_review.md", "Literature Review", "Six themes, verified sources, synthesis"),
     ("07_requirements_gathering.md", "Requirements", "User stories, use cases, 84 requirements"),
     ("08_system_analysis_design.md", "System Analysis and Design", "Use cases, architecture, rationale"),
-    ("09_database_design.md", "Database Design", "28-table ERD, indexing, retention"),
+    ("09_database_design.md", "Database Design", "29-table ERD, indexing, retention"),
     ("10_data_flow_diagrams.md", "Data Flow Diagrams", "Level 0/1/2 DFDs, data dictionary"),
     ("11_behaviour_diagrams.md", "Behaviour Diagrams", "Sequence, activity, state, class"),
     ("12_ui_ux_design.md", "UI/UX Design", "Wireframes, design system, WCAG 2.1 AA"),
     ("13_deployment.md", "Deployment", "Stack, environments, CI/CD, backups"),
-    ("14_api_documentation.md", "API Documentation", "Auth, roles, 173 operations, worked examples"),
+    ("14_api_documentation.md", "API Documentation", "Auth, roles, 222 operations, worked examples"),
     ("15_testing_strategy.md", "Testing Strategy", "Test pyramid, measured counts, quality gates"),
     ("16_user_manual.md", "User Manual", "Every screen, filters, exports, troubleshooting"),
     ("17_technical_documentation.md", "Technical Documentation", "Module map, algorithms, config"),
@@ -137,6 +137,16 @@ NAV: list[tuple[str, str, str]] = [
         "Decision Log",
         "Every engineering decision from v1.9 to v1.12, with the context, the consequence and the rejected alternatives",
     ),
+    (
+        "37_github_presence_and_about.md",
+        "GitHub Presence & About",
+        "About text, topics, release notes, badges and repository polish workflow",
+    ),
+    (
+        "38_extended_diagram_suite.md",
+        "Extended Diagram Suite",
+        "C4 context and container diagrams, journey, timeline, mindmap, pie, gitGraph and requirement traceability",
+    ),
 ]
 
 #: Documents grouped for the sidebar; keys render as section headers.
@@ -184,6 +194,14 @@ NAV_GROUPS: list[tuple[str, list[str]]] = [
             "28_schema_and_migrations.md",
             "29_two_factor_and_sessions.md",
             "30_access_control_and_rate_limiting.md",
+            "31_releases.md",
+            "32_briefing_and_demo_scale.md",
+            "33_data_trust_and_compliance.md",
+            "34_performance_and_scale.md",
+            "35_github_presence.md",
+            "36_decision_log.md",
+            "37_github_presence_and_about.md",
+            "38_extended_diagram_suite.md",
         ],
     ),
 ]

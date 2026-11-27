@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Compass, Database, House } from 'lucide-react'
 
@@ -11,6 +11,9 @@ import { useAuth } from '@/hooks/useAuth'
 export default function NotFound() {
   const location = useLocation()
   const { can, authenticated } = useAuth()
+  useEffect(() => {
+    document.title = 'Page not found · Product Intelligence Pipeline'
+  }, [])
   const { data: meta } = useApiQuery(['meta'], endpoints.meta, {
     staleTime: 900_000,
     enabled: authenticated,

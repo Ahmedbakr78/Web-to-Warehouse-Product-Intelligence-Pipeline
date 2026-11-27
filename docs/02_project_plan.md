@@ -134,11 +134,11 @@ gantt
 | --- | --- | --- | --- | --- |
 | **M1 — Proposal approved** | End W2 | Requirements doc complete, at least 2 stakeholder interviews | Objectives, scope, KPIs and risk register accepted in writing | Signed `docs/01`, `docs/05` |
 | **M2 — Design frozen** | End W4 | Logical schema drafted | ERD, use cases, architecture and DFD approved; no schema change after this date without a design note | `docs/08` … `docs/11` reviewed |
-| **M3 — Ingestion demo** | End W6 | Compliance layer complete | 5 sources registered, records extracted, cleaning applied, `robots.txt` respected | `make sources` + `make sources preview` |
+| **M3 — Ingestion demo** | End W6 | Compliance layer complete | Initial 5+ permitted sources (expanded to 34 registered) extract records cleanly with `robots.txt` respected | `make sources` + `make sources preview` |
 | **M4 — Warehouse load demo** | End W8 | Dedupe engine complete | Snapshots, changes, events and aggregates loaded; 23 views created | `make run-pipeline`, `GET /api/v1/analytics/kpi` |
 | **M5 — API and dashboard usable** | End W10 | Views stable | 222 operations documented, RBAC enforced, dashboard screens functional | `scripts/api_smoke.py` 104/104 |
 | **M6 — Verified on two databases** | End W11 | MySQL target provisioned | Identical structural row counts and identical DQ score on PostgreSQL and MySQL | `make verify-dialects` |
-| **M7 — Documentation complete** | End W11 | All measurements reproducible | 38 documents present, each with a purpose paragraph and diagram | `ls -l docs/` |
+| **M7 — Documentation complete** | End W11 | All measurements reproducible | 39 documents present, each with a purpose paragraph and diagram | `ls -l docs/` |
 | **M8 — Final defence** | End W12 | Rehearsal passed | Live demo + Q&A | `docs/18_presentation_outline.md` |
 
 ---
@@ -246,7 +246,7 @@ effort, which is the intended buffer (2–10 hours per week depending on the pha
 | --- | --- | --- | --- |
 | S1 | W1 – W2 | Requirements and plan agreed | Docs 01–07 drafted; KPIs measurable; risk register populated |
 | S2 | W3 – W4 | Design frozen | ERD, use cases, DFD, architecture, behaviour diagrams reviewed |
-| S3 | W5 – W6 | Compliant extraction | 5 sources return records; robots gate and rate limiter enforced; cleaning applied |
+| S3 | W5 – W6 | Compliant extraction | Permitted adapters (34 registered sources) return records; robots gate and rate limiter enforced; cleaning applied |
 | S4 | W7 – W8 | Warehouse loaded | Dedupe, loader, change detection, aggregates and 23 views working |
 | S5 | W9 – W10 | Measurable and served | DQ framework, reconciliation, 113 API operations, dashboard screens |
 | S6 | W11 – W12 | Verified and defended | Two-dialect verification, smoke test 104/104, documentation complete, rehearsal passed |

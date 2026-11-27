@@ -40,7 +40,7 @@ C4Container
     title Container Diagram — runtime building blocks
     Person(user, "Analyst", "Uses the platform")
 
-    Container(web, "React 19 dashboard", "TypeScript / Vite", "21 screens, light + dark themes, mobile drawer")
+    Container(web, "React 19 dashboard", "TypeScript / Vite", "23 screens, light + dark themes, mobile drawer")
     Container(api, "FastAPI service", "Python", "222 REST operations, JWT + API keys, OpenAPI docs")
     Container(etl, "ETL pipeline", "Python", "Extract, stage, clean, resolve, load, detect, aggregate, quality")
     Container(ingest, "Ingestion adapters", "BeautifulSoup / Scrapy / httpx", "34 registered sources, compliance gate")
@@ -87,9 +87,9 @@ timeline
       Ingestion and compliance : Cleaning and dedupe : Warehouse and views
       REST API : React dashboard : Airflow DAGs
     section Harden
-      12 DQ rules : 632 backend tests : 67 frontend tests : CI/CD
+      12 DQ rules : 634 backend tests : 67 frontend tests : CI/CD
     section Ship
-      v1.12.1 release : 36 documents : Infographic : Demo video
+      v1.13.0 release : 39 documents : Infographic : Demo video
 ```
 
 ## 5. Mindmap — capability map
@@ -152,7 +152,7 @@ gitGraph
     commit id: "dashboard-themes"
     checkout main
     merge develop
-    commit id: "release" tag: "v1.12.1"
+    commit id: "release" tag: "v1.13.0"
 ```
 
 ## 8. Requirement — traceability
@@ -160,32 +160,32 @@ gitGraph
 ```mermaid
 requirementDiagram
     requirement FR001 {
-        id: FR-001
-        text: Respect robots.txt, rate limits and website terms
+        id: "FR-001"
+        text: "Respect robots.txt, rate limits and website terms"
         risk: high
         verifymethod: test
     }
     requirement FR002 {
-        id: FR-002
-        text: Extract name, category, price, rating, availability and URL
+        id: "FR-002"
+        text: "Extract name, category, price, rating, availability and URL"
         risk: medium
         verifymethod: test
     }
     requirement FR003 {
-        id: FR-003
-        text: Detect exact and fuzzy duplicate products
+        id: "FR-003"
+        text: "Detect exact and fuzzy duplicate products"
         risk: medium
         verifymethod: test
     }
     requirement FR004 {
-        id: FR-004
-        text: Store historical price snapshots and identify changes
+        id: "FR-004"
+        text: "Store historical price snapshots and identify changes"
         risk: high
         verifymethod: test
     }
     requirement NFR001 {
-        id: NFR-001
-        text: Serve light and dark themes with mobile-responsive navigation
+        id: "NFR-001"
+        text: "Serve light and dark themes with mobile-responsive navigation"
         risk: low
         verifymethod: test
     }

@@ -16,7 +16,7 @@
   <img src="https://img.shields.io/badge/views-23-informational" alt="Views"/>
   <img src="https://img.shields.io/badge/REST%20operations-222-success" alt="REST operations"/>
   <img src="https://img.shields.io/badge/DQ%20rules-12-success" alt="Data quality rules"/>
-  <img src="https://img.shields.io/badge/unit%20tests-627%20passing-brightgreen" alt="Tests"/>
+  <img src="https://img.shields.io/badge/unit%20tests-634%20passing-brightgreen" alt="Tests"/>
   <img src="https://img.shields.io/badge/API%20smoke-104%2F104-brightgreen" alt="API smoke"/>
   <img src="https://img.shields.io/badge/ruff-0%20warnings-brightgreen" alt="ruff"/>
   <img src="https://img.shields.io/badge/CI-github%20actions-2088FF?logo=github-actions&logoColor=white" alt="CI"/>
@@ -266,8 +266,8 @@ seeds a throwaway synthetic warehouse and fails if the audit accepts it.
 29 physical tables  |  23 analytical views  |  222 REST route decorators in 24 routers
 12 data-quality rules across 6 dimensions, weighted score persisted per run
 34 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
-17 CLI commands  |  6 Docker Compose services  |  37 documents  |  108 Mermaid diagrams
-632 tests  |  104/104 API smoke checks  |  767 catalogued features
+17 CLI commands  |  6 Docker Compose services  |  39 documents  |  120 Mermaid diagrams
+634 tests  |  104/104 API smoke checks  |  767 catalogued features
 ```
 
 | Metric | Count |
@@ -282,12 +282,12 @@ seeds a throwaway synthetic warehouse and fails if the audit accepts it.
 | CLI commands                             | 17 |
 | Pipeline stages                          | 9 |
 | Docker Compose services                  | 6 |
-| Numbered documents                       | 37 |
-| Mermaid diagrams                         | 108 |
-| Catalogued features (live API catalogue) | 750 |
+| Numbered documents                       | 39 |
+| Mermaid diagrams                         | 120 |
+| Catalogued features (live API catalogue) | 767 |
 | Documented features (F-ID inventory)     | 612 |
 | Documented feature areas                 | 47 |
-| Collected test cases                     | 627 |
+| Collected test cases                     | 634 |
 | API smoke checks                         | 104 |
 
 <!-- END:STATS -->
@@ -1574,9 +1574,9 @@ pip-cli quality --database mysql   # the same rules against the second dialect
 ## Feature catalogue
 
 The exhaustive, file-referenced inventory lives in
-[docs/19_feature_list.md](docs/19_feature_list.md) — 612 features in forty-eight areas, each naming the file that
+[docs/19_feature_list.md](docs/19_feature_list.md) — 612 features in forty-seven areas, each naming the file that
 implements it. The runtime catalogue behind the **Features** screen is served by
-`GET /api/v1/meta/features` (750 entries across 45 user-facing groups) and is generated from
+`GET /api/v1/meta/features` (767 entries across 46 user-facing groups) and is generated from
 `app/core/features.py`, so the two numbers are measured on different axes — the inventory indexes
 the *engineering*, the catalogue indexes the *product* — and neither can drift from the code.
 
@@ -1971,7 +1971,7 @@ trigger a pipeline run is denied.
 | --- | --- | --- |
 | Lint and format | `make lint` | ruff: all checks pass, zero warnings |
 | Static types | `make typecheck` | mypy: no issues in 125 source files |
-| Unit tests | `make test` | pytest: 627 passed (SQLite warehouse, no services required) |
+| Unit tests | `make test` | pytest: 634 passed (SQLite warehouse, no services required) |
 | API regression | `.venv/bin/python scripts/api_smoke.py` | 104/104 checks, including auth, RBAC and 404 paths |
 | Frontend | `cd frontend && npm run lint && npm run typecheck && npm run build` | ESLint at zero warnings, clean tsc, production build |
 | Cross-dialect | `make verify-dialects` | identical model and DQ score on PostgreSQL and MySQL |

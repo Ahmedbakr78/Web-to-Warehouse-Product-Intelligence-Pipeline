@@ -159,6 +159,7 @@ class PytestResilienceCutterSource(ProductSource):
         yield _raw(self.code, "CUTTER-1", name="pytest cutter widget")
 
 
+@pytest.mark.filterwarnings("ignore:.*already deassociated from connection:sqlalchemy.exc.SAWarning")
 def test_severed_connection_mid_run_recovers_and_continues(db, monkeypatch):
     """Transport death mid-source: rollback, reconnect, earlier data intact."""
     from app.etl.loader import WarehouseLoader

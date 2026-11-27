@@ -221,7 +221,7 @@ flowchart TB
 
 | Area | Requirement summary | Count | Reference |
 | --- | --- | --- | --- |
-| Ingestion | Source contract, 5 sources, bounded extraction, compliant transport | 17 | `docs/07` FR-001 … FR-019 |
+| Ingestion | Source contract, 34 registered sources, bounded extraction, compliant transport | 17 | `docs/07` FR-001 … FR-019 |
 | Preparation | Name/category cleaning, price + currency normalisation, rating and availability parsing | 6 | FR-006 … FR-008, FR-056 |
 | Resolution | Fingerprint match, blocking, blended fuzzy scoring, merge bookkeeping | 2 | FR-009, FR-010 |
 | Warehouse | 29 tables, 23 views, append-only facts, conformed dimensions | 8 | FR-011, FR-018 |

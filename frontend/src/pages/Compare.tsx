@@ -49,7 +49,7 @@ function CompareColumn({
   const rating = product.rating === null || product.rating === undefined ? null : Number(product.rating)
 
   return (
-    <Card className="flex min-w-[15rem] flex-col gap-3">
+    <Card className="flex min-w-0 sm:min-w-[15rem] flex-col gap-3">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           {product.product_url ? (
@@ -271,7 +271,7 @@ export default function Compare() {
               .filter((value): value is number => Number.isFinite(value))
             if (!product) {
               return (
-                <Card key={id} className="flex min-w-[15rem] flex-col gap-3">
+                <Card key={id} className="flex min-w-0 sm:min-w-[15rem] flex-col gap-3">
                   <p className="text-xs text-subtle">Loading product #{id}…</p>
                 </Card>
               )
@@ -288,7 +288,7 @@ export default function Compare() {
             )
           })}
           {ids.length < COMPARE_LIMIT ? (
-            <div className="flex min-w-[12rem] items-center justify-center rounded-2xl border border-dashed border-line text-xs text-subtle">
+            <div className="flex min-w-0 sm:min-w-[12rem] items-center justify-center rounded-2xl border border-dashed border-line text-xs text-subtle p-4">
               Add another product to compare
             </div>
           ) : null}

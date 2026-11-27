@@ -86,7 +86,9 @@ def populate_database(db_url: str, days: int = 30) -> None:
         for i in range(days - 1, 0, -1):
             history_dates.append(today - dt.timedelta(days=i))
 
-        print(f"Generating {len(history_dates)} historical days from {history_dates[0]} to {history_dates[-1]}...")
+        print(
+            f"Generating {len(history_dates)} historical days from {history_dates[0]} to {history_dates[-1]}..."
+        )
 
         # 3. Create daily ETL runs and DQ rule results
         runs_to_insert = []
@@ -107,51 +109,56 @@ def populate_database(db_url: str, days: int = 30) -> None:
             ).scalar()
             if not exists:
                 dq_score = round(96.0 + random.uniform(0.5, 3.8), 2)
-                runs_to_insert.append({
-                    "run_id": run_id,
-                    "pipeline": "daily_product_intelligence",
-                    "target_database": "mysql" if is_mysql else "postgres",
-                    "status": "success",
-                    "trigger": "scheduled",
-                    "started_at": started_at,
-                    "finished_at": finished_at,
-                    "duration_ms": 27000,
-                    "records_extracted": 12350,
-                    "records_valid": 11680,
-                    "records_rejected": 41,
-                    "records_inserted": random.randint(80, 200),
-                    "records_updated": 11500,
-                    "duplicates_merged": 1063,
-                    "new_products": random.randint(20, 80),
-                    "price_changes": random.randint(600, 1400),
-                    "removed_products": 0,
-                    "catalog_matched": 52,
-                    "dq_passed": 12,
-                    "dq_failed": 0,
-                    "dq_score": dq_score,
-                    "created_at": started_at,
-                })
+                runs_to_insert.append(
+                    {
+                        "run_id": run_id,
+                        "pipeline": "daily_product_intelligence",
+                        "target_database": "mysql" if is_mysql else "postgres",
+                        "status": "success",
+                        "trigger": "scheduled",
+                        "started_at": started_at,
+                        "finished_at": finished_at,
+                        "duration_ms": 27000,
+                        "records_extracted": 12350,
+                        "records_valid": 11680,
+                        "records_rejected": 41,
+                        "records_inserted": random.randint(80, 200),
+                        "records_updated": 11500,
+                        "duplicates_merged": 1063,
+                        "new_products": random.randint(20, 80),
+                        "price_changes": random.randint(600, 1400),
+                        "removed_products": 0,
+                        "catalog_matched": 52,
+                        "dq_passed": 12,
+                        "dq_failed": 0,
+                        "dq_score": dq_score,
+                        "created_at": started_at,
+                    }
+                )
 
                 for rule_code, rule_name, dimension, severity in DQ_RULES:
-                    dq_results_to_insert.append({
-                        "run_id": run_id,
-                        "rule_code": rule_code,
-                        "rule_name": rule_name,
-                        "dimension": dimension,
-                        "severity": severity,
-                        "status": "pass",
-                        "observed_value": 0.0,
-                        "expected_value": 0.0,
-                        "records_checked": 11680,
-                        "records_failed": 0,
-                        "pass_rate_pct": 100.0,
-                        "message": f"Rule {rule_code} satisfied.",
-                        "evaluated_at": finished_at,
-                    })
+                    dq_results_to_insert.append(
+                        {
+                            "run_id": run_id,
+                            "rule_code": rule_code,
+                            "rule_name": rule_name,
+                            "dimension": dimension,
+                            "severity": severity,
+                            "status": "pass",
+                            "observed_value": 0.0,
+                            "expected_value": 0.0,
+                            "records_checked": 11680,
+                            "records_failed": 0,
+                            "pass_rate_pct": 100.0,
+                            "message": f"Rule {rule_code} satisfied.",
+                            "evaluated_at": finished_at,
+                        }
+                    )
 
         if runs_to_insert:
             print(f"Inserting {len(runs_to_insert)} etl_run rows...")
-            insert_run_sql = sa.text("""
+            insert_run_sql = sa.text(
+                """
                 INSERT INTO etl_run (
                     run_id, pipeline, target_database, status, "trigger", started_at,
                     finished_at, duration_ms, records_extracted, records_valid,
@@ -165,7 +172,9 @@ def populate_database(db_url: str, days: int = 30) -> None:
                     :new_products, :price_changes, :removed_products, :catalog_matched,
                     :dq_passed, :dq_failed, :dq_score, :created_at
                 )
-            """ if not is_mysql else """
+            """
+                if not is_mysql
+                else """
                 INSERT INTO etl_run (
                     run_id, pipeline, target_database, status, `trigger`, started_at,
                     finished_at, duration_ms, records_extracted, records_valid,
@@ -179,7 +188,8 @@ def populate_database(db_url: str, days: int = 30) -> None:
                     :new_products, :price_changes, :removed_products, :catalog_matched,
                     :dq_passed, :dq_failed, :dq_score, :created_at
                 )
-            """)
+            """
+            )
             conn.execute(insert_run_sql, runs_to_insert)
             conn.commit()
 
@@ -266,28 +276,32 @@ def populate_database(db_url: str, days: int = 30) -> None:
                     change_abs = round(p_today - p_prev, 4)
                     change_pct = round((p_today - p_prev) / p_prev * 100, 4)
 
-                snapshots_to_insert.append({
-                    "product_id": pid,
-                    "source_code": source,
-                    "run_id": run_id,
-                    "date_id": date_id,
-                    "captured_at": captured_at,
-                    "ingested_at": captured_at,
-                    "price": p_today,
-                    "list_price": prod.list_price,
-                    "currency": currency,
-                    "fx_rate_to_usd": fx_rate,
-                    "price_usd": p_today_usd,
-                    "discount_pct": round(rng.uniform(5, 30), 1) if (p_today and rng.random() < 0.2) else None,
-                    "rating": rating,
-                    "rating_count": rating_count,
-                    "availability": availability,
-                    "in_stock": in_stock,
-                    "price_change_abs": change_abs,
-                    "price_change_pct": change_pct,
-                    "is_first_sighting": (day_idx == 0),
-                    "product_url": product_url,
-                })
+                snapshots_to_insert.append(
+                    {
+                        "product_id": pid,
+                        "source_code": source,
+                        "run_id": run_id,
+                        "date_id": date_id,
+                        "captured_at": captured_at,
+                        "ingested_at": captured_at,
+                        "price": p_today,
+                        "list_price": prod.list_price,
+                        "currency": currency,
+                        "fx_rate_to_usd": fx_rate,
+                        "price_usd": p_today_usd,
+                        "discount_pct": round(rng.uniform(5, 30), 1)
+                        if (p_today and rng.random() < 0.2)
+                        else None,
+                        "rating": rating,
+                        "rating_count": rating_count,
+                        "availability": availability,
+                        "in_stock": in_stock,
+                        "price_change_abs": change_abs,
+                        "price_change_pct": change_pct,
+                        "is_first_sighting": (day_idx == 0),
+                        "product_url": product_url,
+                    }
+                )
 
                 # If price changed, record ChgPriceChange
                 if p_today is not None and p_prev is not None and change_pct not in (None, 0.0):
@@ -302,53 +316,63 @@ def populate_database(db_url: str, days: int = 30) -> None:
                     else:
                         band = "critical"
 
-                    changes_to_insert.append({
-                        "product_id": pid,
-                        "source_code": source,
-                        "run_id": run_id,
-                        "date_id": date_id,
-                        "previous_price": p_prev,
-                        "new_price": p_today,
-                        "previous_price_usd": p_prev_usd,
-                        "new_price_usd": p_today_usd,
-                        "change_abs": change_abs,
-                        "change_pct": change_pct,
-                        "direction": direction,
-                        "magnitude_band": band,
-                        "is_significant": abs_pct >= 5.0,
-                        "currency": currency,
-                        "detected_at": captured_at,
-                    })
+                    changes_to_insert.append(
+                        {
+                            "product_id": pid,
+                            "source_code": source,
+                            "run_id": run_id,
+                            "date_id": date_id,
+                            "previous_price": p_prev,
+                            "new_price": p_today,
+                            "previous_price_usd": p_prev_usd,
+                            "new_price_usd": p_today_usd,
+                            "change_abs": change_abs,
+                            "change_pct": change_pct,
+                            "direction": direction,
+                            "magnitude_band": band,
+                            "is_significant": abs_pct >= 5.0,
+                            "currency": currency,
+                            "detected_at": captured_at,
+                        }
+                    )
 
             # For today: record a price change from yesterday's price to today's price if they differ
             if base_price is not None and len(prices) >= 2:
                 p_yesterday = prices[-2]
                 today_run_id = prod.run_id
                 today_date_id = prod.date_id
-                today_captured = dt.datetime(today.year, today.month, today.day, 2, 5, 0, tzinfo=dt.timezone.utc)
+                today_captured = dt.datetime(
+                    today.year, today.month, today.day, 2, 5, 0, tzinfo=dt.timezone.utc
+                )
                 if p_yesterday is not None and p_yesterday > 0 and base_price != p_yesterday:
                     chg_abs = round(base_price - p_yesterday, 4)
                     chg_pct = round((base_price - p_yesterday) / p_yesterday * 100, 4)
                     direction = "increase" if chg_pct > 0 else "decrease"
                     abs_pct = abs(chg_pct)
-                    band = "minor" if abs_pct < 5 else ("moderate" if abs_pct < 15 else ("major" if abs_pct < 30 else "critical"))
-                    changes_to_insert.append({
-                        "product_id": pid,
-                        "source_code": source,
-                        "run_id": today_run_id,
-                        "date_id": today_date_id,
-                        "previous_price": p_yesterday,
-                        "new_price": base_price,
-                        "previous_price_usd": round(p_yesterday * fx_rate, 4),
-                        "new_price_usd": round(base_price * fx_rate, 4),
-                        "change_abs": chg_abs,
-                        "change_pct": chg_pct,
-                        "direction": direction,
-                        "magnitude_band": band,
-                        "is_significant": abs_pct >= 5.0,
-                        "currency": currency,
-                        "detected_at": today_captured,
-                    })
+                    band = (
+                        "minor"
+                        if abs_pct < 5
+                        else ("moderate" if abs_pct < 15 else ("major" if abs_pct < 30 else "critical"))
+                    )
+                    changes_to_insert.append(
+                        {
+                            "product_id": pid,
+                            "source_code": source,
+                            "run_id": today_run_id,
+                            "date_id": today_date_id,
+                            "previous_price": p_yesterday,
+                            "new_price": base_price,
+                            "previous_price_usd": round(p_yesterday * fx_rate, 4),
+                            "new_price_usd": round(base_price * fx_rate, 4),
+                            "change_abs": chg_abs,
+                            "change_pct": chg_pct,
+                            "direction": direction,
+                            "magnitude_band": band,
+                            "is_significant": abs_pct >= 5.0,
+                            "currency": currency,
+                            "detected_at": today_captured,
+                        }
+                    )
 
             # Flush snapshots periodically
             if len(snapshots_to_insert) >= batch_size:
@@ -372,9 +396,11 @@ def populate_database(db_url: str, days: int = 30) -> None:
 
         # 5. Populate agg_category_daily for all historical dates
         print("Recomputing agg_category_daily across all dates...")
-        conn.execute(sa.text("""
+        conn.execute(
+            sa.text("""
             DELETE FROM agg_category_daily
-        """))
+        """)
+        )
         conn.commit()
 
         agg_insert_sql = sa.text("""
@@ -409,18 +435,32 @@ def populate_database(db_url: str, days: int = 30) -> None:
 
         # 6. Update observation_count on dim_product
         print("Updating observation_count on dim_product...")
-        conn.execute(sa.text(f"""
+        conn.execute(
+            sa.text(f"""
             UPDATE dim_product
             SET observation_count = {days},
                 first_seen_at = :first_seen
-        """), {"first_seen": dt.datetime(history_dates[0].year, history_dates[0].month, history_dates[0].day, 2, 0, 0, tzinfo=dt.timezone.utc)})
+        """),
+            {
+                "first_seen": dt.datetime(
+                    history_dates[0].year,
+                    history_dates[0].month,
+                    history_dates[0].day,
+                    2,
+                    0,
+                    0,
+                    tzinfo=dt.timezone.utc,
+                )
+            },
+        )
         conn.commit()
 
         # 7. Add sample alert rules & notifications if empty
         alert_cnt = conn.execute(sa.text("SELECT count(*) FROM app_alert_rule")).scalar()
         if alert_cnt == 0:
             print("Adding sample alert rules and notifications...")
-            conn.execute(sa.text("""
+            conn.execute(
+                sa.text("""
                 INSERT INTO app_alert_rule (
                     user_id, name, metric, operator, threshold, category, source_code,
                     is_active, channel, trigger_count, created_at, updated_at
@@ -429,23 +469,67 @@ def populate_database(db_url: str, days: int = 30) -> None:
                 (1, 'Major Gaming Sale (>25%)', 'discount_depth', 'gt', 25.0, 'Gaming', 'cheapshark_deals', TRUE, 'in_app', 28, NOW(), NOW()),
                 (1, 'Daily Pipeline DQ Floor (<92%)', 'dq_score', 'lt', 92.0, NULL, NULL, TRUE, 'in_app', 0, NOW(), NOW()),
                 (1, 'Crypto Volatility Move (>10%)', 'price_change', 'gt', 10.0, 'Crypto', 'kraken_tickers', TRUE, 'in_app', 42, NOW(), NOW())
-            """))
+            """)
+            )
             conn.commit()
 
             now_utc = dt.datetime.now(dt.timezone.utc)
             notifs = [
-                {"uid": 1, "aid": 1, "lvl": "info", "title": "Price drop detected on CheapShark", "body": "56 game titles received price cuts greater than 15% today.", "etype": "change", "eid": "cheapshark_deals", "read": False, "cat": now_utc - dt.timedelta(hours=2)},
-                {"uid": 1, "aid": 2, "lvl": "success", "title": "Steam Sale Ingestion Completed", "body": "Seasonal discounts synced to fact_price_snapshot with zero anomalies.", "etype": "pipeline", "eid": "steam_store", "read": False, "cat": now_utc - dt.timedelta(hours=5)},
-                {"uid": 1, "aid": 4, "lvl": "warning", "title": "Kraken High Volatility Spike", "body": "Cryptocurrency pairs experienced >10% move size in the 24h window.", "etype": "market", "eid": "kraken_tickers", "read": True, "cat": now_utc - dt.timedelta(days=1)},
-                {"uid": 1, "aid": 1, "lvl": "info", "title": "OpenFoodFacts Freshness Verified", "body": "770 supermarket products updated with latest retailer price index.", "etype": "source", "eid": "openfoodfacts_prices", "read": True, "cat": now_utc - dt.timedelta(days=2)},
+                {
+                    "uid": 1,
+                    "aid": 1,
+                    "lvl": "info",
+                    "title": "Price drop detected on CheapShark",
+                    "body": "56 game titles received price cuts greater than 15% today.",
+                    "etype": "change",
+                    "eid": "cheapshark_deals",
+                    "read": False,
+                    "cat": now_utc - dt.timedelta(hours=2),
+                },
+                {
+                    "uid": 1,
+                    "aid": 2,
+                    "lvl": "success",
+                    "title": "Steam Sale Ingestion Completed",
+                    "body": "Seasonal discounts synced to fact_price_snapshot with zero anomalies.",
+                    "etype": "pipeline",
+                    "eid": "steam_store",
+                    "read": False,
+                    "cat": now_utc - dt.timedelta(hours=5),
+                },
+                {
+                    "uid": 1,
+                    "aid": 4,
+                    "lvl": "warning",
+                    "title": "Kraken High Volatility Spike",
+                    "body": "Cryptocurrency pairs experienced >10% move size in the 24h window.",
+                    "etype": "market",
+                    "eid": "kraken_tickers",
+                    "read": True,
+                    "cat": now_utc - dt.timedelta(days=1),
+                },
+                {
+                    "uid": 1,
+                    "aid": 1,
+                    "lvl": "info",
+                    "title": "OpenFoodFacts Freshness Verified",
+                    "body": "770 supermarket products updated with latest retailer price index.",
+                    "etype": "source",
+                    "eid": "openfoodfacts_prices",
+                    "read": True,
+                    "cat": now_utc - dt.timedelta(days=2),
+                },
             ]
-            conn.execute(sa.text("""
+            conn.execute(
+                sa.text("""
                 INSERT INTO app_notification (
                     user_id, alert_id, level, title, body, entity_type, entity_id, is_read, created_at
                 ) VALUES (
                     :uid, :aid, :lvl, :title, :body, :etype, :eid, :read, :cat
                 )
-            """), notifs)
+            """),
+                notifs,
+            )
             conn.commit()
 
         # Summary
@@ -463,7 +547,8 @@ def populate_database(db_url: str, days: int = 30) -> None:
 def _insert_snapshots(conn: Any, rows: list[dict[str, Any]], is_mysql: bool) -> None:
     if not rows:
         return
-    sql = sa.text("""
+    sql = sa.text(
+        """
         INSERT INTO fact_price_snapshot (
             product_id, source_code, run_id, date_id, captured_at, ingested_at, price,
             list_price, currency, fx_rate_to_usd, price_usd, discount_pct,
@@ -476,7 +561,9 @@ def _insert_snapshots(conn: Any, rows: list[dict[str, Any]], is_mysql: bool) -> 
             :price_change_pct, :is_first_sighting, :product_url
         )
         ON CONFLICT (product_id, run_id) DO NOTHING
-    """ if not is_mysql else """
+    """
+        if not is_mysql
+        else """
         INSERT IGNORE INTO fact_price_snapshot (
             product_id, source_code, run_id, date_id, captured_at, ingested_at, price,
             list_price, currency, fx_rate_to_usd, price_usd, discount_pct,
@@ -488,14 +575,16 @@ def _insert_snapshots(conn: Any, rows: list[dict[str, Any]], is_mysql: bool) -> 
             :rating, :rating_count, :availability, :in_stock, :price_change_abs,
             :price_change_pct, :is_first_sighting, :product_url
         )
-    """)
+    """
+    )
     conn.execute(sql, rows)
 
 
 def _insert_changes(conn: Any, rows: list[dict[str, Any]], is_mysql: bool) -> None:
     if not rows:
         return
-    sql = sa.text("""
+    sql = sa.text(
+        """
         INSERT INTO chg_price_change (
             product_id, source_code, run_id, date_id, previous_price, new_price,
             previous_price_usd, new_price_usd, change_abs, change_pct, direction,
@@ -506,7 +595,9 @@ def _insert_changes(conn: Any, rows: list[dict[str, Any]], is_mysql: bool) -> No
             :magnitude_band, :is_significant, :currency, :detected_at
         )
         ON CONFLICT (product_id, run_id) DO NOTHING
-    """ if not is_mysql else """
+    """
+        if not is_mysql
+        else """
         INSERT IGNORE INTO chg_price_change (
             product_id, source_code, run_id, date_id, previous_price, new_price,
             previous_price_usd, new_price_usd, change_abs, change_pct, direction,
@@ -516,7 +607,8 @@ def _insert_changes(conn: Any, rows: list[dict[str, Any]], is_mysql: bool) -> No
             :previous_price_usd, :new_price_usd, :change_abs, :change_pct, :direction,
             :magnitude_band, :is_significant, :currency, :detected_at
         )
-    """)
+    """
+    )
     conn.execute(sql, rows)
 
 

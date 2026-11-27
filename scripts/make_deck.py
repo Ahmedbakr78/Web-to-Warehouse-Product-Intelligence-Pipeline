@@ -75,6 +75,7 @@ def measured_counts() -> dict[str, str]:
 
         routes = set(_re.findall(r'path="([^"]*)"', app_tsx.read_text(encoding="utf-8")))
         routes.discard("*")
+        routes.discard("/login")
         counts["screens"] = str(len(routes))
 
     # The pages the documentation site publishes.
@@ -410,7 +411,7 @@ def build_html(stats: dict) -> str:
         {card("Govern", bullets(["Roles and scoped API keys", "Two-factor authentication", "A full audit trail"]))}
       </div>
       <div class="grid g5" style="margin-top:5mm">
-        {tile("23", "screens", PRIMARY)}
+        {tile(measured.get("screens", "23"), "screens", PRIMARY)}
         {tile(str(stats.get("rest_route_decorators", 173)), "API operations", SECONDARY)}
         {tile(str(group_total), "catalogued features", ACCENT)}
         {tile("5", "themes, 12 accents", HIGHLIGHT)}

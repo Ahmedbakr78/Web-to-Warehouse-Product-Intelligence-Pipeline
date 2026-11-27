@@ -15,7 +15,7 @@ Repository: <https://github.com/Ahmedbakr78/Web-to-Warehouse-Product-Intelligenc
 
 ## 2. About — full description (recommended, paste verbatim)
 
-> **Web-to-Warehouse Product Intelligence Pipeline** — a production-style DEPI Data Engineering capstone that continuously collects product information from *permitted* public web sources and merges it with an internal catalogue. It respects `robots.txt`, rate limits and website terms before it fetches a single record; cleans and normalises names, categories, prices, ratings and availability; detects exact and fuzzy duplicates; then loads a Kimball-style warehouse on **PostgreSQL and MySQL** with full price-history snapshots. SQL analytics answer price changes, new products, removed products and category drift, while **Apache Airflow** orchestrates the nine-stage run. A **FastAPI** service exposes 222 REST operations (OpenAPI/Swagger included) and a **React 19** dashboard renders 21 screens with light/dark/system themes, a mobile off-canvas sidebar and silent in-place reloads. 767 catalogued features · 34 registered sources · 12 enforced data-quality rules · 29 tables · 23 analytical views · 627 passing tests · 104/104 API smoke checks. Zero fake data: a dedicated audit proves every row traces back to a real, permitted source.
+> **Web-to-Warehouse Product Intelligence Pipeline** — a production-style DEPI Data Engineering capstone that continuously collects product information from *permitted* public web sources and merges it with an internal catalogue. It respects `robots.txt`, rate limits and website terms before it fetches a single record; cleans and normalises names, categories, prices, ratings and availability; detects exact and fuzzy duplicates; then loads a Kimball-style warehouse on **PostgreSQL and MySQL** with full price-history snapshots. SQL analytics answer price changes, new products, removed products and category drift, while **Apache Airflow** orchestrates the nine-stage run. A **FastAPI** service exposes 222 REST operations (OpenAPI/Swagger included) and a **React 19** dashboard renders 23 screens with light/dark/system themes, a mobile off-canvas sidebar and silent in-place reloads. 767 catalogued features · 34 registered sources · 12 enforced data-quality rules · 29 tables · 23 analytical views · 634 passing tests · 104/104 API smoke checks. Zero fake data: a dedicated audit proves every row traces back to a real, permitted source.
 
 ## 3. Website (paste into About → Website)
 
@@ -44,7 +44,7 @@ kimball  data-modeling  robots-txt  data-governance  unit-testing
 | Python 3.12 / 3.14 | supported interpreters |
 | Docker Compose | six-service stack |
 | AGPL-3.0 | license |
-| 627 passing | backend test suite |
+| 634 passing | backend test suite |
 | 104/104 | API smoke checks |
 
 ## 6. Release notes — v1.12.1

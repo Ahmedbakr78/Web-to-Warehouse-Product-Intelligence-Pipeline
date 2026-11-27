@@ -4,7 +4,7 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.13.0] - 2026-11-27
 
 ### Added
 
@@ -18,10 +18,36 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Recently visited screens in the command palette**, stored locally, kept in
   sync across tabs, with actions to clear the list and copy the current URL.
 - Seventeen catalogue entries in a new `compare_power` group, taking the
-  in-app feature catalogue to 767 features in 46 groups. Stats snapshot,
-  README, docs, website and infographic regenerated to match.
+  in-app feature catalogue to 767 features in 46 groups.
+- **Portable median computation** in `rebuild_category_daily_aggregates()`
+  (`app/etl/loader.py`), resolving BUG-055 across SQLite, PostgreSQL, and MySQL.
+- **Consolidated PDF generator** (`scripts/make_documentation_pdf.py`) outputting
+  an up-to-date multi-chapter PDF synchronized with live `docs/stats.json`.
+- Regression suite `tests/test_aggregates.py` covering aggregate generation in
+  both pipeline runs and demo seeding (total backend tests: 634).
 
 ### Fixed
+
+- **Analytics `$0` / `0 observations` on demo seeds.** `seed_history()` in
+  `app/etl/seed.py` now populates `agg_category_daily` via the shared
+  `rebuild_category_daily_aggregates()` aggregator so `/analytics` reports real
+  aggregated figures immediately after seeding.
+- **`WarehouseLoader.refresh_category_daily()` column mapping.** Switched to named
+  `.mappings()` rows, fixing a positional index swap between `avg_rating` and
+  `new_product_count`, and added portable `median_price`.
+- **Phone viewport toolbar wrapping (`375 px`).** Added responsive wrapping and
+  mobile widths to `Products.tsx`, `Catalog.tsx`, `Analytics.tsx`, `Compare.tsx`,
+  `Alerts.tsx`, and `Categories.tsx`, plus adaptive right-alignment and
+  viewport width bounds on custom `Select` dropdown menus.
+- **404 browser tab title.** `NotFound.tsx` now updates `document.title` on
+  mount instead of retaining the previous route's title.
+- **Mermaid `requirementDiagram` syntax & static site links.** Quoted requirement
+  IDs/text in `docs/38_extended_diagram_suite.md` so all 120 diagrams validate
+  cleanly with `mmdc`, and added docs 37–38 to `scripts/build_site.py` (0 broken
+  links across `site/`).
+- **Missing dependency declaration.** Added `alembic>=1.13` to `pyproject.toml`.
+- **Launcher migration stamping.** `run-local.sh` gracefully stamps `head` when
+  an existing schema is detected without an `alembic_version` row.
 
 - **A successful run looked like a failure in the dashboard.** Recoverable
   source warnings (one timed-out Bitstamp ticker, an intermittent DNS error)

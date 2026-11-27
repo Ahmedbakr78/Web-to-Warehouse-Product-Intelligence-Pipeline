@@ -257,9 +257,9 @@ export default function Products() {
       {/* ------------------------------------------------------------- toolbar */}
       <Card padded={false} className="p-3">
         <div className="flex flex-wrap items-center gap-2">
-          <SearchInput value={search} onChange={setSearch} placeholder="Search name, brand or category…" className="min-w-[16rem] flex-1" />
+          <SearchInput value={search} onChange={setSearch} placeholder="Search name, brand or category…" className="w-full sm:w-auto sm:min-w-[16rem] flex-1" />
           <ChipGroup options={STOCK_FILTERS} value={stock} onChange={setStock} />
-          <div className="ml-auto flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto">
             <Button
               size="sm"
               variant={watchedOnly ? 'primary' : 'secondary'}

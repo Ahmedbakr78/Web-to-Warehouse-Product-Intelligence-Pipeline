@@ -1,49 +1,20 @@
 
-graph TB
-    subgraph Client["Browser / PWA"]
-        DASH["React 19 dashboard<br/>23 screens, light & dark"]
-        PAL["Command palette<br/>Ctrl/Cmd-K"]
+flowchart TD
+    subgraph CandidatePool["Candidate Blocking & Filtering (O(N) Complexity)"]
+        Raw["Incoming Normalized Product"] --> KeyGen["Generate Blocking Key:<br/>brand_prefix + first_token + digit_signature"]
+        KeyGen --> Bucket["Query Candidate Bucket from dim_product<br/>(Avoids N^2 Cross-Product)"]
     end
-    subgraph Edge["FastAPI application"]
-        ROUTES["24 routers<br/>222 operations"]
-        AUTH["Security layer<br/>Argon2id · JWT · API keys · RBAC"]
-        GUARD["Guards<br/>error envelope · GZip · timing · rate limit"]
-        BUILDER["Builder DSL<br/>whitelist to parameterised SELECT"]
-        QLAB["Query lab<br/>SELECT / WITH / EXPLAIN only"]
-    end
-    subgraph Domain["Domain services"]
-        ING["Ingestion<br/>robots · rate limit · cache"]
-        ETL["ETL pipeline<br/>9 stages"]
-        DQ["Data quality<br/>12 rules / 6 dimensions"]
-        AN["Analytics<br/>23 views + reports"]
-        REC["Catalog reconciler"]
-    end
-    subgraph Store["Warehouse"]
-        PG[("PostgreSQL 16<br/>29 tables · 23 views")]
-        MY[("MySQL 8.4<br/>same schema")]
-    end
-    subgraph Sources["Permitted sources"]
-        S1["JSON APIs"]
-        S2["HTML scrape<br/>BeautifulSoup + lxml"]
-        S3["Offline fixture"]
-    end
-    AF["Apache Airflow 2.10<br/>14 tasks, daily 03:00"]
 
-    DASH --> ROUTES
-    PAL --> ROUTES
-    ROUTES --> AUTH --> GUARD
-    ROUTES --> BUILDER
-    ROUTES --> QLAB
-    ROUTES --> AN
-    ROUTES --> DQ
-    ROUTES --> REC
-    ETL --> ING --> Sources
-    ETL --> DQ
-    ETL --> REC
-    ETL --> Store
-    AN --> Store
-    DQ --> Store
-    REC --> Store
-    AN -.SQL.-> QLAB
-    AF -->|"REST transport"| ROUTES
-    AF --> ETL
+    subgraph MultiSignal["4-Signal Parallel Similarity Scoring"]
+        Bucket --> S1["Signal 1: Jaro-Winkler String Distance<br/>Weight: 0.35 | Prefers Prefix Alignment"]
+        Bucket --> S2["Signal 2: Token-Set Dice Similarity<br/>Weight: 0.30 | Handles Word Reordering"]
+        Bucket --> S3["Signal 3: Character Trigram Overlap<br/>Weight: 0.20 | Robust to Minor Typos"]
+        Bucket --> S4["Signal 4: Digit Signature & Model Match<br/>Weight: 0.15 | Enforces Part Numbers"]
+    end
+
+    subgraph Aggregation["Weighted Confidence Composite & Decision Gate"]
+        S1 & S2 & S3 & S4 --> Composite["Composite Score = 0.35*JW + 0.30*TS + 0.20*TRI + 0.15*DIG"]
+        Composite --> Gate{"Composite Score<br/>>= 0.90 Threshold?"}
+        Gate -- ">= 0.90 (Match)" --> Merge["Merge under Canonical product_id<br/>• Append Snapshot<br/>• Record Match Decision & Score"]
+        Gate -- "< 0.90 (Distinct)" --> New["Create New dim_product Row<br/>• Assign New Surrogate Key<br/>• Store Fingerprint for Future Runs"]
+    end

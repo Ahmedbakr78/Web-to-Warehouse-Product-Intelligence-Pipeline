@@ -212,7 +212,7 @@ Manage `HI` closely, keep `HI2` informed through read-only compliance endpoints,
 
 | # | Deliverable (from the brief) | Artefact | Status |
 | --- | --- | --- | --- |
-| D1 | Scraper / API ingestion module | `app/ingestion/` (8 modules + 5 sources) | Complete |
+| D1 | Scraper / API ingestion module | `app/ingestion/` (8 modules + 34 registered sources) | Complete |
 | D2 | Database schema | `app/models/` — 29 tables across 6 groups | Complete |
 | D3 | Historical product-price table | `fact_price_snapshot` + `vw_price_history` | Complete |
 | D4 | ETL pipeline | `app/etl/pipeline.py` (9 instrumented stages) | Complete |

@@ -840,7 +840,7 @@ def seed_history(
     _bulk_insert(session, ChgPriceChange, change_rows)
     _bulk_insert(session, ChgProductEvent, event_rows)
 
-    # ---- category counters ------------------------------------------------------
+    # ---- category counters & daily rollup --------------------------------------
     # No table alias in the UPDATE: SQLite rejects `UPDATE t alias` syntax.
     session.execute(
         sa.text(
@@ -853,12 +853,22 @@ def seed_history(
             """
         )
     )
+    from app.etl.loader import rebuild_category_daily_aggregates
+
+    aggregates_written = rebuild_category_daily_aggregates(
+        session,
+        source_code=source_code,
+        start_date_id=date_id(today - dt.timedelta(days=days - 1)),
+        end_date_id=date_id(today),
+        captured_at=now_utc,
+    )
 
     stats = {
         "products": len(products),
         "snapshots": _count(session, FactPriceSnapshot),
         "price_changes": _count(session, ChgPriceChange),
         "events": _count(session, ChgProductEvent),
+        "aggregates": aggregates_written,
         "runs": days,
     }
     session.flush()

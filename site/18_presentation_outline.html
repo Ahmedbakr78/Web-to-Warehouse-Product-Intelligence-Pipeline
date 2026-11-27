@@ -48,13 +48,13 @@
 <a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
 <div class="nav-group-title">Design</div>
 <a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
-<a href="09_database_design.html" title="28-table ERD, indexing, retention">Database Design</a>
+<a href="09_database_design.html" title="29-table ERD, indexing, retention">Database Design</a>
 <a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
 <a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
 <a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
 <a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
 <div class="nav-group-title">Build and operate</div>
-<a href="14_api_documentation.html" title="Auth, roles, 173 operations, worked examples">API Documentation</a>
+<a href="14_api_documentation.html" title="Auth, roles, 222 operations, worked examples">API Documentation</a>
 <a href="15_testing_strategy.html" title="Test pyramid, measured counts, quality gates">Testing Strategy</a>
 <a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
 <a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
@@ -70,6 +70,14 @@
 <a href="28_schema_and_migrations.html" title="Alembic, drift detection, views, Airflow isolation">Schema &amp; Migrations</a>
 <a href="29_two_factor_and_sessions.html" title="TOTP enrolment, recovery codes, per-device revocation">Two-Factor &amp; Sessions</a>
 <a href="30_access_control_and_rate_limiting.html" title="Roles, rights, API-key scopes, sliding-window rate limiting">Access Control &amp; Limits</a>
+<a href="31_releases.html" title="Versioning, tagging, release history and the changelog contract">Releases</a>
+<a href="32_briefing_and_demo_scale.html" title="Ranked action queue, endpoint contract, cache/noise policy, and the idempotent 10x demo expansion">Morning Briefing &amp; Demo Scale</a>
+<a href="33_data_trust_and_compliance.html" title="The three trust levels, auto-selection rules, the purge sweep, robots.txt enforcement and the audit trail">Data Trust &amp; Compliance</a>
+<a href="34_performance_and_scale.html" title="Measured latencies, table sizes, the index strategy, capacity planning and the honest limits">Performance &amp; Scale</a>
+<a href="35_github_presence.html" title="The repository description, topics, About box, social preview, branching strategy and release packaging">GitHub Presence</a>
+<a href="36_decision_log.html" title="Every engineering decision from v1.9 to v1.12, with the context, the consequence and the rejected alternatives">Decision Log</a>
+<a href="37_github_presence_and_about.html" title="About text, topics, release notes, badges and repository polish workflow">GitHub Presence &amp; About</a>
+<a href="38_extended_diagram_suite.html" title="C4 context and container diagrams, journey, timeline, mindmap, pie, gitGraph and requirement traceability">Extended Diagram Suite</a>
   </nav>
   <main class="content">
     <div class="doc-head">
@@ -144,8 +152,8 @@
     subgraph SHOW[&quot;Slides 10 to 13 - the product&quot;]
         S10[&quot;The dashboard&lt;br/&gt;light and dark, mobile&quot;]
         S11[&quot;The API&lt;br/&gt;222 operations, OpenAPI&quot;]
-        S12[&quot;Documentation&lt;br/&gt;34 documents, 88 diagrams&quot;]
-        S13[&quot;Testing&lt;br/&gt;632 tests, live smoke&quot;]
+        S12[&quot;Documentation&lt;br/&gt;39 documents, 120 diagrams&quot;]
+        S13[&quot;Testing&lt;br/&gt;634 tests, live smoke&quot;]
     end
     subgraph CLOSE[&quot;Slides 14 to 18 - the close&quot;]
         S14[&quot;Live demo&lt;br/&gt;three minutes&quot;]
@@ -173,7 +181,7 @@
 <h3 id="slide-5--architecture">Slide 5 — Architecture</h3>
 <p><strong>On screen:</strong> The component diagram from <code>docs/08</code> §5.1 (simplified to one box per layer).</p>
 <p><strong>Message:</strong> Layered batch ETL plus a read-only serving API.</p>
-<blockquote><p>"Nine pipeline stages, five ingestion sources, five conformed dimensions, twenty views, one semantic layer, 104 API operations. The pipeline is a plain Python object: the CLI, the API and Airflow all call the same <code>Pipeline.run()</code>."</p></blockquote>
+<blockquote><p>"Nine pipeline stages, 34 registered ingestion sources, five conformed dimensions, 23 analytical views, one semantic layer, 222 API operations. The pipeline is a plain Python object: the CLI, the API and Airflow all call the same <code>Pipeline.run()</code>."</p></blockquote>
 <h3 id="slide-6--data-model">Slide 6 — Data model</h3>
 <p><strong>On screen:</strong> The star schema plus the change feeds; the grain of each fact table; the normalisation argument in three bullets.</p>
 <p><strong>Message:</strong> Kimball's grain-first rule; 3NF dimensions, deliberate denormalisation in the facts.</p>
@@ -194,7 +202,7 @@
 <p><strong>Message:</strong> One library, three entry points; recoverable tasks; a full CLI for the terminal.</p>
 <h3 id="slide-11--api-and-security">Slide 11 — API and security</h3>
 <p><strong>On screen:</strong> Router table with counts; the role matrix; the token and API-key flows.</p>
-<p><strong>Message:</strong> 113 documented operations behind JWT + RBAC; 78 automated regression checks.</p>
+<p><strong>Message:</strong> 222 documented operations behind JWT + RBAC; 104 automated API smoke checks.</p>
 <h3 id="slide-12--live-demo-3-minutes">Slide 12 — Live demo (3 minutes)</h3>
 <p><strong>On screen:</strong> The browser and a terminal. Use the script in §4 exactly.</p>
 <p><strong>Message:</strong> "Here is the system, end to end, in three minutes."</p>
@@ -238,7 +246,7 @@
 <p><strong>On screen:</strong> Six items with effort and benefit (from <code>docs/20</code> §2): incremental sync, partitioned fact table, provider-backed FX, an alerting service, a committed test suite, ML forecasting.</p>
 <h3 id="slide-18--conclusion-and-questions">Slide 18 — Conclusion and questions</h3>
 <p><strong>On screen:</strong> One sentence per contribution; contact; repository; "Questions?"</p>
-<blockquote><p>"One pipeline, five permitted sources, 29 tables, 23 views, 12 quality rules, 104 API operations, two database engines, and a compliance trail for every request we made."</p></blockquote>
+<blockquote><p>"One pipeline, 34 registered sources, 29 tables, 23 views, 12 quality rules, 222 API operations, two database engines, and a compliance trail for every request we made."</p></blockquote>
 <hr>
 <h2 id="3-qa-preparation">3. Q&amp;A preparation</h2>
 <div class='table-scroll'><table><thead><tr>
@@ -302,9 +310,9 @@
 <td><code>app/api/security.py</code>, <code>scripts/api_smoke.py</code></td>
 </tr>
 <tr>
-<td>Why is the dashboard not in the repository?</td>
-<td>The delivered repository snapshot contains the API and the specification for every screen (doc 12); each screen is mapped to the endpoints that back it, and the API smoke suite verifies the same journeys</td>
-<td><code>docs/12</code>, <code>docs/16</code></td>
+<td>Where is the dashboard implemented?</td>
+<td>All 23 React 19 + TypeScript workspace screens (plus sign-in and 404 fallback) live in <code>frontend/src/pages/</code>, backing every workflow mapped in <code>docs/12</code> and <code>docs/16</code>, verified by Vitest and responsive mobile checks</td>
+<td><code>frontend/src/</code>, <code>docs/12</code>, <code>docs/16</code></td>
 </tr>
 <tr>
 <td>What would you do differently?</td>
@@ -351,7 +359,7 @@ curl -s localhost:8000/api/v1/health | head -c 200; echo
 <p><strong>2:30–2:50 — Quality and compliance (browser)</strong></p>
 <p>Open Quality: "12 rules, 6 dimensions, and the score the API just returned." Open Compliance: "Every outbound request is logged with its robots decision — zero unlogged requests."</p>
 <p><strong>2:50–3:00 — The API (browser: <code>http://localhost:8000/docs</code>)</strong></p>
-<p>Say: "113 documented operations, JWT plus role-based access, and 78 automated checks that exercise all of it — including the 401 and the 403."</p>
+<p>Say: "222 documented operations, JWT plus role-based access, and 104 automated checks that exercise all of it — including the 401 and the 403."</p>
 <h3 id="43-optional-20-second-flourish-cross-dialect-parity">4.3 Optional 20-second flourish: cross-dialect parity</h3>
 <pre class="code" data-lang="bash"><code>pip-cli verify</code></pre>
 <p>Say: "The same model, the same data, two engines — zero structural drift and an identical data-quality score on PostgreSQL 16 and MySQL 8.4 - <code>make verify-dialects</code> shows them side by side."</p>

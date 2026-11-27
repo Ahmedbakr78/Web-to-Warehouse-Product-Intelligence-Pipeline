@@ -363,7 +363,7 @@ flowchart LR
 | ID | Severity | Issue | Plan |
 | --- | --- | --- | --- |
 | BUG-054 | S3 | `vw_pipeline_health.trigger` cannot be selected unqualified on MySQL 8.4 (`TRIGGER` is reserved) | Quote the identifier in `app/analytics/service.py` and `routers/pipeline.py`; documented in `docs/20` |
-| BUG-055 | S4 | `agg_category_daily.median_price` is declared but never written (no portable median SQL) | Implement with a window-function median, or drop the column in a design note |
+| BUG-055 | S4 | `agg_category_daily.median_price` was declared before portable median SQL existed | **Fixed in v1.13.0** via `rebuild_category_daily_aggregates()` (`statistics.median` across SQLite/PostgreSQL/MySQL) |
 | BUG-056 | S4 | `GET /api/v1/pipeline/runs/{run_id}/http` ignores `run_id` and returns the global log | Filter by `run_id` |
 | BUG-057 | S4 | `POST /users/me/password` returns a guidance message instead of performing the change | Point clients to `POST /auth/change-password` |
 | BUG-058 | S4 | No retention job for `stg_raw_observation` and `ingestion_http_log` | Add a scheduled delete (doc 09 §8.2) |
@@ -417,7 +417,7 @@ make everything                # install, env, databases, bootstrap, demo, run, 
 | Command | What it proves |
 | --- | --- |
 | `make check-schema` | The physical schema matches the ORM definition |
-| `make sources` | All 5 sources are registered with their compliance metadata |
+| `make sources` | All 34 sources are registered with their compliance metadata |
 | `make sources preview books_to_scrape -n 3` | The BeautifulSoup scraper extracts and cleans real records |
 | `make sources check` | robots.txt cache statistics |
 | `make analytics` | The SQL analytics report, including the DQ table |

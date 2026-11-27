@@ -228,7 +228,7 @@ export default function Categories() {
           value={search}
           onChange={setSearch}
           placeholder={'Filter the taxonomy by name or path…'}
-          className="min-w-[14rem] max-w-md flex-1"
+          className="w-full sm:min-w-[14rem] sm:max-w-md flex-1"
         />
         <Button size="sm" variant="secondary" icon={<Download className="h-4 w-4" />} onClick={exportCsv}>
           Export breakdown

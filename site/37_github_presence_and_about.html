@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="About text, topics, release notes, badges and repository polish workflow">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="GitHub Presence &amp; About — Web-to-Warehouse Product Intelligence Pipeline">
+<meta property="og:description" content="About text, topics, release notes, badges and repository polish workflow">
+<title>GitHub Presence &amp; About — Web-to-Warehouse Product Intelligence Pipeline</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/favicon.png" type="image/png">
+
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="menu-btn" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
+  <a class="brand" href="index.html">
+    <span class="brand-mark">W</span>
+    <span class="brand-text">Web-to-Warehouse<small>Product Intelligence Pipeline v1.3.0</small></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search the documentation…  (Ctrl-K)" autocomplete="off"
+           aria-label="Search documentation" spellcheck="false">
+    <div class="search-results" id="results" data-open="false"></div>
+  </div>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle colour theme">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  </button>
+</header>
+<div class="shell">
+  <nav class="sidebar" aria-label="Documentation">
+<div class="nav-group-title">Start here</div>
+<a href="readme.html" title="What the project is and how to run it">Overview</a>
+<a href="21_architecture_deep_dive.html" title="Decisions, trade-offs, request lifecycle">Architecture Deep Dive</a>
+<div class="nav-group-title">Project lifecycle</div>
+<a href="01_project_proposal.html" title="Problem, objectives, scope, stakeholders, ethics">Project Proposal</a>
+<a href="02_project_plan.html" title="Twelve-week schedule, milestones, deliverables">Project Plan</a>
+<a href="03_roles_and_responsibilities.html" title="Team roles, RACI, hours log">Roles and Responsibilities</a>
+<a href="04_risk_assessment.html" title="Twenty-risk register, heat map, treatments">Risk Assessment</a>
+<a href="05_kpis.html" title="Twenty KPIs with runnable SQL and measured values">KPIs</a>
+<a href="06_literature_review.html" title="Six themes, verified sources, synthesis">Literature Review</a>
+<a href="07_requirements_gathering.html" title="User stories, use cases, 84 requirements">Requirements</a>
+<div class="nav-group-title">Design</div>
+<a href="08_system_analysis_design.html" title="Use cases, architecture, rationale">System Analysis and Design</a>
+<a href="09_database_design.html" title="29-table ERD, indexing, retention">Database Design</a>
+<a href="10_data_flow_diagrams.html" title="Level 0/1/2 DFDs, data dictionary">Data Flow Diagrams</a>
+<a href="11_behaviour_diagrams.html" title="Sequence, activity, state, class">Behaviour Diagrams</a>
+<a href="12_ui_ux_design.html" title="Wireframes, design system, WCAG 2.1 AA">UI/UX Design</a>
+<a href="13_deployment.html" title="Stack, environments, CI/CD, backups">Deployment</a>
+<div class="nav-group-title">Build and operate</div>
+<a href="14_api_documentation.html" title="Auth, roles, 222 operations, worked examples">API Documentation</a>
+<a href="15_testing_strategy.html" title="Test pyramid, measured counts, quality gates">Testing Strategy</a>
+<a href="16_user_manual.html" title="Every screen, filters, exports, troubleshooting">User Manual</a>
+<a href="17_technical_documentation.html" title="Module map, algorithms, config">Technical Documentation</a>
+<a href="18_presentation_outline.html" title="Defence deck, Q&amp;A, demo script">Presentation Outline</a>
+<a href="19_feature_list.html" title="Every feature with the file that implements it">Feature Inventory</a>
+<a href="20_literature_feedback_and_improvements.html" title="Prioritised next steps">Feedback and Improvements</a>
+<a href="22_data_dictionary.html" title="Every table, column, type and meaning">Data Dictionary</a>
+<a href="23_glossary_and_faq.html" title="Terms defined, questions answered">Glossary and FAQ</a>
+<a href="24_demo_runbook.html" title="Screen-by-screen live demo script and failure playbook">Demo Runbook</a>
+<a href="25_forecasting_and_anomaly_detection.html" title="Damped Holt-Winters, measured accuracy, three detectors, pricing advice">Forecasting &amp; Anomalies</a>
+<a href="26_background_jobs_and_realtime.html" title="Leases, retries, cancellation, SSE and the cross-worker problem">Background Jobs &amp; Realtime</a>
+<a href="27_reporting_and_document_generation.html" title="Typed blocks rendered to HTML, JSON, CSV and PDF from one definition">Reporting &amp; Documents</a>
+<a href="28_schema_and_migrations.html" title="Alembic, drift detection, views, Airflow isolation">Schema &amp; Migrations</a>
+<a href="29_two_factor_and_sessions.html" title="TOTP enrolment, recovery codes, per-device revocation">Two-Factor &amp; Sessions</a>
+<a href="30_access_control_and_rate_limiting.html" title="Roles, rights, API-key scopes, sliding-window rate limiting">Access Control &amp; Limits</a>
+<a href="31_releases.html" title="Versioning, tagging, release history and the changelog contract">Releases</a>
+<a href="32_briefing_and_demo_scale.html" title="Ranked action queue, endpoint contract, cache/noise policy, and the idempotent 10x demo expansion">Morning Briefing &amp; Demo Scale</a>
+<a href="33_data_trust_and_compliance.html" title="The three trust levels, auto-selection rules, the purge sweep, robots.txt enforcement and the audit trail">Data Trust &amp; Compliance</a>
+<a href="34_performance_and_scale.html" title="Measured latencies, table sizes, the index strategy, capacity planning and the honest limits">Performance &amp; Scale</a>
+<a href="35_github_presence.html" title="The repository description, topics, About box, social preview, branching strategy and release packaging">GitHub Presence</a>
+<a href="36_decision_log.html" title="Every engineering decision from v1.9 to v1.12, with the context, the consequence and the rejected alternatives">Decision Log</a>
+<a href="37_github_presence_and_about.html" class="active" title="About text, topics, release notes, badges and repository polish workflow">GitHub Presence &amp; About</a>
+<a href="38_extended_diagram_suite.html" title="C4 context and container diagrams, journey, timeline, mindmap, pie, gitGraph and requirement traceability">Extended Diagram Suite</a>
+  </nav>
+  <main class="content">
+    <div class="doc-head">
+      <h1>GitHub Presence &amp; About</h1>
+      <p>About text, topics, release notes, badges and repository polish workflow</p>
+    </div>
+    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#1-about--short-description-github-about-field">1. About — short description (GitHub About field)</a></li><li class="lvl-2"><a href="#2-about--full-description-recommended-paste-verbatim">2. About — full description (recommended, paste verbatim)</a></li><li class="lvl-2"><a href="#3-website-paste-into-about--website">3. Website (paste into About → Website)</a></li><li class="lvl-2"><a href="#4-topics-paste-into-about--topics-in-this-order">4. Topics (paste into About → Topics, in this order)</a></li><li class="lvl-2"><a href="#5-badges-already-in-readme-keep-them-visible">5. Badges (already in README; keep them visible)</a></li><li class="lvl-2"><a href="#6-release-notes--v1121">6. Release notes — v1.12.1</a></li><li class="lvl-2"><a href="#7-commands--run-from-the-project-directory">7. Commands — run from the project directory</a></li><li class="lvl-2"><a href="#8-manual-touches-github-ui-only">8. Manual touches (GitHub UI only)</a></li><li class="lvl-2"><a href="#9-safety--what-is-never-touched">9. Safety — what is never touched</a></li></ol></details>
+    <article class="doc-body">
+<p>Everything needed to make the repository look complete on GitHub: the About description, topics, website, release notes, badges, and the exact commands. Nothing here deletes or overwrites content — every operation is additive. The only consequential change is the explicitly requested <strong>private</strong> visibility.</p>
+<p>Repository: &lt;<a href="https://github.com/Ahmedbakr78/Web-to-Warehouse-Product-Intelligence-Pipeline&gt;">https://github.com/Ahmedbakr78/Web-to-Warehouse-Product-Intelligence-Pipeline&gt;</a></p>
+<hr>
+<h2 id="1-about--short-description-github-about-field">1. About — short description (GitHub About field)</h2>
+<blockquote><p>Compliance-first product intelligence pipeline: permitted web/API ingestion → cleaning → deduplication → PostgreSQL warehouse with price history → SQL analytics → Airflow → FastAPI + React dashboard.</p></blockquote>
+<h2 id="2-about--full-description-recommended-paste-verbatim">2. About — full description (recommended, paste verbatim)</h2>
+<blockquote><p><strong>Web-to-Warehouse Product Intelligence Pipeline</strong> — a production-style DEPI Data Engineering capstone that continuously collects product information from <em>permitted</em> public web sources and merges it with an internal catalogue. It respects <code>robots.txt</code>, rate limits and website terms before it fetches a single record; cleans and normalises names, categories, prices, ratings and availability; detects exact and fuzzy duplicates; then loads a Kimball-style warehouse on <strong>PostgreSQL and MySQL</strong> with full price-history snapshots. SQL analytics answer price changes, new products, removed products and category drift, while <strong>Apache Airflow</strong> orchestrates the nine-stage run. A <strong>FastAPI</strong> service exposes 222 REST operations (OpenAPI/Swagger included) and a <strong>React 19</strong> dashboard renders 23 screens with light/dark/system themes, a mobile off-canvas sidebar and silent in-place reloads. 767 catalogued features · 34 registered sources · 12 enforced data-quality rules · 29 tables · 23 analytical views · 634 passing tests · 104/104 API smoke checks. Zero fake data: a dedicated audit proves every row traces back to a real, permitted source.</p></blockquote>
+<h2 id="3-website-paste-into-about--website">3. Website (paste into About → Website)</h2>
+<pre class="code" data-lang=""><code>https://ahmedbakr78.github.io/Web-to-Warehouse-Product-Intelligence-Pipeline/</code></pre>
+<p>The source is the dependency-free landing page at <code>website/index.html</code> (light/dark/system themes).</p>
+<h2 id="4-topics-paste-into-about--topics-in-this-order">4. Topics (paste into About → Topics, in this order)</h2>
+<pre class="code" data-lang=""><code>web-scraping  beautifulsoup  scrapy  etl  data-engineering  airflow  postgresql
+fastapi  python  data-quality  deduplication  price-tracking  data-warehouse
+docker  plotly  streamlit  rest-api  depi  data-pipeline  sql-analytics
+react  reactjs  typescript  vite  analytics  dashboard  data-visualization
+kimball  data-modeling  robots-txt  data-governance  unit-testing</code></pre>
+<h2 id="5-badges-already-in-readme-keep-them-visible">5. Badges (already in README; keep them visible)</h2>
+<div class='table-scroll'><table><thead><tr>
+<th>Badge</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<th>build status</th>
+<td>GitHub Actions CI (ruff, mypy, pytest, frontend)</td>
+</tr>
+<tr>
+<th>coverage</th>
+<td>pytest-cov</td>
+</tr>
+<tr>
+<th>Python 3.12 / 3.14</th>
+<td>supported interpreters</td>
+</tr>
+<tr>
+<th>Docker Compose</th>
+<td>six-service stack</td>
+</tr>
+<tr>
+<th>AGPL-3.0</th>
+<td>license</td>
+</tr>
+<tr>
+<th>634 passing</th>
+<td>backend test suite</td>
+</tr>
+<tr>
+<th>104/104</th>
+<td>API smoke checks</td>
+</tr>
+</tbody></table></div>
+<h2 id="6-release-notes--v1121">6. Release notes — v1.12.1</h2>
+<pre class="code" data-lang="markdown"><code># v1.12.1 — &quot;Nothing is a stub any more&quot;
+
+The theme of this release is completeness: every panel is backed by real data,
+every control changes behaviour, and the documentation matches the code.
+
+## Added
+- 767 catalogued features across 46 areas, browsable in-app with search and export.
+- 222 REST operations with OpenAPI/Swagger, pagination, filtering and rate limiting.
+- 29 warehouse tables + 23 analytical views, on PostgreSQL and MySQL.
+- 12 enforced data-quality rules, 34 registered sources, Airflow DAG and backfill.
+- Light / dark / system themes, mobile off-canvas navigation, silent reloads.
+- Forecasting, anomaly detection, briefing, webhooks, 2FA, sessions, reports and exports.
+
+## Fixed
+- Portable variance sign in the analytics service and both SQL views.
+- Rating vote counts discarded for API sources.
+- Fake category-change events caused by cross-source category disagreement.
+- `make install` on a fresh clone (invalid `scrapy-rotating-proxies` pin).
+- Full verification no longer fails when an upstream tightens its robots.txt.
+
+## Verified
+- 632 backend tests, 67 frontend tests, ruff, mypy, typecheck, lint, production build.
+- Live real-source pipeline: no-fake audit CLEAN, every row traced to a permitted source.</code></pre>
+<h2 id="7-commands--run-from-the-project-directory">7. Commands — run from the project directory</h2>
+<pre class="code" data-lang="bash"><code>cd ~/Downloads/Depi_Ahmed_Abobakr_Project
+gh auth status                 # must show &quot;Logged in as Ahmedbakr78&quot;
+./scripts/github_polish.sh     # privacy + About + topics + website + release</code></pre>
+<p>If <code>gh auth status</code> shows an invalid token, re-authenticate first:</p>
+<pre class="code" data-lang="bash"><code>gh auth login --web -h github.com</code></pre>
+<p>Then verify:</p>
+<pre class="code" data-lang="bash"><code>gh repo view Ahmedbakr78/Web-to-Warehouse-Product-Intelligence-Pipeline \
+  --json visibility,description,homepageUrl,repositoryTopics</code></pre>
+<h2 id="8-manual-touches-github-ui-only">8. Manual touches (GitHub UI only)</h2>
+<ul>
+<li class="depth-0"><strong>Settings → General → Social preview</strong> → upload a 1280×640 image.</li>
+<li class="depth-0"><strong>Pin</strong> the repository on your profile.</li>
+<li class="depth-0"><strong>Settings → Pages → Source: main / docs</strong> if you want the HTML site hosted.</li>
+<li class="depth-0"><strong>Settings → General → Features</strong> → enable Issues, Projects and Wiki as desired.</li>
+<li class="depth-0">Add the team as collaborators with the roles in <code>docs/00_team.md</code>.</li>
+</ul>
+<h2 id="9-safety--what-is-never-touched">9. Safety — what is never touched</h2>
+<p>No files, branches, tags, issues, releases or repository content are deleted. <code>--add-topic</code> only appends topics; <code>gh release create</code> is skipped when a tag already exists; visibility change is limited to the requested private setting.</p>
+    </article>
+    <div class="doc-foot">
+      <span><a href="36_decision_log.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Decision Log</a></span>
+      <span><a href="../README.md">Source markdown</a></span>
+      <span><a href="38_extended_diagram_suite.html">Extended Diagram Suite<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+    </div>
+  </main>
+</div>
+<div class="backdrop"></div>
+<script type="module">
+  const MERMAID_LOCAL = "vendor/mermaid.esm.min.mjs";
+  const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+</script>
+<script type="module" src="assets/site.js"></script>
+</body>
+</html>

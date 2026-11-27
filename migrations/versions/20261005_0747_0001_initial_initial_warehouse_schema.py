@@ -1,4 +1,4 @@
-"""Initial warehouse schema: 28 tables.
+"""Initial warehouse schema: 29 tables.
 
 Revision ID: 0001_initial
 Revises:
@@ -23,7 +23,7 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     """Create every warehouse table.
 
-    Also applies the 20 analytical views at the end. They are not in the ORM -
+    Also applies the 23 analytical views at the end. They are not in the ORM -
     `db/views.sql` is their source of truth, applied by
     `app.etl.bootstrap.apply_views()` - and the whole analytics layer reads through
     them, so a migration that created the tables without the views would leave the

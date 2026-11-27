@@ -1,14 +1,50 @@
 
-flowchart LR
-    subgraph Run["One etl_run, nine stages"]
-        direction LR
-        S1["1 retrieve"] --> S2["2 validate"] --> S3["3 clean"] --> S4["4 stage"]
-        S4 --> S5["5 load dims"] --> S6["6 load facts"] --> S7["7 dedupe"]
-        S7 --> S8["8 detect"] --> S9["9 quality"]
+flowchart TD
+    subgraph S1["Phase 1: Pre-flight Sensors & Compliance Gate"]
+        T1["health_check_sensor<br/>Ping PG & MySQL"] --> T2["robots_compliance_check<br/>RFC 9309 Cache & Headers"]
+        T2 --> T3{"Storage Guard<br/>DB Healthy?"}
     end
-    S1 -.records_extracted.-> RC[("etl_run counters")]
-    S4 -.records_rejected.-> RC
-    S6 -.records_inserted.-> RC
-    S7 -.duplicates_merged.-> RC
-    S8 -.price_changes.-> RC
-    S9 -.dq_score.-> RC
+
+    subgraph S2["Phase 2: Parallel Permitted Ingestion Fan-Out"]
+        T3 -- "Yes" --> B1["ingest_openlibrary"]
+        T3 -- "Yes" --> B2["ingest_steam_store"]
+        T3 -- "Yes" --> B3["ingest_cheapshark"]
+        T3 -- "Yes" --> B4["ingest_openfoodfacts"]
+        T3 -- "Yes" --> B5["ingest_itunes_apps"]
+        T3 -- "Yes" --> B6["ingest_itunes_ebooks"]
+        T3 -- "Yes" --> B7["ingest_scryfall"]
+        T3 -- "Yes" --> B8["ingest_tvmaze"]
+        T3 -- "Yes" --> B9["ingest_ygoprodeck"]
+        T3 -- "Yes" --> B10["ingest_other_real_sources<br/>(Kraken, Archive, Meals, Drinks)"]
+    end
+
+    subgraph S3["Phase 3: Staging & 29-Step Cleaning Pipeline"]
+        B1 & B2 & B3 & B4 & B5 & B6 & B7 & B8 & B9 & B10 --> T4["stage_raw_records<br/>stg_raw_observation"]
+        T4 --> T5["clean_and_normalise<br/>29 Regex Rules + FX to USD"]
+    end
+
+    subgraph S4["Phase 4: Identity Resolution & Warehouse Loading"]
+        T5 --> T6["dedupe_and_resolve<br/>4-Signal Fuzzy (>= 0.90)"]
+        T6 --> T7["load_dimensions_scd2<br/>dim_product, dim_category"]
+        T7 --> T8["load_fact_snapshots<br/>fact_price_snapshot"]
+    end
+
+    subgraph S5["Phase 5: Change Data Capture & Catalog Matcher"]
+        T8 --> T9["detect_price_changes<br/>Magnitude Bands + Direction"]
+        T8 --> T10["detect_lifecycle_events<br/>New / Removed / Recategorised"]
+        T8 --> T11["reconcile_internal_catalog<br/>catalog_product Comparison"]
+    end
+
+    subgraph S6["Phase 6: Quality Gate & Analytical Rollup"]
+        T9 & T10 & T11 --> T12["evaluate_dq_rules<br/>12 Automated Rules / 6 Dims"]
+        T12 --> T13["build_agg_category_daily<br/>Daily Metric Rollups"]
+    end
+
+    subgraph S7["Phase 7: Decision Branching, Alerts & Publication"]
+        T13 --> T14{"Significant<br/>Changes Found?"}
+        T14 -- "Yes" --> T15["dispatch_webhook_alerts<br/>HMAC-SHA256 Signed"]
+        T14 -- "Yes" --> T16["send_inapp_notifications"]
+        T14 -- "No" --> T17["skip_notification"]
+        T15 & T16 & T17 --> T18["publish_daily_executive_report<br/>PDF / HTML / JSON Synthesis"]
+        T18 --> T19(("Pipeline Complete<br/>Warehouse Live & Audited"))
+    end

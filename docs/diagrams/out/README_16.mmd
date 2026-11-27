@@ -1,32 +1,28 @@
 
-sequenceDiagram
-    autonumber
-    participant SRC as Source adapter
-    participant HC as HTTP client (the only egress point)
-    participant CB as Circuit breaker
-    participant RB as robots cache
-    participant RL as Rate limiter
-    participant NET as The web
-    participant LOG as ingestion_http_log
+flowchart LR
+    subgraph Pass1["Pass 1: HTML & Control Sanitisation"]
+        P1["Strip Raw HTML & Scripts"] --> P2["Remove ASCII 0-31 Control Chars"]
+        P2 --> P3["Unicode Normalisation (NFKC)"]
+        P3 --> P4["Decode HTML Entities (&amp; -> &)"]
+    end
 
-    SRC->>HC: get(url)
-    HC->>CB: is this host open?
-    alt breaker open after 5 failures
-        CB-->>HC: skip — zero network I/O
-        HC->>LOG: record circuit_open
-        HC-->>SRC: SkipRequest
-    else closed
-        HC->>RB: allowed(host, path)?
-        RB-->>HC: decision + crawl_delay
-        HC->>LOG: record robots decision
-        alt disallowed by robots.txt
-            HC-->>SRC: ComplianceError — nothing fetched
-        else allowed
-            HC->>RL: acquire delay
-            RL-->>HC: slowest of global, budget and Crawl-delay
-            HC->>NET: the actual request
-            NET-->>HC: response
-            HC->>LOG: status, latency, bytes, retries
-            HC-->>SRC: FetchResult
-        end
+    subgraph Pass2["Pass 2: Marketing Noise & Promo Stripping"]
+        P4 --> P5["Strip Promotional Prefixes<br/>('Hot Sale!', 'New!', 'Save 20%')"]
+        P5 --> P6["Strip Discount Suffixes<br/>('- 50% Off', 'Special Offer')"]
+        P6 --> P7["Remove Warranty & Shipping Noise"]
+        P7 --> P8["Normalise Whitespace & Casing"]
+    end
+
+    subgraph Pass3["Pass 3: Multi-Currency & Price Standardisation"]
+        P8 --> P9["Parse 18+ Currency Symbols/ISOs<br/>($, €, £, ¥, EGP, AED, CAD, ...)"]
+        P9 --> P10["Parse European Commas & Decimals"]
+        P10 --> P11["Multiply by Live/Offline FX Table"]
+        P11 --> P12["Store price_usd + fx_rate_to_usd"]
+    end
+
+    subgraph Pass4["Pass 4: Taxonomy & Fingerprinting"]
+        P12 --> P13["Map to 4-Level Category Hierarchy"]
+        P13 --> P14["Generate Slug & Level Path"]
+        P14 --> P15["Extract Brand & Model Token"]
+        P15 --> P16["Generate SHA-256 Fingerprint<br/>for Blocking Index"]
     end

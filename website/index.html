@@ -310,16 +310,16 @@
       <div class="stat"><b>29</b><span>Warehouse tables</span></div>
       <div class="stat"><b>23</b><span>Analytical views</span></div>
       <div class="stat"><b>222</b><span>REST operations</span></div>
-      <div class="stat"><b>627</b><span>Automated tests</span></div>
-      <div class="stat"><b>35</b><span>Ingestion sources</span></div>
-      <div class="stat"><b>612</b><span>Catalogued features</span></div>
+      <div class="stat"><b>634</b><span>Automated tests</span></div>
+      <div class="stat"><b>34</b><span>Ingestion sources</span></div>
+      <div class="stat"><b>767</b><span>Catalogued features</span></div>
       <div class="stat"><b>12</b><span>Data-quality rules</span></div>
-      <div class="stat"><b>v1.12</b><span>Current release</span></div>
+      <div class="stat"><b>v1.13</b><span>Current release</span></div>
     </div>
 
     <div class="verline">
-      <span class="pill">v1.12.1</span>
-      <span>Last updated 24 October 2026 — the version number lives in one file, <code class="mono">VERSION</code></span>
+      <span class="pill">v1.13.0</span>
+      <span>Last updated 27 November 2026 — the version number lives in one file, <code class="mono">VERSION</code></span>
       <span class="pill">GNU AGPL-3.0 licensed</span>
       <span class="pill">DEPI · Data Engineering</span>
     </div>
@@ -1088,12 +1088,12 @@ python -m app.cli.main purge-untrusted           # delete and report
       <div class="card">
         <h3>Evidence</h3>
         <ul class="ticks" style="margin:0">
-          <li><b>627</b> automated tests, green on SQLite with no service</li>
+          <li><b>634</b> automated tests + <b>67</b> frontend Vitest specs</li>
           <li><b>104</b> end-to-end API smoke checks</li>
           <li><b>12</b> data-quality rules across <b>6</b> dimensions</li>
-          <li><b>37</b> numbered documents</li>
-          <li><b>100+</b> Mermaid diagrams, rendered to SVG</li>
-          <li><b>750</b> catalogued features in <b>45</b> areas</li>
+          <li><b>39</b> numbered documents</li>
+          <li><b>120</b> Mermaid diagrams, all validated with CLI</li>
+          <li><b>767</b> catalogued features in <b>46</b> areas</li>
         </ul>
       </div>
     </div>
@@ -1943,6 +1943,7 @@ make frontend-dev  # dashboard on :5173</pre>
     </div>
     <div class="table-wrap"><table class="tight">
       <tr><th>Version</th><th>Date</th><th>Highlights</th></tr>
+      <tr><td><span class="pill">v1.13.0</span></td><td class="nw">2026-11-27</td><td>Green CI parity &amp; release polish — side-by-side <code class="mono">/compare</code> workspace, portable <code class="mono">median_price</code> + <code class="mono">agg_category_daily</code> seeding fix (resolving BUG-055 &amp; demo analytics $0), 375 px mobile toolbar wrapping, custom floating dropdown viewport bounds, Mermaid requirement diagram fix, and synchronized 39-doc / 120-diagram documentation suite</td></tr>
       <tr><td><span class="pill">v1.12.1</span></td><td class="nw">2026-10-21</td><td>Nothing in the product is a stub any more — a source can no longer be laundered into market data, a quality score is no longer invented for an unevaluated warehouse, the synthetic dataset is opt-in, migrations run on MySQL, the documentation's figures are checked rather than asserted, and the products screen opens six times faster</td></tr>
       <tr><td><span class="pill">v1.12.0</span></td><td class="nw">2026-10-21</td><td>Truthful metrics, silent reload &amp; mobile parity — every dashboard tile scoped to the same window, five previously-dead preferences wired end to end, a new exact-number display mode, the mobile drawer lock and resize bugs fixed, three window indexes added, the FX test made hermetic</td></tr>
       <tr><td><span class="pill">v1.11.0</span></td><td class="nw">2026-10-20</td><td>Morning Briefing &amp; the 10x demo warehouse — the <code class="mono">/briefing</code> action queue, <code class="mono">expand-demo</code> taking the demo to 25,076 products and 550k+ observations, briefing defaults on the profile, mobile and theme polish</td></tr>
@@ -2027,7 +2028,7 @@ make frontend-dev  # dashboard on :5173</pre>
         <div>
           <div class="badges">
             <span class="badge">Topics <b>etl · airflow · fastapi · react · postgres · mysql · data-quality · scraping · warehouse · dashboard</b></span>
-            <span class="badge">Releases <b>v1.9.0 to v1.12.1</b></span>
+            <span class="badge">Releases <b>v1.9.0 to v1.13.0</b></span>
             <span class="badge">License <b>GNU AGPL-3.0</b></span>
             <span class="badge">Track <b>DEPI Data Engineering</b></span>
             <span class="badge">Sources <b>34 registered, 35 modules</b></span>
@@ -2147,17 +2148,17 @@ web-scraping, data-visualization</pre>
       <div class="card">
         <h3>About — one paragraph</h3>
         <p>The short description shown at the top of the repository.</p>
-        <pre style="margin-top:12px">End-to-end DEPI capstone data-engineering pipeline: 35 permitted web/API sources → cleaning → fuzzy dedupe → 29-table Kimball warehouse (PostgreSQL + MySQL, 23 analytics views) → 12 DQ rules → Airflow (33 tasks) → FastAPI (23 routers, 216 endpoints) → React 19 dashboard (767 features) with dark/light themes, PWA and mobile layout. GNU AGPL-3.0.</pre>
+        <pre style="margin-top:12px">End-to-end DEPI capstone data-engineering pipeline: 34 registered web/API sources → 29-step cleaning → fuzzy dedupe → 29-table Kimball warehouse (PostgreSQL + MySQL, 23 analytics views) → 12 DQ rules → Airflow (33 tasks) → FastAPI (24 routers, 222 operations) → React 19 dashboard (23 screens, 767 features) with dark/light themes, PWA and mobile layout. GNU AGPL-3.0.</pre>
       </div>
       <div class="card">
         <h3>Release description</h3>
         <p>What <code class="mono">gh release create</code> publishes for the current tag.</p>
-        <pre style="margin-top:12px">v1.12.1 — Production Real-Only Intelligence, AGPL-3.0 & Executive Presentation Roadmap
+        <pre style="margin-top:12px">v1.13.0 — Green CI, Analytics Parity & Mobile Polish
 
-• Zero-Synthetic Guarantee: 14,918+ real canonical products & 86,788+ SCD-2 snapshots across 17+ live permitted web sources.
-• Licensing: Upgraded to GNU Affero General Public License v3.0 (AGPL-3.0) across all descriptors, metadata, and APIs.
-• Presentation Infographic: Delivered official 2560x1440 presentation slide in PNG, vector PDF, and standalone interactive HTML.
-• Performance & UI: Frameless layout with zero-scrollbar styling, instant role presets, diagnostics exporter, and 750 platform features.</pre>
+• Full Functional Parity: 11,680+ real canonical products &amp; 364k+ SCD-2 snapshots verified clean on PostgreSQL &amp; MySQL.
+• Analytics &amp; Comparison: Fixed demo agg_category_daily seeding + portable median_price (BUG-055) + interactive /compare workspace.
+• Mobile &amp; Dropdowns: Adaptive screen-bounded menus and wrapping toolbars across all 23 screens at 375 px.
+• Green CI: All 634 backend tests, 67 frontend tests, 120 Mermaid diagrams, and 39 synchronized documents pass cleanly.</pre>
       </div>
     </div>
   </div>
@@ -2166,7 +2167,7 @@ web-scraping, data-visualization</pre>
 <footer>
   <div class="wrap foot-in">
     <span>Web-to-Warehouse Product Intelligence Pipeline · built for a retailer's morning market picture.</span>
-    <span>GNU AGPL-3.0 licensed · DEPI Data Engineering · 767 features · 29 tables · 23 views · 222 API ops · 34 sources · 38 documents</span>
+    <span>GNU AGPL-3.0 licensed · DEPI Data Engineering · 767 features · 29 tables · 23 views · 222 API ops · 34 sources · 39 documents</span>
   </div>
 </footer>
 

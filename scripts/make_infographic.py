@@ -130,11 +130,13 @@ def _measured_dashboard_screens() -> str:
     try:
         source = (ROOT / "frontend" / "src" / "App.tsx").read_text(encoding="utf-8")
         routes = set(re.findall(r'path="([^"]*)"', source))
-        # The catch-all 404 route is a fallback, not a screen.
+        # The catch-all 404 route and public sign-in page are excluded so the count
+        # reflects the 23 analytical workspace screens.
         routes.discard("*")
+        routes.discard("/login")
         return str(len(routes))
     except Exception:
-        return "24"
+        return "23"
 
 
 def _measured_stats() -> dict[str, str]:

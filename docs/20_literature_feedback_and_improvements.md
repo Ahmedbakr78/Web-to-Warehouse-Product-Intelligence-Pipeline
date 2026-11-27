@@ -182,7 +182,7 @@ flowchart LR
 
 | Objective | Achieved? | Evidence | Comment |
 | --- | --- | --- | --- |
-| Collect from permitted sources | Yes | 5 sources; `robots.txt` gate; audit log | Compliance is structural, not procedural |
+| Collect from permitted sources | Yes | 34 registered sources; `robots.txt` gate; audit log | Compliance is structural, not procedural |
 | Historical price table | Yes | 8,182 snapshots over 150 days; 8,062 changes | The core business artefact exists |
 | Four change classes via SQL | Yes | `chg_price_change`, `chg_product_event`, four views | Fully queryable without the application |
 | Duplicate resolution | Yes | 14/14 pairs at 0.90; blocking optimisation | The digit-signature guard is the strongest single idea |

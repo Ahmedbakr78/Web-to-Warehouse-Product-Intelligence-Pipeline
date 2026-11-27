@@ -133,7 +133,7 @@ export default function Catalog() {
             { id: 'skus', label: 'Internal SKUs', count: catalogProducts.data?.total ?? 0, icon: <Building2 className="h-4 w-4" /> },
           ]}
         />
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           {runs.data?.items?.[0] ? (
             <span className="text-[11px] text-subtle">
               Last reconciliation {formatRelative(runs.data.items[0].started_at)} ({runs.data.items[0].run_id?.slice(0, 8)})
@@ -233,7 +233,7 @@ export default function Catalog() {
         <Card padded={false}>
           <div className="space-y-3 p-3">
             <div className="flex flex-wrap items-center gap-2">
-              <SearchInput value={search} onChange={(value) => { setSearch(value); setPage(1) }} placeholder="Search SKU or product…" className="min-w-[15rem] flex-1" />
+              <SearchInput value={search} onChange={(value) => { setSearch(value); setPage(1) }} placeholder="Search SKU or product…" className="w-full sm:w-auto sm:min-w-[15rem] flex-1" />
               <Select value={matchStatus} onChange={(event) => { setMatchStatus(event.target.value); setPage(1) }} aria-label="Match status" className="w-36">
                 <option value="">All statuses</option>
                 <option value="matched">Matched</option>
@@ -242,7 +242,7 @@ export default function Catalog() {
               <Button size="sm" variant={onlyMismatches ? 'primary' : 'secondary'} icon={<Filter className="h-4 w-4" />} onClick={() => { setOnlyMismatches((value) => !value); setPage(1) }}>
                 Price mismatches only
               </Button>
-              <div className="ml-auto text-xs text-subtle">{formatNumber(reconciliation.data?.total ?? 0)} matches</div>
+              <div className="w-full sm:w-auto sm:ml-auto text-xs text-subtle">{formatNumber(reconciliation.data?.total ?? 0)} matches</div>
             </div>
             <div className="flex flex-wrap items-center gap-3 text-[11px] text-subtle">
               {(summary.data?.by_strategy ?? []).map((item: any) => (

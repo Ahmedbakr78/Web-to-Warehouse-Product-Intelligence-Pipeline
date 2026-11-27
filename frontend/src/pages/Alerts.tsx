@@ -411,7 +411,7 @@ export default function Alerts() {
       {/* --------------------------------------------------------------- tabs */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <Tabs
-          className="min-w-[15rem] flex-1"
+          className="w-full sm:w-auto sm:min-w-[15rem] flex-1"
           active={tab}
           onChange={setTab}
           tabs={[

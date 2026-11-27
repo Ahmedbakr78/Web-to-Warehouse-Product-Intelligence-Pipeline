@@ -54,8 +54,8 @@ flowchart LR
     subgraph SHOW["Slides 10 to 13 - the product"]
         S10["The dashboard<br/>light and dark, mobile"]
         S11["The API<br/>222 operations, OpenAPI"]
-        S12["Documentation<br/>34 documents, 88 diagrams"]
-        S13["Testing<br/>632 tests, live smoke"]
+        S12["Documentation<br/>39 documents, 120 diagrams"]
+        S13["Testing<br/>634 tests, live smoke"]
     end
     subgraph CLOSE["Slides 14 to 18 - the close"]
         S14["Live demo<br/>three minutes"]
@@ -113,8 +113,8 @@ degrades to `partial`, and the reason is recorded in `dim_source.terms_allowed`.
 
 **Message:** Layered batch ETL plus a read-only serving API.
 
-> "Nine pipeline stages, five ingestion sources, five conformed dimensions, twenty views, one semantic
-> layer, 104 API operations. The pipeline is a plain Python object: the CLI, the API and Airflow all
+> "Nine pipeline stages, 34 registered ingestion sources, five conformed dimensions, 23 analytical views, one semantic
+> layer, 222 API operations. The pipeline is a plain Python object: the CLI, the API and Airflow all
 > call the same `Pipeline.run()`."
 
 ### Slide 6 — Data model
@@ -166,7 +166,7 @@ report (read the current score off `GET /api/v1/quality/latest` - it is a measur
 
 **On screen:** Router table with counts; the role matrix; the token and API-key flows.
 
-**Message:** 113 documented operations behind JWT + RBAC; 78 automated regression checks.
+**Message:** 222 documented operations behind JWT + RBAC; 104 automated API smoke checks.
 
 ### Slide 12 — Live demo (3 minutes)
 
@@ -212,7 +212,7 @@ fact table, provider-backed FX, an alerting service, a committed test suite, ML 
 
 **On screen:** One sentence per contribution; contact; repository; "Questions?"
 
-> "One pipeline, five permitted sources, 29 tables, 23 views, 12 quality rules, 104 API operations,
+> "One pipeline, 34 registered sources, 29 tables, 23 views, 12 quality rules, 222 API operations,
 > two database engines, and a compliance trail for every request we made."
 
 ---
@@ -232,7 +232,7 @@ fact table, provider-backed FX, an alerting service, a committed test suite, ML 
 | What happens if a source breaks? | The run degrades to `partial`, the failure is a warning, the sync state records consecutive failures, and after three the source is disabled | `pipeline._process_source`, `sync_state` |
 | How is performance maintained as the catalogue grows? | Blocking bounds the comparison set, dimensions are cached, facts are batched, and `preload_latest` removes the N+1 pattern; the reconciliation went from 3 s to 104 ms with identical results | `docs/09` §7, `docs/17` §9 |
 | How do you secure the API? | Argon2id, HS256 JWT with type and issuer validation, three roles with ten rights, hashed revocable API keys, an audit trail, and a read-only SQL console that rejects writes before execution | `app/api/security.py`, `scripts/api_smoke.py` |
-| Why is the dashboard not in the repository? | The delivered repository snapshot contains the API and the specification for every screen (doc 12); each screen is mapped to the endpoints that back it, and the API smoke suite verifies the same journeys | `docs/12`, `docs/16` |
+| Where is the dashboard implemented? | All 23 React 19 + TypeScript workspace screens (plus sign-in and 404 fallback) live in `frontend/src/pages/`, backing every workflow mapped in `docs/12` and `docs/16`, verified by Vitest and responsive mobile checks | `frontend/src/`, `docs/12`, `docs/16` |
 | What would you do differently? | Commit the unit suite, partition the fact table, replace the static FX table with a provider, and enforce the retention job | `docs/20` |
 | How would this scale to 100,000 SKUs? | Partition by month, persist a sorted-neighbourhood index for blocking, raise the candidate pool, add a read replica for the dashboard and move Airflow to a distributed executor | `docs/13` §10 |
 | What is your contribution? | End-to-end: the compliance layer, the cleaning and normalisation, the deduplication engine with its blocking optimisation, the dimensional model and views, the DQ framework, the API with RBAC, the orchestration and this documentation set | `docs/19` |
@@ -306,7 +306,7 @@ outbound request is logged with its robots decision — zero unlogged requests."
 
 **2:50–3:00 — The API (browser: `http://localhost:8000/docs`)**
 
-Say: "113 documented operations, JWT plus role-based access, and 78 automated checks that exercise all
+Say: "222 documented operations, JWT plus role-based access, and 104 automated checks that exercise all
 of it — including the 401 and the 403."
 
 ### 4.3 Optional 20-second flourish: cross-dialect parity

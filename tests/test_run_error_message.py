@@ -21,7 +21,9 @@ def test_success_with_transient_source_warning_has_no_error_message():
 
 
 def test_blocking_quality_failure_is_the_error_message():
-    assert headline_error_message("failed", ["DQ_CRITICAL_NULLS"], [], ["some warning"]) == "DQ_CRITICAL_NULLS"
+    assert (
+        headline_error_message("failed", ["DQ_CRITICAL_NULLS"], [], ["some warning"]) == "DQ_CRITICAL_NULLS"
+    )
 
 
 def test_partial_run_reports_only_the_failed_sources():

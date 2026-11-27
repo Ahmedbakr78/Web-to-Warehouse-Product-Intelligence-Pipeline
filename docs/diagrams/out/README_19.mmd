@@ -1,14 +1,14 @@
 
-stateDiagram-v2
-    [*] --> Pending: schedule 03:00 or manual trigger
-    Pending --> Running: pre-flight guards pass
-    Pending --> Skipped: database unreachable
-    Pending --> Skipped: robots.txt forbids every source
-    Running --> Running: extract, clean, stage, load
-    Running --> Validating: 9 stages finished
-    Validating --> Succeeded: 12 DQ rules, no critical failure
-    Validating --> Failed: critical rule failed
-    Running --> Failed: unexpected exception after retries
-    Succeeded --> [*]: etl_run closed, notifications raised
-    Failed --> [*]: etl_run stores the error message
-    Skipped --> [*]: guards short-circuit the branch
+flowchart LR
+    subgraph Run["One etl_run, nine stages"]
+        direction LR
+        S1["1 retrieve"] --> S2["2 validate"] --> S3["3 clean"] --> S4["4 stage"]
+        S4 --> S5["5 load dims"] --> S6["6 load facts"] --> S7["7 dedupe"]
+        S7 --> S8["8 detect"] --> S9["9 quality"]
+    end
+    S1 -.records_extracted.-> RC[("etl_run counters")]
+    S4 -.records_rejected.-> RC
+    S6 -.records_inserted.-> RC
+    S7 -.duplicates_merged.-> RC
+    S8 -.price_changes.-> RC
+    S9 -.dq_score.-> RC

@@ -13,6 +13,8 @@ Design goals
 from __future__ import annotations
 
 import datetime as dt
+import statistics
+from collections import defaultdict
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from typing import Any
@@ -519,92 +521,12 @@ class WarehouseLoader:
         stored with the same ``source_code``; otherwise a global (``NULL``)
         aggregate is written. This keeps per-source and global views consistent.
         """
-        if source_code is not None:
-            rows = self.session.execute(
-                sa.text(
-                    """
-                SELECT s.date_id,
-                       p.category_id,
-                       COUNT(*)                       AS product_count,
-                       AVG(s.price_usd)               AS avg_price,
-                       MIN(s.price_usd)               AS min_price,
-                       MAX(s.price_usd)               AS max_price,
-                       AVG(s.rating)                  AS avg_rating,
-                       COALESCE(SUM(CASE WHEN s.is_first_sighting THEN 1 ELSE 0 END), 0) AS new_count,
-                       COALESCE(SUM(CASE WHEN s.price_change_pct IS NOT NULL AND s.price_change_pct <> 0
-                                         THEN 1 ELSE 0 END), 0) AS change_count,
-                       AVG(s.price_change_pct)        AS avg_change_pct
-                FROM fact_price_snapshot s
-                JOIN dim_product p ON p.product_id = s.product_id
-                WHERE s.run_id = :run_id AND s.source_code = :source_code
-                GROUP BY s.date_id, p.category_id
-                """
-                ),
-                {"run_id": self.run_id, "source_code": source_code},
-            ).all()
-        else:
-            rows = self.session.execute(
-                sa.text(
-                    """
-                SELECT s.date_id,
-                       p.category_id,
-                       COUNT(*)                       AS product_count,
-                       AVG(s.price_usd)               AS avg_price,
-                       MIN(s.price_usd)               AS min_price,
-                       MAX(s.price_usd)               AS max_price,
-                       AVG(s.rating)                  AS avg_rating,
-                       COALESCE(SUM(CASE WHEN s.is_first_sighting THEN 1 ELSE 0 END), 0) AS new_count,
-                       COALESCE(SUM(CASE WHEN s.price_change_pct IS NOT NULL AND s.price_change_pct <> 0
-                                          THEN 1 ELSE 0 END), 0) AS change_count,
-                       AVG(s.price_change_pct)        AS avg_change_pct
-                FROM fact_price_snapshot s
-                JOIN dim_product p ON p.product_id = s.product_id
-                WHERE s.run_id = :run_id
-                GROUP BY s.date_id, p.category_id
-                """
-                ),
-                {"run_id": self.run_id},
-            ).all()
-
-        written = 0
-        for row in rows:
-            if source_code is None:
-                cond = sa.and_(
-                    AggCategoryDaily.date_id == row[0],
-                    AggCategoryDaily.category_id == row[1],
-                    AggCategoryDaily.source_code.is_(None),
-                )
-            else:
-                cond = sa.and_(
-                    AggCategoryDaily.date_id == row[0],
-                    AggCategoryDaily.category_id == row[1],
-                    AggCategoryDaily.source_code == source_code,
-                )
-            existing = self.session.execute(sa.select(AggCategoryDaily).where(cond)).scalars().first()
-            values = {
-                "date_id": row[0],
-                "category_id": row[1],
-                "source_code": source_code,
-                "product_count": int(row[2] or 0),
-                "new_product_count": int(row[6] or 0),
-                "avg_price": row[3],
-                "min_price": row[4],
-                "max_price": row[5],
-                "avg_rating": row[7],
-                "price_change_count": int(row[8] or 0),
-                "avg_price_change_pct": row[9],
-                "computed_at": self.captured_at,
-            }
-            if existing is None:
-                self.session.add(AggCategoryDaily(**values))
-            else:
-                for key, value in values.items():
-                    setattr(existing, key, value)
-            written += 1
-        if written:
-            self.session.flush()
-        log.debug("refreshed %d category-daily aggregates", written)
-        return written
+        return rebuild_category_daily_aggregates(
+            self.session,
+            source_code=source_code,
+            run_id=self.run_id,
+            captured_at=self.captured_at,
+        )
 
     # ------------------------------------------------------------------ catalog
     def insert_catalog_matches(self, rows: Sequence[dict[str, Any]]) -> int:
@@ -651,6 +573,127 @@ class WarehouseLoader:
         self.session.flush()
 
 
+def rebuild_category_daily_aggregates(
+    session: Session,
+    *,
+    source_code: str | None = None,
+    run_id: str | None = None,
+    start_date_id: int | None = None,
+    end_date_id: int | None = None,
+    captured_at: dt.datetime | None = None,
+) -> int:
+    """Recompute ``agg_category_daily`` rows including portable ``median_price``.
+
+    Filters snapshots dynamically by ``run_id``, ``source_code``, and/or an
+    inclusive ``date_id`` range, computes standard aggregates in SQL plus exact
+    per-group medians via :func:`statistics.median`, and upserts the target rows
+    in one pass across SQLite, PostgreSQL, and MySQL.
+    """
+    clauses = ["p.category_id IS NOT NULL"]
+    params: dict[str, Any] = {}
+    if run_id is not None:
+        clauses.append("s.run_id = :run_id")
+        params["run_id"] = run_id
+    if source_code is not None:
+        clauses.append("s.source_code = :source_code")
+        params["source_code"] = source_code
+    if start_date_id is not None:
+        clauses.append("s.date_id >= :start_date_id")
+        params["start_date_id"] = start_date_id
+    if end_date_id is not None:
+        clauses.append("s.date_id <= :end_date_id")
+        params["end_date_id"] = end_date_id
+    where_sql = " AND ".join(clauses)
+
+    rows = (
+        session.execute(
+            sa.text(
+                f"""
+                SELECT s.date_id                                     AS date_id,
+                       p.category_id                                 AS category_id,
+                       COUNT(*)                                      AS product_count,
+                       AVG(s.price_usd)                              AS avg_price,
+                       MIN(s.price_usd)                              AS min_price,
+                       MAX(s.price_usd)                              AS max_price,
+                       AVG(s.rating)                                 AS avg_rating,
+                       COALESCE(SUM(CASE WHEN s.is_first_sighting THEN 1 ELSE 0 END), 0) AS new_count,
+                       COALESCE(SUM(CASE WHEN s.price_change_pct IS NOT NULL AND s.price_change_pct <> 0
+                                         THEN 1 ELSE 0 END), 0)      AS change_count,
+                       AVG(s.price_change_pct)                       AS avg_change_pct
+                FROM fact_price_snapshot s
+                JOIN dim_product p ON p.product_id = s.product_id
+                WHERE {where_sql}
+                GROUP BY s.date_id, p.category_id
+                """
+            ),
+            params,
+        )
+        .mappings()
+        .all()
+    )
+    if not rows:
+        return 0
+
+    price_rows = session.execute(
+        sa.text(
+            f"""
+            SELECT s.date_id, p.category_id, s.price_usd
+            FROM fact_price_snapshot s
+            JOIN dim_product p ON p.product_id = s.product_id
+            WHERE {where_sql} AND s.price_usd IS NOT NULL
+            """
+        ),
+        params,
+    ).all()
+    grouped_prices: dict[tuple[int, int], list[float]] = defaultdict(list)
+    for did, cid, price_val in price_rows:
+        grouped_prices[(int(did), int(cid))].append(float(price_val))
+    medians = {key: round(float(statistics.median(vals)), 4) for key, vals in grouped_prices.items() if vals}
+
+    date_ids = sorted({int(r["date_id"]) for r in rows})
+    existing_cond: list[sa.ColumnElement[bool]] = [AggCategoryDaily.date_id.in_(date_ids)]
+    if source_code is None:
+        existing_cond.append(AggCategoryDaily.source_code.is_(None))
+    else:
+        existing_cond.append(AggCategoryDaily.source_code == source_code)
+    existing_map: dict[tuple[int, int], AggCategoryDaily] = {
+        (int(item.date_id), int(item.category_id)): item
+        for item in session.execute(sa.select(AggCategoryDaily).where(*existing_cond)).scalars()
+    }
+
+    stamp = captured_at or dt.datetime.now(dt.timezone.utc)
+    written = 0
+    for row in rows:
+        did = int(row["date_id"])
+        cid = int(row["category_id"])
+        values = {
+            "date_id": did,
+            "category_id": cid,
+            "source_code": source_code,
+            "product_count": int(row["product_count"] or 0),
+            "new_product_count": int(row["new_count"] or 0),
+            "avg_price": row["avg_price"],
+            "median_price": medians.get((did, cid), row["avg_price"]),
+            "min_price": row["min_price"],
+            "max_price": row["max_price"],
+            "avg_rating": row["avg_rating"],
+            "price_change_count": int(row["change_count"] or 0),
+            "avg_price_change_pct": row["avg_change_pct"],
+            "computed_at": stamp,
+        }
+        existing = existing_map.get((did, cid))
+        if existing is None:
+            session.add(AggCategoryDaily(**values))
+        else:
+            for key, value in values.items():
+                setattr(existing, key, value)
+        written += 1
+    if written:
+        session.flush()
+    log.debug("rebuilt %d category-daily aggregates", written)
+    return written
+
+
 def slugify(value: str) -> str:
     import re
 
@@ -664,4 +707,4 @@ def truncate_text(value: str | None, limit: int) -> str | None:
     return text if len(text) <= limit else text[: limit - 1] + "\u2026"
 
 
-__all__ = ["WarehouseLoader", "LoadStats", "magnitude_band", "slugify"]
+__all__ = ["WarehouseLoader", "LoadStats", "magnitude_band", "rebuild_category_daily_aggregates", "slugify"]
