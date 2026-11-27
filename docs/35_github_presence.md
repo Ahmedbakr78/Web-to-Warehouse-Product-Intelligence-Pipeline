@@ -280,7 +280,7 @@ The short form, for a release that has to happen today:
 
 ```bash
 # 1. The version is propagated everywhere
-printf '1.13.1' > VERSION && .venv/bin/python scripts/sync_version.py
+printf '1.14.0' > VERSION && .venv/bin/python scripts/sync_version.py
 
 # 2. Every structural figure still matches the code
 .venv/bin/python scripts/check_stats.py docs/stats.json --write
@@ -291,10 +291,10 @@ printf '1.13.1' > VERSION && .venv/bin/python scripts/sync_version.py
 ./run.sh --verify-only
 
 # 4. Publish
-git add -A && git commit -m "Release v1.13.1 — <theme>"
-git tag -a v1.13.1 -m "v1.13.1 — <theme>"
+git add -A && git commit -m "Release v1.14.0 — <theme>"
+git tag -a v1.14.0 -m "v1.14.0 — <theme>"
 git push && git push --tags
-gh release create v1.13.1 --title "v1.13.1 — <theme>" --notes-file RELEASE_NOTES.md
+gh release create v1.14.0 --title "v1.14.0 — <theme>" --notes-file RELEASE_NOTES.md
 ```
 
 ### What a release note contains

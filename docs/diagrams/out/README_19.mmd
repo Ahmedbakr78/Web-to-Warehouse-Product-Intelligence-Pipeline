@@ -1,14 +1,28 @@
 
-flowchart LR
-    subgraph Run["One etl_run, nine stages"]
-        direction LR
-        S1["1 retrieve"] --> S2["2 validate"] --> S3["3 clean"] --> S4["4 stage"]
-        S4 --> S5["5 load dims"] --> S6["6 load facts"] --> S7["7 dedupe"]
-        S7 --> S8["8 detect"] --> S9["9 quality"]
+sequenceDiagram
+    autonumber
+    participant SRC as ProductSource Adapter
+    participant ROB as RobotsCache (RFC 9309)
+    participant LIM as Token-Bucket RateLimiter + CircuitBreaker
+    participant CSH as Conditional Disk Cache (ETag / 304)
+    participant NET as Permitted Upstream Host
+    participant LOG as ingestion_http_log
+
+    SRC->>ROB: Check robots.txt for URL + User-Agent
+    alt Disallowed (401/403 or Disallow rule)
+        ROB-->>SRC: Blocked -> ComplianceError
+        SRC->>LOG: Write blocked audit row
+    else Permitted or RFC 9309 fallback
+        SRC->>CSH: Check fresh body or stored validators
+        SRC->>LIM: Acquire per-host slot + check open circuit
+        LIM->>NET: GET URL (connect <= 8s, read <= 20s, total budget <= 45s)
+        alt HTTP 304 Not Modified
+            NET-->>SRC: Zero-byte revalidation -> serve cached body
+        else HTTP 200 OK
+            NET-->>LIM: Response payload -> reset breaker failures
+            LIM->>LOG: Persist status, bytes, latency, retry_count
+        else Timeout / 5xx before 45s total deadline
+            LIM->>LIM: Backoff retry only while clock + delay < 45s
+            LIM->>LOG: Record failure + trip breaker after threshold
+        end
     end
-    S1 -.records_extracted.-> RC[("etl_run counters")]
-    S4 -.records_rejected.-> RC
-    S6 -.records_inserted.-> RC
-    S7 -.duplicates_merged.-> RC
-    S8 -.price_changes.-> RC
-    S9 -.dq_score.-> RC

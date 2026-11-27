@@ -4,6 +4,22 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.14.0] - 2026-11-27
+
+### Added
+
+- **Automated GitHub Pages Showcase & 39-Doc Portal** ([.github/workflows/pages.yml](.github/workflows/pages.yml)):
+  Deploys `website/index.html`, curated release infographics/PDFs, and the full 42-page searchable documentation portal (`site/`) directly to GitHub Pages.
+- **Eight Additional Architecture & Operations Diagrams** (bringing the repository to **128 Mermaid diagrams across 40 files**):
+  - `README.md`: Outbound HTTP compliance & 45s bounded retry sequence, JWT/RBAC/2FA authentication flow, damped Holt-Winters forecasting & Morning Briefing architecture, and Visual Query Builder / SQL Lab / PDF report flow.
+  - `docs/38_extended_diagram_suite.md`: Source portfolio quadrant chart (`quadrantChart`), Airflow SQLAlchemy 1.4 → FastAPI 2.0 `call_pipeline` bridge (`sequenceDiagram`), durable background job & backfill lifecycle (`stateDiagram-v2`), and `C4Dynamic` market intelligence comparison flow.
+- **Full 24-Router REST API Atlas** in `README.md` documenting every route group (`222` route decorators) and live deliverables hub.
+- **Expanded Consolidated PDF** (`Web-to-Warehouse-Product-Intelligence-Pipeline_Documentation.pdf` / `docs/assets/Project_Documentation.pdf`, 283+ pages) embedding all 55+ core architecture, ERD, DFD, UML, deployment, and extended diagrams as crisp high-DPI Chromium PNGs (`scripts/diagrams.py`, `scripts/make_documentation_pdf.py`).
+
+### Changed
+
+- Synchronized `website/index.html`, `docs/README.md`, `docs/00_team.md`, `docs/31_releases.md`, `docs/37_github_presence_and_about.md`, and `scripts/github_polish.sh` to `v1.14.0`, `39` documents, `128` Mermaid diagrams, and `636` backend test cases.
+
 ## [1.13.1] - 2026-11-27
 
 ### Fixed

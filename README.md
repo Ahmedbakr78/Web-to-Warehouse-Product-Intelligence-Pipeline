@@ -35,7 +35,7 @@
 <p align="center">
   <b>222 REST operations</b> · <b>29 tables</b> · <b>23 analytical views</b> ·
   <b>12 DQ rules</b> · <b>34 registered sources</b> · <b>767 catalogued features</b> ·
-  <b>632 tests</b> · <b>104/104 API checks</b> · <b>two SQL dialects, one schema</b>
+  <b>636 tests</b> · <b>104/104 API checks</b> · <b>128 Mermaid diagrams</b> · <b>39 docs</b> · <b>two SQL dialects, one schema</b>
 </p>
 
 <p align="center">
@@ -58,8 +58,13 @@
 </p>
 
 <p align="center">
-  <b>Project website:</b> <a href="website/index.html">website/index.html</a> — a single-file,
-  dependency-free landing page with light/dark/system themes.
+  <b>Live website &amp; docs portal:</b>
+  <a href="https://ahmedbakr78.github.io/Web-to-Warehouse-Product-Intelligence-Pipeline/">ahmedbakr78.github.io/Web-to-Warehouse-Product-Intelligence-Pipeline</a> ·
+  <a href="website/index.html">Landing page</a> ·
+  <a href="site/index.html">39-Doc Portal</a> ·
+  <a href="Web-to-Warehouse-Product-Intelligence-Pipeline_Documentation.pdf">Consolidated PDF</a> ·
+  <a href="docs/assets/deck.pdf">Defence Deck</a> ·
+  <a href="docs/assets/infographic.pdf">Infographic</a>
 </p>
 
 <p align="center">
@@ -90,6 +95,10 @@
    - [ER diagram](#er-diagram-warehouse-core)
    - [Data flow](#data-flow-level-1)
    - [Deployment view](#deployment-view)
+   - [HTTP compliance and bounded retry sequence](#outbound-http-compliance-and-bounded-retry-sequence)
+   - [Authentication, RBAC and 2FA flow](#authentication-rbac-and-2fa-request-flow)
+   - [Forecasting, anomaly detection and briefing](#forecasting-anomaly-detection-and-morning-briefing)
+   - [Visual Query Builder, SQL Lab and reporting](#visual-query-builder-sql-lab-and-reporting-flow)
 6. [The pipeline end-to-end](#the-pipeline-end-to-end)
    - [1 - Retrieve](#1---retrieve)
    - [2 - Clean](#2---clean)
@@ -111,6 +120,7 @@
 14. [Configuration reference](#configuration-reference)
 15. [Screens](#screens)
 16. [Security](#security)
+    - [Full REST API router atlas (24 routers · 222 operations)](#full-rest-api-router-atlas-24-routers--222-operations)
 17. [Testing and verification](#testing-and-verification)
 18. [Performance](#performance)
 19. [Repository layout](#repository-layout)
@@ -266,7 +276,7 @@ seeds a throwaway synthetic warehouse and fails if the audit accepts it.
 29 physical tables  |  23 analytical views  |  222 REST route decorators in 24 routers
 12 data-quality rules across 6 dimensions, weighted score persisted per run
 34 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
-17 CLI commands  |  6 Docker Compose services  |  39 documents  |  120 Mermaid diagrams
+17 CLI commands  |  6 Docker Compose services  |  39 documents  |  128 Mermaid diagrams
 636 tests  |  104/104 API smoke checks  |  767 catalogued features
 ```
 
@@ -283,7 +293,7 @@ seeds a throwaway synthetic warehouse and fails if the audit accepts it.
 | Pipeline stages                          | 9 |
 | Docker Compose services                  | 6 |
 | Numbered documents                       | 39 |
-| Mermaid diagrams                         | 120 |
+| Mermaid diagrams                         | 128 |
 | Catalogued features (live API catalogue) | 767 |
 | Documented features (F-ID inventory)     | 612 |
 | Documented feature areas                 | 47 |
@@ -1050,6 +1060,86 @@ flowchart TB
         MY_DB --> GateKeeper
         GateKeeper --> Verdict["Verified: Identical Schemas, Identical DQ Scores, Zero Drift"]
     end
+```
+
+### Outbound HTTP Compliance and Bounded Retry Sequence
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant SRC as ProductSource Adapter
+    participant ROB as RobotsCache (RFC 9309)
+    participant LIM as Token-Bucket RateLimiter + CircuitBreaker
+    participant CSH as Conditional Disk Cache (ETag / 304)
+    participant NET as Permitted Upstream Host
+    participant LOG as ingestion_http_log
+
+    SRC->>ROB: Check robots.txt for URL + User-Agent
+    alt Disallowed (401/403 or Disallow rule)
+        ROB-->>SRC: Blocked -> ComplianceError
+        SRC->>LOG: Write blocked audit row
+    else Permitted or RFC 9309 fallback
+        SRC->>CSH: Check fresh body or stored validators
+        SRC->>LIM: Acquire per-host slot + check open circuit
+        LIM->>NET: GET URL (connect <= 8s, read <= 20s, total budget <= 45s)
+        alt HTTP 304 Not Modified
+            NET-->>SRC: Zero-byte revalidation -> serve cached body
+        else HTTP 200 OK
+            NET-->>LIM: Response payload -> reset breaker failures
+            LIM->>LOG: Persist status, bytes, latency, retry_count
+        else Timeout / 5xx before 45s total deadline
+            LIM->>LIM: Backoff retry only while clock + delay < 45s
+            LIM->>LOG: Record failure + trip breaker after threshold
+        end
+    end
+```
+
+### Authentication, RBAC and 2FA Request Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant UI as React 19 Client
+    participant AUTH as FastAPI /auth + /account
+    participant SEC as Argon2id + JWT + TOTP
+    participant RBAC as Role & API-Key Guard
+    participant AUD as app_audit_log
+
+    UI->>AUTH: POST /api/v1/auth/login (email, password, optional totp_code)
+    AUTH->>SEC: Verify Argon2id hash & lockout counter (5 attempts / 15m)
+    opt User enrolled in 2FA
+        SEC->>SEC: Verify HMAC TOTP or single-use recovery code
+    end
+    SEC-->>AUTH: Issue HS256 access token (12h) + rotating refresh token (30d)
+    AUTH-->>UI: Authenticated session context
+    UI->>RBAC: Protected API call (Bearer JWT or X-API-Key)
+    RBAC->>RBAC: Enforce route role (viewer < analyst < admin) + key scopes
+    RBAC->>AUD: Record actor, method, entity_type, IP, User-Agent
+```
+
+### Forecasting, Anomaly Detection and Morning Briefing
+
+```mermaid
+flowchart LR
+    SNAP[("fact_price_snapshot<br/>multi-day history")] --> HW["Damped Holt-Winters<br/>level + trend + damped horizon"]
+    SNAP --> DET["Three Anomaly Detectors<br/>rolling Z-score · IQR · sudden jump"]
+    SNAP --> ELAS["Category Elasticity &<br/>Price Band Advisor"]
+    CAT[("catalog_product +<br/>fact_catalog_snapshot")] --> BRIEF["Morning Briefing Engine<br/>GET /intelligence/briefing"]
+    HW --> BRIEF
+    DET --> BRIEF
+    ELAS --> BRIEF
+    CHG[("chg_price_change +<br/>dq_rule_result")] --> BRIEF
+    BRIEF --> UI["Ranked Action Cards<br/>opportunities · risks · anomalies · deep links"]
+```
+
+### Visual Query Builder, SQL Lab and Reporting Flow
+
+```mermaid
+flowchart TB
+    META["GET /builder/schema<br/>13 entities · 6 aggregates · 15 filter ops"] --> BLDR["POST /builder/query<br/>parameterised SQL compiler"]
+    LAB["POST /queries/execute<br/>SELECT-only AST validator + LIMIT clamp"] --> EXEC["Dialect-Portable Executor<br/>PostgreSQL 16 · MySQL 8.4 · SQLite"]
+    BLDR --> EXEC
+    EXEC --> RPT["Report & Export Pipeline<br/>HTML · JSON · CSV · XLSX · WeasyPrint PDF"]
 ```
 
 ---
@@ -1963,6 +2053,35 @@ These claims are testable rather than decorative. `scripts/api_smoke.py` asserts
 unauthenticated request to `/api/v1/products` returns `401`, and that a `viewer` attempting to
 trigger a pipeline run is denied.
 
+### Full REST API router atlas (24 routers · 222 operations)
+
+| Prefix | Tag | Routes | Primary capability |
+| --- | --- | :---: | --- |
+| `/` | `system` | 10 | Health probes, feature & team catalogues, live table inventory & version metadata |
+| `/auth` | `authentication` | 8 | Login, registration, JWT refresh rotation, logout, demo credentials, session meta |
+| `/account` | `account` | 10 | TOTP 2FA setup/verify, recovery codes, device session list & revocation |
+| `/users` | `users` | 20 | Profile preferences, API key creation/revocation, GDPR export, role administration |
+| `/products` | `products` | 11 | Faceted product search, type-ahead, category tree, history, dedupe & catalog links |
+| `/changes` | `changes` | 9 | Price change feed, top movers, lifecycle events, new/removed & category drift |
+| `/analytics` | `analytics` | 29 | KPI tiles, trends, category/brand leaderboards, category price index, CSV/SQL reports |
+| `/intelligence` | `intelligence` | 1 | Ranked Morning Briefing feed combining gaps, anomalies, and pricing guidance |
+| `/forecast` | `forecasting` | 8 | Damped Holt-Winters forecast, backtesting, anomalies, seasonality & price advice |
+| `/pipeline` | `pipeline` | 16 | Run history, comparison diffs, async/sync triggers, backfills, schedule & source health |
+| `/quality` | `data-quality` | 7 | Latest DQ verdict, rule catalogue across 6 dimensions, run results & 90-day trend |
+| `/reports` | `reports` | 6 | Report templates, structured JSON blocks, HTML preview & WeasyPrint PDF downloads |
+| `/catalog` | `catalog` | 7 | Internal SKU CRUD, bulk CSV/JSON import, market reconciliation & opportunities |
+| `/sources` | `sources` | 10 | Built-in & GUI-onboarded source CRUD, robots cache, pre-checks & raw preview |
+| `/queries` | `query-lab` | 8 | Read-only SQL console (`SELECT` enforced), view/table inventory & starter SQL |
+| `/builder` | `builder` | 2 | Visual no-code group-by, filter & aggregate query builder across 13 entities |
+| `/saved-views` | `saved-views` | 9 | Saved query & filter presets with shareable metadata & entity pinning |
+| `/` | `notifications` | 9 | Alert rules CRUD, live threshold evaluation & in-app notification inbox |
+| `/settings` | `settings` | 4 | System configuration lookup, grouped keys & admin updates |
+| `/` | `audit` | 5 | Immutable user audit trail, HTTP compliance log & posture summary |
+| `/export` | `export` | 5 | Universal dataset exports across CSV, JSON & Excel workbooks |
+| `/webhooks` | `webhooks` | 10 | HMAC-signed event subscriptions, secret rotation, test ping & delivery logs |
+| `/jobs` | `jobs` | 13 | Durable background exports/jobs, progress leases, cancellation & worker health |
+| `/stream` | `realtime` | 5 | Server-Sent Events (SSE) live stream updates & instant KPI snapshots |
+
 ---
 
 ## Testing and verification
@@ -2135,14 +2254,15 @@ Three conventions run through the whole codebase, so once you know them you can 
 
 ## Documentation
 
-All thirty-eight documents live in [docs/](docs/README.md). Every diagram is Mermaid and renders
-natively on GitHub; every structural number is tied to a runnable command.
+All thirty-nine documents live in [docs/](docs/README.md). Every diagram is Mermaid and renders
+natively on GitHub; every structural number is tied to a runnable command, and consolidated builds ship as a searchable HTML portal (`site/`), presentation deck (`docs/assets/deck.pdf`), infographic (`docs/assets/infographic.pdf`), and a `283`-page PDF (`Web-to-Warehouse-Product-Intelligence-Pipeline_Documentation.pdf`) with all 55 core & extended architecture diagrams rendered via high-DPI Chromium PNGs.
 
 Not sure which one to open? **[docs/README.md](docs/README.md) has a question-to-document
 map** - find the question, follow the arrow.
 
 | # | Document | Contents |
 | --- | --- | --- |
+| 00 | Team, Roles & Effort Split | team lane weights (`28 / 15 / 14 / 14 / 15 / 14%`), ownership map and acceptance criteria |
 | 01 | Project Proposal | problem, objectives, scope, stakeholders, acceptance criteria, budget, ethics |
 | 02 | Project Plan | 12-week Gantt chart, milestones, deliverables matrix, resources |
 | 03 | Roles and Responsibilities | team roles, RACI for deliverables, communication plan, hours log |
@@ -2184,8 +2304,10 @@ map** - find the question, follow the arrow.
 
 ### The documentation website
 
-All thirty-eight documents are also published as a browsable site, with client-side search, a dark mode
-that follows the system preference, and all 100+ Mermaid diagrams rendered to SVG:
+All thirty-nine documents and the landing page are hosted on GitHub Pages at
+**[https://ahmedbakr78.github.io/Web-to-Warehouse-Product-Intelligence-Pipeline/](https://ahmedbakr78.github.io/Web-to-Warehouse-Product-Intelligence-Pipeline/)**
+(deployed automatically by [.github/workflows/pages.yml](.github/workflows/pages.yml)) and can also
+be built locally with client-side search, light/dark themes, and all 128 Mermaid diagrams rendered to SVG:
 
 ```bash
 make site             # build ./site — standard library only, nothing to install
@@ -2246,6 +2368,9 @@ six-step guide with code is in docs/17.
 
 | Version | Theme | Highlights |
 | --- | --- | --- |
+| **v1.14.0** | Full GitHub Presence, GitHub Pages & Extended Diagrams | live GitHub Pages showcase + 39-doc portal deployment, 128 Mermaid diagrams across 40 files, complete 24-router API atlas in README, synchronized `website/index.html` & docs, updated release assets |
+| **v1.13.1** | Bounded HTTP Retry Budget & Readable PDF Diagrams | 45s outbound retry wall-clock deadline (`request_total_timeout_seconds`), `robots.txt` timeout cap, host-wide failure early-exit, `itunes_apps` CI smoke parity (6/6 CI green), and 283-page PDF with crisp high-DPI Chromium PNG diagrams |
+| **v1.13.0** | Analytics Demo Rollup & 375px Phone Polish | portable `median_price` & `agg_category_daily` rollup for both pipeline & `seed-demo` (fixing BUG-055 & demo analytics `$0`), `/compare` side-by-side workspace with Markdown copy, 375px phone toolbar wrapping & dropdown bounds |
 | **v1.12.0** | Truthful metrics, silent reload & mobile parity | every dashboard tile scoped to the same window, five previously-dead preferences wired end to end, a new exact-number display mode, the mobile drawer lock and resize bugs fixed, three window indexes added, the FX test made hermetic — 612 features, 625 tests |
 | **v1.11.0** | Morning Briefing & intelligence layer | ranked action queue, `GET /intelligence/briefing`, account briefing defaults, the 10x demo warehouse, mobile/theme polish |
 | **v1.10.0** | Ingestion Max | TVMaze + Archive.org + DummyJSON recipes, the Scrapy engine, conditional GET, the team API, the source catalogue |
@@ -2261,6 +2386,12 @@ The full history, including every fix, is in [CHANGELOG.md](CHANGELOG.md); the r
 published on GitHub. The release process — versioning, tagging, the GitHub About box, the topics
 list and the pre-flight checklist — is documented in
 **[docs/31_releases.md](docs/31_releases.md)**.
+
+### What's new in v1.14.0
+
+- **Live GitHub Pages Showcase + 39-Doc Portal:** Added automated Pages workflow ([.github/workflows/pages.yml](.github/workflows/pages.yml)) publishing both the rich interactive landing page (`website/index.html`) and the 42-page searchable documentation site (`site/`).
+- **128 Mermaid Diagrams & Readable 283-Page PDF:** Fixed WeasyPrint blank-text diagram rendering by compiling chapter diagrams into crisp Chromium PNGs, added 8 new architecture/sequence/quadrant/C4-dynamic/state diagrams across [README.md](README.md) and [docs/38_extended_diagram_suite.md](docs/38_extended_diagram_suite.md).
+- **Complete Repository Metadata & Verification:** Documented all 24 FastAPI routers (222 REST operations), synced `website/index.html`, `docs/README.md`, `docs/37_github_presence_and_about.md`, and automated GitHub About/Website/Topics/Release packaging in [scripts/github_polish.sh](scripts/github_polish.sh).
 
 ### What's new in v1.12.0
 
@@ -2320,7 +2451,7 @@ catalogue — so this table can never drift from the shipped record.
 
 | # | العضو (Member) | GitHub | الدور (Role) | الوزن (Weight) | المكون الأساسي (Main Component) |
 |---|---|---|---|:---:|---|
-| **1** | **Ahmed (78102)** | [@Ahmedbakr78](https://github.com/Ahmedbakr78) | Team Lead + Backend/API + Documentation + 9 ETL Stages Owner | **28%** | FastAPI + 37 Docs + 9 ETL Stages + Dual-Warehouse Integration |
+| **1** | **Ahmed (78102)** | [@Ahmedbakr78](https://github.com/Ahmedbakr78) | Team Lead + Backend/API + Documentation + 9 ETL Stages Owner | **28%** | FastAPI + 39 Docs + 9 ETL Stages + Dual-Warehouse Integration |
 | **2** | **Ahmed Abd alla** | [@01124758140](https://github.com/01124758140) | Ingestion & Compliance Lead | **15%** | robots.txt + 34 adapters + token-bucket rate limiter |
 | **3** | **Ahmed Medhat** | [@AhmedMedhatFarouk](https://github.com/AhmedMedhatFarouk) | ETL & Cleaning Lead | **14%** | 29-step cleaner + Deduplication engine + ETL support |
 | **4** | **Eng. Alaa Nasser** | [@AlaaNasser-tech](https://github.com/AlaaNasser-tech) | Database & Data Quality Lead | **14%** | 29 tables + 23 views + 12 automated DQ rules |
@@ -2345,13 +2476,13 @@ ownership, and every merge in the repository passes his review.
 - **Catalogues as code** — `app/core/features.py` maps to `GET /meta/features` and
   `app/core/team.py` maps to `GET /meta/team`: the dashboard, docs and website read
   the code, never a stale copy.
-- **Documentation architecture** — 31 numbered documents, 80+ Mermaid diagrams,
-  data dictionary, README/website/docs alignment, stats-drift CI that fails the
+- **Documentation architecture** — 39 numbered documents, 128 Mermaid diagrams,
+  data dictionary, README/website/PDF/docs alignment, stats-drift CI that fails the
   build when prose and code disagree.
 - **Release management** — semantic versioning, Keep-a-Changelog, annotated
   tags, GitHub releases; see [docs/31_releases.md](docs/31_releases.md).
-- **Quality gates** — ruff, mypy, pytest (632 tests), API smoke (104 checks),
-  cross-dialect parity, frontend typecheck/lint/vitest/build.
+- **Quality gates** — ruff, mypy, pytest (636 tests), API smoke (104 checks),
+  cross-dialect parity, frontend typecheck/lint/vitest/build (67 tests).
 
 Full file-level responsibility map: [CONTRIBUTORS.md](CONTRIBUTORS.md) · RACI matrix:
 [docs/03_roles_and_responsibilities.md](docs/03_roles_and_responsibilities.md) · team sheet:
@@ -2383,9 +2514,9 @@ Or: Repo, then Settings, then General, then Danger Zone, then Change visibility,
 
 **Cut a release:**
 ```bash
-git tag -a v1.11.0 -m "v1.11.0 — morning briefing and 10x demo warehouse"
-git push origin v1.11.0
-gh release create v1.11.0 --title "v1.11.0" --notes-file CHANGELOG.md
+git tag -a v1.14.0 -m "v1.14.0 — full GitHub presence, Pages, and 128-diagram documentation suite"
+git push origin v1.14.0
+gh release create v1.14.0 --title "v1.14.0" --notes-file CHANGELOG.md
 ```
 Full playbook: [docs/31_releases.md](docs/31_releases.md).
 

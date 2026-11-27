@@ -1,0 +1,53 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build static landing and documentation site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build 39-doc portal (static HTML + client-side search)
+        run: python3 scripts/build_site.py --out _pages/site
+
+      - name: Stage landing page, assets, and vendor scripts
+        run: |
+          mkdir -p _pages/website _pages/docs/assets
+          cp -r website/* _pages/website/
+          cp -r docs/assets/* _pages/docs/assets/
+          cp website/favicon.png website/logo.png _pages/
+          sed 's|\.\./docs/assets/|docs/assets/|g' website/index.html > _pages/index.html
+          touch _pages/.nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _pages
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

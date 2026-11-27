@@ -6,7 +6,7 @@ the README team table and the website team section all mirror that module.
 
 | # | Member | GitHub | Role | Weight | Main component |
 |---|--------|--------|------|-------|----------------|
-| 1 | Ahmed (78102) | [@Ahmedbakr78](https://github.com/Ahmedbakr78) | Team Lead + Backend/API + Documentation + 9 ETL Stages Owner | 28% | FastAPI + 37 Docs + 9 ETL Stages + Integration |
+| 1 | Ahmed (78102) | [@Ahmedbakr78](https://github.com/Ahmedbakr78) | Team Lead + Backend/API + Documentation + 9 ETL Stages Owner | 28% | FastAPI + 39 Docs + 9 ETL Stages + Integration |
 | 2 | Ahmed Abd alla | [@01124758140](https://github.com/01124758140) | Ingestion & Compliance Lead | 15% | robots.txt + 34 adapters + rate limiter |
 | 3 | Ahmed Medhat | [@AhmedMedhatFarouk](https://github.com/AhmedMedhatFarouk) | ETL & Cleaning Lead | 14% | 29-step cleaner + dedupe + ETL support |
 | 4 | Eng. Alaa Nasser | [@AlaaNasser-tech](https://github.com/AlaaNasser-tech) | Database & Data Quality Lead | 14% | 29 tables + 23 views + 12 DQ rules |
@@ -41,7 +41,7 @@ flowchart TB
         ETL["9-stage ETL<br/>CLI = API = Airflow"]
         INT["Integration transport<br/>in-process with REST fallback"]
         CAT["Catalogues as code<br/>features + team APIs"]
-        DOCS["37 docs + 101 diagrams<br/>README/website alignment"]
+        DOCS["39 docs + 128 diagrams<br/>README/website/PDF alignment"]
         REL["Releases + quality gates<br/>versions, tags, CI"]
         API --> ETL --> INT
         CAT --> DOCS --> REL
@@ -92,8 +92,8 @@ code actually does.
    SQLAlchemy version split between Airflow 2.10 and the application.
 4. **Catalogues as code** — `app/core/features.py` and `app/core/team.py`,
    exposed through `/meta/features` and `/meta/team`.
-5. **Documentation** — 37 numbered documents, 101 Mermaid diagrams, the
-   README, the website, and the statistics-drift CI job.
+5. **Documentation** — 39 numbered documents, 128 Mermaid diagrams, the
+   README, the website, the 283+ page PDF, and the statistics-drift CI job.
 6. **Releases** — `docs/31_releases.md`, the version files, the tags and the
    GitHub releases.
 7. **Quality gates** — the ruff, mypy, pytest, smoke, parity, frontend and

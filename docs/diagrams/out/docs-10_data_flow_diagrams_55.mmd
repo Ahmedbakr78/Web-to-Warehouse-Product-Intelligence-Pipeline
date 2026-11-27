@@ -1,0 +1,20 @@
+
+flowchart TD
+    START(["Run requested"]) --> HEALTH{"Database reachable?"}
+    HEALTH -->|"no"| STOP1(["Abort - status failed"])
+    HEALTH -->|"yes"| COMPLY{"At least one source<br/>passes robots and terms?"}
+    COMPLY -->|"no"| STOP2(["Abort before crawling"])
+    COMPLY -->|"yes"| LOOP["For each source"]
+    LOOP --> FETCH["Fetch under compliance gate"]
+    FETCH --> SRCERR{"Source error?"}
+    SRCERR -->|"yes"| WARN["Record warning - mark source failed"]
+    SRCERR -->|"no"| LOAD["Stage, prepare, resolve, load"]
+    WARN --> NEXT{"More sources?"}
+    LOAD --> NEXT
+    NEXT -->|"yes"| LOOP
+    NEXT -->|"no"| POST["Aggregates and catalog reconciliation"]
+    POST --> DQGATE{"Any critical DQ failure?"}
+    DQGATE -->|"yes"| FAILED(["Status failed"])
+    DQGATE -->|"no"| WARNED{"Any source failed?"}
+    WARNED -->|"yes"| PARTIAL(["Status partial"])
+    WARNED -->|"no"| OK(["Status success"])

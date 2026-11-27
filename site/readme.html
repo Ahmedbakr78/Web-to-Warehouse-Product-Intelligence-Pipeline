@@ -86,8 +86,8 @@
     </div>
     <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#which-document-answers-which-question">Which document answers which question</a></li><li class="lvl-2"><a href="#how-to-read-these-numbers">How to read these numbers</a></li><li class="lvl-2"><a href="#measured-facts-referenced-throughout">Measured facts referenced throughout</a></li><li class="lvl-2"><a href="#reading-order">Reading order</a></li><li class="lvl-2"><a href="#quick-commands">Quick commands</a></li><li class="lvl-2"><a href="#related">Related</a></li></ol></details>
     <article class="doc-body">
-<p>Web-to-Warehouse Product Intelligence Pipeline — DEPI graduation project, Data Engineering track. Thirty-eight documents covering the proposal, planning, requirements, design, implementation evidence and evaluation.</p>
-<p>Every diagram is Mermaid, rendered natively by GitHub and to SVG for the static site. Every structural number is measured by a script and re-verifiable with the command cited beside it.</p>
+<p>Web-to-Warehouse Product Intelligence Pipeline — DEPI graduation project, Data Engineering track. Thirty-nine documents covering the proposal, planning, requirements, design, implementation evidence, GitHub presence, extended diagrams, and evaluation.</p>
+<p>Every diagram is Mermaid, rendered natively by GitHub and to SVG/PNG for the static site and PDF deliverables. Every structural number is measured by a script and re-verifiable with the command cited beside it.</p>
 <pre class="mermaid">flowchart LR
     subgraph PLAN[&quot;Planning and evidence&quot;]
         D1[&quot;01 Proposal&quot;]
@@ -134,6 +134,8 @@
         D34[&quot;34 Performance&quot;]
         D35[&quot;35 GitHub presence&quot;]
         D36[&quot;36 Decision log&quot;]
+        D37[&quot;37 About &amp; release kit&quot;]
+        D38[&quot;38 Extended diagrams&quot;]
     end
     PLAN --&gt; DESIGN --&gt; BUILD --&gt; DEEP
     DEEP --&gt; EVIDENCE</pre>
@@ -423,7 +425,7 @@
 <td><code>http://localhost:8000/docs</code>, or <code>make stats</code></td>
 </tr>
 <tr>
-<th>632 tests pass</th>
+<th>636 tests pass</th>
 <td><code>make test</code></td>
 </tr>
 <tr>
@@ -439,7 +441,7 @@
 <td><code>make db-check</code></td>
 </tr>
 <tr>
-<th>104 Mermaid diagrams</th>
+<th>128 Mermaid diagrams</th>
 <td><code>make docs-render</code></td>
 </tr>
 <tr>
@@ -457,7 +459,7 @@
 </tr></thead><tbody>
 <tr>
 <th>Version</th>
-<td>1.13.1</td>
+<td>1.14.0</td>
 </tr>
 <tr>
 <td>Physical tables / analytical views</td>
@@ -481,7 +483,7 @@
 </tr>
 <tr>
 <td>Documentation documents / diagrams</td>
-<td>39 / 120 Mermaid, all rendering to SVG</td>
+<td>39 / 128 Mermaid, all rendering to SVG &amp; high-DPI PNG</td>
 </tr>
 <tr>
 <th>API regression suite</th>

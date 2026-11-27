@@ -304,21 +304,22 @@
         Run it locally
       </a>
       <a class="btn btn-ghost" href="#api">Explore the API</a>
+      <a class="btn btn-ghost" href="site/index.html">Open 39-Doc Portal</a>
     </div>
 
     <div class="stats">
       <div class="stat"><b>29</b><span>Warehouse tables</span></div>
       <div class="stat"><b>23</b><span>Analytical views</span></div>
       <div class="stat"><b>222</b><span>REST operations</span></div>
-      <div class="stat"><b>634</b><span>Automated tests</span></div>
+      <div class="stat"><b>636</b><span>Automated tests</span></div>
       <div class="stat"><b>34</b><span>Ingestion sources</span></div>
       <div class="stat"><b>767</b><span>Catalogued features</span></div>
-      <div class="stat"><b>12</b><span>Data-quality rules</span></div>
-      <div class="stat"><b>v1.13</b><span>Current release</span></div>
+      <div class="stat"><b>128</b><span>Mermaid diagrams</span></div>
+      <div class="stat"><b>v1.14</b><span>Current release</span></div>
     </div>
 
     <div class="verline">
-      <span class="pill">v1.13.0</span>
+      <span class="pill">v1.14.0</span>
       <span>Last updated 27 November 2026 — the version number lives in one file, <code class="mono">VERSION</code></span>
       <span class="pill">GNU AGPL-3.0 licensed</span>
       <span class="pill">DEPI · Data Engineering</span>
@@ -1656,7 +1657,7 @@ curl -X POST http://localhost:8000/api/v1/queries/execute \
       <div class="card">
         <h3>Ahmed (78102) — 28%</h3>
         <p>Team Lead + Backend/API + Documentation + 9 ETL Stages Owner. FastAPI platform, 9-stage ETL,
-           integration transport, catalogues as code, 34 docs, releases, quality gates, every review.</p>
+           integration transport, catalogues as code, 39 docs, 128 diagrams, releases, quality gates, every review.</p>
       </div>
       <div class="card">
         <h3>Ahmed Abd alla — 15%</h3>
@@ -1943,6 +1944,8 @@ make frontend-dev  # dashboard on :5173</pre>
     </div>
     <div class="table-wrap"><table class="tight">
       <tr><th>Version</th><th>Date</th><th>Highlights</th></tr>
+      <tr><td><span class="pill">v1.14.0</span></td><td class="nw">2026-11-27</td><td>Full GitHub Presence, automated GitHub Pages showcase + 39-doc portal (<code class="mono">.github/workflows/pages.yml</code>), 128 Mermaid diagrams across 40 files, complete 24-router REST API atlas in README, and synchronized project assets</td></tr>
+      <tr><td><span class="pill">v1.13.1</span></td><td class="nw">2026-11-27</td><td>Bounded 45 s outbound HTTP retry budget (<code class="mono">request_total_timeout_seconds</code>), host-wide early-exit across connectors, <code class="mono">itunes_apps</code> CI smoke parity (6/6 CI green), and 283-page consolidated PDF embedding 55 high-DPI Chromium PNG diagrams</td></tr>
       <tr><td><span class="pill">v1.13.0</span></td><td class="nw">2026-11-27</td><td>Green CI parity &amp; release polish — side-by-side <code class="mono">/compare</code> workspace, portable <code class="mono">median_price</code> + <code class="mono">agg_category_daily</code> seeding fix (resolving BUG-055 &amp; demo analytics $0), 375 px mobile toolbar wrapping, custom floating dropdown viewport bounds, Mermaid requirement diagram fix, and synchronized 39-doc / 120-diagram documentation suite</td></tr>
       <tr><td><span class="pill">v1.12.1</span></td><td class="nw">2026-10-21</td><td>Nothing in the product is a stub any more — a source can no longer be laundered into market data, a quality score is no longer invented for an unevaluated warehouse, the synthetic dataset is opt-in, migrations run on MySQL, the documentation's figures are checked rather than asserted, and the products screen opens six times faster</td></tr>
       <tr><td><span class="pill">v1.12.0</span></td><td class="nw">2026-10-21</td><td>Truthful metrics, silent reload &amp; mobile parity — every dashboard tile scoped to the same window, five previously-dead preferences wired end to end, a new exact-number display mode, the mobile drawer lock and resize bugs fixed, three window indexes added, the FX test made hermetic</td></tr>
@@ -2028,7 +2031,7 @@ make frontend-dev  # dashboard on :5173</pre>
         <div>
           <div class="badges">
             <span class="badge">Topics <b>etl · airflow · fastapi · react · postgres · mysql · data-quality · scraping · warehouse · dashboard</b></span>
-            <span class="badge">Releases <b>v1.9.0 to v1.13.0</b></span>
+            <span class="badge">Releases <b>v1.9.0 to v1.14.0</b></span>
             <span class="badge">License <b>GNU AGPL-3.0</b></span>
             <span class="badge">Track <b>DEPI Data Engineering</b></span>
             <span class="badge">Sources <b>34 registered, 35 modules</b></span>
@@ -2148,17 +2151,17 @@ web-scraping, data-visualization</pre>
       <div class="card">
         <h3>About — one paragraph</h3>
         <p>The short description shown at the top of the repository.</p>
-        <pre style="margin-top:12px">End-to-end DEPI capstone data-engineering pipeline: 34 registered web/API sources → 29-step cleaning → fuzzy dedupe → 29-table Kimball warehouse (PostgreSQL + MySQL, 23 analytics views) → 12 DQ rules → Airflow (33 tasks) → FastAPI (24 routers, 222 operations) → React 19 dashboard (23 screens, 767 features) with dark/light themes, PWA and mobile layout. GNU AGPL-3.0.</pre>
+        <pre style="margin-top:12px">DEPI Data Engineering Capstone: Compliance-first Web-to-Warehouse Product Intelligence — 34 sources, 29-step cleaner, 4-signal dedupe, 29-table PostgreSQL &amp; MySQL warehouse (23 views), 12 DQ rules, Airflow 2.10, FastAPI (24 routers, 222 ops), React 19 (23 screens, 767 features), 128 diagrams, 636 tests. AGPL-3.0.</pre>
       </div>
       <div class="card">
         <h3>Release description</h3>
         <p>What <code class="mono">gh release create</code> publishes for the current tag.</p>
-        <pre style="margin-top:12px">v1.13.0 — Green CI, Analytics Parity & Mobile Polish
+        <pre style="margin-top:12px">v1.14.0 — Full DEPI Capstone, Live Pages &amp; 128-Diagram Suite
 
-• Full Functional Parity: 11,680+ real canonical products &amp; 364k+ SCD-2 snapshots verified clean on PostgreSQL &amp; MySQL.
-• Analytics &amp; Comparison: Fixed demo agg_category_daily seeding + portable median_price (BUG-055) + interactive /compare workspace.
-• Mobile &amp; Dropdowns: Adaptive screen-bounded menus and wrapping toolbars across all 23 screens at 375 px.
-• Green CI: All 634 backend tests, 67 frontend tests, 120 Mermaid diagrams, and 39 synchronized documents pass cleanly.</pre>
+• Live Website &amp; 39-Doc Portal: Hosted automatically on GitHub Pages (.github/workflows/pages.yml).
+• Dual-Warehouse Parity: 29 tables, 23 views &amp; real observed snapshots verified clean on PostgreSQL 16 &amp; MySQL 8.4.
+• Readable PDF &amp; 128 Diagrams: 283-page PDF embedding 55 high-DPI Chromium PNG diagrams plus 128 rendered Mermaid SVGs.
+• All 6 CI Jobs Green: 636 backend tests, 67 frontend tests, 104/104 API smoke checks, ruff &amp; mypy clean.</pre>
       </div>
     </div>
   </div>
@@ -2167,7 +2170,7 @@ web-scraping, data-visualization</pre>
 <footer>
   <div class="wrap foot-in">
     <span>Web-to-Warehouse Product Intelligence Pipeline · built for a retailer's morning market picture.</span>
-    <span>GNU AGPL-3.0 licensed · DEPI Data Engineering · 767 features · 29 tables · 23 views · 222 API ops · 34 sources · 39 documents</span>
+    <span>GNU AGPL-3.0 licensed · DEPI Data Engineering · 767 features · 29 tables · 23 views · 222 API ops · 34 sources · 39 docs · 128 diagrams</span>
   </div>
 </footer>
 

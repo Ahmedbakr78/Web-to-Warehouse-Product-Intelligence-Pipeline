@@ -84,9 +84,9 @@
       <h1>Extended Diagram Suite</h1>
       <p>C4 context and container diagrams, journey, timeline, mindmap, pie, gitGraph and requirement traceability</p>
     </div>
-    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#1-c4--system-context">1. C4 — system context</a></li><li class="lvl-2"><a href="#2-c4--containers">2. C4 — containers</a></li><li class="lvl-2"><a href="#3-journey--analyst-experience">3. Journey — analyst experience</a></li><li class="lvl-2"><a href="#4-timeline--delivery-milestones">4. Timeline — delivery milestones</a></li><li class="lvl-2"><a href="#5-mindmap--capability-map">5. Mindmap — capability map</a></li><li class="lvl-2"><a href="#6-pie--warehouse-object-mix">6. Pie — warehouse object mix</a></li><li class="lvl-2"><a href="#7-gitgraph--branching-strategy">7. GitGraph — branching strategy</a></li><li class="lvl-2"><a href="#8-requirement--traceability">8. Requirement — traceability</a></li><li class="lvl-2"><a href="#why-these-eight">Why these eight</a></li></ol></details>
+    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#1-c4--system-context">1. C4 — system context</a></li><li class="lvl-2"><a href="#2-c4--containers">2. C4 — containers</a></li><li class="lvl-2"><a href="#3-journey--analyst-experience">3. Journey — analyst experience</a></li><li class="lvl-2"><a href="#4-timeline--delivery-milestones">4. Timeline — delivery milestones</a></li><li class="lvl-2"><a href="#5-mindmap--capability-map">5. Mindmap — capability map</a></li><li class="lvl-2"><a href="#6-pie--warehouse-object-mix">6. Pie — warehouse object mix</a></li><li class="lvl-2"><a href="#7-gitgraph--branching-strategy">7. GitGraph — branching strategy</a></li><li class="lvl-2"><a href="#8-requirement--traceability">8. Requirement — traceability</a></li><li class="lvl-2"><a href="#9-quadrant-chart--source-portfolio-posture-price-richness-vs-volatility">9. Quadrant chart — source portfolio posture (price richness vs. volatility)</a></li><li class="lvl-2"><a href="#10-sequence--airflow-sqlalchemy-14-to-fastapi-20-call_pipeline-bridge">10. Sequence — Airflow SQLAlchemy 1.4 to FastAPI 2.0 call_pipeline bridge</a></li><li class="lvl-2"><a href="#11-state-diagram--durable-background-job--backfill-lifecycle">11. State diagram — durable background job &amp; backfill lifecycle</a></li><li class="lvl-2"><a href="#12-c4--dynamic-interactive-intelligence--product-comparison-flow">12. C4 — dynamic interactive intelligence &amp; product comparison flow</a></li><li class="lvl-2"><a href="#why-these-twelve">Why these twelve</a></li></ol></details>
     <article class="doc-body">
-<p>The repository already contains more than one hundred Mermaid diagrams across <code>flowchart</code>, <code>sequenceDiagram</code>, <code>stateDiagram-v2</code>, <code>erDiagram</code>, <code>classDiagram</code>, <code>gantt</code> and <code>graph</code>. This document <strong>adds</strong> eight diagram types that were not used anywhere else, so the design is viewable from eight more angles. Every node below corresponds to a component that actually exists in this repository; nothing is invented.</p>
+<p>The repository already contains more than one hundred Mermaid diagrams across <code>flowchart</code>, <code>sequenceDiagram</code>, <code>stateDiagram-v2</code>, <code>erDiagram</code>, <code>classDiagram</code>, <code>gantt</code> and <code>graph</code>. This document <strong>adds</strong> twelve extended architecture, portfolio, orchestration, lifecycle, and traceability diagrams (<code>C4Context</code>, <code>C4Container</code>, <code>C4Dynamic</code>, <code>journey</code>, <code>timeline</code>, <code>mindmap</code>, <code>pie</code>, <code>gitGraph</code>, <code>requirementDiagram</code>, <code>quadrantChart</code>, <code>sequenceDiagram</code>, and <code>stateDiagram-v2</code>). Every node below corresponds to a component that actually exists in this repository; nothing is invented.</p>
 <p>All diagrams are valid Mermaid and are picked up automatically by <code>python3 scripts/diagrams.py extract</code>.</p>
 <hr>
 <h2 id="1-c4--system-context">1. C4 — system context</h2>
@@ -152,7 +152,7 @@
     section Harden
       12 DQ rules : 636 backend tests : 67 frontend tests : CI/CD
     section Ship
-      v1.13.1 release : 39 documents : Infographic : Demo video</pre>
+      v1.14.0 release : 39 documents : Infographic : Demo video</pre>
 <h2 id="5-mindmap--capability-map">5. Mindmap — capability map</h2>
 <pre class="mermaid">mindmap
   root((Product Intelligence))
@@ -203,7 +203,7 @@
     commit id: &quot;dashboard-themes&quot;
     checkout main
     merge develop
-    commit id: &quot;release&quot; tag: &quot;v1.13.1&quot;</pre>
+    commit id: &quot;release&quot; tag: &quot;v1.14.0&quot;</pre>
 <h2 id="8-requirement--traceability">8. Requirement — traceability</h2>
 <pre class="mermaid">requirementDiagram
     requirement FR001 {
@@ -241,7 +241,75 @@
     FR003 - satisfies -&gt; FR004
     NFR001 - satisfies -&gt; FR004</pre>
 <hr>
-<h2 id="why-these-eight">Why these eight</h2>
+<h2 id="9-quadrant-chart--source-portfolio-posture-price-richness-vs-volatility">9. Quadrant chart — source portfolio posture (price richness vs. volatility)</h2>
+<pre class="mermaid">quadrantChart
+    title Source Catalog Matrix — Price Richness vs. Volatility
+    x-axis Sparse Catalog Metadata --&gt; Full Price + Rating Feeds
+    y-axis Static / Batch Updates --&gt; High-Frequency Intraday Volatility
+    quadrant-1 Live Market Movers
+    quadrant-2 High-Velocity Monitors
+    quadrant-3 Reference &amp; Metadata Catalogs
+    quadrant-4 Structured Storefront APIs
+    Kraken Tickers: [0.88, 0.92]
+    Bitstamp Tickers: [0.82, 0.86]
+    CheapShark Deals: [0.86, 0.72]
+    Steam Store: [0.80, 0.62]
+    iTunes Apps: [0.84, 0.44]
+    OpenFoodFacts Prices: [0.72, 0.56]
+    Scryfall Cards: [0.68, 0.48]
+    PokemonTCG Cards: [0.66, 0.36]
+    Open Library: [0.22, 0.18]
+    Gutendex Books: [0.20, 0.14]
+    Internet Archive Texts: [0.25, 0.22]
+    Books to Scrape Sandbox: [0.64, 0.15]</pre>
+<h2 id="10-sequence--airflow-sqlalchemy-14-to-fastapi-20-call_pipeline-bridge">10. Sequence — Airflow SQLAlchemy 1.4 to FastAPI 2.0 <code>call_pipeline</code> bridge</h2>
+<pre class="mermaid">sequenceDiagram
+    autonumber
+    participant SCH as Airflow Scheduler (SQLAlchemy 1.4)
+    participant DAG as DAG product_intelligence_pipeline
+    participant API as FastAPI Service (SQLAlchemy 2.0)
+    participant ETL as 9-Stage Pipeline.run()
+    participant DB as PostgreSQL 16 / MySQL 8.4
+
+    SCH-&gt;&gt;DAG: Trigger daily schedule (0 3 * * *)
+    DAG-&gt;&gt;DAG: check_database_health (ShortCircuit)
+    DAG-&gt;&gt;DAG: check_source_compliance (robots.txt)
+    DAG-&gt;&gt;API: call_pipeline fallback POST /api/v1/pipeline/run/sync
+    API-&gt;&gt;ETL: Execute stages extract -&gt; stage -&gt; transform -&gt; resolve -&gt; load -&gt; detect -&gt; aggregate -&gt; reconcile -&gt; quality
+    ETL-&gt;&gt;DB: Commit immutable snapshots + DQ verdicts + audit rows
+    DB--&gt;&gt;API: PipelineResult counters &amp; timings
+    API--&gt;&gt;DAG: JSON summary (XCom)
+    DAG-&gt;&gt;DAG: branch_changes (notify_users vs skip_notifications)
+    DAG-&gt;&gt;API: publish_report (TriggerRule.ALL_DONE)</pre>
+<h2 id="11-state-diagram--durable-background-job--backfill-lifecycle">11. State diagram — durable background job &amp; backfill lifecycle</h2>
+<pre class="mermaid">stateDiagram-v2
+    [*] --&gt; queued: POST /jobs/export or /pipeline/backfill
+    queued --&gt; running: Worker claims lease (worker_id, heartbeat)
+    running --&gt; running: Stage progress emitted + SSE broadcast
+    running --&gt; cancelling: User requests cancel (cancel_requested=true)
+    cancelling --&gt; cancelled: Safe checkpoint reached
+    running --&gt; succeeded: All days / rows processed cleanly
+    running --&gt; failed: Unrecoverable exception or lease expired
+    failed --&gt; queued: Exponential retry within max_attempts
+    succeeded --&gt; [*]
+    cancelled --&gt; [*]</pre>
+<h2 id="12-c4--dynamic-interactive-intelligence--product-comparison-flow">12. C4 — dynamic interactive intelligence &amp; product comparison flow</h2>
+<pre class="mermaid">C4Dynamic
+    title Dynamic Flow — Analytics Rollup, Forecast &amp; Side-by-Side Comparison
+    Person(analyst, &quot;Analyst&quot;, &quot;Uses React 19 UI (/analytics, /forecast, /compare)&quot;)
+    Container(spa, &quot;React 19 SPA&quot;, &quot;TanStack Query + Recharts&quot;, &quot;Silent reload + URL state&quot;)
+    Container(api, &quot;FastAPI Routers&quot;, &quot;analytics, forecast, products&quot;, &quot;JWT + RBAC + Rate Limiter&quot;)
+    ContainerDb(wh, &quot;Kimball Warehouse&quot;, &quot;PostgreSQL 16 / MySQL 8.4&quot;, &quot;agg_category_daily, fact_price_snapshot&quot;)
+
+    Rel(analyst, spa, &quot;Selects 30d window &amp; compares 4 SKUs&quot;)
+    Rel(spa, api, &quot;1. GET /analytics/kpi + /categories&quot;)
+    Rel(api, wh, &quot;2. Reads rebuild_category_daily_aggregates() rollup &amp; views&quot;)
+    Rel(spa, api, &quot;3. GET /forecast/{id}?horizon=7&quot;)
+    Rel(api, wh, &quot;4. Runs damped Holt-Winters + Z-score anomaly scan&quot;)
+    Rel(spa, api, &quot;5. GET /products/{id} + /history (parallel)&quot;)
+    Rel(api, spa, &quot;6. JSON series rendered with Markdown export&quot;)</pre>
+<hr>
+<h2 id="why-these-twelve">Why these twelve</h2>
 <div class='table-scroll'><table><thead><tr>
 <th>Type</th>
 <th>Question it answers</th>
@@ -253,6 +321,10 @@
 <tr>
 <th>C4 container</th>
 <td>What runs where, and how do the pieces connect?</td>
+</tr>
+<tr>
+<th>C4 dynamic</th>
+<td>How do runtime UI requests resolve across API &amp; warehouse?</td>
 </tr>
 <tr>
 <th>Journey</th>
@@ -278,8 +350,20 @@
 <th>Requirement</th>
 <td>Which requirements trace to which guarantees?</td>
 </tr>
+<tr>
+<th>Quadrant</th>
+<td>How do all 34 sources split across richness and volatility?</td>
+</tr>
+<tr>
+<td>Sequence (Airflow bridge)</td>
+<td>How does Airflow 2.10 cleanly drive FastAPI across SQLAlchemy 1.4/2.0?</td>
+</tr>
+<tr>
+<th>State (background jobs)</th>
+<td>How do durable leases, cancellation, and retries behave?</td>
+</tr>
 </tbody></table></div>
-<p>Together with the existing flowchart / sequence / state / ER / class / Gantt diagrams, the project now covers the full design-documentation spectrum.</p>
+<p>Together with the existing flowchart / sequence / state / ER / class / Gantt diagrams, the project covers the complete architectural documentation spectrum.</p>
     </article>
     <div class="doc-foot">
       <span><a href="37_github_presence_and_about.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>GitHub Presence & About</a></span>

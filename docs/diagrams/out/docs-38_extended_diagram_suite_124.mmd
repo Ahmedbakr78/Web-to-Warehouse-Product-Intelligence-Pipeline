@@ -1,0 +1,19 @@
+
+sequenceDiagram
+    autonumber
+    participant SCH as Airflow Scheduler (SQLAlchemy 1.4)
+    participant DAG as DAG product_intelligence_pipeline
+    participant API as FastAPI Service (SQLAlchemy 2.0)
+    participant ETL as 9-Stage Pipeline.run()
+    participant DB as PostgreSQL 16 / MySQL 8.4
+
+    SCH->>DAG: Trigger daily schedule (0 3 * * *)
+    DAG->>DAG: check_database_health (ShortCircuit)
+    DAG->>DAG: check_source_compliance (robots.txt)
+    DAG->>API: call_pipeline fallback POST /api/v1/pipeline/run/sync
+    API->>ETL: Execute stages extract -> stage -> transform -> resolve -> load -> detect -> aggregate -> reconcile -> quality
+    ETL->>DB: Commit immutable snapshots + DQ verdicts + audit rows
+    DB-->>API: PipelineResult counters & timings
+    API-->>DAG: JSON summary (XCom)
+    DAG->>DAG: branch_changes (notify_users vs skip_notifications)
+    DAG->>API: publish_report (TriggerRule.ALL_DONE)

@@ -1,0 +1,12 @@
+
+stateDiagram-v2
+    [*] --> queued: POST /jobs/export or /pipeline/backfill
+    queued --> running: Worker claims lease (worker_id, heartbeat)
+    running --> running: Stage progress emitted + SSE broadcast
+    running --> cancelling: User requests cancel (cancel_requested=true)
+    cancelling --> cancelled: Safe checkpoint reached
+    running --> succeeded: All days / rows processed cleanly
+    running --> failed: Unrecoverable exception or lease expired
+    failed --> queued: Exponential retry within max_attempts
+    succeeded --> [*]
+    cancelled --> [*]

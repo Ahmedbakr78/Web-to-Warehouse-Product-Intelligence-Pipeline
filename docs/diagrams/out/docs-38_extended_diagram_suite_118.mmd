@@ -1,36 +1,14 @@
 
-requirementDiagram
-    requirement FR001 {
-        id: "FR-001"
-        text: "Respect robots.txt, rate limits and website terms"
-        risk: high
-        verifymethod: test
-    }
-    requirement FR002 {
-        id: "FR-002"
-        text: "Extract name, category, price, rating, availability and URL"
-        risk: medium
-        verifymethod: test
-    }
-    requirement FR003 {
-        id: "FR-003"
-        text: "Detect exact and fuzzy duplicate products"
-        risk: medium
-        verifymethod: test
-    }
-    requirement FR004 {
-        id: "FR-004"
-        text: "Store historical price snapshots and identify changes"
-        risk: high
-        verifymethod: test
-    }
-    requirement NFR001 {
-        id: "NFR-001"
-        text: "Serve light and dark themes with mobile-responsive navigation"
-        risk: low
-        verifymethod: test
-    }
-    FR001 - satisfies -> FR002
-    FR002 - satisfies -> FR003
-    FR003 - satisfies -> FR004
-    NFR001 - satisfies -> FR004
+timeline
+    title Delivery timeline
+    section Plan
+      Proposal and scope : Roles and RACI : Risk register : KPIs
+    section Design
+      Architecture : ERD and schema : DFD and UML : UI/UX tokens
+    section Build
+      Ingestion and compliance : Cleaning and dedupe : Warehouse and views
+      REST API : React dashboard : Airflow DAGs
+    section Harden
+      12 DQ rules : 636 backend tests : 67 frontend tests : CI/CD
+    section Ship
+      v1.14.0 release : 39 documents : Infographic : Demo video

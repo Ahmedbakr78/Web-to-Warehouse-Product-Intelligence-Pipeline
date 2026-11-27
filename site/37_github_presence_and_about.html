@@ -84,7 +84,7 @@
       <h1>GitHub Presence &amp; About</h1>
       <p>About text, topics, release notes, badges and repository polish workflow</p>
     </div>
-    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#1-about--short-description-github-about-field">1. About — short description (GitHub About field)</a></li><li class="lvl-2"><a href="#2-about--full-description-recommended-paste-verbatim">2. About — full description (recommended, paste verbatim)</a></li><li class="lvl-2"><a href="#3-website-paste-into-about--website">3. Website (paste into About → Website)</a></li><li class="lvl-2"><a href="#4-topics-paste-into-about--topics-in-this-order">4. Topics (paste into About → Topics, in this order)</a></li><li class="lvl-2"><a href="#5-badges-already-in-readme-keep-them-visible">5. Badges (already in README; keep them visible)</a></li><li class="lvl-2"><a href="#6-release-notes--v1121">6. Release notes — v1.12.1</a></li><li class="lvl-2"><a href="#7-commands--run-from-the-project-directory">7. Commands — run from the project directory</a></li><li class="lvl-2"><a href="#8-manual-touches-github-ui-only">8. Manual touches (GitHub UI only)</a></li><li class="lvl-2"><a href="#9-safety--what-is-never-touched">9. Safety — what is never touched</a></li></ol></details>
+    <details class="toc" open><summary>On this page</summary><ol><li class="lvl-2"><a href="#1-about--short-description-github-about-field">1. About — short description (GitHub About field)</a></li><li class="lvl-2"><a href="#2-about--full-description-recommended-paste-verbatim">2. About — full description (recommended, paste verbatim)</a></li><li class="lvl-2"><a href="#3-website-paste-into-about--website">3. Website (paste into About → Website)</a></li><li class="lvl-2"><a href="#4-topics-paste-into-about--topics-in-this-order">4. Topics (paste into About → Topics, in this order)</a></li><li class="lvl-2"><a href="#5-badges-already-in-readme-keep-them-visible">5. Badges (already in README; keep them visible)</a></li><li class="lvl-2"><a href="#6-release-notes--v1140">6. Release notes — v1.14.0</a></li><li class="lvl-2"><a href="#7-commands--run-from-the-project-directory">7. Commands — run from the project directory</a></li><li class="lvl-2"><a href="#8-manual-touches-github-ui-only">8. Manual touches (GitHub UI only)</a></li><li class="lvl-2"><a href="#9-safety--what-is-never-touched">9. Safety — what is never touched</a></li></ol></details>
     <article class="doc-body">
 <p>Everything needed to make the repository look complete on GitHub: the About description, topics, website, release notes, badges, and the exact commands. Nothing here deletes or overwrites content — every operation is additive. The only consequential change is the explicitly requested <strong>private</strong> visibility.</p>
 <p>Repository: &lt;<a href="https://github.com/Ahmedbakr78/Web-to-Warehouse-Product-Intelligence-Pipeline&gt;">https://github.com/Ahmedbakr78/Web-to-Warehouse-Product-Intelligence-Pipeline&gt;</a></p>
@@ -92,10 +92,10 @@
 <h2 id="1-about--short-description-github-about-field">1. About — short description (GitHub About field)</h2>
 <blockquote><p>Compliance-first product intelligence pipeline: permitted web/API ingestion → cleaning → deduplication → PostgreSQL warehouse with price history → SQL analytics → Airflow → FastAPI + React dashboard.</p></blockquote>
 <h2 id="2-about--full-description-recommended-paste-verbatim">2. About — full description (recommended, paste verbatim)</h2>
-<blockquote><p><strong>Web-to-Warehouse Product Intelligence Pipeline</strong> — a production-style DEPI Data Engineering capstone that continuously collects product information from <em>permitted</em> public web sources and merges it with an internal catalogue. It respects <code>robots.txt</code>, rate limits and website terms before it fetches a single record; cleans and normalises names, categories, prices, ratings and availability; detects exact and fuzzy duplicates; then loads a Kimball-style warehouse on <strong>PostgreSQL and MySQL</strong> with full price-history snapshots. SQL analytics answer price changes, new products, removed products and category drift, while <strong>Apache Airflow</strong> orchestrates the nine-stage run. A <strong>FastAPI</strong> service exposes 222 REST operations (OpenAPI/Swagger included) and a <strong>React 19</strong> dashboard renders 23 screens with light/dark/system themes, a mobile off-canvas sidebar and silent in-place reloads. 767 catalogued features · 34 registered sources · 12 enforced data-quality rules · 29 tables · 23 analytical views · 636 passing tests · 104/104 API smoke checks. Zero fake data: a dedicated audit proves every row traces back to a real, permitted source.</p></blockquote>
+<blockquote><p><strong>Web-to-Warehouse Product Intelligence Pipeline</strong> — a production-style DEPI Data Engineering capstone that continuously collects product information from <em>permitted</em> public web sources and merges it with an internal catalogue. It respects <code>robots.txt</code>, rate limits and website terms before it fetches a single record; cleans and normalises names, categories, prices, ratings and availability; detects exact and fuzzy duplicates; then loads a Kimball-style warehouse on <strong>PostgreSQL and MySQL</strong> with full price-history snapshots. SQL analytics answer price changes, new products, removed products and category drift, while <strong>Apache Airflow</strong> orchestrates the nine-stage run. A <strong>FastAPI</strong> service exposes 222 REST operations (OpenAPI/Swagger included) and a <strong>React 19</strong> dashboard renders 23 screens with light/dark/system themes, a mobile off-canvas sidebar and silent in-place reloads. 767 catalogued features · 34 registered sources · 12 enforced data-quality rules · 29 tables · 23 analytical views · 39 documents · 128 Mermaid diagrams · 636 passing tests · 104/104 API smoke checks. Zero fake data: a dedicated audit proves every row traces back to a real, permitted source.</p></blockquote>
 <h2 id="3-website-paste-into-about--website">3. Website (paste into About → Website)</h2>
 <pre class="code" data-lang=""><code>https://ahmedbakr78.github.io/Web-to-Warehouse-Product-Intelligence-Pipeline/</code></pre>
-<p>The source is the dependency-free landing page at <code>website/index.html</code> (light/dark/system themes).</p>
+<p>The live website showcases the <code>website/index.html</code> landing page alongside the 42-page searchable documentation portal (<code>site/</code>) deployed by <code>.github/workflows/pages.yml</code>.</p>
 <h2 id="4-topics-paste-into-about--topics-in-this-order">4. Topics (paste into About → Topics, in this order)</h2>
 <pre class="code" data-lang=""><code>web-scraping  beautifulsoup  scrapy  etl  data-engineering  airflow  postgresql
 fastapi  python  data-quality  deduplication  price-tracking  data-warehouse
@@ -136,30 +136,18 @@ kimball  data-modeling  robots-txt  data-governance  unit-testing</code></pre>
 <td>API smoke checks</td>
 </tr>
 </tbody></table></div>
-<h2 id="6-release-notes--v1121">6. Release notes — v1.12.1</h2>
-<pre class="code" data-lang="markdown"><code># v1.12.1 — &quot;Nothing is a stub any more&quot;
+<h2 id="6-release-notes--v1140">6. Release notes — v1.14.0</h2>
+<pre class="code" data-lang="markdown"><code># v1.14.0 — &quot;Full GitHub Presence, Live Pages &amp; 128-Diagram Suite&quot;
 
-The theme of this release is completeness: every panel is backed by real data,
-every control changes behaviour, and the documentation matches the code.
+Comprehensive DEPI Data Engineering capstone release featuring automated GitHub Pages hosting, 128 Mermaid diagrams, high-DPI readable PDF architecture blueprints, and 100% real-data verified dual-warehouse parity.
 
-## Added
-- 767 catalogued features across 46 areas, browsable in-app with search and export.
-- 222 REST operations with OpenAPI/Swagger, pagination, filtering and rate limiting.
-- 29 warehouse tables + 23 analytical views, on PostgreSQL and MySQL.
-- 12 enforced data-quality rules, 34 registered sources, Airflow DAG and backfill.
-- Light / dark / system themes, mobile off-canvas navigation, silent reloads.
-- Forecasting, anomaly detection, briefing, webhooks, 2FA, sessions, reports and exports.
-
-## Fixed
-- Portable variance sign in the analytics service and both SQL views.
-- Rating vote counts discarded for API sources.
-- Fake category-change events caused by cross-source category disagreement.
-- `make install` on a fresh clone (invalid `scrapy-rotating-proxies` pin).
-- Full verification no longer fails when an upstream tightens its robots.txt.
-
-## Verified
-- 632 backend tests, 67 frontend tests, ruff, mypy, typecheck, lint, production build.
-- Live real-source pipeline: no-fake audit CLEAN, every row traced to a permitted source.</code></pre>
+## Highlights
+- 767 catalogued features across 46 areas (612 documented engineering capabilities).
+- 222 REST operations across 24 FastAPI routers (OpenAPI/Swagger, JWT, RBAC, 2FA, webhooks).
+- 29 warehouse tables + 23 analytical views identical on PostgreSQL 16 &amp; MySQL 8.4.
+- 12 enforced data-quality rules, 34 registered sources, 14-task Airflow 2.10 DAG (33 task callables).
+- 39 documentation documents, 128 Mermaid diagrams (SVG + high-DPI PNG), 283+ page consolidated PDF, 12-slide deck, infographic &amp; demo video.
+- Verified: 636 backend tests, 67 frontend tests, 104/104 API smoke checks, 6/6 CI jobs green, no-fake audit CLEAN.</code></pre>
 <h2 id="7-commands--run-from-the-project-directory">7. Commands — run from the project directory</h2>
 <pre class="code" data-lang="bash"><code>cd ~/Downloads/Depi_Ahmed_Abobakr_Project
 gh auth status                 # must show &quot;Logged in as Ahmedbakr78&quot;

@@ -1,12 +1,13 @@
 # Documentation Index
 
 Web-to-Warehouse Product Intelligence Pipeline — DEPI graduation project, Data
-Engineering track. Thirty-eight documents covering the proposal, planning,
-requirements, design, implementation evidence and evaluation.
+Engineering track. Thirty-nine documents covering the proposal, planning,
+requirements, design, implementation evidence, GitHub presence, extended
+diagrams, and evaluation.
 
-Every diagram is Mermaid, rendered natively by GitHub and to SVG for the static
-site. Every structural number is measured by a script and re-verifiable with the
-command cited beside it.
+Every diagram is Mermaid, rendered natively by GitHub and to SVG/PNG for the static
+site and PDF deliverables. Every structural number is measured by a script and
+re-verifiable with the command cited beside it.
 
 ```mermaid
 flowchart LR
@@ -55,6 +56,8 @@ flowchart LR
         D34["34 Performance"]
         D35["35 GitHub presence"]
         D36["36 Decision log"]
+        D37["37 About & release kit"]
+        D38["38 Extended diagrams"]
     end
     PLAN --> DESIGN --> BUILD --> DEEP
     DEEP --> EVIDENCE
@@ -150,11 +153,11 @@ Structural figures are exact and re-verifiable:
 | --- | --- |
 | 29 tables, 23 views | `make bootstrap`, or `make stats` |
 | 222 REST operations in 24 routers | `http://localhost:8000/docs`, or `make stats` |
-| 632 tests pass | `make test` |
+| 636 tests pass | `make test` |
 | 104 API smoke checks pass | `.venv/bin/python scripts/api_smoke.py` |
 | ruff and mypy clean | `make lint` and `make typecheck` |
 | No schema drift | `make db-check` |
-| 104 Mermaid diagrams | `make docs-render` |
+| 128 Mermaid diagrams | `make docs-render` |
 | 12 DQ rules and the score | Quality screen, or `pip-cli quality` |
 
 `scripts/project_stats.py` recounts all of these, `scripts/check_stats.py` fails
@@ -174,13 +177,13 @@ named alongside.
 
 | Fact | Value |
 | --- | --- |
-| Version | 1.13.1 |
+| Version | 1.14.0 |
 | Physical tables / analytical views | 29 / 23, identical on PostgreSQL 16 and MySQL 8.4 |
 | REST operations / routers | 222 / 24 |
 | Feature inventory / runtime catalogue | 612 rows in 47 areas (`docs/19`) / 767 features in 46 groups (`GET /meta/features`) |
 | Data-quality rules / dimensions | 12 / 6, verdicts persisted per run |
 | Ingestion sources | 34 registered adapters: 31 JSON APIs, 2 HTML scrapers, 1 offline synthetic — 21 of them classified as real market data |
-| Documentation documents / diagrams | 39 / 120 Mermaid, all rendering to SVG |
+| Documentation documents / diagrams | 39 / 128 Mermaid, all rendering to SVG & high-DPI PNG |
 | API regression suite | 636 pytest cases, 67 frontend Vitest cases, 104 smoke checks |
 | Demo accounts | `admin@example.com` / `Admin@12345`, `analyst@example.com` / `Analyst@12345`, `viewer@example.com` / `Viewer@12345` |
 

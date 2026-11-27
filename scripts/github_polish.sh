@@ -1,20 +1,19 @@
 #!/usr/bin/env bash
 #
-# github_polish.sh — finalise the GitHub repository (About, topics, privacy,
-# release, social preview). Run this YOURSELF: it needs your GitHub login.
+# github_polish.sh — finalise the GitHub repository (About, topics, website,
+# visibility option, release + downloadable assets). Safe & idempotent.
 #
 #   gh auth login                 # once, in your own terminal
 #   ./scripts/github_polish.sh    # then this script
 #
-# Nothing here is destructive: the only consequential change is making the
-# repository private, which is the explicit request. Re-running is safe.
+# Nothing here deletes any file, branch, tag, release, or issue.
 #
 set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]:-$0}")/.."
 
 REPO="${GH_REPO:-Ahmedbakr78/Web-to-Warehouse-Product-Intelligence-Pipeline}"
-VERSION="$(cat VERSION 2>/dev/null || echo 1.13.1)"
+VERSION="$(cat VERSION 2>/dev/null || echo 1.14.0)"
 
 if ! gh auth status >/dev/null 2>&1; then
   echo "GitHub CLI is not authenticated. Run 'gh auth login' first, then re-run this script." >&2
@@ -33,12 +32,13 @@ else
   echo "==> 1/6 Preserving repository visibility: $CURRENT_VIS (pass MAKE_PRIVATE=true to make private)"
 fi
 
-echo "==> 2/6 About: description"
+echo "==> 2/6 About: description (<= 350 chars)"
 gh repo edit "$REPO" --description \
-  "End-to-end DEPI Data Engineering capstone: 34 permitted web/API sources → 29-step cleaner → 4-signal fuzzy dedupe → 29-table Kimball warehouse (PostgreSQL 16 & MySQL 8.4, 23 views) → 12 DQ rules → Airflow (33 tasks) → FastAPI (24 routers, 222 ops) → React 19 dashboard (23 screens, PWA). 100% real-data verified. AGPL-3.0."
+  "DEPI Data Engineering Capstone: Compliance-first Web-to-Warehouse Product Intelligence — 34 sources, 29-step cleaner, 4-signal dedupe, 29-table PostgreSQL & MySQL warehouse (23 views), 12 DQ rules, Airflow 2.10, FastAPI (24 routers, 222 ops), React 19 (23 screens, 767 features), 128 diagrams, 636 tests. AGPL-3.0."
 
-echo "==> 3/6 About: website"
-gh repo edit "$REPO" --homepage "https://github.com/Ahmedbakr78/Web-to-Warehouse-Product-Intelligence-Pipeline#readme"
+echo "==> 3/6 About: website (GitHub Pages showcase + 39-doc portal)"
+PAGES_URL="https://ahmedbakr78.github.io/Web-to-Warehouse-Product-Intelligence-Pipeline/"
+gh repo edit "$REPO" --homepage "$PAGES_URL"
 
 echo "==> 4/6 About: topics (20 top-tier keywords)"
 gh repo edit "$REPO" \
@@ -61,33 +61,53 @@ gh repo edit "$REPO" \
   --add-topic docker \
   --add-topic rest-api \
   --add-topic data-pipeline \
-  --add-topic sql-analytics 2>/dev/null || true
+  --add-topic data-visualization 2>/dev/null || true
 
 echo "==> 5/6 Release v$VERSION"
 if gh release view "v$VERSION" >/dev/null 2>&1; then
-  echo "    release v$VERSION already exists - skipped"
+  echo "    release v$VERSION already exists - updating assets only"
 else
   notes="$(mktemp)"
-  {
-    echo "# v$VERSION"
-    echo
-    echo "See [CHANGELOG.md](CHANGELOG.md) for the full list of changes."
-    echo
-    echo "- 636 backend tests / 67 frontend tests passing"
-    echo "- Live real-source verification: no-fake audit clean"
-    echo "- Light + dark themes, mobile responsive, silent reload"
-  } > "$notes"
-  git tag -a "v$VERSION" -m "v$VERSION - DEPI capstone release" 2>/dev/null || true
+  cat > "$notes" <<EOF
+# v$VERSION — DEPI Data Engineering Capstone Release
+
+Production-ready, compliance-first **Web-to-Warehouse Product Intelligence Pipeline** with live **PostgreSQL 16 + MySQL 8.4** dual-warehouse parity, **Apache Airflow 2.10.5** orchestration, **FastAPI** (`24` routers, `222` operations), **React 19** (`23` screens, Light/Dark/System themes, mobile PWA), and automated **GitHub Pages** docs portal.
+
+## Measured Scale & Quality (`v$VERSION`)
+| Metric | Value |
+| --- | --- |
+| Registered Sources | **34** (`20` auto-selected real permitted APIs + BeautifulSoup/Scrapy adapters) |
+| Kimball Warehouse | **29** physical tables · **23** analytical views (`PostgreSQL 16` & `MySQL 8.4`) |
+| Data Quality Engine | **12** enforced rules across **6** dimensions |
+| REST API Surface | **24** routers · **222** operations · JWT, 2FA TOTP, RBAC, Webhooks, SSE |
+| Feature Catalogue | **767** catalogued UI/API features · **612** documented F-IDs |
+| Documentation & Diagrams | **39** Markdown docs · **128** Mermaid diagrams (SVG + high-DPI PNG in PDF) |
+| Verification | **636** backend pytest cases · **67** Vitest tests · **104/104** API smoke checks · **6/6** CI jobs |
+
+## Included Deliverables
+- **Consolidated PDF Documentation (`283+` pages, high-DPI diagrams)** (`Project_Documentation.pdf` & `Web-to-Warehouse-Product-Intelligence-Pipeline_Documentation.pdf`)
+- **Executive Defence Deck (`12` slides)** (`deck.pdf`)
+- **Pipeline Architecture Infographic** (`infographic.pdf` & `infographic.png`)
+- **Live Website & Docs Portal:** $PAGES_URL
+
+See [CHANGELOG.md](CHANGELOG.md) for the complete version history.
+EOF
+  git tag -a "v$VERSION" -m "v$VERSION — DEPI Data Engineering Capstone release" 2>/dev/null || true
   git push origin "v$VERSION" 2>/dev/null || true
-  gh release create "v$VERSION" --title "v$VERSION" --notes-file "$notes"
+  gh release create "v$VERSION" --title "v$VERSION — Full DEPI Capstone, Live Pages & 128-Diagram Suite" --notes-file "$notes"
   rm -f "$notes"
 fi
 
+for asset in \
+  "Web-to-Warehouse-Product-Intelligence-Pipeline_Documentation.pdf" \
+  "docs/assets/Project_Documentation.pdf" \
+  "docs/assets/deck.pdf" \
+  "docs/assets/infographic.pdf" \
+  "docs/assets/infographic.png"; do
+  if [[ -f "$asset" ]]; then
+    gh release upload "v$VERSION" "$asset" --clobber >/dev/null && echo "    uploaded asset: $asset"
+  fi
+done
+
 echo "==> 6/6 Verify"
 gh repo view "$REPO" --json visibility,description,homepageUrl,repositoryTopics
-
-echo
-echo "Done. Remaining manual touches (GitHub UI only):"
-echo "  - Settings -> General -> Social preview -> upload an 1280x640 image"
-echo "  - Pin this repository on your profile"
-echo "  - GitHub Pages: Settings -> Pages -> Source = main / docs (optional)"
