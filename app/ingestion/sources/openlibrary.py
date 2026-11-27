@@ -56,11 +56,9 @@ class OpenLibraryBooksSource(ProductSource):
                 )
             except Exception as exc:  # a failing subject must not kill the run
                 self.errors.append(f"{subject}: {exc}")
-                # robots.txt / circuit decisions are host-wide: one block means
-                # every subject will be blocked. Fail fast instead of logging
-                # the same block five times.
-                message = str(exc).lower()
-                if any(marker in message for marker in ("robots", "circuit", "rate limited", "429")):
+                # Host-wide blocks (robots, circuit, quota, timeout) apply to
+                # every subject, so stop looping across the remaining subjects.
+                if self._is_host_wide_error(exc):
                     break
                 continue
 

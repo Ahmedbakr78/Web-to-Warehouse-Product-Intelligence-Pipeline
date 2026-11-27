@@ -16,7 +16,7 @@
   <img src="https://img.shields.io/badge/views-23-informational" alt="Views"/>
   <img src="https://img.shields.io/badge/REST%20operations-222-success" alt="REST operations"/>
   <img src="https://img.shields.io/badge/DQ%20rules-12-success" alt="Data quality rules"/>
-  <img src="https://img.shields.io/badge/unit%20tests-634%20passing-brightgreen" alt="Tests"/>
+  <img src="https://img.shields.io/badge/unit%20tests-636%20passing-brightgreen" alt="Tests"/>
   <img src="https://img.shields.io/badge/API%20smoke-104%2F104-brightgreen" alt="API smoke"/>
   <img src="https://img.shields.io/badge/ruff-0%20warnings-brightgreen" alt="ruff"/>
   <img src="https://img.shields.io/badge/CI-github%20actions-2088FF?logo=github-actions&logoColor=white" alt="CI"/>
@@ -267,7 +267,7 @@ seeds a throwaway synthetic warehouse and fails if the audit accepts it.
 12 data-quality rules across 6 dimensions, weighted score persisted per run
 34 ingestion sources  |  9 pipeline stages  |  33 Airflow task callables
 17 CLI commands  |  6 Docker Compose services  |  39 documents  |  120 Mermaid diagrams
-634 tests  |  104/104 API smoke checks  |  767 catalogued features
+636 tests  |  104/104 API smoke checks  |  767 catalogued features
 ```
 
 | Metric | Count |
@@ -287,7 +287,7 @@ seeds a throwaway synthetic warehouse and fails if the audit accepts it.
 | Catalogued features (live API catalogue) | 767 |
 | Documented features (F-ID inventory)     | 612 |
 | Documented feature areas                 | 47 |
-| Collected test cases                     | 634 |
+| Collected test cases                     | 636 |
 | API smoke checks                         | 104 |
 
 <!-- END:STATS -->
@@ -1971,7 +1971,7 @@ trigger a pipeline run is denied.
 | --- | --- | --- |
 | Lint and format | `make lint` | ruff: all checks pass, zero warnings |
 | Static types | `make typecheck` | mypy: no issues in 125 source files |
-| Unit tests | `make test` | pytest: 634 passed (SQLite warehouse, no services required) |
+| Unit tests | `make test` | pytest: 636 passed (SQLite warehouse, no services required) |
 | API regression | `.venv/bin/python scripts/api_smoke.py` | 104/104 checks, including auth, RBAC and 404 paths |
 | Frontend | `cd frontend && npm run lint && npm run typecheck && npm run build` | ESLint at zero warnings, clean tsc, production build |
 | Cross-dialect | `make verify-dialects` | identical model and DQ score on PostgreSQL and MySQL |

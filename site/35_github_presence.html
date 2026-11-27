@@ -375,7 +375,7 @@ docs(trust): document the three trust levels and the purge sweep</code></pre>
 <h3 id="the-release-checklist">The release checklist</h3>
 <p>Reproduced in full in <a href="31_releases.html#pre-flight-checklist">31 — Releases</a>. The short form, for a release that has to happen today:</p>
 <pre class="code" data-lang="bash"><code># 1. The version is propagated everywhere
-printf &#x27;1.13.0&#x27; &gt; VERSION &amp;&amp; .venv/bin/python scripts/sync_version.py
+printf &#x27;1.13.1&#x27; &gt; VERSION &amp;&amp; .venv/bin/python scripts/sync_version.py
 
 # 2. Every structural figure still matches the code
 .venv/bin/python scripts/check_stats.py docs/stats.json --write
@@ -386,10 +386,10 @@ printf &#x27;1.13.0&#x27; &gt; VERSION &amp;&amp; .venv/bin/python scripts/sync_
 ./run.sh --verify-only
 
 # 4. Publish
-git add -A &amp;&amp; git commit -m &quot;Release v1.13.0 — &lt;theme&gt;&quot;
-git tag -a v1.13.0 -m &quot;v1.13.0 — &lt;theme&gt;&quot;
+git add -A &amp;&amp; git commit -m &quot;Release v1.13.1 — &lt;theme&gt;&quot;
+git tag -a v1.13.1 -m &quot;v1.13.1 — &lt;theme&gt;&quot;
 git push &amp;&amp; git push --tags
-gh release create v1.13.0 --title &quot;v1.13.0 — &lt;theme&gt;&quot; --notes-file RELEASE_NOTES.md</code></pre>
+gh release create v1.13.1 --title &quot;v1.13.1 — &lt;theme&gt;&quot; --notes-file RELEASE_NOTES.md</code></pre>
 <h3 id="what-a-release-note-contains">What a release note contains</h3>
 <div class='table-scroll'><table><thead><tr>
 <th>Section</th>

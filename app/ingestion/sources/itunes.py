@@ -71,6 +71,8 @@ class ITunesAppsSource(ProductSource):
                 )
             except Exception as exc:  # a failing term must not kill the run
                 self.errors.append(f"term {term!r}: {exc}")
+                if self._is_host_wide_error(exc):
+                    break
                 continue
             items = payload.get("results") if isinstance(payload, dict) else None
             if not items:

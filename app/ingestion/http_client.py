@@ -156,7 +156,10 @@ class CompliantHttpClient:
         self.robots = get_robots_cache()
         self.proxy_url = settings.ingest_proxy_url
         self._client = httpx.Client(
-            timeout=settings.request_timeout_seconds,
+            timeout=httpx.Timeout(
+                settings.request_timeout_seconds,
+                connect=min(8.0, settings.request_timeout_seconds),
+            ),
             follow_redirects=True,
             proxy=self.proxy_url or None,
             headers={
@@ -304,6 +307,7 @@ class CompliantHttpClient:
             raise IngestionError(f"circuit breaker open for host {host}", details={"host": host})
 
         last_error: str | None = None
+        deadline = time.monotonic() + settings.request_total_timeout_seconds
         for attempt in range(settings.max_retries + 1):
             self.limiter.acquire(host, self.policy)
             started = time.perf_counter()
@@ -346,7 +350,8 @@ class CompliantHttpClient:
                 )
                 if response.status_code == 429 or response.status_code >= 500:
                     retry_after = _parse_retry_after(response.headers.get("Retry-After"))
-                    self.limiter.penalise(host, retry_after or settings.retry_backoff_seconds * (attempt + 1))
+                    delay = retry_after or settings.retry_backoff_seconds * (attempt + 1)
+                    self.limiter.penalise(host, delay)
                     last_error = f"HTTP {response.status_code}"
                     self._record(
                         full_url,
@@ -360,7 +365,11 @@ class CompliantHttpClient:
                         attempt,
                         last_error,
                     )
-                    if attempt < settings.max_retries and response.status_code in RETRYABLE_STATUS:
+                    if (
+                        attempt < settings.max_retries
+                        and response.status_code in RETRYABLE_STATUS
+                        and (response.status_code == 429 or time.monotonic() + delay < deadline)
+                    ):
                         # No extra sleep here: penalise() already pushed the
                         # host cooldown, and acquire() on the next attempt
                         # enforces it. Sleeping as well tripled waits (e.g.
@@ -406,8 +415,9 @@ class CompliantHttpClient:
                     attempt,
                     last_error,
                 )
-                if attempt < settings.max_retries:
-                    time.sleep(settings.retry_backoff_seconds * (2**attempt))
+                backoff = settings.retry_backoff_seconds * (2**attempt)
+                if attempt < settings.max_retries and time.monotonic() + backoff < deadline:
+                    time.sleep(backoff)
                     continue
                 self.breaker.record_failure(host)
                 raise IngestionError(f"request failed: {last_error}", details={"url": full_url}) from exc

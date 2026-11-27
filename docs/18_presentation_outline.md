@@ -55,7 +55,7 @@ flowchart LR
         S10["The dashboard<br/>light and dark, mobile"]
         S11["The API<br/>222 operations, OpenAPI"]
         S12["Documentation<br/>39 documents, 120 diagrams"]
-        S13["Testing<br/>634 tests, live smoke"]
+        S13["Testing<br/>636 tests, live smoke"]
     end
     subgraph CLOSE["Slides 14 to 18 - the close"]
         S14["Live demo<br/>three minutes"]

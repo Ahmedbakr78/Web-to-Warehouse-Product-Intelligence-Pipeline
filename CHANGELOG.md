@@ -4,6 +4,29 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.13.1] - 2026-11-27
+
+### Fixed
+
+- **Bounded outbound HTTP retry budget** (`app/ingestion/http_client.py`,
+  `app/core/config.py`, `app/ingestion/robots.py`): Added a 45-second per-request
+  total deadline (`request_total_timeout_seconds`), bounded TCP connect timeouts
+  to `min(8.0, request_timeout_seconds)`, capped `robots.txt` probe timeout at
+  `min(10.0, request_timeout_seconds)`, and shared host-wide failure early-exit
+  (`ProductSource._is_host_wide_error`) across multi-page connectors
+  (`openlibrary_books`, `itunes_apps`) so tarpitted upstreams fail cleanly inside
+  caller HTTP timeouts instead of blocking `90s+`.
+- **Reliable CI API smoke target** (`scripts/api_smoke.py`): Switched the live
+  preview and synchronous pipeline smoke checks from `gutendex_books` (now behind
+  Cloudflare Managed WAF with `Disallow: /books/` on `robots.txt`) to
+  `itunes_apps` (`itunes.apple.com` Akamai edge CDN), restoring all 104/104
+  API smoke assertions in CI.
+
+### Tests
+
+- Added regression tests in `tests/test_ratelimit.py` covering retry budget
+  expiration and host-wide error detection (total backend tests: 636).
+
 ## [1.13.0] - 2026-11-27
 
 ### Added

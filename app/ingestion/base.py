@@ -186,6 +186,24 @@ class ProductSource(abc.ABC):
     def _count_request(self) -> None:
         self.http_calls += 1
 
+    @staticmethod
+    def _is_host_wide_error(exc: Exception) -> bool:
+        """True when a failure applies to the whole host rather than one query."""
+        message = str(exc).lower()
+        return any(
+            marker in message
+            for marker in (
+                "robots",
+                "circuit",
+                "rate limited",
+                "429",
+                "readtimeout",
+                "connecttimeout",
+                "pooltimeout",
+                "timed out",
+            )
+        )
+
     # ------------------------------------------------------------------ contract
     @abc.abstractmethod
     def fetch(self, limit: int | None = None) -> Iterator[RawProduct]:

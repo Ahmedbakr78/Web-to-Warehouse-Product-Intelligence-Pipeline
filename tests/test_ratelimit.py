@@ -198,3 +198,52 @@ def test_the_compliance_policy_matches_what_the_code_does():
                 "not-applicable",
             }
         )
+
+
+def test_http_client_stops_retrying_when_total_timeout_budget_expired(monkeypatch, tmp_path):
+    """A stalled upstream fails cleanly within ``request_total_timeout_seconds`` instead of hanging."""
+    import httpx
+
+    from app.core.config import settings
+    from app.core.errors import IngestionError
+    from app.ingestion.http_client import CompliantHttpClient
+
+    calls = 0
+
+    def slow_fail(*_args, **_kwargs):
+        nonlocal calls
+        calls += 1
+        raise httpx.ReadTimeout("simulated upstream tarpit")
+
+    monkeypatch.setattr(settings, "request_total_timeout_seconds", 0.05)
+    monkeypatch.setattr(settings, "retry_backoff_seconds", 1.5)
+    monkeypatch.setattr(settings, "max_retries", 3)
+
+    client = CompliantHttpClient(
+        respect_robots=False,
+        use_cache=False,
+        cache_dir=tmp_path,
+        requests_per_second=100,
+        requests_per_minute=60_000,
+        min_delay_seconds=0,
+    )
+    monkeypatch.setattr(client._client, "get", slow_fail)
+    try:
+        try:
+            client.get("https://example.invalid/feed")
+            raise AssertionError("expected IngestionError on timeout")
+        except IngestionError as exc:
+            assert "ReadTimeout" in str(exc)
+        # Retrying would blow past the 0.05s total budget, so it must bail out after 1 attempt.
+        assert calls == 1
+    finally:
+        client.close()
+
+
+def test_product_source_detects_host_wide_errors():
+    """Host-level failures (robots, circuit, 429, timeouts) break multi-page loops cleanly."""
+    from app.ingestion.base import ProductSource
+
+    assert ProductSource._is_host_wide_error(RuntimeError("request failed: ReadTimeout: timed out")) is True
+    assert ProductSource._is_host_wide_error(RuntimeError("robots.txt forbids fetching")) is True
+    assert ProductSource._is_host_wide_error(RuntimeError("HTTP 500 on one record")) is False

@@ -116,6 +116,7 @@ class Settings(BaseSettings):
     )
     respect_robots_txt: bool = True
     request_timeout_seconds: float = 20.0
+    request_total_timeout_seconds: float = 45.0
     max_retries: int = 3
     retry_backoff_seconds: float = 1.5
     requests_per_second: float = 1.0

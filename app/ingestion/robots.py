@@ -71,7 +71,10 @@ class RobotsCache:
             headers={"User-Agent": self.user_agent, "Accept": "text/plain"},
         )
         try:
-            with urllib.request.urlopen(request, timeout=15) as response:
+            with urllib.request.urlopen(
+                request,
+                timeout=min(10.0, settings.request_timeout_seconds),
+            ) as response:
                 body = response.read().decode("utf-8", errors="replace")
         except urllib.error.HTTPError as exc:
             if exc.code in (401, 403):

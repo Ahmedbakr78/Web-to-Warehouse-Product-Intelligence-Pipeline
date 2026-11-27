@@ -14,7 +14,7 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]:-$0}")/.."
 
 REPO="${GH_REPO:-Ahmedbakr78/Web-to-Warehouse-Product-Intelligence-Pipeline}"
-VERSION="$(cat VERSION 2>/dev/null || echo 1.13.0)"
+VERSION="$(cat VERSION 2>/dev/null || echo 1.13.1)"
 
 if ! gh auth status >/dev/null 2>&1; then
   echo "GitHub CLI is not authenticated. Run 'gh auth login' first, then re-run this script." >&2
@@ -73,7 +73,7 @@ else
     echo
     echo "See [CHANGELOG.md](CHANGELOG.md) for the full list of changes."
     echo
-    echo "- 634 backend tests / 67 frontend tests passing"
+    echo "- 636 backend tests / 67 frontend tests passing"
     echo "- Live real-source verification: no-fake audit clean"
     echo "- Light + dark themes, mobile responsive, silent reload"
   } > "$notes"

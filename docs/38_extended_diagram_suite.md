@@ -87,9 +87,9 @@ timeline
       Ingestion and compliance : Cleaning and dedupe : Warehouse and views
       REST API : React dashboard : Airflow DAGs
     section Harden
-      12 DQ rules : 634 backend tests : 67 frontend tests : CI/CD
+      12 DQ rules : 636 backend tests : 67 frontend tests : CI/CD
     section Ship
-      v1.13.0 release : 39 documents : Infographic : Demo video
+      v1.13.1 release : 39 documents : Infographic : Demo video
 ```
 
 ## 5. Mindmap — capability map
@@ -152,7 +152,7 @@ gitGraph
     commit id: "dashboard-themes"
     checkout main
     merge develop
-    commit id: "release" tag: "v1.13.0"
+    commit id: "release" tag: "v1.13.1"
 ```
 
 ## 8. Requirement — traceability

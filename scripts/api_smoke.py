@@ -106,7 +106,7 @@ CHECKS: list[tuple[str, str, int, bool, str]] = [
     ("GET", "/api/v1/catalog/opportunities", 200, True, "pricing opportunities"),
     ("GET", "/api/v1/sources", 200, True, "source registry"),
     ("GET", "/api/v1/sources/robots", 200, True, "robots.txt cache"),
-    ("GET", "/api/v1/sources/gutendex_books/preview?limit=3", 200, True, "raw preview from a real source"),
+    ("GET", "/api/v1/sources/itunes_apps/preview?limit=3", 200, True, "raw preview from a real source"),
     ("GET", "/api/v1/queries/views", 200, True, "analytical views"),
     ("GET", "/api/v1/queries/tables", 200, True, "queryable tables"),
     ("GET", "/api/v1/queries/examples", 200, True, "starter queries"),
@@ -298,7 +298,7 @@ def run_checks(base_url: str, token: str, role_tokens: dict[str, str] | None = N
             # runs against the live warehouse, so it must not write generated
             # rows into it - a synthetic source would put fabricated products
             # next to genuinely observed ones.
-            payload = {"sources": ["gutendex_books"], "limit_per_source": 2, "trigger": "smoke_test"}
+            payload = {"sources": ["itunes_apps"], "limit_per_source": 2, "trigger": "smoke_test"}
 
         if needs_auth and not token:
             skipped += 1

@@ -223,6 +223,7 @@ hotfix that skips the changelog is a bug that will be reintroduced.
 
 | Version | Theme |
 |---|---|
+| 1.13.1 | Bounded outbound HTTP retry deadline, host-wide timeout early-exit, and `itunes_apps` CI smoke parity (6/6 CI jobs green) |
 | 1.13.0 | Green CI, portable `median_price` & `seed-demo` analytics rollup, 375px phone toolbar parity, `/compare` workspace, and synchronized 39-doc / 120-diagram documentation suite |
 | 1.12.1 | Nothing in the product is a stub: measured metrics, real-only ingestion, honest quality reporting, portable migrations, checked documentation |
 | 1.12.0 | Truthful metrics, silent reload & mobile parity; window indexes; hermetic test suite |
@@ -237,6 +238,7 @@ Full detail per version: `CHANGELOG.md`.
 
 | Version | The one thing it added |
 | --- | --- |
+| 1.13.1 | Bounded 45s outbound HTTP retry wall-clock budget and CDN-backed `itunes_apps` API smoke target |
 | 1.13.0 | Full green CI verification, demo analytics parity (`agg_category_daily`), `/compare` workspace, and phone layout completion |
 | 1.12.1 | The guarantee became checkable: a source can no longer be laundered into market data, a quality score can no longer be invented, and the documentation's figures are verified rather than asserted |
 | 1.12.0 | The dashboard stopped lying: one window for every tile, two labels for "products" and "observations", and five preferences that were saved but read by nobody |
