@@ -28,7 +28,16 @@ CHAPTERS = [
     ("06_literature_review.md", "Literature Review"),
     ("07_requirements_gathering.md", "Requirements Gathering"),
     ("08_system_analysis_design.md", "System Analysis & Design"),
+    ("09_database_design.md", "Database Design & ERDs"),
+    ("10_data_flow_diagrams.md", "Data Flow Diagrams (DFDs)"),
+    ("11_behaviour_diagrams.md", "Behaviour Diagrams (Sequence, State, Class)"),
+    ("12_ui_ux_design.md", "UI / UX Design System"),
+    ("13_deployment.md", "Deployment Topology & Docker Stack"),
+    ("14_api_documentation.md", "REST API Architecture"),
     ("15_testing_strategy.md", "Testing & Quality Assurance"),
+    ("16_user_manual.md", "User Manual"),
+    ("17_technical_documentation.md", "Technical Architecture Reference"),
+    ("38_extended_diagram_suite.md", "Extended Diagram Suite (C4, Mindmap, Traceability)"),
 ]
 
 
@@ -40,8 +49,14 @@ def _load_stats() -> dict[str, int]:
     return {k: v for k, v in data.items() if isinstance(v, int)}
 
 
+def _mmd_sort_key(path: Path) -> tuple[int, str]:
+    match = re.search(r"_(\d+)$", path.stem)
+    return (int(match.group(1)) if match else 0, path.name)
+
+
 def _render_pdf(output_paths: list[Path]) -> None:
     import build_site
+    import diagrams
     from weasyprint import HTML
 
     version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
@@ -50,22 +65,32 @@ def _render_pdf(output_paths: list[Path]) -> None:
 
     sections_html: list[str] = []
     diagram_dir = ROOT / "docs" / "diagrams" / "out"
+    rendered_diagrams = 0
     for filename, label in CHAPTERS:
         md_path = ROOT / "docs" / filename
         if not md_path.is_file():
             continue
         raw = md_path.read_text(encoding="utf-8")
         rendered = build_site.render_markdown(raw)
-        svgs = sorted(diagram_dir.glob(f"docs-{Path(filename).stem}_*.svg"))
-        svg_iter = iter(svgs)
+        # WeasyPrint drops HTML inside Mermaid's <foreignObject> labels when
+        # embedding SVGs directly, turning diagram shapes blank. Rendering each
+        # diagram via headless Chromium (mmdc) into a high-DPI PNG preserves every
+        # box label, subgraph title, ERD column, and sequence message verbatim.
+        mmds = sorted(diagram_dir.glob(f"docs-{Path(filename).stem}_*.mmd"), key=_mmd_sort_key)
+        mmd_iter = iter(mmds)
 
-        def _replace_mermaid(_match: re.Match[str], it=svg_iter) -> str:
-            svg = next(it, None)
-            if svg is None:
+        def _replace_mermaid(_match: re.Match[str], it=mmd_iter) -> str:
+            nonlocal rendered_diagrams
+            mmd = next(it, None)
+            if mmd is None:
                 return ""
+            png = mmd.with_suffix(".png")
+            diagrams.ensure_png(mmd, png, scale=2)
+            rendered_diagrams += 1
             return (
-                f'<div class="diagram-box"><img src="{html.escape(str(svg.resolve()))}" '
-                f'alt="{html.escape(svg.stem)}" style="max-width:100%;max-height:175mm;"/></div>'
+                '<div class="diagram-box">'
+                f'<img src="{html.escape(png.resolve().as_uri())}" alt="{html.escape(mmd.stem)}"/>'
+                "</div>"
             )
 
         body_html = re.sub(r'<pre class="mermaid">.*?</pre>', _replace_mermaid, rendered.body, flags=re.S)
@@ -73,6 +98,7 @@ def _render_pdf(output_paths: list[Path]) -> None:
             f'<section class="chapter"><div class="chapter-kicker">{html.escape(filename)} · {html.escape(label)}</div>'
             f"{body_html}</section>"
         )
+    print(f"embedded {rendered_diagrams} high-DPI diagram PNG(s)")
 
     cover = f"""
     <section class="cover">
@@ -204,6 +230,23 @@ def _render_pdf(output_paths: list[Path]) -> None:
     padding: 8pt;
     white-space: pre-wrap;
     border: 1px solid #e2e8f0;
+  }}
+  .diagram-box {{
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6pt;
+    padding: 6pt;
+    margin: 8pt 0 12pt 0;
+    text-align: center;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }}
+  .diagram-box img {{
+    max-width: 100%;
+    max-height: 205mm;
+    width: auto;
+    height: auto;
+    display: inline-block;
   }}
   .mermaid-card {{
     display: none;

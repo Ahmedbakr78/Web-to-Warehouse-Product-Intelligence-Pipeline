@@ -137,8 +137,57 @@ def _mmdc_path() -> str | None:
     return None
 
 
-def validate(diagrams: list[Diagram], *, render: bool = False) -> int:
-    """Parse-check every diagram. Returns a process exit code."""
+def _write_puppeteer_config(directory: Path) -> Path:
+    config = directory / "puppeteer.json"
+    config.write_text(
+        '{"args": [' + ", ".join(f'"{a}"' for a in PUPPETEER_ARGS) + "]}",
+        encoding="utf-8",
+    )
+    return config
+
+
+def _run_mmdc(
+    mmdc: str,
+    source_file: Path,
+    target: Path,
+    puppeteer_config: Path,
+    *,
+    png_scale: int = 2,
+) -> subprocess.CompletedProcess[str]:
+    cmd = [mmdc, "-i", str(source_file), "-o", str(target), "-p", str(puppeteer_config), "-q"]
+    if target.suffix.lower() == ".png":
+        cmd.extend(["-b", "white", "-s", str(png_scale)])
+    return subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        timeout=120,
+        stdin=subprocess.DEVNULL,
+    )
+
+
+def ensure_png(mmd_path: Path, png_path: Path, *, scale: int = 2) -> Path:
+    """Render ``mmd_path`` to a crisp white-background PNG if missing or stale."""
+    if png_path.is_file() and png_path.stat().st_mtime >= mmd_path.stat().st_mtime:
+        return png_path
+    mmdc = _mmdc_path()
+    if mmdc is None:
+        raise RuntimeError(
+            "Mermaid CLI (mmdc) not found; cannot render diagram PNGs for PDF "
+            "(install with: npm install --prefix /tmp/mmdc @mermaid-js/mermaid-cli)"
+        )
+    png_path.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory() as tmp:
+        config = _write_puppeteer_config(Path(tmp))
+        result = _run_mmdc(mmdc, mmd_path, png_path, config, png_scale=scale)
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout or "").strip()
+        raise RuntimeError(f"mmdc failed for {mmd_path.name}: {detail}")
+    return png_path
+
+
+def validate(diagrams: list[Diagram], *, render: bool = False, fmt: str = "svg", png_scale: int = 2) -> int:
+    """Parse-check every diagram (and optionally write SVG / PNG outputs). Returns exit code."""
     mmdc = _mmdc_path()
     if mmdc is None:
         print(
@@ -155,11 +204,7 @@ def validate(diagrams: list[Diagram], *, render: bool = False) -> int:
 
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
-        config = tmp_path / "puppeteer.json"
-        config.write_text(
-            '{"args": [' + ", ".join(f'"{a}"' for a in PUPPETEER_ARGS) + "]}",
-            encoding="utf-8",
-        )
+        config = _write_puppeteer_config(tmp_path)
 
         ok = 0
         failed: list[tuple[str, str]] = []
@@ -167,31 +212,36 @@ def validate(diagrams: list[Diagram], *, render: bool = False) -> int:
         for number, diagram in enumerate(diagrams, start=1):
             source_file = tmp_path / f"{number:03d}.mmd"
             source_file.write_text(diagram.body, encoding="utf-8")
-            target = OUT / f"{diagram.slug}_{number:02d}.svg" if render else tmp_path / f"{number:03d}.svg"
-
-            result = subprocess.run(
-                [mmdc, "-i", str(source_file), "-o", str(target), "-p", str(config), "-q"],
-                capture_output=True,
-                text=True,
-                timeout=120,
-                stdin=subprocess.DEVNULL,
+            targets = (
+                [
+                    OUT / f"{diagram.slug}_{number:02d}.{ext}"
+                    for ext in (("svg", "png") if fmt == "both" else (fmt,))
+                ]
+                if render
+                else [tmp_path / f"{number:03d}.svg"]
             )
 
-            if result.returncode == 0:
+            diagram_error: str | None = None
+            for target in targets:
+                result = _run_mmdc(mmdc, source_file, target, config, png_scale=png_scale)
+                if result.returncode != 0:
+                    detail = (result.stderr or result.stdout or "").strip().splitlines()
+                    diagram_error = "\n         ".join(detail[:5]) or "(no output)"
+                    break
+
+            if diagram_error is None:
                 ok += 1
                 print(f"  \033[32mok\033[0m   {diagram.label}")
             else:
-                detail = (result.stderr or result.stdout or "").strip().splitlines()
-                message = "\n         ".join(detail[:5]) or "(no output)"
-                failed.append((diagram.label, message))
-                print(f"  \033[31mFAIL\033[0m {diagram.label}\n         {message}")
+                failed.append((diagram.label, diagram_error))
+                print(f"  \033[31mFAIL\033[0m {diagram.label}\n         {diagram_error}")
 
     total = len(diagrams)
     print("\n" + "─" * 46)
     if not failed:
         print(f"\033[32mAll {total} diagrams parsed successfully.\033[0m")
         if render:
-            print(f"SVGs written to {OUT.relative_to(ROOT)}/")
+            print(f"Rendered ({fmt}) written to {OUT.relative_to(ROOT)}/")
         return 0
 
     print(f"\033[31m{len(failed)} of {total} diagrams failed to parse.\033[0m")
@@ -205,7 +255,19 @@ def main() -> int:
     parser.add_argument(
         "command",
         choices=("extract", "validate", "render"),
-        help="extract .mmd files, parse-check them, or render SVGs",
+        help="extract .mmd files, parse-check them, or render SVGs/PNGs",
+    )
+    parser.add_argument(
+        "--format",
+        choices=("svg", "png", "both"),
+        default="svg",
+        help="output format when running render (default: svg)",
+    )
+    parser.add_argument(
+        "--scale",
+        type=int,
+        default=2,
+        help="PNG raster scale factor when --format includes png (default: 2)",
     )
     args = parser.parse_args()
 
@@ -224,7 +286,7 @@ def main() -> int:
 
     if args.command == "render":
         extract(diagrams)
-        return validate(diagrams, render=True)
+        return validate(diagrams, render=True, fmt=args.format, png_scale=args.scale)
 
     return validate(diagrams)
 
