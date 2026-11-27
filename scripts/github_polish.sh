@@ -64,16 +64,14 @@ gh repo edit "$REPO" \
   --add-topic data-visualization 2>/dev/null || true
 
 echo "==> 5/6 Release v$VERSION"
-if gh release view "v$VERSION" >/dev/null 2>&1; then
-  echo "    release v$VERSION already exists - updating assets only"
-else
-  notes="$(mktemp)"
-  cat > "$notes" <<EOF
-# v$VERSION — DEPI Data Engineering Capstone Release
+PAGES_URL="https://ahmedbakr78.github.io/Web-to-Warehouse-Product-Intelligence-Pipeline/"
+notes="$(mktemp)"
+cat > "$notes" <<'EOF'
+# v__VERSION__ — DEPI Data Engineering Capstone Release
 
 Production-ready, compliance-first **Web-to-Warehouse Product Intelligence Pipeline** with live **PostgreSQL 16 + MySQL 8.4** dual-warehouse parity, **Apache Airflow 2.10.5** orchestration, **FastAPI** (`24` routers, `222` operations), **React 19** (`23` screens, Light/Dark/System themes, mobile PWA), and automated **GitHub Pages** docs portal.
 
-## Measured Scale & Quality (`v$VERSION`)
+## Measured Scale & Quality (`v__VERSION__`)
 | Metric | Value |
 | --- | --- |
 | Registered Sources | **34** (`20` auto-selected real permitted APIs + BeautifulSoup/Scrapy adapters) |
@@ -88,16 +86,23 @@ Production-ready, compliance-first **Web-to-Warehouse Product Intelligence Pipel
 - **Consolidated PDF Documentation (`283+` pages, high-DPI diagrams)** (`Project_Documentation.pdf` & `Web-to-Warehouse-Product-Intelligence-Pipeline_Documentation.pdf`)
 - **Executive Defence Deck (`12` slides)** (`deck.pdf`)
 - **Pipeline Architecture Infographic** (`infographic.pdf` & `infographic.png`)
-- **Live Website & Docs Portal:** $PAGES_URL
+- **Live Website & Docs Portal:** __PAGES_URL__
 
 See [CHANGELOG.md](CHANGELOG.md) for the complete version history.
 EOF
+sed -i -e "s|__VERSION__|$VERSION|g" -e "s|__PAGES_URL__|$PAGES_URL|g" "$notes"
+
+if gh release view "v$VERSION" >/dev/null 2>&1; then
+  gh release edit "v$VERSION" --title "v$VERSION — Full DEPI Capstone, Live Pages & 128-Diagram Suite" --notes-file "$notes"
+  echo "    updated notes for release v$VERSION"
+else
   git tag -a "v$VERSION" -m "v$VERSION — DEPI Data Engineering Capstone release" 2>/dev/null || true
   git push origin "v$VERSION" 2>/dev/null || true
   gh release create "v$VERSION" --title "v$VERSION — Full DEPI Capstone, Live Pages & 128-Diagram Suite" --notes-file "$notes"
-  rm -f "$notes"
 fi
+rm -f "$notes"
 
+assets=()
 for asset in \
   "Web-to-Warehouse-Product-Intelligence-Pipeline_Documentation.pdf" \
   "docs/assets/Project_Documentation.pdf" \
@@ -105,9 +110,12 @@ for asset in \
   "docs/assets/infographic.pdf" \
   "docs/assets/infographic.png"; do
   if [[ -f "$asset" ]]; then
-    gh release upload "v$VERSION" "$asset" --clobber >/dev/null && echo "    uploaded asset: $asset"
+    assets+=("$asset")
   fi
 done
+if (( ${#assets[@]} > 0 )); then
+  gh release upload "v$VERSION" "${assets[@]}" --clobber
+fi
 
 echo "==> 6/6 Verify"
 gh repo view "$REPO" --json visibility,description,homepageUrl,repositoryTopics
