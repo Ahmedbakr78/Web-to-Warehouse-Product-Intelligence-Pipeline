@@ -1,0 +1,18 @@
+# GitHub Sponsors
+#
+# This repository is an academic graduation project (DEPI, Data Engineering
+# track). It is not a commercial product and is not seeking sponsorship, so no
+# funding platform is configured here.
+#
+# Why the file exists at all: GitHub only shows the "Sponsor" button when a
+# FUNDING.yml names a platform, and an absent file is indistinguishable from an
+# oversight. Declaring "no funding" is a deliberate statement — the project is
+# MIT licensed, costs nothing to run, and has no paid dependencies.
+#
+# If sponsorship is ever wanted, add a platform here, for example:
+#
+#   github: [your-username]
+#   custom: ["https://example.com/sponsor"]
+#
+# Supported keys: github, patreon, open_collective, ko_fi, tidelift, liberapay,
+# issuehunt, community_bridge, polar, buy_me_a_coffee, thanks_dev, custom.

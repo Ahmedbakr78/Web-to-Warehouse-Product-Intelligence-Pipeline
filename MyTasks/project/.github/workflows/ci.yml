@@ -1,0 +1,313 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.12"
+  NODE_VERSION: "20"
+
+jobs:
+  # ---------------------------------------------------------------------------------
+  backend:
+    name: Backend (lint, types, tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip wheel
+          pip install -e ".[postgres,mysql,dev]"
+
+      - name: Ruff lint
+        run: ruff check app tests scripts dags
+
+      - name: Ruff format check
+        run: ruff format --check app tests
+
+      - name: Mypy (informational)
+        continue-on-error: true
+        run: mypy app --ignore-missing-imports
+
+      - name: Unit + integration tests (SQLite)
+        run: pytest -q --cov=app --cov-report=xml --cov-report=term
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          retention-days: 7
+
+  # ---------------------------------------------------------------------------------
+  databases:
+    name: PostgreSQL + MySQL parity
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: pip
+          POSTGRES_PASSWORD: pip
+          POSTGRES_DB: pipeline_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U pip" --health-interval 5s --health-timeout 5s --health-retries 20
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: pipeline_test
+          MYSQL_USER: pip
+          MYSQL_PASSWORD: pip
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -u root -proot" --health-interval 10s
+          --health-timeout 5s --health-retries 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip wheel
+          pip install -e ".[postgres,mysql,dev]"
+
+      - name: Bootstrap both databases
+        env:
+          DATABASE_URL: postgresql+psycopg2://pip:pip@127.0.0.1:5432/pipeline_test
+          MYSQL_URL: mysql+pymysql://pip:pip@127.0.0.1:3306/pipeline_test?charset=utf8mb4
+        run: |
+          python -m app.cli.main bootstrap --database postgres --days 30
+          python -m app.cli.main bootstrap --database mysql --days 30
+
+      - name: Run the pipeline on both targets
+        env:
+          DATABASE_URL: postgresql+psycopg2://pip:pip@127.0.0.1:5432/pipeline_test
+          MYSQL_URL: mysql+pymysql://pip:pip@127.0.0.1:3306/pipeline_test?charset=utf8mb4
+        run: |
+          python -m app.cli.main run-pipeline --database postgres --sources local_demo --limit 40
+          python -m app.cli.main run-pipeline --database mysql --sources local_demo --limit 40
+
+      - name: Cross-database verification
+        env:
+          DATABASE_URL: postgresql+psycopg2://pip:pip@127.0.0.1:5432/pipeline_test
+          MYSQL_URL: mysql+pymysql://pip:pip@127.0.0.1:3306/pipeline_test?charset=utf8mb4
+        run: python -m app.cli.main verify
+
+  # ---------------------------------------------------------------------------------
+  api:
+    name: REST API smoke test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: pip
+          POSTGRES_PASSWORD: pip
+          POSTGRES_DB: pipeline
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U pip" --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip wheel
+          pip install -e ".[postgres,dev]"
+
+      # WeasyPrint draws through pango/cairo, mirroring docker/api.Dockerfile.
+      # Without these the import fails and the report endpoints answer 501.
+      - name: Install PDF system libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libpango-1.0-0 libpangoft2-1.0-0 libcairo2 \
+            libgdk-pixbuf-2.0-0 libffi-dev shared-mime-info fonts-dejavu-core
+
+      - name: Bootstrap and seed
+        env:
+          DATABASE_URL: postgresql+psycopg2://pip:pip@127.0.0.1:5432/pipeline
+          MYSQL_URL: ""
+          SEED_ADMIN_EMAIL: admin@example.com
+          SEED_ADMIN_PASSWORD: Admin@12345
+        run: python -m app.cli.main bootstrap --days 30
+
+      - name: Smoke test every endpoint
+        env:
+          DATABASE_URL: postgresql+psycopg2://pip:pip@127.0.0.1:5432/pipeline
+          MYSQL_URL: ""
+          SEED_ADMIN_EMAIL: admin@example.com
+          SEED_ADMIN_PASSWORD: Admin@12345
+        run: python scripts/api_smoke.py --port 8099
+
+  # ---------------------------------------------------------------------------------
+  frontend:
+    name: Frontend (lint, typecheck, test, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: TypeScript
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test
+
+      - name: Production build
+        run: npm run build
+
+      - name: Upload the bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+          retention-days: 7
+  # ---------------------------------------------------------------------------------
+  docs:
+    name: Documentation (diagrams, links, site)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # A Mermaid syntax error would otherwise only surface as a broken image on
+      # github.com, long after review. This turns it into a build failure.
+      # The SVGs are written to the workspace rather than committed: they are 5 MB of
+      # derived output that goes stale on any edit.
+      - name: Render every Mermaid diagram to SVG
+        run: |
+          npm install --prefix "$RUNNER_TEMP/mermaid" @mermaid-js/mermaid-cli
+          # GITHUB_ENV only applies to *later* steps, so export for this shell too.
+          export MMDC_BIN="$RUNNER_TEMP/mermaid/node_modules/.bin/mmdc"
+          echo "MMDC_BIN=$MMDC_BIN" >> "$GITHUB_ENV"
+          test -x "$MMDC_BIN" || { echo "::error::mmdc missing after install"; exit 1; }
+          python3 scripts/diagrams.py render
+
+      # extract() wipes docs/diagrams/out, so the SVG count must be checked
+      # before the extract steps below — otherwise there is nothing to count.
+      - name: Confirm every diagram rendered
+        run: |
+          rendered=$(ls -1 docs/diagrams/out/*.svg | wc -l)
+          sources=$(ls -1 docs/diagrams/out/*.mmd | wc -l)
+          echo "$rendered SVG(s) from $sources source(s)"
+          if [ "$rendered" -lt "$sources" ]; then
+            echo "::error::only $rendered of $sources diagrams rendered"
+            exit 1
+          fi
+
+      - name: Extract diagrams
+        run: python3 scripts/diagrams.py extract
+
+      - name: Verify extracted .mmd sources are committed
+        run: |
+          python3 scripts/diagrams.py extract
+          if ! git diff --quiet -- docs/diagrams/out; then
+            echo "::error::docs/diagrams/out/*.mmd is stale. Run 'make docs-diagrams' and commit."
+            git --no-pager diff --stat -- docs/diagrams/out
+            exit 1
+          fi
+
+      # The infographic ships committed SVG/PNG/PDF artefacts; a stale commit
+      # would present last month's numbers as today's.
+      - name: Verify infographic artefacts are current
+        run: python3 scripts/make_infographic.py --check
+
+      # The site builder is deliberately dependency-free, so a plain python3 works.
+      - name: Build the documentation website
+        run: python3 scripts/build_site.py --out /tmp/site
+
+      - name: Check internal links and anchors
+        run: python3 scripts/check_links.py /tmp/site
+
+      - name: Upload the built site
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-site
+          path: /tmp/site
+          retention-days: 7
+
+  # ---------------------------------------------------------------------------------
+  stats:
+    name: Project statistics (documentation drift)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip wheel
+          pip install -e ".[postgres,mysql,dev]"
+
+      # Every structural figure quoted in the README and docs is measured here
+      # rather than maintained by hand. A count that has drifted is reported as a
+      # failure so the docs get corrected instead of quietly going stale.
+      - name: Measure structural counts
+        run: python3 scripts/project_stats.py --json | tee stats.json
+
+      - name: Compare against the figures recorded in the docs
+        run: python3 scripts/check_stats.py docs/stats.json
+
+      - name: Verify the generated block in README.md is current
+        run: |
+          python3 scripts/project_stats.py --sync-readme
+          if ! git diff --quiet -- README.md; then
+            echo "::error::The generated statistics block in README.md is stale."
+            git --no-pager diff -- README.md
+            exit 1
+          fi
